@@ -1,4 +1,5 @@
-@use "scss/_variables";
+@use 'scss/sizes';
+@use 'scss/_variables';
 @use '~kobo-common/src/styles/colors';
 
 /* ==========================================================================
@@ -82,7 +83,7 @@ textarea {
 }
 
 :focus {
-  outline: 1px solid colors.$kobo-blue;
+  outline: sizes.$x1 solid colors.$kobo-blue;
 }
 
 i {

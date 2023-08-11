@@ -27,6 +27,19 @@ import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollect
 import './assetActionButtons.scss';
 import {withRouter} from 'jsapp/js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import {
+  archiveAsset,
+  deleteAsset,
+  unarchiveAsset,
+  cloneAsset,
+  cloneAssetAsSurvey,
+  cloneAssetAsTemplate,
+  manageAssetSharing,
+  replaceAssetForm,
+  modifyAssetTags,
+  manageAssetLanguages,
+  manageAssetSettings
+} from 'jsapp/js/assetQuickActions';
 import {userCan} from 'js/components/permissions/utils';
 
 bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
@@ -36,8 +49,6 @@ bem.AssetActionButtons__iconButton = makeBem(
   'icon-button',
   'a'
 );
-
-const assetActions = mixins.clickAssets.click.asset;
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse;
@@ -125,27 +136,27 @@ class AssetActionButtons extends React.Component<
   // Methods for managing the asset
 
   modifyDetails() {
-    assetUtils.modifyDetails(this.props.asset);
+    manageAssetSettings(this.props.asset);
   }
 
   editLanguages() {
-    assetUtils.editLanguages(this.props.asset);
+    manageAssetLanguages(this.props.asset.uid);
   }
 
   share() {
-    assetUtils.share(this.props.asset);
+    manageAssetSharing(this.props.asset.uid);
   }
 
   showTagsModal() {
-    assetUtils.editTags(this.props.asset);
+    modifyAssetTags(this.props.asset);
   }
 
   replace() {
-    assetUtils.replaceForm(this.props.asset);
+    replaceAssetForm(this.props.asset);
   }
 
   delete() {
-    assetActions.delete(
+    deleteAsset(
       this.props.asset,
       assetUtils.getAssetDisplayName(this.props.asset).final,
       this.onDeleteComplete.bind(this, this.props.asset.uid)
@@ -153,7 +164,7 @@ class AssetActionButtons extends React.Component<
   }
 
   /**
-   * Navigates out of nonexistent paths after asset was successfuly deleted
+   * Navigates out of nonexistent paths after asset was successfully deleted
    */
   onDeleteComplete(assetUid: string) {
     if (isAnyLibraryItemRoute() && getRouteAssetUid() === assetUid) {
@@ -169,26 +180,26 @@ class AssetActionButtons extends React.Component<
   }
 
   archive() {
-    assetActions.archive(this.props.asset);
+    archiveAsset(this.props.asset);
   }
 
   unarchive() {
-    assetActions.unarchive(this.props.asset);
+    unarchiveAsset(this.props.asset);
   }
 
   clone() {
-    assetActions.clone(this.props.asset);
+    cloneAsset(this.props.asset);
   }
 
   cloneAsSurvey() {
-    assetActions.cloneAsSurvey(
+    cloneAssetAsSurvey(
       this.props.asset.uid,
       assetUtils.getAssetDisplayName(this.props.asset).final
     );
   }
 
   cloneAsTemplate() {
-    assetActions.cloneAsTemplate(
+    cloneAssetAsTemplate(
       this.props.asset.uid,
       assetUtils.getAssetDisplayName(this.props.asset).final
     );

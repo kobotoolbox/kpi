@@ -39,8 +39,8 @@ class AssetStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  /** Returns asset data (if exists). */
-  getAsset(assetUid: string) {
+  /** Returns asset object (if exists). */
+  getAsset(assetUid: string): AssetResponse | undefined {
     return this.data[assetUid];
   }
 

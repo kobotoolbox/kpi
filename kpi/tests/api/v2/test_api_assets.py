@@ -7,7 +7,6 @@ from io import StringIO
 
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.project_views.models.project_view import ProjectView
@@ -18,9 +17,8 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
 )
-from kpi.models import Asset
-from kpi.models import AssetFile
-from kpi.models import AssetVersion
+from kpi.models import Asset, AssetFile, AssetVersion
+from kpi.models.asset import AssetDeploymentStatus
 from kpi.serializers.v2.asset import AssetListSerializer
 from kpi.tests.base_test_case import (
     BaseAssetDetailTestCase,
@@ -202,11 +200,33 @@ class AssetListApiTests(BaseAssetTestCase):
             asset_type='template',
             content={},
         )
-        survey = Asset.objects.create(
+        deployed_survey = Asset.objects.create(
             owner=someuser,
-            name='survey',
+            name='Deployed survey',
             asset_type='survey',
         )
+        deployed_survey.deploy(backend='mock', active=True)
+
+        other_deployed_survey = Asset.objects.create(
+            owner=someuser,
+            name='Other deployed survey',
+            asset_type='survey',
+        )
+        other_deployed_survey.deploy(backend='mock', active=True)
+
+        archived_survey = Asset.objects.create(
+            owner=someuser,
+            name='Archived survey',
+            asset_type='survey',
+        )
+        archived_survey.deploy(backend='mock', active=False)
+
+        draft_survey = Asset.objects.create(
+            owner=someuser,
+            name='Draft survey',
+            asset_type='survey',
+        )
+
         another_collection = Asset.objects.create(
             owner=someuser,
             name='Someuser’s collection',
@@ -221,25 +241,34 @@ class AssetListApiTests(BaseAssetTestCase):
                 ]
             ]
 
-        # Default is by date_modified desc
+        # Default is by deployment_status (deployed, draft, archived), then
+        # date_modified desc
         expected_default_order = [
+            other_deployed_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
+            archived_survey.uid,
             another_collection.uid,
-            survey.uid,
             template.uid,
             collection.uid,
             question.uid,
         ]
+
         uids = uids_from_results()
         assert expected_default_order == uids
 
         # Sorted by name asc
         expected_order_by_name = [
             question.uid,
+            archived_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
             template.uid,
+            other_deployed_survey.uid,
             another_collection.uid,
-            survey.uid,
             collection.uid,
         ]
+
         uids = uids_from_results({'ordering': 'name'})
         assert expected_order_by_name == uids
 
@@ -248,8 +277,11 @@ class AssetListApiTests(BaseAssetTestCase):
             another_collection.uid,
             collection.uid,
             question.uid,
+            archived_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
             template.uid,
-            survey.uid,
+            other_deployed_survey.uid,
         ]
         uids = uids_from_results({
             'collections_first': 'true',
@@ -1668,6 +1700,10 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
         self.assertEqual(response2.data['deployment__active'], True)
         self.assertEqual(response2.data['has_deployment'], True)
+        assert (
+            response2.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_asset_redeployment(self):
         self.test_asset_deployment()
@@ -1723,6 +1759,14 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         })
 
         self.assertEqual(response1.data['asset']['deployment__active'], False)
+        assert (
+            response1.data['asset']['deployment_status']
+            == AssetDeploymentStatus.ARCHIVED.value
+        )
 
         response2 = self.client.get(self.asset_url, format='json')
         self.assertEqual(response2.data['deployment__active'], False)
+        assert (
+            response2.data['deployment_status']
+            == AssetDeploymentStatus.ARCHIVED.value
+        )
