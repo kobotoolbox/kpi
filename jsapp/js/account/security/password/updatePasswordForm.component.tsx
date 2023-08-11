@@ -11,6 +11,7 @@ import {notify} from 'js/utils';
 import type {FailResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
 import classnames from 'classnames';
+import {when} from 'mobx';
 
 const FIELD_REQUIRED_ERROR = t('This field is required.');
 
