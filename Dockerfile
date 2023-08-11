@@ -52,10 +52,11 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 # Install `apt` packages.                #
 ##########################################
 
-RUN apt-get -qq update && \
+RUN apt-get -qq update -y && \
     apt-get -qq -y install curl && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get -qq -y install --no-install-recommends \
+        npm \
         ffmpeg \
         gdal-bin \
         gettext \
@@ -106,6 +107,7 @@ WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
     npm install -g npm@8.5.5 && \
+    npm config set legacy-peer-deps true && \
     npm install -g check-dependencies && \
     npm install --quiet && \
     npm cache clean --force

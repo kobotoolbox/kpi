@@ -137,34 +137,44 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         # **Not** part of the OpenRosa API
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':
-            data = {
-                'server_url': reverse(viewname='assetsnapshot-detail',
+            # data = {
+            #     'server_url': reverse(viewname='assetsnapshot-detail',
+            #                           kwargs={'uid': snapshot.uid},
+            #                           request=request
+            #                           ),
+            #     'form_id': snapshot.uid
+            # }
+
+            # # Use Enketo API to create preview instead of `preview?form=`,
+            # # which does not load any form media files.
+            # response = requests.post(
+            #     f'{settings.ENKETO_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
+            #     # bare tuple implies basic auth
+            #     auth=(settings.ENKETO_API_TOKEN, ''),
+            #     data=data
+            # )
+            # response.raise_for_status()
+
+            # # Ask Celery to remove the preview from its XSLT cache after some
+            # # reasonable delay; see
+            # # https://github.com/enketo/enketo-express/issues/357
+            # enketo_flush_cached_preview.apply_async(
+            #     kwargs=data,  # server_url and form_id
+            #     countdown=settings.ENKETO_FLUSH_CACHED_PREVIEW_DELAY,
+            # )
+
+            # json_response = response.json()
+            # preview_url = json_response.get('preview_url')
+
+            preview_url = "{}{}?form={}".format(
+                              settings.ENKETO_URL,
+                              settings.ENKETO_PREVIEW_URI,
+                              reverse(viewname='assetsnapshot-detail',
+                                      format='xml',
                                       kwargs={'uid': snapshot.uid},
                                       request=request
                                       ),
-                'form_id': snapshot.uid
-            }
-
-            # Use Enketo API to create preview instead of `preview?form=`,
-            # which does not load any form media files.
-            response = requests.post(
-                f'{settings.ENKETO_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
-                # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
-                data=data
-            )
-            response.raise_for_status()
-
-            # Ask Celery to remove the preview from its XSLT cache after some
-            # reasonable delay; see
-            # https://github.com/enketo/enketo-express/issues/357
-            enketo_flush_cached_preview.apply_async(
-                kwargs=data,  # server_url and form_id
-                countdown=settings.ENKETO_FLUSH_CACHED_PREVIEW_DELAY,
-            )
-
-            json_response = response.json()
-            preview_url = json_response.get('preview_url')
+                            )
 
             return HttpResponseRedirect(preview_url)
         else:
