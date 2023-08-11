@@ -762,6 +762,8 @@ export interface EnvironmentResponse {
   social_apps: SocialApp[];
   free_tier_thresholds: FreeTierThresholds;
   free_tier_display: FreeTierDisplay;
+  enable_custom_password_guidance_text: boolean;
+  custom_password_localized_help_text: string;
   enable_password_entropy_meter: boolean;
 }
 
