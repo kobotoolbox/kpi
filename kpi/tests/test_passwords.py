@@ -168,7 +168,7 @@ class PasswordTestCase(BaseTestCase):
 
         password = 'spongy bob'
         error = self._run_validation(password)
-        assert 'The password is too similar to the full_name' in error
+        assert 'The password is too similar to the full name' in error
 
         password = 'some@username.com'
         error = self._run_validation(password)
@@ -194,7 +194,7 @@ class PasswordTestCase(BaseTestCase):
 
         password = 'johnnydoe'
         error = self._run_validation(password, new_user)
-        assert 'The password is too similar to the full_name' in error
+        assert 'The password is too similar to the full name' in error
 
         password = 'jd_2023'
         error = self._run_validation(password, new_user)
@@ -202,7 +202,7 @@ class PasswordTestCase(BaseTestCase):
 
         password = 'unkn0wnBus1ness'
         error = self._run_validation(password, new_user)
-        assert 'The password is too similar to the organization' in error
+        assert 'The password is too similar to the organization name' in error
 
     @override_config(
         ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=True,

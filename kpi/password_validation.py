@@ -57,7 +57,7 @@ class CommonPasswordValidator(BaseCommonPasswordValidator):
 
     def get_help_text(self):
         if not config.ENABLE_COMMON_PASSWORD_VALIDATION:
-            return
+            return ''
 
         return super().get_help_text()
 
@@ -75,7 +75,7 @@ class MinimumLengthValidator(BaseMinimumLengthValidator):
 
     def get_help_text(self):
         if not config.ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION:
-            return
+            return ''
 
         self.min_length = config.MINIMUM_PASSWORD_LENGTH
         return super().get_help_text()
@@ -98,12 +98,17 @@ class MostRecentPasswordValidator:
 
     def get_help_text(self):
         if not config.ENABLE_MOST_RECENT_PASSWORD_VALIDATION:
-            return
+            return ''
 
         return t('Your password cannot be the same as your previous one.')
 
 
 class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
+
+    I18N_EXTRA_ATTRIBUTES_MAPPING = {
+        'full_name': t('Full name'),
+        'organization': t('Organization name'),
+    }
 
     def validate(self, password, user=None):
         if not config.ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION:
@@ -128,7 +133,22 @@ class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
                     user_extra_details.data.get('organization', ''),
                 )
 
-        super().validate(password, user)
+        try:
+            super().validate(password, user)
+        except ValidationError as e:
+            # if field is one of the extra attributes, raise another error
+            # with the translated version
+            message = e.messages[0]
+            for (
+                extra_attribute,
+                translation,
+            ) in self.I18N_EXTRA_ATTRIBUTES_MAPPING.items():
+                if extra_attribute in message:
+                    raise ValidationError(
+                        message.replace(extra_attribute, translation.lower())
+                    )
+
+            raise e
 
 
 class CustomRulesValidator:
@@ -157,6 +177,6 @@ class CustomRulesValidator:
 
     def get_help_text(self):
         if not config.ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION:
-            return
+            return ''
 
         return I18nUtils.get_custom_password_help_text()

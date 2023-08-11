@@ -91,7 +91,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
-    'hub',
+    'hub.HubAppConfig',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -247,14 +247,17 @@ CONSTANCE_CONFIG = {
             )
         }),
         (
-            'JSON object of guidance messages presented to users when they '
-            'click the "Problems with the token" link after being prompted for '
-            'their verification token. Markdown syntax is supported, and '
-            '`##support email##` will be replaced with the value of the '
-            '`SUPPORT_EMAIL` setting on this page.\n'
+            'Guidance message presented when users click the '
+            '"Problems with the token" link.\n\n'
+            '`##support email##` is a placeholder for the `SUPPORT_EMAIL` '
+            'setting.\n'
+            'Markdown syntax is supported.\n'
+            'The “default” message will be used if no translations are provided.'
+            ' The “default” should be in English.\n'
             'To add messages in other languages, follow the example of '
-            '`some-other-language`, but use a valid language code (e.g. `fr` '
-            'for French).'
+            '“some-other-language“, but replace “some-other-language“ with a '
+            'valid language code (e.g. “fr“ for French).'
+
         ),
         # Use custom field for schema validation
         'i18n_text_jsonfield_schema'
@@ -359,9 +362,9 @@ CONSTANCE_CONFIG = {
         'positive_int_minus_one',
     ),
     # Toggle for ZXCVBN
-    'ENABLE_ZXCVBN_PASSWORD_VALIDATION': (
+    'ENABLE_PASSWORD_ENTROPY_METER': (
         True,
-        'Enables the dropbox library zxcvbn for password validation.',
+        'Display an entropy meter and password quality suggestions whenever users change their passwords.',
     ),
     'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION': (
         True,
@@ -437,11 +440,14 @@ CONSTANCE_CONFIG = {
             ),
         }),
         (
-            'Create custom guidance text for password complexity. '
-            'The contents of the message should reflect the password complexity rules '
-            'as set in Constance. '
-            '"default" is the fallback language, and will be used if no translation are provided '
-            'and should be in English.'
+            'Guidance message presented when users create or modify a password. '
+            'It should reflect the defined password rules.\n\n'
+            'Markdown syntax is supported.\n'
+            'The “default” message will be used if no translations are provided.'
+            ' The “default” should be in English.\n'
+            'To add messages in other languages, follow the example of '
+            '“some-other-language“, but replace “some-other-language“ with a '
+            'valid language code (e.g. “fr“ for French).'
         ),
         'i18n_text_jsonfield_schema',
     ),
@@ -528,7 +534,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'OPERATIONAL_PURPOSE_CHOICES',
     ),
     'Password Validation': (
-        'ENABLE_ZXCVBN_PASSWORD_VALIDATION',
+        'ENABLE_PASSWORD_ENTROPY_METER',
         'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
         'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
         'ENABLE_COMMON_PASSWORD_VALIDATION',
@@ -767,6 +773,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
+                'kpi.context_processors.custom_password_guidance_text',
                 'kpi.context_processors.external_service_tokens',
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
