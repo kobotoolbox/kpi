@@ -31,7 +31,9 @@ export default function UpdatePasswordForm() {
     string | undefined
   >();
 
-  useEffect(() => setIsEnvStoreReady(true), [envStore.isReady]);
+  useEffect(() => {
+    when(() => envStore.isReady).then(() => setIsEnvStoreReady(true));
+  }, []);
 
   async function savePassword() {
     let hasErrors = false;
