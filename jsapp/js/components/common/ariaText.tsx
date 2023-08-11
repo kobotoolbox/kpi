@@ -17,7 +17,7 @@ const AriaText = (props: AriaTextProps) => (
     <span aria-hidden className={props.classNames}>
       {props.uiText}
     </span>
-    <span className={'visuallyhidden'}>{props.screenReaderText}</span>
+    <span className='visuallyhidden'>{props.screenReaderText}</span>
   </>
 );
 

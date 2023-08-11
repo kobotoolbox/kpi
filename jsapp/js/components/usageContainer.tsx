@@ -39,7 +39,7 @@ const UsageContainer = ({
       </strong>
       {!usage && (
         <AriaText
-          uiText={'-'}
+          uiText='-'
           screenReaderText={t('none')}
           classNames={classnames(styles.usageRow, styles.empty)}
         />
@@ -51,17 +51,15 @@ const UsageContainer = ({
             [styles.overlimit]: isOverLimit,
           })}
         >
-          {isNearingLimit && (
-            <Icon name={'warning'} color={'amber'} size={'m'} />
-          )}
-          {isOverLimit && <Icon name={'warning'} color={'red'} size={'m'} />}
+          {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
+          {isOverLimit && <Icon name='warning' color='red' size='m' />}
           <strong>
             {isStorage ? prettyBytes(usage) : usage.toLocaleString()}
           </strong>
           {limit !== 'unlimited' && limit && (
             <>
               {' '}
-              <AriaText uiText={'/'} screenReaderText={t('used out of')} />{' '}
+              <AriaText uiText='/' screenReaderText={t('used out of')} />{' '}
               <span>
                 {isStorage ? prettyBytes(limit) : limit.toLocaleString()}
               </span>
