@@ -726,7 +726,7 @@ CSP_IMG_SRC = CSP_DEFAULT_SRC + [
 CSP_FRAME_SRC = CSP_DEFAULT_SRC
 
 if GOOGLE_ANALYTICS_TOKEN:
-    google_domain = '*.google-analytics.com'
+    google_domain = '*.googletagmanager.com'
     CSP_SCRIPT_SRC.append(google_domain)
     CSP_CONNECT_SRC.append(google_domain)
     CSP_IMG_SRC.append(google_domain)
