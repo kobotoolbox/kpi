@@ -318,8 +318,6 @@ class XMLFormWithDisclaimer:
         Will add only translations that match form translations.
         """
 
-        translation_nodes = []
-        languages = []
         for n in self._root_node.getElementsByTagName('itext')[0].childNodes:
             if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'translation':
                 languages.append(n.getAttribute('lang'))
@@ -372,7 +370,7 @@ class XMLFormWithDisclaimer:
         of all available messages and the default language code.
         """
 
-        # Do not go further is disclaimer must be hidden
+        # Do not go further if disclaimer must be hidden
         if disclaimers[0]['hidden']:
             return
 
