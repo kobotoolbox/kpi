@@ -386,7 +386,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ],
     'long_metadata_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        'kpi.fields.jsonschema_form_field.UserMetadataFieldsListField',
         {
             'widget': 'django.forms.Textarea',
             'widget_kwargs': {
