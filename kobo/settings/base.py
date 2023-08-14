@@ -273,7 +273,6 @@ CONSTANCE_CONFIG = {
     ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
-
             {'name': 'full_name', 'required': False},
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},
@@ -385,7 +384,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ],
     'long_metadata_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        'kpi.fields.jsonschema_form_field.UserMetadataFieldsListField',
         {
             'widget': 'django.forms.Textarea',
             'widget_kwargs': {
