@@ -39,11 +39,15 @@ def alter_constance_config(apps, schema_editor):
         setattr(config, 'PROJECT_METADATA_FIELDS', project_metadata_json)
 
 
+def noop(*args, **kwargs):
+    pass
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ('hub', '0011_extrauserdetail_private_data'),
     ]
 
     operations = [
-        migrations.RunPython(alter_constance_config),
+        migrations.RunPython(alter_constance_config, noop()),
     ]
