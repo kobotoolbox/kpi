@@ -25,10 +25,19 @@ import Dropzone from 'react-dropzone';
 import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
+import LimitModal from '../components/usageLimits/overLimitModal.component';
+import LimitBanner from '../components/usageLimits/overLimitBanner.component';
+import {Cookies} from 'react-cookie';
+import envStore from 'js/envStore';
+
+const cookies = new Cookies();
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [limits, setLimits] = useState(0);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     customView.setUp(
@@ -37,6 +46,29 @@ function MyProjectsRoute() {
       HOME_DEFAULT_VISIBLE_FIELDS
     );
   }, []);
+
+  const setLimitsNum = (limit: number) => {
+    setLimits(limit);
+    const allCookies = cookies.getAll();
+    const isLimitCookie = Object.keys(allCookies).find(
+      (key) => key === 'overLimitsCookie'
+    );
+    if (isLimitCookie === undefined && limit > 0) {
+      setShowModal(true);
+      const dateNow = new Date();
+      const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
+      cookies.set('overLimitsCookie', {
+        expires: expireDate,
+      });
+    }
+    if (isLimitCookie && limit > 0) {
+      setDismissed(true);
+    }
+  };
+
+  const modalDismissed = (dismiss: boolean) => {
+    setDismissed(dismiss);
+  };
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -103,7 +135,14 @@ function MyProjectsRoute() {
             </div>
           )}
         </header>
-
+        {dismissed && <LimitBanner />}
+        {envStore.data.stripe_public_key !== null && (
+          <LimitModal
+            show={showModal}
+            limits={(limit) => setLimitsNum(limit)}
+            dismissed={(dismiss) => modalDismissed(dismiss)}
+          />
+        )}
         <ProjectsTable
           assets={customView.assets}
           isLoading={!customView.isFirstLoadComplete}
