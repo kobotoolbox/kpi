@@ -15,8 +15,8 @@ import classNames from 'classnames';
 const SCROLL_PARENT_ID = 'projects-table-is-using-infinite_scroll-successfully';
 
 export interface ProjectsTableOrder {
-  fieldName: ProjectFieldName;
-  direction: OrderDirection;
+  fieldName?: ProjectFieldName;
+  direction?: OrderDirection;
 }
 
 interface ProjectsTableProps {
@@ -27,6 +27,8 @@ interface ProjectsTableProps {
   /** Renders the columns for highlighted fields in some fancy way. */
   highlightedFields: ProjectFieldName[];
   visibleFields: ProjectFieldName[];
+  /** The fields that have ability to change the order of data. */
+  orderableFields: ProjectFieldName[];
   order: ProjectsTableOrder;
   /** Called when user selects a column for odering. */
   onChangeOrderRequested: (order: ProjectsTableOrder) => void;
@@ -35,6 +37,10 @@ interface ProjectsTableProps {
   onRequestLoadNextPage: () => void;
   /** If there are more results to be loaded. */
   hasMorePages: boolean;
+  /** A list of uids */
+  selectedRows: string[];
+  /** Called when user selects a row (by clicking its checkbox) */
+  onRowsSelected: (uids: string[]) => void;
 }
 
 /**
@@ -46,6 +52,16 @@ export default function ProjectsTable(props: ProjectsTableProps) {
     new Set(props.visibleFields).add('name')
   );
 
+  const onRowSelectionChange = (rowUid: string, isSelected: boolean) => {
+    const uidsSet = new Set(props.selectedRows);
+    if (isSelected) {
+      uidsSet.add(rowUid);
+    } else {
+      uidsSet.delete(rowUid);
+    }
+    props.onRowsSelected(Array.from(uidsSet));
+  };
+
   return (
     // NOTE: react-infinite-scroller wants us to use refs, but there seems to
     // be some kind of a bug - either in their code or their typings. Thus we
@@ -54,6 +70,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
       <ProjectsTableHeader
         highlightedFields={props.highlightedFields}
         visibleFields={safeVisibleFields}
+        orderableFields={props.orderableFields}
         order={props.order}
         onChangeOrderRequested={props.onChangeOrderRequested}
         onHideFieldRequested={props.onHideFieldRequested}
@@ -86,6 +103,10 @@ export default function ProjectsTable(props: ProjectsTableProps) {
               asset={asset}
               highlightedFields={props.highlightedFields}
               visibleFields={safeVisibleFields}
+              isSelected={props.selectedRows.includes(asset.uid)}
+              onSelectRequested={(isSelected: boolean) =>
+                onRowSelectionChange(asset.uid, isSelected)
+              }
               key={asset.uid}
             />
           ))}

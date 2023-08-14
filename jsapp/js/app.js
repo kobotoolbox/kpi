@@ -5,7 +5,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
-import { Outlet } from "react-router-dom";
+import {Outlet} from 'react-router-dom';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import {stores} from 'js/stores';
@@ -13,16 +13,16 @@ import 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
-import MainHeader from 'js/components/header';
+import MainHeader from 'js/components/header/mainHeader.component';
 import Drawer from 'js/components/drawer';
-import FormViewTabs from 'js/components/formViewTabs';
+import FormViewSideTabs from 'js/components/formViewSideTabs';
+import ProjectTopTabs from 'js/project/projectTopTabs.component';
 import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
-import { withRouter, routerGetAssetId } from './router/legacy';
-import { history } from "./router/historyRouter";
-
+import {withRouter, routerGetAssetId, router} from './router/legacy';
+import {Tracking} from './router/useTracking';
 
 class App extends React.Component {
   constructor(props) {
@@ -33,7 +33,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    history.listen(this.onRouteChange.bind(this));
+    router.subscribe(this.onRouteChange.bind(this));
   }
 
   onRouteChange() {
@@ -66,33 +66,42 @@ class App extends React.Component {
     };
 
     if (typeof this.state.pageState.modal === 'object') {
-      pageWrapperModifiers[`is-modal-${this.state.pageState.modal.type}`] = true;
+      pageWrapperModifiers[
+        `is-modal-${this.state.pageState.modal.type}`
+      ] = true;
     }
 
     return (
       <DocumentTitle title='KoboToolbox'>
         <React.Fragment>
-          <PermValidator/>
-          <div className='header-stretch-bg'/>
-          <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
-            { this.state.pageState.modal &&
+          <Tracking />
+          <PermValidator />
+          <div className='header-stretch-bg' />
+          <bem.PageWrapper
+            m={pageWrapperModifiers}
+            className='mdl-layout mdl-layout--fixed-header'
+          >
+            {this.state.pageState.modal && (
               <BigModal params={this.state.pageState.modal} />
-            }
+            )}
 
-            { !this.isFormBuilder() &&
+            {!this.isFormBuilder() && (
               <React.Fragment>
-                <MainHeader assetid={assetid}/>
-                <Drawer/>
+                <MainHeader assetUid={assetid} />
+                <Drawer />
               </React.Fragment>
-            }
+            )}
 
-            <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
-              { !this.isFormBuilder() &&
+            <bem.PageWrapper__content
+              className='mdl-layout__content'
+              m={pageWrapperContentModifiers}
+            >
+              {!this.isFormBuilder() && (
                 <React.Fragment>
-                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
-                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
+                  {this.isFormSingle() && <ProjectTopTabs />}
+                  <FormViewSideTabs show={this.isFormSingle()} />
                 </React.Fragment>
-              }
+              )}
               <Outlet />
             </bem.PageWrapper__content>
           </bem.PageWrapper>

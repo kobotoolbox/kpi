@@ -10,9 +10,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from allauth.socialaccount.models import SocialApp
 
+from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES
-from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.constance_backends.utils import to_python_object
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.utils.object_permission import get_database_user
 
 
@@ -33,7 +35,7 @@ class EnvironmentView(APIView):
     GET-only view for certain server-provided configuration data
     """
 
-    CONFIGS_TO_EXPOSE = [
+    SIMPLE_CONFIGS = [
         'TERMS_OF_SERVICE_URL',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
@@ -42,38 +44,82 @@ class EnvironmentView(APIView):
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        ('FREE_TIER_THRESHOLDS', lambda value, request: json.loads(value)),
-        ('PROJECT_METADATA_FIELDS', lambda value, request: json.loads(value)),
-        ('USER_METADATA_FIELDS', lambda value, request: json.loads(value)),
-        (
-            'SECTOR_CHOICES',
+    ]
+
+    @classmethod
+    def process_simple_configs(cls):
+        return {
+            key.lower(): getattr(constance.config, key)
+            for key in cls.SIMPLE_CONFIGS
+        }
+
+    JSON_CONFIGS = [
+        'FREE_TIER_DISPLAY',
+        'FREE_TIER_THRESHOLDS',
+        'PROJECT_METADATA_FIELDS',
+        'USER_METADATA_FIELDS',
+    ]
+
+    @classmethod
+    def process_json_configs(cls):
+        data = {}
+        for key in cls.JSON_CONFIGS:
+            value = getattr(constance.config, key)
+            try:
+                value = to_python_object(value)
+            except json.JSONDecodeError:
+                logging.error(
+                    f'Configuration value for `{key}` has invalid JSON'
+                )
+                continue
+            data[key.lower()] = value
+        return data
+
+    @staticmethod
+    def split_with_newline_kludge(value):
+        """
+        django-constance formerly (before 2.7) used `\r\n` for newlines but
+        later changed that to `\n` alone. See #3825, #3831. This fix-up process
+        is *only* needed for settings that existed prior to this change; do not
+        use it when adding new settings.
+        """
+        return (line.strip('\r') for line in value.split('\n'))
+
+    @classmethod
+    def process_choice_configs(cls):
+        """
+        A value with one choice per line gets expanded to a tuple of
+        (value, label) tuples
+        """
+        data = {}
+        data['sector_choices'] = tuple(
             # Intentional t() call on dynamic string because the default
-            # choices are translated (see static_lists.py)
-            # \n vs \r\n - In django-constance <2.7.0, new lines were saved as "\r\n"
-            # Starting in 2.8, new lines are saved as just "\n". In order to ensure compatibility
-            # for data saved in older versions, we treat \n as the way to split lines. Then,
-            # strip the \r off. There is no reason to do this for new constance settings
-            lambda text, request: tuple((line.strip('\r'), t(line.strip('\r'))) for line in text.split('\n')),
-        ),
-        (
-            'OPERATIONAL_PURPOSE_CHOICES',
-            lambda text, request: tuple((line.strip('\r'), line.strip('\r')) for line in text.split('\n')),
-        ),
-        (
-            'MFA_LOCALIZED_HELP_TEXT',
-            lambda i18n_texts, request: {
-                lang: markdown(text)
-                for lang, text in json.loads(
-                    i18n_texts.replace(
-                        '##support email##', constance.config.SUPPORT_EMAIL
-                    )
-                ).items()
-            },
-        ),
-        (
-            'MFA_ENABLED',
+            # choices are translated; see static_lists.py
+            (v, t(v))
+            for v in cls.split_with_newline_kludge(
+                constance.config.SECTOR_CHOICES
+            )
+        )
+        data['operational_purpose_choices'] = tuple(
+            (v, v)
+            for v in cls.split_with_newline_kludge(
+                constance.config.OPERATIONAL_PURPOSE_CHOICES
+            )
+        )
+        data['country_choices'] = COUNTRIES
+        data['interface_languages'] = settings.LANGUAGES
+        return data
+
+    @staticmethod
+    def process_mfa_configs(request):
+        data = {}
+        data['mfa_localized_help_text'] = markdown(
+            I18nUtils.get_mfa_help_text()
+        )
+        data['mfa_enabled'] = (
             # MFA is enabled if it is enabled globally…
-            lambda value, request: value and (
+            constance.config.MFA_ENABLED
+            and (
                 # but if per-user activation is enabled (i.e. at least one
                 # record in the table)…
                 not MfaAvailableToUser.objects.all().exists()
@@ -82,37 +128,16 @@ class EnvironmentView(APIView):
                     user=get_database_user(request.user)
                 ).exists()
             )
-        ),
-    ]
+        )
+        data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
+        return data
 
-    def get(self, request, *args, **kwargs):
-        """
-        Return the lowercased key and value of each setting in
-        `CONFIGS_TO_EXPOSE`, along with the static lists of sectors, countries,
-        all known languages, and languages for which the interface has
-        translations.
-        """
+    @staticmethod
+    def process_other_configs(request):
         data = {}
-        for key_or_key_and_callable in self.CONFIGS_TO_EXPOSE:
-            try:
-                key, processor = key_or_key_and_callable
-            except ValueError:
-                key = key_or_key_and_callable
-                processor = None
-            value = getattr(constance.config, key)
-            if processor:
-                try:
-                    value = processor(value, request=request)
-                except json.JSONDecodeError:
-                    logging.error(
-                        f'Configuration value for `{key}` has invalid JSON'
-                    )
-                    continue
 
-            data[key.lower()] = value
-
-        # django-allauth social apps are configured in both settings and the database
-        # Optimize by avoiding extra DB call when unnecessary
+        # django-allauth social apps are configured in both settings and the
+        # database. Optimize by avoiding extra DB call when unnecessary
         social_apps = []
         if settings.SOCIALACCOUNT_PROVIDERS:
             social_apps = list(
@@ -120,16 +145,23 @@ class EnvironmentView(APIView):
                     'provider', 'name', 'client_id'
                 )
             )
-
-        asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
+        data['social_apps'] = social_apps
 
         data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
             request.user
         )
-        data['country_choices'] = COUNTRIES
-        data['interface_languages'] = settings.LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
-        data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
-        data['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
-        data['social_apps'] = social_apps
+        data['stripe_public_key'] = (
+            settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
+        )
+
+        return data
+
+    def get(self, request, *args, **kwargs):
+        data = {}
+        data.update(self.process_simple_configs())
+        data.update(self.process_json_configs())
+        data.update(self.process_choice_configs())
+        data.update(self.process_mfa_configs(request))
+        data.update(self.process_other_configs(request))
         return Response(data)

@@ -99,7 +99,13 @@
     &:checked {
       border-color: colors.$kobo-blue;
 
-      &::after { opacity: 1; }
+      &::after {opacity: 1;}
+    }
+
+    // Keyboard focus styles
+    &:focus-visible {
+      outline: 3px solid colors.$kobo-alt-blue;
+      outline-offset: sizes.$x1;
     }
   }
 }

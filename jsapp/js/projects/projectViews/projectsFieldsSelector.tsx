@@ -7,7 +7,7 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import type {ProjectFieldName} from './constants';
-import {PROJECT_FIELDS, DEFAULT_PROJECT_FIELDS} from './constants';
+import {PROJECT_FIELDS, DEFAULT_VISIBLE_FIELDS} from './constants';
 import styles from './projectsFieldsSelector.module.scss';
 
 interface ProjectsFieldsSelectorProps {
@@ -19,17 +19,23 @@ interface ProjectsFieldsSelectorProps {
    * again through props.
    */
   onFieldsChange: (fields: ProjectFieldName[] | undefined) => void;
+  /** A list of fields that should not be available to user. */
+  excludedFields?: ProjectFieldName[];
 }
 
 export default function ProjectsFieldsSelector(
   props: ProjectsFieldsSelectorProps
 ) {
   const getInitialSelectedFields = () => {
+    let outcome: ProjectFieldName[] = [];
     if (!props.selectedFields || props.selectedFields.length === 0) {
-      return DEFAULT_PROJECT_FIELDS;
+      outcome = DEFAULT_VISIBLE_FIELDS;
     } else {
-      return Array.from(props.selectedFields);
+      outcome = Array.from(props.selectedFields);
     }
+    return outcome.filter(
+      (fieldName) => !props.excludedFields?.includes(fieldName)
+    );
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,12 +44,8 @@ export default function ProjectsFieldsSelector(
   );
 
   useEffect(() => {
-    if (!isModalOpen) {
-      // Reset fields when closing modal.
-      if (isModalOpen === false) {
-        setSelectedFields(getInitialSelectedFields());
-      }
-    }
+    // When opening and closing we reset fields
+    setSelectedFields(getInitialSelectedFields());
   }, [isModalOpen]);
 
   const toggleModal = () => {
@@ -69,15 +71,20 @@ export default function ProjectsFieldsSelector(
   };
 
   const getCheckboxes = (): MultiCheckboxItem[] =>
-    Object.values(PROJECT_FIELDS).map((field) => {
-      return {
-        name: field.name,
-        label: field.label,
-        // We ensure "name" field is always selected
-        checked: selectedFields.includes(field.name) || field.name === 'name',
-        disabled: field.name === 'name',
-      };
-    });
+    Object.values(PROJECT_FIELDS)
+      .filter(
+        (fieldDefinition) =>
+          !props.excludedFields?.includes(fieldDefinition.name)
+      )
+      .map((field) => {
+        return {
+          name: field.name,
+          label: field.label,
+          // We ensure "name" field is always selected
+          checked: selectedFields.includes(field.name) || field.name === 'name',
+          disabled: field.name === 'name',
+        };
+      });
 
   return (
     <div className={styles.root}>

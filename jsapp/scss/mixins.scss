@@ -1,4 +1,6 @@
-@use "scss/sizes";
+@use 'sass:color';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
 
 @mixin buttonReset() {
   display: inline-block;
@@ -36,4 +38,11 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+// Use this for dropdowns and menus
+@mixin floatingRoundedBox() {
+  background-color: colors.$kobo-white;
+  border-radius: sizes.$x6;
+  box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
 }

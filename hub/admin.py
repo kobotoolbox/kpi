@@ -35,6 +35,7 @@ from kpi.exceptions import (
     SearchQueryTooShortException,
 )
 from kpi.filters import SearchFilter
+from kpi.models.asset import AssetDeploymentStatus
 from .models import (
     ExtraUserDetail,
     ConfigurationFile,
@@ -180,7 +181,7 @@ class ExtendedUserAdmin(UserAdmin):
         Django admin user changelist page
         """
         assets_count = obj.assets.filter(
-            _deployment_data__active=True
+            _deployment_status=AssetDeploymentStatus.DEPLOYED
         ).aggregate(count=Count('pk'))
         return assets_count['count']
 

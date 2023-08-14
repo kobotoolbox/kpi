@@ -152,7 +152,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'downloadable': active,
                 'has_kpi_hook': self.asset.has_active_hooks,
                 'kpi_asset_uid': self.asset.uid
-            }
+            },
+            'version': self.asset.version_id,
         })
 
     @property

@@ -38,6 +38,21 @@ class IncrementValue(Func):
         )
 
 
+class OrderRandom(Func):
+
+    function = 'array_position'
+    template = '%(function)s(ARRAY%(order_list)s, %(expressions)s)'
+    arity = 1
+
+    def __init__(self, expression: str, order_list: list, **extra):
+
+        if expression.startswith('-'):
+            order_list.reverse()
+            expression = expression[1:]
+
+        super().__init__(expression, order_list=order_list, **extra)
+
+
 class ReplaceValues(Func):
     """
     Updates several properties at once of a models.JSONField without overwriting the

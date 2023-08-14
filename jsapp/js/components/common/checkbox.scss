@@ -87,7 +87,7 @@
       top: calc(50% - sizes.$x5);
       left: calc(50% - sizes.$x6);
       transform: rotate(-45deg);
-      border: sizes.$x3 solid currentColor;
+      border: sizes.$x3 solid currentcolor;
       border-top: none;
       border-right: none;
       width: sizes.$x10;
@@ -102,6 +102,12 @@
       background-color: colors.$kobo-blue;
 
       &::after {opacity: 1;}
+    }
+
+    // Keyboard focus styles
+    &:focus-visible {
+      outline: 3px solid colors.$kobo-alt-blue;
+      outline-offset: sizes.$x1;
     }
   }
 }
