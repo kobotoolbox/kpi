@@ -14,11 +14,6 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
         'information. If someone has already dismissed a message, editing it '
         'here will not cause it to reappear.'
     )
-    drag_drop_warning = (
-        '⚠ Warning: Please drag and drop photos directly into the Snippet or '
-        'Body boxes. Copying the URL from the in app message files will '
-        'likely cause errors.'
-    )
     readonly_fields = ['uid', 'last_editor']
 
     def get_form(self, *args, **kwargs):
@@ -45,7 +40,6 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
         # https://docs.djangoproject.com/en/2.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets
         self.fieldsets = [
             (self.new_message_warning, {'fields': ''}),
-            (self.drag_drop_warning, {'fields': form._meta.fields}),
         ]
         return form
 
