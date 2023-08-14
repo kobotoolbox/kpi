@@ -122,6 +122,7 @@ INSTALLED_APPS = (
     'kobo.apps.trackers.TrackersConfig',
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
+    'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
 )
 
 MIDDLEWARE = [
