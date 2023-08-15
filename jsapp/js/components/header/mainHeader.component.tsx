@@ -79,6 +79,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
     // if (window.location.hostname === 'kf.kobo.local') {return null;}
 
     if (
+      'git_rev' in sessionStore.currentAccount &&
       sessionStore.currentAccount?.git_rev?.branch &&
       sessionStore.currentAccount?.git_rev?.short
     ) {

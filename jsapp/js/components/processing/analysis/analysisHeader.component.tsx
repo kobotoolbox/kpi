@@ -3,7 +3,7 @@ import AnalysisQuestionsContext from './analysisQuestions.context';
 import styles from './analysisHeader.module.scss';
 import Button from 'js/components/common/button';
 import KoboDropdown, {
-  KoboDropdownPlacements,
+  KoboDropdownPlacement,
 } from 'js/components/common/koboDropdown';
 import {ANALYSIS_QUESTION_TYPES} from './constants';
 import type {AnalysisQuestionTypeDefinition} from './constants';
@@ -60,7 +60,7 @@ export default function AnalysisHeader() {
   return (
     <header className={styles.root}>
       <KoboDropdown
-        placement={KoboDropdownPlacements['down-left']}
+        placement={'down-left'}
         hideOnMenuClick
         triggerContent={
           <Button
