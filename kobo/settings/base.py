@@ -291,16 +291,17 @@ CONSTANCE_CONFIG = {
         "fields for users. Possible fields are:\n"
         " 'full_name', 'organization', 'organization_website', "
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
-        "and 'instagram'.\n\n"        
+        "and 'instagram'.\n\n"
         'To add another language, follow the example below.\n\n'
-        "{'name': 'full_name', 'required': False, 'label': {default: 'Full Name', 'fr': 'Nom Complet'}}\n"
+        "{'name': 'full_name', 'required': False, 'label': "
+        "{default: 'Full Name', 'fr': 'Nom Complet'}}\n",
         # Use custom field for schema validation
         'long_metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
         LazyJSONSerializable([
-            {'name': 'sector', 'required': False,},
-            {'name': 'country', 'required': False,},
+            {'name': 'sector', 'required': False},
+            {'name': 'country', 'required': False},
             {'name': 'description', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
