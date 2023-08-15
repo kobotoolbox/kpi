@@ -98,7 +98,6 @@ class KoboSignupMixin(forms.Form):
                 continue
 
             field = self.fields[field_name]
-            print(desired_field, flush=True)
             field.required = desired_field.get('required', False)
 
             if 'label' in desired_field.keys():

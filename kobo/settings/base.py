@@ -288,12 +288,13 @@ CONSTANCE_CONFIG = {
             {'name': 'instagram', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
-        'Display (and optionally require) these metadata fields for users. '
-        "Possible fields are:\n"
+        'Modify if the fields are required and labels for these metadata '
+        "fields for users. Possible fields are:\n"
         " 'full_name', 'organization', 'organization_website', "
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
-        "and 'instagram'.\n\n"
-        "To add another language, use 'some-other-language' as an example.",
+        "and 'instagram'.\n\n"        
+        'To add another language, follow the example below.\n\n'
+        "{'name': 'full_name', 'required': False, 'label': {default: 'Full Name', 'fr': 'Nom Complet'}}\n"
         # Use custom field for schema validation
         'long_metadata_fields_jsonschema'
     ),

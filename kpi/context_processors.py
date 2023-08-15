@@ -5,9 +5,11 @@ import markdown
 from django.conf import settings
 from django.urls import reverse
 
+from kobo.apps.constance_backends.utils import to_python_object
 from kpi.utils.markdown import markdownify
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
+
 
 
 def external_service_tokens(request):
@@ -44,14 +46,14 @@ def mfa(request):
 
 def custom_label_translations(
     request, metadata_configs: dict, default_labels: dict
-):
+) -> dict:
     """
     Returns custom labels and translations for the signup form
     from the USER_METADATA_FIELDS constance config.
     """
 
     # Get User Metadata Fields
-    loaded_metadata_fields = json.loads(metadata_configs)
+    loaded_metadata_fields = to_python_object(metadata_configs)
 
     # Check if each user metadata has a label
     for metadata_field in loaded_metadata_fields:

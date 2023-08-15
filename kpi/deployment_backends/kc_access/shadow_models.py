@@ -426,8 +426,6 @@ class KobocatUserProfile(ShadowModel):
     # is using `LazyBooleanField` which is an integer behind the scene.
     # We do not want to port this class to KPI only for one line of code.
     is_mfa_active = models.PositiveSmallIntegerField(default=False)
-    password_date_changed = models.DateTimeField(null=True, blank=True)
-    validated_password = models.BooleanField(default=False)
 
     @classmethod
     def set_mfa_status(cls, user_id: int, is_active: bool):

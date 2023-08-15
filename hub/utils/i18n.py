@@ -36,10 +36,9 @@ class I18nUtils:
         # localized version comes first.
         sitewide_message = (
             SitewideMessage.objects.filter(
-                Q(slug="{}_{}".format(slug, language))
-                | Q(slug="{}".format(slug))
+                Q(slug=f'{slug}_{language}') | Q(slug=f'{slug}')
             )
-            .order_by(Length("slug").desc())
+            .order_by(Length('slug').desc())
             .first()
         )
 
@@ -91,7 +90,7 @@ class I18nUtils:
     @staticmethod
     def set_custom_label(
         field: dict, default_label_dict: dict, lang: str = None,
-    ):
+    ) -> dict:
         """
         Return the translated label of the user metadata fields
         """
