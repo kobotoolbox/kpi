@@ -250,20 +250,6 @@
     margin-left: 3px;
   }
 
-  .sector,
-  .full_name {
-    width: 48%;
-    float: left;
-    margin-top: 0px;
-  }
-
-  .country,
-  .organization {
-    width: 52%;
-    float: left;
-    padding-left: 4%;
-    margin-top: 0px;
-  }
 
   .password1 {
     margin-top: 10px;
@@ -440,6 +426,24 @@
     .registration__first-half {
       width: 52%;
       float: left;
+
+      // Flexbox helps us maintain a layout when some fields may be customized
+      // or removed.
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      column-gap: 4%;
+      > * {
+        min-width: 75%; // Most rows are wide enough to get their own row,
+        flex: 1; // and when they do, they grow to occupy full available width.
+      }
+      > .full_name,
+      > .organization,
+      > .sector,
+      > .country {
+        min-width: 40%; // These fields can sit next to each other in pairs.
+      }
     }
 
     .registration__second-half {
