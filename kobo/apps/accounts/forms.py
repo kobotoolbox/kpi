@@ -1,5 +1,3 @@
-import json
-
 import constance
 from allauth.account.forms import LoginForm as BaseLoginForm
 from allauth.account.forms import SignupForm as BaseSignupForm
@@ -10,7 +8,8 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.constance_backends.utils import to_python_object
-from kobo.static_lists import COUNTRIES
+from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
+
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
@@ -32,15 +31,15 @@ class LoginForm(BaseLoginForm):
 
 class KoboSignupMixin(forms.Form):
     full_name = forms.CharField(
-        label=t('Full name'),
+        label=USER_METADATA_DEFAULT_LABELS['full_name'],
         required=False,
     )
     organization = forms.CharField(
-        label=t('Organization name'),
+        label=USER_METADATA_DEFAULT_LABELS['organization'],
         required=False,
     )
     gender = forms.ChoiceField(
-        label=t('Gender'),
+        label=USER_METADATA_DEFAULT_LABELS['gender'],
         required=False,
         widget=forms.RadioSelect,
         choices=(
@@ -50,13 +49,13 @@ class KoboSignupMixin(forms.Form):
         ),
     )
     sector = forms.ChoiceField(
-        label=t('Sector'),
+        label=USER_METADATA_DEFAULT_LABELS['sector'],
         required=False,
         # Don't set choices here; set them in the constructor so that changes
         # made in the Django admin interface do not require a server restart
     )
     country = forms.ChoiceField(
-        label=t('Country'),
+        label=USER_METADATA_DEFAULT_LABELS['country'],
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )

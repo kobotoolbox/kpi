@@ -1,12 +1,15 @@
 # coding: utf-8
 import constance
+import json
 import markdown
 from django.conf import settings
 from django.urls import reverse
 
+from kobo.apps.constance_backends.utils import to_python_object
 from kpi.utils.markdown import markdownify
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
+
 
 
 def external_service_tokens(request):
@@ -41,6 +44,32 @@ def mfa(request):
     }
 
 
+def custom_label_translations(
+    request, metadata_configs: dict, default_labels: dict
+) -> dict:
+    """
+    Returns custom labels and translations for the signup form
+    from the USER_METADATA_FIELDS constance config.
+    """
+
+    # Get User Metadata Fields
+    loaded_metadata_fields = to_python_object(metadata_configs)
+
+    # Check if each user metadata has a label
+    for metadata_field in loaded_metadata_fields:
+        if 'label' in metadata_field.keys():
+            metadata_field = I18nUtils.set_custom_label(
+                metadata_field, default_labels, None
+            )
+        else:
+            # If label is not available, use the default set in the SignupForm
+            try:
+                metadata_field['label'] = default_labels[metadata_field['name']]
+            except KeyError:
+                continue
+    return loaded_metadata_fields
+
+
 def django_settings(request):
     return {'stripe_enabled': settings.STRIPE_ENABLED}
 
@@ -51,7 +80,6 @@ def sitewide_messages(request):
     custom text in django templates
     """
     if request.path_info == reverse('account_signup'):
-
         sitewide_message = I18nUtils.get_sitewide_message()
         if sitewide_message is not None:
             return {'welcome_message': markdownify(sitewide_message)}
@@ -64,6 +92,7 @@ class CombinedConfig:
     An object that gets its attributes from both a dictionary (`extra_config`)
     AND a django-constance LazyConfig object
     """
+
     def __init__(self, constance_config, extra_config):
         """
         constance_config: LazyConfig object

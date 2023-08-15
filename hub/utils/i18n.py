@@ -1,4 +1,5 @@
 # coding: utf-8
+import copy
 import json
 import logging
 
@@ -13,7 +14,6 @@ from ..models import SitewideMessage
 
 
 class I18nUtils:
-
     @staticmethod
     def get_sitewide_message(slug="welcome_message", lang=None):
         """
@@ -34,12 +34,13 @@ class I18nUtils:
         #   - "<slug>"
         # We order the results by the length of the slug to be sure
         # localized version comes first.
-        sitewide_message = SitewideMessage.objects\
-            .filter(
-                Q(slug="{}_{}".format(slug, language)) |
-                Q(slug="{}".format(slug)))\
-            .order_by(Length("slug").desc())\
+        sitewide_message = (
+            SitewideMessage.objects.filter(
+                Q(slug=f'{slug}_{language}') | Q(slug=f'{slug}')
+            )
+            .order_by(Length('slug').desc())
             .first()
+        )
 
         if sitewide_message is not None:
             return sitewide_message.body
@@ -85,3 +86,31 @@ class I18nUtils:
             constance.config.SUPPORT_EMAIL,
         )
         return message
+
+    @staticmethod
+    def set_custom_label(
+        field: dict, default_label_dict: dict, lang: str = None,
+    ) -> dict:
+        """
+        Return the translated label of the user metadata fields
+        """
+        # Get default value if lang is not specified
+        language = lang if lang else get_language()
+
+        # This copy is to make unit tests work properly
+        field = copy.deepcopy(field)
+
+        # Check to see if label exists
+        try:
+            label = field['label']
+            try:
+                translation = label[language]
+            except KeyError:
+                # Use the default value if language is not available
+                translation = label['default']
+        except KeyError:
+            translation = default_label_dict[field['name']]
+
+        field['label'] = translation
+
+        return field
