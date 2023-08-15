@@ -21,7 +21,7 @@ import type {LanguageCode} from 'js/components/languages/languagesStore';
  * A safety check error message for calls made with assets that don't have
  * the processing enabled.
  */
-const NO_FEATURE_ERROR = t(
+export const NO_FEATURE_ERROR = t(
   'Asset seems to not have the processing feature enabled!'
 );
 

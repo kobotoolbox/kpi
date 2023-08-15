@@ -1,7 +1,21 @@
 import type {AnalysisQuestionsState} from './analysisQuestions.reducer';
 import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
-import type {AnalysisQuestionType} from './constants';
+import type {
+  AnalysisQuestionInternal,
+  AnalysisQuestionType,
+  AnalysisQuestionSchema,
+} from './constants';
 import {ANALYSIS_QUESTION_TYPES} from './constants';
+import {fetchPatch, fetchPostUrl} from 'js/api';
+import {endpoints} from 'js/api.endpoints';
+import {getAssetAdvancedFeatures, getAssetProcessingUrl} from 'js/assetUtils';
+import clonedeep from 'lodash.clonedeep';
+import {NO_FEATURE_ERROR} from '../processingActions';
+import type {ProcessingDataResponse} from '../processingActions';
+import {notify} from 'js/utils';
+import type {AssetAdvancedFeatures, AssetResponse} from 'js/dataInterface';
+import type {Json} from '../../common/common.interfaces';
+import assetStore from 'js/assetStore';
 
 /** Finds given question in state */
 export function findQuestion(
@@ -12,11 +26,148 @@ export function findQuestion(
 }
 
 export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
-  return ANALYSIS_QUESTION_TYPES.find(
-    (definition) => definition.type === type
+  return ANALYSIS_QUESTION_TYPES.find((definition) => definition.type === type);
+}
+
+export function convertQuestionsFromInternalToSchema(
+  /** The qpath of the asset question to which the analysis questions will refer */
+  qpath: string,
+  questions: AnalysisQuestionInternal[]
+): AnalysisQuestionSchema[] {
+  return questions.map((question) => {
+    return {
+      uuid: question.uuid,
+      type: question.type,
+      labels: question.labels,
+      choices: question.additionalFields?.choices,
+      scope: 'by_question#survey',
+      qpath: qpath,
+    };
+  });
+}
+
+export function convertQuestionsFromSchemaToInternal(
+  questions: AnalysisQuestionSchema[]
+): AnalysisQuestionInternal[] {
+  return questions.map((question) => {
+    const output: AnalysisQuestionInternal = {
+      uuid: question.uuid,
+      type: question.type,
+      labels: question.labels,
+      response: '',
+    };
+    if (question.choices) {
+      output.additionalFields = {
+        choices: question.choices,
+      };
+    }
+    return output;
+  });
+}
+
+export function getQuestionsFromSchema(
+  advancedFeatures?: AssetAdvancedFeatures
+): AnalysisQuestionInternal[] {
+  return convertQuestionsFromSchemaToInternal(
+    advancedFeatures?.qual?.qual_survey || []
   );
 }
 
+/**
+ * A function that updates the question definitions, i.e. the schema in the
+ * advanced features of current asset.
+ */
+export async function updateSurveyQuestions(
+  assetUid: string,
+  /**
+   * We allow `undefined`, because `singleProcessingStore.currentQuestion.qpath`
+   * can be `undefined`.
+   */
+  qpath: string | undefined,
+  questions: AnalysisQuestionInternal[]
+) {
+  const advancedFeatures = clonedeep(getAssetAdvancedFeatures(assetUid));
+
+  if (!advancedFeatures || !qpath) {
+    notify(NO_FEATURE_ERROR, 'error');
+    return Promise.reject(NO_FEATURE_ERROR);
+  }
+
+  if (!advancedFeatures.qual) {
+    advancedFeatures.qual = {};
+  }
+
+  advancedFeatures.qual.qual_survey = convertQuestionsFromInternalToSchema(
+    qpath,
+    questions
+  );
+
+  // TODO: add try catch error handling
+  const response = await fetchPatch<AssetResponse>(
+    endpoints.ASSET_URL.replace(':uid', assetUid),
+    {advanced_features: advancedFeatures as Json}
+  );
+
+  // TODO think of better way to handle this
+  // We need to let the `assetStore` know about the change, because
+  // `analysisQuestions.reducer` is using `assetStore` to build the initial
+  // list of questions every time user (re-)visits "Analysis" tab.
+  // Without this line, user could see some old data.
+  assetStore.onUpdateAssetCompleted(response);
+
+  return response;
+}
+
+/**
+ * A function that updates the response for a question, i.e. the submission data.
+ * TODO: see if this really needs so much parameters
+ */
+export async function updateResponse(
+  assetUid: string,
+  submissionUid: string,
+  qpath: string,
+  analysisQuestionUuid: string,
+  analysisQuestionType: string,
+  newResponse: string
+) {
+  const processingUrl = getAssetProcessingUrl(assetUid);
+  if (!processingUrl) {
+    return Promise.reject();
+  }
+
+  // TODO: this needs
+  // 1. to send different objects for diffferent question types
+  try {
+    const apiResponse = await fetchPostUrl<ProcessingDataResponse>(
+      processingUrl,
+      {
+        submission: submissionUid,
+        [qpath]: {
+          qual: [
+            {
+              uuid: analysisQuestionUuid,
+              type: analysisQuestionType,
+              val: newResponse,
+            },
+          ],
+        },
+      }
+    );
+
+    console.log(apiResponse);
+
+    return apiResponse;
+  } catch (err) {
+    // TODO: do something here
+    console.log(err);
+    return Promise.reject(err);
+  }
+}
+
+/**
+ * TODO: delete this function
+ * A function that updates the response for a question, i.e. the submission data.
+ */
 export function quietlyUpdateResponse(
   state: AnalysisQuestionsState | undefined,
   dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined,

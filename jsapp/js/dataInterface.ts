@@ -17,6 +17,7 @@ import type {
 } from 'js/constants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
+import type {AnalysisQuestionSchema} from './components/processing/analysis/constants';
 import type {FreeTierThresholds} from 'js/envStore';
 
 interface AssetsRequestData {
@@ -403,6 +404,9 @@ export interface AssetAdvancedFeatures {
     values?: string[];
     /** List of translations enabled languages. */
     languages?: string[];
+  };
+  qual?: {
+    qual_survey?: AnalysisQuestionSchema[];
   };
 }
 

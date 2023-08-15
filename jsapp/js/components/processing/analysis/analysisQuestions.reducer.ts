@@ -1,15 +1,11 @@
 import {generateUuid, moveArrayElementToIndex} from 'jsapp/js/utils';
-import type {AnalysisQuestion} from './constants';
+import type {AnalysisQuestionInternal} from './constants';
 import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
-
-interface AnalysisQuestionDraftable extends AnalysisQuestion {
-  isDraft?: boolean;
-}
 
 export interface AnalysisQuestionsState {
   /** Whether any async action is being done right now. */
   isPending: boolean;
-  questions: AnalysisQuestionDraftable[];
+  questions: AnalysisQuestionInternal[];
   /**
    * A list of uids of questions with definitions being edited. I.e. whenever
    * project manager starts editing question definition, the uid is being added
@@ -48,7 +44,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       // This is the place that assigns the uid to the question
       const newUuid = generateUuid();
 
-      const newQuestion: AnalysisQuestionDraftable = {
+      const newQuestion: AnalysisQuestionInternal = {
         type: action.payload.type,
         labels: {_default: ''},
         uuid: newUuid,
@@ -61,10 +57,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         // We add the question at the beginning of the existing array.
-        questions: [
-          newQuestion,
-          ...state.questions,
-        ],
+        questions: [newQuestion, ...state.questions],
         // We immediately open this question for editing
         questionsBeingEdited: [...state.questionsBeingEdited, newUuid],
       };
@@ -130,6 +123,12 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         questionsBeingEdited: [],
       };
     }
+    case 'udpateQuestionFailed': {
+      return {
+        ...state,
+        isPending: false,
+      };
+    }
     case 'updateResponse': {
       return {
         ...state,
@@ -141,6 +140,12 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         isPending: false,
         questions: action.payload.questions,
+      };
+    }
+    case 'updateResponseFailed': {
+      return {
+        ...state,
+        isPending: false,
       };
     }
     case 'reorderQuestion': {
