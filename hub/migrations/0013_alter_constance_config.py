@@ -45,9 +45,9 @@ def noop(*args, **kwargs):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('hub', '0011_extrauserdetail_private_data'),
+        ('hub', '0012_replace_markup_with_markdownx'),
     ]
 
     operations = [
-        migrations.RunPython(alter_constance_config, noop()),
+        migrations.RunPython(alter_constance_config, noop),
     ]
