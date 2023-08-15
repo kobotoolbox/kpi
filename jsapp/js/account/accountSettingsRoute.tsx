@@ -7,7 +7,6 @@ import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
-import type {EnvStoreFieldItem} from '../envStore';
 import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
@@ -213,14 +212,12 @@ const AccountSettings = observer(() => {
   const initialsStyle = {
     background: `#${stringToColor(accountName)}`,
   };
-  const isFieldRequired = (fieldName: string): boolean => {
-    const field = environment.getUserMetadataField(fieldName);
-    return field && (field as EnvStoreFieldItem).required;
-  };
   const userMetadataFieldDict = environment.getUserMetadataFieldsAsSimpleDict();
   const getFieldLabel = (fieldName: string): string =>
     userMetadataFieldDict[fieldName]?.label ||
     (console.error(`No label for fieldname "${fieldName}"`), fieldName);
+  const isFieldRequired = (fieldName: string): boolean =>
+    userMetadataFieldDict[fieldName]?.required || false;
   const sectorValue = form.sectorChoices.find(
     (sectorChoice) => sectorChoice.value === form.fields.sector
   );

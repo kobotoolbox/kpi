@@ -80,18 +80,9 @@ class EnvStoreData {
     return false;
   }
 
-  public getUserMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
-    for (const f of this.user_metadata_fields) {
-      if (f.name === fieldName) {
-        return f;
-      }
-    }
-    return false;
-  }
-
   public getUserMetadataFieldsAsSimpleDict() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dict: any = {};
+    // dict[name] => {name, required, label}
+    const dict: {[fieldName: string]: EnvStoreFieldItem} = {};
     for (const field of this.user_metadata_fields) {
       dict[field.name] = field;
     }
