@@ -11,15 +11,10 @@ from rest_framework.views import APIView
 from allauth.socialaccount.models import SocialApp
 
 from hub.utils.i18n import I18nUtils
-from kobo.static_lists import (
-    COUNTRIES,
-    PROJECT_METADATA_DEFAULT_LABELS,
-    USER_METADATA_DEFAULT_LABELS
-)
+from kobo.static_lists import COUNTRIES
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
-from kpi.context_processors import custom_label_translations
 from kpi.utils.object_permission import get_database_user
 
 
@@ -138,22 +133,14 @@ class EnvironmentView(APIView):
     @staticmethod
     def process_project_metadata_configs(request):
         data = {
-            'project_metadata_fields': custom_label_translations(
-                request,
-                constance.config.PROJECT_METADATA_FIELDS,
-                PROJECT_METADATA_DEFAULT_LABELS,
-            )
+            'project_metadata_fields': I18nUtils.get_metadata_fields('project')
         }
         return data
 
     @staticmethod
     def process_user_metadata_configs(request):
         data = {
-            'user_metadata_fields': custom_label_translations(
-                request,
-                constance.config.USER_METADATA_FIELDS,
-                USER_METADATA_DEFAULT_LABELS,
-            )
+            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
         }
         return data
 

@@ -274,7 +274,6 @@ CONSTANCE_CONFIG = {
     ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
-
             {'name': 'full_name', 'required': False},
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},

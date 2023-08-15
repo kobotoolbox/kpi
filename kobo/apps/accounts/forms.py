@@ -4,10 +4,9 @@ from allauth.account.forms import SignupForm as BaseSignupForm
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.conf import settings
-from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as t
 
-from kobo.apps.constance_backends.utils import to_python_object
+from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 
 
@@ -79,9 +78,7 @@ class KoboSignupMixin(forms.Form):
 
         # It's easier to _remove_ unwanted fields here in the constructor
         # than to add a new fields *shrug*
-        desired_metadata_fields = to_python_object(
-            constance.config.USER_METADATA_FIELDS
-        )
+        desired_metadata_fields = I18nUtils.get_metadata_fields('user')
         desired_metadata_fields = {
             field['name']: field for field in desired_metadata_fields
         }
@@ -99,16 +96,7 @@ class KoboSignupMixin(forms.Form):
 
             field = self.fields[field_name]
             field.required = desired_field.get('required', False)
-
-            if 'label' in desired_field.keys():
-                try:
-                    self.fields[field_name].label = desired_field['label'][
-                        get_language()
-                    ]
-                except KeyError:
-                    self.fields[field_name].label = desired_field['label'][
-                        'default'
-                    ]
+            self.fields[field_name].label = desired_field['label']
 
     def clean_email(self):
         email = self.cleaned_data['email']
