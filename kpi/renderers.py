@@ -250,9 +250,11 @@ class XMLRenderer(DRFXMLRenderer):
                 return var_or_callable.xml
             return add_xml_declaration(obj.xml)
         else:
-            return super().render(data=data,
-                                  accepted_media_type=accepted_media_type,
-                                  renderer_context=renderer_context)
+            return super().render(
+                data=data,
+                accepted_media_type=accepted_media_type,
+                renderer_context=renderer_context,
+            )
 
 
 class XFormRenderer(XMLRenderer):

@@ -1,14 +1,20 @@
 # coding: utf-8
+import re
 import copy
+from xml.dom import Node
+from typing import Optional
 
 import requests
+from defusedxml import minidom
 from django.conf import settings
+from django.db.models import Q, F
 from django.http import HttpResponseRedirect, Http404
 from rest_framework import renderers, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
@@ -28,6 +34,7 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
 )
+from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
@@ -51,13 +58,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     @property
     def asset(self):
         if not hasattr(self, '_asset'):
-            asset_snapshot = self.get_object()
-            # Calling `snapshot.asset.__class__` instead of `Asset` to avoid circular
-            # import
-            asset_snapshot.asset = asset_snapshot.asset.__class__.objects.defer(
-                'content'
-            ).get(pk=asset_snapshot.asset_id)
-            setattr(self, '_asset', asset_snapshot.asset)
+            self._set_asset()
         return self._asset
 
     def filter_queryset(self, queryset):
@@ -126,12 +127,12 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
                     snapshot.asset, user, PERM_VIEW_ASSET
                 )
             ):
-                return snapshot
+                return self._add_disclaimer(snapshot)
             else:
                 # Access to user is still denied, raise 404
                 raise Http404
         else:
-            return snapshot
+            return self._add_disclaimer(snapshot)
 
     @action(
         detail=True,
@@ -173,11 +174,12 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':
             data = {
-                'server_url': reverse(viewname='assetsnapshot-detail',
-                                      kwargs={'uid': snapshot.uid},
-                                      request=request
-                                      ),
-                'form_id': snapshot.uid
+                'server_url': reverse(
+                    viewname='assetsnapshot-detail',
+                    kwargs={'uid': snapshot.uid},
+                    request=request,
+                ),
+                'form_id': snapshot.uid,
             }
 
             # Use Enketo API to create preview instead of `preview?form=`,
@@ -266,3 +268,32 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             response_data['highlighted_xform'] = highlight_xform(snapshot.xml,
                                                                  **options)
         return Response(response_data, template_name='highlighted_xform.html')
+
+    @action(detail=True)
+    def xml_with_disclaimer(self, request, *args, **kwargs):
+        """
+        Same behaviour as `retrieve()` from DRF, but makes it easier to target
+        OpenRosa endpoints calls from Enketo to inject disclaimers (if any).
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def _add_disclaimer(self, snapshot: AssetSnapshot) -> AssetSnapshot:
+
+        # Only inject disclaimers when accessing `formList` links
+        if not self.action == 'xml_with_disclaimer':
+            return snapshot
+
+        self._set_asset(snapshot)
+        return XMLFormWithDisclaimer(snapshot).get_object()
+
+    def _set_asset(self, snapshot: Optional[AssetSnapshot] = None):
+        if not snapshot:
+            snapshot = self.get_object()
+        # Calling `snapshot.asset.__class__` instead of `Asset` to avoid circular
+        # import
+        snapshot.asset = snapshot.asset.__class__.objects.defer(
+            'content'
+        ).get(pk=snapshot.asset_id)
+        setattr(self, '_asset', snapshot.asset)
