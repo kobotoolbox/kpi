@@ -100,7 +100,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'oauth2_provider',
-    'markitup',
     'django_digest',
     'kobo.apps.organizations',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
@@ -122,6 +121,8 @@ INSTALLED_APPS = (
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
     'kobo.apps.trash_bin.TrashBinAppConfig',
+    'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
+    'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
 )
 
 MIDDLEWARE = [
@@ -471,8 +472,8 @@ class DoNotUseRunner:
 
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
-# used in kpi.models.sitewide_messages
-MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
+# # used in kpi.models.sitewide_messages
+# MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 
 # The backend that handles user authentication must match KoBoCAT's when
 # sharing sessions. ModelBackend does not interfere with object-level
@@ -540,7 +541,6 @@ DJANGO_LANGUAGE_CODES = env.str(
         'ku '  # Kurdish
         'ln '  # Lingala
         'my '  # Burmese/Myanmar
-        'ny '  # Nyanja/Chewa
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
@@ -585,7 +585,7 @@ PRIVATE_STORAGE_AUTH_FUNCTION = \
     'kpi.utils.private_storage.superuser_or_username_matches_prefix'
 
 # django-markdownx, for in-app messages
-MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
+MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
 # Github-flavored Markdown from `py-gfm`,
 # ToDo Uncomment when it's compatible with Markdown 3.x
 # MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
@@ -698,7 +698,6 @@ KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat')
 
 KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
-KOBOFORM_INTERNAL_URL = os.environ.get('KOBOFORM_INTERNAL_URL', 'http://kpi')
 
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
@@ -838,6 +837,12 @@ CELERY_BEAT_SCHEDULE = {
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
         'schedule': crontab(minute=30),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every monday at 00:30
+    'markdown-images-garbage-collector': {
+        'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
+        'schedule': crontab(hour=0, minute=30, day_of_week=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }

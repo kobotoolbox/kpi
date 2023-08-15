@@ -19,9 +19,9 @@ class I18nTestCase(TestCase):
         welcome_message_es = I18nUtils.get_sitewide_message(lang="es")
         welcome_message = I18nUtils.get_sitewide_message()
 
-        self.assertEqual(welcome_message_fr.raw, "Le message de bienvenue")
-        self.assertEqual(welcome_message.raw, "Global welcome message")
-        self.assertEqual(welcome_message_es.raw, welcome_message.raw)
+        self.assertEqual(welcome_message_fr, "Le message de bienvenue")
+        self.assertEqual(welcome_message, "Global welcome message")
+        self.assertEqual(welcome_message_es, welcome_message)
 
     def test_custom_label_translations(self):
         def check_labels(field, default_labels, lang):
@@ -88,12 +88,12 @@ class I18nTestCase(TestCase):
             'label': {'default': 'Description'},
         }
         check_labels(
-            user_metadata_field, 
+            user_metadata_field,
             USER_METADATA_DEFAULT_LABELS,
             None
         )
         check_labels(
-            project_metadata_field, 
-            PROJECT_METADATA_DEFAULT_LABELS, 
+            project_metadata_field,
+            PROJECT_METADATA_DEFAULT_LABELS,
             None
         )
