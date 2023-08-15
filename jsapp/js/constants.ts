@@ -665,6 +665,11 @@ export const ACTIVE_STRIPE_STATUSES = Object.freeze([
   'trialing',
 ]);
 
+/*
+  The ratio of current usage / usage limit at which we display soft 'warning' messages on the frontend
+*/
+export const USAGE_WARNING_RATIO = 0.8;
+
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
@@ -696,6 +701,7 @@ const constants = {
   MAX_DISPLAYED_STRING_LENGTH,
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
+  USAGE_WARNING_RATIO,
 };
 
 export default constants;

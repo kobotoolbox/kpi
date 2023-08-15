@@ -1,8 +1,9 @@
 import {useEffect, useState, useMemo, useReducer} from 'react';
-import {getUsage} from '../../account/usage.api';
+import {getUsageForOrganization} from '../../account/usage.api';
 import type {BaseSubscription, BasePrice} from '../../account/stripe.api';
 import {getSubscription, getProducts} from '../../account/stripe.api';
 import envStore from 'js/envStore';
+import {truncateNumber} from 'js/utils';
 
 interface UsageState {
   storage: number;
@@ -53,19 +54,14 @@ export const getAllExceedingLimits = () => {
     number | string
   >();
 
-  function truncate(decimal: number) {
-    return parseFloat(decimal.toFixed(2));
-  }
-
   // Get products and get default limits for community plan
   useMemo(() => {
     getProducts().then((products) => {
       const freeProduct = products.results.find((products) =>
-        products.prices.find((price: BasePrice) => {
-          return (
+        products.prices.find(
+          (price: BasePrice) =>
             price.unit_amount === 0 && price.recurring?.interval === 'month'
-          );
-        })
+        )
       );
       setSubscribedSubmissionLimit(
         Number(freeProduct?.metadata.submission_limit)
@@ -89,17 +85,20 @@ export const getAllExceedingLimits = () => {
 
   // Get current usage
   useEffect(() => {
-    getUsage().then((data) => {
+    getUsageForOrganization().then((data) => {
+      if (!data) {
+        return;
+      }
       setUsage({
         ...usage,
         storage: data.total_storage_bytes,
         monthlySubmissions: data.total_submission_count['current_month'],
         yearlySubmissions: data.total_submission_count['current_year'],
         monthlyTranscriptionMinutes: Math.floor(
-          truncate(data.total_nlp_usage['asr_seconds_current_month'] / 60)
+          truncateNumber(data.total_nlp_usage['asr_seconds_current_month'] / 60)
         ), // seconds to minutes
         yearlyTranscriptionMinutes: Math.floor(
-          truncate(data.total_nlp_usage['asr_seconds_current_year'] / 60)
+          truncateNumber(data.total_nlp_usage['asr_seconds_current_year'] / 60)
         ),
         monthlyTranslationChars:
           data.total_nlp_usage['mt_characters_current_month'],

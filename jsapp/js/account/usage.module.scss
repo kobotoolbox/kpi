@@ -37,9 +37,9 @@ h2 {
   overflow-wrap: break-word;
 }
 
-.usage {
+.usageType {
   display: flex;
-  margin-top: sizes.$x18;
+  align-items: center;
 }
 
 .title {
@@ -48,10 +48,6 @@ h2 {
 }
 
 .date {
+  display: block;
   font-size: sizes.$x14;
-}
-
-.description {
-  margin-right: sizes.$x60;
-  color: colors.$kobo-storm;
 }
