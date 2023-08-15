@@ -1,6 +1,12 @@
-import type {AnalysisQuestionInternal, AnalysisQuestionType} from './constants';
+import type {
+  AnalysisQuestionInternal,
+  AnalysisQuestionType,
+  SubmissionProcessingDataResponse,
+} from './constants';
 
 export type AnalysisQuestionsAction =
+  // Sets all the quetsion with new ones (useful for initialising)
+  | {type: 'setQuestions'; payload: {questions: AnalysisQuestionInternal[]}}
   // Creates a draft question of given type with new uid assigned
   | {type: 'addQuestion'; payload: {type: AnalysisQuestionType}}
   // Opens question for editing, i.e. causes the editor to be opened for given
@@ -36,7 +42,10 @@ export type AnalysisQuestionsAction =
   // fresh data from Back-end.
   | {
       type: 'updateResponseCompleted';
-      payload: {questions: AnalysisQuestionInternal[]};
+      payload: {
+        qpath: string;
+        apiResponse: SubmissionProcessingDataResponse;
+      };
     }
   // Unlocks UI after failed API call
   | {type: 'updateResponseFailed'}

@@ -100,6 +100,10 @@ const fetchData = async <T>(
 /** GET Kobo API at path */
 export const fetchGet = async <T>(path: string) => fetchData<T>(path);
 
+/** GET Kobo API at url */
+export const fetchGetUrl = async <T>(url: string) =>
+  fetchData<T>(url, 'GET', undefined, false);
+
 /** POST data to Kobo API at path */
 export const fetchPost = async <T>(path: string, data: Json) =>
   fetchData<T>(path, 'POST', data);

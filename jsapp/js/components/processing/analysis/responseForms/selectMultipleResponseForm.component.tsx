@@ -37,6 +37,7 @@ export default function SelectMultipleResponseForm(
     const newFields = items
       .filter((item) => item.checked)
       .map((item) => item.name);
+    // TODO store array of strings!
     const newResponse = newFields.join(',');
 
     setResponse(newResponse);

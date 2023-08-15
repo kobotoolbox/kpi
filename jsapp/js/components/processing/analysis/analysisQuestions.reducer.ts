@@ -1,6 +1,7 @@
 import {generateUuid, moveArrayElementToIndex} from 'jsapp/js/utils';
 import type {AnalysisQuestionInternal} from './constants';
 import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
+import {applyUpdateResponseToInternalQuestions} from './utils';
 
 export interface AnalysisQuestionsState {
   /** Whether any async action is being done right now. */
@@ -40,6 +41,12 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
   action: AnalysisQuestionsAction
 ) => {
   switch (action.type) {
+    case 'setQuestions': {
+      return {
+        ...state,
+        questions: action.payload.questions,
+      };
+    }
     case 'addQuestion': {
       // This is the place that assigns the uid to the question
       const newUuid = generateUuid();
@@ -136,10 +143,16 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       };
     }
     case 'updateResponseCompleted': {
+      const newQuestions = applyUpdateResponseToInternalQuestions(
+        action.payload.qpath,
+        action.payload.apiResponse,
+        state.questions
+      );
+
       return {
         ...state,
         isPending: false,
-        questions: action.payload.questions,
+        questions: newQuestions,
       };
     }
     case 'updateResponseFailed': {

@@ -74,7 +74,29 @@ export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
 export interface AnalysisResponse {
   type: AnalysisQuestionType;
   uuid: string;
-  value: string | string[];
+  val: string | string[];
+}
+
+/**
+ * This is the payload of a request made to update a question response.
+ */
+export interface AnalysisResponseUpdateRequest {
+  [qpath: string]:
+    | {
+        qual: AnalysisResponse[];
+      }
+    | string; // this will never be a string, but we need TS to stop complaining
+  submission: string;
+}
+
+/**
+ * This is an API endpoint response for a request made to update a question
+ * response.
+ */
+export interface SubmissionProcessingDataResponse {
+  [qpath: string]: {
+    qual: AnalysisResponse[];
+  };
 }
 
 /**

@@ -2,7 +2,7 @@
  * This file lists all different processing related Reflux actions. Some of
  * these are simple API calls, but few requires chain calls.
  *
- * TODO: in future, this should be moved to MobX.
+ * TODO: in future, this should be moved to MobX or a reducer.
  */
 
 import Reflux from 'reflux';

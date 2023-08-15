@@ -54,7 +54,7 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
 
     // Step 2: Store the response using the `advanced_submission_post` API
     try {
-      const resp = await updateResponse(
+      const result = await updateResponse(
         singleProcessingStore.currentAssetUid,
         singleProcessingStore.currentSubmissionEditId,
         singleProcessingStore.currentQuestionQpath,
@@ -62,8 +62,12 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
         question.type,
         response
       );
-      console.log('resp', resp);
+      analysisQuestions?.dispatch({
+        type: 'updateResponseCompleted',
+        payload: result,
+      });
     } catch (err) {
+      // TODO should this be handled in some different way?
       console.log('catch err', err);
       analysisQuestions?.dispatch({type: 'updateResponseFailed'});
     }

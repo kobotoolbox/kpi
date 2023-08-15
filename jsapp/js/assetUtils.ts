@@ -717,10 +717,23 @@ export function getAssetAdvancedFeatures(assetUid: string) {
   return undefined;
 }
 
+// This url returns `ProcessingDataResponse`
 export function getAssetProcessingUrl(assetUid: string): string | undefined {
   const foundAsset = assetStore.getAsset(assetUid);
   if (foundAsset) {
     return foundAsset.advanced_submission_schema?.url;
+  }
+  return undefined;
+}
+
+// This url returns `SubmissionProcessingDataResponse`
+export function getAssetSubmissionProcessingUrl(
+  assetUid: string,
+  submission: string
+) {
+  const processingUrl = getAssetProcessingUrl(assetUid);
+  if (processingUrl) {
+    return processingUrl + '?submission=' + submission
   }
   return undefined;
 }

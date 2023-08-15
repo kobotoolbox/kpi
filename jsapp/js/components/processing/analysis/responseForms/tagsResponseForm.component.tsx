@@ -30,6 +30,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
 
   const [response, setResponse] = useState<string>(question.response);
 
+  // TODO store array of strings!
   function getTags() {
     if (response?.length !== 0) {
       return response.split(',');
