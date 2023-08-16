@@ -409,6 +409,25 @@ iframe {
   border: none;
 }
 
+
+// Place sector and country side-by-side, when both fields exist and we're
+// not in the narrow form builder sidebar. Similar to registration screen.
+.form-modal__form.project-settings--project-details:not(.project-settings--narrow) > .form-modal__item--wrapper {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  column-gap: 4%;
+  .form-modal__item {
+    min-width: 75%;
+    flex: 1;
+  }
+  .form-modal__item--sector,
+  .form-modal__item--country {
+    min-width: 40%;
+  }
+}
+
 // modal forms
 .form-modal__item {
   &:not(:last-child) {
@@ -421,17 +440,6 @@ iframe {
       margin-bottom: 0;
       margin-right: 20px;
     }
-  }
-
-  &.form-modal__item--sector {
-    width: 50%;
-    margin-right: 4%;
-    float: left;
-  }
-
-  &.form-modal__item--country {
-    width: 46%;
-    float: left;
   }
 
   label {
