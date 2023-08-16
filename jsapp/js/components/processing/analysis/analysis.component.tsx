@@ -21,7 +21,10 @@ import {fetchGetUrl} from 'js/api';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import type {SubmissionProcessingDataResponse} from './constants';
 
-/** Displays content of the "Analysis" tab */
+/**
+ * Displays content of the "Analysis" tab. This component is handling all of
+ * the Qualitative Analysis functionality.
+ */
 export default function Analysis() {
   const [isInitialised, setIsInitialised] = useState(false);
 

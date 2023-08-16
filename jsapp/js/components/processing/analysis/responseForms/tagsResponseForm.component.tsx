@@ -13,6 +13,7 @@ interface TagsResponseFormProps {
   uuid: string;
 }
 
+// TODO add description comment
 export default function TagsResponseForm(props: TagsResponseFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
@@ -29,7 +30,9 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
   }
 
   // This will either be an existing list of tags, or an empty list.
-  const initialResponse = Array.isArray(question.response) ? question.response : [];
+  const initialResponse = Array.isArray(question.response)
+    ? question.response
+    : [];
 
   const [response, setResponse] = useState<string[]>(initialResponse);
 

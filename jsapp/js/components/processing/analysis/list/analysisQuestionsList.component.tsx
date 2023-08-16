@@ -5,6 +5,7 @@ import AnalysisQuestionRow from './analysisQuestionRow.component';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
 
+// TODO add description comment
 export default function AnalysisQuestionsList() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 

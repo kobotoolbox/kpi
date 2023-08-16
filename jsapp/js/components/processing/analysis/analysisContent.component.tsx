@@ -4,6 +4,7 @@ import AnalysisContentEmpty from './analysisContentEmpty.component';
 import AnalysisQuestionsList from './list/analysisQuestionsList.component';
 import styles from './analysisContent.module.scss';
 
+/** Displays either a special message for no content, or the list of questions. */
 export default function AnalysisContent() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 

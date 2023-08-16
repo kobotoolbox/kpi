@@ -6,7 +6,7 @@ import {userCan} from 'js/components/permissions/utils';
 import InlineMessage from 'js/components/common/inlineMessage';
 import Icon from 'js/components/common/icon';
 
-/** To bedisplayed when there are no questions defined yet. */
+/** To be displayed when there are no questions defined yet. */
 export default function AnalysisContentEmpty() {
   const hasManagePermissions = (() => {
     const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);

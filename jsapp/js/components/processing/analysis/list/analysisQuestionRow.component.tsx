@@ -28,6 +28,7 @@ interface DragItem {
   type: string;
 }
 
+// TODO add description comment
 export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 

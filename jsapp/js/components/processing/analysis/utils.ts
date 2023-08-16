@@ -231,7 +231,9 @@ export async function updateResponseAndReducer(
     return;
   }
 
-  const processingUrl = getAssetProcessingUrl(singleProcessingStore.currentAssetUid);
+  const processingUrl = getAssetProcessingUrl(
+    singleProcessingStore.currentAssetUid
+  );
   if (!processingUrl) {
     return;
   }

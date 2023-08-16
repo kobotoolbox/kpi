@@ -16,6 +16,7 @@ interface SelectOneResponseFormProps {
   uuid: string;
 }
 
+// TODO add description comment
 export default function SelectOneResponseForm(
   props: SelectOneResponseFormProps
 ) {
@@ -34,7 +35,8 @@ export default function SelectOneResponseForm(
   }
 
   // This will either be an existing response or an empty string
-  const initialResponse = typeof question.response === 'string' ? question.response : '';
+  const initialResponse =
+    typeof question.response === 'string' ? question.response : '';
 
   const [response, setResponse] = useState<string>(initialResponse);
 

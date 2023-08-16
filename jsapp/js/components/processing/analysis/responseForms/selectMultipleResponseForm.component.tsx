@@ -14,6 +14,7 @@ interface SelectMultipleResponseFormProps {
   uuid: string;
 }
 
+// TODO add description comment
 export default function SelectMultipleResponseForm(
   props: SelectMultipleResponseFormProps
 ) {
@@ -32,7 +33,9 @@ export default function SelectMultipleResponseForm(
   }
 
   // This will either be an existing list of selected choices, or an empty list.
-  const initialResponse = Array.isArray(question.response) ? question.response : [];
+  const initialResponse = Array.isArray(question.response)
+    ? question.response
+    : [];
 
   const [response, setResponse] = useState<string[]>(initialResponse);
 

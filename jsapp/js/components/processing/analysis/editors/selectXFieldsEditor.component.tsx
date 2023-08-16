@@ -12,6 +12,7 @@ interface SelectXFieldsEditorProps {
   onFieldsChange: (fields: AdditionalFields) => void;
 }
 
+// TODO add description comment
 export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
