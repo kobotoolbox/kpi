@@ -225,11 +225,13 @@ const AccountSettings = observer(() => {
     background: `#${stringToColor(accountName)}`,
   };
   const metadata = environment.getUserMetadataFieldsAsSimpleDict();
-  const getFieldLabel = (fieldName: string): string =>
-    metadata[fieldName]?.label ||
-    (console.error(`No label for fieldname "${fieldName}"`), fieldName);
-  const isFieldRequired = (fieldName: string): boolean =>
-    metadata[fieldName]?.required || false;
+  /** Get label and (required) for a given user metadata fieldname */
+  const getLabel = (fieldName: string): string => {
+    const label = metadata[fieldName]?.label || (console.error(`No label for fieldname "${fieldName}"`), fieldName);
+    const required = metadata[fieldName]?.required || false;
+    return addRequiredToLabel(label, required);
+  };
+
   const sectorValue = form.sectorChoices.find(
     (sectorChoice) => sectorChoice.value === form.fields.sector
   );
@@ -281,10 +283,7 @@ const AccountSettings = observer(() => {
             {metadata.name && <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
-                label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.name),
-                  isFieldRequired(fieldNames.name)
-                )}
+                label={getLabel(fieldNames.name)}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
                   fieldNames.name
@@ -301,10 +300,7 @@ const AccountSettings = observer(() => {
             {metadata.organization && <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
-                label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.organization),
-                  isFieldRequired(fieldNames.organization)
-                )}
+                label={getLabel(fieldNames.organization)}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
                   fieldNames.organization
@@ -318,10 +314,7 @@ const AccountSettings = observer(() => {
             {metadata.organization_website && <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
-                label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.organization_website),
-                  isFieldRequired(fieldNames.organization_website)
-                )}
+                label={getLabel(fieldNames.organization_website)}
                 value={form.fields.organization_website}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -336,10 +329,7 @@ const AccountSettings = observer(() => {
             {/* Primary Sector */}
             {metadata.sector && <bem.AccountSettings__item m='primary-sector'>
               <WrappedSelect
-                label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.sector),
-                  isFieldRequired(fieldNames.sector)
-                )}
+                label={getLabel(fieldNames.sector)}
                 value={sectorValue}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -353,10 +343,7 @@ const AccountSettings = observer(() => {
             {/* Gender */}
             {metadata.gender && <bem.AccountSettings__item m='gender'>
               <WrappedSelect
-                label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.gender),
-                  isFieldRequired(fieldNames.gender)
-                )}
+                label={getLabel(fieldNames.gender)}
                 value={choiceToSelectOptions(form.fields.gender, genderChoices)}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -371,10 +358,7 @@ const AccountSettings = observer(() => {
             {metadata.bio && <bem.AccountSettings__item m='bio'>
               <TextBox
                 customModifiers='on-white'
-                label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.bio),
-                  isFieldRequired(fieldNames.bio)
-                )}
+                label={getLabel(fieldNames.bio)}
                 value={form.fields.bio}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -387,10 +371,7 @@ const AccountSettings = observer(() => {
             {/* Country */}
             {metadata.country && <bem.AccountSettings__item m='country'>
               <WrappedSelect
-                label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.country),
-                  isFieldRequired(fieldNames.country)
-                )}
+                label={getLabel(fieldNames.country)}
                 value={countryValue}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -405,10 +386,7 @@ const AccountSettings = observer(() => {
             {metadata.city && <bem.AccountSettings__item m='city'>
               <TextBox
                 customModifiers='on-white'
-                label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.city),
-                  isFieldRequired(fieldNames.city)
-                )}
+                label={getLabel(fieldNames.city)}
                 value={form.fields.city}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -428,10 +406,7 @@ const AccountSettings = observer(() => {
 
                 <TextBox
                   customModifiers='on-white'
-                  placeholder={addRequiredToLabel(
-                    getFieldLabel(fieldNames.twitter),
-                    isFieldRequired(fieldNames.twitter)
-                  )}
+                  placeholder={getLabel(fieldNames.twitter)}
                   value={form.fields.twitter}
                   onChange={onAnyFieldChange.bind(
                     onAnyFieldChange,
@@ -447,10 +422,7 @@ const AccountSettings = observer(() => {
 
                 <TextBox
                   customModifiers='on-white'
-                  placeholder={addRequiredToLabel(
-                    getFieldLabel(fieldNames.linkedin),
-                    isFieldRequired(fieldNames.linkedin)
-                  )}
+                  placeholder={getLabel(fieldNames.linkedin)}
                   value={form.fields.linkedin}
                   onChange={onAnyFieldChange.bind(
                     onAnyFieldChange,
@@ -466,10 +438,7 @@ const AccountSettings = observer(() => {
 
                 <TextBox
                   customModifiers='on-white'
-                  placeholder={addRequiredToLabel(
-                    getFieldLabel(fieldNames.instagram),
-                    isFieldRequired(fieldNames.instagram)
-                  )}
+                  placeholder={getLabel(fieldNames.instagram)}
                   value={form.fields.instagram}
                   onChange={onAnyFieldChange.bind(
                     onAnyFieldChange,
