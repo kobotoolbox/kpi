@@ -18,6 +18,7 @@ import {makeAutoObservable} from 'mobx';
 export interface EnvStoreFieldItem {
   name: string;
   required: boolean;
+  label: string;
 }
 
 export interface SocialApp {
@@ -86,6 +87,15 @@ class EnvStoreData {
       }
     }
     return false;
+  }
+
+  public getUserMetadataFieldsAsSimpleDict() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dict: any = {};
+    for (const field of this.user_metadata_fields) {
+      dict[field.name] = field;
+    }
+    return dict;
   }
 }
 
