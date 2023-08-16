@@ -17,6 +17,7 @@ import {notify} from 'js/utils';
 import type {AssetAdvancedFeatures, AssetResponse} from 'js/dataInterface';
 import type {Json} from '../../common/common.interfaces';
 import assetStore from 'js/assetStore';
+import singleProcessingStore from '../singleProcessingStore';
 
 /** Finds given question in state */
 export function findQuestion(
@@ -91,11 +92,7 @@ export function applyUpdateResponseToInternalQuestions(
       (analResp) => question.uuid === analResp.uuid
     );
     if (foundResponse) {
-      if (Array.isArray(foundResponse.val)) {
-        question.response = foundResponse.val.join(',');
-      } else {
-        question.response = foundResponse.val;
-      }
+      question.response = foundResponse.val;
     }
   });
   return newQuestions;
@@ -157,21 +154,15 @@ export async function updateSurveyQuestions(
 
 /**
  * A function that updates the response for a question, i.e. the submission data.
- * TODO: see if this really needs so much parameters
  */
 export async function updateResponse(
-  assetUid: string,
+  processingUrl: string,
   submissionUid: string,
   qpath: string,
   analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
-  newResponse: string
+  newResponse: string | string[]
 ) {
-  const processingUrl = getAssetProcessingUrl(assetUid);
-  if (!processingUrl) {
-    return Promise.reject();
-  }
-
   // TODO: this needs
   // 1. to send different objects for diffferent question types
   try {
@@ -205,40 +196,66 @@ export async function updateResponse(
 }
 
 /**
- * TODO: delete this function
- * A function that updates the response for a question, i.e. the submission data.
+ * A wrapper function for `updateResponse` that works with a reducer passed as
+ * one of parameters. We use it to make the code more DRY, as most response
+ * forms use the same code to store responses.
+ *
+ * Assumption 1: we assume that the data is being updated for the asset and
+ * the submission currently being loaded by `singleProcessingStore`.
+ *
+ * Assumption 2: we assume that the `dispatch` passed here is from the
+ * `analysisQuestions.context`.
+ *
+ * Note: all of the parameters are required for this function to actually save
+ * some information, but it's easier to handle TypeScript nagging in one place
+ * than in each one using this function, so we do it this ugly-ish way.
  */
-export function quietlyUpdateResponse(
-  state: AnalysisQuestionsState | undefined,
+export async function updateResponseAndReducer(
   dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined,
-  questionUuid: string,
+  analysisQuestionUUid: string,
+  analysisQuestionType: AnalysisQuestionType | undefined,
   response: string | string[]
 ) {
-  if (!state || !dispatch) {
+  if (!dispatch) {
+    // TODO handle this error?
     return;
   }
 
+  if (!analysisQuestionType) {
+    // TODO handle this error?
+    return;
+  }
+
+  if (!singleProcessingStore.currentQuestionQpath) {
+    // TODO handle this error?
+    return;
+  }
+
+  const processingUrl = getAssetProcessingUrl(singleProcessingStore.currentAssetUid);
+  if (!processingUrl) {
+    return;
+  }
+
+  // Step 1: Let the reducer know what we're about to do
   dispatch({type: 'updateResponse'});
 
-  // TODO make actual API call here
-  // For now we make a fake response
-  console.log('QA fake API call: update response', questionUuid, response);
-  // setTimeout(() => {
-  //   console.log('QA fake API call: update response DONE');
-  //   dispatch({
-  //     type: 'updateResponseCompleted',
-  //     payload: {
-  //       questions: state.questions.map((item) => {
-  //         if (item.uuid === questionUuid) {
-  //           return {
-  //             ...item,
-  //             response: response,
-  //           };
-  //         } else {
-  //           return item;
-  //         }
-  //       }),
-  //     },
-  //   });
-  // }, 1000);
+  // Step 2: Store the response using the `advanced_submission_post` API
+  try {
+    const result = await updateResponse(
+      processingUrl,
+      singleProcessingStore.currentSubmissionEditId,
+      singleProcessingStore.currentQuestionQpath,
+      analysisQuestionUUid,
+      analysisQuestionType,
+      response
+    );
+    dispatch({
+      type: 'updateResponseCompleted',
+      payload: result,
+    });
+  } catch (err) {
+    // TODO should this be handled in some different way?
+    console.log('catch err', err);
+    dispatch({type: 'updateResponseFailed'});
+  }
 }

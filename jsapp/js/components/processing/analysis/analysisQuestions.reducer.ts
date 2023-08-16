@@ -51,11 +51,19 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       // This is the place that assigns the uid to the question
       const newUuid = generateUuid();
 
+      let initialResponse: string | string[] = '';
+      if (
+        action.payload.type === 'qual_tags' ||
+        action.payload.type === 'qual_select_multiple'
+      ) {
+        initialResponse = [];
+      }
+
       const newQuestion: AnalysisQuestionInternal = {
         type: action.payload.type,
         labels: {_default: ''},
         uuid: newUuid,
-        response: '',
+        response: initialResponse,
         // Note: initially the question is being added as a draft. It
         // wouldn't be stored in database until user saves it intentionally.
         isDraft: true,

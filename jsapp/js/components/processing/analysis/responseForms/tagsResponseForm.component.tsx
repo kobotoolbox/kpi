@@ -4,7 +4,7 @@ import AnalysisQuestionsContext from 'js/components/processing/analysis/analysis
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  quietlyUpdateResponse,
+  updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
 import TagsInput from 'react-tagsinput';
 import commonStyles from './common.module.scss';
@@ -34,12 +34,14 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
   const [response, setResponse] = useState<string[]>(initialResponse);
 
   function onTagsChange(newTags: string[]) {
+    // Update local state
     setResponse(newTags);
 
-    quietlyUpdateResponse(
-      analysisQuestions?.state,
+    // Update endpoint and reducer
+    updateResponseAndReducer(
       analysisQuestions?.dispatch,
       props.uuid,
+      question?.type,
       newTags
     );
   }

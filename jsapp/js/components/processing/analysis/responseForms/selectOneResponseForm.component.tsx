@@ -4,7 +4,7 @@ import AnalysisQuestionsContext from 'js/components/processing/analysis/analysis
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  quietlyUpdateResponse,
+  updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
 import Radio from 'js/components/common/radio';
 import type {RadioOption} from 'js/components/common/radio';
@@ -39,12 +39,14 @@ export default function SelectOneResponseForm(
   const [response, setResponse] = useState<string>(initialResponse);
 
   function onRadioChange(newResponse: string) {
+    // Update local state
     setResponse(newResponse);
 
-    quietlyUpdateResponse(
-      analysisQuestions?.state,
+    // Update endpoint and reducer
+    updateResponseAndReducer(
       analysisQuestions?.dispatch,
       props.uuid,
+      question?.type,
       newResponse
     );
   }

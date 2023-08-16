@@ -4,7 +4,7 @@ import AnalysisQuestionsContext from 'js/components/processing/analysis/analysis
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  quietlyUpdateResponse,
+  updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
@@ -41,12 +41,14 @@ export default function SelectMultipleResponseForm(
       .filter((item) => item.checked)
       .map((item) => item.name);
 
+    // Update local state
     setResponse(newResponse);
 
-    quietlyUpdateResponse(
-      analysisQuestions?.state,
+    // Update endpoint and reducer
+    updateResponseAndReducer(
       analysisQuestions?.dispatch,
       props.uuid,
+      question?.type,
       newResponse
     );
   }

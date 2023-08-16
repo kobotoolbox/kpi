@@ -6,9 +6,8 @@ import {AUTO_SAVE_TYPING_DELAY} from 'js/components/processing/analysis/constant
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  updateResponse,
+  updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import CommonHeader from './commonHeader.component';
 import commonStyles from './common.module.scss';
 
@@ -47,33 +46,12 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
   async function saveResponse() {
     clearTimeout(typingTimer);
 
-    if (!question || !singleProcessingStore.currentQuestionQpath) {
-      // TODO handle this (unlikely) error somehow
-      return;
-    }
-
-    // Step 1: Let the reducer know what we're about to do
-    analysisQuestions?.dispatch({type: 'updateResponse'});
-
-    // Step 2: Store the response using the `advanced_submission_post` API
-    try {
-      const result = await updateResponse(
-        singleProcessingStore.currentAssetUid,
-        singleProcessingStore.currentSubmissionEditId,
-        singleProcessingStore.currentQuestionQpath,
-        question.uuid,
-        question.type,
-        response
-      );
-      analysisQuestions?.dispatch({
-        type: 'updateResponseCompleted',
-        payload: result,
-      });
-    } catch (err) {
-      // TODO should this be handled in some different way?
-      console.log('catch err', err);
-      analysisQuestions?.dispatch({type: 'updateResponseFailed'});
-    }
+    updateResponseAndReducer(
+      analysisQuestions?.dispatch,
+      props.uuid,
+      question?.type,
+      response
+    );
   }
 
   function saveResponseDelayedAndQuietly() {
