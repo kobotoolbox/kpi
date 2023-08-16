@@ -1,12 +1,14 @@
 # coding: utf-8
 import base64
 import copy
+import dateutil.parser
 import json
 import os
 from io import StringIO
 
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.project_views.models.project_view import ProjectView
@@ -1747,6 +1749,84 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.assertEqual(self.asset.deployment.version_id,
                          version_id)
 
+    def test_asset_deployment_dates(self):
+        p = dateutil.parser.parse
+
+        assert self.asset.date_deployed is None
+        asset_response = self.client.get(self.asset_url, format='json')
+        assert asset_response.data['date_deployed'] is None
+
+        before = timezone.now()
+        self.test_asset_deployment()
+        after = timezone.now()
+
+        asset_response = self.client.get(self.asset_url, format='json')
+        date_first_deployed = asset_response.data['date_deployed']
+        assert before <= p(date_first_deployed) <= after
+        deployed_version = asset_response.data['deployed_versions']['results'][
+            0
+        ]
+        assert asset_response.data['version_id'] == deployed_version['uid']
+        assert(
+            asset_response.data['deployed_version_id']
+            == deployed_version['uid']
+        )
+
+        # Add a form media file to this asset
+        crab_png_b64 = (
+            'iVBORw0KGgoAAAANSUhEUgAAABIAAAAPAgMAAACU6HeBAAAADFBMVEU7PTqv'
+            'OD/m6OX////GxYKhAAAAR0lEQVQI1y2MMQrAMAwD9Ul5yJQ1+Y8zm0Ig9iur'
+            'kmo4xAmEUgJpaYE9y0VLBrwVO9ZzUnSODidlthgossXf73pNDltav88X3Ncm'
+            'NcRl6K8AAAAASUVORK5CYII='
+        )
+        asset_file_list_url = reverse(
+            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
+        )
+        asset_file_post_data = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'I have pincers',
+            'base64Encoded': 'data:image/png;base64,' + crab_png_b64,
+            'metadata': json.dumps({'filename': 'crab.png'}),
+        }
+        asset_file_response = self.client.post(
+            asset_file_list_url, asset_file_post_data
+        )
+        assert asset_file_response.status_code == status.HTTP_201_CREATED
+
+        # Redeploy with the new media file, which is a change that occurs
+        # without creating a new `AssetVersion`
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'),
+            kwargs={'uid': self.asset_uid},
+        )
+        before = timezone.now()
+        redeploy_response = self.client.patch(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+                'version_id': deployed_version['uid'],
+            },
+        )
+        after = timezone.now()
+        assert redeploy_response.status_code == status.HTTP_200_OK
+
+        asset_response = self.client.get(self.asset_url, format='json')
+
+        assert (
+            before <= p(asset_response.data['date_deployed']) <= after
+        ), 'Redeployment should update the deployment timestamp'
+
+        assert (
+            deployed_version['date_modified']
+            == asset_response.data['deployed_versions']['results'][0][
+                'date_modified'
+            ]
+        ), (
+            'Redeploying the same version, unmodified, should not change the'
+            ' modification date of that version'
+        )
+
     def test_archive_asset(self):
         self.test_asset_deployment()
 
@@ -1770,3 +1850,30 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             response2.data['deployment_status']
             == AssetDeploymentStatus.ARCHIVED.value
         )
+
+    def test_archive_asset_does_not_modify_date_deployed(self):
+        self.test_asset_deployment()
+        self.asset.refresh_from_db()
+        original_date_deployed = self.asset.date_deployed
+
+        deployment_url = reverse(self._get_endpoint('asset-deployment'),
+                                 kwargs={'uid': self.asset_uid})
+
+
+        # archive
+        response = self.client.patch(deployment_url, {
+            'backend': 'mock',
+            'active': False,
+        })
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert self.asset.date_deployed == original_date_deployed
+
+        # unarchive
+        response = self.client.patch(deployment_url, {
+            'backend': 'mock',
+            'active': True,
+        })
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert self.asset.date_deployed == original_date_deployed

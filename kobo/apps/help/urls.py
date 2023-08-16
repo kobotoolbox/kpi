@@ -4,7 +4,6 @@ from rest_framework.routers import SimpleRouter
 
 from .views import (
     InAppMessageFileContentView,
-    InAppMessageImageUploadView,
     InAppMessageViewSet,
 )
 
@@ -13,9 +12,7 @@ router = SimpleRouter()
 router.register(r'in_app_messages', InAppMessageViewSet)
 
 urlpatterns = [
-    re_path(r'^in_app_message_upload/',
-            InAppMessageImageUploadView.as_view(),
-            name='in-app-message-image-upload'),
+    # keep this route for retro-compatibility
     re_path(r'^in_app_message_file/(?P<path>.*)$',
             InAppMessageFileContentView.as_view(),
             name='in-app-message-file-contents'),
