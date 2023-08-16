@@ -212,12 +212,12 @@ const AccountSettings = observer(() => {
   const initialsStyle = {
     background: `#${stringToColor(accountName)}`,
   };
-  const userMetadataFieldDict = environment.getUserMetadataFieldsAsSimpleDict();
+  const metadata = environment.getUserMetadataFieldsAsSimpleDict();
   const getFieldLabel = (fieldName: string): string =>
-    userMetadataFieldDict[fieldName]?.label ||
+    metadata[fieldName]?.label ||
     (console.error(`No label for fieldname "${fieldName}"`), fieldName);
   const isFieldRequired = (fieldName: string): boolean =>
-    userMetadataFieldDict[fieldName]?.required || false;
+    metadata[fieldName]?.required || false;
   const sectorValue = form.sectorChoices.find(
     (sectorChoice) => sectorChoice.value === form.fields.sector
   );
@@ -266,7 +266,7 @@ const AccountSettings = observer(() => {
             </bem.AccountSettings__item>
 
             {/* Full name */}
-            <bem.AccountSettings__item>
+            {metadata.full_name && <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
                 label={addRequiredToLabel(
@@ -283,10 +283,10 @@ const AccountSettings = observer(() => {
                   'Use this to display your real name to other users'
                 )}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
             {/* Organization */}
-            <bem.AccountSettings__item>
+            {metadata.organization && <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
                 label={addRequiredToLabel(
@@ -300,10 +300,10 @@ const AccountSettings = observer(() => {
                 value={form.fields.organization}
                 errors={form.fieldsWithErrors.extra_details?.organization}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
             {/* Organization Website */}
-            <bem.AccountSettings__item>
+            {metadata.organization_website && <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
                 label={addRequiredToLabel(
@@ -319,10 +319,10 @@ const AccountSettings = observer(() => {
                   form.fieldsWithErrors.extra_details?.organization_website
                 }
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
             {/* Primary Sector */}
-            <bem.AccountSettings__item m='primary-sector'>
+            {metadata.sector && <bem.AccountSettings__item m='primary-sector'>
               <WrappedSelect
                 label={addRequiredToLabel(
                   getFieldLabel(fieldNames.sector),
@@ -336,10 +336,10 @@ const AccountSettings = observer(() => {
                 options={form.sectorChoices}
                 error={form.fieldsWithErrors.extra_details?.sector}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
             {/* Gender */}
-            <bem.AccountSettings__item m='gender'>
+            {metadata.gender && <bem.AccountSettings__item m='gender'>
               <WrappedSelect
                 label={addRequiredToLabel(
                   getFieldLabel(fieldNames.gender),
@@ -353,10 +353,10 @@ const AccountSettings = observer(() => {
                 options={genderSelectOptions}
                 error={form.fieldsWithErrors.extra_details?.gender}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
             {/* Bio */}
-            <bem.AccountSettings__item m='bio'>
+            {metadata.bio && <bem.AccountSettings__item m='bio'>
               <TextBox
                 customModifiers='on-white'
                 label={addRequiredToLabel(
@@ -370,10 +370,10 @@ const AccountSettings = observer(() => {
                 )}
                 errors={form.fieldsWithErrors.extra_details?.bio}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
             {/* Country */}
-            <bem.AccountSettings__item m='country'>
+            {metadata.country && <bem.AccountSettings__item m='country'>
               <WrappedSelect
                 label={addRequiredToLabel(
                   getFieldLabel(fieldNames.country),
@@ -387,10 +387,10 @@ const AccountSettings = observer(() => {
                 options={form.countryChoices}
                 error={form.fieldsWithErrors.extra_details?.country}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
             {/* City */}
-            <bem.AccountSettings__item m='city'>
+            {metadata.city && <bem.AccountSettings__item m='city'>
               <TextBox
                 customModifiers='on-white'
                 label={addRequiredToLabel(
@@ -404,14 +404,14 @@ const AccountSettings = observer(() => {
                 )}
                 errors={form.fieldsWithErrors.extra_details?.city}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
             {/* Social */}
-            <bem.AccountSettings__item m='social'>
+            {(metadata.twitter || metadata.linkedin || metadata.instagram) && <bem.AccountSettings__item m='social'>
               <label>{t('Social')}</label>
 
               {/* Twitter */}
-              <label>
+              {metadata.twitter && <label>
                 <i className='k-icon k-icon-logo-twitter' />
 
                 <TextBox
@@ -427,10 +427,10 @@ const AccountSettings = observer(() => {
                   )}
                   errors={form.fieldsWithErrors.extra_details?.twitter}
                 />
-              </label>
+              </label>}
 
               {/* LinkedIn */}
-              <label>
+              {metadata.linkedin && <label>
                 <i className='k-icon k-icon-logo-linkedin' />
 
                 <TextBox
@@ -446,10 +446,10 @@ const AccountSettings = observer(() => {
                   )}
                   errors={form.fieldsWithErrors.extra_details?.linkedin}
                 />
-              </label>
+              </label>}
 
               {/* Instagram */}
-              <label>
+              {metadata.instagram && <label>
                 <i className='k-icon k-icon-logo-instagram' />
 
                 <TextBox
@@ -465,8 +465,8 @@ const AccountSettings = observer(() => {
                   )}
                   errors={form.fieldsWithErrors.extra_details?.instagram}
                 />
-              </label>
-            </bem.AccountSettings__item>
+              </label>}
+            </bem.AccountSettings__item>}
           </bem.AccountSettings__item>
         )}
       </bem.AccountSettings__item>
