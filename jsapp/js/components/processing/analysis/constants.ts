@@ -67,7 +67,11 @@ export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
 export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
   additionalFields?: AdditionalFields;
   isDraft?: boolean;
-  response: string;
+  /**
+   * Some types use an array of strings (e.g. `qual_select_multiple` and
+   * `qual_tags`).
+   */
+  response: string | string[];
 }
 
 /** Analysis question response (to a question defined as `uuid`) from Back end. */

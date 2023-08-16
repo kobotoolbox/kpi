@@ -212,7 +212,7 @@ export function quietlyUpdateResponse(
   state: AnalysisQuestionsState | undefined,
   dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined,
   questionUuid: string,
-  response: string
+  response: string | string[]
 ) {
   if (!state || !dispatch) {
     return;

@@ -38,7 +38,10 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
     return null;
   }
 
-  const [response, setResponse] = useState<string>(question.response);
+  // This will either be an existing response or an empty string
+  const initialResponse = typeof question.response === 'string' ? question.response : '';
+
+  const [response, setResponse] = useState<string>(initialResponse);
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>();
 
   async function saveResponse() {

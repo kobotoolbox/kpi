@@ -31,14 +31,15 @@ export default function SelectMultipleResponseForm(
     return null;
   }
 
-  const [response, setResponse] = useState<string>(question.response);
+  // This will either be an existing list of selected choices, or an empty list.
+  const initialResponse = Array.isArray(question.response) ? question.response : [];
+
+  const [response, setResponse] = useState<string[]>(initialResponse);
 
   function onCheckboxesChange(items: MultiCheckboxItem[]) {
-    const newFields = items
+    const newResponse = items
       .filter((item) => item.checked)
       .map((item) => item.name);
-    // TODO store array of strings!
-    const newResponse = newFields.join(',');
 
     setResponse(newResponse);
 
@@ -56,7 +57,7 @@ export default function SelectMultipleResponseForm(
         return {
           name: choice.uuid,
           label: choice.labels._default,
-          checked: response.split(',').includes(choice.uuid),
+          checked: response.includes(choice.uuid),
         };
       });
     }

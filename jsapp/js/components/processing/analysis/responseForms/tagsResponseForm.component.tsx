@@ -28,26 +28,19 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
     return null;
   }
 
-  const [response, setResponse] = useState<string>(question.response);
+  // This will either be an existing list of tags, or an empty list.
+  const initialResponse = Array.isArray(question.response) ? question.response : [];
 
-  // TODO store array of strings!
-  function getTags() {
-    if (response?.length !== 0) {
-      return response.split(',');
-    }
-    return [];
-  }
+  const [response, setResponse] = useState<string[]>(initialResponse);
 
   function onTagsChange(newTags: string[]) {
-    const newResponse = newTags.join(',');
-
-    setResponse(newResponse);
+    setResponse(newTags);
 
     quietlyUpdateResponse(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
       props.uuid,
-      newResponse
+      newTags
     );
   }
 
@@ -57,7 +50,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
 
       <section className={commonStyles.content}>
         <TagsInput
-          value={getTags()}
+          value={response}
           onChange={onTagsChange}
           onlyUnique
           addOnBlur

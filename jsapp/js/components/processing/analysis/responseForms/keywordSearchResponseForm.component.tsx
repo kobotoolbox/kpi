@@ -122,7 +122,7 @@ export default function KeywordSearchResponseForm(
                     size='s'
                     label={t('##number## instances').replace(
                       '##number##',
-                      question.response
+                      String(question.response)
                     )}
                   />
                   &nbsp;

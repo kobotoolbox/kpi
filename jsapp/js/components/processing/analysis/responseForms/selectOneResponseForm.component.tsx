@@ -33,7 +33,10 @@ export default function SelectOneResponseForm(
     return null;
   }
 
-  const [response, setResponse] = useState<string>(question.response);
+  // This will either be an existing response or an empty string
+  const initialResponse = typeof question.response === 'string' ? question.response : '';
+
+  const [response, setResponse] = useState<string>(initialResponse);
 
   function onRadioChange(newResponse: string) {
     setResponse(newResponse);
