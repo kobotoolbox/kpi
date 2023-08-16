@@ -29,7 +29,9 @@ interface AnalysisQuestionChoice {
 /**
  * This is a sum of all different possible fields for multiple question types.
  *
- * TODO: find a TypeScript way to make make this better.
+ * TODO: find a TypeScript way to make make this better, i.e. instead of all
+ * additional fields being optional, ideally this would be defined at per-type
+ * basis with each field being required.
  */
 export interface AdditionalFields {
   /** A list of keywords to search for. */
