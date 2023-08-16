@@ -1,13 +1,12 @@
 # coding: utf-8
 import constance
-import json
 import markdown
 from django.conf import settings
 from django.urls import reverse
 
+from kpi.utils.markdown import markdownify
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
-from django.utils.translation import get_language
 
 
 def custom_password_guidance_text(request):
@@ -50,7 +49,7 @@ def mfa(request):
 
 
 def django_settings(request):
-    return {"stripe_enabled": settings.STRIPE_ENABLED}
+    return {'stripe_enabled': settings.STRIPE_ENABLED}
 
 
 def sitewide_messages(request):
@@ -61,7 +60,7 @@ def sitewide_messages(request):
     if request.path_info == reverse('account_signup'):
         sitewide_message = I18nUtils.get_sitewide_message()
         if sitewide_message is not None:
-            return {'welcome_message': sitewide_message}
+            return {'welcome_message': markdownify(sitewide_message)}
 
     return {}
 

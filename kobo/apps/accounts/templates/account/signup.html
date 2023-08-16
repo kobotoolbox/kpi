@@ -29,25 +29,27 @@
     <h1>{% trans "Create an account" %}</h1>
       {% csrf_token %}
       {% for field in form %}
-          <div class="field {{ field.name }}">
-            {{ field.label_tag|cut:':' }}
-            {% if field.field.required %}
-              <span class="required">*</span>
-            {% endif %}
-
-            {{ field }}
-            {% if field.help_text %}
-              <p class="help">{{ field.help_text|safe }}</p>
-            {% endif %}
-            {{ field.errors }}
-          </div>
-
+        <div class="field {{ field.name }}">
           {% if field.name == 'password1' %}
-            <div class="field" id="registration-password-app"></div>
             {% if custom_guidance_text %}
               <div class="field">{{ custom_guidance_text|safe }}</div>
             {% endif %}
           {% endif %}
+          {{ field.label_tag|cut:':' }}
+          {% if field.field.required %}
+            <span class="required">*</span>
+          {% endif %}
+
+          {{ field }}
+          {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+          {% endif %}
+          {{ field.errors }}
+        </div>
+
+        {% if field.name == 'password1' %}
+          <div class="field" id="registration-password-app"></div>
+        {% endif %}
       {% endfor %}
 
       <button

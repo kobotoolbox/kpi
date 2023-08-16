@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import sessionStore from 'js/stores/session';
 import TextBox from 'js/components/common/textBox';
 import PasswordStrength from 'js/components/passwordStrength.component';
@@ -8,8 +8,10 @@ import Button from 'js/components/common/button';
 import {fetchPatch} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
 import {notify} from 'js/utils';
-import envStore from 'jsapp/js/envStore';
+import envStore from 'js/envStore';
 import type {FailResponse} from 'js/dataInterface';
+import classnames from 'classnames';
+import {when} from 'mobx';
 
 const FIELD_REQUIRED_ERROR = t('This field is required.');
 
@@ -23,6 +25,8 @@ interface UpdatePasswordFormProps {
 
 export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
   const [isPending, setIsPending] = useState(false);
+  const [isEnvStoreReady, setIsEnvStoreReady] = useState(envStore.isReady);
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [currentPasswordError, setCurrentPasswordError] = useState<
     string[] | undefined
@@ -35,6 +39,10 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
   const [verifyPasswordError, setVerifyPasswordError] = useState<
     string[] | undefined
   >();
+
+  useEffect(() => {
+    when(() => envStore.isReady).then(() => setIsEnvStoreReady(true));
+  }, []);
 
   async function savePassword() {
     let hasErrors = false;
@@ -107,12 +115,21 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
     savePassword();
   }
 
-  if (!sessionStore.isLoggedIn) {
+  if (!sessionStore.isLoggedIn || !isEnvStoreReady) {
     return null;
   }
 
   return (
     <form className={styles.root} onSubmit={submitPasswordForm}>
+      {envStore.data.enable_custom_password_guidance_text && (
+        <div
+          className={classnames([styles.row, styles.guidanceText])}
+          dangerouslySetInnerHTML={{
+            __html: envStore.data.custom_password_localized_help_text,
+          }}
+        />
+      )}
+
       <div className={styles.row}>
         <TextBox
           label={t('Current Password')}
