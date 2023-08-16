@@ -12,7 +12,7 @@ from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
-    'full_name',
+    'name',
     'organization',
     'gender',
     'sector',
@@ -23,14 +23,14 @@ CONFIGURABLE_METADATA_FIELDS = (
 class LoginForm(BaseLoginForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["login"].widget.attrs["placeholder"] = ""
-        self.fields["password"].widget.attrs["placeholder"] = ""
-        self.label_suffix = ""
+        self.fields['login'].widget.attrs['placeholder'] = ''
+        self.fields['password'].widget.attrs['placeholder'] = ''
+        self.label_suffix = ''
 
 
 class KoboSignupMixin(forms.Form):
-    full_name = forms.CharField(
-        label=USER_METADATA_DEFAULT_LABELS['full_name'],
+    name = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['name'],
         required=False,
     )
     organization = forms.CharField(
@@ -120,7 +120,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
     field_order = [
         'username',
         'email',
-        'full_name',
+        'name',
         'gender',
         'sector',
         'country',
@@ -131,12 +131,12 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         super().__init__(*args, **kwargs)
         if settings.UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE:
             self.fields['email'].widget.attrs['readonly'] = True
-        self.label_suffix = ""
+        self.label_suffix = ''
 
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):
     field_order = [
-        'full_name',
+        'name',
         'organization',
         'username',
         'email',

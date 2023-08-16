@@ -12,12 +12,12 @@ def alter_constance_config(apps, schema_editor):
     user_metadata = to_python_object(config.USER_METADATA_FIELDS)
     name_set = False
     for field in user_metadata:
-        if field['name'] == 'full_name':
+        if field['name'] == 'name':
             name_set = True
             break
     if not name_set:
         user_metadata.insert(0, {
-            'name': 'full_name',
+            'name': 'name',
             'required': False,
         })
         user_metadata_json = LazyJSONSerializable(user_metadata)

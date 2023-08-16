@@ -136,7 +136,7 @@ class MetadataFieldsListField(JsonSchemaFormField):
 
         if set(self.REQUIRED_FIELDS) - set(d['name'] for d in instance):
             raise ValidationError(
-                t('`##place_holder##` cannot be removed.').replace(
+                t('`##place_holder##` field cannot be hidden.').replace(
                     '##place_holder##',
                     '`, `'.join(self.REQUIRED_FIELDS)
                 )
@@ -146,7 +146,7 @@ class MetadataFieldsListField(JsonSchemaFormField):
 
 class UserMetadataFieldsListField(MetadataFieldsListField):
 
-    REQUIRED_FIELDS = ['full_name']
+    REQUIRED_FIELDS = ['name']
 
 
 class I18nTextJSONField(JsonSchemaFormField):

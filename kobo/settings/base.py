@@ -274,7 +274,7 @@ CONSTANCE_CONFIG = {
     ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
-            {'name': 'full_name', 'required': False},
+            {'name': 'name', 'required': False},
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},
             {'name': 'sector', 'required': False},
@@ -289,11 +289,11 @@ CONSTANCE_CONFIG = {
         # The available fields are hard-coded in the front end
         'Modify if the fields are required and labels for these metadata '
         "fields for users. Possible fields are:\n"
-        " 'full_name', 'organization', 'organization_website', "
+        " 'name', 'organization', 'organization_website', "
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
         "and 'instagram'.\n\n"
         'To add another language, follow the example below.\n\n'
-        "{'name': 'full_name', 'required': False, 'label': "
+        "{'name': 'name', 'required': False, 'label': "
         "{default: 'Full Name', 'fr': 'Nom Complet'}}\n",
         # Use custom field for schema validation
         'long_metadata_fields_jsonschema'

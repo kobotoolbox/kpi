@@ -26,9 +26,11 @@ class I18nTestCase(TestCase):
         self.assertEqual(welcome_message, 'Global welcome message')
         self.assertEqual(welcome_message_es, welcome_message)
 
+    # TODO validate whethere the tests below are necessary.
+    #   Kinda redundant with kobo/apps/accounts/tests/test_forms.py::AccountFormsTestCase
     @override_config(USER_METADATA_FIELDS=LazyJSONSerializable([
       {
-        'name': 'full_name',
+        'name': 'name',
         'required': False,
         'label': {
             'default': 'Full name',
@@ -40,23 +42,23 @@ class I18nTestCase(TestCase):
     def test_user_metadata_fields_with_custom_label(self):
         # Languages exist - return related label
         assert (
-            I18nUtils.get_metadata_field_label('full_name', 'user', 'fr')
+            I18nUtils.get_metadata_field_label('name', 'user', 'fr')
             == 'Prénom et nom'
         )
         assert (
-            I18nUtils.get_metadata_field_label('full_name', 'user', 'es')
+            I18nUtils.get_metadata_field_label('name', 'user', 'es')
             == 'Nombre y apellido'
         )
         # No matching languages - return default
         assert (
-            I18nUtils.get_metadata_field_label('full_name', 'user', 'it')
+            I18nUtils.get_metadata_field_label('name', 'user', 'it')
             == 'Full name'
         )
-        assert I18nUtils.get_metadata_field_label('full_name', 'user') == 'Full name'
+        assert I18nUtils.get_metadata_field_label('name', 'user') == 'Full name'
 
     @override_config(USER_METADATA_FIELDS=LazyJSONSerializable([
         {
-            'name': 'full_name',
+            'name': 'name',
             'required': False
         }
     ]))
@@ -66,18 +68,18 @@ class I18nTestCase(TestCase):
 
         with mock.patch.dict(
             USER_METADATA_DEFAULT_LABELS,
-            {'full_name': mock_t('My Full name')},
+            {'name': mock_t('My Full name')},
         ) as mock_dict:
             assert (
-                I18nUtils.get_metadata_field_label('full_name', 'user', 'fr')
+                I18nUtils.get_metadata_field_label('name', 'user', 'fr')
                 == MOCK_TRANSLATION_STRING
             )
             assert (
-                I18nUtils.get_metadata_field_label('full_name', 'user')
+                I18nUtils.get_metadata_field_label('name', 'user')
                 == MOCK_TRANSLATION_STRING
             )
             assert (
-                USER_METADATA_DEFAULT_LABELS['full_name']
+                USER_METADATA_DEFAULT_LABELS['name']
                 == MOCK_TRANSLATION_STRING
             )
             assert mock_t.call_args.args[0] == 'My Full name'
