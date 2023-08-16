@@ -155,22 +155,34 @@ const AccountSettings = observer(() => {
   const updateProfile = () => {
     // To patch correctly with recent changes to the backend,
     // ensure that we send empty strings if the field is left blank.
-    const profilePatchData = {
-      extra_details: {
-        name: form.fields.name || '',
-        organization: form.fields.organization || '',
-        organization_website: form.fields.organization_website || '',
-        sector: form.fields.sector || '',
-        gender: form.fields.gender || '',
-        bio: form.fields.bio || '',
-        city: form.fields.city || '',
-        country: form.fields.country || '',
-        require_auth: form.fields.require_auth ? true : false, // false if empty
-        twitter: form.fields.twitter || '',
-        linkedin: form.fields.linkedin || '',
-        instagram: form.fields.instagram || '',
-      },
-    };
+
+    // We should only overwrite user metadata that the user can see.
+    // Fields that:
+    //   (a) are enabled in constance
+    //   (b) the frontend knows about
+
+    // Make a list of user metadata fields to include in the patch
+    const presentMetadataFields = Object.keys(
+        // Fields enabled in constance
+        environment.getUserMetadataFieldsAsSimpleDict()
+      )
+      // Intersected with:
+      .filter((key) => (
+        // Fields the frontend knows about
+        fieldNames[key as keyof typeof fieldNames] !== undefined
+      )
+    );
+
+    // Populate the patch with user form input, or empty strings.
+    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
+    const extra_details: any = {};
+    presentMetadataFields.forEach((key) => {
+      extra_details[key] = form.fields[key as keyof typeof form.fields] || '';
+    });
+    // Always include require_auth, defaults to 'false'.
+    extra_details.require_auth = form.fields.require_auth ? true : false;
+
+    const profilePatchData = {extra_details};
     dataInterface
       .patchProfile(profilePatchData)
       .done(() => {
