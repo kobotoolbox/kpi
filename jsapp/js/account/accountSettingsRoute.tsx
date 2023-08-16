@@ -38,13 +38,13 @@ interface Form {
   fields: {
     full_name: string;
     organization: string;
-    organizationWebsite: string;
+    organization_website: string;
     sector: string;
     gender: string;
     bio: string;
     city: string;
     country: string;
-    requireAuth: boolean;
+    require_auth: boolean;
     twitter: string;
     linkedin: string;
     instagram: string;
@@ -53,13 +53,13 @@ interface Form {
     extra_details?: {
       full_name?: string;
       organization?: string;
-      organizationWebsite?: string;
+      organization_website?: string;
       sector?: string;
       gender?: string;
       bio?: string;
       city?: string;
       country?: string;
-      requireAuth?: string;
+      require_auth?: string;
       twitter?: string;
       linkedin?: string;
       instagram?: string;
@@ -95,13 +95,13 @@ const AccountSettings = observer(() => {
     fields: {
       full_name: '',
       organization: '',
-      organizationWebsite: '',
+      organization_website: '',
       sector: '',
       gender: '',
       bio: '',
       city: '',
       country: '',
-      requireAuth: false,
+      require_auth: false,
       twitter: '',
       linkedin: '',
       instagram: '',
@@ -132,14 +132,14 @@ const AccountSettings = observer(() => {
         fields: {
           full_name: currentAccount.extra_details.full_name,
           organization: currentAccount.extra_details.organization,
-          organizationWebsite:
+          organization_website:
             currentAccount.extra_details.organization_website,
           sector: currentAccount.extra_details.sector,
           gender: currentAccount.extra_details.gender,
           bio: currentAccount.extra_details.bio,
           city: currentAccount.extra_details.city,
           country: currentAccount.extra_details.country,
-          requireAuth: currentAccount.extra_details.require_auth,
+          require_auth: currentAccount.extra_details.require_auth,
           twitter: currentAccount.extra_details.twitter,
           linkedin: currentAccount.extra_details.linkedin,
           instagram: currentAccount.extra_details.instagram,
@@ -159,13 +159,13 @@ const AccountSettings = observer(() => {
       extra_details: {
         full_name: form.fields.full_name || '',
         organization: form.fields.organization || '',
-        organization_website: form.fields.organizationWebsite || '',
+        organization_website: form.fields.organization_website || '',
         sector: form.fields.sector || '',
         gender: form.fields.gender || '',
         bio: form.fields.bio || '',
         city: form.fields.city || '',
         country: form.fields.country || '',
-        require_auth: form.fields.requireAuth ? true : false, // false if empty
+        require_auth: form.fields.require_auth ? true : false, // false if empty
         twitter: form.fields.twitter || '',
         linkedin: form.fields.linkedin || '',
         instagram: form.fields.instagram || '',
@@ -255,12 +255,12 @@ const AccountSettings = observer(() => {
 
               {/* Require authentication to see forms and submit data */}
               <Checkbox
-                checked={form.fields.requireAuth}
+                checked={form.fields.require_auth}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  'requireAuth'
+                  fieldNames.require_auth
                 )}
-                name='requireAuth'
+                name={fieldNames.require_auth}
                 label={t('Require authentication to see forms and submit data')}
               />
             </bem.AccountSettings__item>
@@ -273,7 +273,10 @@ const AccountSettings = observer(() => {
                   getFieldLabel(fieldNames.full_name),
                   isFieldRequired(fieldNames.full_name)
                 )}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'full_name')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.full_name
+                )}
                 value={form.fields.full_name}
                 errors={form.fieldsWithErrors.extra_details?.full_name}
                 placeholder={t(
@@ -292,7 +295,7 @@ const AccountSettings = observer(() => {
                 )}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  'organization'
+                  fieldNames.organization
                 )}
                 value={form.fields.organization}
                 errors={form.fieldsWithErrors.extra_details?.organization}
@@ -307,13 +310,13 @@ const AccountSettings = observer(() => {
                   getFieldLabel(fieldNames.organization_website),
                   isFieldRequired(fieldNames.organization_website)
                 )}
-                value={form.fields.organizationWebsite}
+                value={form.fields.organization_website}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  'organizationWebsite'
+                  fieldNames.organization_website
                 )}
                 errors={
-                  form.fieldsWithErrors.extra_details?.organizationWebsite
+                  form.fieldsWithErrors.extra_details?.organization_website
                 }
               />
             </bem.AccountSettings__item>
@@ -326,7 +329,10 @@ const AccountSettings = observer(() => {
                   isFieldRequired(fieldNames.sector)
                 )}
                 value={sectorValue}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'sector')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.sector
+                )}
                 options={form.sectorChoices}
                 error={form.fieldsWithErrors.extra_details?.sector}
               />
@@ -340,7 +346,10 @@ const AccountSettings = observer(() => {
                   isFieldRequired(fieldNames.gender)
                 )}
                 value={choiceToSelectOptions(form.fields.gender, genderChoices)}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'gender')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.gender
+                )}
                 options={genderSelectOptions}
                 error={form.fieldsWithErrors.extra_details?.gender}
               />
@@ -355,7 +364,10 @@ const AccountSettings = observer(() => {
                   isFieldRequired(fieldNames.bio)
                 )}
                 value={form.fields.bio}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.bio
+                )}
                 errors={form.fieldsWithErrors.extra_details?.bio}
               />
             </bem.AccountSettings__item>
@@ -368,7 +380,10 @@ const AccountSettings = observer(() => {
                   isFieldRequired(fieldNames.country)
                 )}
                 value={countryValue}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'country')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.country
+                )}
                 options={form.countryChoices}
                 error={form.fieldsWithErrors.extra_details?.country}
               />
@@ -383,7 +398,10 @@ const AccountSettings = observer(() => {
                   isFieldRequired(fieldNames.city)
                 )}
                 value={form.fields.city}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.city
+                )}
                 errors={form.fieldsWithErrors.extra_details?.city}
               />
             </bem.AccountSettings__item>
@@ -403,7 +421,10 @@ const AccountSettings = observer(() => {
                     isFieldRequired(fieldNames.twitter)
                   )}
                   value={form.fields.twitter}
-                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.twitter
+                  )}
                   errors={form.fieldsWithErrors.extra_details?.twitter}
                 />
               </label>
@@ -419,7 +440,10 @@ const AccountSettings = observer(() => {
                     isFieldRequired(fieldNames.linkedin)
                   )}
                   value={form.fields.linkedin}
-                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.linkedin
+                  )}
                   errors={form.fieldsWithErrors.extra_details?.linkedin}
                 />
               </label>
@@ -437,7 +461,7 @@ const AccountSettings = observer(() => {
                   value={form.fields.instagram}
                   onChange={onAnyFieldChange.bind(
                     onAnyFieldChange,
-                    'instagram'
+                    fieldNames.instagram
                   )}
                   errors={form.fieldsWithErrors.extra_details?.instagram}
                 />
