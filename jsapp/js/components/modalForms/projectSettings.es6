@@ -661,6 +661,12 @@ class ProjectSettings extends React.Component {
 
     // superuser-configured metadata
     if (
+      envStore.data.getProjectMetadataField('description').required &&
+      !this.state.fields.description.trim()
+    ) {
+      fieldsWithErrors.push('description');
+    }
+    if (
       envStore.data.getProjectMetadataField('sector').required &&
       !this.state.fields.sector
     ) {
@@ -867,6 +873,7 @@ class ProjectSettings extends React.Component {
     const operationalPurposes = envStore.data.operational_purpose_choices;
     const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii');
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
+    const descriptionField = envStore.data.getProjectMetadataField('description');
 
     return (
       <bem.FormModal__form
@@ -906,17 +913,20 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {descriptionField &&
           <bem.FormModal__item>
             <TextBox
               customModifiers='on-white'
               type='text-multiline'
               value={this.state.fields.description}
               onChange={this.onDescriptionChange.bind(this)}
-              label={t('Description')}
+              errors={this.hasFieldError('description') ? t('Please enter a description for your project') : false}
+              label={addRequiredToLabel(t('Description'), descriptionField.required)}
               placeholder={t('Enter short description here')}
               data-cy='description'
             />
           </bem.FormModal__item>
+          }
 
           {sectorField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
