@@ -11,7 +11,10 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import {userCan} from 'js/components/permissions/utils';
 import classNames from 'classnames';
 
-// TODO add description comment
+/**
+ * This piece of UI is displaying the button/dropdown for adding new questions
+ * (definitions). It also has a saving state indicator.
+ */
 export default function AnalysisHeader() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 

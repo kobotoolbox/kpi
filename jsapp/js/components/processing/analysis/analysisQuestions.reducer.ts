@@ -36,7 +36,10 @@ export const initialState: AnalysisQuestionsState = {
   questionsBeingEdited: [],
 };
 
-// TODO add description comment
+/**
+ * This reducer holds all data related to Qualitative Analysis Questions - both
+ * the definitions and the responses (merged together for simplicity).
+ */
 export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
   state: AnalysisQuestionsState,
   action: AnalysisQuestionsAction
