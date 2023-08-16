@@ -659,7 +659,7 @@ export interface AccountResponse {
   is_staff: boolean;
   last_login: string;
   extra_details: {
-    full_name: string;
+    name: string;
     gender: string;
     sector: string;
     country: string;
@@ -690,7 +690,7 @@ export interface AccountResponse {
 export interface AccountRequest {
   email?: string;
   extra_details?: {
-    full_name?: string;
+    name?: string;
     organization?: string;
     organization_website?: string;
     sector?: string;

@@ -438,7 +438,7 @@
         min-width: 75%; // Most rows are wide enough to get their own row,
         flex: 1; // and when they do, they grow to occupy full available width.
       }
-      > .full_name,
+      > .name,
       > .organization,
       > .sector,
       > .country {

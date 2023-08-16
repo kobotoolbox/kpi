@@ -19,7 +19,7 @@ bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
 const fieldNames = {
-  full_name: 'full_name',
+  name: 'name',
   organization: 'organization',
   organization_website: 'organization_website',
   sector: 'sector',
@@ -36,7 +36,7 @@ const fieldNames = {
 interface Form {
   isPristine: boolean;
   fields: {
-    full_name: string;
+    name: string;
     organization: string;
     organization_website: string;
     sector: string;
@@ -51,7 +51,7 @@ interface Form {
   };
   fieldsWithErrors: {
     extra_details?: {
-      full_name?: string;
+      name?: string;
       organization?: string;
       organization_website?: string;
       sector?: string;
@@ -93,7 +93,7 @@ const AccountSettings = observer(() => {
   const [form, setForm] = useState<Form>({
     isPristine: true,
     fields: {
-      full_name: '',
+      name: '',
       organization: '',
       organization_website: '',
       sector: '',
@@ -130,7 +130,7 @@ const AccountSettings = observer(() => {
       setForm({
         ...form,
         fields: {
-          full_name: currentAccount.extra_details.full_name,
+          name: currentAccount.extra_details.name,
           organization: currentAccount.extra_details.organization,
           organization_website:
             currentAccount.extra_details.organization_website,
@@ -157,7 +157,7 @@ const AccountSettings = observer(() => {
     // ensure that we send empty strings if the field is left blank.
     const profilePatchData = {
       extra_details: {
-        full_name: form.fields.full_name || '',
+        name: form.fields.name || '',
         organization: form.fields.organization || '',
         organization_website: form.fields.organization_website || '',
         sector: form.fields.sector || '',
@@ -266,19 +266,19 @@ const AccountSettings = observer(() => {
             </bem.AccountSettings__item>
 
             {/* Full name */}
-            {metadata.full_name && <bem.AccountSettings__item>
+            {metadata.name && <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
                 label={addRequiredToLabel(
-                  getFieldLabel(fieldNames.full_name),
-                  isFieldRequired(fieldNames.full_name)
+                  getFieldLabel(fieldNames.name),
+                  isFieldRequired(fieldNames.name)
                 )}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  fieldNames.full_name
+                  fieldNames.name
                 )}
-                value={form.fields.full_name}
-                errors={form.fieldsWithErrors.extra_details?.full_name}
+                value={form.fields.name}
+                errors={form.fieldsWithErrors.extra_details?.name}
                 placeholder={t(
                   'Use this to display your real name to other users'
                 )}
