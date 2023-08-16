@@ -4,18 +4,21 @@ import datetime
 
 from django.conf import settings
 from django.db import models
-from django.utils.module_loading import import_string
 from markdownx.models import MarkdownxField
-from markdownx.settings import MARKDOWNX_MARKDOWNIFY_FUNCTION
-from private_storage.fields import PrivateFileField
 
+from kobo.apps.markdownx_uploader.models import (
+    AbstractMarkdownxModel,
+    MarkdownxUploaderFile,
+    MarkdownxUploaderFileReference,
+)
 from kpi.fields import KpiUidField
+from kpi.utils.markdown import markdownify
+
 
 EPOCH_BEGINNING = datetime.datetime.utcfromtimestamp(0)
-markdownify = import_string(MARKDOWNX_MARKDOWNIFY_FUNCTION)
 
 
-class InAppMessage(models.Model):
+class InAppMessage(AbstractMarkdownxModel):
     """
     A message, composed in the Django admin interface, displayed to regular
     users within the application
@@ -41,6 +44,8 @@ class InAppMessage(models.Model):
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
     last_editor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+    markdown_fields = ['snippet', 'body']
+
     def __str__(self):
         return '{} ({})'.format(self.title, self.uid)
 
@@ -48,30 +53,15 @@ class InAppMessage(models.Model):
     def html(self):
         # TODO: Djangerz template processing...
         # Make `request.user.extra_detail` available in the context as `user`
-        MARKDOWN_FIELDS_TO_CONVERT = ('snippet', 'body')
         result = {}
-        for field in MARKDOWN_FIELDS_TO_CONVERT:
+        for field in self.markdown_fields:
             result[field] = markdownify(getattr(self, field))
         return result
 
 
-class InAppMessageFile(models.Model):
-    """
-    A file uploaded by the django-markdownx editor. It doesn't have a foreign
-    key to `InAppMessage` because it was likely uploaded while the message was
-    still being drafted, before ever being saved in the database
-    """
-    # TODO: Clean these up if they're no longer referenced by an
-    # `InAppMessage`? Parse the Markdown to figure it out? GitHub does it
-    # somehow…
-    content = PrivateFileField(
-        # Avoid collisions with usernames, which must begin with `[a-z]`
-        # (see `kpi.forms.USERNAME_REGEX`)
-        upload_to='__in_app_message/%Y/%m/%d/'
-    )
-
-    def __str__(self):
-        return self.content.name
+class InAppMessageFile(MarkdownxUploaderFile):
+    class Meta:
+        proxy = True
 
 
 class InAppMessageUserInteractions(models.Model):

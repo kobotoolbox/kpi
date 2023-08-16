@@ -1,10 +1,16 @@
 from django.db import models
-from markitup.fields import MarkupField
+from markdownx.models import MarkdownxField
 
 
-class SitewideMessage(models.Model):
+from kobo.apps.markdownx_uploader.models import AbstractMarkdownxModel
+
+
+class SitewideMessage(AbstractMarkdownxModel):
+
     slug = models.CharField(max_length=50)
-    body = MarkupField()
+    body = MarkdownxField()
+
+    markdown_fields = ['body']
 
     def __str__(self):
         return self.slug
