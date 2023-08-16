@@ -1,12 +1,12 @@
 import React, {useMemo, useReducer, useState, useEffect} from 'react';
-import bodyStyles from './processingBody.module.scss';
-import AnalysisContent from './analysis/analysisContent.component';
+import bodyStyles from '../processingBody.module.scss';
+import AnalysisContent from './analysisContent.component';
 import {
   initialState,
   analysisQuestionsReducer,
-} from './analysis/analysisQuestions.reducer';
-import AnalysisQuestionsContext from './analysis/analysisQuestions.context';
-import AnalysisHeader from './analysis/analysisHeader.component';
+} from './analysisQuestions.reducer';
+import AnalysisQuestionsContext from './analysisQuestions.context';
+import AnalysisHeader from './analysisHeader.component';
 import classNames from 'classnames';
 import {
   getAssetAdvancedFeatures,
@@ -15,13 +15,14 @@ import {
 import {
   applyUpdateResponseToInternalQuestions,
   getQuestionsFromSchema,
-} from './analysis/utils';
-import singleProcessingStore from './singleProcessingStore';
+} from './utils';
+import singleProcessingStore from '../singleProcessingStore';
 import {fetchGetUrl} from 'js/api';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import type {SubmissionProcessingDataResponse} from './analysis/constants';
+import type {SubmissionProcessingDataResponse} from './constants';
 
-export default function AnalysisTabContent() {
+/** Displays content of the "Analysis" tab */
+export default function Analysis() {
   const [isInitialised, setIsInitialised] = useState(false);
 
   // This is initial setup of reducer that holds all analysis questions with
@@ -59,9 +60,8 @@ export default function AnalysisTabContent() {
       // definitions
       try {
         if (processingUrl && qpath) {
-          const apiResponse = await fetchGetUrl<SubmissionProcessingDataResponse>(
-            processingUrl
-          );
+          const apiResponse =
+            await fetchGetUrl<SubmissionProcessingDataResponse>(processingUrl);
 
           questions = applyUpdateResponseToInternalQuestions(
             qpath,

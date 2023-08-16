@@ -2,7 +2,7 @@ import React from 'react';
 import singleProcessingStore, {
   SingleProcessingTabs,
 } from 'js/components/processing/singleProcessingStore';
-import AnalysisTabContent from 'js/components/processing/analysisTabContent';
+import Analysis from 'js/components/processing/analysis/analysis.component';
 import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
 import TranslationsTabContent from 'js/components/processing/translationsTabContent';
 import protectorHelpers from 'js/protector/protectorHelpers';
@@ -56,7 +56,7 @@ export default class SingleProcessingContent extends React.Component<{}> {
       case SingleProcessingTabs.Translations:
         return <TranslationsTabContent />;
       case SingleProcessingTabs.Analysis:
-        return <AnalysisTabContent />;
+        return <Analysis />;
       default:
         return null;
     }
