@@ -4,11 +4,9 @@ from rest_framework import exceptions, permissions
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
 
 
-class InAppMessagePermissions(
-    ValidationPasswordPermissionMixin, permissions.BasePermission
-):
+class InAppMessagePermissions(permissions.BasePermission):
     def has_permission(self, request, view):
-        self.validate_password(request)
+
         if not request.user.is_authenticated:
             # Deny access to anonymous users
             return False
