@@ -20,7 +20,6 @@ from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     username_validators,
 )
-from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
@@ -285,31 +284,3 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             message += f'View <a href="{url}">trash.</a>'
 
         return mark_safe(message)
-<<<<<<< HEAD:hub/admin/extend_user.py
-=======
-
-
-class ExtraUserDetailAdmin(admin.ModelAdmin):
-    list_display = ('user',)
-    ordering = ('user__username',)
-    search_fields = ('user__username',)
-    autocomplete_fields = ['user']
-
-    def get_queryset(self, request):
-        return (
-            super().get_queryset(request).exclude(user_id=settings.ANONYMOUS_USER_ID)
-        )
-
-
-class SitewideMessageAdmin(MarkdownxModelAdminBase):
-
-    model = SitewideMessage
-
-
-admin.site.register(ExtraUserDetail, ExtraUserDetailAdmin)
-admin.site.register(SitewideMessage, SitewideMessageAdmin)
-admin.site.register(ConfigurationFile)
-admin.site.register(PerUserSetting)
-admin.site.unregister(User)
-admin.site.register(User, ExtendedUserAdmin)
->>>>>>> beta:hub/admin.py
