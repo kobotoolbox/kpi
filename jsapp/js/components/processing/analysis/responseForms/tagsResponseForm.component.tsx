@@ -13,7 +13,9 @@ interface TagsResponseFormProps {
   uuid: string;
 }
 
-// TODO add description comment
+/**
+ * Displays a common header and a tags input.
+ */
 export default function TagsResponseForm(props: TagsResponseFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 

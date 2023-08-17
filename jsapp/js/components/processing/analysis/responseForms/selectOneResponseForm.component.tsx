@@ -16,7 +16,9 @@ interface SelectOneResponseFormProps {
   uuid: string;
 }
 
-// TODO add description comment
+/**
+ * Displays a common header and radio input with all available choices.
+ */
 export default function SelectOneResponseForm(
   props: SelectOneResponseFormProps
 ) {

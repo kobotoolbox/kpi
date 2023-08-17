@@ -14,7 +14,10 @@ interface SelectMultipleResponseFormProps {
   uuid: string;
 }
 
-// TODO add description comment
+/**
+ * Displays a common header and a list of checkboxes - each one for the choice
+ * available.
+ */
 export default function SelectMultipleResponseForm(
   props: SelectMultipleResponseFormProps
 ) {

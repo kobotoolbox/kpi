@@ -28,7 +28,12 @@ interface DragItem {
   type: string;
 }
 
-// TODO add description comment
+/**
+ * For given question, it displays either a question definition editor, or
+ * a response form.
+ *
+ * Also configures questions reordering.
+ */
 export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
@@ -155,7 +160,8 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
             return <KeywordSearchResponseForm uuid={item.uuid} />;
           }
           case 'qual_note': {
-            // This question type doesn't have any response
+            // This question type doesn't have any response, so we display just
+            // the header
             return <CommonHeader uuid={item.uuid} />;
           }
           case 'qual_select_multiple': {

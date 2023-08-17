@@ -5,7 +5,11 @@ import AnalysisQuestionRow from './analysisQuestionRow.component';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
 
-// TODO add description comment
+/**
+ * Renders a list of questions (`AnalysisQuestionRow`s to be precise).
+ *
+ * Also handles questions reordering (configured in `AnalysisQuestionRow`).
+ */
 export default function AnalysisQuestionsList() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 

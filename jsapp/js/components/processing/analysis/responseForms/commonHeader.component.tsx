@@ -17,7 +17,10 @@ interface ResponseFormHeaderProps {
   uuid: string;
 }
 
-// TODO add description comment
+/**
+ * Displays question type icon, name, and an edit and delete buttons. Is being
+ * used in multiple other components.
+ */
 export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 

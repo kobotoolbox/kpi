@@ -14,7 +14,9 @@ interface KeywordSearchResponseFormProps {
   uuid: string;
 }
 
-// TODO add description comment
+/**
+ * TBD
+ */
 export default function KeywordSearchResponseForm(
   props: KeywordSearchResponseFormProps
 ) {

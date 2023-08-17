@@ -14,7 +14,9 @@ interface KeywordSearchFieldsEditorProps {
   onFieldsChange: (fields: AdditionalFields) => void;
 }
 
-// TODO add description comment
+/**
+ * TBD
+ */
 export default function KeywordSearchFieldsEditor(
   props: KeywordSearchFieldsEditorProps
 ) {
