@@ -42,7 +42,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
   const [response, setResponse] = useState<string[]>(initialResponse);
 
   function onTagsChange(newTags: string[]) {
-    if (!analysisQuestions) {
+    if (!analysisQuestions || !question) {
       return;
     }
 
@@ -53,7 +53,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
     updateResponseAndReducer(
       analysisQuestions.dispatch,
       props.uuid,
-      question?.type,
+      question.type,
       newTags
     );
   }

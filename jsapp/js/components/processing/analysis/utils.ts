@@ -209,16 +209,11 @@ async function updateResponse(
 export async function updateResponseAndReducer(
   dispatch: React.Dispatch<AnalysisQuestionsAction>,
   analysisQuestionUUid: string,
-  analysisQuestionType: AnalysisQuestionType | undefined,
+  analysisQuestionType: AnalysisQuestionType,
   response: string | string[]
 ) {
-  if (!analysisQuestionType) {
-    // TODO handle this error?
-    return;
-  }
-
   if (!singleProcessingStore.currentQuestionQpath) {
-    // TODO handle this error?
+    notify(NO_FEATURE_ERROR, 'error');
     return;
   }
 

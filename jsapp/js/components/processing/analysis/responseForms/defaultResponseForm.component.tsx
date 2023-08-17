@@ -50,14 +50,14 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
   async function saveResponse() {
     clearTimeout(typingTimer);
 
-    if (!analysisQuestions) {
+    if (!analysisQuestions || !question) {
       return;
     }
 
     updateResponseAndReducer(
       analysisQuestions.dispatch,
       props.uuid,
-      question?.type,
+      question.type,
       response
     );
   }

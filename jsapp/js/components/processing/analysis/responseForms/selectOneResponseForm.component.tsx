@@ -46,7 +46,7 @@ export default function SelectOneResponseForm(
   const [response, setResponse] = useState<string>(initialResponse);
 
   function onRadioChange(newResponse: string) {
-    if (!analysisQuestions) {
+    if (!analysisQuestions || !question) {
       return;
     }
 
@@ -57,7 +57,7 @@ export default function SelectOneResponseForm(
     updateResponseAndReducer(
       analysisQuestions.dispatch,
       props.uuid,
-      question?.type,
+      question.type,
       newResponse
     );
   }

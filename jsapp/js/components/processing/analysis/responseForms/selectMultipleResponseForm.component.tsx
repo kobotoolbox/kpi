@@ -46,7 +46,7 @@ export default function SelectMultipleResponseForm(
   const [response, setResponse] = useState<string[]>(initialResponse);
 
   function onCheckboxesChange(items: MultiCheckboxItem[]) {
-    if (!analysisQuestions) {
+    if (!analysisQuestions || !question) {
       return;
     }
 
@@ -61,7 +61,7 @@ export default function SelectMultipleResponseForm(
     updateResponseAndReducer(
       analysisQuestions.dispatch,
       props.uuid,
-      question?.type,
+      question.type,
       newResponse
     );
   }
