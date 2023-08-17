@@ -13,8 +13,8 @@ import {endpoints} from 'js/api.endpoints';
 import {getAssetAdvancedFeatures, getAssetProcessingUrl} from 'js/assetUtils';
 import clonedeep from 'lodash.clonedeep';
 import {NO_FEATURE_ERROR} from '../processingActions';
-import {notify} from 'js/utils';
-import type {AssetAdvancedFeatures, AssetResponse} from 'js/dataInterface';
+import {handleApiFail, notify} from 'js/utils';
+import type {AssetAdvancedFeatures, AssetResponse, FailResponse} from 'js/dataInterface';
 import type {Json} from '../../common/common.interfaces';
 import assetStore from 'js/assetStore';
 import singleProcessingStore from '../singleProcessingStore';
@@ -242,8 +242,7 @@ export async function updateResponseAndReducer(
       payload: result,
     });
   } catch (err) {
-    // TODO should this be handled in some different way?
-    console.log('catch err', err);
+    handleApiFail(err as FailResponse);
     dispatch({type: 'updateResponseFailed'});
   }
 }

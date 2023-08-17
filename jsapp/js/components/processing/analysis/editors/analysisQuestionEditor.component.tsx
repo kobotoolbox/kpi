@@ -16,7 +16,7 @@ import type {AdditionalFields, AnalysisQuestionInternal} from '../constants';
 import SelectXFieldsEditor from './selectXFieldsEditor.component';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import clonedeep from 'lodash.clonedeep';
-import {notify} from 'js/utils';
+import {handleApiFail} from 'js/utils';
 import type {FailResponse} from 'js/dataInterface';
 
 interface AnalysisQuestionEditorProps {
@@ -140,15 +140,7 @@ export default function AnalysisQuestionEditor(
           },
         });
       } catch (err) {
-        let message = t('Failed to update question definition');
-
-        const errorObj = err as FailResponse;
-        if (errorObj.status && errorObj.statusText) {
-          message += ` — ${errorObj.status} ${errorObj.statusText}`;
-        }
-
-        notify(message, 'error');
-
+        handleApiFail(err as FailResponse);
         analysisQuestions?.dispatch({type: 'udpateQuestionFailed'});
       }
     }

@@ -12,6 +12,8 @@ import {
 import KoboPrompt from 'js/components/modals/koboPrompt';
 import type {AnalysisQuestionInternal} from '../constants';
 import singleProcessingStore from '../../singleProcessingStore';
+import type {FailResponse} from 'js/dataInterface';
+import {handleApiFail} from 'js/utils';
 
 interface ResponseFormHeaderProps {
   uuid: string;
@@ -66,20 +68,25 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         (item) => item.uuid !== props.uuid
       ) || [];
 
-    // Step 2: update asset endpoint with new questions
-    const response = await updateSurveyQuestions(
-      singleProcessingStore.currentAssetUid,
-      singleProcessingStore.currentQuestionQpath,
-      updatedQuestions
-    );
+    try {
+      // Step 2: update asset endpoint with new questions
+      const response = await updateSurveyQuestions(
+        singleProcessingStore.currentAssetUid,
+        singleProcessingStore.currentQuestionQpath,
+        updatedQuestions
+      );
 
-    // Step 3: update reducer's state with new list after the call finishes
-    analysisQuestions?.dispatch({
-      type: 'deleteQuestionCompleted',
-      payload: {
-        questions: getQuestionsFromSchema(response?.advanced_features),
-      },
-    });
+      // Step 3: update reducer's state with new list after the call finishes
+      analysisQuestions?.dispatch({
+        type: 'deleteQuestionCompleted',
+        payload: {
+          questions: getQuestionsFromSchema(response?.advanced_features),
+        },
+      });
+    } catch (err) {
+      handleApiFail(err as FailResponse);
+      analysisQuestions?.dispatch({type: 'udpateQuestionFailed'});
+    }
   }
 
   return (
