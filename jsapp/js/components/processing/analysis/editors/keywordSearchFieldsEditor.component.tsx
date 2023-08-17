@@ -52,7 +52,9 @@ export default function KeywordSearchFieldsEditor(
   return (
     <section className={styles.root}>
       <section className={styles.left}>
-        <label className={styles.sideLabel} htmlFor={inputHtmlId}>{t('Look for')}</label>
+        <label className={styles.sideLabel} htmlFor={inputHtmlId}>
+          {t('Look for')}
+        </label>
 
         <a className={styles.helpLink} href={'#TODO'}>
           <Icon name={'information'} size='xs' />
@@ -74,7 +76,9 @@ export default function KeywordSearchFieldsEditor(
       </section>
 
       <section className={styles.right}>
-        <label className={styles.sideLabel}>{t('Search this transcript/translation:')}</label>
+        <label className={styles.sideLabel}>
+          {t('Search this transcript/translation:')}
+        </label>
 
         <TransxSelector
           languageCodes={singleProcessingStore.getSources()}

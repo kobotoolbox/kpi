@@ -20,10 +20,7 @@ import assetStore from 'js/assetStore';
 import singleProcessingStore from '../singleProcessingStore';
 
 /** Finds given question in state */
-export function findQuestion(
-  uuid: string,
-  state: AnalysisQuestionsState
-) {
+export function findQuestion(uuid: string, state: AnalysisQuestionsState) {
   return state.questions.find((question) => question.uuid === uuid);
 }
 
