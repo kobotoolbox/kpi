@@ -4,6 +4,7 @@ import os
 import re
 import string
 import subprocess
+from datetime import datetime
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
@@ -345,6 +346,11 @@ CONSTANCE_CONFIG = {
         'array of text strings to display on the feature list of the Plans page',
         'free_tier_display_jsonschema',
     ),
+    'FREE_TIER_CUTOFF_DATE': (
+        datetime(2023, 8, 20).date(),
+        'Users on the free tier who registered before this date will\n'
+        'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
+    ),
     'PROJECT_TRASH_GRACE_PERIOD': (
         7,
         'Number of days to keep projects in trash after users (soft-)deleted '
@@ -449,6 +455,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
         'FREE_TIER_DISPLAY',
+        'FREE_TIER_CUTOFF_DATE',
     ),
 }
 
