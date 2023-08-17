@@ -31,7 +31,9 @@ interface AnalysisQuestionChoice {
  *
  * TODO: find a TypeScript way to make make this better, i.e. instead of all
  * additional fields being optional, ideally this would be defined at per-type
- * basis with each field being required.
+ * basis with each field being required. Current solution works, but there is
+ * a risk (a very tiny risk) of adding incompatible fields to the question (e.g.
+ * adding `isSearching` to `qual_select_one`).
  */
 export interface AdditionalFields {
   /** A list of keywords to search for. */

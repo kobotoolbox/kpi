@@ -16,12 +16,18 @@ import type {AdditionalFields, AnalysisQuestionInternal} from '../constants';
 import SelectXFieldsEditor from './selectXFieldsEditor.component';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import clonedeep from 'lodash.clonedeep';
+import {notify} from 'js/utils';
+import type {FailResponse} from 'js/dataInterface';
 
 interface AnalysisQuestionEditorProps {
   uuid: string;
 }
 
-// TODO add description comment
+/**
+ * Displays a form for editing question definition. All the question types share
+ * the code for updating the question label. Some question types also can define
+ * custom additional fields. For these we load additional forms.
+ */
 export default function AnalysisQuestionEditor(
   props: AnalysisQuestionEditorProps
 ) {
@@ -115,8 +121,6 @@ export default function AnalysisQuestionEditor(
           return output;
         }) || [];
 
-      // TODO finish up writing the error handling code
-
       // Step 3: update asset endpoint with new questions
       try {
         const response = await updateSurveyQuestions(
@@ -133,7 +137,15 @@ export default function AnalysisQuestionEditor(
           },
         });
       } catch (err) {
-        console.log('err', err);
+        let message = t('Failed to update question definition');
+
+        const errorObj = err as FailResponse;
+        if (errorObj.status && errorObj.statusText) {
+          message += ` — ${errorObj.status} ${errorObj.statusText}`;
+        }
+
+        notify(message, 'error');
+
         analysisQuestions?.dispatch({type: 'udpateQuestionFailed'});
       }
     }

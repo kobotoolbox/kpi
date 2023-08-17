@@ -12,7 +12,10 @@ interface SelectXFieldsEditorProps {
   onFieldsChange: (fields: AdditionalFields) => void;
 }
 
-// TODO add description comment
+/**
+ * Displays a form for creating choices for "select x" question types. We only
+ * expose editing the choice label to users - the uuid is pregenerated.
+ */
 export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 

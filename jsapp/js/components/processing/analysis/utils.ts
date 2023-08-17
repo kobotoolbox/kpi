@@ -135,27 +135,30 @@ export async function updateSurveyQuestions(
     questions
   );
 
-  // TODO: add try catch error handling
-  const response = await fetchPatch<AssetResponse>(
-    endpoints.ASSET_URL.replace(':uid', assetUid),
-    {advanced_features: advancedFeatures as Json}
-  );
+  try {
+    const response = await fetchPatch<AssetResponse>(
+      endpoints.ASSET_URL.replace(':uid', assetUid),
+      {advanced_features: advancedFeatures as Json}
+    );
 
-  // TODO think of better way to handle this
-  //
-  // HACK: We need to let the `assetStore` know about the change, because
-  // `analysisQuestions.reducer` is using `assetStore` to build the initial
-  // list of questions every time user (re-)visits "Analysis" tab.
-  // Without this line, user could see some old data.
-  assetStore.onUpdateAssetCompleted(response);
+    // TODO think of better way to handle this
+    //
+    // HACK: We need to let the `assetStore` know about the change, because
+    // `analysisQuestions.reducer` is using `assetStore` to build the initial
+    // list of questions every time user (re-)visits "Analysis" tab.
+    // Without this line, user could see some old data.
+    assetStore.onUpdateAssetCompleted(response);
 
-  return response;
+    return response;
+  } catch (err) {
+    return Promise.reject(err);
+  }
 }
 
 /**
  * A function that updates the response for a question, i.e. the submission data.
  */
-export async function updateResponse(
+async function updateResponse(
   processingUrl: string,
   submissionUid: string,
   qpath: string,
@@ -163,8 +166,6 @@ export async function updateResponse(
   analysisQuestionType: AnalysisQuestionType,
   newResponse: string | string[]
 ) {
-  // TODO: this needs
-  // 1. to send different objects for diffferent question types
   try {
     const payload: AnalysisResponseUpdateRequest = {
       submission: submissionUid,
@@ -189,8 +190,6 @@ export async function updateResponse(
       qpath: qpath,
     };
   } catch (err) {
-    // TODO: do something here
-    console.log(err);
     return Promise.reject(err);
   }
 }
