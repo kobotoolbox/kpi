@@ -147,6 +147,19 @@ class EnvironmentView(APIView):
             settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
         )
 
+        # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
+        if request.user.date_joined.date() > constance.config.FREE_TIER_CUTOFF_DATE:
+            data['free_tier_thresholds'] = {
+                'storage': None,
+                'data': None,
+                'transcription_minutes': None,
+                'translation_chars': None,
+            }
+            data['free_tier_display'] = {
+                'name': None,
+                'feature_list': [],
+            }
+
         return data
 
     def get(self, request, *args, **kwargs):
