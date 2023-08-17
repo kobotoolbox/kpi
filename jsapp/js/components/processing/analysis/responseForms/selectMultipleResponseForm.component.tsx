@@ -22,9 +22,12 @@ export default function SelectMultipleResponseForm(
   props: SelectMultipleResponseFormProps
 ) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
+  if (!analysisQuestions) {
+    return null;
+  }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions.state);
   if (!question) {
     return null;
   }
@@ -43,6 +46,10 @@ export default function SelectMultipleResponseForm(
   const [response, setResponse] = useState<string[]>(initialResponse);
 
   function onCheckboxesChange(items: MultiCheckboxItem[]) {
+    if (!analysisQuestions) {
+      return;
+    }
+
     const newResponse = items
       .filter((item) => item.checked)
       .map((item) => item.name);
@@ -52,7 +59,7 @@ export default function SelectMultipleResponseForm(
 
     // Update endpoint and reducer
     updateResponseAndReducer(
-      analysisQuestions?.dispatch,
+      analysisQuestions.dispatch,
       props.uuid,
       question?.type,
       newResponse
@@ -81,7 +88,7 @@ export default function SelectMultipleResponseForm(
           type='bare'
           items={getCheckboxes()}
           onChange={onCheckboxesChange}
-          disabled={analysisQuestions?.state.isPending}
+          disabled={analysisQuestions.state.isPending}
         />
       </section>
     </>

@@ -7,7 +7,6 @@ import styles from './analysisContent.module.scss';
 /** Displays either a special message for no content, or the list of questions. */
 export default function AnalysisContent() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
-
   if (!analysisQuestions) {
     return null;
   }

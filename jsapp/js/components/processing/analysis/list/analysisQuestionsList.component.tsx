@@ -12,7 +12,6 @@ import {HTML5Backend} from 'react-dnd-html5-backend';
  */
 export default function AnalysisQuestionsList() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
-
   if (!analysisQuestions) {
     return null;
   }

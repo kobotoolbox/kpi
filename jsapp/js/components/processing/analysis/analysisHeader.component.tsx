@@ -17,6 +17,9 @@ import classNames from 'classnames';
  */
 export default function AnalysisHeader() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
+  if (!analysisQuestions) {
+    return null;
+  }
 
   const manualTypes = Object.values(ANALYSIS_QUESTION_TYPES).filter(
     (definition) => !definition.isAutomated
@@ -91,14 +94,14 @@ export default function AnalysisHeader() {
         // possible until user stops editing
         isDisabled={
           !hasManagePermissions ||
-          analysisQuestions?.state.questionsBeingEdited.length !== 0 ||
-          analysisQuestions?.state.isPending
+          analysisQuestions.state.questionsBeingEdited.length !== 0 ||
+          analysisQuestions.state.isPending
         }
       />
 
       <span>
-        {analysisQuestions?.state.isPending && t('Saving…')}
-        {!analysisQuestions?.state.isPending && t('Saved')}
+        {analysisQuestions.state.isPending && t('Saving…')}
+        {!analysisQuestions.state.isPending && t('Saved')}
       </span>
     </header>
   );

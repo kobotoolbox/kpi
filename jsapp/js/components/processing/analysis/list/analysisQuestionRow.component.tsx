@@ -36,18 +36,17 @@ interface DragItem {
  */
 export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
-
   if (!analysisQuestions) {
     return null;
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions.state);
   if (!question) {
     return null;
   }
 
-  const isDragDisabled = analysisQuestions?.state.isPending;
+  const isDragDisabled = analysisQuestions.state.isPending;
 
   const previewRef = useRef<HTMLLIElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
@@ -130,17 +129,17 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
         return;
       }
 
-      analysisQuestions?.dispatch({type: 'applyQuestionsOrder'});
+      analysisQuestions.dispatch({type: 'applyQuestionsOrder'});
 
       // TODO make actual API call here
       // For now we make a fake response
       console.log('QA fake API call: update order');
       setTimeout(() => {
         console.log('QA fake API call: update order DONE');
-        analysisQuestions?.dispatch({
+        analysisQuestions.dispatch({
           type: 'applyQuestionsOrderCompleted',
           payload: {
-            questions: analysisQuestions?.state.questions,
+            questions: analysisQuestions.state.questions,
           },
         });
       }, 2000);
@@ -152,7 +151,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
 
   const renderItem = useCallback(
     (item: AnalysisQuestionBase) => {
-      if (analysisQuestions?.state.questionsBeingEdited.includes(item.uuid)) {
+      if (analysisQuestions.state.questionsBeingEdited.includes(item.uuid)) {
         return <AnalysisQuestionEditor uuid={item.uuid} />;
       } else {
         switch (item.type) {
@@ -179,7 +178,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
         }
       }
     },
-    [analysisQuestions?.state.questionsBeingEdited]
+    [analysisQuestions.state.questionsBeingEdited]
   );
 
   return (

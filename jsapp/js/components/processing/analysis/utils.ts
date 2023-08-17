@@ -22,9 +22,9 @@ import singleProcessingStore from '../singleProcessingStore';
 /** Finds given question in state */
 export function findQuestion(
   uuid: string,
-  state: AnalysisQuestionsState | undefined
+  state: AnalysisQuestionsState
 ) {
-  return state?.questions.find((question) => question.uuid === uuid);
+  return state.questions.find((question) => question.uuid === uuid);
 }
 
 export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
@@ -210,16 +210,11 @@ async function updateResponse(
  * than in each one using this function, so we do it this ugly-ish way.
  */
 export async function updateResponseAndReducer(
-  dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined,
+  dispatch: React.Dispatch<AnalysisQuestionsAction>,
   analysisQuestionUUid: string,
   analysisQuestionType: AnalysisQuestionType | undefined,
   response: string | string[]
 ) {
-  if (!dispatch) {
-    // TODO handle this error?
-    return;
-  }
-
   if (!analysisQuestionType) {
     // TODO handle this error?
     return;
