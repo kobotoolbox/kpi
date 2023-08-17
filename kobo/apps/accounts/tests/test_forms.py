@@ -1,6 +1,3 @@
-import json
-
-import pytest
 from constance.test import override_config
 from django.test import TestCase, override_settings
 from django.utils import translation
@@ -8,6 +5,7 @@ from model_bakery import baker
 from pyquery import PyQuery
 
 from kobo.apps.accounts.forms import SocialSignupForm
+from kpi.utils.json import LazyJSONSerializable
 
 
 class AccountFormsTestCase(TestCase):
@@ -40,20 +38,20 @@ class AccountFormsTestCase(TestCase):
 
     def test_field_without_custom_label_can_be_required(self):
         with override_config(
-            USER_METADATA_FIELDS=json.dumps(
-                [{'name': 'full_name', 'required': True}]
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [{'name': 'name', 'required': True}]
             )
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
-            assert form.fields['full_name'].required
-            assert form.fields['full_name'].label == 'Full name'
+            assert form.fields['name'].required
+            assert form.fields['name'].label == 'Full name'
 
     def test_field_with_only_default_custom_label(self):
         with override_config(
-            USER_METADATA_FIELDS=json.dumps(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
                 [
                     {
-                        'name': 'full_name',
+                        'name': 'name',
                         'required': True,
                         'label': {'default': 'Secret Agent ID'},
                     }
@@ -61,15 +59,15 @@ class AccountFormsTestCase(TestCase):
             )
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
-            assert form.fields['full_name'].required
-            assert form.fields['full_name'].label == 'Secret Agent ID'
+            assert form.fields['name'].required
+            assert form.fields['name'].label == 'Secret Agent ID'
 
     def test_field_with_specific_and_default_custom_labels(self):
         with override_config(
-            USER_METADATA_FIELDS=json.dumps(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
                 [
                     {
-                        'name': 'full_name',
+                        'name': 'name',
                         'required': True,
                         'label': {
                             'default': 'Secret Agent ID',
@@ -81,12 +79,16 @@ class AccountFormsTestCase(TestCase):
         ):
             with translation.override('es'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
-                assert form.fields['full_name'].required
-                assert form.fields['full_name'].label == 'ID de agente secreto'
+                assert form.fields['name'].required
+                assert form.fields['name'].label == 'ID de agente secreto'
             with translation.override('en'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
-                assert form.fields['full_name'].required
-                assert form.fields['full_name'].label == 'Secret Agent ID'
+                assert form.fields['name'].required
+                assert form.fields['name'].label == 'Secret Agent ID'
+            with translation.override('fr'):
+                form = SocialSignupForm(sociallogin=self.sociallogin)
+                assert form.fields['name'].required
+                assert form.fields['name'].label == 'Secret Agent ID'
 
     def test_field_with_custom_label_without_default(self):
         """
@@ -94,7 +96,7 @@ class AccountFormsTestCase(TestCase):
         should render labels properly even if the default is missing
         """
         with override_config(
-            USER_METADATA_FIELDS=json.dumps(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
                 [
                     {
                         'name': 'organization',
@@ -111,10 +113,9 @@ class AccountFormsTestCase(TestCase):
                 assert form.fields['organization'].required
                 assert form.fields['organization'].label == 'Organisation secrète'
 
-
     def test_field_without_custom_label_can_be_optional(self):
         with override_config(
-            USER_METADATA_FIELDS=json.dumps(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
                 [
                     {
                         'name': 'organization',
@@ -128,7 +129,7 @@ class AccountFormsTestCase(TestCase):
 
     def test_field_with_custom_label_can_be_optional(self):
         with override_config(
-            USER_METADATA_FIELDS=json.dumps(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
                 [
                     {
                         'name': 'organization',
@@ -147,16 +148,16 @@ class AccountFormsTestCase(TestCase):
             assert form.fields['organization'].label == 'Organization'
             with translation.override('fr'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
-                assert form.fields['organization'].required == False
+                assert form.fields['organization'].required is False
                 assert form.fields['organization'].label == 'Organisation'
             with translation.override('es'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
-                assert form.fields['organization'].required == False
+                assert form.fields['organization'].required is False
                 assert form.fields['organization'].label == 'Organización'
 
     def test_not_supported_translation(self):
         with override_config(
-            USER_METADATA_FIELDS=json.dumps(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
                 [
                     {
                         'name': 'organization',
@@ -171,9 +172,9 @@ class AccountFormsTestCase(TestCase):
         ):
             with translation.override('es'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
-                assert form.fields['organization'].required == False
+                assert form.fields['organization'].required is False
                 assert form.fields['organization'].label == 'Organization'
             with translation.override('ar'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
-                assert form.fields['organization'].required == False
+                assert form.fields['organization'].required is False
                 assert form.fields['organization'].label == 'Organization'
