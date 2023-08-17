@@ -347,7 +347,7 @@ CONSTANCE_CONFIG = {
         'free_tier_display_jsonschema',
     ),
     'FREE_TIER_CUTOFF_DATE': (
-        datetime(2023, 8, 20).date(),
+        datetime(2050, 1, 1).date(),
         'Users on the free tier who registered before this date will\n'
         'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
     ),

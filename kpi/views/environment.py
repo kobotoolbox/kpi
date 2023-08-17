@@ -148,7 +148,7 @@ class EnvironmentView(APIView):
         )
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
-        if request.user.date_joined.date() > constance.config.FREE_TIER_CUTOFF_DATE:
+        if request.user.id and request.user.date_joined.date() > constance.config.FREE_TIER_CUTOFF_DATE:
             data['free_tier_thresholds'] = {
                 'storage': None,
                 'data': None,
