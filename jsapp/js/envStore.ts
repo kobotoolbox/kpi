@@ -39,6 +39,13 @@ export interface FreeTierDisplay {
   feature_list: [string] | [];
 }
 
+type ProjectMetadataFieldKey =
+  | 'description'
+  | 'sector'
+  | 'country'
+  | 'operational_purpose'
+  | 'collects_pii';
+
 class EnvStoreData {
   public terms_of_service_url = '';
   public privacy_policy_url = '';
@@ -71,13 +78,26 @@ class EnvStoreData {
   };
   public free_tier_display: FreeTierDisplay = {name: null, feature_list: []};
 
-  getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
+  getProjectMetadataField(
+    fieldName: ProjectMetadataFieldKey
+  ): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
       if (f.name === fieldName) {
         return f;
       }
     }
     return false;
+  }
+
+  public getProjectMetadataFieldsAsSimpleDict() {
+    // dict[name] => {name, required, label}
+    const dict: Partial<{
+      [fieldName in ProjectMetadataFieldKey]: EnvStoreFieldItem;
+    }> = {};
+    for (const field of this.project_metadata_fields) {
+      dict[field.name as keyof typeof dict] = field;
+    }
+    return dict;
   }
 
   public getUserMetadataFieldsAsSimpleDict() {
