@@ -12,23 +12,26 @@ def concat_paths(name, parent_names):
         [*parent_names, name or '']
     )
 
+
 def concat_xpath(name, parent_names):
     return '/'.join(
         [*parent_names, name or '']
     )
+
 
 def get_name(row):
     return row.get('name',
         row.get('$autoname')
     )
 
+
 def insert_full_paths_in_place(content):
-    '''
+    """
     insert an absolute path to each question based on parent
     groups
 
     the delimiter is set in the DELIMITER variable
-    '''
+    """
     hierarchy = []
     for row in content.get('survey', []):
         if row.get('type') in ENDERS:
