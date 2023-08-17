@@ -63,7 +63,6 @@ export default function KeywordSearchFieldsEditor(
           onlyUnique
           addOnBlur
           addOnPaste
-          disabled={analysisQuestions?.state.isPending}
         />
       </section>
 
@@ -74,7 +73,6 @@ export default function KeywordSearchFieldsEditor(
           languageCodes={singleProcessingStore.getSources()}
           selectedLanguage={props.fields.source}
           onChange={onSourceChange}
-          disabled={analysisQuestions?.state.isPending}
           // TODO: after PR https://github.com/kobotoolbox/kpi/pull/4423
           // is merged into feature/analysis branch, lets introduce size and
           // color props here, so we can use 'm' 'gray' here

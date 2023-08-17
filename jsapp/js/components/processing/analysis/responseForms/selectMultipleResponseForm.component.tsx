@@ -71,7 +71,6 @@ export default function SelectMultipleResponseForm(
           type='bare'
           items={getCheckboxes()}
           onChange={onCheckboxesChange}
-          disabled={analysisQuestions?.state.isPending}
         />
       </section>
     </>
