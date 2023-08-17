@@ -1,4 +1,6 @@
 # coding: utf-8
+from django.utils import timezone
+
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import BadAssetTypeException, DeploymentNotFound
 from kpi.models.asset_file import AssetFile
@@ -69,12 +71,22 @@ class DeployableMixin:
         `deploy()` above.
 
         If `self.save()` is called after this method, `save` can be set
-        to `False` to avoid writing twice to the database.
+        to `False` to avoid writing the `Asset` twice to the database.
+
+        The latest `AssetVersion` is always saved to the database unless its
+        `deployed` flag was already set to `True`.
         """
         latest_version = self.latest_version
-        latest_version.deployed = True
-        latest_version.save()
-        self.date_deployed = latest_version.date_modified
+        if not latest_version.deployed:
+            latest_version.deployed = True
+            # The save method updates `date_modified` of the version, so do not
+            # call it unless the `deployed` flag has actually been modified.
+            # Redeployments without content modification are normal, e.g. when
+            # form media files are changed.
+            latest_version.save()
+
+        self.date_deployed = timezone.now()
+
         if save:
             self.save(
                 update_fields=['date_deployed'],

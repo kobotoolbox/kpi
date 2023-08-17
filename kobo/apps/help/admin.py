@@ -1,20 +1,18 @@
 # coding: utf-8
 from django.contrib import admin
-from markdownx.admin import MarkdownxModelAdmin
 
+from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
 from .models import InAppMessage, InAppMessageFile
 
 
-class InAppMessageAdmin(MarkdownxModelAdmin):
+class InAppMessageAdmin(MarkdownxModelAdminBase):
+
+    model = InAppMessage
+
     new_message_warning = (
         '⚠ Warning: always create a new message, from scratch, to display new '
         'information. If someone has already dismissed a message, editing it '
         'here will not cause it to reappear.'
-    )
-    drag_drop_warning = (
-        '⚠ Warning: Please drag and drop photos directly into the Snippet or '
-        'Body boxes. Copying the URL from the in app message files will '
-        'likely cause errors.'
     )
     readonly_fields = ['uid', 'last_editor']
 
@@ -42,7 +40,6 @@ class InAppMessageAdmin(MarkdownxModelAdmin):
         # https://docs.djangoproject.com/en/2.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets
         self.fieldsets = [
             (self.new_message_warning, {'fields': ''}),
-            (self.drag_drop_warning, {'fields': form._meta.fields}),
         ]
         return form
 
@@ -52,4 +49,3 @@ class InAppMessageAdmin(MarkdownxModelAdmin):
 
 
 admin.site.register(InAppMessage, InAppMessageAdmin)
-admin.site.register(InAppMessageFile, admin.ModelAdmin)

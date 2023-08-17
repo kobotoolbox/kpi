@@ -46,7 +46,6 @@ django-loginas
 django-markdownx
 django-prometheus
 
-django-markitup
 django-mptt
 
 django-reversion

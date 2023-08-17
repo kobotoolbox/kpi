@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {useSearchParams} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -27,8 +27,10 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
-import {BaseProduct} from 'js/account/subscriptionStore';
-import envStore, {FreeTierThresholds, FreeTierDisplay} from 'js/envStore';
+import type {FreeTierThresholds} from 'js/envStore';
+import envStore from 'js/envStore';
+import {when} from 'mobx';
+import {ACCOUNT_ROUTES} from 'js/account/routes';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -45,15 +47,15 @@ interface DataUpdates {
   prodData?: any;
 }
 
-interface FreeTierOverride extends FreeTierThresholds{
+interface FreeTierOverride extends FreeTierThresholds {
   name: string | null;
   [key: `feature_list_${number}`]: string | null;
 }
 
 const initialState = {
   subscribedProduct: null,
-  intervalFilter: 'year',
-  filterToggle: false,
+  intervalFilter: 'month',
+  filterToggle: true,
   products: null,
   organization: null,
   featureTypes: ['support', 'advanced', 'addons'],
@@ -99,6 +101,7 @@ export default function Plan() {
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
+  const navigate = useNavigate();
 
   const isDataLoading = useMemo(
     (): boolean =>
@@ -144,39 +147,47 @@ export default function Plan() {
     if (state.subscribedProduct?.length > 0) {
       const subscribedFilter =
         state.subscribedProduct?.[0].items[0].price.recurring?.interval;
-      if (!hasManageableStatus(state.subscribedProduct)) {
-        dispatch({type: 'year'});
-      } else {
+      if (hasManageableStatus(state.subscribedProduct?.[0])) {
         dispatch({type: subscribedFilter});
       }
     }
   }, [state.subscribedProduct]);
 
   useEffect(() => {
-    getProducts().then((data) => {
-      dispatch({
-        type: 'initialProd',
-        prodData: data.results,
+    when(() => envStore.isReady).then(() => {
+      // If Stripe isn't loaded, just redirect to the account page
+      if (!envStore.data.stripe_public_key) {
+        navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
+        return;
+      }
+      const fetchPromises = [];
+
+      fetchPromises[0] = getProducts().then((data) => {
+        // If we have no products, redirect
+        if (!data.count) {
+          navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
+        }
+        dispatch({
+          type: 'initialProd',
+          prodData: data.results,
+        });
+      });
+      fetchPromises[1] = getOrganization().then((data) => {
+        dispatch({
+          type: 'initialOrg',
+          prodData: data.results[0],
+        });
+      });
+      fetchPromises[2] = getSubscription().then((data) => {
+        dispatch({
+          type: 'initialSub',
+          prodData: data.results,
+        });
+      });
+      Promise.all(fetchPromises).then(() => {
+        setAreButtonsDisabled(false);
       });
     });
-
-    getOrganization().then((data) => {
-      dispatch({
-        type: 'initialOrg',
-        prodData: data.results[0],
-      });
-    });
-
-    getSubscription().then((data) => {
-      dispatch({
-        type: 'initialSub',
-        prodData: data.results,
-      });
-    });
-
-    if (isDataLoading) {
-      setAreButtonsDisabled(false);
-    }
   }, [searchParams, shouldRevalidate]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
@@ -266,11 +277,7 @@ export default function Plan() {
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (
-        !product.prices.unit_amount &&
-        state.intervalFilter === 'year' &&
-        !hasActiveSubscription
-      ) {
+      if (!product.prices.unit_amount && !hasActiveSubscription) {
         return true;
       }
 
@@ -387,7 +394,7 @@ export default function Plan() {
       freeTierOverride &&
       freeTierOverride.hasOwnProperty(featureItem)
     ) {
-      return freeTierOverride[featureItem  as keyof FreeTierOverride];
+      return freeTierOverride[featureItem as keyof FreeTierOverride];
     }
     return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
   };
