@@ -49,7 +49,7 @@ export default function KeywordSearchFieldsEditor(
   return (
     <section className={styles.root}>
       <section className={styles.left}>
-        <label htmlFor={inputHtmlId}>{t('Look for')}</label>
+        <label className={styles.sideLabel} htmlFor={inputHtmlId}>{t('Look for')}</label>
 
         <a className={styles.helpLink} href={'#TODO'}>
           <Icon name={'information'} size='xs' />
@@ -71,16 +71,15 @@ export default function KeywordSearchFieldsEditor(
       </section>
 
       <section className={styles.right}>
-        <label>{t('Search this transcript/translation:')}</label>
+        <label className={styles.sideLabel}>{t('Search this transcript/translation:')}</label>
 
         <TransxSelector
           languageCodes={singleProcessingStore.getSources()}
           selectedLanguage={props.fields.source}
           onChange={onSourceChange}
           disabled={analysisQuestions?.state.isPending}
-          // TODO: after PR https://github.com/kobotoolbox/kpi/pull/4423
-          // is merged into feature/analysis branch, lets introduce size and
-          // color props here, so we can use 'm' 'gray' here
+          size='l'
+          type='outline'
         />
       </section>
     </section>
