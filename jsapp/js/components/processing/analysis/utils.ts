@@ -14,7 +14,11 @@ import {getAssetAdvancedFeatures, getAssetProcessingUrl} from 'js/assetUtils';
 import clonedeep from 'lodash.clonedeep';
 import {NO_FEATURE_ERROR} from '../processingActions';
 import {handleApiFail, notify} from 'js/utils';
-import type {AssetAdvancedFeatures, AssetResponse, FailResponse} from 'js/dataInterface';
+import type {
+  AssetAdvancedFeatures,
+  AssetResponse,
+  FailResponse,
+} from 'js/dataInterface';
 import type {Json} from '../../common/common.interfaces';
 import assetStore from 'js/assetStore';
 import singleProcessingStore from '../singleProcessingStore';

@@ -19,7 +19,10 @@ import {
 import singleProcessingStore from '../singleProcessingStore';
 import {fetchGetUrl} from 'js/api';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import InlineMessage from 'js/components/common/inlineMessage';
 import type {SubmissionProcessingDataResponse} from './constants';
+import type {FailResponse} from 'js/dataInterface';
+import {handleApiFail} from 'js/utils';
 
 /**
  * Displays content of the "Analysis" tab. This component is handling all of
@@ -27,6 +30,7 @@ import type {SubmissionProcessingDataResponse} from './constants';
  */
 export default function Analysis() {
   const [isInitialised, setIsInitialised] = useState(false);
+  const [isErrored, setIsErrored] = useState(false);
 
   // This is initial setup of reducer that holds all analysis questions with
   // responses.
@@ -72,22 +76,32 @@ export default function Analysis() {
             questions
           );
         }
+
+        // Step 5: update reducer
+        dispatch({type: 'setQuestions', payload: {questions: questions}});
+
+        // Step 6: hide spinner
+        setIsInitialised(true);
       } catch (err) {
-        // TODO error handling thank you :o
-        console.log('error!', err);
+        handleApiFail(err as FailResponse);
+        setIsInitialised(true);
+        setIsErrored(true);
       }
-
-      // Step 5: update reducer
-      dispatch({type: 'setQuestions', payload: {questions: questions}});
-
-      // Step 6: hide spinner
-      setIsInitialised(true);
     }
     setupQuestions();
   }, []);
 
   if (!isInitialised) {
     return <LoadingSpinner hideMessage />;
+  }
+
+  if (isErrored) {
+    return (
+      <InlineMessage
+        type='error'
+        message={t('Failed to load analysis questions')}
+      />
+    );
   }
 
   return (
