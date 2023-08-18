@@ -293,8 +293,9 @@ CONSTANCE_CONFIG = {
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
         "and 'instagram'.\n\n"
         'To add another language, follow the example below.\n\n'
-        "{'name': 'name', 'required': False, 'label': "
-        "{default: 'Full Name', 'fr': 'Nom Complet'}}\n",
+        '{"name": "name", "required": False, "label": '
+        '{"default": "Full Name", "fr": "Nom Complet"}}\n'
+        "'default' is a required field within the 'label' dict, but 'label' is optional.",
         # Use custom field for schema validation
         'long_metadata_fields_jsonschema'
     ),
@@ -310,7 +311,8 @@ CONSTANCE_CONFIG = {
         "'sector', 'country', 'operational_purpose', "
         "'collects_pii', and 'description'\n\n"
         'To add another language, follow the example below.\n\n'
-        "{'name': 'sector', 'required': False, 'label': {default: 'Sector', 'fr': 'Secteur'}}\n"
+        '{"name": "sector", "required": False, "label": '
+        '{"default": "Sector", "fr": "Secteur"}}\n'
         "'default' is a required field within the 'label' dict, but 'label' is optional.",
         # Use custom field for schema validation
         'metadata_fields_jsonschema'
