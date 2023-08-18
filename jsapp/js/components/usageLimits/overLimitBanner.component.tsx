@@ -66,15 +66,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
             </a>
           </>
         )}
-        {t(', or learn more about the KoboToolbox limits and plans in our ')}
-        <a
-          aria-label={t('paid plans page')}
-          href={'https://www.kobotoolbox.org/how-it-works/'}
-          className={styles.bannerLink}
-        >
-          {t('paid plans page')}
-        </a>
-        .
+        {'.'}
       </div>
       {props.warning && (
         <Button
