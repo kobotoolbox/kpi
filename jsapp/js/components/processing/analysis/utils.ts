@@ -113,16 +113,12 @@ export function getQuestionsFromSchema(
  */
 export async function updateSurveyQuestions(
   assetUid: string,
-  /**
-   * We allow `undefined`, because `singleProcessingStore.currentQuestion.qpath`
-   * can be `undefined`.
-   */
-  qpath: string | undefined,
+  qpath: string,
   questions: AnalysisQuestionInternal[]
 ) {
   const advancedFeatures = clonedeep(getAssetAdvancedFeatures(assetUid));
 
-  if (!advancedFeatures || !qpath) {
+  if (!advancedFeatures) {
     notify(NO_FEATURE_ERROR, 'error');
     return Promise.reject(NO_FEATURE_ERROR);
   }
@@ -216,15 +212,11 @@ export async function updateResponseAndReducer(
   analysisQuestionType: AnalysisQuestionType,
   response: string | string[]
 ) {
-  if (!singleProcessingStore.currentQuestionQpath) {
-    notify(NO_FEATURE_ERROR, 'error');
-    return;
-  }
-
   const processingUrl = getAssetProcessingUrl(
     singleProcessingStore.currentAssetUid
   );
   if (!processingUrl) {
+    notify(NO_FEATURE_ERROR, 'error');
     return;
   }
 

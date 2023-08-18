@@ -56,22 +56,21 @@ export default function Analysis() {
       // Step 2: build question definitions without responses
       let questions = getQuestionsFromSchema(advancedFeatures);
 
-      // Step 3: get processing url and qpath
+      // Step 3: get processing url
       const processingUrl = getAssetSubmissionProcessingUrl(
         singleProcessingStore.currentAssetUid,
         singleProcessingStore.currentSubmissionEditId
       );
-      const qpath = singleProcessingStore.currentQuestionQpath;
 
       // Step 4: get responses for questions and apply them to already built
       // definitions
       try {
-        if (processingUrl && qpath) {
+        if (processingUrl) {
           const apiResponse =
             await fetchGetUrl<SubmissionProcessingDataResponse>(processingUrl);
 
           questions = applyUpdateResponseToInternalQuestions(
-            qpath,
+            singleProcessingStore.currentQuestionQpath,
             apiResponse,
             questions
           );
