@@ -56,6 +56,10 @@ export default function KeywordSearchFieldsEditor(
           {t('Look for')}
         </label>
 
+        {/*
+          While doing https://github.com/kobotoolbox/kpi/issues/4594 ensure that
+          a support article is written and a link updated here <3
+        */}
         <a className={styles.helpLink} href={'#TODO'}>
           <Icon name={'information'} size='xs' />
           {t('help')}
