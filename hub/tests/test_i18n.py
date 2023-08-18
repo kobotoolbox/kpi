@@ -15,6 +15,6 @@ class I18nTestCase(TestCase):
         welcome_message_es = I18nUtils.get_sitewide_message(lang="es")
         welcome_message = I18nUtils.get_sitewide_message()
 
-        self.assertEqual(welcome_message_fr.raw, "Le message de bienvenue")
-        self.assertEqual(welcome_message.raw, "Global welcome message")
-        self.assertEqual(welcome_message_es.raw, welcome_message.raw)
+        self.assertEqual(welcome_message_fr, "Le message de bienvenue")
+        self.assertEqual(welcome_message, "Global welcome message")
+        self.assertEqual(welcome_message_es, welcome_message)

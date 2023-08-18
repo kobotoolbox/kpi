@@ -24,6 +24,7 @@ import {
   notify,
   assign,
 } from 'utils';
+import { toast } from 'react-hot-toast';
 import {ANON_USERNAME} from 'js/constants';
 
 const cookies = new Cookies();
@@ -290,42 +291,20 @@ stores.allAssets = Reflux.createStore({
     }
   },
   onListAssetsCompleted: function(searchData, response) {
+    toast.dismiss('query_too_short');
     response.results.forEach(this.registerAsset);
     this.data = response.results;
     this.trigger(this.data);
   },
   onListAssetsFailed: function (searchData, response) {
-    notify(response?.responseJSON?.detail || t('failed to list assets'));
-  }
-});
-
-stores.selectedAsset = Reflux.createStore({
-  init () {
-    this.uid = cookies.get('selectedAssetUid');
-    this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
-  },
-  onCloneAssetCompleted (asset) {
-    this.uid = asset.uid;
-    this.asset = stores.allAssets.byUid[asset.uid];
-    if (!this.asset) {
-      console.error('selectedAssetStore error');
+    let iconStyle = 'warning';
+    let opts = {};
+    if (response?.responseJSON?.detail === t('Your query is too short')) {
+      iconStyle = 'empty';
+      opts.id = 'query_too_short'; // de-dupe and make dismissable on success
     }
-    this.trigger(this.asset);
+    notify(response?.responseJSON?.detail || t('failed to list assets'), iconStyle, opts);
   },
-  toggleSelect (uid, forceSelect=false) {
-    if (forceSelect || this.uid !== uid) {
-      this.uid = uid;
-      this.asset = stores.allAssets.byUid[uid];
-    } else {
-      this.uid = false;
-      this.asset = {};
-    }
-    cookies.set('selectedAssetUid', this.uid);
-    this.trigger({
-      selectedAssetUid: this.uid,
-    });
-    return this.uid !== false;
-  }
 });
 
 stores.userExists = Reflux.createStore({

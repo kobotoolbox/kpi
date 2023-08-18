@@ -1,6 +1,5 @@
 # coding: utf-8
 import datetime
-import json
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -15,6 +14,7 @@ from rest_framework import serializers
 
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
+from kobo.apps.constance_backends.utils import to_python_object
 from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
 from kpi.deployment_backends.kc_access.utils import set_kc_require_auth
 from kpi.fields import WritableJSONField
@@ -151,7 +151,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_extra_details(self, value):
-        desired_metadata_fields = json.loads(
+        desired_metadata_fields = to_python_object(
             constance.config.USER_METADATA_FIELDS
         )
 

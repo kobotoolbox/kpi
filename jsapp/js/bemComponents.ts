@@ -37,17 +37,6 @@ bem.EmptyContent__title = makeBem(bem.EmptyContent, 'title', 'h1');
 bem.EmptyContent__message = makeBem(bem.EmptyContent, 'message', 'p');
 bem.EmptyContent__button = makeBem(bem.EmptyContent, 'button', 'button');
 
-bem.AssetRow = makeBem(null, 'asset-row', 'li');
-bem.AssetRow__cell        = makeBem(bem.AssetRow, 'cell');
-bem.AssetRow__cellmeta    = makeBem(bem.AssetRow, 'cellmeta');
-bem.AssetRow__description = makeBem(bem.AssetRow, 'description', 'span');
-bem.AssetRow__tags        = makeBem(bem.AssetRow, 'tags');
-bem.AssetRow__tags__tag   = makeBem(bem.AssetRow, 'tags__tag', 'span');
-bem.AssetRow__tags__notags = makeBem(bem.AssetRow, 'tags__notags', 'span');
-bem.AssetRow__actionIcon  = makeBem(bem.AssetRow, 'action-icon', 'a');
-bem.AssetRow__buttons        = makeBem(bem.AssetRow, 'buttons');
-bem.AssetRow__typeIcon  = makeBem(bem.AssetRow, 'type-icon', 'span');
-
 bem.ServiceRow = makeBem(null, 'service-row');
 bem.ServiceRow__column = makeBem(bem.ServiceRow, 'column');
 bem.ServiceRow__actionButton = makeBem(bem.ServiceRow, 'action-button', 'button');
@@ -94,7 +83,6 @@ bem.SearchInput = makeBem(null, 'search-input', 'input');
 bem.Search = makeBem(null, 'search');
 bem.Search__icon = makeBem(bem.Search, 'icon', 'i');
 bem.Search__cancel = makeBem(bem.Search, 'cancel', 'i');
-bem.Search__summary = makeBem(bem.Search, 'summary');
 
 bem.LibNav = makeBem(null, 'lib-nav');
 bem.LibNav__content = makeBem(bem.LibNav, 'content');
@@ -136,16 +124,6 @@ bem.CollectionNav__link = makeBem(bem.CollectionNav, 'link', 'a');
 bem.CollectionNav__searchcancel = makeBem(bem.CollectionNav, 'searchcancel', 'i');
 bem.CollectionNav__searchicon = makeBem(bem.CollectionNav, 'searchicon', 'i');
 
-bem.List = makeBem(null, 'list');
-bem.List__heading = makeBem(bem.List, 'heading');
-bem.List__subheading = makeBem(bem.List, 'subheading');
-
-bem.AssetList = makeBem(null, 'asset-list');
-bem.AssetItems = makeBem(null, 'asset-items', 'ul');
-
-bem.AssetListSorts = makeBem(null, 'asset-list-sorts', 'div');
-bem.AssetListSorts__item = makeBem(bem.AssetListSorts, 'item');
-
 bem.FormView = makeBem(null, 'form-view');
 // used in header.es6
 bem.FormView__title = makeBem(bem.FormView, 'title');
@@ -153,7 +131,6 @@ bem.FormView__name = makeBem(bem.FormView, 'name');
 bem.FormView__description = makeBem(bem.FormView, 'description');
 bem.FormView__subs = makeBem(bem.FormView, 'subs');
 // end used in header.es6
-bem.FormView__toptabs = makeBem(bem.FormView, 'toptabs');
 bem.FormView__sidetabs = makeBem(bem.FormView, 'sidetabs');
 
 bem.FormView__label = makeBem(bem.FormView, 'label');
@@ -176,12 +153,6 @@ bem.FormView__form = makeBem(bem.FormView, 'form', 'form');
 bem.FormView__map = makeBem(bem.FormView, 'map');
 bem.FormView__mapButton = makeBem(bem.FormView, 'map-button');
 bem.FormView__mapList = makeBem(bem.FormView, 'map-list');
-
-bem.MainHeader = makeBem(null, 'main-header', 'header');
-bem.MainHeader__icon = makeBem(bem.MainHeader, 'icon', 'i');
-bem.MainHeader__title = makeBem(bem.MainHeader, 'title');
-bem.MainHeader__counter = makeBem(bem.MainHeader, 'counter');
-
 
 bem.ReportView = makeBem(null, 'report-view');
 bem.ReportView__wrap = makeBem(bem.ReportView, 'wrap');
@@ -280,28 +251,11 @@ bem.TextBox__input = makeBem(bem.TextBox, 'input', 'input');
 bem.TextBox__description = makeBem(bem.TextBox, 'description');
 bem.TextBox__error = makeBem(bem.TextBox, 'error');
 
-bem.Checkbox = makeBem(null, 'checkbox');
-bem.Checkbox__wrapper = makeBem(bem.Checkbox, 'wrapper', 'label');
-bem.Checkbox__input = makeBem(bem.Checkbox, 'input', 'input');
-bem.Checkbox__label = makeBem(bem.Checkbox, 'label', 'span');
-
 bem.ToggleSwitch = makeBem(null, 'toggle-switch');
 bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label');
 bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input');
 bem.ToggleSwitch__slider = makeBem(bem.ToggleSwitch, 'slider', 'span');
 bem.ToggleSwitch__label = makeBem(bem.ToggleSwitch, 'label', 'span');
-
-bem.Radio = makeBem(null, 'radio');
-bem.Radio__row = makeBem(bem.Radio, 'row', 'label');
-bem.Radio__input = makeBem(bem.Radio, 'input', 'input');
-bem.Radio__label = makeBem(bem.Radio, 'label', 'span');
-
-bem.PasswordStrength = makeBem(null, 'password-strength');
-bem.PasswordStrength__title = makeBem(bem.PasswordStrength, 'title');
-bem.PasswordStrength__bar = makeBem(bem.PasswordStrength, 'bar');
-bem.PasswordStrength__indicator = makeBem(bem.PasswordStrength, 'indicator');
-bem.PasswordStrength__messages = makeBem(bem.PasswordStrength, 'messages', 'ul');
-bem.PasswordStrength__message = makeBem(bem.PasswordStrength, 'message', 'li');
 
 bem.Breadcrumbs = makeBem(null, 'breadcrumbs');
 bem.Breadcrumbs__crumb = makeBem(bem.Breadcrumbs, 'crumb', 'a');

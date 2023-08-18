@@ -1,5 +1,4 @@
 # coding: utf-8
-import json
 import logging
 import os
 import re
@@ -8,16 +7,16 @@ import subprocess
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
-import environ
 import django.conf.locale
+import environ
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
-from django.utils.translation import get_language_info
+from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
 
+from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-
 
 env = environ.Env()
 
@@ -101,7 +100,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'oauth2_provider',
-    'markitup',
     'django_digest',
     'kobo.apps.organizations',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
@@ -123,6 +121,8 @@ INSTALLED_APPS = (
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
     'kobo.apps.trash_bin.TrashBinAppConfig',
+    'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
+    'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
 )
 
 MIDDLEWARE = [
@@ -234,8 +234,8 @@ CONSTANCE_CONFIG = {
         'Enable two-factor authentication'
     ),
     'MFA_LOCALIZED_HELP_TEXT': (
-        json.dumps({
-            'default': (
+        LazyJSONSerializable({
+            'default': t(
                 'If you cannot access your authenticator app, please enter one '
                 'of your backup codes instead. If you cannot access those '
                 'either, then you will need to request assistance by '
@@ -246,7 +246,7 @@ CONSTANCE_CONFIG = {
                 'a valid language code, but this entry is here to show you '
                 'an example of adding another message in a different language.'
             )
-        }, indent=0),  # `indent=0` at least adds newlines
+        }),
         (
             'JSON object of guidance messages presented to users when they '
             'click the "Problems with the token" link after being prompted for '
@@ -258,7 +258,7 @@ CONSTANCE_CONFIG = {
             'for French).'
         ),
         # Use custom field for schema validation
-        'mfa_help_text_fields_jsonschema'
+        'i18n_text_jsonfield_schema'
     ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
@@ -273,7 +273,7 @@ CONSTANCE_CONFIG = {
         'authentication mechanism'
     ),
     'USER_METADATA_FIELDS': (
-        json.dumps([
+        LazyJSONSerializable([
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},
             {'name': 'sector', 'required': False},
@@ -291,10 +291,10 @@ CONSTANCE_CONFIG = {
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
         "and 'instagram'",
         # Use custom field for schema validation
-        'metadata_fields_jsonschema'
+        'long_metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
-        json.dumps([
+        LazyJSONSerializable([
             {'name': 'sector', 'required': False},
             {'name': 'country', 'required': False},
             # {'name': 'operational_purpose', 'required': False},
@@ -309,7 +309,8 @@ CONSTANCE_CONFIG = {
     ),
     'SECTOR_CHOICES': (
         '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
-        "Options available for the 'sector' metadata field, one per line."
+        "Options available for the 'sector' metadata field, one per line.",
+        'long_textfield'
     ),
     'OPERATIONAL_PURPOSE_CHOICES': (
         '',
@@ -322,18 +323,27 @@ CONSTANCE_CONFIG = {
         'positive_int'
     ),
     'FREE_TIER_THRESHOLDS': (
-        json.dumps({
-            'storage': int(1 * 1024 * 1024 * 1024),  # 1 GB
-            'data': 1000,
-            'transcription_minutes': 10,
-            'translation_chars': 6000,
+        LazyJSONSerializable({
+            'storage': None,
+            'data': None,
+            'transcription_minutes': None,
+            'translation_chars': None,
         }),
         'Free tier thresholds: storage in kilobytes, '
         'data (number of submissions), '
         'minutes of transcription, '
         'number of translation characters',
         # Use custom field for schema validation
-        'free_tier_threshold_jsonschema'
+        'free_tier_threshold_jsonschema',
+    ),
+    'FREE_TIER_DISPLAY': (
+        LazyJSONSerializable({
+            'name': None,
+            'feature_list': [],
+        }),
+        'Free tier frontend settings: name to use for the free tier, '
+        'array of text strings to display on the feature list of the Plans page',
+        'free_tier_display_jsonschema',
     ),
     'PROJECT_TRASH_GRACE_PERIOD': (
         7,
@@ -356,13 +366,35 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
         {'widget': 'django.forms.Textarea'},
     ],
+    'free_tier_display_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
+        {'widget': 'django.forms.Textarea'},
+    ],
+    'i18n_text_jsonfield_schema': [
+        'kpi.fields.jsonschema_form_field.I18nTextJSONField',
+        {'widget': 'django.forms.Textarea'},
+    ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
     ],
-    'mfa_help_text_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MfaHelpTextField',
-        {'widget': 'django.forms.Textarea'},
+    'long_metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        {
+            'widget': 'django.forms.Textarea',
+            'widget_kwargs': {
+                'attrs': {'rows': 45}
+            }
+        },
+    ],
+    'long_textfield': [
+        'django.forms.fields.CharField',
+        {
+            'widget': 'django.forms.Textarea',
+            'widget_kwargs': {
+                'attrs': {'rows': 30}
+            }
+        },
     ],
     'positive_int': ['django.forms.fields.IntegerField', {
         'min_value': 0
@@ -387,7 +419,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        'FREE_TIER_THRESHOLDS',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -415,6 +446,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
     ),
+    'Tier settings': (
+        'FREE_TIER_THRESHOLDS',
+        'FREE_TIER_DISPLAY',
+    ),
 }
 
 # Tell django-constance to use a database model instead of Redis
@@ -430,8 +465,8 @@ class DoNotUseRunner:
 
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
-# used in kpi.models.sitewide_messages
-MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
+# # used in kpi.models.sitewide_messages
+# MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 
 # The backend that handles user authentication must match KoBoCAT's when
 # sharing sessions. ModelBackend does not interfere with object-level
@@ -484,9 +519,11 @@ django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 DJANGO_LANGUAGE_CODES = env.str(
     'DJANGO_LANGUAGE_CODES',
     default=(
+        'am '  # Amharic
         'ar '  # Arabic
+        'bn '  # Bengali
         'cs '  # Czech
-        'de-DE '  # German
+        'de '  # German
         'en '  # English
         'es '  # Spanish
         'fa '  # Persian/Farsi
@@ -495,6 +532,8 @@ DJANGO_LANGUAGE_CODES = env.str(
         'hu '  # Hungarian
         'ja '  # Japanese
         'ku '  # Kurdish
+        'ln '  # Lingala
+        'my '  # Burmese/Myanmar
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
@@ -539,7 +578,7 @@ PRIVATE_STORAGE_AUTH_FUNCTION = \
     'kpi.utils.private_storage.superuser_or_username_matches_prefix'
 
 # django-markdownx, for in-app messages
-MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
+MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
 # Github-flavored Markdown from `py-gfm`,
 # ToDo Uncomment when it's compatible with Markdown 3.x
 # MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
@@ -652,7 +691,6 @@ KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat')
 
 KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
-KOBOFORM_INTERNAL_URL = os.environ.get('KOBOFORM_INTERNAL_URL', 'http://kpi')
 
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
@@ -665,10 +703,21 @@ STRIPE_ENABLED = False
 if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
     STRIPE_ENABLED = True
 
+
+def dj_stripe_request_callback_method():
+    # This method exists because dj-stripe's documentation doesn't reflect reality.
+    # It claims that DJSTRIPE_SUBSCRIBER_MODEL no longer needs a request callback but
+    # this error occurs without it: `DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK must
+    # be implemented if a DJSTRIPE_SUBSCRIBER_MODEL is defined`
+    # It doesn't need to do anything other than exist
+    # https://github.com/dj-stripe/dj-stripe/issues/1900
+    pass
+
+
 DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
-STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID", None)
 STRIPE_LIVE_MODE = env.bool('STRIPE_LIVE_MODE', False)
 STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', "pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM")
 STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
@@ -714,8 +763,7 @@ if env.str("FRONTEND_DEV_MODE", None) == "host":
     CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
-CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
-CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
+CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'data:',
     'https://*.openstreetmap.org',
@@ -784,6 +832,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=30),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every monday at 00:30
+    'markdown-images-garbage-collector': {
+        'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
+        'schedule': crontab(hour=0, minute=30, day_of_week=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
 }
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
@@ -815,6 +869,7 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
 )
 
 ''' Django allauth configuration '''
+# User.email should continue to be used instead of the EmailAddress model
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_EMAIL_REQUIRED = True
@@ -846,7 +901,7 @@ SOCIALACCOUNT_PROVIDERS = {}
 if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
     SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
 # Parse oidc settings as nested dict in array. Example:
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google-kobo" # Must be unique
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google" # Must be unique
 # SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_server_url: "https://accounts.google.com"
 # SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_name: "Kobo Google Apps"
 # Only OIDC supports multiple providers. For example, to add two Google Apps sign ins - use
@@ -854,16 +909,42 @@ if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None)
 oidc_prefix = "SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_"
 oidc_pattern = re.compile(r"{prefix}\w+".format(prefix=oidc_prefix))
 oidc_servers = {}
+oidc_nested_keys = ['APP', 'SCOPE', 'AUTH_PARAMS']
+
 for key, value in {
     key.replace(oidc_prefix, ""): val
     for key, val in os.environ.items()
     if oidc_pattern.match(key)
 }.items():
     number, setting = key.split("_", 1)
+    parsed_key = None
+    nested_key = filter(lambda setting_key : setting.startswith(setting_key), oidc_nested_keys)
+    nested_key = list(nested_key)
+    if len(nested_key):
+        _, parsed_key = setting.split(nested_key[0] + "_", 1)
+        setting = nested_key[0]
     if number in oidc_servers:
-        oidc_servers[number][setting] = value
+        if parsed_key:
+            if setting in oidc_servers[number]:
+                if parsed_key.isdigit():
+                    oidc_servers[number][setting].append(value)
+                else:
+                    oidc_servers[number][setting][parsed_key] = value
+            else:
+                if parsed_key.isdigit():
+                    oidc_servers[number][setting] = [value]
+                else:
+                    oidc_servers[number][setting] = {parsed_key: value}
+        else:
+            oidc_servers[number][setting] = value
     else:
-        oidc_servers[number] = {setting: value}
+        if parsed_key:
+            if parsed_key.isdigit():
+                oidc_servers[number] = {setting: [value]}
+            else:
+                oidc_servers[number] = {setting: {parsed_key: value}}
+        else:
+            oidc_servers[number] = {setting: value}
 oidc_servers = [x for x in oidc_servers.values()]
 SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
 
@@ -1001,8 +1082,8 @@ LOGGING = {
 sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
 if sentry_dsn:
     import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
 
     # All of this is already happening by default!
