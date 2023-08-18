@@ -774,10 +774,10 @@ CSP_IMG_SRC = CSP_DEFAULT_SRC + [
 CSP_FRAME_SRC = CSP_DEFAULT_SRC
 
 if GOOGLE_ANALYTICS_TOKEN:
-    google_domain = '*.google-analytics.com'
-    CSP_SCRIPT_SRC.append(google_domain)
-    CSP_CONNECT_SRC.append(google_domain)
-    CSP_IMG_SRC.append(google_domain)
+    # Taken from https://developers.google.com/tag-platform/tag-manager/csp#google_analytics_4_google_analytics
+    CSP_SCRIPT_SRC.append('https://*.googletagmanager.com')
+    CSP_CONNECT_SRC.extend(['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'])
+    CSP_IMG_SRC.extend(['https://*.google-analytics.com', 'https://*.googletagmanager.com'])
 if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
     raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
     CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
