@@ -15,9 +15,12 @@ interface ResponseFormHeaderProps {
 
 export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
+  if (!analysisQuestions) {
+    return null;
+  }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions.state);
   if (!question) {
     return null;
   }
@@ -108,8 +111,8 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         // We only allow editing one question at a time, so adding new is not
         // possible until user stops editing
         isDisabled={
-          analysisQuestions?.state.questionsBeingEdited.length !== 0 ||
-          analysisQuestions?.state.isPending
+          analysisQuestions.state.questionsBeingEdited.length !== 0 ||
+          analysisQuestions.state.isPending
         }
       />
 
@@ -119,7 +122,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}
-        isDisabled={analysisQuestions?.state.isPending}
+        isDisabled={analysisQuestions.state.isPending}
       />
     </header>
   );

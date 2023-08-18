@@ -20,9 +20,12 @@ export default function SelectOneResponseForm(
   props: SelectOneResponseFormProps
 ) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
+  if (!analysisQuestions) {
+    return null;
+  }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions.state);
   if (!question) {
     return null;
   }
@@ -71,7 +74,7 @@ export default function SelectOneResponseForm(
           onChange={onRadioChange}
           selected={response}
           isClearable
-          isDisabled={analysisQuestions?.state.isPending}
+          isDisabled={analysisQuestions.state.isPending}
         />
       </section>
     </>
