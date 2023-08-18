@@ -196,6 +196,12 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         questions: action.payload.questions,
       };
     }
+    case 'applyQuestionsOrderFailed': {
+      return {
+        ...state,
+        isPending: false,
+      };
+    }
     case 'initialiseSearch': {
       return {
         ...state,

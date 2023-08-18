@@ -13,8 +13,15 @@ import Icon from 'js/components/common/icon';
 import {useDrag, useDrop} from 'react-dnd';
 import type {Identifier, XYCoord} from 'dnd-core';
 import {DND_TYPES} from 'js/constants';
-import {findQuestion} from '../utils';
+import {
+  findQuestion,
+  getQuestionsFromSchema,
+  updateSurveyQuestions,
+} from '../utils';
 import classnames from 'classnames';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import {handleApiFail} from 'js/utils';
+import type {FailResponse} from 'js/dataInterface';
 
 export interface AnalysisQuestionRowProps {
   uuid: string;
@@ -129,20 +136,35 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
         return;
       }
 
-      analysisQuestions.dispatch({type: 'applyQuestionsOrder'});
+      async function makeCall() {
+        if (!analysisQuestions) {
+          return;
+        }
 
-      // TODO make actual API call here
-      // For now we make a fake response
-      console.log('QA fake API call: update order');
-      setTimeout(() => {
-        console.log('QA fake API call: update order DONE');
-        analysisQuestions.dispatch({
-          type: 'applyQuestionsOrderCompleted',
-          payload: {
-            questions: analysisQuestions.state.questions,
-          },
-        });
-      }, 2000);
+        // Step 1: Let the reducer know what we're about to do
+        analysisQuestions.dispatch({type: 'applyQuestionsOrder'});
+
+        // Step 2: update asset endpoint with new questions
+        try {
+          const response = await updateSurveyQuestions(
+            singleProcessingStore.currentAssetUid,
+            singleProcessingStore.currentQuestionQpath,
+            analysisQuestions.state.questions
+          );
+
+          // Step 3: update reducer's state with new list after the call finishes
+          analysisQuestions?.dispatch({
+            type: 'applyQuestionsOrderCompleted',
+            payload: {
+              questions: getQuestionsFromSchema(response?.advanced_features),
+            },
+          });
+        } catch (err) {
+          handleApiFail(err as FailResponse);
+          analysisQuestions?.dispatch({type: 'applyQuestionsOrderFailed'});
+        }
+      }
+      makeCall();
     },
   });
 

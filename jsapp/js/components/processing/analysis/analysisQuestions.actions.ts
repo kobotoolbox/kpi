@@ -71,6 +71,8 @@ export type AnalysisQuestionsAction =
       type: 'applyQuestionsOrderCompleted';
       payload: {questions: AnalysisQuestionInternal[]};
     }
+  // Unlocks UI after failed API call
+  | {type: 'applyQuestionsOrderFailed'}
   // Used when user starts the search for a `qual_keyword_search` question. It
   // blocks the UI, awaiting the API call response.
   | {type: 'initialiseSearch'}
