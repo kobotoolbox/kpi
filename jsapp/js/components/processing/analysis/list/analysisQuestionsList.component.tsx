@@ -29,14 +29,22 @@ export default function AnalysisQuestionsList() {
   return (
     <DndProvider backend={HTML5Backend}>
       <ul className={styles.root}>
-        {analysisQuestions.state.questions.map((question, index: number) => (
-          <AnalysisQuestionRow
-            uuid={question.uuid}
-            index={index}
-            key={question.uuid}
-            moveRow={moveRow}
-          />
-        ))}
+        {analysisQuestions.state.questions.map((question, index: number) => {
+          // TODO: we temporarily hide Keyword Search from the UI until
+          // https://github.com/kobotoolbox/kpi/issues/4594 is done
+          if (question.type === 'qual_auto_keyword_count') {
+            return null;
+          }
+
+          return (
+            <AnalysisQuestionRow
+              uuid={question.uuid}
+              index={index}
+              key={question.uuid}
+              moveRow={moveRow}
+            />
+          );
+        })}
       </ul>
     </DndProvider>
   );

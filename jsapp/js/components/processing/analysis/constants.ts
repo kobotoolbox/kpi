@@ -158,11 +158,13 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
     label: t('Note'),
     icon: 'qt-note',
   },
-  {
-    type: 'qual_auto_keyword_count',
-    label: t('Keyword search'),
-    icon: 'tag',
-    isAutomated: true,
-    additionalFieldNames: ['keywords', 'source'],
-  },
+  // TODO: we temporarily hide Keyword Search from the UI until
+  // https://github.com/kobotoolbox/kpi/issues/4594 is done
+  // {
+  //   type: 'qual_auto_keyword_count',
+  //   label: t('Keyword search'),
+  //   icon: 'tag',
+  //   isAutomated: true,
+  //   additionalFieldNames: ['keywords', 'source'],
+  // },
 ];
