@@ -14,8 +14,9 @@ const cookies = new Cookies();
 
 interface OverLimitModalProps {
   show: boolean;
-  limits: (number: number) => void;
+  limits: string[];
   dismissed: (boolean: boolean) => void;
+  interval: 'month' | 'year';
 }
 
 function OverLimitModal(props: OverLimitModalProps) {
@@ -26,12 +27,6 @@ function OverLimitModal(props: OverLimitModalProps) {
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
-  const limitsLength = getAllExceedingLimits().length;
-  const interval = getPlanInterval();
-
-  useEffect(() => {
-    props.limits(limitsLength);
-  }, [limitsLength]);
 
   const handleClose = () => {
     toggleModal();
@@ -63,21 +58,21 @@ function OverLimitModal(props: OverLimitModalProps) {
             <br />
             <div>
               {t('You have surpassed your')}{' '}
-              {getAllExceedingLimits().map((item, i) => (
+              {props.limits.map((item, i) => (
                 <span key={i}>
                   {i > 0 && ', '}
-                  {i === limitsLength - 1 && i > 0 && 'and '}
+                  {i === props.limits.length - 1 && i > 0 && 'and '}
                   {item}
                 </span>
               ))}{' '}
-              {t('quota')} {limitsLength > 1 && 's'}{' '}
+              {t('quota')} {props.limits.length > 1 && 's'}{' '}
               {t('included in your current plan.')}
             </div>
             <br />
             <div>
               {t(
                 'To continue collecting data, please upgrade to a KoboToolbox plan with higher capacity, or consider waiting until the beginning of next ##PERIOD##, when your quota will be reset again. You can learn more about ##PERIOD##ly limits '
-              ).replace(/##PERIOD##/g, interval)}
+              ).replace(/##PERIOD##/g, props.interval)}
               <a href={'https://www.kobotoolbox.org/how-it-works/'}>
                 {t('here')}
               </a>
@@ -88,7 +83,7 @@ function OverLimitModal(props: OverLimitModalProps) {
               <strong>
                 {t(
                   'Please note that failure to respect the ##PERIOD##ly limits can lead to the blocking of submissions from being saved and even the suspension your account.'
-                ).replace(/##PERIOD##/g, interval)}
+                ).replace(/##PERIOD##/g, props.interval)}
               </strong>
             </div>
           </div>
