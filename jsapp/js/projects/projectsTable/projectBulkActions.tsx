@@ -3,14 +3,20 @@ import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import Button from 'js/components/common/button';
 import actionsStyles from './projectActions.module.scss';
 import BulkDeletePrompt from './bulkActions/bulkDeletePrompt';
+import {userCan} from 'js/components/permissions/utils';
 
 interface ProjectBulkActionsProps {
   /** A list of selected assets for bulk operations. */
   assets: Array<AssetResponse | ProjectViewAsset>;
 }
 
+function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
+  return assets.every((asset) => userCan('manage_asset', asset));
+}
+
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
+  const canBulkDelete = userCanDeleteAssets(props.assets);
 
   return (
     <div className={actionsStyles.root}>
@@ -37,18 +43,30 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       />
 
       {/* Delete */}
-      <Button
-        type='bare'
-        color='storm'
-        size='s'
-        startIcon='trash'
-        tooltip={t('Delete ##count## projects').replace(
-          '##count##',
-          String(props.assets.length)
-        )}
-        onClick={() => setIsDeletePromptOpen(true)}
-        classNames={['right-tooltip']}
-      />
+      {canBulkDelete ? (
+        <Button
+          type='bare'
+          color='storm'
+          size='s'
+          startIcon='trash'
+          tooltip={t('Delete ##count## projects').replace(
+            '##count##',
+            String(props.assets.length)
+          )}
+          onClick={() => setIsDeletePromptOpen(true)}
+          classNames={['right-tooltip']}
+        />
+      ) : (
+        <Button
+          isDisabled
+          type='bare'
+          color='storm'
+          size='s'
+          startIcon='trash'
+          tooltip={t('Delete projects')}
+          classNames={['right-tooltip']}
+        />
+      )}
 
       {isDeletePromptOpen && (
         <BulkDeletePrompt
