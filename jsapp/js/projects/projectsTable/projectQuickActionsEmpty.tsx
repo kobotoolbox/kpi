@@ -7,6 +7,7 @@ const NO_PROJECT_SELECTED = t('No project selected');
 export default function ProjectQuickActions() {
   return (
     <div className={styles.root}>
+      {/* Archive / Unarchive */}
       <Button
         isDisabled
         type='bare'
@@ -17,6 +18,7 @@ export default function ProjectQuickActions() {
         classNames={['right-tooltip']}
       />
 
+      {/* Share */}
       <Button
         isDisabled
         type='bare'
@@ -27,6 +29,7 @@ export default function ProjectQuickActions() {
         classNames={['right-tooltip']}
       />
 
+      {/* Delete */}
       <Button
         isDisabled
         type='bare'

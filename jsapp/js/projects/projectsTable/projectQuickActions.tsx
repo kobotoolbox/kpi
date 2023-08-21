@@ -31,7 +31,9 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
 
   return (
     <div className={styles.root}>
-      {props.asset.deployment__active && (
+      {/* Archive / Unarchive */}
+      {/* Archive a deployed project */}
+      {props.asset.deployment_status === 'deployed' && (
         <Button
           isDisabled={
             !isChangingPossible ||
@@ -48,10 +50,11 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
               customViewStore.handleAssetChanged(response.asset);
             })
           }
+          classNames={['right-tooltip']}
         />
       )}
-
-      {!props.asset.deployment__active && (
+      {/* Un-archive a deployed project */}
+      {props.asset.deployment_status === 'archived' && (
         <Button
           isDisabled={
             !isChangingPossible ||
@@ -68,9 +71,23 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
               customViewStore.handleAssetChanged(response.asset);
             })
           }
+          classNames={['right-tooltip']}
+        />
+      )}
+      {/* Show tooltip, since drafts can't be archived/unarchived */}
+      {props.asset.deployment_status === 'draft' && (
+        <Button
+          isDisabled
+          type='bare'
+          color='storm'
+          size='s'
+          startIcon='archived'
+          tooltip={t('Draft project selected')}
+          classNames={['right-tooltip']}
         />
       )}
 
+      {/* Share */}
       <Button
         isDisabled={!isManagingPossible}
         type='bare'
@@ -79,8 +96,10 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
         startIcon='user-share'
         tooltip={t('Share project')}
         onClick={() => manageAssetSharing(props.asset.uid)}
+        classNames={['right-tooltip']}
       />
 
+      {/* Delete */}
       <Button
         isDisabled={!isChangingPossible}
         type='bare'
@@ -97,6 +116,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
             }
           )
         }
+        classNames={['right-tooltip']}
       />
     </div>
   );
