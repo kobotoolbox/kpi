@@ -43,7 +43,7 @@ class I18nUtils:
         # localized version comes first.
         sitewide_message = (
             SitewideMessage.objects.filter(
-                Q(slug=f'{slug}_{language}') | Q(slug=f'{slug}')
+                Q(slug=f'{slug}_{language}') | Q(slug=slug)
             )
             .order_by(Length('slug').desc())
             .first()
