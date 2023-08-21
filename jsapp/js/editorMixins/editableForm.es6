@@ -835,6 +835,7 @@ export default assign({
             }
 
             {this.hasMetadataAndDetails() &&
+             envStore.data.project_metadata_fields.length > 0 &&
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>
                   {t('Details')}
