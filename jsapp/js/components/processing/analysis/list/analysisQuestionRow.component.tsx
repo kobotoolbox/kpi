@@ -203,7 +203,16 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
             return <TextResponseForm uuid={item.uuid} />;
           }
           default: {
-            return <InlineMessage icon='alert' type='warning' message={t('Unknown question type ##type_name##').replace('##type_name##', item.type)} />;
+            return (
+              <InlineMessage
+                icon='alert'
+                type='warning'
+                message={t('Unknown question type ##type_name##').replace(
+                  '##type_name##',
+                  item.type
+                )}
+              />
+            );
           }
         }
       }
