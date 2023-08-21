@@ -22,6 +22,7 @@ import {toJS} from 'mobx';
 import {ROOT_URL} from 'js/constants';
 import {fetchPostUrl} from 'js/api';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
+import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -100,8 +101,14 @@ function CustomViewRoute() {
           onClick={exportAllData}
         />
 
+        {selectedAssets.length === 0 && (
+          <div className={styles.actions}>
+            <ProjectQuickActionsEmpty />
+          </div>
+        )}
+
         {selectedAssets.length === 1 && (
-          <div className={styles.quickActions}>
+          <div className={styles.actions}>
             <ProjectQuickActions asset={selectedAssets[0]} />
           </div>
         )}
