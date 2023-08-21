@@ -28,7 +28,7 @@ class I18nUtils:
 
         try:
             messages_dict = to_python_object(
-                constance.config.CUSTOM_PASSWORD_GUIDANCE_TEXT
+                config.CUSTOM_PASSWORD_GUIDANCE_TEXT
             )
         except json.JSONDecodeError:
             logging.error(
