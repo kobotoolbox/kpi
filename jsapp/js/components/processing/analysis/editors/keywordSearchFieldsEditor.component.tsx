@@ -75,7 +75,6 @@ export default function KeywordSearchFieldsEditor(
           onlyUnique
           addOnBlur
           addOnPaste
-          disabled={analysisQuestions.state.isPending}
         />
       </section>
 
@@ -88,7 +87,6 @@ export default function KeywordSearchFieldsEditor(
           languageCodes={singleProcessingStore.getSources()}
           selectedLanguage={props.fields.source}
           onChange={onSourceChange}
-          disabled={analysisQuestions.state.isPending}
           size='l'
           type='outline'
         />

@@ -69,7 +69,6 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
           onlyUnique
           addOnBlur
           addOnPaste
-          disabled={analysisQuestions.state.isPending}
         />
       </section>
     </>
