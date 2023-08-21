@@ -343,13 +343,13 @@ EXTRA_LANG_INFO = {
 PROJECT_METADATA_DEFAULT_LABELS = {
     'sector': t('Sector'),
     'country': t('Country'),
-    'operational_purpose': t('Operational purpose'),
-    'collects_ppi': t('Collects PPI'),
+    'operational_purpose': t('Operational purpose of data'),
+    'collects_pii': t('Does this project collect personally identifiable information?'),
     'description': t('Description'),
 }
 
 USER_METADATA_DEFAULT_LABELS = {
-    'full_name': t('Full name'),
+    'name': t('Full name'),
     'organization': t('Organization'),
     'organization_website': t('Organization website'),
     'sector': t('Sector'),

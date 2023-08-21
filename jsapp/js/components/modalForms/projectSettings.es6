@@ -661,6 +661,12 @@ class ProjectSettings extends React.Component {
 
     // superuser-configured metadata
     if (
+      envStore.data.getProjectMetadataField('description').required &&
+      !this.state.fields.description.trim()
+    ) {
+      fieldsWithErrors.push('description');
+    }
+    if (
       envStore.data.getProjectMetadataField('sector').required &&
       !this.state.fields.sector
     ) {
@@ -867,6 +873,7 @@ class ProjectSettings extends React.Component {
     const operationalPurposes = envStore.data.operational_purpose_choices;
     const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii');
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
+    const descriptionField = envStore.data.getProjectMetadataField('description');
 
     return (
       <bem.FormModal__form
@@ -890,6 +897,7 @@ class ProjectSettings extends React.Component {
           </bem.Modal__footer>
         }
 
+        {/* Project Name */}
         <bem.FormModal__item m='wrapper'>
           {/* form builder displays name in different place */}
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
@@ -906,22 +914,27 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {/* Description */}
+          {descriptionField &&
           <bem.FormModal__item>
             <TextBox
               customModifiers='on-white'
               type='text-multiline'
               value={this.state.fields.description}
               onChange={this.onDescriptionChange.bind(this)}
-              label={t('Description')}
+              errors={this.hasFieldError('description') ? t('Please enter a description for your project') : false}
+              label={addRequiredToLabel(descriptionField.label, descriptionField.required)}
               placeholder={t('Enter short description here')}
               data-cy='description'
             />
           </bem.FormModal__item>
+          }
 
+          {/* Sector */}
           {sectorField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
               <WrappedSelect
-                label={addRequiredToLabel(t('Sector'), sectorField.required)}
+                label={addRequiredToLabel(sectorField.label, sectorField.required)}
                 value={this.state.fields.sector}
                 onChange={this.onAnyFieldChange.bind(this, 'sector')}
                 options={sectors}
@@ -934,10 +947,11 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {/* Country */}
           {countryField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'country' : null}>
               <WrappedSelect
-                label={addRequiredToLabel(t('Country'), countryField.required)}
+                label={addRequiredToLabel(countryField.label, countryField.required)}
                 isMulti
                 value={this.state.fields.country}
                 onChange={this.onAnyFieldChange.bind(this, 'country')}
@@ -951,10 +965,11 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {/* Operational Purpose of Data */}
           {operationalPurposeField &&
             <bem.FormModal__item>
               <WrappedSelect
-                label={addRequiredToLabel(t('Operational Purpose of Data'), operationalPurposeField.required)}
+                label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
                 value={this.state.fields.operational_purpose}
                 onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
                 options={operationalPurposes}
@@ -965,10 +980,11 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {/* Does this project collect personally identifiable information? */}
           {collectsPiiField &&
             <bem.FormModal__item>
               <WrappedSelect
-                label={addRequiredToLabel(t('Does this project collect personally identifiable information?'), collectsPiiField.required)}
+                label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
                 value={this.state.fields.collects_pii}
                 onChange={this.onAnyFieldChange.bind(this, 'collects_pii')}
                 options={[

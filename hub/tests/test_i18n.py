@@ -1,4 +1,6 @@
 # coding: utf-8
+import mock
+from constance.test import override_config
 from django.test import TestCase
 
 from hub.utils.i18n import I18nUtils
@@ -6,6 +8,7 @@ from kobo.static_lists import (
     PROJECT_METADATA_DEFAULT_LABELS,
     USER_METADATA_DEFAULT_LABELS,
 )
+from kpi.utils.json import LazyJSONSerializable
 
 
 class I18nTestCase(TestCase):
@@ -15,85 +18,127 @@ class I18nTestCase(TestCase):
         pass
 
     def test_welcome_message(self):
-        welcome_message_fr = I18nUtils.get_sitewide_message(lang="fr")
-        welcome_message_es = I18nUtils.get_sitewide_message(lang="es")
+        welcome_message_fr = I18nUtils.get_sitewide_message(lang='fr')
+        welcome_message_es = I18nUtils.get_sitewide_message(lang='es')
         welcome_message = I18nUtils.get_sitewide_message()
 
-        self.assertEqual(welcome_message_fr, "Le message de bienvenue")
-        self.assertEqual(welcome_message, "Global welcome message")
+        self.assertEqual(welcome_message_fr, 'Le message de bienvenue')
+        self.assertEqual(welcome_message, 'Global welcome message')
         self.assertEqual(welcome_message_es, welcome_message)
 
-    def test_custom_label_translations(self):
-        def check_labels(field, default_labels, lang):
-            new_field = I18nUtils.set_custom_label(field, default_labels, lang)
-            assert new_field['name'] == field['name']
-            assert new_field['required'] == field['required']
-            assert new_field['label'] == field['label'][lang]
-
-        user_metadata_field = {
-            'name': 'Full name',
-            'required': False,
-            'label': {'default': 'Name', 'fr': 'Nom'},
+    # TODO validate whethere the tests below are necessary.
+    #   Kinda redundant with kobo/apps/accounts/tests/test_forms.py::AccountFormsTestCase
+    @override_config(USER_METADATA_FIELDS=LazyJSONSerializable([
+      {
+        'name': 'name',
+        'required': False,
+        'label': {
+            'default': 'Full name',
+            'fr': 'Prénom et nom',
+            'es': 'Nombre y apellido'
         }
-
-        project_metadata_field = {
-            'name': 'description',
-            'required': True,
-            'label': {'default': 'Description', 'fr': 'Details'},
-        }
-
-        check_labels(user_metadata_field, USER_METADATA_DEFAULT_LABELS, 'fr')
-        check_labels(
-            project_metadata_field, PROJECT_METADATA_DEFAULT_LABELS, 'fr'
+      }
+    ]))
+    def test_user_metadata_fields_with_custom_label(self):
+        # Languages exist - return related label
+        assert (
+            I18nUtils.get_metadata_field_label('name', 'user', 'fr')
+            == 'Prénom et nom'
         )
-
-    def test_metadata_no_label_field(self):
-        def check_labels(field, default_labels, lang):
-            new_field = I18nUtils.set_custom_label(field, default_labels, lang)
-            assert new_field['name'] == field['name']
-            assert new_field['required'] == field['required']
-            assert new_field['label'] == default_labels[field['name']]
-
-        user_metadata_field = {
-            'name': 'full_name',
-            'required': False,
-        }
-
-        project_metadata_field = {
-            'name': 'description',
-            'required': True,
-        }
-
-        check_labels(user_metadata_field, USER_METADATA_DEFAULT_LABELS, 'fr')
-        check_labels(
-            project_metadata_field, PROJECT_METADATA_DEFAULT_LABELS, 'fr'
+        assert (
+            I18nUtils.get_metadata_field_label('name', 'user', 'es')
+            == 'Nombre y apellido'
         )
+        # No matching languages - return default
+        assert (
+            I18nUtils.get_metadata_field_label('name', 'user', 'it')
+            == 'Full name'
+        )
+        assert I18nUtils.get_metadata_field_label('name', 'user') == 'Full name'
 
-    def test_custom_label_no_lang(self):
-        def check_labels(field, default_labels, lang):
-            new_field = I18nUtils.set_custom_label(field, default_labels, lang)
-            assert new_field['name'] == field['name']
-            assert new_field['required'] == field['required']
-            assert new_field['label'] == field['label']['default']
-
-        user_metadata_field = {
-            'name': 'full_name',
-            'required': False,
-            'label': {'default': 'Name'},
+    @override_config(USER_METADATA_FIELDS=LazyJSONSerializable([
+        {
+            'name': 'name',
+            'required': False
         }
+    ]))
+    def test_user_metadata_fields_no_label_field(self):
+        MOCK_TRANSLATION_STRING = 'hello from gettext_lazy'
+        mock_t = mock.MagicMock(return_value=MOCK_TRANSLATION_STRING)
 
-        project_metadata_field = {
-            'name': 'description',
-            'required': True,
-            'label': {'default': 'Description'},
-        }
-        check_labels(
-            user_metadata_field,
+        with mock.patch.dict(
             USER_METADATA_DEFAULT_LABELS,
-            None
+            {'name': mock_t('My Full name')},
+        ) as mock_dict:
+            assert (
+                I18nUtils.get_metadata_field_label('name', 'user', 'fr')
+                == MOCK_TRANSLATION_STRING
+            )
+            assert (
+                I18nUtils.get_metadata_field_label('name', 'user')
+                == MOCK_TRANSLATION_STRING
+            )
+            assert (
+                USER_METADATA_DEFAULT_LABELS['name']
+                == MOCK_TRANSLATION_STRING
+            )
+            assert mock_t.call_args.args[0] == 'My Full name'
+
+    @override_config(PROJECT_METADATA_FIELDS=LazyJSONSerializable([
+        {
+            'name': 'sector',
+            'required': False,
+            'label': {
+                'default': 'Activity sector',
+                'fr': 'Secteur d’activités',
+                'es': 'Sector de actividad'
+            }
+        }
+    ]))
+    def test_project_metadata_fields_with_custom_label(self):
+        # Languages exist - return related label
+        assert (
+            I18nUtils.get_metadata_field_label('sector', 'project', 'fr')
+            == 'Secteur d’activités'
         )
-        check_labels(
-            project_metadata_field,
+        assert (
+            I18nUtils.get_metadata_field_label('sector', 'project', 'es')
+            == 'Sector de actividad'
+        )
+        # No matching languages - return default
+        assert (
+            I18nUtils.get_metadata_field_label('sector', 'project', 'it')
+            == 'Activity sector'
+        )
+        assert (
+            I18nUtils.get_metadata_field_label('sector', 'project')
+            == 'Activity sector'
+        )
+
+    @override_config(PROJECT_METADATA_FIELDS=LazyJSONSerializable([
+        {
+            'name': 'sector',
+            'required': False,
+        }
+    ]))
+    def test_project_metadata_fields_no_label_field(self):
+        MOCK_TRANSLATION_STRING = 'hello from gettext_lazy'
+        mock_t = mock.MagicMock(return_value=MOCK_TRANSLATION_STRING)
+
+        with mock.patch.dict(
             PROJECT_METADATA_DEFAULT_LABELS,
-            None
-        )
+            {'sector': mock_t('My Sector')},
+        ) as mock_dict:
+            assert (
+                I18nUtils.get_metadata_field_label('sector', 'project', 'fr')
+                == MOCK_TRANSLATION_STRING
+            )
+            assert (
+                I18nUtils.get_metadata_field_label('sector', 'project')
+                == MOCK_TRANSLATION_STRING
+            )
+            assert (
+                PROJECT_METADATA_DEFAULT_LABELS['sector']
+                == MOCK_TRANSLATION_STRING
+            )
+            assert mock_t.call_args.args[0] == 'My Sector'
