@@ -12,10 +12,13 @@ DEFINITIONS = {}
 # and must match this jsonschema
 DEFINITIONS['qual_base'] = {
     'type': 'object',
+    'additionalProperties': False,
     'properties': {
         'uuid': {'type': 'string'},
+        'type': {'type': 'string'},
+        'val': {},
     },
-    'required': ['uuid', 'type'],
+    'required': ['uuid', 'type', 'val'],
 }
 
 # a DEFINITION is set for each of these types:
@@ -29,7 +32,7 @@ DEFINITIONS['qual_base'] = {
 DEFINITIONS['qual_tags'] = {
     'type': 'object',
     'properties': {
-        'tags': {
+        'val': {
             'type': 'array',
             'items': {'type': 'string'},
         },
@@ -44,7 +47,6 @@ DEFINITIONS['qual_text'] = {
             'type': 'string',
         },
     },
-    'required': ['val'],
 }
 DEFINITIONS['qual_integer'] = {
     'type': 'object',
@@ -52,7 +54,6 @@ DEFINITIONS['qual_integer'] = {
         'type': {'const': 'qual_integer'},
         'val': {'type': 'integer'},
     },
-    'required': ['val'],
 }
 DEFINITIONS['qual_select_one'] = {
     'type': 'object',
@@ -60,18 +61,16 @@ DEFINITIONS['qual_select_one'] = {
         'type': {'const': 'qual_select_one'},
         'val': {'type': 'string'},
     },
-    'required': ['val'],
 }
 DEFINITIONS['qual_select_multiple'] = {
     'type': 'object',
     'properties': {
         'type': {'const': 'qual_select_multiple'},
-        'vals': {
+        'val': {
             'type': 'array',
             'items': {'type': 'string'},
         },
     },
-    'required': ['vals'],
 }
 
 # It is all held together by the common "qual_item" definition

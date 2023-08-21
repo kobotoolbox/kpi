@@ -67,13 +67,15 @@ class QualAction(BaseAction):
             if field_name == 'submission':
                 continue
 
-            erecord = vals.get(self.ID)
-            if erecord is None:
+            edit_list = vals.get(self.ID)
+            if edit_list is None:
                 continue
 
-            o_keyval = content.get(field_name, {})
-            o_keyval[self.ID] = erecord
-            content[field_name] = o_keyval
+            edits_by_uuid = {e['uuid']: e for e in edit_list}
+            existing_list = content.setdefault(field_name, {}).get(self.ID, [])
+            existing_by_uuid = {e['uuid']: e for e in existing_list}
+            existing_by_uuid.update(edits_by_uuid)
+            content[field_name][self.ID] = list(existing_by_uuid.values())
 
         return content
 
