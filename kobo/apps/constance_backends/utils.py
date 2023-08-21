@@ -17,4 +17,7 @@ def to_python_object(
     if isinstance(object_or_str, LazyJSONSerializable):
         return object_or_str.object
 
+    if isinstance(object_or_str, dict) or isinstance(object_or_str, list):
+        return object_or_str
+
     return json.loads(object_or_str)

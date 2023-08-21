@@ -274,6 +274,7 @@ CONSTANCE_CONFIG = {
     ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
+            {'name': 'name', 'required': False},
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},
             {'name': 'sector', 'required': False},
@@ -286,10 +287,15 @@ CONSTANCE_CONFIG = {
             {'name': 'instagram', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
-        'Display (and optionally require) these metadata fields for users. '
-        "Possible fields are 'organization', 'organization_website', "
+        'Modify if the fields are required and labels for these metadata '
+        "fields for users. Possible fields are:\n"
+        " 'name', 'organization', 'organization_website', "
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
-        "and 'instagram'",
+        "and 'instagram'.\n\n"
+        'To add another language, follow the example below.\n\n'
+        '{"name": "name", "required": False, "label": '
+        '{"default": "Full Name", "fr": "Nom Complet"}}\n'
+        "'default' is a required field within the 'label' dict, but 'label' is optional.",
         # Use custom field for schema validation
         'long_metadata_fields_jsonschema'
     ),
@@ -297,13 +303,17 @@ CONSTANCE_CONFIG = {
         LazyJSONSerializable([
             {'name': 'sector', 'required': False},
             {'name': 'country', 'required': False},
-            # {'name': 'operational_purpose', 'required': False},
-            # {'name': 'collects_pii', 'required': False},
+            {'name': 'description', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects. '
-        "Possible fields are 'sector', 'country', 'operational_purpose', and "
-        "'collects_pii'.",
+        "Possible fields are:\n"
+        "'sector', 'country', 'operational_purpose', "
+        "'collects_pii', and 'description'\n\n"
+        'To add another language, follow the example below.\n\n'
+        '{"name": "sector", "required": False, "label": '
+        '{"default": "Sector", "fr": "Secteur"}}\n'
+        "'default' is a required field within the 'label' dict, but 'label' is optional.",
         # Use custom field for schema validation
         'metadata_fields_jsonschema'
     ),
@@ -379,7 +389,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ],
     'long_metadata_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        'kpi.fields.jsonschema_form_field.UserMetadataFieldsListField',
         {
             'widget': 'django.forms.Textarea',
             'widget_kwargs': {

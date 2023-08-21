@@ -56,8 +56,6 @@ class EnvironmentView(APIView):
     JSON_CONFIGS = [
         'FREE_TIER_DISPLAY',
         'FREE_TIER_THRESHOLDS',
-        'PROJECT_METADATA_FIELDS',
-        'USER_METADATA_FIELDS',
     ]
 
     @classmethod
@@ -133,6 +131,20 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
+    def process_project_metadata_configs(request):
+        data = {
+            'project_metadata_fields': I18nUtils.get_metadata_fields('project')
+        }
+        return data
+
+    @staticmethod
+    def process_user_metadata_configs(request):
+        data = {
+            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
+        }
+        return data
+
+    @staticmethod
     def process_other_configs(request):
         data = {}
 
@@ -163,5 +175,7 @@ class EnvironmentView(APIView):
         data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
+        data.update(self.process_project_metadata_configs(request))
+        data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))
         return Response(data)
