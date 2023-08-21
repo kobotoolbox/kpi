@@ -82,7 +82,7 @@ export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
 export interface AnalysisResponse {
   type: AnalysisQuestionType;
   uuid: string;
-  val: string | string[];
+  val: string | string[] | number;
 }
 
 /**

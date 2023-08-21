@@ -1,6 +1,5 @@
 import React, {useContext, useState} from 'react';
 import TextBox from 'js/components/common/textBox';
-import type {AvailableType} from 'js/components/common/textBox';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {AUTO_SAVE_TYPING_DELAY} from 'js/components/processing/analysis/constants';
 import {
@@ -11,18 +10,14 @@ import {
 import CommonHeader from './commonHeader.component';
 import commonStyles from './common.module.scss';
 
-interface DefaultResponseFormProps {
+interface IntegerResponseFormProps {
   uuid: string;
 }
 
 /**
- * A component responsible for displaying an interactive form for user to
- * respond to given analysis question or to modify existing response.
- *
- * If user has sufficient permissions, it allows to toggle the question
- * definition editor.
+ * Displays a common header and an integer text box.
  */
-export default function DefaultResponseForm(props: DefaultResponseFormProps) {
+export default function IntegerResponseForm(props: IntegerResponseFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
   if (!analysisQuestions) {
     return null;
@@ -68,13 +63,9 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
     setTypingTimer(setTimeout(saveResponse, AUTO_SAVE_TYPING_DELAY));
   }
 
-  // This component is a general/default component for handling responses, and
-  // we want it to present a text input. But since creating a separate component
-  // for `qual_integer` with a single line being different, we opt for this litte
-  // check here.
-  let textBoxType: AvailableType = 'text-multiline';
-  if (qaDefinition.type === 'qual_integer') {
-    textBoxType = 'number';
+  function onInputChange(newResponse: string) {
+    setResponse(newResponse);
+    saveResponseDelayedAndQuietly();
   }
 
   return (
@@ -83,13 +74,10 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
 
       <section className={commonStyles.content}>
         <TextBox
-          type={textBoxType}
+          type='number'
           value={response}
-          onChange={(newResponse: string) => {
-            setResponse(newResponse);
-            saveResponseDelayedAndQuietly();
-          }}
-          placeholder={t('Start typing your answer')}
+          onChange={onInputChange}
+          placeholder={t('Type your answer')}
           onBlur={saveResponse}
           customModifiers='on-white'
         />

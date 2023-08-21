@@ -44,11 +44,12 @@ export default function Analysis() {
   useEffect(() => {
     async function setupQuestions() {
       // Step 1: get advanced features
-      // Note: this relies on a dirty-ish HACK in `updateSurveyQuestions()` from
-      // '…/processing/analysis/utils.ts' file that updates the `assetStore` that
-      // holds the latest advanced features object.
+      //
+      // UPDATE ADVANCED FEATURES HACK (PART 1/2):
+      // This relies on a (gray area) HACK that updates the `assetStore` (which
+      // holds the latest advanced features object).
       // Possible TODO: make a call to get asset here - instead of using existing
-      // data with a HACK :shrug:
+      // data :shrug:
       const advancedFeatures = getAssetAdvancedFeatures(
         singleProcessingStore.currentAssetUid
       );

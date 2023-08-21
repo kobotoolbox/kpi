@@ -20,8 +20,8 @@ interface ResponseFormHeaderProps {
 }
 
 /**
- * Displays question type icon, name, and an edit and delete buttons. Is being
- * used in multiple other components.
+ * Displays question type icon, name, and an edit and delete buttons (if user
+ * has sufficient permissions). Is being used in multiple other components.
  */
 export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);

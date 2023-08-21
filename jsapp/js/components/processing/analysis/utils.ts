@@ -92,8 +92,16 @@ export function applyUpdateResponseToInternalQuestions(
     const foundResponse = analysisResponses.find(
       (analResp) => question.uuid === analResp.uuid
     );
+
     if (foundResponse) {
-      question.response = foundResponse.val;
+      // QUAL_INTEGER CONVERSION HACK (PART 2/2):
+      // Before putting the responses stored on Back end into the reducer, we
+      // need to convert `qual_integer` response to string (from integer).
+      if (typeof foundResponse.val === 'number') {
+        question.response = String(foundResponse.val);
+      } else {
+        question.response = foundResponse.val;
+      }
     }
   });
   return newQuestions;
@@ -116,6 +124,7 @@ export async function updateSurveyQuestions(
   qpath: string,
   questions: AnalysisQuestionInternal[]
 ) {
+  // Step 1: Make sure not to mutate existing object
   const advancedFeatures = clonedeep(getAssetAdvancedFeatures(assetUid));
 
   if (!advancedFeatures) {
@@ -123,15 +132,18 @@ export async function updateSurveyQuestions(
     return Promise.reject(NO_FEATURE_ERROR);
   }
 
+  // Step 2: make sure `qual` is an object
   if (!advancedFeatures.qual) {
     advancedFeatures.qual = {};
   }
 
+  // Step 3: prepare the data for the endpoint
   advancedFeatures.qual.qual_survey = convertQuestionsFromInternalToSchema(
     qpath,
     questions
   );
 
+  // Step 4: Update the data (yay!)
   try {
     const response = await fetchPatch<AssetResponse>(
       endpoints.ASSET_URL.replace(':uid', assetUid),
@@ -140,7 +152,8 @@ export async function updateSurveyQuestions(
 
     // TODO think of better way to handle this
     //
-    // HACK: We need to let the `assetStore` know about the change, because
+    // UPDATE ADVANCED FEATURES HACK (PART 2/2):
+    // We need to let the `assetStore` know about the change, because
     // `analysisQuestions.reducer` is using `assetStore` to build the initial
     // list of questions every time user (re-)visits "Analysis" tab.
     // Without this line, user could see some old data.
@@ -153,7 +166,8 @@ export async function updateSurveyQuestions(
 }
 
 /**
- * A function that updates the response for a question, i.e. the submission data.
+ * A function that updates the response for a question (i.e. the submission
+ * data) on the Back end.
  */
 async function updateResponse(
   processingUrl: string,
@@ -161,7 +175,7 @@ async function updateResponse(
   qpath: string,
   analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
-  newResponse: string | string[]
+  newResponse: string | string[] | number
 ) {
   try {
     const payload: AnalysisResponseUpdateRequest = {
@@ -223,7 +237,15 @@ export async function updateResponseAndReducer(
   // Step 1: Let the reducer know what we're about to do
   dispatch({type: 'updateResponse'});
 
-  // Step 2: Store the response using the `advanced_submission_post` API
+  // Step 2: QUAL_INTEGER CONVERSION HACK (PART 1/2):
+  // For code simplicity (I hope so!) we handle `qual_integer` as string and
+  // only convert it to/from actual integer when talking with Back end.
+  let actualResponse: string | string[] | number = response;
+  if (analysisQuestionType === 'qual_integer') {
+    actualResponse = parseInt(String(response));
+  }
+
+  // Step 3: Store the response using the `advanced_submission_post` API
   try {
     const result = await updateResponse(
       processingUrl,
@@ -231,13 +253,16 @@ export async function updateResponseAndReducer(
       singleProcessingStore.currentQuestionQpath,
       analysisQuestionUUid,
       analysisQuestionType,
-      response
+      actualResponse
     );
+
+    // Step 4A: tell reducer about success
     dispatch({
       type: 'updateResponseCompleted',
       payload: result,
     });
   } catch (err) {
+    // Step 4B: tell reducer about failure
     handleApiFail(err as FailResponse);
     dispatch({type: 'updateResponseFailed'});
   }

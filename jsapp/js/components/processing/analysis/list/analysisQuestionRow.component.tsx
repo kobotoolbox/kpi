@@ -1,15 +1,17 @@
 import React, {useCallback, useContext, useRef} from 'react';
 import AnalysisQuestionsContext from '../analysisQuestions.context';
 import AnalysisQuestionEditor from '../editors/analysisQuestionEditor.component';
-import DefaultResponseForm from '../responseForms/defaultResponseForm.component';
+import TextResponseForm from '../responseForms/textResponseForm.component';
 import KeywordSearchResponseForm from '../responseForms/keywordSearchResponseForm.component';
 import SelectMultipleResponseForm from '../responseForms/selectMultipleResponseForm.component';
 import SelectOneResponseForm from '../responseForms/selectOneResponseForm.component';
 import TagsResponseForm from '../responseForms/tagsResponseForm.component';
+import IntegerResponseForm from '../responseForms/integerResponseForm.component';
 import CommonHeader from '../responseForms/commonHeader.component';
 import styles from './analysisQuestionRow.module.scss';
 import type {AnalysisQuestionBase} from '../constants';
 import Icon from 'js/components/common/icon';
+import InlineMessage from 'js/components/common/inlineMessage';
 import {useDrag, useDrop} from 'react-dnd';
 import type {Identifier, XYCoord} from 'dnd-core';
 import {DND_TYPES} from 'js/constants';
@@ -194,8 +196,14 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
           case 'qual_tags': {
             return <TagsResponseForm uuid={item.uuid} />;
           }
+          case 'qual_integer': {
+            return <IntegerResponseForm uuid={item.uuid} />;
+          }
+          case 'qual_text': {
+            return <TextResponseForm uuid={item.uuid} />;
+          }
           default: {
-            return <DefaultResponseForm uuid={item.uuid} />;
+            return <InlineMessage icon='alert' type='warning' message={t('Unknown question type ##type_name##').replace('##type_name##', item.type)} />;
           }
         }
       }
