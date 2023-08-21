@@ -66,6 +66,7 @@ export default function KeywordSearchFieldsEditor(
           onlyUnique
           addOnBlur
           addOnPaste
+        />
       </section>
 
       <section className={styles.right}>
