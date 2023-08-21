@@ -16,7 +16,7 @@ export function getSupplementalTranscriptPath(
 
 /**
  * Returns a path that leads to translation value in the submission response,
- * something like `_supplementalDetails/your_name/translated_pl`.
+ * something like `_supplementalDetails/your_name/translation_pl`.
  */
 export function getSupplementalTranslationPath(
   questionName: string,
