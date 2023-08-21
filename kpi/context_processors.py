@@ -51,7 +51,6 @@ def sitewide_messages(request):
     custom text in django templates
     """
     if request.path_info == reverse('account_signup'):
-
         sitewide_message = I18nUtils.get_sitewide_message()
         if sitewide_message is not None:
             return {'welcome_message': markdownify(sitewide_message)}
@@ -64,6 +63,7 @@ class CombinedConfig:
     An object that gets its attributes from both a dictionary (`extra_config`)
     AND a django-constance LazyConfig object
     """
+
     def __init__(self, constance_config, extra_config):
         """
         constance_config: LazyConfig object

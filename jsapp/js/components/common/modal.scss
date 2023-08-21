@@ -515,19 +515,6 @@ $modal-custom-header-height: sizes.$x60;
     pointer-events: none;
   }
 
-  // override two columns to rows
-  &.project-settings--narrow {
-    .form-modal__item--sector,
-    .form-modal__item--country {
-      width: 100%;
-      float: none;
-
-      .kobo-select {
-        margin-right: 0;
-      }
-    }
-  }
-
   $buttons-spacing: 10px;
 
   .form-modal__item--form-source-buttons {
