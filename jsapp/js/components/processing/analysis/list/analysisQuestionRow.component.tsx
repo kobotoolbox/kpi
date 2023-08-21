@@ -30,18 +30,17 @@ interface DragItem {
 
 export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
-
   if (!analysisQuestions) {
     return null;
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions.state);
   if (!question) {
     return null;
   }
 
-  const isDragDisabled = analysisQuestions?.state.isPending;
+  const isDragDisabled = analysisQuestions.state.isPending;
 
   const previewRef = useRef<HTMLLIElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
@@ -172,7 +171,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
         }
       }
     },
-    [analysisQuestions?.state.questionsBeingEdited]
+    [analysisQuestions.state.questionsBeingEdited]
   );
 
   return (

@@ -14,6 +14,9 @@ interface SelectXFieldsEditorProps {
 
 export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
+  if (!analysisQuestions) {
+    return null;
+  }
 
   function updateChoiceLabel(uuid: string, newLabel: string) {
     props.onFieldsChange({
@@ -71,7 +74,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
             size='s'
             startIcon='trash'
             onClick={() => deleteChoice(choice.uuid)}
-            isDisabled={analysisQuestions?.state.isPending}
+            isDisabled={analysisQuestions.state.isPending}
           />
         </div>
       ))}
@@ -84,7 +87,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
           startIcon='plus'
           label={t('Add new option')}
           onClick={addChoice}
-          isDisabled={analysisQuestions?.state.isPending}
+          isDisabled={analysisQuestions.state.isPending}
         />
       </div>
     </>

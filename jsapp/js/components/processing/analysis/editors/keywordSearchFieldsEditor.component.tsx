@@ -18,6 +18,9 @@ export default function KeywordSearchFieldsEditor(
   props: KeywordSearchFieldsEditorProps
 ) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
+  if (!analysisQuestions) {
+    return null;
+  }
 
   /**
    * Does a little cleanup of tags:
@@ -63,7 +66,6 @@ export default function KeywordSearchFieldsEditor(
           onlyUnique
           addOnBlur
           addOnPaste
-        />
       </section>
 
       <section className={styles.right}>

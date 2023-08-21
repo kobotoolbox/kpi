@@ -2,9 +2,7 @@ import React, {useContext} from 'react';
 import AnalysisQuestionsContext from './analysisQuestions.context';
 import styles from './analysisHeader.module.scss';
 import Button from 'js/components/common/button';
-import KoboDropdown, {
-  KoboDropdownPlacement,
-} from 'js/components/common/koboDropdown';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import {ANALYSIS_QUESTION_TYPES} from './constants';
 import type {AnalysisQuestionTypeDefinition} from './constants';
 import Icon from 'js/components/common/icon';
@@ -15,6 +13,9 @@ import classNames from 'classnames';
 
 export default function AnalysisHeader() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
+  if (!analysisQuestions) {
+    return null;
+  }
 
   const manualTypes = Object.values(ANALYSIS_QUESTION_TYPES).filter(
     (definition) => !definition.isAutomated
@@ -92,8 +93,8 @@ export default function AnalysisHeader() {
       />
 
       <span>
-        {analysisQuestions?.state.isPending && t('Saving…')}
-        {!analysisQuestions?.state.isPending && t('Saved')}
+        {analysisQuestions.state.isPending && t('Saving…')}
+        {!analysisQuestions.state.isPending && t('Saved')}
       </span>
     </header>
   );

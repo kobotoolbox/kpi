@@ -18,9 +18,12 @@ export default function SelectMultipleResponseForm(
   props: SelectMultipleResponseFormProps
 ) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
+  if (!analysisQuestions) {
+    return null;
+  }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions.state);
   if (!question) {
     return null;
   }
