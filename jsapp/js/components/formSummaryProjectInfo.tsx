@@ -158,31 +158,28 @@ export default function FormSummaryProjectInfo(
           )}
 
         {/* operational purpose and PII */}
-        {(metadata.operational_purpose || metadata.collects_pii) &&
-          (props.asset.settings.operational_purpose ||
-            props.asset.settings.collects_pii) && (
-            <bem.FormView__group m='items'>
-              {metadata.operational_purpose &&
-                props.asset.settings.operational_purpose && (
-                  <bem.FormView__cell m='padding'>
-                    <bem.FormView__label>
-                      {metadata.operational_purpose?.label ??
-                        t('Operational purpose of data')}
-                    </bem.FormView__label>
-                    {props.asset.settings.operational_purpose.label}
-                  </bem.FormView__cell>
-                )}
-              {metadata.collects_pii && props.asset.settings.collects_pii && (
-                <bem.FormView__cell m='padding'>
-                  <bem.FormView__label>
-                    {metadata.collects_pii?.label ??
-                      t('Collects personally identifiable information')}
-                  </bem.FormView__label>
-                  {props.asset.settings.collects_pii.label}
-                </bem.FormView__cell>
-              )}
-            </bem.FormView__group>
-          )}
+        {(metadata.operational_purpose || metadata.collects_pii) && (
+          <bem.FormView__group m='items'>
+            {metadata.operational_purpose && (
+              <bem.FormView__cell m='padding'>
+                <bem.FormView__label>
+                  {metadata.operational_purpose?.label ??
+                    t('Operational purpose of data')}
+                </bem.FormView__label>
+                {props.asset.settings.operational_purpose?.label ?? '-'}
+              </bem.FormView__cell>
+            )}
+            {metadata.collects_pii && (
+              <bem.FormView__cell m='padding'>
+                <bem.FormView__label>
+                  {metadata.collects_pii?.label ??
+                    t('Collects personally identifiable information')}
+                </bem.FormView__label>
+                {props.asset.settings.collects_pii?.label ?? '-'}
+              </bem.FormView__cell>
+            )}
+          </bem.FormView__group>
+        )}
       </bem.FormView__cell>
     </bem.FormView__row>
   );
