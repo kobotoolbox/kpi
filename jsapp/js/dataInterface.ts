@@ -507,7 +507,25 @@ export interface AssetResponse extends AssetRequestObject {
   version_count?: number;
   has_deployment: boolean;
   deployed_version_id: string | null;
-  analysis_form_json?: any;
+  analysis_form_json?: {
+    engines: {
+      [engingeName: string]: {details: string}
+    };
+    additional_fields: Array<{
+      label: string;
+      name: string;
+      dtpath: string;
+      type: string;
+      language: string;
+      source: string;
+      qpath: string;
+      settings: {
+          mode: string;
+          engine: string;
+      },
+      path: string[];
+    }>
+  };
   deployed_versions?: {
     count: number;
     next: string | null;

@@ -112,11 +112,11 @@ export class DisplayResponse {
 /**
  * Returns a sorted object of transcript/translation keys
  */
-export function sortAnalysisFormJsonKeys(additionalFields: {source: string, dtpath: string}[]) {
-  let sortedBySource: {[key: string]: string[]} = {};
+export function sortAnalysisFormJsonKeys(additionalFields: Array<{source: string, dtpath: string}>) {
+  const sortedBySource: {[key: string]: string[]} = {};
 
   additionalFields?.forEach((afParams) => {
-    let expandedPath = `_supplementalDetails/${afParams.dtpath}`;
+    const expandedPath = `_supplementalDetails/${afParams.dtpath}`;
     if (!sortedBySource[afParams.source]) {
       sortedBySource[afParams.source] = [];
     }
@@ -142,8 +142,8 @@ export function getSubmissionDisplayData(
 
   const flatPaths = getSurveyFlatPaths(survey, true);
 
-  let supplementalDetailKeys = sortAnalysisFormJsonKeys(
-    asset.analysis_form_json?.additional_fields
+  const supplementalDetailKeys = sortAnalysisFormJsonKeys(
+    asset.analysis_form_json?.additional_fields || []
   );
   /**
    * Recursively generates a nested architecture of survey with data.
@@ -168,7 +168,7 @@ export function getSubmissionDisplayData(
         parentGroupPath = flatPaths[parentGroup.name];
       }
 
-      let isRowCurrentLevel = isRowFromCurrentGroupLevel(
+      const isRowCurrentLevel = isRowFromCurrentGroupLevel(
         rowName,
         parentGroupPath,
         survey
@@ -200,7 +200,7 @@ export function getSubmissionDisplayData(
       if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
-            let itemObj = new DisplayGroup(
+            const itemObj = new DisplayGroup(
               DISPLAY_GROUP_TYPES.group_repeat,
               rowLabel,
               rowName
@@ -215,7 +215,7 @@ export function getSubmissionDisplayData(
           });
         }
       } else if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
-        let matrixGroupObj = new DisplayGroup(
+        const matrixGroupObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_matrix,
           rowLabel,
           rowName,
@@ -251,7 +251,7 @@ export function getSubmissionDisplayData(
         row.type === GROUP_TYPES_BEGIN.begin_score ||
         row.type === GROUP_TYPES_BEGIN.begin_rank
       ) {
-        let rowObj = new DisplayGroup(
+        const rowObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_regular,
           rowLabel,
           rowName,
@@ -275,13 +275,13 @@ export function getSubmissionDisplayData(
         // score and rank don't have list name on them and they need to use
         // the one of their parent
         if (row.type === SCORE_ROW_TYPE || row.type === RANK_LEVEL_TYPE) {
-          const parentGroupRow = survey.find((row) =>
-            getRowName(row) === parentGroup.name
+          const parentGroupRow = survey.find((rowItem) =>
+            getRowName(rowItem) === parentGroup.name
           );
           rowListName = getRowListName(parentGroupRow);
         }
 
-        let rowObj = new DisplayResponse(
+        const rowObj = new DisplayResponse(
           row.type,
           rowLabel,
           rowName,
@@ -297,7 +297,7 @@ export function getSubmissionDisplayData(
           rowName,
         ).forEach((resp) => {parentGroup.addChild(resp)})
         */
-        let rowqpath = flatPaths[rowName].replace(/\//g, '-');
+        const rowqpath = flatPaths[rowName].replace(/\//g, '-');
         supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
           parentGroup.addChild(
             new DisplayResponse(null,
@@ -307,7 +307,7 @@ export function getSubmissionDisplayData(
               getSupplementalDetailsContent(submissionData, sdKey),
             )
           );
-        })
+        });
       }
     }
   }
@@ -336,12 +336,12 @@ function populateMatrixData(
   // This should not happen, as the only DisplayGroup with null name will be of
   // the group_root type, but we need this for the types.
   if (matrixGroup.name === null) {
-    return
+    return;
   }
 
   // create row display group and add it to matrix group
   const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex);
-  let matrixRowGroupObj = new DisplayGroup(
+  const matrixRowGroupObj = new DisplayGroup(
     DISPLAY_GROUP_TYPES.group_matrix_row,
     matrixRowLabel,
     matrixRowName,
@@ -385,7 +385,7 @@ function populateMatrixData(
         questionData = parentData[dataProp];
       }
 
-      let questionObj = new DisplayResponse(
+      const questionObj = new DisplayResponse(
         questionSurveyObj.type,
         getTranslatedRowLabel(questionName, survey, translationIndex),
         questionName,
@@ -454,7 +454,7 @@ function isRowFromCurrentGroupLevel(
  * Returns an array of answers
  */
 export function getRepeatGroupAnswers(
-  data: SubmissionResponse,
+  responseData: SubmissionResponse,
   /** With groups e.g. group_person/group_pets/group_pet/pet_name. */
   targetKey: string
 ) {
@@ -475,7 +475,7 @@ export function getRepeatGroupAnswers(
     }
   };
 
-  lookForAnswers(data, 0);
+  lookForAnswers(responseData, 0);
 
   return answers;
 }

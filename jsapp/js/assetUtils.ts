@@ -558,14 +558,11 @@ export function injectSupplementalRowsIntoListOfRows(
   // First filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
   output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
 
-  const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
-
-  const { analysis_form_json } = asset;
-  const additional_fields: any = analysis_form_json.additional_fields;
+  const additionalFields = asset.analysis_form_json?.additional_fields || [];
 
   const extraColsBySource: Record<string, any[]> = {};
-  additional_fields.forEach((add_field: any) => {
-    let sourceName: string = add_field.source;
+  additionalFields.forEach((add_field: any) => {
+    const sourceName: string = add_field.source;
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = [];
     }
@@ -574,7 +571,7 @@ export function injectSupplementalRowsIntoListOfRows(
 
   const outputWithCols: string[] = [];
   output.forEach((col: string) => {
-    let qpath = col.replace(/\//g, '-')
+    const qpath = col.replace(/\//g, '-');
     outputWithCols.push(col);
     (extraColsBySource[qpath] || []).forEach((assetAddlField) => {
       outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`)
@@ -583,6 +580,8 @@ export function injectSupplementalRowsIntoListOfRows(
 
   /*
   revisit this before merge: (does this work with longer paths / within groups?)
+
+  const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
 
   Object.keys(supplementalDetailsPaths).forEach((rowName) => {
     // In supplementalDetailsPaths we get row names, in output we already have
