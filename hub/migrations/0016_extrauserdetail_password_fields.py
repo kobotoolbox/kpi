@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hub', '0014_alter_configurationfile_slug'),
+        ('hub', '0015_alter_configurationfile_slug'),
     ]
 
     operations = [
