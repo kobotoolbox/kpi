@@ -88,8 +88,7 @@ export default function AnalysisHeader() {
         // possible until user stops editing
         isDisabled={
           !hasManagePermissions ||
-          analysisQuestions.state.questionsBeingEdited.length !== 0 ||
-          analysisQuestions.state.isPending
+          analysisQuestions?.state.questionsBeingEdited.length !== 0
         }
       />
 

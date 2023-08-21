@@ -66,7 +66,6 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
             placeholder={t('Type option name')}
             customModifiers='on-white'
             renderFocused
-            disabled={analysisQuestions.state.isPending}
           />
 
           <Button

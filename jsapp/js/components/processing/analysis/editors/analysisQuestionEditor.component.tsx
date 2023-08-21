@@ -143,7 +143,6 @@ export default function AnalysisQuestionEditor(
           placeholder={t('Type question')}
           customModifiers='on-white'
           renderFocused
-          disabled={analysisQuestions.state.isPending}
         />
 
         <Button
