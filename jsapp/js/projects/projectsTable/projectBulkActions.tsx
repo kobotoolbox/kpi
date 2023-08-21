@@ -14,6 +14,29 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
 
   return (
     <div className={actionsStyles.root}>
+      {/* Archive / Unarchive - Bulk action not supported yet */}
+      <Button
+        isDisabled
+        type='bare'
+        color='storm'
+        size='s'
+        startIcon='archived'
+        tooltip={t('Archive/Unarchive')}
+        classNames={['right-tooltip']}
+      />
+
+      {/* Share - Bulk action not supported yet */}
+      <Button
+        isDisabled
+        type='bare'
+        color='storm'
+        size='s'
+        startIcon='user-share'
+        tooltip={t('Share projects')}
+        classNames={['right-tooltip']}
+      />
+
+      {/* Delete */}
       <Button
         type='bare'
         color='storm'

@@ -106,7 +106,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
         color='storm'
         size='s'
         startIcon='trash'
-        tooltip={t('Delete')}
+        tooltip={t('Delete 1 project')}
         onClick={() =>
           deleteAsset(
             props.asset,
