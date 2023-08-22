@@ -8,6 +8,7 @@ bem.KoboModal__header = makeBem(bem.KoboModal, 'header', 'header');
 bem.KoboModal__headerIcon = makeBem(bem.KoboModal, 'header-icon', 'span');
 
 export type KoboModalHeaderIconColors = 'blue' | 'red' | 'storm';
+export type KoboModalHeaderBackgroundColors = 'red' | 'grey';
 
 interface KoboModalHeaderProps {
   /** Optional icon displayed on the left of the title. */
@@ -15,13 +16,14 @@ interface KoboModalHeaderProps {
   /** Color of the optional icon. Defaults to "blue". */
   iconColor?: KoboModalHeaderIconColors;
   children: React.ReactNode;
+  headerColor?: KoboModalHeaderBackgroundColors;
   /** Pass this close request callback to display the "x" close button.  */
   onRequestCloseByX?: () => void;
 }
 
 export default function KoboModalHeader(props: KoboModalHeaderProps) {
   return (
-    <bem.KoboModal__header>
+    <bem.KoboModal__header m={props.headerColor || 'grey'}>
       <h1>
         {props.icon && (
           <bem.KoboModal__headerIcon m={props.iconColor || 'blue'}>
