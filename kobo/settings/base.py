@@ -484,9 +484,10 @@ django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 DJANGO_LANGUAGE_CODES = env.str(
     'DJANGO_LANGUAGE_CODES',
     default=(
+        'am '  # Amharic
         'ar '  # Arabic
         'cs '  # Czech
-        'de-DE '  # German
+        'de '  # German
         'en '  # English
         'es '  # Spanish
         'fa '  # Persian/Farsi
@@ -665,10 +666,21 @@ STRIPE_ENABLED = False
 if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
     STRIPE_ENABLED = True
 
+
+def dj_stripe_request_callback_method():
+    # This method exists because dj-stripe's documentation doesn't reflect reality.
+    # It claims that DJSTRIPE_SUBSCRIBER_MODEL no longer needs a request callback but
+    # this error occurs without it: `DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK must
+    # be implemented if a DJSTRIPE_SUBSCRIBER_MODEL is defined`
+    # It doesn't need to do anything other than exist
+    # https://github.com/dj-stripe/dj-stripe/issues/1900
+    pass
+
+
 DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
-STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID", None)
 STRIPE_LIVE_MODE = env.bool('STRIPE_LIVE_MODE', False)
 STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', "pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM")
 STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
@@ -714,8 +726,7 @@ if env.str("FRONTEND_DEV_MODE", None) == "host":
     CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
-CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
-CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
+CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'data:',
     'https://*.openstreetmap.org',
@@ -815,6 +826,7 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
 )
 
 ''' Django allauth configuration '''
+# User.email should continue to be used instead of the EmailAddress model
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_EMAIL_REQUIRED = True
