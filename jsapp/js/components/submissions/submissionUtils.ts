@@ -126,7 +126,10 @@ export function sortAnalysisFormJsonKeys(additionalFields: Array<{source: string
 }
 
 /**
- * Returns a root group with everything inside
+ * Returns a data built for `SubmissionDataTable`, so it can easily (or at least
+ * easier than without this function) display a list of questions with their
+ * responses. Internally it builds a huge `DisplayGroup` object - a root group
+ * with everything inside.
  */
 export function getSubmissionDisplayData(
   asset: AssetResponse,
@@ -137,8 +140,8 @@ export function getSubmissionDisplayData(
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root);
 
-  const survey = asset?.content?.survey || []
-  const choices = asset?.content?.choices || []
+  const survey = asset?.content?.survey || [];
+  const choices = asset?.content?.choices || [];
 
   const flatPaths = getSurveyFlatPaths(survey, true);
 
@@ -488,6 +491,7 @@ function getRegularGroupAnswers(
   /** With groups e.g. group_person/group_pets/group_pet. */
   targetKey: string
 ) {
+  // The response can be a lot of different things, so we use `any`.
   const answers: {[questionName: string]: any} = {};
   Object.keys(data).forEach((objKey) => {
     if (objKey.startsWith(`${targetKey}/`)) {
@@ -632,6 +636,14 @@ export function getRowSupplementalResponses(
           )
         );
       });
+    }
+
+    if (advancedFeatures?.qual) {
+      // TODO: here we would be injecting Qualitative Analysis data into the
+      // output object, but since this function is probably deprecated (in favor
+      // of `analysis_form_json` object in the AssetResponse), we will not write
+      // any code.
+      console.log('TODO am I being used anywhere?');
     }
   }
 
