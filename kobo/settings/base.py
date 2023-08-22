@@ -711,6 +711,9 @@ if RAVEN_JS_DSN_URL:
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
+# tmp hack form domain transfer
+KOBOCAT_OLD_URL = os.environ.get('KOBOCAT_OLD_URL')
+
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat')
 
