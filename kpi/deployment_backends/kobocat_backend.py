@@ -604,8 +604,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
         `url`
         """
+        kobocat_url = settings.KOBOCAT_URL
+        if settings.KOBOCAT_OLD_URL and settings.KOBOCAT_OLD_URL in url:
+            kobocat_url = settings.KOBOCAT_OLD_URL
+
         return re.sub(
-            pattern='^{}'.format(re.escape(settings.KOBOCAT_URL)),
+            pattern='^{}'.format(re.escape(kobocat_url)),
             repl=settings.KOBOCAT_INTERNAL_URL,
             string=url
         )
