@@ -84,7 +84,7 @@
 .planContainer {
   border-radius: sizes.$x6;
   border: colors.$kobo-gray-85 solid 1px;
-  padding: sizes.$x36 sizes.$x48 sizes.$x40;
+  padding: sizes.$x24;
   flex-grow: 1;
 }
 
@@ -99,22 +99,18 @@
   color: colors.$kobo-gray-40;
   font-weight: 700;
   font-size: sizes.$x24;
-  line-height: sizes.$x40;
+  line-height: sizes.$x32;
   margin: 0;
-  padding: 0;
+  padding:  0 0 sizes.$x12 0;
 }
 
 .priceName {
-  text-align: center;
-}
-
-.enterpriseTitle {
-  margin-bottom: sizes.$x16;
+  text-align: left;
 }
 
 .priceTitle {
   color: colors.$kobo-dark-blue;
-  text-align: center;
+  text-align: left;
   font-size: sizes.$x18;
   padding-bottom: sizes.$x16;
   font-weight: 600;
@@ -122,14 +118,14 @@
 }
 
 .planContainer :global .k-button {
-  margin: sizes.$x20 auto 0;
-  width: 120px;
+  margin: sizes.$x24 auto 0;
+  width: 100%;
   height: 38px;
 }
 
 .planContainer :global span.k-button__label {
   text-align: center;
-  width: 120px;
+  width: 100%;
 }
 
 $plan-badge-height: sizes.$x38;
@@ -138,15 +134,14 @@ $plan-badge-height: sizes.$x38;
   margin-top: $plan-badge-height;
 }
 
+.planContainer.planContainerWithBadge {
+  border-radius: 0 0 sizes.$x6 sizes.$x6;
+
+}
+
 .btnSpacePlaceholder {
   margin: sizes.$x20 0;
   height: sizes.$x32;
-}
-
-.planContainer :global hr {
-  border-bottom: 1px solid colors.$kobo-gray-85;
-  border-top: none;
-  margin: sizes.$x24 auto;
 }
 
 .planContainer :global li {
@@ -167,12 +162,12 @@ $plan-badge-height: sizes.$x38;
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-top: 38px;
+  margin-top: sizes.$x38;
 }
 
 .enterprisePlan {
   background-color: colors.$kobo-light-blue;
-  padding: sizes.$x36 sizes.$x48 sizes.$x40;
+  padding: sizes.$x24;
   overflow: hidden;
   border-radius: sizes.$x6;
   flex-grow: 1;
@@ -182,10 +177,10 @@ $plan-badge-height: sizes.$x38;
   line-height: sizes.$x24;
 }
 
-.enterpriseLink a {
+a.enterpriseLink {
   color: colors.$kobo-dark-blue;
   text-decoration: underline;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .listTitle {
@@ -197,11 +192,11 @@ $plan-badge-height: sizes.$x38;
 }
 
 .planContainer ul :global {
-  margin: sizes.$x5 0 sizes.$x32;
+  margin: sizes.$x5 0 sizes.$x24;
 }
 
 .expandedFeature {
-  margin: sizes.$x5 0 sizes.$x32;
+  margin: 0 0 sizes.$x24;
 }
 
 .planContainer :last-child {
