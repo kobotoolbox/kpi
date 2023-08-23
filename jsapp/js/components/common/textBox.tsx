@@ -6,7 +6,7 @@ import {ButtonToIconMap} from 'js/components/common/button';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import Icon from './icon';
 
-type TextBoxType =
+export type TextBoxType =
   | 'email'
   | 'number'
   | 'password'
