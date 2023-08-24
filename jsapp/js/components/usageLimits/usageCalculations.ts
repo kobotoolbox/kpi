@@ -200,12 +200,12 @@ export const getAllExceedingLimits = () => {
       isOverLimit(
         subscribedTranscriptionMinutes,
         usage.monthlyTranscriptionMinutes,
-        'transcription_minutes'
+        'transcription minutes'
       );
       isOverLimit(
         subscribedTranslationChars,
         usage.monthlyTranslationChars,
-        'translation_chars'
+        'translation characters'
       );
     }
     // If subscribed plan is year
