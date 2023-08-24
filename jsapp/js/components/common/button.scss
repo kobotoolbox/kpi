@@ -153,6 +153,7 @@ $button-border-radius: sizes.$x6;
   border-color: transparent;
   border-radius: $button-border-radius;
   background-color: transparent;
+  transition: background-color 0.2s, opacity 0.2s, color 0.2s;
 }
 
 .long-button-padding {
