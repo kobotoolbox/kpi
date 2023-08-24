@@ -1,3 +1,14 @@
 .limitModalContent {
   padding: 15px 30px;
 }
+
+.button {
+  text-transform: uppercase;
+  flex-basis: 50%;
+  gap: 1rem;
+  justify-content: center;
+
+  & span {
+    flex-shrink: 0;
+  }
+}
