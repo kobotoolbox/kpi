@@ -47,11 +47,11 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         </strong>
         {'. '}
         {t('Please')}{' '}
-        <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
-          {t('upgrade your plan')}
-        </a>{' '}
         {props.warning && (
           <>
+            <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.bannerLink}>
+              {t('review your usage')}
+            </a>{' '}
             {t('and')}{' '}
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
               {t('upgrade your plan')}
@@ -61,6 +61,9 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         )}
         {!props.warning && (
           <>
+            <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
+              {t('upgrade your plan')}
+            </a>{' '}
             {t('to continue')}{' '}
             {props.limits?.[0].startsWith('transcription')
               ? t('using transcription.')
