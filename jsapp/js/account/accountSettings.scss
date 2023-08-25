@@ -96,22 +96,6 @@
   }
 }
 
-.account-settings-social-row {
-  position: relative;
-
-  &:not(:first-child) {
-    margin-top: sizes.$x5;
-  }
-
-  .k-icon {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    left: sizes.$x10;
-    pointer-events: none;
-  }
-
-  .account-settings-social-row-textbox input {
-    padding-left: sizes.$x40;
-  }
+.account-settings-social-row:not(:first-child) {
+  margin-top: sizes.$x5;
 }
