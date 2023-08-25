@@ -6,9 +6,7 @@ import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
-import Icon from '../components/common/icon';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
-import type {EnvStoreFieldItem} from '../envStore';
 import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
@@ -20,18 +18,33 @@ bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
+const fieldNames = {
+  name: 'name',
+  organization: 'organization',
+  organization_website: 'organization_website',
+  sector: 'sector',
+  gender: 'gender',
+  bio: 'bio',
+  city: 'city',
+  country: 'country',
+  require_auth: 'require_auth',
+  twitter: 'twitter',
+  linkedin: 'linkedin',
+  instagram: 'instagram',
+};
+
 interface Form {
   isPristine: boolean;
   fields: {
     name: string;
     organization: string;
-    organizationWebsite: string;
+    organization_website: string;
     sector: string;
     gender: string;
     bio: string;
     city: string;
     country: string;
-    requireAuth: boolean;
+    require_auth: boolean;
     twitter: string;
     linkedin: string;
     instagram: string;
@@ -40,13 +53,13 @@ interface Form {
     extra_details?: {
       name?: string;
       organization?: string;
-      organizationWebsite?: string;
+      organization_website?: string;
       sector?: string;
       gender?: string;
       bio?: string;
       city?: string;
       country?: string;
-      requireAuth?: string;
+      require_auth?: string;
       twitter?: string;
       linkedin?: string;
       instagram?: string;
@@ -82,13 +95,13 @@ const AccountSettings = observer(() => {
     fields: {
       name: '',
       organization: '',
-      organizationWebsite: '',
+      organization_website: '',
       sector: '',
       gender: '',
       bio: '',
       city: '',
       country: '',
-      requireAuth: false,
+      require_auth: false,
       twitter: '',
       linkedin: '',
       instagram: '',
@@ -119,14 +132,14 @@ const AccountSettings = observer(() => {
         fields: {
           name: currentAccount.extra_details.name,
           organization: currentAccount.extra_details.organization,
-          organizationWebsite:
+          organization_website:
             currentAccount.extra_details.organization_website,
           sector: currentAccount.extra_details.sector,
           gender: currentAccount.extra_details.gender,
           bio: currentAccount.extra_details.bio,
           city: currentAccount.extra_details.city,
           country: currentAccount.extra_details.country,
-          requireAuth: currentAccount.extra_details.require_auth,
+          require_auth: currentAccount.extra_details.require_auth,
           twitter: currentAccount.extra_details.twitter,
           linkedin: currentAccount.extra_details.linkedin,
           instagram: currentAccount.extra_details.instagram,
@@ -142,22 +155,34 @@ const AccountSettings = observer(() => {
   const updateProfile = () => {
     // To patch correctly with recent changes to the backend,
     // ensure that we send empty strings if the field is left blank.
-    const profilePatchData = {
-      extra_details: {
-        name: form.fields.name || '',
-        organization: form.fields.organization || '',
-        organization_website: form.fields.organizationWebsite || '',
-        sector: form.fields.sector || '',
-        gender: form.fields.gender || '',
-        bio: form.fields.bio || '',
-        city: form.fields.city || '',
-        country: form.fields.country || '',
-        require_auth: form.fields.requireAuth ? true : false, // false if empty
-        twitter: form.fields.twitter || '',
-        linkedin: form.fields.linkedin || '',
-        instagram: form.fields.instagram || '',
-      },
-    };
+
+    // We should only overwrite user metadata that the user can see.
+    // Fields that:
+    //   (a) are enabled in constance
+    //   (b) the frontend knows about
+
+    // Make a list of user metadata fields to include in the patch
+    const presentMetadataFields = Object.keys(
+        // Fields enabled in constance
+        environment.getUserMetadataFieldsAsSimpleDict()
+      )
+      // Intersected with:
+      .filter((key) => (
+        // Fields the frontend knows about
+        fieldNames[key as keyof typeof fieldNames] !== undefined
+      )
+    );
+
+    // Populate the patch with user form input, or empty strings.
+    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
+    const extra_details: any = {};
+    presentMetadataFields.forEach((key) => {
+      extra_details[key] = form.fields[key as keyof typeof form.fields] || '';
+    });
+    // Always include require_auth, defaults to 'false'.
+    extra_details.require_auth = form.fields.require_auth ? true : false;
+
+    const profilePatchData = {extra_details};
     dataInterface
       .patchProfile(profilePatchData)
       .done(() => {
@@ -199,10 +224,14 @@ const AccountSettings = observer(() => {
   const initialsStyle = {
     background: `#${stringToColor(accountName)}`,
   };
-  const isFieldRequired = (fieldName: string): boolean => {
-    const field = environment.getUserMetadataField(fieldName);
-    return field && (field as EnvStoreFieldItem).required;
+  const metadata = environment.getUserMetadataFieldsAsSimpleDict();
+  /** Get label and (required) for a given user metadata fieldname */
+  const getLabel = (fieldName: string): string => {
+    const label = metadata[fieldName]?.label || (console.error(`No label for fieldname "${fieldName}"`), fieldName);
+    const required = metadata[fieldName]?.required || false;
+    return addRequiredToLabel(label, required);
   };
+
   const sectorValue = form.sectorChoices.find(
     (sectorChoice) => sectorChoice.value === form.fields.sector
   );
@@ -234,160 +263,191 @@ const AccountSettings = observer(() => {
 
         {sessionStore.isInitialLoadComplete && (
           <bem.AccountSettings__item m='fields'>
+            {/* Privacy */}
             <bem.AccountSettings__item>
               <label>{t('Privacy')}</label>
 
+              {/* Require authentication to see forms and submit data */}
               <Checkbox
-                checked={form.fields.requireAuth}
+                checked={form.fields.require_auth}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  'requireAuth'
+                  fieldNames.require_auth
                 )}
-                name='requireAuth'
+                name={fieldNames.require_auth}
                 label={t('Require authentication to see forms and submit data')}
               />
             </bem.AccountSettings__item>
 
-            <bem.AccountSettings__item>
+            {/* Full name */}
+            {metadata.name && <bem.AccountSettings__item>
               <TextBox
-                label={t('Name')}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
+                customModifiers='on-white'
+                label={getLabel(fieldNames.name)}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.name
+                )}
                 value={form.fields.name}
                 errors={form.fieldsWithErrors.extra_details?.name}
                 placeholder={t(
                   'Use this to display your real name to other users'
                 )}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
-            <bem.AccountSettings__item>
+            {/* Organization */}
+            {metadata.organization && <bem.AccountSettings__item>
               <TextBox
-                label={addRequiredToLabel(
-                  t('Organization'),
-                  isFieldRequired('organization')
-                )}
+                customModifiers='on-white'
+                label={getLabel(fieldNames.organization)}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  'organization'
+                  fieldNames.organization
                 )}
                 value={form.fields.organization}
                 errors={form.fieldsWithErrors.extra_details?.organization}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
-            <bem.AccountSettings__item>
+            {/* Organization Website */}
+            {metadata.organization_website && <bem.AccountSettings__item>
               <TextBox
-                label={addRequiredToLabel(
-                  t('Organization Website'),
-                  isFieldRequired('organization_website')
-                )}
-                value={form.fields.organizationWebsite}
+                customModifiers='on-white'
+                label={getLabel(fieldNames.organization_website)}
+                value={form.fields.organization_website}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  'organizationWebsite'
+                  fieldNames.organization_website
                 )}
                 errors={
-                  form.fieldsWithErrors.extra_details?.organizationWebsite
+                  form.fieldsWithErrors.extra_details?.organization_website
                 }
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
-            <bem.AccountSettings__item m='primary-sector'>
+            {/* Primary Sector */}
+            {metadata.sector && <bem.AccountSettings__item m='primary-sector'>
               <WrappedSelect
-                label={addRequiredToLabel(
-                  t('Primary Sector'),
-                  isFieldRequired('sector')
-                )}
+                label={getLabel(fieldNames.sector)}
                 value={sectorValue}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'sector')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.sector
+                )}
                 options={form.sectorChoices}
                 error={form.fieldsWithErrors.extra_details?.sector}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
-            <bem.AccountSettings__item m='gender'>
+            {/* Gender */}
+            {metadata.gender && <bem.AccountSettings__item m='gender'>
               <WrappedSelect
-                label={addRequiredToLabel(
-                  t('Gender'),
-                  isFieldRequired('gender')
-                )}
+                label={getLabel(fieldNames.gender)}
                 value={choiceToSelectOptions(form.fields.gender, genderChoices)}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'gender')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.gender
+                )}
                 options={genderSelectOptions}
                 error={form.fieldsWithErrors.extra_details?.gender}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
-            <bem.AccountSettings__item m='bio'>
+            {/* Bio */}
+            {metadata.bio && <bem.AccountSettings__item m='bio'>
               <TextBox
-                label={addRequiredToLabel(t('Bio'), isFieldRequired('bio'))}
+                customModifiers='on-white'
+                label={getLabel(fieldNames.bio)}
                 value={form.fields.bio}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.bio
+                )}
                 errors={form.fieldsWithErrors.extra_details?.bio}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
-            <bem.AccountSettings__item m='country'>
+            {/* Country */}
+            {metadata.country && <bem.AccountSettings__item m='country'>
               <WrappedSelect
-                label={addRequiredToLabel(
-                  t('Country'),
-                  isFieldRequired('country')
-                )}
+                label={getLabel(fieldNames.country)}
                 value={countryValue}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'country')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.country
+                )}
                 options={form.countryChoices}
                 error={form.fieldsWithErrors.extra_details?.country}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
-            <bem.AccountSettings__item m='city'>
+            {/* City */}
+            {metadata.city && <bem.AccountSettings__item m='city'>
               <TextBox
-                label={addRequiredToLabel(t('City'), isFieldRequired('city'))}
+                customModifiers='on-white'
+                label={getLabel(fieldNames.city)}
                 value={form.fields.city}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  fieldNames.city
+                )}
                 errors={form.fieldsWithErrors.extra_details?.city}
               />
-            </bem.AccountSettings__item>
+            </bem.AccountSettings__item>}
 
-            <bem.AccountSettings__item>
+            {/* Social */}
+            {(metadata.twitter || metadata.linkedin || metadata.instagram) && <bem.AccountSettings__item m='social'>
               <label>{t('Social')}</label>
 
-              <div className='account-settings-social-row'>
-                <Icon name='logo-twitter' size='m' />
+              {/* Twitter */}
+              {metadata.twitter && <label>
+                <i className='k-icon k-icon-logo-twitter' />
 
                 <TextBox
-                  customClassNames={['account-settings-social-row-textbox']}
+                  customModifiers='on-white'
+                  placeholder={getLabel(fieldNames.twitter)}
                   value={form.fields.twitter}
-                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.twitter
+                  )}
                   errors={form.fieldsWithErrors.extra_details?.twitter}
                 />
-              </div>
+              </label>}
 
-              <div className='account-settings-social-row'>
-                <Icon name='logo-linkedin' size='m' />
+              {/* LinkedIn */}
+              {metadata.linkedin && <label>
+                <i className='k-icon k-icon-logo-linkedin' />
 
                 <TextBox
-                  customClassNames={['account-settings-social-row-textbox']}
+                  customModifiers='on-white'
+                  placeholder={getLabel(fieldNames.linkedin)}
                   value={form.fields.linkedin}
-                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.linkedin
+                  )}
                   errors={form.fieldsWithErrors.extra_details?.linkedin}
                 />
-              </div>
+              </label>}
 
-              <div className='account-settings-social-row'>
-                <Icon name='logo-instagram' size='m' />
+              {/* Instagram */}
+              {metadata.instagram && <label>
+                <i className='k-icon k-icon-logo-instagram' />
 
                 <TextBox
-                  customClassNames={['account-settings-social-row-textbox']}
+                  customModifiers='on-white'
+                  placeholder={getLabel(fieldNames.instagram)}
                   value={form.fields.instagram}
                   onChange={onAnyFieldChange.bind(
                     onAnyFieldChange,
-                    'instagram'
+                    fieldNames.instagram
                   )}
                   errors={form.fieldsWithErrors.extra_details?.instagram}
                 />
-              </div>
-            </bem.AccountSettings__item>
+              </label>}
+            </bem.AccountSettings__item>}
           </bem.AccountSettings__item>
         )}
       </bem.AccountSettings__item>

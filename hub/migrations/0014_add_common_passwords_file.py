@@ -7,7 +7,7 @@ import hub.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hub', '0012_replace_markup_with_markdownx'),
+        ('hub', '0013_alter_constance_config'),
     ]
 
     operations = [
