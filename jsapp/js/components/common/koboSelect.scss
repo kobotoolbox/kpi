@@ -123,6 +123,11 @@ $k-select-menu-padding: sizes.$x6;
   padding: 0;
   font-size: inherit;
 
+  &:focus-visible {
+    // wrapper element is handling that
+    outline: none;
+  }
+
   &::placeholder {
     @include mixins.textEllipsis;
     color: inherit;
@@ -191,7 +196,10 @@ $k-select-menu-padding: sizes.$x6;
   &.k-select--is-menu-visible {
     .k-select__trigger {
       border-color: colors.$kobo-alt-blue;
-      box-shadow: 0 0 0 sizes.$x2 rgba(colors.$kobo-alt-blue, 0.5);
+
+      &:focus-within {
+        @include mixins.default-ui-focus;
+      }
 
       .k-icon.k-icon-caret-down,
       .k-icon.k-icon-caret-up {
@@ -243,7 +251,10 @@ $k-select-menu-padding: sizes.$x6;
   &.k-select--is-menu-visible {
     .k-select__trigger {
       border-color: colors.$kobo-blue;
-      box-shadow: 0 0 0 sizes.$x2 rgba(colors.$kobo-alt-blue, 0.5);
+
+      &:focus-within {
+        @include mixins.default-ui-focus;
+      }
 
       .k-icon.k-icon-caret-down,
       .k-icon.k-icon-caret-up {
