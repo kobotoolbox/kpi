@@ -63,7 +63,7 @@ interface TransxRequestObject {
 /**
  * An object we are receiving from Back end for a transcript or a translation.
  */
-interface TransxObject extends TransxRequestObject {
+export interface TransxObject extends TransxRequestObject {
   dateCreated: string;
   dateModified: string;
   /** The source of the `value` text. */

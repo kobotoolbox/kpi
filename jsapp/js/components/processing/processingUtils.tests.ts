@@ -20,13 +20,12 @@ describe('getSupplementalTranslationPath', () => {
 });
 
 describe('getSupplementalPathParts', () => {
-  it('should return proper path', () => {
+  it('should return proper path parts', () => {
     const path = getSupplementalTranslationPath('your_name', 'pl');
     const test = getSupplementalPathParts(path);
     chai.expect(test).to.deep.equal({
       sourceRowName: 'your_name',
-      isTranscript: false,
-      isTranslation: true,
+      type: 'translation',
       languageCode: 'pl',
     });
   });

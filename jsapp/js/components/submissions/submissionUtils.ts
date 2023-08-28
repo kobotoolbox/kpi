@@ -23,6 +23,7 @@ import type {
   SubmissionResponse,
   SubmissionAttachment,
   AssetResponse,
+  AssetAdvancedFeatures,
 } from 'js/dataInterface';
 import {
   getSupplementalPathParts,
@@ -30,6 +31,8 @@ import {
   getSupplementalTranslationPath,
 } from 'js/components/processing/processingUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {AnalysisResponse} from 'js/components/processing/analysis/constants';
+import {findQuestionChoiceInSchema} from 'js/components/processing/analysis/utils';
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -307,7 +310,7 @@ export function getSubmissionDisplayData(
               getColumnLabel(asset, sdKey, false),
               sdKey,
               undefined,
-              getSupplementalDetailsContent(submissionData, sdKey),
+              getSupplementalDetailsContent(submissionData, sdKey, asset.advanced_features),
             )
           );
         });
@@ -546,7 +549,9 @@ export function getMediaAttachment(
 /**
  * Returns supplemental details for given path,
  * e.g. `_supplementalDetails/question_name/transcript_pl` or
- * e.g. `_supplementalDetails/question_name/translated_pl`.
+ * `_supplementalDetails/question_name/translated_pl` or
+ * `_supplementalDetails/question_name/a1234567-a123-123a-12a3-123aaaa45678`
+ * (a random uuid for qualitative analysis questions).
  *
  * NOTE: transcripts are actually not nested on language level (because there
  * can be only one transcript), but we need to use paths with languages in it
@@ -554,13 +559,18 @@ export function getMediaAttachment(
  */
 export function getSupplementalDetailsContent(
   submission: SubmissionResponse,
-  path: string
-) {
-  const pathArray = path.split('/');
+  path: string,
+  /**
+   * This is not an optional parameter, but it's possible it's not defined in
+   * the AssetResponse object.
+   */
+  advancedFeatures: AssetAdvancedFeatures | undefined,
+): string {
+  let pathArray;
   const pathParts = getSupplementalPathParts(path);
 
-  // Separate route for getting transcripts value.
-  if (pathParts.isTranscript) {
+  if (pathParts.type === 'transcript') {
+    pathArray = path.split('/');
     // There is always one transcript, not nested in language code object, thus
     // we don't need the language code in the last element of the path.
     pathArray.pop();
@@ -572,22 +582,87 @@ export function getSupplementalDetailsContent(
     ) {
       return transcriptObj.value;
     }
-    return t('N/A');
   }
 
-  // The last element is `translated_<language code>`, but we don't want
-  // the underscore to be there.
-  pathArray.pop();
-  pathArray.push('translation');
-  pathArray.push(pathParts.languageCode);
+  if (pathParts.type === 'translation') {
+    pathArray = path.split('/');
+    // The last element is `translation_<language code>`, but we don't want
+    // the underscore to be there.
+    pathArray.pop();
+    pathArray.push('translation');
+    pathArray.push(pathParts.languageCode || '??');
 
-  // Then we add one more nested level
-  pathArray.push('value');
-  // Moments like these makes you really apprecieate the beauty of lodash.
-  const value = get(submission, pathArray, '');
+    // Then we add one more nested level
+    pathArray.push('value');
+    // Moments like these makes you really apprecieate the beauty of lodash.
+    const translationText = get(submission, pathArray, '');
+
+    if (translationText) {
+      return translationText;
+    }
+  }
+
+  if (pathParts.type === 'qual') {
+    pathArray = path.split('/');
+    // The last element is some random uuid, but we look for `qual`.
+    pathArray.pop();
+    pathArray.push('qual');
+    const qualResponses: AnalysisResponse[] = get(submission, pathArray, []);
+    const foundResponse = qualResponses.find((item: AnalysisResponse) => item.uuid === pathParts.analysisQuestionUuid);
+    if (foundResponse) {
+      if (foundResponse.type === 'qual_select_one') {
+        // We need to pass on a string, and we know that `qual_select_one` will
+        // have a string response, but TypeScript doesn't, so:
+        let choiceUuid = '';
+        if (typeof foundResponse.val === 'string') {
+          choiceUuid = foundResponse.val;
+        }
+
+        const choice = findQuestionChoiceInSchema(
+          foundResponse.uuid,
+          choiceUuid,
+          advancedFeatures
+        );
+
+        return choice?.labels._default || t('N/A');
+      }
+
+      if (foundResponse.type === 'qual_select_multiple') {
+        // We need to iterate over the list of uuids, and we know that
+        // `qual_select_multiple` will have a string[] response, but TypeScript
+        // doesn't, so:
+        let choiceUuids: string[] = [];
+        if (Array.isArray(foundResponse.val)) {
+          choiceUuids = foundResponse.val;
+        }
+
+        const choiceLabels = choiceUuids.map((itemUuid) => {
+          const itemDefinition = findQuestionChoiceInSchema(
+            foundResponse.uuid,
+            itemUuid,
+            advancedFeatures
+          );
+          return itemDefinition?.labels._default;
+        });
+
+        return choiceLabels.join(', ') || t('N/A');
+      }
+
+      // All the other analysis question types have literal values in the `val`
+      // property, so we handle it here by the `val` type
+      if (Array.isArray(foundResponse.val) && foundResponse.val.length > 0) {
+        return foundResponse.val.join(', ');
+      } else if (typeof foundResponse.val === 'string' && foundResponse.val !== '') {
+        return foundResponse.val;
+      } else if (typeof foundResponse.val === 'number') {
+        return String(foundResponse.val);
+      }
+    }
+  }
+
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
-  return value || t('N/A');
+  return t('N/A');
 }
 
 /**
@@ -617,7 +692,7 @@ export function getRowSupplementalResponses(
             getColumnLabel(asset, path, false),
             path,
             undefined,
-            getSupplementalDetailsContent(submissionData, path)
+            getSupplementalDetailsContent(submissionData, path, advancedFeatures)
           )
         );
       });
@@ -632,7 +707,7 @@ export function getRowSupplementalResponses(
             getColumnLabel(asset, path, false),
             path,
             undefined,
-            getSupplementalDetailsContent(submissionData, path)
+            getSupplementalDetailsContent(submissionData, path, advancedFeatures)
           )
         );
       });

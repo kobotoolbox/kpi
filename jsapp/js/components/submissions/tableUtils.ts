@@ -60,9 +60,9 @@ export function getColumnLabel(
       translationIndex
     );
 
-    if (supplementalPathParts.isTranscript) {
+    if (supplementalPathParts.type === 'transcript') {
       return `${t('transcript')} (${supplementalPathParts.languageCode}) | ${sourceQuestionLabel}`;
-    } else if (supplementalPathParts.isTranslation) {
+    } else if (supplementalPathParts.type === 'translation') {
       return `${t('translation')} (${supplementalPathParts.languageCode}) | ${sourceQuestionLabel}`;
     } else {
       // this is absurd, to undo what `injectSupplementalRowsIntoListOfRows()`

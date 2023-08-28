@@ -17,8 +17,9 @@ import type {
 } from 'js/constants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
-import type {AnalysisQuestionSchema} from './components/processing/analysis/constants';
+import type {AnalysisQuestionSchema, AnalysisResponse} from './components/processing/analysis/constants';
 import type {FreeTierThresholds} from 'js/envStore';
+import type {TransxObject} from './components/processing/processingActions';
 
 interface AssetsRequestData {
   q?: string;
@@ -153,34 +154,11 @@ export interface SubmissionAttachment {
 
 interface SubmissionSupplementalDetails {
   [questionName: string]: {
-    transcript?: {
-      languageCode: LanguageCode;
-      value: string;
-      dateCreated: string;
-      dateModified: string;
-      engine?: string;
-      revisions?: Array<{
-        dateModified: string;
-        engine?: string;
-        languageCode: LanguageCode;
-        value: string;
-      }>;
-    };
+    transcript?: TransxObject;
     translated?: {
-      [languageCode: LanguageCode]: {
-        languageCode: LanguageCode;
-        value: string;
-        dateCreated: string;
-        dateModified: string;
-        engine?: string;
-        revisions?: Array<{
-          dateModified: string;
-          engine?: string;
-          languageCode: LanguageCode;
-          value: string;
-        }>;
-      };
+      [languageCode: LanguageCode]: TransxObject;
     };
+    qual?: AnalysisResponse[];
   };
 }
 

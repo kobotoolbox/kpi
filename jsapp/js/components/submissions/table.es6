@@ -803,8 +803,10 @@ export class DataTable extends React.Component {
           ) {
             const supplementalDetailsContent = getSupplementalDetailsContent(
               row.original,
-              key
+              key,
+              this.props.asset.advanced_features
             );
+
             return (
               <span className='trimmed-text'>
                 {supplementalDetailsContent}

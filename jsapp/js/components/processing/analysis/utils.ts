@@ -28,6 +28,24 @@ export function findQuestion(uuid: string, state: AnalysisQuestionsState) {
   return state.questions.find((question) => question.uuid === uuid);
 }
 
+/** Finds given question in schema object */
+export function findQuestionInSchema(
+  questionUuid: string,
+  advancedFeatures: AssetAdvancedFeatures | undefined
+) {
+  return advancedFeatures?.qual?.qual_survey?.find((item) => item.uuid === questionUuid);
+}
+
+/** Find a choice of a given question (if applicable) in schema object */
+export function findQuestionChoiceInSchema(
+  questionUuid: string,
+  choiceUuid: string,
+  advancedFeatures: AssetAdvancedFeatures | undefined
+) {
+  const question = findQuestionInSchema(questionUuid, advancedFeatures);
+  return question?.choices?.find((item) => item.uuid === choiceUuid);
+}
+
 export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
   return ANALYSIS_QUESTION_TYPES.find((definition) => definition.type === type);
 }
@@ -108,7 +126,7 @@ export function applyUpdateResponseToInternalQuestions(
 }
 
 export function getQuestionsFromSchema(
-  advancedFeatures?: AssetAdvancedFeatures
+  advancedFeatures: AssetAdvancedFeatures | undefined
 ): AnalysisQuestionInternal[] {
   return convertQuestionsFromSchemaToInternal(
     advancedFeatures?.qual?.qual_survey || []
