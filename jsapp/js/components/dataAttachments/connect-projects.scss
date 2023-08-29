@@ -1,21 +1,19 @@
 @use '~kobo-common/src/styles/colors';
+@use 'scss/mixins';
 @use 'scss/breakpoints';
 @use 'scss/sizes';
 @use 'scss/_variables';
 
 .connect-projects {
-  i.k-icon {
-    font-size: sizes.$x32;
-    margin-right: sizes.$x5;
-  }
-
   .form-view__cell--page-title {
     font-size: variables.$base-font-size !important;
     display: flex;
     margin-top: sizes.$x20 !important;
 
-    i {
+    i.k-icon {
       margin-top: sizes.$x10;
+      font-size: sizes.$x32;
+      margin-right: sizes.$x5;
     }
   }
 
@@ -101,7 +99,7 @@
       position: relative;
       display: flex;
       justify-content: space-between;
-      margin-top: sizes.$x7;
+      margin-top: sizes.$x8;
       margin-bottom: sizes.$x10;
       border-bottom: sizes.$x1 solid;
       border-color: colors.$kobo-gray-92;
@@ -110,14 +108,16 @@
     .connect-projects__import-list-item--no-imports {
       font-style: italic;
       color: colors.$kobo-gray-65;
-      // Match vertial height of a regular list item
-      padding: sizes.$x11 0 sizes.$x11 sizes.$x11;
+      // Match vertcial height of a regular list item
+      padding: 11px 0 11px 11px;
     }
 
     .connect-projects__import-list-item {
       padding-bottom: sizes.$x10;
 
       i.k-icon-check {
+        font-size: sizes.$x32;
+        margin-right: sizes.$x5;
         color: colors.$kobo-blue;
       }
 
@@ -127,11 +127,6 @@
         left: sizes.$x32;
         font-weight: 500;
 
-        i.k-icon-check {
-          color: colors.$kobo-blue;
-          font-weight: bold;
-        }
-
         .connect-projects__import-labels-source {
           margin-left: sizes.$x24;
           font-weight: 400;
@@ -140,27 +135,8 @@
       }
 
       .connect-projects__import-options {
-        position: relative;
-
-        .kobo-light-button {
-          position: absolute;
-          right: 0;
-          padding-bottom: sizes.$x25;
-
-          i.k-icon {
-            font-size: sizes.$x24;
-          }
-
-          &:not(:first-child) {
-            margin-right: sizes.$x45;
-          }
-        }
-      }
-    }
-
-    .loading__inner {
-      i {
-        vertical-align: text-bottom;
+        @include mixins.centerRowFlex;
+        gap: sizes.$x10;
       }
     }
   }
@@ -203,8 +179,8 @@
     text-align: center;
 
     button {
-      padding-left: sizes.$x64;
-      padding-right: sizes.$x64;
+      padding-left: sizes.$x60;
+      padding-right: sizes.$x60;
     }
   }
 }
