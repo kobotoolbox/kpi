@@ -33,7 +33,9 @@ export function findQuestionInSchema(
   questionUuid: string,
   advancedFeatures: AssetAdvancedFeatures | undefined
 ) {
-  return advancedFeatures?.qual?.qual_survey?.find((item) => item.uuid === questionUuid);
+  return advancedFeatures?.qual?.qual_survey?.find(
+    (item) => item.uuid === questionUuid
+  );
 }
 
 /** Find a choice of a given question (if applicable) in schema object */
