@@ -4,7 +4,6 @@ import {
   getTranslatedRowLabel,
   getSurveyFlatPaths,
   isRowSpecialLabelHolder,
-  isRowProcessingEnabled,
 } from 'js/assetUtils';
 import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import {
@@ -25,12 +24,7 @@ import type {
   AssetResponse,
   AssetAdvancedFeatures,
 } from 'js/dataInterface';
-import {
-  getSupplementalPathParts,
-  getSupplementalTranscriptPath,
-  getSupplementalTranslationPath,
-} from 'js/components/processing/processingUtils';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
+import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
 import type {AnalysisResponse} from 'js/components/processing/analysis/constants';
 import {findQuestionChoiceInSchema} from 'js/components/processing/analysis/utils';
 
@@ -296,13 +290,6 @@ export function getSubmissionDisplayData(
         );
         parentGroup.addChild(rowObj);
 
-        /*
-        getRowSupplementalResponses(
-          asset,
-          submissionData,
-          rowName,
-        ).forEach((resp) => {parentGroup.addChild(resp)})
-        */
         const rowqpath = flatPaths[rowName].replace(/\//g, '-');
         supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
           parentGroup.addChild(
@@ -663,66 +650,6 @@ export function getSupplementalDetailsContent(
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
   return t('N/A');
-}
-
-/**
- * Returns all supplemental details (as rows) for given row. Includes transcript
- * and all translations.
- *
- * Returns empty array if row is not enabled to have supplemental details.
- *
- * If there is potential for details, then it will return a full list of
- * DisplayResponses with existing values (falling back to empty strings).
- */
-export function getRowSupplementalResponses(
-  asset: AssetResponse,
-  submissionData: SubmissionResponse,
-  rowName: string,
-): DisplayResponse[] {
-  const output: DisplayResponse[] = [];
-  if (isRowProcessingEnabled(asset.uid, rowName)) {
-    const advancedFeatures = asset.advanced_features;
-
-    if (advancedFeatures?.transcript?.languages !== undefined) {
-      advancedFeatures.transcript.languages.forEach((languageCode: LanguageCode) => {
-        const path = getSupplementalTranscriptPath(rowName, languageCode);
-        output.push(
-          new DisplayResponse(
-            null,
-            getColumnLabel(asset, path, false),
-            path,
-            undefined,
-            getSupplementalDetailsContent(submissionData, path, advancedFeatures)
-          )
-        );
-      });
-    }
-
-    if (advancedFeatures?.translation?.languages !== undefined) {
-      advancedFeatures.translation.languages.forEach((languageCode: LanguageCode) => {
-        const path = getSupplementalTranslationPath(rowName, languageCode);
-        output.push(
-          new DisplayResponse(
-            null,
-            getColumnLabel(asset, path, false),
-            path,
-            undefined,
-            getSupplementalDetailsContent(submissionData, path, advancedFeatures)
-          )
-        );
-      });
-    }
-
-    if (advancedFeatures?.qual) {
-      // TODO: here we would be injecting Qualitative Analysis data into the
-      // output object, but since this function is probably deprecated (in favor
-      // of `analysis_form_json` object in the AssetResponse), we will not write
-      // any code.
-      console.log('TODO am I being used anywhere?');
-    }
-  }
-
-  return output;
 }
 
 /**

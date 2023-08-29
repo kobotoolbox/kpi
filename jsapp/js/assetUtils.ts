@@ -4,7 +4,6 @@
  */
 
 import React from 'react';
-import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'js/utils';
 import envStore from 'js/envStore';
@@ -17,7 +16,6 @@ import type {
 import assetStore from 'js/assetStore';
 import {
   ASSET_TYPES,
-  MODAL_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
@@ -37,12 +35,8 @@ import type {
   SurveyRow,
   SurveyChoice,
   Permission,
+  AnalysisFormJsonField,
 } from 'js/dataInterface';
-import {
-  getSupplementalTranscriptPath,
-  getSupplementalTranslationPath,
-} from 'js/components/processing/processingUtils';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {IconName} from 'jsapp/fonts/k-icons';
 
 /**
@@ -503,45 +497,8 @@ export function renderQuestionTypeIcon(
 }
 
 /**
- * This returns a list of paths for all applicable question names - we do it
- * this way to make it easier to connect the paths to the source question.
- */
-export function getSupplementalDetailsPaths(asset: AssetResponse): {
-  [questionName: string]: string[];
-} {
-  const paths: {[questionName: string]: string[]} = {};
-  const advancedFeatures = asset.advanced_features;
-
-  advancedFeatures?.transcript?.values?.forEach((questionName: string) => {
-    if (!Array.isArray(paths[questionName])) {
-      paths[questionName] = [];
-    }
-    // NOTE: the values for transcripts are not nested in submission, but we
-    // need the path to contain language for other parts of code to work.
-    advancedFeatures.transcript?.languages?.forEach((languageCode: LanguageCode) => {
-      paths[questionName].push(
-        getSupplementalTranscriptPath(questionName, languageCode)
-      );
-    });
-  });
-
-  advancedFeatures?.translation?.values?.forEach((questionName: string) => {
-    if (!Array.isArray(paths[questionName])) {
-      paths[questionName] = [];
-    }
-    advancedFeatures.translation?.languages?.forEach((languageCode: LanguageCode) => {
-      paths[questionName].push(
-        getSupplementalTranslationPath(questionName, languageCode)
-      );
-    });
-  });
-
-  return paths;
-}
-
-/**
- * Injects supplemental details columns next to (immediately after) their
- * matching rows in a given list of rows.
+ * Injects supplemental details columns next to their respective source rows in
+ * a given list of rows.
  *
  * NOTE: it returns a new updated `rows` list.
  */
@@ -553,15 +510,17 @@ export function injectSupplementalRowsIntoListOfRows(
     throw new Error('Asset has no content');
   }
 
+  // Step 1: clone the list
   let output = Array.from(rows);
 
-  // First filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
+  // Step 2: filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
   output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
 
+  // Step 3: use the list of additional columns (with data), that was generated
+  // on Back end, to build a list of columns grouped by source question
   const additionalFields = asset.analysis_form_json?.additional_fields || [];
-
-  const extraColsBySource: Record<string, any[]> = {};
-  additionalFields.forEach((add_field: any) => {
+  const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {};
+  additionalFields.forEach((add_field: AnalysisFormJsonField) => {
     const sourceName: string = add_field.source;
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = [];
@@ -569,31 +528,16 @@ export function injectSupplementalRowsIntoListOfRows(
     extraColsBySource[sourceName].push(add_field);
   });
 
+  // Step 4: Inject all the extra columns immediately after source question
   const outputWithCols: string[] = [];
   output.forEach((col: string) => {
     const qpath = col.replace(/\//g, '-');
     outputWithCols.push(col);
     (extraColsBySource[qpath] || []).forEach((assetAddlField) => {
-      outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`)
+      outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`);
     });
   });
 
-  /*
-  revisit this before merge: (does this work with longer paths / within groups?)
-
-  const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
-
-  Object.keys(supplementalDetailsPaths).forEach((rowName) => {
-    // In supplementalDetailsPaths we get row names, in output we already have
-    // row paths. We need to find a matching row and put all paths immediately
-    // after it.
-    const rowPath = flatPathsWithGroups[rowName];
-    const sourceRowIndex = output.indexOf(rowPath);
-    if (sourceRowIndex !== -1) {
-      output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
-    }
-  });
-  */
   return outputWithCols;
 }
 

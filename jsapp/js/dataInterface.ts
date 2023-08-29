@@ -467,6 +467,21 @@ export type AssetDownloads = Array<{
   url: string;
 }>;
 
+export interface AnalysisFormJsonField {
+  label: string;
+  name: string;
+  dtpath: string;
+  type: string;
+  language: string;
+  source: string;
+  qpath: string;
+  settings: {
+    mode: string;
+    engine: string;
+  };
+  path: string[];
+}
+
 /**
  * This is the complete asset object we use throught the Frontend code. It is
  * built upon the object we get from Backend responses (i.e. we extend a few
@@ -487,22 +502,9 @@ export interface AssetResponse extends AssetRequestObject {
   deployed_version_id: string | null;
   analysis_form_json?: {
     engines: {
-      [engingeName: string]: {details: string}
+      [engingeName: string]: {details: string};
     };
-    additional_fields: Array<{
-      label: string;
-      name: string;
-      dtpath: string;
-      type: string;
-      language: string;
-      source: string;
-      qpath: string;
-      settings: {
-          mode: string;
-          engine: string;
-      },
-      path: string[];
-    }>
+    additional_fields: AnalysisFormJsonField[];
   };
   deployed_versions?: {
     count: number;
