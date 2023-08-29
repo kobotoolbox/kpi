@@ -2,6 +2,7 @@
 from __future__ import annotations
 import abc
 import copy
+import datetime
 import json
 from datetime import date
 from typing import Union, Iterator, Optional
@@ -43,11 +44,6 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def all_time_submission_count(self):
-        pass
-
-    @property
-    @abc.abstractmethod
     def attachment_storage_bytes(self):
         pass
 
@@ -75,16 +71,15 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def current_month_submission_count(self):
+    def submission_count_since_date(self, start_date: Optional[datetime.date] = None):
         pass
 
     @abc.abstractmethod
     def connect(self, active=False):
         pass
 
-    @property
     @abc.abstractmethod
-    def current_month_nlp_tracking(self):
+    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
         pass
 
     def delete(self):
@@ -100,7 +95,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def duplicate_submission(
-        self,  submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: 'auth.User'
     ) -> dict:
         pass
 
@@ -254,11 +249,6 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def mongo_userform_id(self):
         return None
-
-    @property
-    @abc.abstractmethod
-    def nlp_tracking(self):
-        pass
 
     @abc.abstractmethod
     def redeploy(self, active: bool = None):
@@ -425,7 +415,6 @@ class BaseDeploymentBackend(abc.ABC):
                 )
 
         if not isinstance(submission_ids, list):
-
             raise serializers.ValidationError(
                 {'submission_ids': t('Value must be a list.')}
             )

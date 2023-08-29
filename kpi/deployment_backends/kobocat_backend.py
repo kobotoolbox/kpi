@@ -12,6 +12,9 @@ from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+
+from django.db.models.functions import Coalesce
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -64,7 +67,6 @@ from .kc_access.shadow_models import (
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatDailyXFormSubmissionCounter,
-    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -79,7 +81,7 @@ from ..exceptions import (
 )
 
 from kobo.apps.subsequences.utils import stream_with_extras
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -104,22 +106,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     )
 
     @property
-    def all_time_submission_count(self):
-        try:
-            xform_id = self.xform_id
-        except InvalidXFormException:
-            return 0
-
-        result = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
-            xform_id=xform_id
-        ).aggregate(Sum('counter'))
-
-        if count := result['counter__sum']:
-            return count
-
-        return 0
-
-    @property
     def attachment_storage_bytes(self):
         try:
             return self.xform.attachment_storage_bytes
@@ -136,7 +122,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # if only the owner has permissions, no need to go further
         if len(users_with_perms) == 1 and \
-                list(users_with_perms)[0].id == self.asset.owner_id:
+            list(users_with_perms)[0].id == self.asset.owner_id:
             return
 
         with kc_transaction_atomic():
@@ -327,48 +313,56 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'version': self.asset.version_id,
         })
 
-    @property
-    def current_month_nlp_tracking(self):
+    @staticmethod
+    def nlp_tracking_data(asset_ids, start_date=None):
         """
-        Get the current month's NLP tracking data
+        Get the NLP tracking data since a specified date
+        If no date is provided, get all-time data
         """
-        today = datetime.today()
+        filter_args = {}
+        if start_date:
+            filter_args = {'date__gte': start_date}
         try:
-            monthly_nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('counters').get(
-                    asset_id=self.asset.id,
-                    year=today.year,
-                    month=today.month,
-                ).counters
+            nlp_tracking = (
+                NLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
+                .filter(
+                    asset_id__in=asset_ids,
+                    **filter_args
+                ).aggregate(
+                    total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
+                    total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
+                )
             )
-        except MonthlyNLPUsageCounter.DoesNotExist:
-            # return empty dict to match `monthly_nlp_tracking` type
-            return {}
+        except NLPUsageCounter.DoesNotExist:
+            return {
+                'total_nlp_asr_seconds': 0,
+                'total_nlp_mt_characters': 0,
+            }
         else:
-            return monthly_nlp_tracking
+            return nlp_tracking
 
-    @property
-    def current_month_submission_count(self):
+    def submission_count_since_date(self, start_date=None):
         try:
             xform_id = self.xform_id
         except InvalidXFormException:
             return 0
 
         today = timezone.now().date()
+        filter_args = {
+            'xform_id': xform_id,
+        }
+        if start_date:
+            filter_args['date__range'] = [start_date, today]
         try:
-            monthly_counter = (
-                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
-                    'counter'
-                ).get(
-                    xform_id=xform_id,
-                    year=today.year,
-                    month=today.month,
-                )
-            )
-        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
+            # Note: this is replicating the functionality that was formerly in `current_month_submission_count`
+            # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
+            total_submissions = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
+                'date', 'counter'
+            ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
+        except ReadOnlyKobocatDailyXFormSubmissionCounter.DoesNotExist:
             return 0
         else:
-            return monthly_counter.counter
+            return total_submissions['count_sum']
 
     @staticmethod
     def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
@@ -981,28 +975,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
-    @property
-    def nlp_tracking(self):
-        """
-        Get the current month's NLP tracking data
-        """
-        try:
-            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
-                asset_id=self.asset.id
-            )
-            total_counters = {}
-            for nlp_counters in nlp_usage_counters:
-                counters = nlp_counters.counters
-                for key in counters.keys():
-                    if key not in total_counters:
-                        total_counters[key] = 0
-                    total_counters[key] += counters[key]
-        except MonthlyNLPUsageCounter.DoesNotExist:
-            # return empty dict match `total_counters` type
-            return {}
-        else:
-            return total_counters
-
     def redeploy(self, active=None):
         """
         Replace (overwrite) the deployment, keeping the same identifier, and
@@ -1504,8 +1476,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
     def __get_submissions_in_xml(
-            self,
-            **params
+        self,
+        **params
     ) -> Generator[str, None, None]:
         """
         Retrieve submissions directly from PostgreSQL.
