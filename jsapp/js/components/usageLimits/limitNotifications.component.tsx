@@ -7,6 +7,8 @@ import {
   getAllExceedingLimits,
   getPlanInterval,
 } from 'js/components/usageLimits/usageCalculations';
+import {when} from 'mobx';
+import useWhen from 'js/hooks/useWhen.hook';
 
 const cookies = new Cookies();
 
@@ -15,25 +17,35 @@ interface LimitNotificationsProps {
 }
 
 const LimitNotifications = ({useModal = false}: LimitNotificationsProps) => {
-  const [showModal, setShowModal] = useState(useModal);
-  const [dismissed, setDismissed] = useState(useModal);
+  const [showModal, setShowModal] = useState(false);
+  const [dismissed, setDismissed] = useState(!useModal);
+  const [stripeEnabled, setStripeEnabled] = useState(false);
 
   const limits = getAllExceedingLimits();
   const interval = getPlanInterval();
 
-  useEffect(() => {
-    const limitsCookie = cookies.get('kpiOverLimitsCookie');
-    if (
-      limitsCookie === undefined &&
-      (limits.exceedList.includes('storage') ||
-        limits.exceedList.includes('submission'))
-    ) {
-      setShowModal(true);
-    }
-    if (limitsCookie && limits.exceedList.length) {
-      setDismissed(true);
-    }
-  }, [limits]);
+  useWhen(
+    () => envStore.isReady && envStore.data.stripe_public_key !== null,
+    () => {
+      setStripeEnabled(true);
+      // only check cookies if we're displaying a modal
+      if (!useModal) {
+        return;
+      }
+      const limitsCookie = cookies.get('kpiOverLimitsCookie');
+      if (
+        limitsCookie === undefined &&
+        (limits.exceedList.includes('storage') ||
+          limits.exceedList.includes('submission'))
+      ) {
+        setShowModal(true);
+      }
+      if (limitsCookie) {
+        setDismissed(true);
+      }
+    },
+    [limits]
+  );
 
   const modalDismissed = () => {
     setDismissed(true);
@@ -44,6 +56,10 @@ const LimitNotifications = ({useModal = false}: LimitNotificationsProps) => {
     });
   };
 
+  if (!stripeEnabled) {
+    return null;
+  }
+
   return (
     <>
       {dismissed && (
@@ -52,7 +68,7 @@ const LimitNotifications = ({useModal = false}: LimitNotificationsProps) => {
       {!limits.exceedList.length && (
         <LimitBanner warning interval={interval} limits={limits.warningList} />
       )}
-      {envStore.data.stripe_public_key !== null && (
+      {useModal && (
         <LimitModal
           show={showModal}
           limits={limits.exceedList}

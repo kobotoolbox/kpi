@@ -94,6 +94,12 @@ export default function Usage() {
       if (envStore.data.stripe_public_key) {
         limits = await getAccountLimits();
       } else {
+        setUsage((prevState) => {
+          return {
+            ...prevState,
+            isLimitsLoaded: true,
+          };
+        });
         return;
       }
 

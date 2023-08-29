@@ -6,6 +6,8 @@ import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
 import {truncateNumber} from 'js/utils';
 import {USAGE_WARNING_RATIO} from 'js/constants';
+import {when} from 'mobx';
+import useWhen from 'js/hooks/useWhen.hook';
 
 interface UsageState {
   storage: number;
@@ -58,48 +60,61 @@ export const getAllExceedingLimits = () => {
   >();
 
   // Get products and get default limits for community plan
-  useMemo(() => {
-    getProducts().then((products) => {
-      const freeProduct = products.results.find((products) =>
-        products.prices.find(
-          (price: BasePrice) =>
-            price.unit_amount === 0 && price.recurring?.interval === 'month'
-        )
-      );
-      setSubscribedSubmissionLimit(
-        Number(freeProduct?.metadata.submission_limit)
-      );
-      setSubscribedStorageLimit(
-        Number(freeProduct?.metadata.storage_bytes_limit)
-      );
-      setTranscriptionMinutes(Number(freeProduct?.metadata.nlp_seconds_limit));
-      setTranslationChars(Number(freeProduct?.metadata.nlp_character_limit));
+  useWhen(
+    () => envStore.isReady && envStore.data.stripe_public_key !== null,
+    () => {
+      getProducts().then((products) => {
+        const freeProduct = products.results.find((products) =>
+          products.prices.find(
+            (price: BasePrice) =>
+              price.unit_amount === 0 && price.recurring?.interval === 'month'
+          )
+        );
+        setSubscribedSubmissionLimit(
+          Number(freeProduct?.metadata.submission_limit)
+        );
+        setSubscribedStorageLimit(
+          Number(freeProduct?.metadata.storage_bytes_limit)
+        );
+        setTranscriptionMinutes(
+          Number(freeProduct?.metadata.nlp_seconds_limit)
+        );
+        setTranslationChars(Number(freeProduct?.metadata.nlp_character_limit));
 
-      type FreeTierThresholdsArray = [keyof FreeTierThresholds, number | null];
-      // Check Thresholds
-      const thresholds = envStore.data.free_tier_thresholds;
-      const thresholdsArray = Object.entries(
-        thresholds
-      ) as FreeTierThresholdsArray[];
-      thresholdsArray.forEach(([key, value]) => {
-        if (value && value > 0) {
-          setLimitThresholds(key, value);
-        }
-        if (value && value <= 0) {
-          setLimitThresholds(key, 'unlimited');
-        }
+        type FreeTierThresholdsArray = [
+          keyof FreeTierThresholds,
+          number | null
+        ];
+        // Check Thresholds
+        const thresholds = envStore.data.free_tier_thresholds;
+        const thresholdsArray = Object.entries(
+          thresholds
+        ) as FreeTierThresholdsArray[];
+        thresholdsArray.forEach(([key, value]) => {
+          if (value && value > 0) {
+            setLimitThresholds(key, value);
+          }
+          if (value && value <= 0) {
+            setLimitThresholds(key, 'unlimited');
+          }
+        });
       });
-    });
-  }, []);
+    },
+    []
+  );
 
   // Get subscription data
-  useMemo(() => {
-    getSubscription().then((data) => {
-      dispatch({
-        prodData: data.results,
+  useWhen(
+    () => envStore.isReady && envStore.data.stripe_public_key !== null,
+    () => {
+      getSubscription().then((data) => {
+        dispatch({
+          prodData: data.results,
+        });
       });
-    });
-  }, []);
+    },
+    []
+  );
 
   // Get current usage
   useEffect(() => {
@@ -228,19 +243,24 @@ export const getAllExceedingLimits = () => {
       );
     }
   }, [usage]);
+
   return {exceedList, warningList};
 };
 
 export const getPlanInterval = () => {
   const [state, dispatch] = useReducer(subscriptionReducer, initialState);
 
-  useMemo(() => {
-    getSubscription().then((data) => {
-      dispatch({
-        prodData: data.results,
+  useWhen(
+    () => envStore.isReady && envStore.data.stripe_public_key !== null,
+    () => {
+      getSubscription().then((data) => {
+        dispatch({
+          prodData: data.results,
+        });
       });
-    });
-  }, []);
+    },
+    []
+  );
 
   let interval;
   if (state.subscribedProduct?.length > 0) {
