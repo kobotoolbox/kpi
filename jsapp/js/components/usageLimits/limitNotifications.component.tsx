@@ -14,9 +14,13 @@ const cookies = new Cookies();
 
 interface LimitNotificationsProps {
   useModal?: boolean;
+  usagePage?: boolean;
 }
 
-const LimitNotifications = ({useModal = false}: LimitNotificationsProps) => {
+const LimitNotifications = ({
+  useModal = false,
+  usagePage = false,
+}: LimitNotificationsProps) => {
   const [showModal, setShowModal] = useState(false);
   const [dismissed, setDismissed] = useState(!useModal);
   const [stripeEnabled, setStripeEnabled] = useState(false);
@@ -63,10 +67,19 @@ const LimitNotifications = ({useModal = false}: LimitNotificationsProps) => {
   return (
     <>
       {dismissed && (
-        <LimitBanner interval={interval} limits={limits.exceedList} />
+        <LimitBanner
+          interval={interval}
+          limits={limits.exceedList}
+          usagePage={usagePage}
+        />
       )}
       {!limits.exceedList.length && (
-        <LimitBanner warning interval={interval} limits={limits.warningList} />
+        <LimitBanner
+          warning
+          interval={interval}
+          limits={limits.warningList}
+          usagePage={usagePage}
+        />
       )}
       {useModal && (
         <LimitModal

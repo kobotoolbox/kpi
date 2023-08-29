@@ -10,6 +10,7 @@ interface OverLimitBannerProps {
   warning?: boolean;
   limits: string[];
   interval: string;
+  usagePage: boolean;
 }
 
 const OverLimitBanner = (props: OverLimitBannerProps) => {
@@ -37,7 +38,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           {`${props.interval}ly`}{' '}
           {props.limits.map((item, i) => (
             <span key={i}>
-              {i > 0 && props.limits.length > 2 && ','}
+              {i > 0 && props.limits.length > 2 && ', '}
               {i === props.limits.length - 1 && i > 0 && t(' and ')}
               {item}
             </span>
@@ -49,14 +50,21 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         {t('Please')}{' '}
         {props.warning && (
           <>
-            <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.bannerLink}>
-              {t('review your usage')}
-            </a>{' '}
-            {t('and')}{' '}
+            {!props.usagePage && (
+              <>
+                <a
+                  href={`#${ACCOUNT_ROUTES.USAGE}`}
+                  className={styles.bannerLink}
+                >
+                  {t('review your usage')}
+                </a>{' '}
+                {t('and')}{' '}
+              </>
+            )}
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
               {t('upgrade your plan')}
             </a>{' '}
-            {t('if needed')}
+            {props.usagePage ? t('as soon as possible') : t('if needed')}
           </>
         )}
         {!props.warning && (
@@ -64,10 +72,18 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
               {t('upgrade your plan')}
             </a>{' '}
-            {t('to continue collecting data.')}{' '}
-            <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.bannerLink}>
-              {t('Review your usage in account settings')}
-            </a>
+            {t('to continue collecting data')}
+            {!props.usagePage && (
+              <>
+                {'. '}
+                <a
+                  href={`#${ACCOUNT_ROUTES.USAGE}`}
+                  className={styles.bannerLink}
+                >
+                  {t('Review your usage in account settings')}
+                </a>
+              </>
+            )}
           </>
         )}
         {'.'}

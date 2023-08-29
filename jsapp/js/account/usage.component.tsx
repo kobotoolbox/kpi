@@ -186,7 +186,7 @@ export default function Usage() {
   return (
     <div className={styles.root}>
       <h2>{t('Your account total use')}</h2>
-      <LimitNotifications />
+      <LimitNotifications usagePage />
       <div className={styles.row}>
         <div className={styles.box}>
           <span>
