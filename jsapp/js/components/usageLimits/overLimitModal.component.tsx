@@ -8,13 +8,11 @@ import sessionStore from 'js/stores/session';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
-import {Cookies} from 'react-cookie';
-const cookies = new Cookies();
 
 interface OverLimitModalProps {
   show: boolean;
   limits: string[];
-  dismissed: (boolean: boolean) => void;
+  dismissed: () => void;
   interval: 'month' | 'year';
 }
 
@@ -30,12 +28,7 @@ function OverLimitModal(props: OverLimitModalProps) {
   const handleClose = () => {
     toggleModal();
     setShow(false);
-    props.dismissed(true);
-    const dateNow = new Date();
-    const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
-    cookies.set('overLimitsCookie', {
-      expires: expireDate,
-    });
+    props.dismissed();
   };
 
   useEffect(() => {
@@ -71,7 +64,7 @@ function OverLimitModal(props: OverLimitModalProps) {
               {t(
                 'Please upgrade your plan to continue collecting data. Alternatively, you can delay data collection until your next usage cycle begins.'
               )}{' '}
-              <a href={`#${ACCOUNT_ROUTES.PLAN}`}>{t('Review your usage')}</a>
+              <a href={`#${ACCOUNT_ROUTES.USAGE}`}>{t('Review your usage')}</a>
               {'.'}
               <p>
                 {t('Learn more about')}{' '}
