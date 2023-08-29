@@ -64,10 +64,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
               {t('upgrade your plan')}
             </a>{' '}
-            {t('to continue')}{' '}
-            {props.limits?.[0].startsWith('transcription')
-              ? t('using transcription.')
-              : t('collecting data.')}{' '}
+            {t('to continue collecting data.')}{' '}
             <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.bannerLink}>
               {t('Review your usage in account settings')}
             </a>
