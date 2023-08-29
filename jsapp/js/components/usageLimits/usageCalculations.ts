@@ -2,7 +2,8 @@ import {useEffect, useState, useMemo, useReducer} from 'react';
 import {getUsageForOrganization} from '../../account/usage.api';
 import type {BaseSubscription, BasePrice} from '../../account/stripe.api';
 import {getSubscription, getProducts} from '../../account/stripe.api';
-import envStore, {FreeTierThresholds} from 'js/envStore';
+import type {FreeTierThresholds} from 'js/envStore';
+import envStore from 'js/envStore';
 import {truncateNumber} from 'js/utils';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 
@@ -200,12 +201,12 @@ export const getAllExceedingLimits = () => {
       isOverLimit(
         subscribedTranscriptionMinutes,
         usage.monthlyTranscriptionMinutes,
-        'transcription minutes'
+        'automated transcription'
       );
       isOverLimit(
         subscribedTranslationChars,
         usage.monthlyTranslationChars,
-        'translation characters'
+        'machine translation'
       );
     }
     // If subscribed plan is year
@@ -217,13 +218,13 @@ export const getAllExceedingLimits = () => {
       );
       isOverLimit(
         subscribedTranscriptionMinutes,
-        usage.monthlyTranscriptionMinutes,
-        'transcription_minutes'
+        usage.yearlyTranscriptionMinutes,
+        'automated transcription'
       );
       isOverLimit(
         subscribedTranslationChars,
-        usage.monthlyTranslationChars,
-        'translation_chars'
+        usage.yearlyTranslationChars,
+        'machine translation'
       );
     }
   }, [usage]);
