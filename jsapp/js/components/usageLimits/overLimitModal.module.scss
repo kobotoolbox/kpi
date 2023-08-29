@@ -1,14 +1,19 @@
-.limitModalContent {
-  padding: 15px 30px;
-}
+@use '~kobo-common/src/styles/colors';
 
 .button {
   text-transform: uppercase;
-  flex-basis: 50%;
   gap: 1rem;
   justify-content: center;
 
   & span {
     flex-shrink: 0;
   }
+}
+
+.consequences {
+  background-color: colors.$kobo-light-red;
+  box-sizing: border-box;
+  margin: 1em 0;
+  padding: 1em 1em;
+  gap: 1em;
 }
