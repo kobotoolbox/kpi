@@ -22,6 +22,7 @@ import {toJS} from 'mobx';
 import {ROOT_URL} from 'js/constants';
 import {fetchPostUrl} from 'js/api';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
+import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -106,12 +107,14 @@ function CustomViewRoute() {
           </div>
         )}
       </header>
-
+      <LimitNotifications useModal />
       <ProjectsTable
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}
         highlightedFields={getFilteredFieldsNames()}
-        visibleFields={toJS(customView.fields) || customView.defaultVisibleFields}
+        visibleFields={
+          toJS(customView.fields) || customView.defaultVisibleFields
+        }
         orderableFields={DEFAULT_ORDERABLE_FIELDS}
         order={customView.order}
         onChangeOrderRequested={customView.setOrder.bind(customView)}
