@@ -196,7 +196,7 @@ export const getAllExceedingLimits = () => {
       isOverLimit(
         subscribedSubmissionLimit,
         usage.monthlySubmissions,
-        'submissions'
+        'submission'
       );
       isOverLimit(
         subscribedTranscriptionMinutes,
@@ -214,7 +214,7 @@ export const getAllExceedingLimits = () => {
       isOverLimit(
         subscribedSubmissionLimit,
         usage.yearlySubmissions,
-        'submissions'
+        'submission'
       );
       isOverLimit(
         subscribedTranscriptionMinutes,

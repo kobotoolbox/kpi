@@ -26,7 +26,7 @@ const LimitNotifications = ({useModal = false}: LimitNotificationsProps) => {
     if (
       limitsCookie === undefined &&
       (limits.exceedList.includes('storage') ||
-        limits.exceedList.includes('submissions'))
+        limits.exceedList.includes('submission'))
     ) {
       setShowModal(true);
     }
@@ -49,7 +49,9 @@ const LimitNotifications = ({useModal = false}: LimitNotificationsProps) => {
       {dismissed && (
         <LimitBanner interval={interval} limits={limits.exceedList} />
       )}
-      <LimitBanner warning interval={interval} limits={limits.warningList} />
+      {!limits.exceedList.length && (
+        <LimitBanner warning interval={interval} limits={limits.warningList} />
+      )}
       {envStore.data.stripe_public_key !== null && (
         <LimitModal
           show={showModal}
