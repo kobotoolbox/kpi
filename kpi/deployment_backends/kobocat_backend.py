@@ -610,6 +610,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `url`
         """
         kobocat_url = settings.KOBOCAT_URL
+        # If old domain name is detected, use it for search&replace below
         if settings.KOBOCAT_OLD_URL and settings.KOBOCAT_OLD_URL in url:
             kobocat_url = settings.KOBOCAT_OLD_URL
 
