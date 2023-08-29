@@ -10,6 +10,7 @@ import envStore from 'js/envStore';
 import {formatDate, truncateNumber} from 'js/utils';
 import {getUsageForOrganization} from './usage.api';
 import styles from './usage.module.scss';
+import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 
 interface UsageState {
   storage: number;
@@ -179,7 +180,7 @@ export default function Usage() {
   return (
     <div className={styles.root}>
       <h2>{t('Your account total use')}</h2>
-
+      <LimitNotifications />
       <div className={styles.row}>
         <div className={styles.box}>
           <span>
