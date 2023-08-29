@@ -1,29 +1,32 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/_variables";
+@use 'scss/breakpoints';
+@use 'scss/sizes';
+@use 'scss/_variables';
 
 .connect-projects {
   i.k-icon {
-    font-size: 32px;
-    margin-right: 5px;
+    font-size: sizes.$x32;
+    margin-right: sizes.$x5;
   }
 
   .form-view__cell--page-title {
     font-size: variables.$base-font-size !important;
     display: flex;
-    margin-top: 20px !important;
+    margin-top: sizes.$x20 !important;
+
     i {
-      margin-top: 10px;
+      margin-top: sizes.$x10;
     }
   }
 
   .connect-projects__export {
     display: block;
-    margin-top: 20px;
+    margin-top: sizes.$x20;
 
     .connect-projects__export-options {
       display: flex;
       justify-content: space-between;
-      padding-bottom: 12px;
+      padding-bottom: sizes.$x12;
 
       .toggle-switch {
         .toggle-switch__label {
@@ -43,8 +46,8 @@
       display: flex;
       justify-content: space-between;
       position: relative;
-      padding-top: 12px;
-      border-top: 1px solid;
+      padding-top: sizes.$x12;
+      border-top: sizes.$x1 solid;
       border-color: colors.$kobo-gray-92;
 
       .connect-projects__export-hint {
@@ -52,7 +55,7 @@
       }
 
       .multi-checkbox {
-        height: 200px;
+        height: sizes.$x200;
         width: 50%;
       }
     }
@@ -65,11 +68,12 @@
       flex-direction: row;
       align-items: center;
       align-content: center;
-      margin-top: 10px;
+      margin-top: sizes.$x10;
 
       .kobo-select__wrapper {
         width: 50%;
-        margin-right: 50px;
+        margin-right: sizes.$x50;
+
         .kobo-select__placeholder {
           color: colors.$kobo-gray-24;
         }
@@ -77,15 +81,16 @@
 
       .connect-projects-textbox {
         width: 35%;
-        margin-right: 24px;
+        margin-right: sizes.$x24;
       }
     }
   }
+
   .connect-projects__import-list {
-    margin-top: 20px;
+    margin-top: sizes.$x20;
 
     label {
-      margin-top: 20px;
+      margin-top: sizes.$x20;
       font-size: variables.$base-font-size;
       font-weight: bold;
       color: colors.$kobo-gray-40;
@@ -96,9 +101,9 @@
       position: relative;
       display: flex;
       justify-content: space-between;
-      margin-top: 7px;
-      margin-bottom: 10px;
-      border-bottom: 1px solid;
+      margin-top: sizes.$x7;
+      margin-bottom: sizes.$x10;
+      border-bottom: sizes.$x1 solid;
       border-color: colors.$kobo-gray-92;
     }
 
@@ -106,11 +111,11 @@
       font-style: italic;
       color: colors.$kobo-gray-65;
       // Match vertial height of a regular list item
-      padding: 11px 0 11px 11px;
+      padding: sizes.$x11 0 sizes.$x11 sizes.$x11;
     }
 
     .connect-projects__import-list-item {
-      padding-bottom: 10px;
+      padding-bottom: sizes.$x10;
 
       i.k-icon-check {
         color: colors.$kobo-blue;
@@ -118,8 +123,8 @@
 
       .connect-projects__import-labels {
         position: absolute;
-        top: 6px;
-        left: 32px;
+        top: sizes.$x6;
+        left: sizes.$x32;
         font-weight: 500;
 
         i.k-icon-check {
@@ -128,7 +133,7 @@
         }
 
         .connect-projects__import-labels-source {
-          margin-left: 24px;
+          margin-left: sizes.$x24;
           font-weight: 400;
           color: colors.$kobo-gray-40;
         }
@@ -136,22 +141,23 @@
 
       .connect-projects__import-options {
         position: relative;
+
         .kobo-light-button {
           position: absolute;
           right: 0;
-          padding-bottom: 25px;
+          padding-bottom: sizes.$x25;
 
           i.k-icon {
-            font-size: 24px;
+            font-size: sizes.$x24;
           }
 
           &:not(:first-child) {
-            margin-right: 45px;
+            margin-right: sizes.$x45;
           }
         }
-
       }
     }
+
     .loading__inner {
       i {
         vertical-align: text-bottom;
@@ -161,10 +167,10 @@
 }
 
 .form-modal__form.form-modal__form--data-attachment-columns {
-   color: colors.$kobo-gray-55;
+  color: colors.$kobo-gray-55;
 
   .bulk-options {
-    margin-top: 14px;
+    margin-top: sizes.$x14;
     display: flex;
     justify-content: space-between;
 
@@ -174,7 +180,7 @@
 
     .bulk-options__buttons {
       span {
-        margin: 12px;
+        margin: sizes.$x12;
       }
 
       a {
@@ -185,39 +191,37 @@
   }
 
   .multi-checkbox {
-    margin-top: 12px;
-    height: 200px;
+    margin-top: sizes.$x12;
+    height: sizes.$x200;
   }
 
   .loading {
-    margin-top: 12px;
+    margin-top: sizes.$x12;
   }
 
   .modal__footer {
     text-align: center;
 
     button {
-      padding-left: 64px;
-      padding-right: 64px;
+      padding-left: sizes.$x64;
+      padding-right: sizes.$x64;
     }
   }
-
 }
-
 
 // Compensate for when sidebar(s) messes up modal a bit
 
-//TODO: Clean this up via PR changes
+// TODO: Clean this up via PR changes
 // See: https://github.com/kobotoolbox/kpi/issues/3912
 @media
-  (min-width: 1000px) and (max-width: 1140px),
-  (min-width: 770px) and (max-width: 860px),
-  (max-width: 700px) {
+  (min-width: breakpoints.$b1000) and (max-width: breakpoints.$b1140),
+  (min-width: breakpoints.$b768) and (max-width: breakpoints.$b860),
+  (max-width: breakpoints.$b700) {
   .connect-projects__export-multicheckbox {
     display: block !important;
 
     .multi-checkbox {
-      margin-top: 12px;
+      margin-top: sizes.$x12;
       width: 100% !important;
       overflow-x: scroll;
     }
@@ -228,23 +232,23 @@
 
     .kobo-select__wrapper {
       width: 100% !important;
-      margin-bottom: 12px;
+      margin-bottom: sizes.$x12;
     }
 
     .kobo-button {
       display: block;
-      margin-top: 12px auto 0;
+      margin-top: sizes.$x12 auto 0;
       width: 70%;
     }
   }
 }
 
-@media screen and (max-width: 530px) {
+@media screen and (max-width: breakpoints.$b530) {
   .connect-projects__export-options {
     display: block !important;
 
     .checkbox {
-      margin-top: 20px;
+      margin-top: sizes.$x20;
       width: 100% !important;
     }
   }
