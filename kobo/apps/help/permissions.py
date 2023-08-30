@@ -1,8 +1,6 @@
 # coding: utf-8
 from rest_framework import exceptions, permissions
 
-from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
-
 
 class InAppMessagePermissions(permissions.BasePermission):
     def has_permission(self, request, view):
