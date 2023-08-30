@@ -68,4 +68,4 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
     def test_anonymous_user(self, stripe_checkout_session_create_mock, customer_get_or_create_mock):
         self.client.logout()
         response = self.client.post(reverse('checkoutlinks'))
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

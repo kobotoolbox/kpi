@@ -64,4 +64,4 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         stripe_billing_session_create_mock.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
         self.client.logout()
         response = self._post_expected_request()
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

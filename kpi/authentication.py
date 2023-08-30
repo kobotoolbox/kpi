@@ -7,7 +7,7 @@ from rest_framework.authentication import (
     BaseAuthentication,
     BasicAuthentication as DRFBasicAuthentication,
     TokenAuthentication as DRFTokenAuthentication,
-    SessionAuthentication,
+    SessionAuthentication as DRFSessionAuthentication,
     get_authorization_header,
 )
 from rest_framework.exceptions import AuthenticationFailed
@@ -66,7 +66,7 @@ class DigestAuthentication(MfaBlockerMixin, BaseAuthentication):
         return self.authenticator.build_challenge_response()
 
 
-class EnketoSessionAuthentication(SessionAuthentication):
+class EnketoSessionAuthentication(DRFSessionAuthentication):
     """
     Enketo Express uses `__csrf` as both the cookie from which to read the CSRF
     token and as the field in the POST data where it returns the token when it
@@ -104,6 +104,24 @@ class EnketoSessionAuthentication(SessionAuthentication):
             domain=settings.SESSION_COOKIE_DOMAIN,
             secure=settings.SESSION_COOKIE_SECURE or None,
         )
+
+
+class SessionAuthentication(DRFSessionAuthentication):
+    """
+    This class is needed, because REST Framework's default SessionAuthentication
+    does never return 401's, because they cannot fill the WWW-Authenticate header
+    with a valid value in the 401 response. As a result, we cannot distinguish
+    calls that are not unauthorized (401 unauthorized) and calls for which the
+    user does not have permission (403 forbidden).
+    See https://github.com/encode/django-rest-framework/issues/5968#issuecomment-39935282
+
+    We do set authenticate_header function in SessionAuthentication, so that a
+    value for the WWW-Authenticate header can be retrieved and the response code
+    is automatically set to 401 in case of unauthenticated requests.
+    """
+
+    def authenticate_header(self, request):
+        return 'Session'
 
 
 class TokenAuthentication(MfaBlockerMixin, DRFTokenAuthentication):
