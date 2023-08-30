@@ -113,7 +113,7 @@ class CurrentUserTestCase(BaseTestCase):
         errors = {
             'The password is too similar to the username.',
             'This password is too short. It must contain at least 10 characters.',
-            'You cannot use your last password.'
+            'You cannot reuse your last password.'
         }
         assert errors == {str(e) for e in response.data['new_password']}
 
