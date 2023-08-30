@@ -27,6 +27,7 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
+import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
 import {when} from 'mobx';
@@ -60,12 +61,6 @@ const initialState = {
   organization: null,
   featureTypes: ['support', 'advanced', 'addons'],
 };
-
-/*
-  Stripe Subscription statuses that are shown as active in the UI.
-  Subscriptions with a status in this array will show an option to 'Manage'.
-*/
-const activeSubscriptionStatuses = ['active', 'past_due', 'trialing'];
 
 const subscriptionUpgradeMessageDuration = 8000;
 
@@ -109,6 +104,12 @@ export default function Plan() {
     [state.products, state.organization, state.subscribedProduct]
   );
 
+  const hasManageableStatus = useCallback(
+    (subscription: BaseSubscription) =>
+      ACTIVE_STRIPE_STATUSES.includes(subscription.status),
+    []
+  );
+
   const freeTierOverride = useMemo((): FreeTierOverride | null => {
     if (envStore.isReady) {
       const thresholds = envStore.data.free_tier_thresholds;
@@ -127,12 +128,6 @@ export default function Plan() {
     }
     return null;
   }, [envStore.isReady]);
-
-  const hasManageableStatus = useCallback(
-    (subscription: BaseSubscription) =>
-      activeSubscriptionStatuses.includes(subscription.status),
-    []
-  );
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {

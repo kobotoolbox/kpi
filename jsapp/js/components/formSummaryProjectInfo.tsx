@@ -14,6 +14,7 @@ import {dataInterface} from 'js/dataInterface';
 import {formatTime} from 'js/utils';
 import AssetStatusBadge from './common/assetStatusBadge';
 import Avatar from './common/avatar';
+import envStore from 'js/envStore';
 
 interface FormSummaryProjectInfoProps {
   asset: AssetResponse;
@@ -47,6 +48,9 @@ export default function FormSummaryProjectInfo(
   const lastDeployedDate =
     props.asset.deployed_versions?.results?.[0]?.date_modified;
 
+  // Support custom labels for project metadata, if defined
+  const metadata = envStore.data.getProjectMetadataFieldsAsSimpleDict();
+
   return (
     <bem.FormView__row>
       <bem.FormView__cell m={['label', 'first']}>
@@ -54,13 +58,17 @@ export default function FormSummaryProjectInfo(
       </bem.FormView__cell>
 
       <bem.FormView__cell m='box'>
-        <bem.FormView__group m='items'>
-          {/* description - takes whole row */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Description')}</bem.FormView__label>
-            {props.asset.settings.description || '-'}
-          </bem.FormView__cell>
-        </bem.FormView__group>
+        {metadata.description && (
+          <bem.FormView__group m='items'>
+            {/* description - takes whole row */}
+            <bem.FormView__cell m='padding'>
+              <bem.FormView__label>
+                {metadata.description?.label ?? t('Description')}
+              </bem.FormView__label>
+              {props.asset.settings.description || '-'}
+            </bem.FormView__cell>
+          </bem.FormView__group>
+        )}
 
         <bem.FormView__group m='items'>
           {/* status */}
@@ -110,19 +118,29 @@ export default function FormSummaryProjectInfo(
           )}
         </bem.FormView__group>
 
-        <bem.FormView__group m='items'>
-          {/* sector */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Sector')}</bem.FormView__label>
-            {getSectorDisplayString(props.asset)}
-          </bem.FormView__cell>
+        {(metadata.sector || metadata.country) && (
+          <bem.FormView__group m='items'>
+            {/* sector */}
+            {metadata.sector && (
+              <bem.FormView__cell m='padding'>
+                <bem.FormView__label>
+                  {metadata.sector?.label ?? t('Sector')}
+                </bem.FormView__label>
+                {getSectorDisplayString(props.asset)}
+              </bem.FormView__cell>
+            )}
 
-          {/* countries */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Countries')}</bem.FormView__label>
-            {getCountryDisplayString(props.asset)}
-          </bem.FormView__cell>
-        </bem.FormView__group>
+            {/* countries */}
+            {metadata.country && (
+              <bem.FormView__cell m='padding'>
+                <bem.FormView__label>
+                  {metadata.country?.label ?? t('Countries')}
+                </bem.FormView__label>
+                {getCountryDisplayString(props.asset)}
+              </bem.FormView__cell>
+            )}
+          </bem.FormView__group>
+        )}
 
         {/* languages */}
         {props.asset.summary?.languages &&
@@ -140,23 +158,24 @@ export default function FormSummaryProjectInfo(
           )}
 
         {/* operational purpose and PII */}
-        {(props.asset.settings.operational_purpose ||
-          props.asset.settings.collects_pii) && (
+        {(metadata.operational_purpose || metadata.collects_pii) && (
           <bem.FormView__group m='items'>
-            {props.asset.settings.operational_purpose && (
+            {metadata.operational_purpose && (
               <bem.FormView__cell m='padding'>
                 <bem.FormView__label>
-                  {t('Operational purpose of data')}
+                  {metadata.operational_purpose?.label ??
+                    t('Operational purpose of data')}
                 </bem.FormView__label>
-                {props.asset.settings.operational_purpose.label}
+                {props.asset.settings.operational_purpose?.label ?? '-'}
               </bem.FormView__cell>
             )}
-            {props.asset.settings.collects_pii && (
+            {metadata.collects_pii && (
               <bem.FormView__cell m='padding'>
                 <bem.FormView__label>
-                  {t('Collects personally identifiable information')}
+                  {metadata.collects_pii?.label ??
+                    t('Collects personally identifiable information')}
                 </bem.FormView__label>
-                {props.asset.settings.collects_pii.label}
+                {props.asset.settings.collects_pii?.label ?? '-'}
               </bem.FormView__cell>
             )}
           </bem.FormView__group>

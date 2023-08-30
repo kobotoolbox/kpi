@@ -3,12 +3,12 @@ import json
 import logging
 
 import constance
+from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from allauth.socialaccount.models import SocialApp
 
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES
@@ -56,8 +56,6 @@ class EnvironmentView(APIView):
     JSON_CONFIGS = [
         'FREE_TIER_DISPLAY',
         'FREE_TIER_THRESHOLDS',
-        'PROJECT_METADATA_FIELDS',
-        'USER_METADATA_FIELDS',
     ]
 
     @classmethod
@@ -116,20 +114,26 @@ class EnvironmentView(APIView):
         data['mfa_localized_help_text'] = markdown(
             I18nUtils.get_mfa_help_text()
         )
-        data['mfa_enabled'] = (
-            # MFA is enabled if it is enabled globally…
-            constance.config.MFA_ENABLED
-            and (
-                # but if per-user activation is enabled (i.e. at least one
-                # record in the table)…
-                not MfaAvailableToUser.objects.all().exists()
-                # global setting is overwritten by request user setting.
-                or MfaAvailableToUser.objects.filter(
-                    user=get_database_user(request.user)
-                ).exists()
-            )
-        )
+        data['mfa_enabled'] = constance.config.MFA_ENABLED
+        data['mfa_per_user_availability'] = MfaAvailableToUser.objects.filter(
+            user=get_database_user(request.user)
+        ).exists()
+        data['mfa_has_availability_list'] = MfaAvailableToUser.objects.all().exists()
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
+        return data
+
+    @staticmethod
+    def process_project_metadata_configs(request):
+        data = {
+            'project_metadata_fields': I18nUtils.get_metadata_fields('project')
+        }
+        return data
+
+    @staticmethod
+    def process_user_metadata_configs(request):
+        data = {
+            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
+        }
         return data
 
     @staticmethod
@@ -155,6 +159,19 @@ class EnvironmentView(APIView):
             settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
         )
 
+        # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
+        if request.user.id and request.user.date_joined.date() > constance.config.FREE_TIER_CUTOFF_DATE:
+            data['free_tier_thresholds'] = {
+                'storage': None,
+                'data': None,
+                'transcription_minutes': None,
+                'translation_chars': None,
+            }
+            data['free_tier_display'] = {
+                'name': None,
+                'feature_list': [],
+            }
+
         return data
 
     def get(self, request, *args, **kwargs):
@@ -163,5 +180,7 @@ class EnvironmentView(APIView):
         data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
+        data.update(self.process_project_metadata_configs(request))
+        data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))
         return Response(data)

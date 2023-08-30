@@ -25,11 +25,10 @@ from django.db.models import (
     Sum,
     Value,
 )
-from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
@@ -501,7 +500,7 @@ def generate_user_statistics_report(
 
     # get NLP statistics
     nlp_counters = (
-        MonthlyNLPUsageCounter.objects.annotate(
+        NLPUsageCounter.objects.annotate(
             date=Cast(
                 Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                 DateField(),
@@ -535,7 +534,7 @@ def generate_user_statistics_report(
         # specified period so a fallback is needed
         try:
             nlp_totals = nlp_counters.get(user_id=user_id)
-        except MonthlyNLPUsageCounter.DoesNotExist:
+        except NLPUsageCounter.DoesNotExist:
             nlp_totals = {}
         data.append([
             record['user__username'],

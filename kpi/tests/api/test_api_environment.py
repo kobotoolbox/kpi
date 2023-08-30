@@ -18,6 +18,7 @@ from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.object_permission import get_database_user
 
 
 class EnvironmentTests(BaseTestCase):
@@ -25,6 +26,8 @@ class EnvironmentTests(BaseTestCase):
 
     def setUp(self):
         self.url = reverse('environment')
+        self.user = User.objects.get(username='someuser')
+        self.password = 'someuser'
         self.dict_checks = {
             'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,
             'privacy_policy_url': constance.config.PRIVACY_POLICY_URL,
@@ -61,6 +64,14 @@ class EnvironmentTests(BaseTestCase):
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
             'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,
+            'mfa_per_user_availability': lambda response: (
+                MfaAvailableToUser.objects.filter(
+                    user=get_database_user(self.user)
+                ).exists(),
+            ),
+            'mfa_has_availability_list': lambda response: (
+                MfaAvailableToUser.objects.all().exists()
+            ),
             'mfa_localized_help_text': markdown(
                 I18nUtils.get_mfa_help_text().replace(
                     '##support email##', constance.config.SUPPORT_EMAIL
@@ -111,14 +122,14 @@ class EnvironmentTests(BaseTestCase):
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_value_globally_enabled(self):
-        self.client.login(username='someuser', password='someuser')
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
 
     @override_config(MFA_ENABLED=False)
     def test_mfa_value_globally_disabled(self):
-        self.client.login(username='someuser', password='someuser')
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['mfa_enabled'])
@@ -129,41 +140,56 @@ class EnvironmentTests(BaseTestCase):
         # first per-user allowance (`MfaAvailableToUser` instance) is created.
 
         # Enable MFA only for someuser
-        someuser = User.objects.get(username='someuser')
-        MfaAvailableToUser.objects.create(user=someuser)
+        baker.make('MfaAvailableToUser', user=self.user)
 
-        # someuser should have mfa enabled
-        self.client.login(username='someuser', password='someuser')
+        # someuser should have per-user availability
+        self.assertTrue(
+            self.client.login(
+                username=self.user.username, password=self.password
+            )
+        )
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
+        self.assertTrue(response.data['mfa_per_user_availability'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
+        self._check_response_dict(response.data)
 
-        # anotheruser should **NOT** have mfa enabled
-        self.client.login(username='anotheruser', password='anotheruser')
+        # anotheruser should **NOT** have per-user availability
+        self.user = User.objects.get(username='anotheruser')
+        self.password = 'anotheruser'
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data['mfa_enabled'])
+        self.assertTrue(response.data['mfa_enabled'])
+        self.assertFalse(response.data['mfa_per_user_availability'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
+        self._check_response_dict(response.data)
 
     @override_config(MFA_ENABLED=True)
-    def test_mfa_per_user_availability_while_globally_enabled_as_anonymous(self):
+    def test_mfa_per_user_availability_while_globally_enabled_as_anonymous(
+        self,
+    ):
         # Enable MFA only for someuser, in order to enter per-user-allowance
         # mode. MFA should then appear to be disabled for everyone else
         # (including anonymous users), even though MFA is globally enabled.
         someuser = User.objects.get(username='someuser')
-        MfaAvailableToUser.objects.create(user=someuser)
+        baker.make('MfaAvailableToUser', user=someuser)
 
         # Now, make sure that the application reports MFA to be disabled for
         # anonymous users
         self.client.logout()
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data['mfa_enabled'])
+        self.assertTrue(response.data['mfa_enabled'])
+        self.assertFalse(response.data['mfa_per_user_availability'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
 
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = 18
+        queries = 20
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

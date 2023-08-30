@@ -1,5 +1,3 @@
-import json
-
 import constance
 from allauth.account.forms import LoginForm as BaseLoginForm
 from allauth.account.forms import SignupForm as BaseSignupForm
@@ -8,11 +6,13 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 
-from kobo.apps.constance_backends.utils import to_python_object
-from kobo.static_lists import COUNTRIES
+from hub.utils.i18n import I18nUtils
+from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
+
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
+    'name',
     'organization',
     'gender',
     'sector',
@@ -23,22 +23,22 @@ CONFIGURABLE_METADATA_FIELDS = (
 class LoginForm(BaseLoginForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["login"].widget.attrs["placeholder"] = ""
-        self.fields["password"].widget.attrs["placeholder"] = ""
-        self.label_suffix = ""
+        self.fields['login'].widget.attrs['placeholder'] = ''
+        self.fields['password'].widget.attrs['placeholder'] = ''
+        self.label_suffix = ''
 
 
 class KoboSignupMixin(forms.Form):
     name = forms.CharField(
-        label=t('Full name'),
+        label=USER_METADATA_DEFAULT_LABELS['name'],
         required=False,
     )
     organization = forms.CharField(
-        label=t('Organization name'),
+        label=USER_METADATA_DEFAULT_LABELS['organization'],
         required=False,
     )
     gender = forms.ChoiceField(
-        label=t('Gender'),
+        label=USER_METADATA_DEFAULT_LABELS['gender'],
         required=False,
         widget=forms.RadioSelect,
         choices=(
@@ -48,13 +48,13 @@ class KoboSignupMixin(forms.Form):
         ),
     )
     sector = forms.ChoiceField(
-        label=t('Sector'),
+        label=USER_METADATA_DEFAULT_LABELS['sector'],
         required=False,
         # Don't set choices here; set them in the constructor so that changes
         # made in the Django admin interface do not require a server restart
     )
     country = forms.ChoiceField(
-        label=t('Country'),
+        label=USER_METADATA_DEFAULT_LABELS['country'],
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
@@ -78,22 +78,25 @@ class KoboSignupMixin(forms.Form):
 
         # It's easier to _remove_ unwanted fields here in the constructor
         # than to add a new fields *shrug*
-        desired_metadata_fields = to_python_object(
-            constance.config.USER_METADATA_FIELDS
-        )
+        desired_metadata_fields = I18nUtils.get_metadata_fields('user')
         desired_metadata_fields = {
             field['name']: field for field in desired_metadata_fields
         }
         for field_name in list(self.fields.keys()):
             if field_name not in CONFIGURABLE_METADATA_FIELDS:
+                # This field is not allowed to be configured
                 continue
-            if field_name not in desired_metadata_fields:
+
+            try:
+                desired_field = desired_metadata_fields[field_name]
+            except KeyError:
+                # This field is unwanted
                 self.fields.pop(field_name)
                 continue
-            else:
-                self.fields[field_name].required = desired_metadata_fields[
-                    field_name
-                ].get('required', False)
+
+            field = self.fields[field_name]
+            field.required = desired_field.get('required', False)
+            self.fields[field_name].label = desired_field['label']
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -128,7 +131,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         super().__init__(*args, **kwargs)
         if settings.UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE:
             self.fields['email'].widget.attrs['readonly'] = True
-        self.label_suffix = ""
+        self.label_suffix = ''
 
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):
