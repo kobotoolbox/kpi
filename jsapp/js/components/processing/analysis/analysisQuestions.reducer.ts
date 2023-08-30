@@ -1,6 +1,6 @@
-import {generateUuid, moveArrayElementToIndex} from 'jsapp/js/utils';
-import type {AnalysisQuestion} from './constants';
-import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
+import { generateUuid, moveArrayElementToIndex } from 'jsapp/js/utils';
+import type { AnalysisQuestion } from './constants';
+import type { AnalysisQuestionsAction } from './analysisQuestions.actions';
 
 interface AnalysisQuestionDraftable extends AnalysisQuestion {
   isDraft?: boolean;
@@ -24,6 +24,12 @@ export interface AnalysisQuestionsState {
    * call on reordering end.
    */
   draftQuestionsOrder?: string[];
+  /**
+   * True if user has made a change and the change has not been requested OR
+   * backend differs from frontend. This is determined by a 200 response or the
+   * pending state.
+   */
+  changesDetected: boolean;
 }
 
 // I define this type to ensure that the reducer's returned state always
@@ -37,6 +43,7 @@ export const initialState: AnalysisQuestionsState = {
   isPending: false,
   questions: [],
   questionsBeingEdited: [],
+  changesDetected: false,
 };
 
 export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
@@ -50,7 +57,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
 
       const newQuestion: AnalysisQuestionDraftable = {
         type: action.payload.type,
-        labels: {_default: ''},
+        labels: { _default: '' },
         uuid: newUuid,
         response: '',
         // Note: initially the question is being added as a draft. It
@@ -128,6 +135,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         // closes the editor)
         // Note: this assumes we are only allowing one question editor at a time
         questionsBeingEdited: [],
+        changesDetected: false,
       };
     }
     case 'updateResponse': {
@@ -141,6 +149,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         isPending: false,
         questions: action.payload.questions,
+        changesDetected: false,
       };
     }
     case 'reorderQuestion': {
@@ -157,6 +166,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: true,
+        changesDetected: false,
       };
     }
     case 'applyQuestionsOrderCompleted': {
@@ -164,12 +174,14 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         isPending: false,
         questions: action.payload.questions,
+        changesDetected: false,
       };
     }
     case 'initialiseSearch': {
       return {
         ...state,
         isPending: true,
+        changesDetected: false,
       };
     }
     case 'initialiseSearchCompleted': {
@@ -177,6 +189,13 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         isPending: false,
         questions: action.payload.questions,
+        changesDetected: false,
+      };
+    }
+    case 'changesDetected': {
+      return {
+        ...state,
+        changesDetected: true,
       };
     }
     default: {

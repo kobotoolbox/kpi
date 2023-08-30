@@ -1,9 +1,10 @@
-import React, {useContext, useState} from 'react';
+import React, { useContext, useState } from 'react';
 import TextBox from 'js/components/common/textBox';
-import type {AvailableType} from 'js/components/common/textBox';
+import type { AvailableType } from 'js/components/common/textBox';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
-import {AUTO_SAVE_TYPING_DELAY} from 'js/components/processing/analysis/constants';
+import { AUTO_SAVE_TYPING_DELAY } from 'js/components/processing/analysis/constants';
 import {
+  changesDetected,
   findQuestion,
   getQuestionTypeDefinition,
   quietlyUpdateResponse,
@@ -78,6 +79,7 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
           type={textBoxType}
           value={response}
           onChange={(newResponse: string) => {
+            changesDetected(analysisQuestions?.dispatch);
             setResponse(newResponse);
             saveResponseDelayedAndQuietly();
           }}
