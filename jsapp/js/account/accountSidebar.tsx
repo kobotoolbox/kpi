@@ -7,7 +7,7 @@ import envStore from 'js/envStore';
 import {ACCOUNT_ROUTES} from './routes';
 import {IconName} from 'jsapp/fonts/k-icons';
 import './accountSidebar.scss';
-import subscriptionStore from './subscriptionStore';
+import {when} from 'mobx';
 
 interface AccountNavLinkProps {
   iconName: IconName;
@@ -28,17 +28,18 @@ function AccountNavLink(props: AccountNavLinkProps) {
 
 function AccountSidebar() {
   const [env] = useState(() => envStore);
-  const [subscription] = useState(() => subscriptionStore);
+  const [showPlans, setShowPlans] = useState(false);
 
   useEffect(() => {
-    if (
-      env.isReady &&
-      env.data.stripe_public_key &&
-      subscription.subscribedProduct === null
-    ) {
-      subscription.fetchSubscriptionInfo();
-    }
-  }, [env.isReady]);
+    const envPromise = when(() => env.isReady);
+    envPromise.then(() => {
+      if (env.data.stripe_public_key != null) {
+        setShowPlans(true);
+      }
+    });
+    // make sure to return a disposal function for when() so we don't cause a memory leak
+    return envPromise.cancel;
+  }, []);
 
   return (
     <bem.FormSidebar m='account'>
@@ -57,15 +58,13 @@ function AccountSidebar() {
         name={t('Usage')}
         to={ACCOUNT_ROUTES.USAGE}
       />
-      {env.isReady &&
-        env.data.stripe_public_key &&
-        subscription.subscribedProduct && (
-          <AccountNavLink
-            iconName='editor'
-            name={t('Your Plan')}
-            to={ACCOUNT_ROUTES.PLAN}
-          />
-        )}
+      {showPlans && (
+        <AccountNavLink
+          iconName='editor'
+          name={t('Plans')}
+          to={ACCOUNT_ROUTES.PLAN}
+        />
+      )}
     </bem.FormSidebar>
   );
 }

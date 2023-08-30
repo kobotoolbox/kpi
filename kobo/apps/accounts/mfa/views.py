@@ -12,28 +12,7 @@ from .serializers import UserMfaMethodSerializer
 
 
 class MfaLoginView(LoginView):
-
     form_class = MfaLoginForm
-
-    def form_valid(self, form):
-        if form.get_ephemeral_token():
-            mfa_token_form = MfaTokenForm(
-                initial={'ephemeral_token': form.get_ephemeral_token()}
-            )
-            context = self.get_context_data(
-                view=MfaTokenView,
-                form=mfa_token_form,
-                next=self.get_success_url(),
-            )
-
-            return self.response_class(
-                request=self.request,
-                template='mfa_token.html',
-                context=context,
-                using=self.template_engine,
-            )
-        else:
-            return super().form_valid(form)
 
     def get_success_url(self):
         """
@@ -44,10 +23,10 @@ class MfaLoginView(LoginView):
         if not redirect_to:
             redirect_to = self.request.POST.get(
                 self.redirect_field_name,
-                self.request.GET.get(self.redirect_field_name, '')
+                self.request.GET.get(self.redirect_field_name, ''),
             )
 
-        # We do not want to redirect a regular user to `/admin/` whether they
+        # We do not want to redirect a regular user to `/admin/` if they
         # are not a superuser. Otherwise, they are successfully authenticated,
         # redirected to the admin platform, then disconnected because of the
         # lack of permissions.

@@ -7,7 +7,7 @@ import './icon.scss';
  * Check out `icon.scss` file for exact pixel values.
  */
 export type IconSize = 'l' | 'm' | 's' | 'xl' | 'xs' | 'xxs';
-export type IconColor = 'red' | 'storm' | 'teal';
+export type IconColor = 'red' | 'storm' | 'teal' | 'amber';
 
 const DefaultSize = 's';
 

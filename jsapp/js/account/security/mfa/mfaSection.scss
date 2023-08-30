@@ -50,6 +50,12 @@
   }
 }
 
+.security-row--unauthorized {
+  opacity: 0.5;
+  pointer-events: none;
+  margin-bottom: sizes.$x36;
+}
+
 .mfa-options {
   .mfa-options__buttons {
     margin: sizes.$x14 0;
