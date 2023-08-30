@@ -58,7 +58,7 @@ const initialState = {
   filterToggle: true,
   products: null,
   organization: null,
-  featureTypes: ['support', 'advanced', 'addons'],
+  featureTypes: ['advanced', 'support', 'addons'],
 };
 
 /*
@@ -411,7 +411,7 @@ export default function Plan() {
     title?: string
   ) => (
     <div className={styles.expandedFeature} key={title}>
-      <h2 className={styles.listTitle}>{title}</h2>
+      <h2 className={styles.listTitle}>{title} </h2>
       <ul>
         {items.map((item) => (
           <li key={item.label}>
@@ -516,7 +516,7 @@ export default function Plan() {
                         : price.prices.human_readable_price}
                     </div>
 
-                    <ul>
+                    <ul className={styles.featureContainer}>
                       {Object.keys(price.metadata).map(
                         (featureItem: string) =>
                           featureItem.includes('feature_list_') && (
@@ -538,7 +538,8 @@ export default function Plan() {
                       )}
                     </ul>
                     {expandComparison && (
-                      <>
+                      <div className={styles.expandedContainer}>
+                        <hr />
                         {state.featureTypes.map(
                           (type) =>
                             getListItem(type, price.name).length > 0 &&
@@ -548,7 +549,7 @@ export default function Plan() {
                               price.metadata[`feature_${type}_title`]
                             )
                         )}
-                      </>
+                      </div>
                     )}
                     {!isSubscribedProduct(price) &&
                       !shouldShowManage(price) &&
