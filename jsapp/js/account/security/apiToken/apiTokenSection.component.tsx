@@ -49,7 +49,6 @@ export default function ApiTokenDisplay() {
 
     <div className={styles.bodySection}>
       <TextBox
-        customModifiers='on-white'
         type={isVisible && !isFetching && token !== null ? 'text' : 'password'}
         value={token !== null ? token : HIDDEN_TOKEN_VALUE}
         readOnly
