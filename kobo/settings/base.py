@@ -383,7 +383,7 @@ CONSTANCE_CONFIG = {
         'Display an entropy meter and password quality suggestions whenever users change their passwords.',
     ),
     'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION': (
-        True,
+        False,
         'Enable minimum length validation',
     ),
     'MINIMUM_PASSWORD_LENGTH': (
@@ -392,7 +392,7 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION': (
-        True,
+        False,
         'Enable user attribute similarity validation. '
         'See `PASSWORD_USER_ATTRIBUTES` below for customization.',
     ),
@@ -406,13 +406,13 @@ CONSTANCE_CONFIG = {
         "Possible attributes are 'username', 'full_name', 'email', 'organization'."
     ),
     'ENABLE_COMMON_PASSWORD_VALIDATION': (
-        True,
+        False,
         'Enable common password validation.\n'
         'To customize the list, go to Configuration file section and add common password file.\n'
         'Django default list is based on https://tinyurl.com/django3-2-common-passwords.',
     ),
     'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION': (
-        True,
+        False,
         'Enable custom character rules',
     ),
     'PASSWORD_CUSTOM_CHARACTER_RULES': (
@@ -433,12 +433,12 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'ENABLE_MOST_RECENT_PASSWORD_VALIDATION': (
-        True,
+        False,
         'Enable most recent password validation which will prevent the user from '
         'reusing the most recent password.',
     ),
     'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT': (
-        True,
+        False,
         'Enable custom password guidance text to help users create their passwords.',
     ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
