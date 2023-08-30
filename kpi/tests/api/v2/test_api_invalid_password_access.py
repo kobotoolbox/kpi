@@ -173,7 +173,9 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         )
         assert response.status_code == status_code
 
-        # Endpoints below should return a 200 whatever the user's password  state
+        # Endpoints below should return a 200 regardless of the user's password
+        # state
+
         # `/me`
         response = self.client.get(reverse('currentuser-detail'), **headers)
         assert response.status_code == status.HTTP_200_OK
