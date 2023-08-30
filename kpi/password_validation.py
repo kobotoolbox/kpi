@@ -92,7 +92,7 @@ class MostRecentPasswordValidator:
 
         if user.check_password(password):
             raise ValidationError(
-                t('You cannot use your last password.'),
+                t('You cannot reuse your last password.'),
                 code=f'most_recent_password_error',
             )
 
@@ -167,11 +167,9 @@ class CustomRulesValidator:
         if valid_rules_count < threshold:
             raise ValidationError(
                 t(
-                   'The password must be a combination of ##number of rules## '
-                   'of the characters rules.'
-                ).replace(
-                    '##number of rules##', str(threshold)
-                ),
+                    'The password must contain at least ##number of rules##'
+                    ' different kinds of characters.'
+                ).replace('##number of rules##', str(threshold)),
                 code=f'custom_rules_error',
             )
 

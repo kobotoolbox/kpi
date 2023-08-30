@@ -442,19 +442,23 @@ CONSTANCE_CONFIG = {
         'Enable custom password guidance text to help users create their passwords.',
     ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
-        LazyJSONSerializable({
-            'default': t(
-                'The password must be a combination of 10 or more alphanumeric'
-                ' and special characters. It must contain at least one uppercase'
-                ' and lowercase letter, it cannot be similar to your name, '
-                'username or email.'
-            ),
-            'some-other-language': (
-                'This will never appear because `some-other-language` is not '
-                'a valid language code, but this entry is here to show you '
-                'an example of adding another message in a different language.'
-            ),
-        }),
+        LazyJSONSerializable(
+            {
+                'default': t(
+                    'The password must be at least 10 characters long and'
+                    ' contain 3 or more of the following: uppercase letters,'
+                    ' lowercase letters, numbers, and special characters. It'
+                    ' cannot be similar to your name, username, or email'
+                    ' address.'
+                ),
+                'some-other-language': (
+                    'This will never appear because `some-other-language` is'
+                    ' not a valid language code, but this entry is here to show'
+                    ' you an example of adding another message in a different'
+                    ' language.'
+                ),
+            }
+        ),
         (
             'Guidance message presented when users create or modify a password. '
             'It should reflect the defined password rules.\n\n'

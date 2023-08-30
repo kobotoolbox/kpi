@@ -47,7 +47,7 @@ export default function InvalidatedPassword() {
 
               <p className={styles.message}>
                 {t(
-                  'Access to the app has been temporarily restricted due to a weak password. To regain access and ensure the security of your data, please update your password promptly.'
+                  'You must update your password before proceeding. Please do so promptly to ensure the security of your data.'
                 )}
               </p>
 
