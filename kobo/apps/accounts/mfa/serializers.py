@@ -7,6 +7,7 @@ class UserMfaMethodSerializer(serializers.ModelSerializer):
     """
     Exposes user's MFA methods and their created, modified and disabled dates
     """
+
     class Meta:
         model = get_mfa_model()
         fields = (

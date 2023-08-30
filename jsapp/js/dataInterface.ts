@@ -737,6 +737,7 @@ export interface TransxLanguages {
 }
 
 export interface EnvironmentResponse {
+  mfa_has_availability_list: boolean;
   terms_of_service_url: string;
   privacy_policy_url: string;
   source_code_url: string;
@@ -757,6 +758,7 @@ export interface EnvironmentResponse {
   asr_mt_features_enabled: boolean;
   mfa_localized_help_text: string;
   mfa_enabled: boolean;
+  mfa_per_user_availability: boolean;
   mfa_code_length: number;
   stripe_public_key: string | null;
   social_apps: SocialApp[];
