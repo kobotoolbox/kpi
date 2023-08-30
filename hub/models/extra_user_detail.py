@@ -14,9 +14,9 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         on_delete=models.CASCADE,
     )
     data = models.JSONField(default=dict)
-    private_data = models.JSONField(default=dict)
-    date_removal_requested = models.DateTimeField(null=True)
-    date_removed = models.DateTimeField(null=True)
+    private_data = models.JSONField(default=dict, blank=True)
+    date_removal_requested = models.DateTimeField(null=True, blank=True)
+    date_removed = models.DateTimeField(null=True, blank=True)
     password_date_changed = models.DateTimeField(null=True, blank=True)
     validated_password = models.BooleanField(default=True)
 
