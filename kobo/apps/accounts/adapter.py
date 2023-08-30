@@ -9,7 +9,9 @@ from django.template.response import TemplateResponse
 from trench.utils import get_mfa_model, user_token_generator
 
 from .mfa.forms import MfaTokenForm
+from .mfa.models import MfaAvailableToUser
 from .mfa.views import MfaTokenView
+from .utils import user_has_paid_subscription
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -22,9 +24,20 @@ class AccountAdapter(DefaultAccountAdapter):
             # validated their email address
             return parent_response
 
-        # If MFA is activated, display the token form before let them in
-        if get_mfa_model().objects.filter(is_active=True, user=user).exists():
+        mfa_allowed = True
+        if settings.STRIPE_ENABLED:
+            mfa_allowed = (
+                user_has_paid_subscription(user.username)
+                or MfaAvailableToUser.objects.filter(user=user).exists()
+            )
 
+        # If MFA is activated and allowed for the user, display the token form before letting them in
+        if (
+            mfa_allowed
+            and get_mfa_model()
+            .objects.filter(is_active=True, user=user)
+            .exists()
+        ):
             ephemeral_token_cache = user_token_generator.make_token(user)
             mfa_token_form = MfaTokenForm(
                 initial={'ephemeral_token': ephemeral_token_cache}
@@ -34,6 +47,7 @@ class AccountAdapter(DefaultAccountAdapter):
                 kwargs.get('redirect_url')
                 or resolve_url(settings.LOGIN_REDIRECT_URL)
             )
+
             context = {
                 REDIRECT_FIELD_NAME: next_url,
                 'view': MfaTokenView,

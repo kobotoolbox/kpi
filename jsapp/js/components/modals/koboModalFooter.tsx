@@ -3,11 +3,17 @@ import bem, {makeBem} from 'js/bem';
 
 bem.KoboModal__footer = makeBem(bem.KoboModal, 'footer', 'footer');
 
+export type KoboModalFooterAlignment = 'end' | 'center';
+
 interface KoboModalFooterProps {
   children: React.ReactNode;
-  isCentered?: boolean;
+  alignment?: KoboModalFooterAlignment;
 }
 
 export default function KoboModalFooter(props: KoboModalFooterProps) {
-  return <bem.KoboModal__footer m={props.isCentered ? 'isCentered' : ''}>{props.children}</bem.KoboModal__footer>;
+  return (
+    <bem.KoboModal__footer m={props.alignment || 'end'}>
+      {props.children}
+    </bem.KoboModal__footer>
+  );
 }

@@ -34,7 +34,7 @@ $kobo-modal-header-icon-margin: sizes.$x10;
     transform: translate(-50%, -50%);
   }
 
-  @media all and (min-height: breakpoints.$b480 + 1px) {
+  @media all and (min-height: (breakpoints.$b480 + 1px)) {
     transform: translate(-50%, -55%);
   }
 }
@@ -63,8 +63,14 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 
   justify-content: space-between;
   padding: $kobo-modal-padding;
-  background-color: colors.$kobo-gray-98;
   border-radius: sizes.$x6 sizes.$x6 0 0;
+
+    &.kobo-modal__header--red{
+      background-color: color.change(colors.$kobo-red, $alpha: 0.1);
+    }
+    &.kobo-modal__header--grey{
+      background-color: colors.$kobo-gray-98;
+    }
 
   h1 {
     @include mixins.centerRowFlex;
@@ -111,10 +117,17 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 
 .kobo-modal__footer {
   @include mixins.centerRowFlex;
-
-  justify-content: flex-end;
   gap: sizes.$x8;
   padding: $kobo-modal-padding;
+
+  &.kobo-modal__footer--center {
+    justify-content: center;
+  }
+
+  &.kobo-modal__footer--end {
+    justify-content: flex-end;
+  }
+
 }
 
 // If the KoboModalContent component is used together with the KoboModalFooter
