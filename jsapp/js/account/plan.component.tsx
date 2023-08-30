@@ -86,7 +86,7 @@ function planReducer(state: PlanState, action: DataUpdates) {
     case 'year':
       return {
         ...state,
-        intervalFilter: 'year',
+        intervalFilter: 'month',
         filterToggle: false,
       };
     default:
