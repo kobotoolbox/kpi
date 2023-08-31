@@ -123,6 +123,20 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
+    def process_password_configs(request):
+        return {
+            'enable_password_entropy_meter': (
+                constance.config.ENABLE_PASSWORD_ENTROPY_METER
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
+        }
+
+    @staticmethod
     def process_project_metadata_configs(request):
         data = {
             'project_metadata_fields': I18nUtils.get_metadata_fields('project')
@@ -180,6 +194,7 @@ class EnvironmentView(APIView):
         data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
+        data.update(self.process_password_configs(request))
         data.update(self.process_project_metadata_configs(request))
         data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))

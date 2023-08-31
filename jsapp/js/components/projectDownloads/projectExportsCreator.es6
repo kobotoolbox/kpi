@@ -591,17 +591,20 @@ export default class ProjectExportsCreator extends React.Component {
               label={t('Include groups in headers')}
             />
 
-            <TextBox
-              disabled={!this.state.isIncludeGroupsEnabled}
-              value={this.state.groupSeparator}
-              onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
-              label={t('Group separator')}
-              customModifiers={[
-                'on-white',
-                'group-separator',
-                (!this.state.isIncludeGroupsEnabled ? 'group-separator-disabled' : undefined),
-              ]}
-            />
+            <div className='project-downloads-group-textbox'>
+              <span
+                className='project-downloads-group-textbox__title'
+                disabled={!this.state.isIncludeGroupsEnabled}
+              >
+                {t('Group separator')}
+              </span>
+
+              <TextBox
+                disabled={!this.state.isIncludeGroupsEnabled}
+                value={this.state.groupSeparator}
+                onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
+              />
+            </div>
           </bem.ProjectDownloads__columnRow>
 
           {this.state.selectedExportType.value === EXPORT_TYPES.geojson.value &&
@@ -650,7 +653,7 @@ export default class ProjectExportsCreator extends React.Component {
               value={this.state.customExportName}
               onChange={this.onAnyInputChange.bind(this, 'customExportName')}
               placeholder={t('Name your export settings')}
-              customModifiers={['on-white', 'custom-export']}
+              customClassNames={['custom-export-name-textbox']}
             />
           </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>

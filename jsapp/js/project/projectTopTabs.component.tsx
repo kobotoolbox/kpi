@@ -43,6 +43,8 @@ export default function ProjectTopTabs() {
     (userCan('change_asset', asset) || userCan('change_metadata_asset', asset));
 
   return (
+    // TODO: this list needs to be keyboard-navigable. To make it so, we need
+    // real `<button>`s here, not `<li>`s.
     <nav className={styles.root}>
       <ul className={styles.tabs}>
         <li
