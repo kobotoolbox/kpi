@@ -134,7 +134,7 @@ export default function SidebarDisplaySettings() {
           </ul>
         </KoboModalContent>
 
-        <KoboModalFooter isCentered>
+        <KoboModalFooter alignment='center'>
           {/* This button resets the displays for current tab. */}
           <Button
             label={<strong>{t('Reset')}</strong>}
