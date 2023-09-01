@@ -4,7 +4,7 @@ import styles from './projectActions.module.scss';
 
 const NO_PROJECT_SELECTED = t('No project selected');
 
-export default function ProjectQuickActions() {
+export default function ProjectQuickActionsEmpty() {
   return (
     <div className={styles.root}>
       {/* Archive / Unarchive */}

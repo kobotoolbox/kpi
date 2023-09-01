@@ -18,6 +18,14 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
   const canBulkDelete = userCanDeleteAssets(props.assets);
 
+  let tooltipForDelete = t('Delete projects');
+  if (canBulkDelete) {
+    tooltipForDelete = t('Delete ##count## projects').replace(
+      '##count##',
+      String(props.assets.length)
+    );
+  }
+
   return (
     <div className={actionsStyles.root}>
       {/* Archive / Unarchive - Bulk action not supported yet */}
@@ -43,30 +51,16 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       />
 
       {/* Delete */}
-      {canBulkDelete ? (
-        <Button
-          type='bare'
-          color='storm'
-          size='s'
-          startIcon='trash'
-          tooltip={t('Delete ##count## projects').replace(
-            '##count##',
-            String(props.assets.length)
-          )}
-          onClick={() => setIsDeletePromptOpen(true)}
-          classNames={['right-tooltip']}
-        />
-      ) : (
-        <Button
-          isDisabled
-          type='bare'
-          color='storm'
-          size='s'
-          startIcon='trash'
-          tooltip={t('Delete projects')}
-          classNames={['right-tooltip']}
-        />
-      )}
+      <Button
+        isDisabled={!canBulkDelete}
+        type='bare'
+        color='storm'
+        size='s'
+        startIcon='trash'
+        tooltip={tooltipForDelete}
+        classNames={['right-tooltip']}
+        onClick={() => setIsDeletePromptOpen(true)}
+      />
 
       {isDeletePromptOpen && (
         <BulkDeletePrompt
