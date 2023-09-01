@@ -207,9 +207,17 @@ class CheckoutLinkView(APIView):
 
     @staticmethod
     def start_checkout_session(customer_id, price, organization_id):
-        checkout_mode = (
-            'payment' if price.type == 'one_time' else 'subscription'
-        )
+        kwargs = {}
+        if price.type == 'one_time':
+            checkout_mode = 'payment'
+            kwargs['payment_intent_data'] = {
+                'metadata': {
+                    'organization_id': organization_id,
+                    'price_id': price.id,
+                },
+            }
+        else:
+            checkout_mode = 'subscription'
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             automatic_tax={'enabled': False},
@@ -220,12 +228,9 @@ class CheckoutLinkView(APIView):
                     'quantity': 1,
                 },
             ],
-            metadata={
-                'organization_id': organization_id,
-                'price_id': price.id,
-            },
             mode=checkout_mode,
             success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+            **kwargs,
         )
 
     def post(self, request):
