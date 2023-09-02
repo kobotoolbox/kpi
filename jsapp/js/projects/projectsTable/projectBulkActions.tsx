@@ -31,38 +31,38 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   return (
     <div className={actionsStyles.root}>
       {/* Archive / Unarchive - Bulk action not supported yet */}
-      <Button
-        isDisabled
-        type='bare'
-        color='storm'
-        size='s'
-        startIcon='archived'
-        tooltip={t('Archive/Unarchive')}
-        classNames={['right-tooltip']}
-      />
+      <span data-tip={t('Archive/Unarchive')} className='right-tooltip'>
+        <Button
+          isDisabled
+          type='bare'
+          color='storm'
+          size='s'
+          startIcon='archived'
+        />
+      </span>
 
       {/* Share - Bulk action not supported yet */}
-      <Button
-        isDisabled
-        type='bare'
-        color='storm'
-        size='s'
-        startIcon='user-share'
-        tooltip={t('Share projects')}
-        classNames={['right-tooltip']}
-      />
+      <span data-tip={t('Share projects')} className='right-tooltip'>
+        <Button
+          isDisabled
+          type='bare'
+          color='storm'
+          size='s'
+          startIcon='user-share'
+        />
+      </span>
 
       {/* Delete */}
-      <Button
-        isDisabled={!canBulkDelete}
-        type='bare'
-        color='storm'
-        size='s'
-        startIcon='trash'
-        tooltip={tooltipForDelete}
-        classNames={['right-tooltip']}
-        onClick={() => setIsDeletePromptOpen(true)}
-      />
+      <span data-tip={tooltipForDelete} className='right-tooltip'>
+        <Button
+          isDisabled={!canBulkDelete}
+          type='bare'
+          color='storm'
+          size='s'
+          startIcon='trash'
+          onClick={() => setIsDeletePromptOpen(true)}
+        />
+      </span>
 
       {isDeletePromptOpen && (
         <BulkDeletePrompt

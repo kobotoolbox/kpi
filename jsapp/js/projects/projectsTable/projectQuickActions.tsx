@@ -36,92 +36,95 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
       {/* Archive / Unarchive */}
       {/* Archive a deployed project */}
       {props.asset.deployment_status === 'deployed' && (
-        <Button
-          isDisabled={
-            !isChangingPossible ||
-            props.asset.asset_type !== ASSET_TYPES.survey.id ||
-            !props.asset.has_deployment
-          }
-          type='bare'
-          color='storm'
-          size='s'
-          startIcon='archived'
-          tooltip={t('Archive project')}
-          onClick={() =>
-            archiveAsset(props.asset, (response: DeploymentResponse) => {
-              customViewStore.handleAssetChanged(response.asset);
-            })
-          }
-          classNames={['right-tooltip']}
-        />
+        <span data-tip={t('Archive project')} className='right-tooltip'>
+          <Button
+            isDisabled={
+              !isChangingPossible ||
+              props.asset.asset_type !== ASSET_TYPES.survey.id ||
+              !props.asset.has_deployment
+            }
+            type='bare'
+            color='storm'
+            size='s'
+            startIcon='archived'
+            onClick={() =>
+              archiveAsset(props.asset, (response: DeploymentResponse) => {
+                customViewStore.handleAssetChanged(response.asset);
+              })
+            }
+          />
+        </span>
       )}
       {/* Un-archive a deployed project */}
       {props.asset.deployment_status === 'archived' && (
-        <Button
-          isDisabled={
-            !isChangingPossible ||
-            props.asset.asset_type !== ASSET_TYPES.survey.id ||
-            !props.asset.has_deployment
-          }
-          type='bare'
-          color='storm'
-          size='s'
-          startIcon='archived'
-          tooltip={t('Unarchive project')}
-          onClick={() =>
-            unarchiveAsset(props.asset, (response: DeploymentResponse) => {
-              customViewStore.handleAssetChanged(response.asset);
-            })
-          }
-          classNames={['right-tooltip']}
-        />
+        <span data-tip={t('Unarchive project')} className='right-tooltip'>
+          <Button
+            isDisabled={
+              !isChangingPossible ||
+              props.asset.asset_type !== ASSET_TYPES.survey.id ||
+              !props.asset.has_deployment
+            }
+            type='bare'
+            color='storm'
+            size='s'
+            startIcon='archived'
+            onClick={() =>
+              unarchiveAsset(props.asset, (response: DeploymentResponse) => {
+                customViewStore.handleAssetChanged(response.asset);
+              })
+            }
+          />
+        </span>
       )}
       {/* Show tooltip, since drafts can't be archived/unarchived */}
       {props.asset.deployment_status === 'draft' && (
-        <Button
-          isDisabled
-          type='bare'
-          color='storm'
-          size='s'
-          startIcon='archived'
-          tooltip={t('Draft project selected')}
-          classNames={['right-tooltip']}
-        />
+        <span data-tip={t('Draft project selected')} className='right-tooltip'>
+          <Button
+            isDisabled
+            type='bare'
+            color='storm'
+            size='s'
+            startIcon='archived'
+          />
+        </span>
       )}
 
       {/* Share */}
-      <Button
-        isDisabled={!isManagingPossible}
-        type='bare'
-        color='storm'
-        size='s'
-        startIcon='user-share'
-        tooltip={t('Share project')}
-        onClick={() => manageAssetSharing(props.asset.uid)}
-        classNames={['right-tooltip']}
-      />
+      <span data-tip={t('Share project')} className='right-tooltip'>
+        <Button
+          isDisabled={!isManagingPossible}
+          type='bare'
+          color='storm'
+          size='s'
+          startIcon='user-share'
+          onClick={() => manageAssetSharing(props.asset.uid)}
+        />
+      </span>
 
       {/* Delete */}
-      <Button
-        isDisabled={!isChangingPossible}
-        type='bare'
-        color='storm'
-        size='s'
-        startIcon='trash'
-        tooltip={
+      <span
+        data-tip={
           isChangingPossible ? t('Delete 1 project') : t('Delete project')
         }
-        onClick={() =>
-          deleteAsset(
-            props.asset,
-            getAssetDisplayName(props.asset).final,
-            (deletedAssetUid: string) => {
-              customViewStore.handleAssetsDeleted([deletedAssetUid]);
-            }
-          )
-        }
-        classNames={['right-tooltip']}
-      />
+        className='right-tooltip'
+      >
+        <Button
+          isDisabled={!isChangingPossible}
+          type='bare'
+          color='storm'
+          size='s'
+          startIcon='trash'
+          onClick={() =>
+            deleteAsset(
+              props.asset,
+              getAssetDisplayName(props.asset).final,
+              (deletedAssetUid: string) => {
+                customViewStore.handleAssetsDeleted([deletedAssetUid]);
+              }
+            )
+          }
+        />
+      </span>
     </div>
   );
 }

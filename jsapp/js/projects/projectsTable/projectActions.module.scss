@@ -5,19 +5,4 @@
 .root {
   @include mixins.centerRowFlex;
   gap: sizes.$x10;
-
-  // Override .k-button[disabled] styles to allow tooltips on disabled buttons
-  :global .k-button[disabled] {
-    pointer-events: auto; // Allow tooltips on disabled buttons
-    opacity: 1; // Make the tooltips fully opaque
-
-    // Make the button appear non-pressable
-    .k-icon {
-      opacity: 0.5;
-    }
-    cursor: default;
-    &:active {
-      transform: translateY(0); // Don't depress button when clicked
-    }
-  }
 }
