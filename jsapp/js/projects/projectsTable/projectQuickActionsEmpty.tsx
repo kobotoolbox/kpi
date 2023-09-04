@@ -4,8 +4,10 @@ import styles from './projectActions.module.scss';
 
 const NO_PROJECT_SELECTED = t('No project selected');
 
-/** Inactive Quick Actions buttons. Show these when zero projects are selected
- * in the Project Table. */
+/**
+ * Inactive Quick Actions buttons. Show these when zero projects are selected
+ * in the Project Table.
+ */
 export default function ProjectQuickActionsEmpty() {
   return (
     <div className={styles.root}>

@@ -21,8 +21,10 @@ interface ProjectQuickActionsProps {
   asset: AssetResponse | ProjectViewAsset;
 }
 
-/** Quick Actions (Archive, Share, Delete) buttons. Use these when a single
- * project is selected in the Project Table. */
+/**
+ * Quick Actions (Archive, Share, Delete) buttons. Use these when a single
+ * project is selected in the Project Table.
+ */
 export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
   // The `userCan` method requires `permissions` property to be present in the
   // `asset` object. For performance reasons `ProjectViewAsset` doesn't have

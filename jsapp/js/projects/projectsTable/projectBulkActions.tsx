@@ -14,8 +14,10 @@ function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
   return assets.every((asset) => userCan('manage_asset', asset));
 }
 
-/** "Bulk" Quick Actions buttons. Use these when two or more projects are
- * selected in the Project Table. */
+/**
+ * "Bulk" Quick Actions buttons. Use these when two or more projects are
+ * selected in the Project Table.
+ */
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
   const canBulkDelete = userCanDeleteAssets(props.assets);
