@@ -44,7 +44,7 @@ interface ProjectsTableProps {
 }
 
 /**
- * Displays a table of assets.
+ * Displays a table of assets. Works with `survey` type.
  */
 export default function ProjectsTable(props: ProjectsTableProps) {
   // We ensure name is always visible:
