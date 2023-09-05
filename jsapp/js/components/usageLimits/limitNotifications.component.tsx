@@ -1,14 +1,12 @@
 import LimitBanner from 'js/components/usageLimits/overLimitBanner.component';
-import envStore from 'js/envStore';
 import LimitModal from 'js/components/usageLimits/overLimitModal.component';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Cookies} from 'react-cookie';
 import {
   getAllExceedingLimits,
   getPlanInterval,
 } from 'js/components/usageLimits/usageCalculations';
-import {when} from 'mobx';
-import useWhen from 'js/hooks/useWhen.hook';
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 
 const cookies = new Cookies();
 
@@ -28,28 +26,24 @@ const LimitNotifications = ({
   const limits = getAllExceedingLimits();
   const interval = getPlanInterval();
 
-  useWhen(
-    () => envStore.isReady && envStore.data.stripe_public_key !== null,
-    () => {
-      setStripeEnabled(true);
-      // only check cookies if we're displaying a modal
-      if (!useModal) {
-        return;
-      }
-      const limitsCookie = cookies.get('kpiOverLimitsCookie');
-      if (
-        limitsCookie === undefined &&
-        (limits.exceedList.includes('storage') ||
-          limits.exceedList.includes('submission'))
-      ) {
-        setShowModal(true);
-      }
-      if (limitsCookie) {
-        setDismissed(true);
-      }
-    },
-    [limits]
-  );
+  useWhenStripeIsEnabled(() => {
+    setStripeEnabled(true);
+    // only check cookies if we're displaying a modal
+    if (!useModal) {
+      return;
+    }
+    const limitsCookie = cookies.get('kpiOverLimitsCookie');
+    if (
+      limitsCookie === undefined &&
+      (limits.exceedList.includes('storage') ||
+        limits.exceedList.includes('submission'))
+    ) {
+      setShowModal(true);
+    }
+    if (limitsCookie) {
+      setDismissed(true);
+    }
+  }, [limits]);
 
   const modalDismissed = () => {
     setDismissed(true);
