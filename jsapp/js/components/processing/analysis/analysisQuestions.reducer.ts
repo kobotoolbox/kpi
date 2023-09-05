@@ -1,6 +1,6 @@
-import { generateUuid, moveArrayElementToIndex } from 'jsapp/js/utils';
-import type { AnalysisQuestion } from './constants';
-import type { AnalysisQuestionsAction } from './analysisQuestions.actions';
+import {generateUuid, moveArrayElementToIndex} from 'jsapp/js/utils';
+import type {AnalysisQuestion} from './constants';
+import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
 
 interface AnalysisQuestionDraftable extends AnalysisQuestion {
   isDraft?: boolean;
@@ -57,7 +57,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
 
       const newQuestion: AnalysisQuestionDraftable = {
         type: action.payload.type,
-        labels: { _default: '' },
+        labels: {_default: ''},
         uuid: newUuid,
         response: '',
         // Note: initially the question is being added as a draft. It

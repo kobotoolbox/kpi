@@ -1,14 +1,14 @@
-import React, { useContext } from 'react';
+import React, {useContext} from 'react';
 import AnalysisQuestionsContext from './analysisQuestions.context';
 import styles from './analysisHeader.module.scss';
 import Button from 'js/components/common/button';
 import KoboDropdown from 'js/components/common/koboDropdown';
-import { ANALYSIS_QUESTION_TYPES } from './constants';
-import type { AnalysisQuestionTypeDefinition } from './constants';
+import {ANALYSIS_QUESTION_TYPES} from './constants';
+import type {AnalysisQuestionTypeDefinition} from './constants';
 import Icon from 'js/components/common/icon';
 import assetStore from 'jsapp/js/assetStore';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import { userCan } from 'js/components/permissions/utils';
+import {userCan} from 'js/components/permissions/utils';
 import classNames from 'classnames';
 
 export default function AnalysisHeader() {
@@ -45,7 +45,7 @@ export default function AnalysisHeader() {
         onClick={() => {
           analysisQuestions?.dispatch({
             type: 'addQuestion',
-            payload: { type: definition.type },
+            payload: {type: definition.type},
           });
         }}
         tabIndex={0}
@@ -95,13 +95,11 @@ export default function AnalysisHeader() {
       <span>
         {!analysisQuestions.state.isPending &&
           analysisQuestions.state.changesDetected &&
-          t('Unsaved changes')
-        }
+          t('Unsaved changes')}
         {analysisQuestions.state.isPending && t('Saving…')}
         {!analysisQuestions.state.changesDetected &&
           !analysisQuestions.state.isPending &&
-          t('Saved')
-        }
+          t('Saved')}
       </span>
     </header>
   );

@@ -1,7 +1,7 @@
-import type { AnalysisQuestionsState } from './analysisQuestions.reducer';
-import type { AnalysisQuestionsAction } from './analysisQuestions.actions';
-import type { AnalysisQuestionType } from './constants';
-import { ANALYSIS_QUESTION_TYPES } from './constants';
+import type {AnalysisQuestionsState} from './analysisQuestions.reducer';
+import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
+import type {AnalysisQuestionType} from './constants';
+import {ANALYSIS_QUESTION_TYPES} from './constants';
 
 /** Finds given question in state */
 export function findQuestion(
@@ -12,19 +12,17 @@ export function findQuestion(
 }
 
 export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
-  return ANALYSIS_QUESTION_TYPES.find(
-    (definition) => definition.type === type
-  );
+  return ANALYSIS_QUESTION_TYPES.find((definition) => definition.type === type);
 }
 
 export function changesDetected(
-  dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined,
+  dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined
 ) {
   if (!dispatch) {
     return;
   }
 
-  dispatch({ type: 'changesDetected' });
+  dispatch({type: 'changesDetected'});
 }
 
 export function quietlyUpdateResponse(
@@ -37,7 +35,7 @@ export function quietlyUpdateResponse(
     return;
   }
 
-  dispatch({ type: 'updateResponse' });
+  dispatch({type: 'updateResponse'});
 
   // TODO make actual API call here
   // For now we make a fake response
