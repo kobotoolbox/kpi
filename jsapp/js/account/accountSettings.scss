@@ -68,10 +68,6 @@
     }
   }
 
-  .account-settings-link {
-    font-size: 0.85em;
-  }
-
   .form-modal__item {
     &.form-modal__item--primary-sector {
       width: 46%;
@@ -97,28 +93,9 @@
       width: 46%;
       float: left;
     }
-
-    &.form-modal__item--social {
-      clear: both;
-
-      > label {
-        position: relative;
-
-        &:not(:first-child) {
-          margin-top: sizes.$x5;
-        }
-
-        > i {
-          position: absolute;
-          font-size: 24px;
-          top: 4px;
-          left: 4px;
-        }
-
-        .text-box .text-box__input {
-          padding-left: 40px;
-        }
-      }
-    }
   }
+}
+
+.account-settings-social-row:not(:first-child) {
+  margin-top: sizes.$x5;
 }

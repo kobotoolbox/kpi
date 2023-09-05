@@ -132,7 +132,6 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
 
       <div className={styles.row}>
         <TextBox
-          customModifiers='on-white'
           label={t('Current Password')}
           type='password'
           errors={currentPasswordError}
@@ -141,7 +140,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
         />
 
         <a
-          className='account-settings-link'
+          className={styles.forgotLink}
           href={`${ROOT_URL}/accounts/password/reset/`}
         >
           {t('Forgot Password?')}
@@ -150,7 +149,6 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
 
       <div className={styles.row}>
         <TextBox
-          customModifiers='on-white'
           label={t('New Password')}
           type='password'
           errors={newPasswordError}
@@ -165,7 +163,6 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
 
       <div className={styles.row}>
         <TextBox
-          customModifiers='on-white'
           label={t('Verify Password')}
           type='password'
           errors={verifyPasswordError}
