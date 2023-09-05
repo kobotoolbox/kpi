@@ -21,7 +21,9 @@ import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
 import {ROOT_URL} from 'js/constants';
 import {fetchPostUrl} from 'js/api';
+import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
+import ProjectBulkActions from './projectsTable/projectBulkActions';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -100,9 +102,21 @@ function CustomViewRoute() {
           onClick={exportAllData}
         />
 
+        {selectedAssets.length === 0 && (
+          <div className={styles.actions}>
+            <ProjectQuickActionsEmpty />
+          </div>
+        )}
+
         {selectedAssets.length === 1 && (
-          <div className={styles.quickActions}>
+          <div className={styles.actions}>
             <ProjectQuickActions asset={selectedAssets[0]} />
+          </div>
+        )}
+
+        {selectedAssets.length > 1 && (
+          <div className={styles.actions}>
+            <ProjectBulkActions assets={selectedAssets} />
           </div>
         )}
       </header>
@@ -111,7 +125,9 @@ function CustomViewRoute() {
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}
         highlightedFields={getFilteredFieldsNames()}
-        visibleFields={toJS(customView.fields) || customView.defaultVisibleFields}
+        visibleFields={
+          toJS(customView.fields) || customView.defaultVisibleFields
+        }
         orderableFields={DEFAULT_ORDERABLE_FIELDS}
         order={customView.order}
         onChangeOrderRequested={customView.setOrder.bind(customView)}
