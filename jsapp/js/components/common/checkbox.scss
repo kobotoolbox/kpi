@@ -1,6 +1,7 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/_variables';
 @use 'scss/sizes';
+@use 'scss/mixins';
 
 // Note: we can't change this into a CSS Module, because some Data Table and
 // `utils.ts` code relies on `.checkbox__input` being available.
@@ -106,8 +107,7 @@
 
     // Keyboard focus styles
     &:focus-visible {
-      outline: 3px solid colors.$kobo-alt-blue;
-      outline-offset: sizes.$x1;
+      @include mixins.default-ui-focus;
     }
   }
 }
