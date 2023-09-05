@@ -19,6 +19,7 @@ import styles from './projectViews.module.scss';
 import routeStyles from './myProjectsRoute.module.scss';
 import {toJS} from 'mobx';
 import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
+import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 import Dropzone from 'react-dropzone';
@@ -124,6 +125,12 @@ function MyProjectsRoute() {
             selectedFields={toJS(customView.fields)}
             excludedFields={HOME_EXCLUDED_FIELDS}
           />
+
+          {selectedAssets.length === 0 && (
+            <div className={styles.actions}>
+              <ProjectQuickActionsEmpty />
+            </div>
+          )}
 
           {selectedAssets.length === 1 && (
             <div className={styles.actions}>
