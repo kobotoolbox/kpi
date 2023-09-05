@@ -257,15 +257,7 @@ a.enterpriseLink {
     flex: 1;
   }
 
-  .expandedContainer > :nth-child(2) {
-    height: auto;
-  }
-
-  .expandedContainer > :nth-child(3) {
-    height: auto;
-  }
-
-  .expandedContainer > :nth-child(4) {
+  .expandedContainer > :nth-child(n+2) {
     height: auto;
   }
 }

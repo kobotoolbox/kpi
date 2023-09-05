@@ -86,7 +86,7 @@ function planReducer(state: PlanState, action: DataUpdates) {
     case 'year':
       return {
         ...state,
-        intervalFilter: 'month',
+        intervalFilter: 'year',
         filterToggle: false,
       };
     default:
@@ -513,7 +513,10 @@ export default function Plan() {
                     <div className={styles.priceTitle}>
                       {!price.prices?.unit_amount
                         ? t('Free')
-                        : price.prices.human_readable_price}
+                        : price.prices.human_readable_price.replace(
+                            /year/g,
+                            'month'
+                          )}
                     </div>
 
                     <ul className={styles.featureContainer}>
@@ -616,6 +619,7 @@ export default function Plan() {
                     >
                       {t('Enterprise Plan')}
                     </a>
+                    .
                   </p>
                   <p className={styles.enterpriseDetails}>
                     {t(
