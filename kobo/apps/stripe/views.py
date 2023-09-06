@@ -214,6 +214,8 @@ class CheckoutLinkView(APIView):
                 'metadata': {
                     'organization_id': organization_id,
                     'price_id': price.id,
+                    # product metadata contains the usage limit values for one-time add-ons
+                    **price.product.metadata,
                 },
             }
         else:
