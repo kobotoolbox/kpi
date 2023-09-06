@@ -14,7 +14,7 @@
 
 ## Notes
 
-<!-- Describe what and why you've changed. This should allow the reviewer to more easily understand the scope of the PR. -->
+<!-- Describe what and why you've changed. This should allow the reviewer to more easily understand the scope of the PR. It's good to be thorough here. -->
 
 ## Related issues
 
