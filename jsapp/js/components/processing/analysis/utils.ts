@@ -288,12 +288,12 @@ export async function updateResponseAndReducer(
   }
 }
 
-export function changesDetected(
+export function hasUnsavedWork(
   dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined
 ) {
   if (!dispatch) {
     return;
   }
 
-  dispatch({type: 'changesDetected'});
+  dispatch({type: 'hasUnsavedWork'});
 }

@@ -2,7 +2,7 @@ import React, {useContext, useState} from 'react';
 import CommonHeader from './commonHeader.component';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {
-  changesDetected,
+  hasUnsavedWork,
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
@@ -73,7 +73,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
           // text is added as a tag
           inputProps={{
             onChange: () => {
-              changesDetected(analysisQuestions?.dispatch);
+              hasUnsavedWork(analysisQuestions?.dispatch);
             },
           }}
           onlyUnique

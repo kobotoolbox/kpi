@@ -2,7 +2,7 @@ import React, {useContext, useState} from 'react';
 import CommonHeader from './commonHeader.component';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {
-  changesDetected,
+  hasUnsavedWork,
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
@@ -55,7 +55,7 @@ export default function SelectMultipleResponseForm(
       .filter((item) => item.checked)
       .map((item) => item.name);
 
-    changesDetected(analysisQuestions?.dispatch);
+    hasUnsavedWork(analysisQuestions?.dispatch);
 
     // Update local state
     setResponse(newResponse);

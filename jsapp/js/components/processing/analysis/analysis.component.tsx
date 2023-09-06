@@ -94,8 +94,8 @@ export default function Analysis() {
 
   useEffect(() => {
     // Update singleProcessingStore to trigger navigation block on the route component.
-    singleProcessingStore.setAnalysisTabHasUnsavedChanges(state.changesDetected);
-  }, [state.changesDetected]);
+    singleProcessingStore.setAnalysisTabHasUnsavedChanges(state.hasUnsavedWork);
+  }, [state.hasUnsavedWork]);
 
 
   if (!isInitialised) {

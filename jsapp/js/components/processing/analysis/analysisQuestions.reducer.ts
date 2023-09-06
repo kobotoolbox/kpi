@@ -11,7 +11,7 @@ export interface AnalysisQuestionsState {
    * backend differs from frontend. This is determined by a 200 response or the
    * pending state.
    */
-  changesDetected: boolean;
+  hasUnsavedWork: boolean;
   questions: AnalysisQuestionInternal[];
   /**
    * A list of uids of questions with definitions being edited. I.e. whenever
@@ -38,7 +38,7 @@ type AnalysisQuestionReducerType = (
 
 export const initialState: AnalysisQuestionsState = {
   isPending: false,
-  changesDetected: false,
+  hasUnsavedWork: false,
   questions: [],
   questionsBeingEdited: [],
 };
@@ -86,7 +86,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         questions: [newQuestion, ...state.questions],
         // We immediately open this question for editing
         questionsBeingEdited: [...state.questionsBeingEdited, newUuid],
-        changesDetected: true,
+        hasUnsavedWork: true,
       };
     }
     case 'deleteQuestion': {
@@ -105,7 +105,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
-        changesDetected: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
       };
     }
@@ -115,7 +115,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         // We can put this on the text input of titles and select
         // questions for slight UX improvement but this is simpler
         // and understandable.
-        changesDetected: true,
+        hasUnsavedWork: true,
         questionsBeingEdited: [
           ...state.questionsBeingEdited,
           action.payload.uuid,
@@ -127,7 +127,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         // If we stop editing a question that was a draft, we need to remove it
         // from the questions list
-        changesDetected: false,
+        hasUnsavedWork: false,
         questions: state.questions.filter((question) => {
           if (question.uuid === action.payload.uuid && question.isDraft) {
             return false;
@@ -149,7 +149,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
-        changesDetected: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
         // After question definition was updated, we no longer modify it (this
         // closes the editor)
@@ -179,7 +179,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
-        changesDetected: false,
+        hasUnsavedWork: false,
         questions: newQuestions,
       };
     }
@@ -228,14 +228,14 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
-        changesDetected: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
       };
     }
-    case 'changesDetected': {
+    case 'hasUnsavedWork': {
       return {
         ...state,
-        changesDetected: true,
+        hasUnsavedWork: true,
       };
     }
     default: {

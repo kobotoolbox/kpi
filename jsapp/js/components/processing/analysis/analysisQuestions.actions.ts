@@ -84,5 +84,5 @@ export type AnalysisQuestionsAction =
     }
   // There exist changes in frontend that differes from backend.
   | {
-      type: 'changesDetected';
+      type: 'hasUnsavedWork';
     };
