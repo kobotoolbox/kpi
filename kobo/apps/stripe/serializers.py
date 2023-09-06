@@ -16,6 +16,7 @@ class OneTimeAddOnSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'created',
+            'is_available',
             'usage_limits',
             'limits_used',
             'organization',
