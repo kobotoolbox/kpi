@@ -2,6 +2,7 @@ import React, {useContext, useState} from 'react';
 import CommonHeader from './commonHeader.component';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {
+  changesDetected,
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
@@ -68,6 +69,13 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
         <TagsInput
           value={response}
           onChange={onTagsChange}
+          // Adds a listener to changes on the internal text field before
+          // text is added as a tag
+          inputProps={{
+            onChange: () => {
+              changesDetected(analysisQuestions?.dispatch);
+            },
+          }}
           onlyUnique
           addOnBlur
           addOnPaste
