@@ -155,37 +155,40 @@ export default function AnalysisQuestionEditor(
 
   return (
     <>
-      <header className={styles.header}>
-        <div className={commonStyles.headerIcon}>
+      <header>
+        <form className={styles.header}>
+          <div className={commonStyles.headerIcon}>
           <Icon name={qaDefinition.icon} size='xl' />
-        </div>
+          </div>
 
-        <TextBox
-          value={label}
-          onChange={onTextBoxChange}
-          errors={errorMessage}
-          placeholder={t('Type question')}
-          customModifiers='on-white'
-          renderFocused
-        />
+          <TextBox
+            value={label}
+            onChange={onTextBoxChange}
+            errors={errorMessage}
+            placeholder={t('Type question')}
+            customModifiers='on-white'
+            renderFocused
+          />
 
-        <Button
-          type='frame'
-          color='storm'
-          size='m'
-          label={t('Save')}
-          onClick={saveQuestion}
-          isPending={analysisQuestions.state.isPending}
-        />
+          <Button
+            type='frame'
+            color='storm'
+            size='m'
+            label={t('Save')}
+            onClick={saveQuestion}
+            isPending={analysisQuestions.state.isPending}
+            isSubmit
+          />
 
-        <Button
-          type='bare'
-          color='storm'
-          size='m'
-          startIcon='close'
-          onClick={cancelEditing}
-          isDisabled={analysisQuestions.state.isPending}
-        />
+          <Button
+            type='bare'
+            color='storm'
+            size='m'
+            startIcon='close'
+            onClick={cancelEditing}
+            isDisabled={analysisQuestions.state.isPending}
+          />
+        </form>
       </header>
 
       {qaDefinition.additionalFieldNames && (
