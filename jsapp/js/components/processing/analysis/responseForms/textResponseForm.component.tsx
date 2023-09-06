@@ -3,6 +3,7 @@ import TextBox from 'js/components/common/textBox';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {AUTO_SAVE_TYPING_DELAY} from 'js/components/processing/analysis/constants';
 import {
+  changesDetected,
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
@@ -64,6 +65,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
   }
 
   function onInputChange(newResponse: string) {
+    changesDetected(analysisQuestions?.dispatch);
     setResponse(newResponse);
     saveResponseDelayedAndQuietly();
   }

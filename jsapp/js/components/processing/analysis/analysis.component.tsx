@@ -23,6 +23,7 @@ import InlineMessage from 'js/components/common/inlineMessage';
 import type {SubmissionProcessingDataResponse} from './constants';
 import type {FailResponse} from 'js/dataInterface';
 import {handleApiFail} from 'js/utils';
+import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 
 /**
  * Displays content of the "Analysis" tab. This component is handling all of
@@ -90,6 +91,11 @@ export default function Analysis() {
     }
     setupQuestions();
   }, []);
+
+  usePrompt({
+    when: state.changesDetected,
+    message: t('You have unsaved changes. Leave Analysis tab without saving?'),
+  });
 
   if (!isInitialised) {
     return <LoadingSpinner hideMessage />;

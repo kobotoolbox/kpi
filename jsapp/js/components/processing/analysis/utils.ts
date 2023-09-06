@@ -287,3 +287,13 @@ export async function updateResponseAndReducer(
     dispatch({type: 'updateResponseFailed'});
   }
 }
+
+export function changesDetected(
+  dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined
+) {
+  if (!dispatch) {
+    return;
+  }
+
+  dispatch({type: 'changesDetected'});
+}

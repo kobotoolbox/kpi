@@ -99,8 +99,13 @@ export default function AnalysisHeader() {
       />
 
       <span>
+        {!analysisQuestions.state.isPending &&
+          analysisQuestions.state.changesDetected &&
+          t('Unsaved changes')}
         {analysisQuestions.state.isPending && t('Saving…')}
-        {!analysisQuestions.state.isPending && t('Saved')}
+        {!analysisQuestions.state.changesDetected &&
+          !analysisQuestions.state.isPending &&
+          t('Saved')}
       </span>
     </header>
   );
