@@ -18,6 +18,7 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import clonedeep from 'lodash.clonedeep';
 import {handleApiFail} from 'js/utils';
 import type {FailResponse} from 'js/dataInterface';
+import {func} from 'prop-types';
 
 interface AnalysisQuestionEditorProps {
   uuid: string;
@@ -153,10 +154,14 @@ export default function AnalysisQuestionEditor(
     });
   }
 
+  function onSubmit(evt: React.FormEvent<HTMLFormElement>) {
+    evt.preventDefault();
+  }
+
   return (
     <>
-      <header>
-        <form className={styles.header}>
+      <header className={styles.header}>
+        <form className={styles.form} onSubmit={onSubmit}>
           <div className={commonStyles.headerIcon}>
           <Icon name={qaDefinition.icon} size='xl' />
           </div>
