@@ -6,7 +6,6 @@ from djstripe.models import (
     Customer,
     Price,
     Product,
-    Session,
     Subscription,
     SubscriptionItem,
     SubscriptionSchedule,
@@ -19,6 +18,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.stripe.serializers import (
     ChangePlanSerializer,
     CheckoutLinkSerializer,
@@ -29,19 +29,19 @@ from kobo.apps.stripe.serializers import (
 )
 
 
-# Lists the one-time purchases made by the organization that the logged-in user owns
 class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Lists the one-time add-ons for the authenticated user's organization.
+    """
     permission_classes = (IsAuthenticated,)
     serializer_class = OneTimeAddOnSerializer
-    queryset = Session.objects.all()
+    queryset = PlanAddOn.objects.all()
 
     def get_queryset(self):
         return self.queryset.filter(
-            livemode=settings.STRIPE_LIVE_MODE,
-            customer__subscriber__owner__organization_user__user=self.request.user,
-            mode='payment',
-            payment_intent__status__in=['succeeded', 'processing'],
-        ).prefetch_related('payment_intent')
+            charge__livemode=settings.STRIPE_LIVE_MODE,
+            organization__organization_users__user=self.request.user,
+        ).prefetch_related('organization')
 
 
 class ChangePlanView(APIView):
