@@ -92,10 +92,11 @@ export default function Analysis() {
     setupQuestions();
   }, []);
 
-  usePrompt({
-    when: state.changesDetected,
-    message: t('You have unsaved changes. Leave Analysis tab without saving?'),
-  });
+  useEffect(() => {
+    // Update singleProcessingStore to trigger navigation block on the route component.
+    singleProcessingStore.setAnalysisTabHasUnsavedChanges(state.changesDetected);
+  }, [state.changesDetected]);
+
 
   if (!isInitialised) {
     return <LoadingSpinner hideMessage />;

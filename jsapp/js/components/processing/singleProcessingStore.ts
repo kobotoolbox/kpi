@@ -134,6 +134,8 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private displays = this.getInitialDisplays();
 
+  private analysisTabHasUnsavedWork = false;
+
   // We want to give access to this only through methods.
   private data: SingleProcessingStoreData = {
     translations: [],
@@ -890,7 +892,8 @@ class SingleProcessingStore extends Reflux.Store {
   hasAnyUnsavedWork() {
     return (
       this.hasUnsavedTranscriptDraftValue() ||
-      this.hasUnsavedTranslationDraftValue()
+      this.hasUnsavedTranslationDraftValue() ||
+      this.analysisTabHasUnsavedWork
     );
   }
 
@@ -961,6 +964,12 @@ class SingleProcessingStore extends Reflux.Store {
       });
     }
     this.trigger(this.displays);
+  }
+
+  /** Updates store with the unsaved changes state from the analysis reducer. */
+  setAnalysisTabHasUnsavedChanges(hasUnsavedWork: boolean) {
+    this.analysisTabHasUnsavedWork = hasUnsavedWork;
+    this.trigger(this.data);
   }
 }
 
