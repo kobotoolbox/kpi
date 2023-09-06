@@ -1,26 +1,21 @@
 from django.contrib.auth.models import User
-from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import Customer, PaymentIntent, Charge, Price, Product
+from djstripe.models import Customer, Product, Price, PaymentIntent, Charge
 from model_bakery import baker
-from rest_framework import status
 
 from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.models import PlanAddOn
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
-class OneTimeAddOnAPITestCase(BaseTestCase):
+class TestPlanAddOnTestCase(BaseTestCase):
+
     fixtures = ['test_data']
 
     def setUp(self):
-        self.someuser = User.objects.get(username='someuser')
-        self.client.force_login(self.someuser)
-        self.url = reverse('addons-list')
-        self.price_id = 'price_305dfs432ltnjw'
-
-    def _insert_data(self):
-        self.organization = baker.make(Organization)
-        self.organization.add_user(self.someuser, is_admin=True)
+        self.some_user = User.objects.get(username='someuser')
+        self.client.force_login(self.some_user)
+        self.organization = baker.make(Organization, id='orgSALFMLFMSDGmgdlsgmsd')
         self.customer = baker.make(Customer, subscriber=self.organization)
 
     def _create_product(self, metadata):
@@ -62,32 +57,23 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         self.charge.save()
 
-    def test_no_addons(self):
-        response = self.client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['results'] == []
-
-    def test_get_endpoint(self):
-        self._insert_data()
-        self._create_product({'product_type': 'addon', 'submissions_limit': 2000})
+    def test_add_on_is_created_on_charge(self):
+        self._create_product({'product_type': 'addon', 'mt_characters_limit': 2000})
         self._create_payment()
-        response = self.client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == 1
+        add_on = PlanAddOn.objects.get(charge=self.charge)
+        assert add_on.product == self.product
+        assert len(add_on.usage_limits.keys()) == 1
+        assert add_on.usage_limits['mt_characters_limit'] == 2000
+        assert add_on.is_available is True
 
-    def test_anonymous_user(self):
-        self._insert_data()
-        self._create_product({'product_type': 'addon', 'submissions_limit': 2000})
-        self._create_payment()
-        self.client.logout()
-        response = self.client.get(self.url)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+    def test_add_on_inactive_on_refunded_charge(self):
+        self._create_product({'product_type': 'addon', 'asr_seconds_limit': 2000})
+        self._create_payment(refunded=True)
+        add_on = PlanAddOn.objects.get(charge=self.charge)
+        assert add_on.is_available is False
 
-    def test_not_own_addon(self):
-        self._insert_data()
+    def test_add_on_inactive_on_cancelled_charge(self):
         self._create_product({'product_type': 'addon', 'submissions_limit': 2000})
-        self._create_payment()
-        self.client.force_login(User.objects.get(username='anotheruser'))
-        response_get_list = self.client.get(self.url)
-        assert response_get_list.status_code == status.HTTP_200_OK
-        assert response_get_list.data['results'] == []
+        self._create_payment(status='cancelled')
+        add_on = PlanAddOn.objects.get(charge=self.charge)
+        assert add_on.is_available is False
