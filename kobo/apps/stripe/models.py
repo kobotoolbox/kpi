@@ -1,19 +1,16 @@
-from django.conf import settings
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from djstripe.models import Subscription, PaymentIntent, Product, Price
+from djstripe.models import Subscription, Price, Charge
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kpi.fields import KpiUidField
 
 
 def get_default_add_on_limits():
     return {
         'submission_limit': 0,
-        'storage_byte_limit': 0,
         'asr_seconds_limit': 0,
         'mt_characters_limit': 0,
     }
@@ -21,11 +18,12 @@ def get_default_add_on_limits():
 
 class PlanAddOn(models.Model):
     organization = models.ForeignKey('organizations.Organization', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
-    payment_intent = models.ForeignKey('djstripe.PaymentIntent', to_field='id', on_delete=models.CASCADE)
+    charge = models.ForeignKey('djstripe.Charge', to_field='id', on_delete=models.CASCADE)
     product = models.ForeignKey('djstripe.Product', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
     usage_limits = models.JSONField(
         default=get_default_add_on_limits,
-        help_text='The historical usage limits, when the add-on was purchased.'
+        help_text='''The historical usage limits when the add-on was purchased. Possible keys:
+        "submission_limit", "asr_seconds_limit", and/or "mt_characters_limit"''',
     )
     limits_used = models.JSONField(
         default=get_default_add_on_limits,
@@ -45,59 +43,51 @@ class PlanAddOn(models.Model):
                 return True
         return False
 
+    @property
+    def is_available(self):
+        return self.charge.payment_intent.status == 'succeeded' and not (self.is_expended or self.charge.refunded)
 
-@receiver(post_save, sender=PaymentIntent)
-def create_or_update_one_time_add_on(sender, instance, created, **kwargs):
-    # make sure the PaymentIntent is for a successful addon purchase
-    if not instance.metadata['price_id'] or instance.status != 'succeeded':
+
+@receiver(post_save, sender=Charge)
+def make_add_on_for_charge(sender, instance, created, **kwargs):
+    create_or_update_one_time_add_on(instance)
+
+
+def create_or_update_one_time_add_on(charge):
+    payment_intent = charge.payment_intent
+    # make sure the charge is for a successful addon purchase
+    if payment_intent.status != 'succeeded' or 'price_id' not in charge.metadata:
         return
 
     try:
         product = Price.objects.get(
-            id=instance.metadata['price_id'],
-            livemode=settings.STRIPE_LIVE_MODE
+            id=charge.metadata['price_id']
         ).product
-        organization = Organization.objects.filter(id=instance.metadata['organization_id']).first()
+        organization = Organization.objects.get(id=charge.metadata['organization_id'])
     except MultipleObjectsReturned or ObjectDoesNotExist:
         return
 
-    if not (product and organization) or product.metadata['product_type'] != 'addon':
+    if product.metadata['product_type'] != 'addon':
         return
 
     usage_limits = {}
+    limits_used = {}
     for limit_type in get_default_add_on_limits().keys():
-        if limit_type in product.metadata:
-            usage_limits[limit_type] = product.metadata[limit_type]
-    kwargs = {
-        'product': product,
-        'organization': organization,
-        'payment_intent': instance,
-        'usage_limits': usage_limits,
-        'created': instance.created,
-    }
-    if created:
-        plan = PlanAddOn.objects.create(**kwargs)
-    else:
-        plan = PlanAddOn.objects.filter(payment_intent=instance).first()
-        if plan:
-            plan.update(usage_limits=usage_limits)
-        else:
-            plan = PlanAddOn.objects.create(**kwargs)
-    plan.save()
+        if limit_type in charge.metadata:
+            limit_value = charge.metadata[limit_type]
+            usage_limits[limit_type] = int(limit_value)
+            limits_used[limit_type] = 0
+
+    plan, plan_created = PlanAddOn.objects.get_or_create(charge=charge, created=charge.created)
+    if plan_created:
+        plan.product = product
+        plan.organization = organization
+        plan.usage_limits = usage_limits
+        plan.limits_used = limits_used
+        plan.save()
 
 
-def get_add_on_limits_for_user(user_id):
-    limits = get_default_add_on_limits()
-
-    subscription_add_ons = Subscription.objects.filter(
-        customer__subscriber__organization_user__user__id=user_id,
-        status__in=ACTIVE_STRIPE_STATUSES,
-        items__plan__product__metadata__product_type='addon',
-    )
-    one_time_payment_intents = PaymentIntent.objects.only('metadata').filter(
-        customer__subscriber__organization_users__user__id=user_id,
-        status='succeeded',
-    ).values('metadata')
-    one_time_products = Product.objects.filter
-
-    return limits
+@receiver(post_save, sender=Subscription)
+def deactivate_addon_on_subscription_change(sender, instance, created, **kwargs):
+    # TODO: Implement me!
+    pass
