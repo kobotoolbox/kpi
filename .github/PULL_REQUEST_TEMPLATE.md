@@ -10,7 +10,11 @@
 
 ## Description
 
-<!-- Describe your work here. If users will notice your changes, be sure to write in user-friendly language. -->
+<!-- Describe the outcome of your work here. If users will notice your changes, be sure to write in user-friendly language. -->
+
+## Notes
+
+<!-- Describe what and why you've changed. This should allow the reviewer to more easily understand the scope of the PR. -->
 
 ## Related issues
 
