@@ -6,6 +6,8 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
+// We don't use `KoboTagsInput` here, because we don't want the tags splitting
+// feature it has built in. It's easier for us to use `TagsInput` directly.
 import TagsInput from 'react-tagsinput';
 import commonStyles from './common.module.scss';
 
