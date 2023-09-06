@@ -9,17 +9,17 @@ class PlanAddOnAdmin(ModelAdmin):
     list_display = (
         'id',
         'created',
-        'is_expended',
+        'is_available',
         'organization',
         'product',
     )
     list_filter = (
-        'payment_intent__livemode',
+        'charge__livemode',
         'created',
         'product',
         'organization',
     )
-    search_fields = ('organization__id', 'id', 'product__id')
+    search_fields = ('organization__id', 'id', 'organization__name', 'product__id')
     actions = '_delete'
 
     def get_queryset(self, request):
