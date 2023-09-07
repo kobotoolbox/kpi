@@ -552,7 +552,7 @@ export class DataTable extends React.Component {
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
     const flatPaths = getSurveyFlatPaths(survey);
-    allColumns.forEach((key) => {
+    allColumns.forEach((key, columnIndex) => {
       var q;
       if (key.includes('/')) {
         const qParentG = key.split('/');
@@ -640,10 +640,11 @@ export class DataTable extends React.Component {
             );
 
             if (sourceColumn) {
-              // This way if we have a source column with index `2`, we will set
-              // the supplemental details column to `2__supplementalDetails/…`
+              // This way if we have a source column with index `2`, and
+              // the supplemental column with index `5`, we will set
+              // the supplemental details column to `2_5_supplementalDetails/…`
               // to make sure it keeps the correct order.
-              index = `${sourceColumn.index}_${key}`;
+              index = `${sourceColumn.index}_${columnIndex}_${key}`;
             }
           }
       }
