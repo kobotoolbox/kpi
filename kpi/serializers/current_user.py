@@ -90,8 +90,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         try:
             extra_details = obj.extra_details
         except obj.extra_details.RelatedObjectDoesNotExist:
-            # if user has not extra details, admin has not been able to set
-            # `validated_password`. Let's consider it True.
+            # validated_password defaults to True and only becomes False if set
+            # by an administrator. If extra_details does not exist, then
+            # there's no way the administrator ever intended validated_password
+            # to be False for this user
             return True
 
         return extra_details.validated_password

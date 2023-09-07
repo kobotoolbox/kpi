@@ -1,4 +1,3 @@
-from allauth.account.models import EmailAddress
 from django.core import mail
 from django.urls import reverse
 from model_bakery import baker

@@ -109,7 +109,7 @@ class PasswordTestCase(BaseTestCase):
     def test_most_recent_password_failed(self):
         password = 'someuser'
         error = self._run_validation(password)
-        assert 'You cannot use your last password' in error
+        assert 'You cannot reuse your last password' in error
 
     @override_config(
         ENABLE_MOST_RECENT_PASSWORD_VALIDATION=True,
@@ -135,7 +135,7 @@ class PasswordTestCase(BaseTestCase):
         password = 'aAaa'
         error = self._run_validation(password)
         assert (
-            'The password must be a combination of 3 of the characters rules'
+            'The password must contain at least 3 different kinds of characters'
             in error
         )
 

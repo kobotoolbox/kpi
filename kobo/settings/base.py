@@ -292,7 +292,7 @@ CONSTANCE_CONFIG = {
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
-        "Possible fields are\n:"
+        "Possible fields are:\n"
         "'organization', 'organization_website', 'sector', 'gender', 'bio', "
         "'city', 'country', 'twitter', 'linkedin', and 'instagram'.\n\n"
         'To add another language, follow the example below.\n\n'
@@ -383,7 +383,7 @@ CONSTANCE_CONFIG = {
         'Display an entropy meter and password quality suggestions whenever users change their passwords.',
     ),
     'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION': (
-        True,
+        False,
         'Enable minimum length validation',
     ),
     'MINIMUM_PASSWORD_LENGTH': (
@@ -392,7 +392,7 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION': (
-        True,
+        False,
         'Enable user attribute similarity validation. '
         'See `PASSWORD_USER_ATTRIBUTES` below for customization.',
     ),
@@ -406,13 +406,13 @@ CONSTANCE_CONFIG = {
         "Possible attributes are 'username', 'full_name', 'email', 'organization'."
     ),
     'ENABLE_COMMON_PASSWORD_VALIDATION': (
-        True,
+        False,
         'Enable common password validation.\n'
         'To customize the list, go to Configuration file section and add common password file.\n'
         'Django default list is based on https://tinyurl.com/django3-2-common-passwords.',
     ),
     'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION': (
-        True,
+        False,
         'Enable custom character rules',
     ),
     'PASSWORD_CUSTOM_CHARACTER_RULES': (
@@ -433,28 +433,32 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'ENABLE_MOST_RECENT_PASSWORD_VALIDATION': (
-        True,
+        False,
         'Enable most recent password validation which will prevent the user from '
         'reusing the most recent password.',
     ),
     'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT': (
-        True,
+        False,
         'Enable custom password guidance text to help users create their passwords.',
     ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
-        LazyJSONSerializable({
-            'default': t(
-                'The password must be a combination of 10 or more alphanumeric'
-                ' and special characters. It must contain at least one uppercase'
-                ' and lowercase letter, it cannot be similar to your name, '
-                'username or email.'
-            ),
-            'some-other-language': (
-                'This will never appear because `some-other-language` is not '
-                'a valid language code, but this entry is here to show you '
-                'an example of adding another message in a different language.'
-            ),
-        }),
+        LazyJSONSerializable(
+            {
+                'default': t(
+                    'The password must be at least 10 characters long and'
+                    ' contain 3 or more of the following: uppercase letters,'
+                    ' lowercase letters, numbers, and special characters. It'
+                    ' cannot be similar to your name, username, or email'
+                    ' address.'
+                ),
+                'some-other-language': (
+                    'This will never appear because `some-other-language` is'
+                    ' not a valid language code, but this entry is here to show'
+                    ' you an example of adding another message in a different'
+                    ' language.'
+                ),
+            }
+        ),
         (
             'Guidance message presented when users create or modify a password. '
             'It should reflect the defined password rules.\n\n'
