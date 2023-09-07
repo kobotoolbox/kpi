@@ -23,7 +23,6 @@ import InlineMessage from 'js/components/common/inlineMessage';
 import type {SubmissionProcessingDataResponse} from './constants';
 import type {FailResponse} from 'js/dataInterface';
 import {handleApiFail} from 'js/utils';
-import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 
 /**
  * Displays content of the "Analysis" tab. This component is handling all of
@@ -93,7 +92,9 @@ export default function Analysis() {
   }, []);
 
   useEffect(() => {
-    // Update singleProcessingStore to trigger navigation block on the route component.
+    // The singleProcessingStore is handling navigation blocking for the whole
+    // single processing route. We need to keep it up to date whether the
+    // analysisQuestions.reducer has unsaved changes or not.
     singleProcessingStore.setAnalysisTabHasUnsavedChanges(state.hasUnsavedWork);
   }, [state.hasUnsavedWork]);
 

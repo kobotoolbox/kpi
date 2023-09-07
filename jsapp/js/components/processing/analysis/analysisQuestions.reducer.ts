@@ -7,9 +7,8 @@ export interface AnalysisQuestionsState {
   /** Whether any async action is being done right now. */
   isPending: boolean;
   /**
-   * True if user has made a change and the change has not been requested OR
-   * backend differs from frontend. This is determined by a 200 response or the
-   * pending state.
+   * It's true if user has made a change in the UI and the Back end has not been
+   * updated yet. Every completed call to API will change it back to false.
    */
   hasUnsavedWork: boolean;
   questions: AnalysisQuestionInternal[];
@@ -112,9 +111,10 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
     case 'startEditingQuestion': {
       return {
         ...state,
-        // We can put this on the text input of titles and select
-        // questions for slight UX improvement but this is simpler
-        // and understandable.
+        // Instead of checking changes on every input in the edited question,
+        // we assume that, as soon as user starts to edit a question, there are
+        // unsaved changes. This is not ideal UX, but it's much simpler and
+        // still logical.
         hasUnsavedWork: true,
         questionsBeingEdited: [
           ...state.questionsBeingEdited,

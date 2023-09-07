@@ -287,13 +287,3 @@ export async function updateResponseAndReducer(
     dispatch({type: 'updateResponseFailed'});
   }
 }
-
-export function hasUnsavedWork(
-  dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined
-) {
-  if (!dispatch) {
-    return;
-  }
-
-  dispatch({type: 'hasUnsavedWork'});
-}

@@ -3,7 +3,6 @@ import TextBox from 'js/components/common/textBox';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {AUTO_SAVE_TYPING_DELAY} from 'js/components/processing/analysis/constants';
 import {
-  hasUnsavedWork,
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
@@ -65,7 +64,7 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
   }
 
   function onInputChange(newResponse: string) {
-    hasUnsavedWork(analysisQuestions?.dispatch);
+    analysisQuestions?.dispatch({type: 'hasUnsavedWork'});
     setResponse(newResponse);
     saveResponseDelayedAndQuietly();
   }
