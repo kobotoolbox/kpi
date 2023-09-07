@@ -73,7 +73,12 @@ function OverLimitModal(props: OverLimitModalProps) {
               {'.'}
             </div>
             <p className={cx(limitBannerContainer, styles.consequences)}>
-              <Icon name='warning' size='m' color='red' />
+              <Icon
+                name='warning'
+                size='m'
+                color='red'
+                classNames={[styles.warningIcon]}
+              />
               <span>
                 {t(
                   'Users who have exceeded their submission or storage limits may be temporarily blocked from collecting data. Repeatedly exceeding usage limits may result in account suspension.'
@@ -90,7 +95,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={handleClose}
             label={t('remind me later')}
-            classNames={[styles.button]}
+            classNames={[styles.button, styles.frame]}
           />
 
           <Button
@@ -99,7 +104,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
             label={t('upgrade now')}
-            classNames={[styles.button]}
+            classNames={[styles.button, styles.full]}
           />
         </KoboModalFooter>
       </KoboModal>
