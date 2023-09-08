@@ -46,8 +46,7 @@ ACTIVE_SINCE = timezone.now() - relativedelta(months=6)
 #     'organizations_organization__djstripe_customers__subscriptions': None,
 #     'id': 1,
 # }
-USER_FILTERS = {
-}
+USER_FILTERS = {}
 
 
 # An array of dicts containing additional queries on the User.
@@ -62,11 +61,7 @@ USER_FILTERS = {
 #         'id': 5
 #     }
 # ]
-USER_EXCLUDE = [
-    {
-        'organizations_organization__djstripe_customers__subscriptions': None,
-    }
-]
+USER_EXCLUDE = [{}]
 
 start_time = time.time()
 
@@ -153,10 +148,13 @@ def run(*args):
     eligible_users = get_eligible_users(user_detail_email_key, force=force_send, test=test_mode)
 
     active_user_count = len(eligible_users)
-    print(f"found {active_user_count} users who haven't received emails")
+    if force_send:
+        print(f'found {active_user_count} users')
+    else:
+        print(f'found {active_user_count} users who haven\'t received emails')
     if active_user_count <= 10:
         for user in eligible_users:
-            print(user.email)
+            print(user.email_cleaned)
 
     if test_mode:
         quit('in test mode, exiting before sending any emails')
@@ -170,7 +168,7 @@ def run(*args):
         for attempts in range(MAX_SEND_ATTEMPTS):
             try:
                 response = send_email(
-                    ses, user.email, configuration=configuration_set
+                    ses, user.email_cleaned, configuration=configuration_set
                 )
                 status = response['ResponseMetadata']['HTTPStatusCode']
             except ClientError as e:
@@ -254,23 +252,23 @@ def get_eligible_users(user_detail_email_key, force=False, test=False):
         .exclude(
             email='',
         )
-        .exclude(
-            extra_details__isnull=True,
-        )
     )
     for query in USER_EXCLUDE:
         eligible_users = eligible_users.exclude(**query)
     if not force:
         eligible_users = eligible_users.exclude(
+            extra_details__isnull=True,
+        ).exclude(
             extra_details__private_data__has_key=user_detail_email_key,
         )
+
     # last step: convert email to lowercase and strip any filters
     # regex finds 'name+filter@example.com' type addresses
     return eligible_users.annotate(email_cleaned=Func(
             Lower(F('email')),
-            Value(r'\+[^*]*@'),
+            Value(r'\+\S*@'),
+            Value('@'),
             Value(''),
-            Value('g'),
             function='REGEXP_REPLACE',
             output_field=CharField(),
     )).distinct(
