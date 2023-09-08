@@ -550,15 +550,19 @@ DJANGO_LANGUAGE_CODES = env.str(
         'fr '  # French
         'hi '  # Hindi
         'hu '  # Hungarian
+        'id '  # Indonesian
         'ja '  # Japanese
         'ku '  # Kurdish
         'ln '  # Lingala
         'my '  # Burmese/Myanmar
+        'ne '  # Nepali
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
+        'th '  # Thai
         'tr '  # Turkish
         'uk '  # Ukrainian
+        'vi '  # Vietnamese
         'zh-hans'  # Chinese Simplified
     )
 )
