@@ -17,13 +17,13 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self.client.force_login(self.someuser)
         self.url = reverse('addons-list')
         self.price_id = 'price_305dfs432ltnjw'
-
-    def _insert_data(self):
         self.organization = baker.make(Organization)
         self.organization.add_user(self.someuser, is_admin=True)
         self.customer = baker.make(Customer, subscriber=self.organization)
 
-    def _create_product(self, metadata):
+    def _create_product(self, metadata=None):
+        if not metadata:
+            metadata = {'product_type': 'addon', 'submissions_limit': 2000}
         self.product = baker.make(
             Product,
             active=True,
@@ -50,7 +50,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
             created=timezone.now(),
             payment_intent=self.payment_intent,
             paid=True,
-            status='succeeded',
+            status=status,
             livemode=False,
             amount_refunded=0 if refunded else 2000,
             amount=2000,
@@ -67,25 +67,60 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['results'] == []
 
-    def test_get_endpoint(self):
-        self._insert_data()
-        self._create_product({'product_type': 'addon', 'submissions_limit': 2000})
+    def test_get_addon(self):
+        self._create_product()
         self._create_payment()
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
+        assert response.data['results'][0]['product'] == self.product.id
+
+    def test_multiple_addons(self):
+        self._create_product()
+        self._create_payment()
+        self._create_payment()
+        self._create_payment()
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 3
+
+    def test_no_addons_for_invalid_product_metadata(self):
+        self._create_product(metadata={'product_type': 'subscription', 'submissions_limit': 2000})
+        self._create_payment()
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 0
+
+        self._create_product(metadata={'product_type': 'addon', 'not_a_real_limit_key': 2000})
+        self._create_payment()
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 0
+
+    def test_addon_inactive_for_refunded_charge(self):
+        self._create_product()
+        self._create_payment(refunded=True)
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert not response.data['results'][0]['is_available']
+
+    def test_no_addon_for_cancelled_charge(self):
+        self._create_product()
+        self._create_payment(status='cancelled')
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 0
 
     def test_anonymous_user(self):
-        self._insert_data()
-        self._create_product({'product_type': 'addon', 'submissions_limit': 2000})
+        self._create_product()
         self._create_payment()
         self.client.logout()
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_not_own_addon(self):
-        self._insert_data()
-        self._create_product({'product_type': 'addon', 'submissions_limit': 2000})
+        self._create_product()
         self._create_payment()
         self.client.force_login(User.objects.get(username='anotheruser'))
         response_get_list = self.client.get(self.url)
