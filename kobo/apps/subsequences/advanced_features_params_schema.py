@@ -87,6 +87,7 @@ ADVANCED_FEATURES_PARAMS_SCHEMA['$defs'] = {
         'properties': {
             'labels': {'$ref': '#/$defs/qualLabels'},
             'uuid': {'$ref': '#/$defs/qualUuid'},
+            'options': {'type': 'object'},
         },
         'required': ['labels', 'uuid'],
     },
