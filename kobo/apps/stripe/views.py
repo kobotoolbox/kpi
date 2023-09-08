@@ -169,7 +169,7 @@ class CheckoutLinkView(APIView):
     serializer_class = CheckoutLinkSerializer
 
     @staticmethod
-    def generate_payment_link(price, user, organization_id):
+    def generate_payment_link(price, user, organization_id, quantity=1):
         if organization_id:
             # Get the organization for the logged-in user and provided organization ID
             organization = Organization.objects.get(
@@ -201,12 +201,12 @@ class CheckoutLinkView(APIView):
             )
             customer.sync_from_stripe_data(stripe_customer)
         session = CheckoutLinkView.start_checkout_session(
-            customer.id, price, organization.id
+            customer.id, price, organization.id, quantity=quantity
         )
         return session['url']
 
     @staticmethod
-    def start_checkout_session(customer_id, price, organization_id):
+    def start_checkout_session(customer_id, price, organization_id, quantity=1):
         kwargs = {}
         if price.type == 'one_time':
             checkout_mode = 'payment'
@@ -220,6 +220,8 @@ class CheckoutLinkView(APIView):
             }
         else:
             checkout_mode = 'subscription'
+            # subscriptions in Stripe can only be purchased one at a time
+            quantity = 1
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             automatic_tax={'enabled': False},
@@ -227,7 +229,7 @@ class CheckoutLinkView(APIView):
             line_items=[
                 {
                     'price': price.id,
-                    'quantity': 1,
+                    'quantity': quantity,
                 },
             ],
             mode=checkout_mode,
@@ -240,7 +242,8 @@ class CheckoutLinkView(APIView):
         serializer.is_valid(raise_exception=True)
         price = serializer.validated_data.get('price_id')
         organization_id = serializer.validated_data.get('organization_id')
-        url = self.generate_payment_link(price, request.user, organization_id)
+        quantity = serializer.validated_data.get('quantity')
+        url = self.generate_payment_link(price, request.user, organization_id, quantity=quantity)
         return Response({'url': url})
 
 

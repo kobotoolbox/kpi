@@ -84,6 +84,7 @@ class CustomerPortalSerializer(serializers.Serializer):
 
 class CheckoutLinkSerializer(PriceIdSerializer, CustomerPortalSerializer):
     organization_id = serializers.CharField(required=False)
+    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
 
 class PriceSerializer(BasePriceSerializer):
