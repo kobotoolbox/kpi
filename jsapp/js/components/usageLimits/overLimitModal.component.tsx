@@ -63,11 +63,12 @@ function OverLimitModal(props: OverLimitModalProps) {
               {t('included with your current plan.')}
             </div>
             <div>
-              <a href={`#${ACCOUNT_ROUTES.PLAN}`}>
-                {t('Please upgrade your plan')}
+              {t('Please')}{' '}
+              <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.link}>
+                {t('upgrade your plan')}
               </a>{' '}
               {t('as soon as possible. You can')}{' '}
-              <a href={`#${ACCOUNT_ROUTES.USAGE}`}>
+              <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.link}>
                 {t('review your usage in account settings')}
               </a>
               {'.'}
