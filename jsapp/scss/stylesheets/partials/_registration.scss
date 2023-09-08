@@ -411,11 +411,11 @@
 
     form.language-switcher {
       max-width: 400px;
+
       &[data-path="/accounts/signup/"] {
         max-width: 860px;
       }
     }
-
 
     form.registration--register {
       padding: 30px;
