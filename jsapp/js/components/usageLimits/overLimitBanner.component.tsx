@@ -35,7 +35,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           ? t('You are approaching your')
           : t('You have reached your')}{' '}
         <strong>
-          {`${props.interval}ly`}{' '}
+          {props.interval === 'month' ? t('monthly') : t('yearly')}{' '}
           {props.limits.map((item, i) => (
             <span key={i}>
               {i > 0 && props.limits.length > 2 && ', '}
@@ -88,7 +88,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         )}
         {'.'}
       </div>
-      {props.warning && (
+      {props.warning && !props.usagePage && (
         <Button
           type={'frame'}
           color={'dark-blue'}
@@ -100,7 +100,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           classNames={[styles.bannerBtn]}
         />
       )}
-      {!props.warning && (
+      {(!props.warning || props.usagePage) && (
         <Button
           type={'frame'}
           color={'dark-red'}
