@@ -38,6 +38,7 @@ import type {
   AnalysisFormJsonField,
 } from 'js/dataInterface';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import {QUAL_NOTE_TYPE} from 'js/components/processing/analysis/constants';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -498,9 +499,9 @@ export function renderQuestionTypeIcon(
 
 /**
  * Injects supplemental details columns next to their respective source rows in
- * a given list of rows.
+ * a given list of rows. Returns a new updated `rows` list.
  *
- * NOTE: it returns a new updated `rows` list.
+ * Note: we omit injecting `qual_note` questions.
  */
 export function injectSupplementalRowsIntoListOfRows(
   asset: AssetResponse,
@@ -520,12 +521,17 @@ export function injectSupplementalRowsIntoListOfRows(
   // on Back end, to build a list of columns grouped by source question
   const additionalFields = asset.analysis_form_json?.additional_fields || [];
   const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {};
-  additionalFields.forEach((add_field: AnalysisFormJsonField) => {
-    const sourceName: string = add_field.source;
+  additionalFields.forEach((field: AnalysisFormJsonField) => {
+    // We don't want to display notes in the UI, so we omit it here:
+    if (field.type === QUAL_NOTE_TYPE) {
+      return;
+    }
+
+    const sourceName: string = field.source;
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = [];
     }
-    extraColsBySource[sourceName].push(add_field);
+    extraColsBySource[sourceName].push(field);
   });
 
   // Step 4: Inject all the extra columns immediately after source question
@@ -533,8 +539,8 @@ export function injectSupplementalRowsIntoListOfRows(
   output.forEach((col: string) => {
     const qpath = col.replace(/\//g, '-');
     outputWithCols.push(col);
-    (extraColsBySource[qpath] || []).forEach((assetAddlField) => {
-      outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`);
+    (extraColsBySource[qpath] || []).forEach((extraCol) => {
+      outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`);
     });
   });
 

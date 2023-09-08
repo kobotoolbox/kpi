@@ -16,6 +16,10 @@ export type AnalysisQuestionType =
   | 'qual_tags'
   | 'qual_text';
 
+// We use it on other parts of code that is not related to analysis and is not
+// using `AnalysisQuestionType`.
+export const QUAL_NOTE_TYPE: AnalysisQuestionType = 'qual_note';
+
 interface AnalysisLabels {
   _default: string;
   [langCode: string]: string;
