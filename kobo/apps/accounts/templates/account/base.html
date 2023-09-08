@@ -26,7 +26,7 @@
 {% block language_selector %}
 {% load i18n %}
 {# This is the language switcher dropdown #}
-<form action="{% url 'set_language' %}" method="post" class="language-switcher">
+<form action="{% url 'set_language' %}" method="post" class="language-switcher" data-path="{{ request.path }}">
   {% csrf_token %}
 
   <input name="next" type="hidden" value="{{ redirect_to }}" />
