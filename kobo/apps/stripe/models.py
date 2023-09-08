@@ -48,6 +48,22 @@ class PlanAddOn(models.Model):
     def is_available(self):
         return self.charge.payment_intent.status == 'succeeded' and not (self.is_expended or self.charge.refunded)
 
+    @property
+    def limits_available(self):
+        limits = {}
+        for limit_type, limit_amount in self.limits_used.items():
+            limits_available = self.usage_limits[limit_type] - self.limits_used[limit_type]
+            limits[limit_type] = max(limits_available, 0)
+        return limits
+
+    def increment_add_on(self, limit_type, amount_used):
+        if limit_type in self.usage_limits.keys():
+            limit_available = self.limits_available[limit_type]
+            self.usage_limits[limit_type] += min(amount_used, limit_available)
+            self.save()
+            return True
+        return False
+
 
 @receiver(post_save, sender=Charge)
 def make_add_on_for_charge(sender, instance, created, **kwargs):
@@ -55,7 +71,6 @@ def make_add_on_for_charge(sender, instance, created, **kwargs):
 
 
 def create_or_update_one_time_add_on(charge):
-    payment_intent = charge.payment_intent
     if 'price_id' not in charge.metadata:
         # make sure the charge is for a successful addon purchase
         return
