@@ -1463,9 +1463,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             add_supplemental_details_to_query = False
 
         if add_supplemental_details_to_query:
-            extras_query = self.asset.submission_extras
-            extras_data = dict(extras_query.values_list('submission_uuid', 'content'))
-            mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
+            mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
         return (
             self.__rewrite_json_attachment_urls(

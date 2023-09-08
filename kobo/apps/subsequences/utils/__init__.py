@@ -119,7 +119,10 @@ def get_jsonschema(action_instances=(), url=None):
 
 SUPPLEMENTAL_DETAILS_KEY = '_supplementalDetails'
 
-def stream_with_extras(submission_stream, extras):
+def stream_with_extras(submission_stream, asset):
+    extras = dict(
+        asset.submission_extras.values_list('submission_uuid', 'content')
+    )
     for submission in submission_stream:
         if SUBMISSION_UUID_FIELD in submission:
             uuid = submission[SUBMISSION_UUID_FIELD]
