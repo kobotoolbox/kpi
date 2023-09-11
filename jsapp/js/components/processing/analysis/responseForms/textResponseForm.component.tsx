@@ -64,6 +64,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
   }
 
   function onInputChange(newResponse: string) {
+    analysisQuestions?.dispatch({type: 'hasUnsavedWork'});
     setResponse(newResponse);
     saveResponseDelayedAndQuietly();
   }

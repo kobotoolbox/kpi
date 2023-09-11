@@ -54,6 +54,8 @@ export default function SelectMultipleResponseForm(
       .filter((item) => item.checked)
       .map((item) => item.name);
 
+    analysisQuestions?.dispatch({type: 'hasUnsavedWork'});
+
     // Update local state
     setResponse(newResponse);
 
