@@ -1,4 +1,5 @@
 import React, {useState, useContext} from 'react';
+import clonedeep from 'lodash.clonedeep';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import commonStyles from './common.module.scss';
@@ -62,21 +63,26 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
 
     setIsDeletePromptOpen(false);
 
-    // Step 1: get current questions list, and remove question from it
-    const updatedQuestions: AnalysisQuestionInternal[] =
-      analysisQuestions?.state.questions.filter(
-        (item) => item.uuid !== props.uuid
-      ) || [];
+    // Step 1: ensure no mutations happen
+    const newQuestions: AnalysisQuestionInternal[] =
+      clonedeep(analysisQuestions?.state.questions) || [];
+
+    // Step 2: set `deleted` flag on the question
+    newQuestions.forEach((item: AnalysisQuestionInternal) => {
+      if (item.uuid === props.uuid) {
+        item.deleted = true;
+      }
+    });
 
     try {
-      // Step 2: update asset endpoint with new questions
+      // Step 3: update asset endpoint with new questions
       const response = await updateSurveyQuestions(
         singleProcessingStore.currentAssetUid,
         singleProcessingStore.currentQuestionQpath,
-        updatedQuestions
+        newQuestions
       );
 
-      // Step 3: update reducer's state with new list after the call finishes
+      // Step 4: update reducer's state with new list after the call finishes
       analysisQuestions?.dispatch({
         type: 'deleteQuestionCompleted',
         payload: {

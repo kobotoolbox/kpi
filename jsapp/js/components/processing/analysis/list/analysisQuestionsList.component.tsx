@@ -36,6 +36,11 @@ export default function AnalysisQuestionsList() {
             return null;
           }
 
+          // We hide questions marked as deleted
+          if (question.deleted) {
+            return null;
+          }
+
           return (
             <AnalysisQuestionRow
               uuid={question.uuid}
