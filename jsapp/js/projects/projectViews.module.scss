@@ -9,8 +9,9 @@
 
 .header {
   @include mixins.centerRowFlex;
-  gap: sizes.$x30;
   padding: sizes.$x30 sizes.$x30 sizes.$x40;
+  gap: sizes.$x10 sizes.$x30;
+  flex-wrap: wrap;
 }
 
 .actions {
