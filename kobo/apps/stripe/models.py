@@ -24,6 +24,7 @@ class PlanAddOn(models.Model):
     id = KpiUidField(uid_prefix='addon_', primary_key=True)
     created = models.DateTimeField()
     organization = models.ForeignKey('organizations.Organization', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.PositiveIntegerField(default=1)
     usage_limits = models.JSONField(
         default=get_default_add_on_limits,
         help_text='''The historical usage limits when the add-on was purchased. Possible keys:
@@ -49,6 +50,10 @@ class PlanAddOn(models.Model):
         return False
 
     @property
+    def total_usage_limits(self):
+        return {key: value * self.quantity for key, value in self.usage_limits.items()}
+
+    @property
     def is_available(self):
         return self.charge.payment_intent.status == 'succeeded' and not (self.is_expended or self.charge.refunded)
 
@@ -56,14 +61,14 @@ class PlanAddOn(models.Model):
     def limits_available(self):
         limits = {}
         for limit_type, limit_amount in self.limits_used.items():
-            limits_available = self.usage_limits[limit_type] - self.limits_used[limit_type]
+            limits_available = self.total_usage_limits[limit_type] - self.limits_used[limit_type]
             limits[limit_type] = max(limits_available, 0)
         return limits
 
     def increment_add_on(self, limit_type, amount_used):
         if limit_type in self.usage_limits.keys():
             limit_available = self.limits_available[limit_type]
-            self.usage_limits[limit_type] += min(amount_used, limit_available)
+            self.limits_used[limit_type] += min(amount_used, limit_available)
             self.save()
             return True
         return False
@@ -79,7 +84,7 @@ def create_or_update_one_time_add_on(charge):
     Create a PlanAddOn object from a Charge object, if the Charge is for a one-time add-on.
     Returns True if a PlanAddOn was created, false otherwise.
     """
-    if 'price_id' not in charge.metadata:
+    if 'price_id' not in charge.metadata or 'quantity' not in charge.metadata:
         # make sure the charge is for a successful addon purchase
         return False
 
@@ -117,6 +122,7 @@ def create_or_update_one_time_add_on(charge):
     add_on, add_on_created = PlanAddOn.objects.get_or_create(charge=charge, created=charge.created)
     if add_on_created:
         add_on.product = product
+        add_on.quantity = int(charge.metadata['quantity'])
         add_on.organization = organization
         add_on.usage_limits = usage_limits
         add_on.limits_used = limits_used
@@ -127,7 +133,7 @@ def create_or_update_one_time_add_on(charge):
 
 def make_add_ons_from_existing_charges():
     created_count = 0
-    for charge in Charge.objects.all().iterator(chunk_size=50):
+    for charge in Charge.objects.all().iterator(chunk_size=500):
         if create_or_update_one_time_add_on(charge):
             created_count += 1
     return created_count

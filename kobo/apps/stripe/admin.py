@@ -9,11 +9,11 @@ from kobo.apps.stripe.models import PlanAddOn, make_add_ons_from_existing_charge
 @admin.register(PlanAddOn)
 class PlanAddOnAdmin(ModelAdmin):
     list_display = (
-        'id',
         'created',
         'is_available',
         'organization',
         'product',
+        'quantity',
     )
     list_filter = (
         'charge__livemode',
