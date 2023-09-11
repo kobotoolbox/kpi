@@ -4,6 +4,7 @@ from django.apps import apps
 from django.db.models import F
 from django.utils import timezone
 
+from kobo.apps.stripe.models import PlanAddOn
 from kpi.utils.django_orm_helper import IncrementValue
 
 
@@ -44,8 +45,13 @@ def update_nlp_counter(
     kwargs = {}
     if service.endswith('asr_seconds'):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
+        if asset_id is not None:
+            # If we're not updating the catch-all counter, increment any NLP add-ons the user may have
+            PlanAddOn.increment_add_ons_for_user(user_id, 'asr_seconds_limit', amount)
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
+        if asset_id is not None:
+            PlanAddOn.increment_add_ons_for_user(user_id, 'mt_characters_limit', amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),
