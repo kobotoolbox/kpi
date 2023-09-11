@@ -3,7 +3,7 @@ from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.utils.translation import ngettext
 
-from kobo.apps.stripe.models import PlanAddOn, make_add_ons_from_existing_charges
+from kobo.apps.stripe.models import PlanAddOn
 
 
 @admin.register(PlanAddOn)
@@ -27,7 +27,7 @@ class PlanAddOnAdmin(ModelAdmin):
 
     @admin.action(description='Make add-ons for existing Charges')
     def make_add_ons(self, request, queryset):
-        created = make_add_ons_from_existing_charges()
+        created = PlanAddOn.make_add_ons_from_existing_charges()
         self.message_user(
             request,
             ngettext(
