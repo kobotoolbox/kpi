@@ -30,8 +30,8 @@ import {notify} from 'js/utils';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
-import {when} from 'mobx';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
+import useWhen from 'js/hooks/useWhen.hook';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -148,8 +148,9 @@ export default function Plan() {
     }
   }, [state.subscribedProduct]);
 
-  useEffect(() => {
-    when(() => envStore.isReady).then(() => {
+  useWhen(
+    () => envStore.isReady,
+    () => {
       // If Stripe isn't loaded, just redirect to the account page
       if (!envStore.data.stripe_public_key) {
         navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
@@ -182,8 +183,9 @@ export default function Plan() {
       Promise.all(fetchPromises).then(() => {
         setAreButtonsDisabled(false);
       });
-    });
-  }, [searchParams, shouldRevalidate]);
+    },
+    [searchParams, shouldRevalidate]
+  );
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {
