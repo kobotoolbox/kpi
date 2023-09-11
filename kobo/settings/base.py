@@ -711,6 +711,12 @@ if RAVEN_JS_DSN_URL:
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
+
+# In case server must serve two KoBoCAT domain names (e.g. during a
+# domain name transfer), `settings.KOBOCAT_OLD_URL` adds support for
+# the domain name.
+KOBOCAT_OLD_URL = os.environ.get('KOBOCAT_OLD_URL')
+
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat')
 

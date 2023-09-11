@@ -12,7 +12,6 @@ from django.db import ProgrammingError, transaction
 from django.db.models import Model
 from kobo_service_account.utils import get_request_headers
 from rest_framework.authtoken.models import Token
-from rest_framework import status
 
 from kpi.exceptions import KobocatProfileException
 from kpi.utils.log import logging
