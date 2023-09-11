@@ -6,6 +6,11 @@ import {applyUpdateResponseToInternalQuestions} from './utils';
 export interface AnalysisQuestionsState {
   /** Whether any async action is being done right now. */
   isPending: boolean;
+  /**
+   * It's true if user has made a change in the UI and the Back end has not been
+   * updated yet. Every completed call to API will change it back to false.
+   */
+  hasUnsavedWork: boolean;
   questions: AnalysisQuestionInternal[];
   /**
    * A list of uids of questions with definitions being edited. I.e. whenever
@@ -32,6 +37,7 @@ type AnalysisQuestionReducerType = (
 
 export const initialState: AnalysisQuestionsState = {
   isPending: false,
+  hasUnsavedWork: false,
   questions: [],
   questionsBeingEdited: [],
 };
@@ -79,6 +85,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         questions: [newQuestion, ...state.questions],
         // We immediately open this question for editing
         questionsBeingEdited: [...state.questionsBeingEdited, newUuid],
+        hasUnsavedWork: true,
       };
     }
     case 'deleteQuestion': {
@@ -97,12 +104,18 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
       };
     }
     case 'startEditingQuestion': {
       return {
         ...state,
+        // Instead of checking changes on every input in the edited question,
+        // we assume that, as soon as user starts to edit a question, there are
+        // unsaved changes. This is not ideal UX, but it's much simpler and
+        // still logical.
+        hasUnsavedWork: true,
         questionsBeingEdited: [
           ...state.questionsBeingEdited,
           action.payload.uuid,
@@ -114,6 +127,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         // If we stop editing a question that was a draft, we need to remove it
         // from the questions list
+        hasUnsavedWork: false,
         questions: state.questions.filter((question) => {
           if (question.uuid === action.payload.uuid && question.isDraft) {
             return false;
@@ -135,6 +149,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
         // After question definition was updated, we no longer modify it (this
         // closes the editor)
@@ -164,6 +179,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
+        hasUnsavedWork: false,
         questions: newQuestions,
       };
     }
@@ -212,7 +228,14 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
+      };
+    }
+    case 'hasUnsavedWork': {
+      return {
+        ...state,
+        hasUnsavedWork: true,
       };
     }
     default: {
