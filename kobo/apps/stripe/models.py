@@ -1,4 +1,5 @@
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist, ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -24,10 +25,11 @@ class PlanAddOn(models.Model):
     id = KpiUidField(uid_prefix='addon_', primary_key=True)
     created = models.DateTimeField()
     organization = models.ForeignKey('organizations.Organization', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     usage_limits = models.JSONField(
         default=get_default_add_on_limits,
-        help_text='''The historical usage limits when the add-on was purchased. Possible keys:
+        help_text='''The historical usage limits when the add-on was purchased.
+        Multiply this value by `quantity` to get the total limits for this add-on. Possible keys:
         "submission_limit", "asr_seconds_limit", and/or "mt_characters_limit"''',
     )
     limits_used = models.JSONField(
