@@ -10,10 +10,14 @@ from kpi.fields import KpiUidField
 
 def get_default_add_on_limits():
     return {
-        'submissions_limit': 0,
+        'submission_limit': 0,
         'asr_seconds_limit': 0,
         'mt_characters_limit': 0,
     }
+
+
+def get_default_valid_subscription_products():
+    return []
 
 
 class PlanAddOn(models.Model):
@@ -31,7 +35,7 @@ class PlanAddOn(models.Model):
     )
     product = models.ForeignKey('djstripe.Product', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
     charge = models.ForeignKey('djstripe.Charge', to_field='id', on_delete=models.CASCADE)
-    valid_subscription_products = models.JSONField()
+    valid_subscription_products = models.JSONField(default=get_default_valid_subscription_products)
 
     class Meta:
         verbose_name = 'plan add-on'
@@ -71,9 +75,13 @@ def make_add_on_for_charge(sender, instance, created, **kwargs):
 
 
 def create_or_update_one_time_add_on(charge):
+    """
+    Create a PlanAddOn object from a Charge object, if the Charge is for a one-time add-on.
+    Returns True if a PlanAddOn was created, false otherwise.
+    """
     if 'price_id' not in charge.metadata:
         # make sure the charge is for a successful addon purchase
-        return
+        return False
 
     try:
         product = Price.objects.get(
@@ -81,11 +89,13 @@ def create_or_update_one_time_add_on(charge):
         ).product
         organization = Organization.objects.get(id=charge.metadata['organization_id'])
     except ObjectDoesNotExist:
-        return
+        print('no product or org')
+        return False
 
     if product.metadata['product_type'] != 'addon':
         # might be some other type of payment
-        return
+        print('no product type metadata')
+        return False
 
     valid_subscription_products = []
     if 'valid_subscription_products' in product.metadata:
@@ -102,7 +112,7 @@ def create_or_update_one_time_add_on(charge):
 
     if not len(usage_limits):
         # not a valid plan add-on
-        return
+        return False
 
     add_on, add_on_created = PlanAddOn.objects.get_or_create(charge=charge, created=charge.created)
     if add_on_created:
@@ -112,3 +122,13 @@ def create_or_update_one_time_add_on(charge):
         add_on.limits_used = limits_used
         add_on.valid_subscription_products = valid_subscription_products
         add_on.save()
+    return add_on_created
+
+
+def make_add_ons_from_existing_charges():
+    created_count = 0
+    for charge in Charge.objects.all().iterator(chunk_size=50):
+        if create_or_update_one_time_add_on(charge):
+            created_count += 1
+    return created_count
+
