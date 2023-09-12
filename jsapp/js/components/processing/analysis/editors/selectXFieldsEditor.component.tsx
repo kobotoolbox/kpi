@@ -87,6 +87,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
     }
   }
 
+  // We hide questions marked as deleted
   const choicesToDisplay =
     props.fields.choices?.filter((item) => {
       if (item.options?.deleted) {
