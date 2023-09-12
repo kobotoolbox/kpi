@@ -510,9 +510,12 @@ export default function Plan() {
                     <div className={styles.priceTitle}>
                       {!price.prices?.unit_amount
                         ? t('Free')
+                        : price.prices?.recurring?.interval === 'year'
+                        ? `$${(price.prices?.unit_amount / 100 / 12).toFixed(
+                            2
+                          )} USD/month`
                         : price.prices.human_readable_price}
                     </div>
-
                     <ul className={styles.featureContainer}>
                       {Object.keys(price.metadata).map(
                         (featureItem: string) =>
