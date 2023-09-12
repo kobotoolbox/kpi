@@ -1,8 +1,16 @@
 import constance
+from allauth.account import app_settings
+from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as BaseLoginForm
 from allauth.account.forms import SignupForm as BaseSignupForm
+from allauth.account.utils import (
+    get_user_model,
+    user_email,
+    user_username,
+)
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 
@@ -143,3 +151,35 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'sector',
         'country',
     ]
+
+    def clean(self):
+        """
+        Override parent form to pass extra user's attributes to validation.
+        """
+        super(BaseSignupForm, self).clean()
+
+        User = get_user_model()  # noqa
+        dummy_user = User()
+        user_username(dummy_user, self.cleaned_data.get('username'))
+        user_email(dummy_user, self.cleaned_data.get('email'))
+        setattr(dummy_user, 'organization', self.cleaned_data.get('organization', ''))
+        setattr(dummy_user, 'full_name', self.cleaned_data.get('name', ''))
+
+        password = self.cleaned_data.get('password1')
+        if password:
+            try:
+                get_adapter().clean_password(password, user=dummy_user)
+            except forms.ValidationError as e:
+                self.add_error('password1', e)
+
+        if (
+            app_settings.SIGNUP_PASSWORD_ENTER_TWICE
+            and 'password1' in self.cleaned_data
+            and 'password2' in self.cleaned_data
+        ):
+            if self.cleaned_data['password1'] != self.cleaned_data['password2']:
+                self.add_error(
+                    'password2',
+                    t('You must type the same password each time.'),
+                )
+        return self.cleaned_data

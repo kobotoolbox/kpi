@@ -1,9 +1,9 @@
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from rest_framework import mixins, status, viewsets
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from kpi.permissions import IsAuthenticated
 from .mixins import MultipleFieldLookupMixin
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 

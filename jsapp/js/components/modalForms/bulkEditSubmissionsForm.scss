@@ -1,10 +1,4 @@
 .simple-table.simple-table--bulk-edit-list {
-  // first row with filters
-  .simple-table__header .text-box {
-    display: inline-block;
-    max-width: 160px;
-  }
-
   // first column with icons
   .simple-table__cell:nth-child(1) {
     text-align: center;
