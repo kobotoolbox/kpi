@@ -98,7 +98,6 @@ export default function Analysis() {
     singleProcessingStore.setAnalysisTabHasUnsavedChanges(state.hasUnsavedWork);
   }, [state.hasUnsavedWork]);
 
-
   if (!isInitialised) {
     return <LoadingSpinner hideMessage />;
   }

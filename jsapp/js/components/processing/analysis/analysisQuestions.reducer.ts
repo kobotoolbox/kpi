@@ -97,7 +97,10 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         // the deletion went as expected).
         questions: state.questions.map((question) => {
           if (question.uuid === action.payload.uuid) {
-            question.deleted = true;
+            if (typeof question.options !== 'object') {
+              question.options = {};
+            }
+            question.options.deleted = true;
           }
           return question;
         }),

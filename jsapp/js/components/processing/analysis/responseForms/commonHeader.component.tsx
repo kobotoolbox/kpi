@@ -70,7 +70,10 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
     // Step 2: set `deleted` flag on the question
     newQuestions.forEach((item: AnalysisQuestionInternal) => {
       if (item.uuid === props.uuid) {
-        item.deleted = true;
+        if (typeof item.options !== 'object') {
+          item.options = {};
+        }
+        item.options.deleted = true;
       }
     });
 

@@ -37,7 +37,7 @@ export default function AnalysisQuestionsList() {
           }
 
           // We hide questions marked as deleted
-          if (question.deleted) {
+          if (question.options?.deleted) {
             return null;
           }
 

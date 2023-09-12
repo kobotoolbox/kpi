@@ -21,9 +21,24 @@ interface AnalysisLabels {
   [langCode: string]: string;
 }
 
+/**
+ * Options object used by questions and choices. We mainly use it for marking
+ * things as deleted.
+ */
+interface AnalysisQuestionOptions {
+  /**
+   * We mark questions as deleted instead of removing them, because we still
+   * need them to understand the data (e.g. we store `qual_select_one` responses
+   * as `uuid`s of given choice, so without the question definition, there is no
+   * way to understand what was selected).
+   */
+  deleted?: boolean;
+}
+
 interface AnalysisQuestionChoice {
   labels: AnalysisLabels;
   uuid: string;
+  options?: AnalysisQuestionOptions;
 }
 
 /**
@@ -51,13 +66,7 @@ export interface AnalysisQuestionBase {
   type: AnalysisQuestionType;
   labels: AnalysisLabels;
   uuid: string;
-  /**
-   * We mark questions as deleted instead of removing them, because we still
-   * need them to understand the data (e.g. we store `qual_select_one` responses
-   * as `uuid`s of given choice, so without the question definition, there is no
-   * way to understand what was selected).
-   */
-  deleted?: boolean;
+  options?: AnalysisQuestionOptions;
 }
 
 /** Analysis question definition from the asset's schema (i.e. from Back end) */

@@ -70,13 +70,24 @@ export default function SelectMultipleResponseForm(
 
   function getCheckboxes(): MultiCheckboxItem[] {
     if (question?.additionalFields?.choices) {
-      return question?.additionalFields?.choices.map((choice) => {
-        return {
-          name: choice.uuid,
-          label: choice.labels._default,
-          checked: response.includes(choice.uuid),
-        };
-      });
+      return (
+        question?.additionalFields?.choices
+          // We hide all choices flaged as deleted.
+          .filter((item) => {
+            if (item.options?.deleted) {
+              return false;
+            }
+            return true;
+          })
+          // And then we produce checkbox object of each choice left.
+          .map((choice) => {
+            return {
+              name: choice.uuid,
+              label: choice.labels._default,
+              checked: response.includes(choice.uuid),
+            };
+          })
+      );
     }
     return [];
   }
