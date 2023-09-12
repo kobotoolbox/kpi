@@ -510,10 +510,7 @@ export default function Plan() {
                     <div className={styles.priceTitle}>
                       {!price.prices?.unit_amount
                         ? t('Free')
-                        : price.prices.human_readable_price.replace(
-                            /year/g,
-                            'month'
-                          )}
+                        : price.prices.human_readable_price}
                     </div>
 
                     <ul className={styles.featureContainer}>
