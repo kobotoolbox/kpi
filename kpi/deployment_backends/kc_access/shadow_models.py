@@ -606,13 +606,13 @@ class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
     date = models.DateField()
     user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(
-        KobocatXForm, related_name='daily_counts', on_delete=models.CASCADE
+        KobocatXForm, related_name='daily_counts', null=True, on_delete=models.CASCADE
     )
     counter = models.IntegerField(default=0)
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_dailyxformsubmissioncounter'
-        unique_together = ('date', 'xform', 'user')
+        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
