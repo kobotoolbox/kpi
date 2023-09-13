@@ -149,16 +149,19 @@ class ServiceUsageSerializer(serializers.Serializer):
                 'name',
             )
             .select_related('owner')
+            .exclude(_deployment_data=None)
             .filter(
                 owner__in=self._users,
                 asset_type=ASSET_TYPE_SURVEY,
                 # Make sure we're only getting assets that are deployed
                 _deployment_data__has_key='backend',
-            )
+            ).values('uid')
         )
 
-        xforms = KobocatXForm.objects.only('bytes_sum', 'id').filter(
-            kpi_asset_uid__in=[user_asset.uid for user_asset in user_assets]
+        asset_list = [asset['uid'] for asset in user_assets]
+
+        xforms = KobocatXForm.objects.only('bytes_sum', 'id', 'kpi_asset_uid').filter(
+            kpi_asset_uid__in=asset_list,
         )
 
         total_storage_bytes = xforms.aggregate(
@@ -180,7 +183,9 @@ class ServiceUsageSerializer(serializers.Serializer):
                 'date', 'xform', 'counter'
             )
             .filter(
-                xform__in=xforms,
+                # get submission counters for all deployed assets OR the null xform counter
+                Q(user__in=[kpi_user.id for kpi_user in self._users], xform=None) |
+                Q(xform__kpi_asset_uid__in=asset_list),
             )
             .aggregate(
                 all_time=Coalesce(Sum('counter'), 0),
@@ -203,7 +208,7 @@ class ServiceUsageSerializer(serializers.Serializer):
                 'date', 'total_asr_seconds', 'total_mt_characters'
             )
             .filter(
-                asset_id__in=user_assets,
+                user__in=self._users,
             )
             .aggregate(
                 asr_seconds_current_year=Coalesce(
@@ -265,12 +270,12 @@ class ServiceUsageSerializer(serializers.Serializer):
         if not organization_id:
             return
 
-        organization = Organization.objects.filter(
+        self._organization = Organization.objects.filter(
             owner__organization_user__user=self.context.get('request').user,
             id=organization_id,
         ).first()
 
-        if not organization:
+        if not self._organization:
             # Couldn't find organization, proceed as normal
             return
 
@@ -280,7 +285,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         )
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
-        billing_details = organization.active_subscription_billing_details
+        billing_details = self._organization.active_subscription_billing_details
         if billing_details:
             self._anchor_date = billing_details['billing_cycle_anchor'].date()
             self._period_start = billing_details['current_period_start'].date()
