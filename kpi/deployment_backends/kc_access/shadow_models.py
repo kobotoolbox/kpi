@@ -604,6 +604,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
 class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
 
     date = models.DateField()
+    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(
         KobocatXForm, related_name='daily_counts', on_delete=models.CASCADE
     )
@@ -611,7 +612,7 @@ class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_dailyxformsubmissioncounter'
-        unique_together = ('date', 'xform')
+        unique_together = ('date', 'xform', 'user')
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
