@@ -155,10 +155,10 @@ class ServiceUsageSerializer(serializers.Serializer):
                 asset_type=ASSET_TYPE_SURVEY,
                 # Make sure we're only getting assets that are deployed
                 _deployment_data__has_key='backend',
-            ).values('uid')
+            )
         )
 
-        asset_list = [asset['uid'] for asset in user_assets]
+        asset_list = [asset.uid for asset in user_assets]
 
         xforms = KobocatXForm.objects.only('bytes_sum', 'id', 'kpi_asset_uid').filter(
             kpi_asset_uid__in=asset_list,
