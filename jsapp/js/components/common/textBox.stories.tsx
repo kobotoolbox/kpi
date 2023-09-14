@@ -1,7 +1,7 @@
 import React from 'react';
 import type {ComponentStory, ComponentMeta} from '@storybook/react';
 import TextBox from './textBox';
-import type {TextBoxType} from './textBox';
+import type {TextBoxType, TextBoxSize} from './textBox';
 import {IconNames} from 'jsapp/fonts/k-icons';
 
 const textBoxTypes: TextBoxType[] = [
@@ -11,6 +11,12 @@ const textBoxTypes: TextBoxType[] = [
   'text-multiline',
   'text',
   'url',
+];
+
+const textBoxSizes: TextBoxSize[] = [
+  's',
+  'm',
+  'l',
 ];
 
 export default {
@@ -25,6 +31,13 @@ export default {
       defaultValue: {summary: 'text'},
       options: textBoxTypes,
       control: 'select',
+    },
+    size: {
+      description:
+        'Changes the size of the component (similar sizing as Button)',
+      defaultValue: {summary: 'l'},
+      options: textBoxSizes,
+      control: 'radio',
     },
     startIcon: {
       description: 'Appears inside the input, on the beginning.',

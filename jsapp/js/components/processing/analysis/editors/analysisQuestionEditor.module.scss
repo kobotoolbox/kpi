@@ -13,8 +13,8 @@
   @include mixins.centerRowFlex;
   align-items: flex-start;
   gap: analysisVariables.$inner-horizontal-gap;
+}
 
-  :global .text-box {
-    flex: 1;
-  }
+.labelInput {
+  flex: 1;
 }

@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import styles from './textBox.module.scss';
 import classnames from 'classnames';
+import type {ButtonSize} from 'js/components/common/button';
 import {ButtonToIconMap} from 'js/components/common/button';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import Icon from './icon';
@@ -14,10 +15,18 @@ export type TextBoxType =
   | 'text'
   | 'url';
 
+export type TextBoxSize = ButtonSize;
+
 const DefaultType: TextBoxType = 'text';
+const DefaultSize: TextBoxSize = 'l';
 
 interface TextBoxProps {
   type?: TextBoxType;
+  /**
+   * Sizes are generally the same as in button component so we use same type.
+   * Optional because we have `DefaultSize`.
+   */
+  size?: TextBoxSize;
   /** Displays an icon inside the input, on the beginning. */
   startIcon?: IconName;
   /**
@@ -105,6 +114,19 @@ export default function TextBox(props: TextBoxProps) {
 
   const rootClassNames = props.customClassNames || [];
   rootClassNames.push(styles.root);
+
+  let size: TextBoxSize = props.size || DefaultSize;
+  switch (size) {
+    case 'l':
+      rootClassNames.push(styles.sizeL);
+      break;
+    case 'm':
+      rootClassNames.push(styles.sizeM);
+      break;
+    case 's':
+      rootClassNames.push(styles.sizeS);
+      break;
+  }
 
   let errors = [];
   if (Array.isArray(props.errors)) {

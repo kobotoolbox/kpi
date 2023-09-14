@@ -68,13 +68,15 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
               updateChoiceLabel(choice.uuid, newLabel)
             }
             placeholder={t('Type option name')}
+            customClassNames={[styles.labelInput]}
+            size='m'
             renderFocused
           />
 
           <Button
             type='bare'
             color='storm'
-            size='s'
+            size='m'
             startIcon='trash'
             onClick={() => deleteChoice(choice.uuid)}
             isDisabled={analysisQuestions.state.isPending}
@@ -86,7 +88,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         <Button
           type='full'
           color='light-blue'
-          size='s'
+          size='m'
           startIcon='plus'
           label={t('Add new option')}
           onClick={addChoice}
