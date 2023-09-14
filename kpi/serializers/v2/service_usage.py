@@ -141,7 +141,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         # Only use fields we need to improve SQL query speed
         user_assets = (
-            Asset.objects.only(
+            Asset.all_objects.only(
                 'pk',
                 'uid',
                 '_deployment_data',
