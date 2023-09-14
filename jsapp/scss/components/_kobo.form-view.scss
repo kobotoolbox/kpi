@@ -800,7 +800,8 @@ $side-tabs-width-mobile: 70px;
     margin-right: 6px;
   }
 
-  .text-box.text-box--bulk-edit-response .text-box__input {
+  .bulk-edit-response-textbox input,
+  .bulk-edit-response-textbox textarea {
     min-height: 90px;
   }
 

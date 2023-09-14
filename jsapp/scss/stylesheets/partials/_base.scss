@@ -83,6 +83,10 @@ textarea {
 }
 
 :focus {
+  outline: none;
+}
+
+:focus-visible {
   outline: sizes.$x1 solid colors.$kobo-blue;
 }
 

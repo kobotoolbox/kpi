@@ -9,6 +9,13 @@ from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
 
 
+def custom_password_guidance_text(request):
+    if constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT:
+        help_text = I18nUtils.get_custom_password_help_text()
+        return {'custom_guidance_text': help_text}
+    return {}
+
+
 def external_service_tokens(request):
     out = {}
     if settings.GOOGLE_ANALYTICS_TOKEN:

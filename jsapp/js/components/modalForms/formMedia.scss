@@ -1,4 +1,5 @@
 @use 'scss/sizes';
+@use 'scss/mixins';
 @use '~kobo-common/src/styles/colors';
 @use 'scss/_variables';
 
@@ -37,42 +38,30 @@
       margin: auto;
       margin-top: 36px;
       display: block;
-      text-align: center;
 
       .form-media-upload-url__label {
         margin: 12px 0;
+        text-align: center;
+        display: block;
       }
 
       .form-media-upload-url__form {
-        .text-box__error {
-          padding-top: 6px;
-          font-size: variables.$base-font-size;
+        @include mixins.centerRowFlex;
+        align-items: flex-start;
+        gap: sizes.$x20;
+        padding-top: sizes.$x10;
+
+        > label {
+          flex: 1;
         }
 
-        // Semi-hack: re-used formbuilder button but make it look like
-        // KoboLightButton here
-        .form-builder-header__button {
-          background: colors.$kobo-white;
-          box-shadow: none;
-          color: colors.$kobo-blue;
-          border: 1px solid;
+        .k-button {
+          min-width: sizes.$x150;
 
-          &:hover {
-            color: colors.$kobo-white;
-            background-color: colors.$kobo-blue;
-            border-color: colors.$kobo-blue;
+          .k-button__label {
+            text-align: center;
+            width: 100%;
           }
-        }
-
-        label.text-box {
-          padding-top: 7px;
-          min-width: 77%;
-          display: inline-table;
-        }
-
-        button {
-          margin-left: 3%;
-          min-width: 20%;
         }
       }
     }

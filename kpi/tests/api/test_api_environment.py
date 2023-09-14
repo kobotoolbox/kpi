@@ -1,7 +1,6 @@
 # coding: utf-8
 # 😇
 import constance
-import mock
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -18,6 +17,7 @@ from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_database_user
 
 
@@ -88,6 +88,15 @@ class EnvironmentTests(BaseTestCase):
                 constance.config.FREE_TIER_DISPLAY
             ),
             'social_apps': [],
+            'enable_password_entropy_meter': (
+                constance.config.ENABLE_PASSWORD_ENTROPY_METER
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
         }
 
     def _check_response_dict(self, response_dict):
@@ -189,12 +198,12 @@ class EnvironmentTests(BaseTestCase):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = 20
+        queries = FuzzyInt(18, 25)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
-            with self.assertNumQueries(queries + 1):
+            with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)

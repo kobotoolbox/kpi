@@ -2,9 +2,11 @@ import {useEffect, useState, useMemo, useReducer} from 'react';
 import {getUsageForOrganization} from '../../account/usage.api';
 import type {BaseSubscription, BasePrice} from '../../account/stripe.api';
 import {getSubscription, getProducts} from '../../account/stripe.api';
-import envStore, {FreeTierThresholds} from 'js/envStore';
+import type {FreeTierThresholds} from 'js/envStore';
+import envStore from 'js/envStore';
 import {truncateNumber} from 'js/utils';
 import {USAGE_WARNING_RATIO} from 'js/constants';
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 
 interface UsageState {
   storage: number;
@@ -57,7 +59,7 @@ export const getAllExceedingLimits = () => {
   >();
 
   // Get products and get default limits for community plan
-  useMemo(() => {
+  useWhenStripeIsEnabled(() => {
     getProducts().then((products) => {
       const freeProduct = products.results.find((products) =>
         products.prices.find(
@@ -92,7 +94,7 @@ export const getAllExceedingLimits = () => {
   }, []);
 
   // Get subscription data
-  useMemo(() => {
+  useWhenStripeIsEnabled(() => {
     getSubscription().then((data) => {
       dispatch({
         prodData: data.results,
@@ -195,17 +197,17 @@ export const getAllExceedingLimits = () => {
       isOverLimit(
         subscribedSubmissionLimit,
         usage.monthlySubmissions,
-        'submissions'
+        'submission'
       );
       isOverLimit(
         subscribedTranscriptionMinutes,
         usage.monthlyTranscriptionMinutes,
-        'transcription_minutes'
+        'automated transcription'
       );
       isOverLimit(
         subscribedTranslationChars,
         usage.monthlyTranslationChars,
-        'translation_chars'
+        'machine translation'
       );
     }
     // If subscribed plan is year
@@ -213,27 +215,28 @@ export const getAllExceedingLimits = () => {
       isOverLimit(
         subscribedSubmissionLimit,
         usage.yearlySubmissions,
-        'submissions'
+        'submission'
       );
       isOverLimit(
         subscribedTranscriptionMinutes,
-        usage.monthlyTranscriptionMinutes,
-        'transcription_minutes'
+        usage.yearlyTranscriptionMinutes,
+        'automated transcription'
       );
       isOverLimit(
         subscribedTranslationChars,
-        usage.monthlyTranslationChars,
-        'translation_chars'
+        usage.yearlyTranslationChars,
+        'machine translation'
       );
     }
   }, [usage]);
+
   return {exceedList, warningList};
 };
 
 export const getPlanInterval = () => {
   const [state, dispatch] = useReducer(subscriptionReducer, initialState);
 
-  useMemo(() => {
+  useWhenStripeIsEnabled(() => {
     getSubscription().then((data) => {
       dispatch({
         prodData: data.results,

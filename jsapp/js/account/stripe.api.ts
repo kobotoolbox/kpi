@@ -102,8 +102,9 @@ export async function postCustomerPortal(organizationId: string) {
 }
 
 export async function getSubscriptionInterval() {
-  await when(() => envStore.isReady && subscriptionStore.isInitialised);
+  await when(() => envStore.isReady);
   if (envStore.data.stripe_public_key) {
+    await when(() => subscriptionStore.isInitialised);
     const subscriptionList: SubscriptionInfo[] =
       subscriptionStore.subscriptionResponse;
     const activeSubscription = subscriptionList.find((sub) =>
@@ -113,7 +114,7 @@ export async function getSubscriptionInterval() {
       return activeSubscription.items[0].price.recurring?.interval;
     }
   }
-  return null;
+  return 'month';
 }
 
 export async function getAccountLimits() {

@@ -1,6 +1,7 @@
 # coding: utf-8
+from django.conf import settings
 from django.utils.translation import gettext_lazy as t
-from rest_framework import exceptions
+from rest_framework import exceptions, status
 
 
 class AbstractMethodError(NotImplementedError):
@@ -67,8 +68,18 @@ class ImportAssetException(Exception):
     pass
 
 
+class InvalidPasswordAPIException(exceptions.APIException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = t(
+        'Your access is restricted. Please reclaim your access by '
+        'changing your password at '
+        '##koboform_url##/accounts/password/reset/.'
+    ).replace('##koboform_url##', settings.KOBOFORM_URL)
+    default_code = 'invalid_password'
+
+
 class InvalidSearchException(exceptions.APIException):
-    status_code = 400
+    status_code = status.HTTP_400_BAD_REQUEST
     default_detail = t('Invalid search. Please try again')
     default_code = 'invalid_search'
 
@@ -96,7 +107,7 @@ class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
 
 
 class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
-    status_code = 500
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = t(
         'An error occurred trying to bulk update the submissions.')
     default_code = 'bulk_update_submissions_error'
@@ -121,7 +132,7 @@ class KobocatDeploymentException(exceptions.APIException):
 
 
 class KobocatDuplicateSubmissionException(exceptions.APIException):
-    status_code = 500
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = t('An error occurred trying to duplicate the submission')
     default_code = 'submission_duplication_error'
 
@@ -135,7 +146,7 @@ class NotSupportedFormatException(Exception):
 
 
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
-    status_code = 400
+    status_code = status.HTTP_400_BAD_REQUEST
     default_detail = t('The specified object has not been deployed')
     default_code = 'deployment_does_not_exist'
 

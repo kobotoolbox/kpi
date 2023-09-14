@@ -46,3 +46,8 @@
   border-radius: sizes.$x6;
   box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
 }
+
+@mixin default-ui-focus() {
+  outline: sizes.$x3 solid colors.$kobo-alt-blue !important;
+  border-color: colors.$kobo-blue !important;
+}
