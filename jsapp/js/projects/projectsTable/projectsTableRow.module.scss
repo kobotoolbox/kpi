@@ -202,8 +202,7 @@ $projects-table-row-height: sizes.$x36;
     // Specificity: Keep the keyboard focus styles, despite the pointer
     &[data-field='checkbox'] :global .checkbox__input:focus-visible,
     &[data-field='checkbox']:hover :global .checkbox__input:focus-visible {
-      outline: 3px solid colors.$kobo-alt-blue;
-      outline-offset: sizes.$x1;
+      @include mixins.default-ui-focus;
     }
 
     // Hovering 'Project name' cell…

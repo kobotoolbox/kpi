@@ -147,7 +147,6 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
         {isFilterConditionValueRequired(props.filter.condition) &&
           !isCountryFilterSelected && (
             <TextBox
-              customModifiers='on-white'
               value={props.filter.value || ''}
               onChange={onFilterValueChange}
               placeholder={t('Enter value')}

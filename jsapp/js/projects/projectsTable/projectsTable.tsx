@@ -66,7 +66,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
     // NOTE: react-infinite-scroller wants us to use refs, but there seems to
     // be some kind of a bug - either in their code or their typings. Thus we
     // are going to use OlDsChOoL `id` :shrug:.
-    <div className={styles.root} id={SCROLL_PARENT_ID}>
+    <div className={styles.root} id={SCROLL_PARENT_ID} tabIndex={-1}>
       <ProjectsTableHeader
         highlightedFields={props.highlightedFields}
         visibleFields={safeVisibleFields}

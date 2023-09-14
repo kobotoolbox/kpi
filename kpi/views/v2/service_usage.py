@@ -4,9 +4,9 @@ from rest_framework import (
     viewsets,
 )
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 

@@ -162,7 +162,7 @@ export default function AnalysisQuestionEditor(
       <header className={styles.header}>
         <form className={styles.headerForm} onSubmit={onSubmit}>
           <div className={commonStyles.headerIcon}>
-          <Icon name={qaDefinition.icon} size='xl' />
+            <Icon name={qaDefinition.icon} size='xl' />
           </div>
 
           <TextBox
@@ -170,7 +170,6 @@ export default function AnalysisQuestionEditor(
             onChange={onTextBoxChange}
             errors={errorMessage}
             placeholder={t('Type question')}
-            customModifiers='on-white'
             renderFocused
           />
 

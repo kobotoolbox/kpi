@@ -80,7 +80,6 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
           onChange={onInputChange}
           placeholder={t('Type your answer')}
           onBlur={saveResponse}
-          customModifiers='on-white'
         />
       </section>
     </>

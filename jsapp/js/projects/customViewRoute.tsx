@@ -23,6 +23,7 @@ import {ROOT_URL} from 'js/constants';
 import {fetchPostUrl} from 'js/api';
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
+import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 
 function CustomViewRoute() {
@@ -120,7 +121,7 @@ function CustomViewRoute() {
           </div>
         )}
       </header>
-
+      <LimitNotifications useModal />
       <ProjectsTable
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}

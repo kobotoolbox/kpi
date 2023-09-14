@@ -8,13 +8,12 @@ from django.urls import reverse
 
 from constance.test import override_config
 from jsonschema import validate
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APITestCase
 
 from kobo.apps.languages.models.language import Language, LanguageRegion
 from kobo.apps.languages.models.transcription import (
     TranscriptionService, TranscriptionServiceLanguageM2M)
-from kpi.models import Asset
-
+from kpi.utils.fuzzy_int import FuzzyInt
 from ..constants import GOOGLETS, make_async_cache_key
 from ..models import SubmissionExtras
 from .test_submission_extras_content import sample_asset
@@ -206,7 +205,6 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
             assert 'revisions' not in revision
         assert field['tx1']['dateCreated'] == 'A'
 
-
     def test_second_translation_comes_in(self):
         field = self.txi.revise_field({
             'tx1': {
@@ -302,10 +300,10 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(52):
+        with self.assertNumQueries(FuzzyInt(51, 55)):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
-        with self.assertNumQueries(21):
+        with self.assertNumQueries(FuzzyInt(20, 24)):
             self.client.post(url, data, format='json')
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})

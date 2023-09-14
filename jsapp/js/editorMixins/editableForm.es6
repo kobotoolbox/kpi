@@ -47,6 +47,7 @@ import {
 } from 'js/components/formBuilder/formBuilderUtils';
 import envStore from 'js/envStore';
 import {unstable_usePrompt as usePrompt} from 'react-router-dom';
+import Icon from 'js/components/common/icon';
 
 const ErrorMessage = makeBem(null, 'error-message');
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
@@ -749,13 +750,13 @@ export default assign({
 
         { envStore.isReady &&
           envStore.data.support_url &&
-          <bem.TextBox__labelLink
+          <a
             href={envStore.data.support_url + RECORDING_SUPPORT_URL}
             target='_blank'
             data-tip={t('help')}
           >
-            <i className='k-icon k-icon-help' />
-          </bem.TextBox__labelLink>
+            <Icon name='help' size='s' />
+          </a>
         }
       </bem.FormBuilderMessageBox>
     );
