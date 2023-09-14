@@ -500,12 +500,9 @@ def generate_user_statistics_report(
 
     # get NLP statistics
     nlp_counters = (
-        NLPUsageCounter.objects.annotate(
-            date=Cast(
-                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
-                DateField(),
-            ),
-        ).filter(date__range=(start_date, end_date)).values(
+        NLPUsageCounter.objects.filter(
+            date__range=(start_date, end_date)
+        ).values(
             'user_id',
         ).annotate(
             total_google_asr=Sum(
