@@ -72,8 +72,10 @@ interface TextBoxProps {
  * updates.
  */
 export default function TextBox(props: TextBoxProps) {
-  const inputReference: React.MutableRefObject<null | HTMLInputElement> = React.createRef();
-  const textareaReference: React.MutableRefObject<null | HTMLTextAreaElement> = React.createRef();
+  const inputReference: React.MutableRefObject<null | HTMLInputElement> =
+    React.createRef();
+  const textareaReference: React.MutableRefObject<null | HTMLTextAreaElement> =
+    React.createRef();
 
   useEffect(() => {
     if (props.renderFocused) {
@@ -89,13 +91,21 @@ export default function TextBox(props: TextBoxProps) {
     props.onChange(newValue);
   }
 
-  function onBlur(evt: React.FocusEvent<HTMLInputElement> | React.FocusEvent<HTMLTextAreaElement>) {
+  function onBlur(
+    evt:
+      | React.FocusEvent<HTMLInputElement>
+      | React.FocusEvent<HTMLTextAreaElement>
+  ) {
     if (typeof props.onBlur === 'function') {
       props.onBlur(evt.currentTarget.value);
     }
   }
 
-  function onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>) {
+  function onKeyPress(
+    evt:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) {
     // For `number` type, we disallow any non numeric characters.
     if (
       props.type === 'number' &&
