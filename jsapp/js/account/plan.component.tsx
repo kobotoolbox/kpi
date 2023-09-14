@@ -59,7 +59,7 @@ const initialState = {
   filterToggle: true,
   products: null,
   organization: null,
-  featureTypes: ['support', 'advanced', 'addons'],
+  featureTypes: ['advanced', 'support', 'addons'],
 };
 
 const subscriptionUpgradeMessageDuration = 8000;
@@ -406,7 +406,7 @@ export default function Plan() {
     title?: string
   ) => (
     <div className={styles.expandedFeature} key={title}>
-      <h2 className={styles.listTitle}>{title}</h2>
+      <h2 className={styles.listTitle}>{title} </h2>
       <ul>
         {items.map((item) => (
           <li key={item.label}>
@@ -434,7 +434,7 @@ export default function Plan() {
       label: string;
     }> = [];
     getListItem(type, name).map((listItem) => {
-      if (listItem.icon && name === 'Professional plan') {
+      if (listItem.icon && name === 'Professional') {
         items.push({icon: 'positive_pro', label: listItem.item});
       } else if (!listItem.icon) {
         items.push({icon: 'negative', label: listItem.item});
@@ -466,30 +466,30 @@ export default function Plan() {
                 type='radio'
                 id='switch_left'
                 name='switchToggle'
-                value='year'
-                onChange={() => dispatch({type: 'year'})}
-                checked={!state.filterToggle}
-                aria-label={'Toggle to annual options'}
-              />
-              <label htmlFor='switch_left'>{t('Annual')}</label>
-
-              <input
-                type='radio'
-                id='switch_right'
-                name='switchToggle'
                 value='month'
                 aria-label={'Toggle to month options'}
                 onChange={() => dispatch({type: 'month'})}
                 checked={state.filterToggle}
               />
-              <label htmlFor='switch_right'> {t('Monthly')}</label>
+              <label htmlFor='switch_left'> {t('Monthly')}</label>
+
+              <input
+                type='radio'
+                id='switch_right'
+                name='switchToggle'
+                value='year'
+                onChange={() => dispatch({type: 'year'})}
+                checked={!state.filterToggle}
+                aria-label={'Toggle to annual options'}
+              />
+              <label htmlFor='switch_right'>{t('Annual')}</label>
             </form>
 
             <div className={styles.allPlans}>
               {filterPrices.map((price: Price) => (
                 <div className={styles.stripePlans} key={price.id}>
                   {isSubscribedProduct(price) ? (
-                    <div className={styles.currentPlan}>{t('your plan')}</div>
+                    <div className={styles.currentPlan}>{t('Your plan')}</div>
                   ) : (
                     <div className={styles.otherPlanSpacing} />
                   )}
@@ -508,10 +508,13 @@ export default function Plan() {
                     <div className={styles.priceTitle}>
                       {!price.prices?.unit_amount
                         ? t('Free')
-                        : price.prices.human_readable_price}
+                        : price.prices.human_readable_price.replace(
+                            /year/g,
+                            'month'
+                          )}
                     </div>
 
-                    <ul>
+                    <ul className={styles.featureContainer}>
                       {Object.keys(price.metadata).map(
                         (featureItem: string) =>
                           featureItem.includes('feature_list_') && (
@@ -521,7 +524,7 @@ export default function Plan() {
                                   name='check'
                                   size='m'
                                   color={
-                                    price.name === 'Professional plan'
+                                    price.name === 'Professional'
                                       ? 'teal'
                                       : 'storm'
                                   }
@@ -532,6 +535,20 @@ export default function Plan() {
                           )
                       )}
                     </ul>
+                    {expandComparison && (
+                      <div className={styles.expandedContainer}>
+                        <hr />
+                        {state.featureTypes.map(
+                          (type) =>
+                            getListItem(type, price.name).length > 0 &&
+                            returnListItem(
+                              type,
+                              price.name,
+                              price.metadata[`feature_${type}_title`]
+                            )
+                        )}
+                      </div>
+                    )}
                     {!isSubscribedProduct(price) &&
                       !shouldShowManage(price) &&
                       price.prices.unit_amount > 0 && (
@@ -552,7 +569,7 @@ export default function Plan() {
                         <Button
                           type='full'
                           color='blue'
-                          size='m'
+                          size='l'
                           label={t('Manage')}
                           onClick={managePlan}
                           aria-label={`manage your ${price.name} subscription`}
@@ -577,21 +594,6 @@ export default function Plan() {
                     {price.prices.unit_amount === 0 && (
                       <div className={styles.btnSpacePlaceholder} />
                     )}
-
-                    {expandComparison && (
-                      <>
-                        <hr />
-                        {state.featureTypes.map(
-                          (type) =>
-                            getListItem(type, price.name).length > 0 &&
-                            returnListItem(
-                              type,
-                              price.name,
-                              price.metadata[`feature_${type}_title`]
-                            )
-                        )}
-                      </>
-                    )}
                   </div>
                 </div>
               ))}
@@ -599,25 +601,35 @@ export default function Plan() {
               <div className={styles.enterprisePlanContainer}>
                 <div className={styles.otherPlanSpacing} />
                 <div className={styles.enterprisePlan}>
-                  <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
+                  <h1 className={styles.enterpriseTitle}> {t('Want more?')}</h1>
+                  <div className={styles.priceTitle}>{t('Contact us')}</div>
                   <p className={styles.enterpriseDetails}>
                     {t(
-                      'We offer several add-on options to increase your limits or the capacity of certain features for a period of time, depending on which plan you use.'
+                      'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
                     )}
-                  </p>
-                  <p className={styles.enterpriseDetails}>
-                    {t(
-                      'If your organization has larger or more specific needs, please contact our team to learn about our enterprise options.'
-                    )}
-                  </p>
-                  <div className={styles.enterpriseLink}>
                     <a
                       href='https://www.kobotoolbox.org/contact/'
                       target='_blanks'
+                      className={styles.enterpriseLink}
                     >
-                      {t('Get in touch for Enterprise options')}
+                      {t('Enterprise Plan')}
                     </a>
-                  </div>
+                    .
+                  </p>
+                  <p className={styles.enterpriseDetails}>
+                    {t(
+                      'We also offer custom solutions and private servers for large organizations. '
+                    )}
+                    <br />
+                    <a
+                      href='https://www.kobotoolbox.org/contact/'
+                      target='_blanks'
+                      className={styles.enterpriseLink}
+                    >
+                      {t('Contact our team')}
+                    </a>
+                    {t(' for more information.')}
+                  </p>
                 </div>
               </div>
             </div>
@@ -632,13 +644,13 @@ export default function Plan() {
                 isFullWidth
                 label={
                   expandComparison
-                    ? t('Collapse')
+                    ? t('Collapse full comparison')
                     : t('Display full comparison')
                 }
                 onClick={() => setExpandComparison(!expandComparison)}
                 aria-label={
                   expandComparison
-                    ? t('Collapse')
+                    ? t('Collapse full comparison')
                     : t('Display full comparison')
                 }
               />

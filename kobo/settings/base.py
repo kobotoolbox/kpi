@@ -60,6 +60,9 @@ ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 # Limit sessions to 1 week (the default is 2 weeks)
 SESSION_COOKIE_AGE = env.int('DJANGO_SESSION_COOKIE_AGE', 604800)
 
+# Set language cookie age to same value as session cookie
+LANGUAGE_COOKIE_AGE = SESSION_COOKIE_AGE
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", False)
 
@@ -130,7 +133,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+    'hub.middleware.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -547,15 +550,19 @@ DJANGO_LANGUAGE_CODES = env.str(
         'fr '  # French
         'hi '  # Hindi
         'hu '  # Hungarian
+        'id '  # Indonesian
         'ja '  # Japanese
         'ku '  # Kurdish
         'ln '  # Lingala
         'my '  # Burmese/Myanmar
+        'ne '  # Nepali
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
+        'th '  # Thai
         'tr '  # Turkish
         'uk '  # Ukrainian
+        'vi '  # Vietnamese
         'zh-hans'  # Chinese Simplified
     )
 )
@@ -704,6 +711,12 @@ if RAVEN_JS_DSN_URL:
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
+
+# In case server must serve two KoBoCAT domain names (e.g. during a
+# domain name transfer), `settings.KOBOCAT_OLD_URL` adds support for
+# the domain name.
+KOBOCAT_OLD_URL = os.environ.get('KOBOCAT_OLD_URL')
+
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat')
 
