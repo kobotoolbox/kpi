@@ -13,11 +13,7 @@ const textBoxTypes: TextBoxType[] = [
   'url',
 ];
 
-const textBoxSizes: TextBoxSize[] = [
-  's',
-  'm',
-  'l',
-];
+const textBoxSizes: TextBoxSize[] = ['s', 'm', 'l'];
 
 export default {
   title: 'common/TextBox',
