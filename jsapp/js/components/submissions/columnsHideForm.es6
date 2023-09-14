@@ -119,7 +119,6 @@ class ColumnsHideForm extends React.Component {
         <TextBox
           value={this.state.filterPhrase}
           onChange={this.onFilterPhraseChange}
-          customModifiers='on-white'
           placeholder={t('Find a field')}
         />
 

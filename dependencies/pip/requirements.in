@@ -75,6 +75,7 @@ pymongo==3.12.3
 python-dateutil
 pyxform==1.9.0
 requests
+regex
 responses
 shortuuid
 sqlparse

@@ -1,14 +1,31 @@
 import React from 'react';
-import bem from 'js/bem';
-import TextareaAutosize from 'react-textarea-autosize';
-import './textBox.scss';
+import TextareaAutosize from 'react-autosize-textarea';
+import styles from './textBox.module.scss';
+import classnames from 'classnames';
+import {ButtonToIconMap} from 'js/components/common/button';
+import type {IconName} from 'jsapp/fonts/k-icons';
+import Icon from './icon';
 
-export type AvailableType = 'email' | 'number' | 'password' | 'text-multiline' | 'text' | 'url';
+export type TextBoxType =
+  | 'email'
+  | 'number'
+  | 'password'
+  | 'text-multiline'
+  | 'text'
+  | 'url';
 
-const DefaultType: AvailableType = 'text';
+const DefaultType: TextBoxType = 'text';
 
 interface TextBoxProps {
-  type?: AvailableType;
+  type?: TextBoxType;
+  /** Displays an icon inside the input, on the beginning. */
+  startIcon?: IconName;
+  /**
+   * Displays an icon inside the input, on the end.
+   * Note: Displayed only if there are no errors (in such case "alert" icon is
+   * displayed instead).
+   */
+  endIcon?: IconName;
   value: string;
   /** Not needed if `readOnly` */
   onChange?: Function;
@@ -22,63 +39,41 @@ interface TextBoxProps {
   errors?: string[] | boolean | string;
   label?: string;
   placeholder?: string;
-  description?: string;
   readOnly?: boolean;
+  /**
+   * Makes the component visually disabled and uses the browser built-in
+   * functionality
+   */
   disabled?: boolean;
-  customModifiers?: string[]|string;
+  /**
+   * Adds required mark ("*") to the label (if label is provided).
+   * Note: this adds the built-in browser required input handling, but most
+   * probably there is a need for additional safety checks within the code that
+   * uses this component.
+   */
+  required?: boolean;
+  customClassNames?: string[];
   'data-cy'?: string;
   /** Gives focus to the input immediately after rendering */
   renderFocused?: boolean;
 }
 
 /**
- * A text box generic component.
+ * A generic text box component. It relies on parent to handle all the data
+ * updates.
  */
-class TextBox extends React.Component<TextBoxProps, {}> {
-  inputReference: React.MutableRefObject<null | HTMLInputElement>;
-  textareaReference: React.MutableRefObject<null | HTMLTextAreaElement>;
+export default function TextBox(props: TextBoxProps) {
+  /**
+   * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
+   * types to stop TextareaAutosize complaining.
+   */
 
-  constructor(props: TextBoxProps) {
-    super(props);
-    this.inputReference = React.createRef();
-    this.textareaReference = React.createRef();
-  }
-
-  componentDidMount() {
-    if (this.props.renderFocused) {
-      this.inputReference.current?.focus();
-      this.textareaReference.current?.focus();
-    }
-  }
-
-  onValueChange(newValue: string) {
-    if (this.props.readOnly || !this.props.onChange) {
+  function onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
+    if (props.readOnly || !props.onChange) {
       return;
     }
-
-    this.props.onChange(newValue);
-  }
-
-  onBlur(evt: React.FocusEvent<HTMLInputElement> | React.FocusEvent<HTMLTextAreaElement>) {
-    if (typeof this.props.onBlur === 'function') {
-      this.props.onBlur(evt.currentTarget.value);
-    }
-  }
-
-  onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>) {
-    // For `number` type, we disallow any non numeric characters.
-    if (
-      this.props.type === 'number' &&
-      !['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(evt.key)
-    ) {
-      evt.preventDefault();
-      return false;
-    }
-
-    if (typeof this.props.onKeyPress === 'function') {
-      this.props.onKeyPress(evt.key, evt);
-    }
     return true;
+    props.onChange(evt.currentTarget.value);
   }
 
   render() {
@@ -90,7 +85,11 @@ class TextBox extends React.Component<TextBoxProps, {}> {
       modifiers = this.props.customModifiers;
     } else if (typeof this.props.customModifiers === 'string') {
       modifiers.push(this.props.customModifiers);
+  function onBlur(evt: React.FocusEvent<HTMLInputElement> | any) {
+    if (typeof props.onBlur === 'function') {
+      props.onBlur(evt.currentTarget.value);
     }
+  }
 
     let errors = [];
     if (Array.isArray(this.props.errors)) {
@@ -100,72 +99,90 @@ class TextBox extends React.Component<TextBoxProps, {}> {
     }
     if (errors.length > 0 || this.props.errors === true) {
       modifiers.push('error');
+  function onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | any) {
+    if (typeof props.onKeyPress === 'function') {
+      props.onKeyPress(evt.key, evt);
     }
+  }
+    return true;
 
-    let type = DefaultType;
-    if (this.props.type) {
-      type = this.props.type;
-    }
+  const rootClassNames = props.customClassNames || [];
+  rootClassNames.push(styles.root);
 
-    // Shared props for both `<TextareaAutosize>` and `<input>`. The reason we
-    // need this is because for `text-multiline` type we use special component,
-    // and for all the other types we use the `<input>` HTML tag.
-    const inputProps = {
-      value: this.props.value,
-      placeholder: this.props.placeholder,
-      onBlur: this.onBlur.bind(this),
-      onKeyPress: this.onKeyPress.bind(this),
-      readOnly: this.props.readOnly,
-      disabled: this.props.disabled,
-      'data-cy': this.props['data-cy'],
-      // For `number` type we allow only positive integers
-      step: this.props.type === 'number' ? 1 : undefined,
-      min: this.props.type === 'number' ? 0 : undefined,
-    };
+  let errors = [];
+  if (Array.isArray(props.errors)) {
+    errors = props.errors;
+  } else if (typeof props.errors === 'string' && props.errors.length > 0) {
+    errors.push(props.errors);
+  }
+  if (errors.length > 0 || props.errors === true) {
+    rootClassNames.push(styles.hasError);
+  }
 
-    return (
-      <bem.TextBox m={modifiers}>
-        {this.props.label &&
-          <bem.TextBox__label>
-            {this.props.label}
-          </bem.TextBox__label>
-        }
+  if (props.disabled) {
+    rootClassNames.push(styles.isDisabled);
+  }
 
-        {this.props.type === 'text-multiline' &&
-          <TextareaAutosize
-            className='text-box__input'
-            ref={this.textareaReference}
-            onChange={(evt: React.FormEvent<HTMLTextAreaElement>) => {
-              this.onValueChange(evt.currentTarget.value);
-            }}
-            {...inputProps}
+  if (props.value) {
+    rootClassNames.push(styles.hasValue);
+  }
+
+  let type = DefaultType;
+  if (props.type) {
+    type = props.type;
+  }
+
+  const inputProps = {
+    value: props.value,
+    placeholder: props.placeholder,
+    onChange: onChange,
+    onBlur: onBlur,
+    onKeyPress: onKeyPress,
+    readOnly: props.readOnly,
+    disabled: props.disabled,
+    required: props.required,
+    'data-cy': props['data-cy'],
+  };
+
+  // For now we only support one size of TextBox, but when we're going to
+  // support more, we will use the same icon sizing as Button.
+  const iconSize = ButtonToIconMap.get('l');
+
+  return (
+    // The whole component is a label, because clicking it will bring focus to
+    // the real input inside.
+    <label className={classnames(rootClassNames)}>
+      {/* The label over the input */}
+      {props.label && (
+        <div className={styles.label}>
+          {props.label}{' '}
+          {props.required && <span className={styles.requiredMark}>*</span>}
+        </div>
+      )}
+
+      <div className={styles.inputWrapper}>
+        {/* The custom icon on the left */}
+        {props.startIcon && (
+          <Icon
+            size={iconSize}
+            name={props.startIcon}
+            classNames={[styles.startIcon]}
           />
         }
-        {this.props.type !== 'text-multiline' &&
-          <input
-            className='text-box__input'
-            type={type}
-            ref={this.inputReference}
-            // We use `onInput` instead of `onChange` here, because (for some
-            // reason I wasn't able to grasp) `input[type="number"]` is not
-            // calling onChange when non-number is typed, but regardless to that
-            // the non-number character ends up added to the input value.
-            // This happens on Firefox.
-            onInput={(evt: React.ChangeEvent<HTMLInputElement>) => {
-              this.onValueChange(evt.currentTarget.value);
-            }}
-            // We need this fake `onChange` here to avoid React complaining that
-            // we're creating a read-only input (clearly not true).
-            onChange={() => false}
-            {...inputProps}
-          />
-        }
+        )}
 
         {this.props.description &&
           <bem.TextBox__description>
             {this.props.description}
           </bem.TextBox__description>
         }
+        {/* We use two different components based on the type of the TextBox */}
+        {props.type === 'text-multiline' && (
+          <TextareaAutosize className={styles.input} {...inputProps} />
+        )}
+        {props.type !== 'text-multiline' && (
+          <input className={styles.input} type={type} {...inputProps} />
+        )}
 
         {errors.length > 0 &&
           <bem.TextBox__error>
@@ -178,5 +195,34 @@ class TextBox extends React.Component<TextBoxProps, {}> {
     );
   }
 }
+        {/*
+          The custom icon on the right. It is being displayed only if there are
+          no errors. For TextBox with error, we display always an alert icon.
+        */}
+        {errors.length === 0 && props.endIcon && (
+          <Icon
+            size={iconSize}
+            name={props.endIcon}
+            classNames={[styles.endIcon]}
+          />
+        )}
+        {errors.length > 0 && (
+          <Icon
+            size={iconSize}
+            name='alert'
+            color='red'
+            classNames={[styles.errorIcon]}
+          />
+        )}
+      </div>
 
-export default TextBox;
+      {errors.length > 0 && (
+        <section className={styles.errorMessages}>
+          {errors.map((message: string, index: number) => (
+            <div key={`textbox-error-${index}`}>{message}</div>
+          ))}
+        </section>
+      )}
+    </label>
+  );
+}

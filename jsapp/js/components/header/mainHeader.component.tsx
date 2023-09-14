@@ -3,7 +3,7 @@ import {observer} from 'mobx-react';
 import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
-import bem, {makeBem} from 'js/bem';
+import bem from 'js/bem';
 import {
   getLoginUrl,
   isAnyFormRoute,
@@ -22,16 +22,17 @@ import {withRouter, router} from 'js/router/legacy';
 import type {WithRouterProps} from 'js/router/legacy';
 import Icon from 'js/components/common/icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
-
-bem.MainHeader = makeBem(null, 'main-header', 'header');
-bem.MainHeader__icon = makeBem(bem.MainHeader, 'icon');
-bem.MainHeader__title = makeBem(bem.MainHeader, 'title');
-bem.MainHeader__counter = makeBem(bem.MainHeader, 'counter');
+import MainHeaderBase from './mainHeaderBase.component';
+import MainHeaderLogo from './mainHeaderLogo.component';
+import GitRev from './gitRev.component';
 
 interface MainHeaderProps extends WithRouterProps {
   assetUid: string | null;
 }
 
+/**
+ * Multi-functional header element; to be used with a logged-in account.
+ */
 const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   private unlisteners: Function[] = [];
 
@@ -73,31 +74,6 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
     );
   }
 
-  renderGitRevInfo() {
-    // For developers who don't want this element to obstruct the UI while
-    // working on it, please uncomment line below
-    // if (window.location.hostname === 'kf.kobo.local') {return null;}
-
-    if (
-      'git_rev' in sessionStore.currentAccount &&
-      sessionStore.currentAccount?.git_rev?.branch &&
-      sessionStore.currentAccount?.git_rev?.short
-    ) {
-      return (
-        <bem.GitRev>
-          <bem.GitRev__item>
-            branch: {sessionStore.currentAccount.git_rev.branch}
-          </bem.GitRev__item>
-          <bem.GitRev__item>
-            commit: {sessionStore.currentAccount.git_rev.short}
-          </bem.GitRev__item>
-        </bem.GitRev>
-      );
-    }
-
-    return false;
-  }
-
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }
@@ -126,65 +102,60 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
     }
 
     return (
-      <bem.MainHeader className='mdl-layout__header'>
-        <div className='mdl-layout__header-row'>
-          {sessionStore.isLoggedIn && (
-            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-              <i className='k-icon k-icon-menu' />
-            </bem.Button>
-          )}
+      <MainHeaderBase>
+        <GitRev />
 
-          <span className='mdl-layout__title'>
-            <a href='/'>
-              <bem.Header__logo />
-            </a>
-          </span>
+        {sessionStore.isLoggedIn && (
+          <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
+            <i className='k-icon k-icon-menu' />
+          </bem.Button>
+        )}
 
-          {/* Things for Library */}
-          {isLoggedIn && (isMyLibraryRoute() || isPublicCollectionsRoute()) && (
-            <div className='mdl-layout__header-searchers'>
-              <SearchBox
-                placeholder={librarySearchBoxPlaceholder}
-                disabled={this.isSearchBoxDisabled()}
-              />
-            </div>
-          )}
+        <MainHeaderLogo />
 
-          {/* Things for My Projects and any Custom View */}
-          {isLoggedIn && isAnyProjectsViewRoute() && (
-            <div className='mdl-layout__header-searchers'>
-              <SearchBox
-                placeholder={t('Search…')}
-                disabled={this.isSearchBoxDisabled()}
-              />
-            </div>
-          )}
+        {/* Things for Library */}
+        {isLoggedIn && (isMyLibraryRoute() || isPublicCollectionsRoute()) && (
+          <div className='mdl-layout__header-searchers'>
+            <SearchBox
+              placeholder={librarySearchBoxPlaceholder}
+              disabled={this.isSearchBoxDisabled()}
+            />
+          </div>
+        )}
 
-          {/* Things for Project */}
-          {asset && isAnyFormRoute() && (
-            <React.Fragment>
-              {iconName && (
-                <bem.MainHeader__icon>
-                  <Icon name={iconName} />
-                </bem.MainHeader__icon>
-              )}
+        {/* Things for My Projects and any Custom View */}
+        {isLoggedIn && isAnyProjectsViewRoute() && (
+          <div className='mdl-layout__header-searchers'>
+            <SearchBox
+              placeholder={t('Search…')}
+              disabled={this.isSearchBoxDisabled()}
+            />
+          </div>
+        )}
 
-              <HeaderTitleEditor asset={asset} isEditable={userCanEditAsset} />
+        {/* Things for Project */}
+        {asset && isAnyFormRoute() && (
+          <React.Fragment>
+            {iconName && (
+              <bem.MainHeader__icon>
+                <Icon name={iconName} />
+              </bem.MainHeader__icon>
+            )}
 
-              {asset.has_deployment && (
-                <bem.MainHeader__counter>
-                  {asset.deployment__submission_count} {t('submissions')}
-                </bem.MainHeader__counter>
-              )}
-            </React.Fragment>
-          )}
+            <HeaderTitleEditor asset={asset} isEditable={userCanEditAsset} />
 
-          <AccountMenu />
+            {asset.has_deployment && (
+              <bem.MainHeader__counter>
+                {asset.deployment__submission_count} {t('submissions')}
+              </bem.MainHeader__counter>
+            )}
+          </React.Fragment>
+        )}
 
-          {!isLoggedIn && this.renderLoginButton()}
-        </div>
-        {this.renderGitRevInfo()}
-      </bem.MainHeader>
+        <AccountMenu />
+
+        {!isLoggedIn && this.renderLoginButton()}
+      </MainHeaderBase>
     );
   }
 };
