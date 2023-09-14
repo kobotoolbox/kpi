@@ -1,5 +1,5 @@
-import React from 'react';
-import TextareaAutosize from 'react-autosize-textarea';
+import React, {useEffect} from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 import styles from './textBox.module.scss';
 import classnames from 'classnames';
 import {ButtonToIconMap} from 'js/components/common/button';
@@ -63,48 +63,45 @@ interface TextBoxProps {
  * updates.
  */
 export default function TextBox(props: TextBoxProps) {
-  /**
-   * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
-   * types to stop TextareaAutosize complaining.
-   */
+  const inputReference: React.MutableRefObject<null | HTMLInputElement> = React.createRef();
+  const textareaReference: React.MutableRefObject<null | HTMLTextAreaElement> = React.createRef();
 
-  function onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
+  useEffect(() => {
+    if (props.renderFocused) {
+      inputReference.current?.focus();
+      textareaReference.current?.focus();
+    }
+  }, []);
+
+  function onValueChange(newValue: string) {
     if (props.readOnly || !props.onChange) {
       return;
     }
-    return true;
-    props.onChange(evt.currentTarget.value);
+    props.onChange(newValue);
   }
 
-  render() {
-    let modifiers = [];
-    if (
-      Array.isArray(this.props.customModifiers) &&
-      typeof this.props.customModifiers[0] === 'string'
-    ) {
-      modifiers = this.props.customModifiers;
-    } else if (typeof this.props.customModifiers === 'string') {
-      modifiers.push(this.props.customModifiers);
-  function onBlur(evt: React.FocusEvent<HTMLInputElement> | any) {
+  function onBlur(evt: React.FocusEvent<HTMLInputElement> | React.FocusEvent<HTMLTextAreaElement>) {
     if (typeof props.onBlur === 'function') {
       props.onBlur(evt.currentTarget.value);
     }
   }
 
-    let errors = [];
-    if (Array.isArray(this.props.errors)) {
-      errors = this.props.errors;
-    } else if (typeof this.props.errors === 'string' && this.props.errors.length > 0) {
-      errors.push(this.props.errors);
+  function onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>) {
+    // For `number` type, we disallow any non numeric characters.
+    if (
+      props.type === 'number' &&
+      !['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(evt.key)
+    ) {
+      evt.preventDefault();
+      return false;
     }
-    if (errors.length > 0 || this.props.errors === true) {
-      modifiers.push('error');
-  function onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | any) {
+
     if (typeof props.onKeyPress === 'function') {
       props.onKeyPress(evt.key, evt);
     }
-  }
+
     return true;
+  }
 
   const rootClassNames = props.customClassNames || [];
   rootClassNames.push(styles.root);
@@ -132,16 +129,21 @@ export default function TextBox(props: TextBoxProps) {
     type = props.type;
   }
 
+  // Shared props for both `<TextareaAutosize>` and `<input>`. The reason we
+  // need this is because for `text-multiline` type we use special component,
+  // and for all the other types we use the `<input>` HTML tag.
   const inputProps = {
     value: props.value,
     placeholder: props.placeholder,
-    onChange: onChange,
     onBlur: onBlur,
     onKeyPress: onKeyPress,
     readOnly: props.readOnly,
     disabled: props.disabled,
     required: props.required,
     'data-cy': props['data-cy'],
+    // For `number` type we allow only positive integers
+    step: props.type === 'number' ? 1 : undefined,
+    min: props.type === 'number' ? 0 : undefined,
   };
 
   // For now we only support one size of TextBox, but when we're going to
@@ -168,33 +170,39 @@ export default function TextBox(props: TextBoxProps) {
             name={props.startIcon}
             classNames={[styles.startIcon]}
           />
-        }
         )}
 
-        {this.props.description &&
-          <bem.TextBox__description>
-            {this.props.description}
-          </bem.TextBox__description>
-        }
         {/* We use two different components based on the type of the TextBox */}
         {props.type === 'text-multiline' && (
-          <TextareaAutosize className={styles.input} {...inputProps} />
+          <TextareaAutosize
+            className={styles.input}
+            ref={textareaReference}
+            onChange={(evt: React.FormEvent<HTMLTextAreaElement>) => {
+              onValueChange(evt.currentTarget.value);
+            }}
+            {...inputProps}
+          />
         )}
         {props.type !== 'text-multiline' && (
-          <input className={styles.input} type={type} {...inputProps} />
+          <input
+            className={styles.input}
+            type={type}
+            ref={inputReference}
+            // We use `onInput` instead of `onChange` here, because (for some
+            // reason I wasn't able to grasp) `input[type="number"]` is not
+            // calling onChange when non-number is typed, but regardless to that
+            // the non-number character ends up added to the input value.
+            // This happens on Firefox.
+            onInput={(evt: React.ChangeEvent<HTMLInputElement>) => {
+              onValueChange(evt.currentTarget.value);
+            }}
+            // We need this fake `onChange` here to avoid React complaining that
+            // we're creating a read-only input (clearly not true).
+            onChange={() => false}
+            {...inputProps}
+          />
         )}
 
-        {errors.length > 0 &&
-          <bem.TextBox__error>
-            {errors.map((message: string, index: number) => (
-              <div key={`textbox-error-${index}`}>{message}</div>
-            ))}
-          </bem.TextBox__error>
-        }
-      </bem.TextBox>
-    );
-  }
-}
         {/*
           The custom icon on the right. It is being displayed only if there are
           no errors. For TextBox with error, we display always an alert icon.

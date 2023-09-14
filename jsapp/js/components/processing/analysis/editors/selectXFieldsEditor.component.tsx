@@ -64,7 +64,6 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
               updateChoiceLabel(choice.uuid, newLabel)
             }
             placeholder={t('Type option name')}
-            customModifiers='on-white'
             renderFocused
           />
 

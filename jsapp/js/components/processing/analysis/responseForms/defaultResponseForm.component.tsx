@@ -1,6 +1,6 @@
 import React, {useContext, useState} from 'react';
 import TextBox from 'js/components/common/textBox';
-import type {AvailableType} from 'js/components/common/textBox';
+import type {TextBoxType} from 'js/components/common/textBox';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {AUTO_SAVE_TYPING_DELAY} from 'js/components/processing/analysis/constants';
 import {
@@ -64,7 +64,7 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
   // we want it to present a text input. But since creating a separate component
   // for `qual_integer` with a single line being different, we opt for this litte
   // check here.
-  let textBoxType: AvailableType = 'text-multiline';
+  let textBoxType: TextBoxType = 'text-multiline';
   if (qaDefinition.type === 'qual_integer') {
     textBoxType = 'number';
   }
@@ -83,7 +83,6 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
           }}
           placeholder={t('Start typing your answer')}
           onBlur={saveResponse}
-          customModifiers='on-white'
         />
       </section>
     </>

@@ -141,7 +141,6 @@ export default function AnalysisQuestionEditor(
           onChange={onTextBoxChange}
           errors={errorMessage}
           placeholder={t('Type question')}
-          customModifiers='on-white'
           renderFocused
         />
 
