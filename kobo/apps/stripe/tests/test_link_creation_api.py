@@ -13,8 +13,6 @@ from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
-@patch("djstripe.models.Customer.sync_from_stripe_data")
-@patch("stripe.Customer.modify")
 @patch("djstripe.models.Customer.get_or_create")
 @patch("stripe.checkout.Session.create")
 class TestCheckoutLinkAPITestCase(BaseTestCase):
@@ -26,7 +24,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         self.client.force_login(self.someuser)
         product = baker.prepare(Product, active=True)
         product.save()
-        self.price = baker.make(Price, active=True, id='price_1LsSOSAR39rDI89svTKog9Hq', product=product)
+        self.price =  baker.make(Price, active=True, id='price_1LsSOSAR39rDI89svTKog9Hq', product=product)
 
     @staticmethod
     def _get_url(query_params):
@@ -39,10 +37,8 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         return customer, organization
 
     def test_generates_url(
-        self, stripe_checkout_session_create_mock, customer_get_or_create_mock, modify_customer_mock, stripe_sync_mock
+        self, stripe_checkout_session_create_mock, customer_get_or_create_mock
     ):
-        stripe_sync_mock.return_value = None
-        modify_customer_mock.return_value = Customer
         customer, organization = self._create_customer_organization()
         organization.add_user(self.someuser, is_admin=True)
         customer_get_or_create_mock.return_value = (Customer, False)
@@ -53,21 +49,14 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         assert response.data['url'].startswith('https://checkout.stripe.com')
 
     def test_rejects_invalid_query_params(
-        self, stripe_checkout_session_create_mock, customer_get_or_create_mock, modify_customer_mock, stripe_sync_mock
+        self, stripe_checkout_session_create_mock, customer_get_or_create_mock
     ):
-        stripe_sync_mock.return_value = None
-        modify_customer_mock.return_value = Customer
-        customer_get_or_create_mock.return_value = (Customer, False)
         stripe_checkout_session_create_mock.return_value = {'url': 'https://checkout.stripe.com/c/pay/cs_test_a1NbsdWp'}
         url = self._get_url({'price_id': 'test', 'organization_id': 'test'})
         response = self.client.post(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_creates_organization(
-        self, stripe_checkout_session_create_mock, customer_get_or_create_mock, modify_customer_mock, stripe_sync_mock
-    ):
-        stripe_sync_mock.return_value = None
-        modify_customer_mock.return_value = Customer
+    def test_creates_organization(self, stripe_checkout_session_create_mock, customer_get_or_create_mock):
         customer_get_or_create_mock.return_value = (Customer, False)
         stripe_checkout_session_create_mock.return_value = {'url': 'https://checkout.stripe.com/c/pay/cs_test_a1NbsdWp'}
         url = self._get_url({'price_id': self.price.id})
@@ -76,9 +65,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         assert response.data['url'].startswith('https://checkout.stripe.com')
         assert Organization.objects.filter(organization_users__user_id=self.someuser).last()
 
-    def test_anonymous_user(
-        self, stripe_checkout_session_create_mock, customer_get_or_create_mock, modify_customer_mock, stripe_sync_mock
-    ):
+    def test_anonymous_user(self, stripe_checkout_session_create_mock, customer_get_or_create_mock):
         self.client.logout()
         response = self.client.post(reverse('checkoutlinks'))
         assert response.status_code == status.HTTP_403_FORBIDDEN

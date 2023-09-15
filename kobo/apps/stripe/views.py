@@ -192,53 +192,29 @@ class CheckoutLinkView(APIView):
         customer, _ = Customer.get_or_create(
             subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
         )
-        # Update the customer's name and organization name in Stripe.
+        # Add the name and organization to the customer if not present.
         # djstripe doesn't let us do this on customer creation, so modify the customer on Stripe and then fetch locally.
-        stripe_customer = stripe.Customer.modify(
-            customer.id,
-            name=user.extra_details.data.get('name', None) or user.username,
-            description=organization.name,
-            api_key=djstripe_settings.STRIPE_SECRET_KEY,
-            metadata={
-                'kpi_owner_username': user.username,
-                'kpi_owner_user_id': user.id,
-                'request_url': settings.KOBOFORM_URL,
-                'organization_id': organization_id,
-            },
-        )
-        customer.sync_from_stripe_data(stripe_customer)
+        if not customer.name and user.extra_details.data['name']:
+            stripe_customer = stripe.Customer.modify(
+                customer.id,
+                name=user.extra_details.data['name'],
+                description=organization.name,
+                api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            )
+            customer.sync_from_stripe_data(stripe_customer)
         session = CheckoutLinkView.start_checkout_session(
-            customer.id, price, organization.id, user,
+            customer.id, price, organization.id
         )
         return session['url']
 
     @staticmethod
-    def start_checkout_session(customer_id, price, organization_id, user):
+    def start_checkout_session(customer_id, price, organization_id):
         checkout_mode = (
             'payment' if price.type == 'one_time' else 'subscription'
         )
-        kwargs = {}
-        if checkout_mode == 'subscription':
-            kwargs['subscription_data'] = {
-                'metadata': {
-                    'kpi_owner_username': user.username,
-                    'kpi_owner_user_id': user.id,
-                    'request_url': settings.KOBOFORM_URL,
-                    'organization_id': organization_id,
-                },
-            }
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             automatic_tax={'enabled': False},
-            billing_address_collection='required',
-            custom_fields=[
-                {
-                    'key': 'organization',
-                    'label': {'type': 'custom', 'custom': 'Organization Name'},
-                    'type': 'text',
-                    'optional': 'true',
-                },
-            ],
             customer=customer_id,
             line_items=[
                 {
@@ -249,11 +225,9 @@ class CheckoutLinkView(APIView):
             metadata={
                 'organization_id': organization_id,
                 'price_id': price.id,
-                'kpi_owner_username': user.username,
             },
             mode=checkout_mode,
             success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
-            **kwargs,
         )
 
     def post(self, request):
