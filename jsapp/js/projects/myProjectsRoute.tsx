@@ -27,10 +27,12 @@ import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import {UsageContext, useUsage} from 'js/account/useUsage.hook';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const usage = useUsage();
 
   useEffect(() => {
     customView.setUp(
@@ -111,7 +113,9 @@ function MyProjectsRoute() {
             </div>
           )}
         </header>
-        <LimitNotifications useModal />
+        <UsageContext.Provider value={usage}>
+          <LimitNotifications useModal />
+        </UsageContext.Provider>
         <ProjectsTable
           assets={customView.assets}
           isLoading={!customView.isFirstLoadComplete}
