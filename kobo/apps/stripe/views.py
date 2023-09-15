@@ -2,6 +2,8 @@ import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
+from django.utils.decorators import method_decorator
+from django_request_cache import cache_for_request
 from djstripe.models import (
     Customer,
     Price,
@@ -377,3 +379,7 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         .distinct()
     )
     serializer_class = ProductSerializer
+
+    @cache_for_request
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
