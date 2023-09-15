@@ -104,6 +104,9 @@ export async function postCustomerPortal(organizationId: string) {
 export async function getSubscriptionInterval() {
   await when(() => envStore.isReady);
   if (envStore.data.stripe_public_key) {
+    if (!subscriptionStore.isPending && !subscriptionStore.isInitialised) {
+      subscriptionStore.fetchSubscriptionInfo();
+    }
     await when(() => subscriptionStore.isInitialised);
     const subscriptionList: SubscriptionInfo[] =
       subscriptionStore.subscriptionResponse;
