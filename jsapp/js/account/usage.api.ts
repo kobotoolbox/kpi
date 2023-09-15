@@ -1,5 +1,6 @@
 import {fetchGet, fetchPost} from 'jsapp/js/api';
 import {getOrganization} from 'js/account/stripe.api';
+import {createContext} from 'react';
 
 interface AssetUsage {
   asset: string;
@@ -11,7 +12,7 @@ interface AssetUsage {
   storage_bytes: number;
 }
 
-interface UsageResponse {
+export interface UsageResponse {
   current_month_start: string;
   current_year_start: string;
   per_asset_usage: AssetUsage[];
