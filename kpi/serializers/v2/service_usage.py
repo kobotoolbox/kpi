@@ -131,34 +131,16 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._current_year_start
 
     def _get_per_asset_usage(self, user):
-        self._users = [user]
+        self._user_ids = [user.pk]
 
-        # Get the organization ID passed in from the query parameters
-        organization_id = self.context['request'].query_params.get(
-            'organization_id'
-        )
-        self._get_organization_details(organization_id)
+        self._get_organization_details()
 
-        # Only use fields we need to improve SQL query speed
-        user_assets = (
-            Asset.all_objects.only(
-                'pk',
-                'uid',
-                '_deployment_data',
-                'owner_id',
-                'name',
-            )
-            .select_related('owner')
-            .exclude(_deployment_data=None)
-            .filter(
-                owner__in=self._users,
-                asset_type=ASSET_TYPE_SURVEY,
-                # Make sure we're only getting assets that are deployed
-                _deployment_data__has_key='backend',
+        asset_list = list(
+            Asset.all_objects.values_list('uid', flat=True).filter(
+                owner__in=self._user_ids,
+                date_deployed__isnull=False,
             )
         )
-
-        asset_list = [asset.uid for asset in user_assets]
 
         xforms = KobocatXForm.objects.only('bytes_sum', 'id', 'kpi_asset_uid').filter(
             kpi_asset_uid__in=asset_list,
@@ -184,7 +166,7 @@ class ServiceUsageSerializer(serializers.Serializer):
             )
             .filter(
                 # get submission counters for all deployed assets OR the null xform counter
-                Q(user__in=[kpi_user.id for kpi_user in self._users], xform=None) |
+                Q(user_id__in=self._user_ids, xform=None) |
                 Q(xform__kpi_asset_uid__in=asset_list),
             )
             .aggregate(
@@ -208,7 +190,7 @@ class ServiceUsageSerializer(serializers.Serializer):
                 'date', 'total_asr_seconds', 'total_mt_characters'
             )
             .filter(
-                user__in=self._users,
+                user_id__in=self._user_ids,
             )
             .aggregate(
                 asr_seconds_current_year=Coalesce(
@@ -266,26 +248,31 @@ class ServiceUsageSerializer(serializers.Serializer):
             return self._anchor_date.replace(year=self._now.year - 1)
         return self._anchor_date.replace(year=self._now.year)
 
-    def _get_organization_details(self, organization_id=None):
+    def _get_organization_details(self):
+        # Get the organization ID passed in from the query parameters
+        organization_id = self.context['request'].query_params.get(
+            'organization_id'
+        )
+
         if not organization_id:
             return
 
-        self._organization = Organization.objects.filter(
+        organization = Organization.objects.filter(
             owner__organization_user__user=self.context.get('request').user,
             id=organization_id,
         ).first()
 
-        if not self._organization:
+        if not organization:
             # Couldn't find organization, proceed as normal
             return
 
         # If the user is in an organization, get all org users so we can query their total org usage
-        self._users = User.objects.filter(
+        self._user_ids = User.objects.values_list('pk', flat=True).filter(
             organizations_organization__id=organization_id
         )
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
-        billing_details = self._organization.active_subscription_billing_details
+        billing_details = organization.active_subscription_billing_details
         if billing_details:
             self._anchor_date = billing_details['billing_cycle_anchor'].date()
             self._period_start = billing_details['current_period_start'].date()
