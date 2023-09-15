@@ -8,7 +8,10 @@ import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
-import {permParser} from './permParser';
+import {
+  parseFormData,
+  buildFormData,
+} from './permParser';
 import permConfig from './permConfig';
 import {
   assign,
@@ -92,7 +95,7 @@ class UserAssetPermsEditor extends React.Component {
    */
   applyPropsData() {
     if (this.props.permissions) {
-      const formData = permParser.buildFormData(this.props.permissions);
+      const formData = buildFormData(this.props.permissions);
       this.state = this.applyValidityRules(assign(this.state, formData));
     }
 
@@ -442,7 +445,7 @@ class UserAssetPermsEditor extends React.Component {
 
     const formData = this.getFormData();
 
-    const parsedPerms = permParser.parseFormData(formData);
+    const parsedPerms = parseFormData(formData);
 
     if (parsedPerms.length > 0) {
       // bulk endpoint needs all other users permissions to be passed

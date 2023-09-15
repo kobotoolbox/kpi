@@ -10,6 +10,12 @@ import type {
   SubmissionResponse,
 } from 'js/dataInterface';
 import {isSelfOwned} from 'jsapp/js/assetUtils';
+import {PARTIAL_CHECKBOX_PAIRS} from './permConstants';
+import type {
+  CheckboxNameAll,
+  CheckboxNamePartial,
+  CheckboxNameRegularPair,
+} from './permConstants';
 
 /** For `.find`-ing the permissions */
 function _doesPermMatch(
@@ -185,4 +191,23 @@ export function isSubmissionWritable(
     }
   });
   return allowedUsers.includes(submittedBy);
+}
+
+/**
+ * For given checkbox name returns its partial counterpart (another checkbox
+ * name) if it has one.
+ *
+ * We use this function instead of directly using PARTIAL_CHECKBOX_PAIRS to keep
+ * the code DRY, as you can see it requires some juggling.
+ */
+export function getPartialCheckboxName(
+  checkboxName: CheckboxNameAll
+): CheckboxNamePartial | undefined {
+  if (checkboxName in PARTIAL_CHECKBOX_PAIRS) {
+    // We need to cast it because TypeScript doesn't understand the next line properly
+    const key = checkboxName as CheckboxNameRegularPair;
+    return PARTIAL_CHECKBOX_PAIRS[key];
+  }
+
+  return undefined;
 }

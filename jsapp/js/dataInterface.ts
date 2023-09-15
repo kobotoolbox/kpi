@@ -7,7 +7,7 @@
 
 import {assign} from 'js/utils';
 import {ROOT_URL, COMMON_QUERIES} from './constants';
-import type {EnvStoreFieldItem, FreeTierDisplay, SocialApp} from 'js/envStore';
+import type {EnvStoreFieldItem, FreeTierDisplay, FreeTierThresholds, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
@@ -17,7 +17,6 @@ import type {
 } from 'js/constants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
-import type {FreeTierThresholds} from 'js/envStore';
 
 interface AssetsRequestData {
   q?: string;
@@ -231,6 +230,11 @@ export interface LabelValuePair {
   value: string;
 }
 
+export interface PartialPermission {
+  url: string;
+  filters: Array<{_submitted_by: {$in: string[]}}>;
+}
+
 /**
  * A single permission instance for a given user.
  */
@@ -239,10 +243,7 @@ export interface Permission {
   user: string;
   permission: string;
   label: string;
-  partial_permissions?: Array<{
-    url: string;
-    filters: Array<{_submitted_by: {$in: string[]}}>;
-  }>;
+  partial_permissions?: PartialPermission[];
 }
 
 /**
@@ -626,7 +627,6 @@ export interface PaginatedResponse<T> {
 export interface PermissionDefinition {
   url: string;
   name: string;
-  description: string;
   codename: string;
   implied: string[];
   contradictory: string[];
@@ -1163,7 +1163,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetPermissions(assetUid: string): JQuery.jqXHR<any> {
+  getAssetPermissions(assetUid: string): JQuery.jqXHR<Permission[]> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
       method: 'GET',
@@ -1173,7 +1173,7 @@ export const dataInterface: DataInterface = {
   bulkSetAssetPermissions(
     assetUid: string,
     perms: Array<{user: string; permission: string}>
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<Permission[]> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,
       method: 'POST',

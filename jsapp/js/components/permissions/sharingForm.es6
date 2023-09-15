@@ -26,7 +26,10 @@ import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
 import PublicShareSettings from './publicShareSettings';
 import UserPermissionRow from './userPermissionRow';
-import {permParser} from './permParser';
+import {
+  parseBackendData,
+  parseUserWithPermsList,
+} from './permParser';
 
 class SharingForm extends React.Component {
   constructor(props) {
@@ -56,12 +59,12 @@ class SharingForm extends React.Component {
   }
 
   onAssetPermissionsUpdated(permissionAssignments) {
-    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner, true);
+    const parsedPerms = parseBackendData(permissionAssignments, this.state.asset.owner, true);
     const anonUserUrl = buildUserUrl(ANON_USERNAME);
     const publicPerms = permissionAssignments.filter((assignment) => {
       return assignment.user === anonUserUrl;
     });
-    const nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
+    const nonOwnerPerms = parseUserWithPermsList(parsedPerms).filter((perm) => {
       return perm.user !== buildUserUrl(this.state.asset.owner);
     });
 
