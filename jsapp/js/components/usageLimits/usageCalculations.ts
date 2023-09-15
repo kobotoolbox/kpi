@@ -1,25 +1,13 @@
-import {useEffect, useState, useMemo, useReducer, useContext} from 'react';
-import {getUsageForOrganization} from '../../account/usage.api';
+import {useState, useMemo, useReducer, useContext} from 'react';
 import type {BaseSubscription, BasePrice} from '../../account/stripe.api';
 import {getProducts} from '../../account/stripe.api';
 import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
-import {truncateNumber} from 'js/utils';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {UsageContext} from 'js/account/useUsage.hook';
-
-interface UsageState {
-  storage: number;
-  monthlySubmissions: number;
-  yearlySubmissions: number;
-  monthlyTranscriptionMinutes: number;
-  yearlyTranscriptionMinutes: number;
-  monthlyTranslationChars: number;
-  yearlyTranslationChars: number;
-}
 
 interface SubscribedState {
   subscribedProduct: null | BaseSubscription;
