@@ -17,8 +17,8 @@ import {
 import permConfig from 'js/components/permissions/permConfig';
 import {
   INVALID_PERMS_ERROR,
-  validateBackendPermissions
-} from 'js/components/permissions/utils';
+  validateBackendPermissions,
+} from 'js/components/permissions/validatePermissions';
 
 export const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
