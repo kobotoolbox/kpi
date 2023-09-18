@@ -92,12 +92,18 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: true,
-        // Here we immediately remove the question from the list and wait for
-        // a successful API call that will return new questions list (without
-        // the deleted question).
-        questions: state.questions.filter(
-          (question) => question.uuid !== action.payload.uuid
-        ),
+        // Here we immediately mark the question as `deleted` and wait for
+        // a successful API call that will return new questions list (to ensure
+        // the deletion went as expected).
+        questions: state.questions.map((question) => {
+          if (question.uuid === action.payload.uuid) {
+            if (typeof question.options !== 'object') {
+              question.options = {};
+            }
+            question.options.deleted = true;
+          }
+          return question;
+        }),
       };
     }
     case 'deleteQuestionCompleted': {

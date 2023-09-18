@@ -52,9 +52,12 @@ export default function AnalysisQuestionEditor(
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [additionalFieldsErrorMessage, setAdditionalFieldsErrorMessage] =
     useState<string | undefined>();
+  // We need to clone `additionalFields` here to avoid mutating it
   const [additionalFields, setAdditionalFields] = useState<
     AdditionalFields | undefined
-  >(question.additionalFields ? question.additionalFields : undefined);
+  >(
+    question.additionalFields ? clonedeep(question.additionalFields) : undefined
+  );
 
   function onTextBoxChange(newLabel: string) {
     setLabel(newLabel);
@@ -200,7 +203,7 @@ export default function AnalysisQuestionEditor(
         <section className={commonStyles.content}>
           {question.type === 'qual_auto_keyword_count' && (
             <KeywordSearchFieldsEditor
-              uuid={question.uuid}
+              questionUuid={question.uuid}
               fields={additionalFields || {source: '', keywords: []}}
               onFieldsChange={onAdditionalFieldsChange}
             />
@@ -209,7 +212,7 @@ export default function AnalysisQuestionEditor(
           {(question.type === 'qual_select_one' ||
             question.type === 'qual_select_multiple') && (
             <SelectXFieldsEditor
-              uuid={question.uuid}
+              questionUuid={question.uuid}
               fields={additionalFields || {choices: []}}
               onFieldsChange={onAdditionalFieldsChange}
             />
