@@ -167,7 +167,6 @@ export default function EmailSection() {
       >
         {/*TODO: Move TextBox into a modal--it messes up the flow of the row right now*/}
         <TextBox
-          customModifiers='on-white'
           value={email.newEmail}
           placeholder={t('Type new email address')}
           onChange={onTextFieldChange.bind(onTextFieldChange)}

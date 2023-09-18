@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {useSearchParams} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -27,7 +27,11 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
-import {BaseProduct} from "js/account/subscriptionStore";
+import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
+import type {FreeTierThresholds} from 'js/envStore';
+import envStore from 'js/envStore';
+import {ACCOUNT_ROUTES} from 'js/account/routes';
+import useWhen from 'js/hooks/useWhen.hook';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -44,20 +48,19 @@ interface DataUpdates {
   prodData?: any;
 }
 
+interface FreeTierOverride extends FreeTierThresholds {
+  name: string | null;
+  [key: `feature_list_${number}`]: string | null;
+}
+
 const initialState = {
   subscribedProduct: null,
-  intervalFilter: 'year',
-  filterToggle: false,
+  intervalFilter: 'month',
+  filterToggle: true,
   products: null,
   organization: null,
-  featureTypes: ['support', 'advanced', 'addons'],
+  featureTypes: ['advanced', 'support', 'addons'],
 };
-
-/*
-  Stripe Subscription statuses that are shown as active in the UI.
-  Subscriptions with a status in this array will show an option to 'Manage'.
-*/
-const activeSubscriptionStatuses = ['active', 'past_due', 'trialing'];
 
 const subscriptionUpgradeMessageDuration = 8000;
 
@@ -93,6 +96,7 @@ export default function Plan() {
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
+  const navigate = useNavigate();
 
   const isDataLoading = useMemo(
     (): boolean =>
@@ -100,8 +104,30 @@ export default function Plan() {
     [state.products, state.organization, state.subscribedProduct]
   );
 
-  const hasManageableStatus = useCallback((subscription: BaseSubscription) =>
-    activeSubscriptionStatuses.includes(subscription.status), []);
+  const hasManageableStatus = useCallback(
+    (subscription: BaseSubscription) =>
+      ACTIVE_STRIPE_STATUSES.includes(subscription.status),
+    []
+  );
+
+  const freeTierOverride = useMemo((): FreeTierOverride | null => {
+    if (envStore.isReady) {
+      const thresholds = envStore.data.free_tier_thresholds;
+      const display = envStore.data.free_tier_display;
+      const featureList: {[key: string]: string | null} = {};
+
+      display.feature_list.forEach((feature, key) => {
+        featureList[`feature_list_${key + 1}`] = feature;
+      });
+
+      return {
+        name: display.name,
+        ...thresholds,
+        ...featureList,
+      };
+    }
+    return null;
+  }, [envStore.isReady]);
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
@@ -113,45 +139,53 @@ export default function Plan() {
   }, [state.subscribedProduct]);
 
   useMemo(() => {
-    if (
-      state.subscribedProduct?.length > 0
-    ) {
+    if (state.subscribedProduct?.length > 0) {
       const subscribedFilter =
         state.subscribedProduct?.[0].items[0].price.recurring?.interval;
-      if (!hasManageableStatus(state.subscribedProduct)) {
-        dispatch({type: 'year'});
-      } else {
+      if (hasManageableStatus(state.subscribedProduct?.[0])) {
         dispatch({type: subscribedFilter});
       }
     }
   }, [state.subscribedProduct]);
 
-  useEffect(() => {
-    getProducts().then((data) => {
-      dispatch({
-        type: 'initialProd',
-        prodData: data.results,
-      });
-    });
+  useWhen(
+    () => envStore.isReady,
+    () => {
+      // If Stripe isn't loaded, just redirect to the account page
+      if (!envStore.data.stripe_public_key) {
+        navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
+        return;
+      }
+      const fetchPromises = [];
 
-    getOrganization().then((data) => {
-      dispatch({
-        type: 'initialOrg',
-        prodData: data.results[0],
+      fetchPromises[0] = getProducts().then((data) => {
+        // If we have no products, redirect
+        if (!data.count) {
+          navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
+        }
+        dispatch({
+          type: 'initialProd',
+          prodData: data.results,
+        });
       });
-    });
-
-    getSubscription().then((data) => {
-      dispatch({
-        type: 'initialSub',
-        prodData: data.results,
+      fetchPromises[1] = getOrganization().then((data) => {
+        dispatch({
+          type: 'initialOrg',
+          prodData: data.results[0],
+        });
       });
-    });
-
-    if (isDataLoading) {
-      setAreButtonsDisabled(false);
-    }
-  }, [searchParams, shouldRevalidate]);
+      fetchPromises[2] = getSubscription().then((data) => {
+        dispatch({
+          type: 'initialSub',
+          prodData: data.results,
+        });
+      });
+      Promise.all(fetchPromises).then(() => {
+        setAreButtonsDisabled(false);
+      });
+    },
+    [searchParams, shouldRevalidate]
+  );
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {
@@ -207,7 +241,10 @@ export default function Plan() {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.recurring?.interval;
-          return interval === state.intervalFilter && product.metadata.product_type === 'plan';
+          return (
+            interval === state.intervalFilter &&
+            product.metadata.product_type === 'plan'
+          );
         });
 
         return {
@@ -216,8 +253,12 @@ export default function Plan() {
         };
       });
 
-      return filterAmount.filter((product: Product) => product.prices)
-        .sort((priceA: Price, priceB: Price) => priceA.prices.unit_amount > priceB.prices.unit_amount);
+      return filterAmount
+        .filter((product: Product) => product.prices)
+        .sort(
+          (priceA: Price, priceB: Price) =>
+            priceA.prices.unit_amount > priceB.prices.unit_amount
+        );
     }
     return [];
   }, [state.products, state.intervalFilter]);
@@ -233,20 +274,17 @@ export default function Plan() {
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (
-        !product.prices.unit_amount &&
-        state.intervalFilter === 'year' &&
-        !hasActiveSubscription
-      ) {
+      if (!product.prices.unit_amount && !hasActiveSubscription) {
         return true;
       }
 
       const subscriptions = getSubscriptionsForProductId(product.id);
 
       if (subscriptions.length > 0) {
-        return subscriptions.some((subscription: BaseSubscription) =>
-          subscription.items[0].price.id === product.prices.id &&
-          hasManageableStatus(subscription)
+        return subscriptions.some(
+          (subscription: BaseSubscription) =>
+            subscription.items[0].price.id === product.prices.id &&
+            hasManageableStatus(subscription)
         );
       }
       return false;
@@ -262,7 +300,7 @@ export default function Plan() {
       }
 
       return subscriptions.some((subscription: BaseSubscription) =>
-          hasManageableStatus(subscription)
+        hasManageableStatus(subscription)
       );
     },
     [state.subscribedProduct]
@@ -347,6 +385,17 @@ export default function Plan() {
     return expandBool;
   };
 
+  const getFeatureMetadata = (price: Price, featureItem: string) => {
+    if (
+      price.prices.unit_amount === 0 &&
+      freeTierOverride &&
+      freeTierOverride.hasOwnProperty(featureItem)
+    ) {
+      return freeTierOverride[featureItem as keyof FreeTierOverride];
+    }
+    return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
+  };
+
   useEffect(() => {
     hasMetaFeatures();
   }, [state.products]);
@@ -359,7 +408,7 @@ export default function Plan() {
     title?: string
   ) => (
     <div className={styles.expandedFeature} key={title}>
-      <h2 className={styles.listTitle}>{title}</h2>
+      <h2 className={styles.listTitle}>{title} </h2>
       <ul>
         {items.map((item) => (
           <li key={item.label}>
@@ -387,7 +436,7 @@ export default function Plan() {
       label: string;
     }> = [];
     getListItem(type, name).map((listItem) => {
-      if (listItem.icon && name === 'Professional plan') {
+      if (listItem.icon && name === 'Professional') {
         items.push({icon: 'positive_pro', label: listItem.item});
       } else if (!listItem.icon) {
         items.push({icon: 'negative', label: listItem.item});
@@ -419,30 +468,30 @@ export default function Plan() {
                 type='radio'
                 id='switch_left'
                 name='switchToggle'
-                value='year'
-                onChange={() => dispatch({type: 'year'})}
-                checked={!state.filterToggle}
-                aria-label={'Toggle to annual options'}
-              />
-              <label htmlFor='switch_left'>{t('Annual')}</label>
-
-              <input
-                type='radio'
-                id='switch_right'
-                name='switchToggle'
                 value='month'
                 aria-label={'Toggle to month options'}
                 onChange={() => dispatch({type: 'month'})}
                 checked={state.filterToggle}
               />
-              <label htmlFor='switch_right'> {t('Monthly')}</label>
+              <label htmlFor='switch_left'> {t('Monthly')}</label>
+
+              <input
+                type='radio'
+                id='switch_right'
+                name='switchToggle'
+                value='year'
+                onChange={() => dispatch({type: 'year'})}
+                checked={!state.filterToggle}
+                aria-label={'Toggle to annual options'}
+              />
+              <label htmlFor='switch_right'>{t('Annual')}</label>
             </form>
 
             <div className={styles.allPlans}>
               {filterPrices.map((price: Price) => (
                 <div className={styles.stripePlans} key={price.id}>
                   {isSubscribedProduct(price) ? (
-                    <div className={styles.currentPlan}>{t('your plan')}</div>
+                    <div className={styles.currentPlan}>{t('Your plan')}</div>
                   ) : (
                     <div className={styles.otherPlanSpacing} />
                   )}
@@ -453,14 +502,21 @@ export default function Plan() {
                       [styles.planContainer]: true,
                     })}
                   >
-                    <h1 className={styles.priceName}> {price.name} </h1>
+                    <h1 className={styles.priceName}>
+                      {price.prices?.unit_amount
+                        ? price.name
+                        : freeTierOverride?.name || price.name}
+                    </h1>
                     <div className={styles.priceTitle}>
                       {!price.prices?.unit_amount
                         ? t('Free')
+                        : price.prices?.recurring?.interval === 'year'
+                        ? `$${(price.prices?.unit_amount / 100 / 12).toFixed(
+                            2
+                          )} USD/month`
                         : price.prices.human_readable_price}
                     </div>
-
-                    <ul>
+                    <ul className={styles.featureContainer}>
                       {Object.keys(price.metadata).map(
                         (featureItem: string) =>
                           featureItem.includes('feature_list_') && (
@@ -470,18 +526,31 @@ export default function Plan() {
                                   name='check'
                                   size='m'
                                   color={
-                                    price.name === 'Professional plan'
+                                    price.name === 'Professional'
                                       ? 'teal'
                                       : 'storm'
                                   }
                                 />
                               </div>
-                              {price.prices.metadata?.[featureItem] ||
-                                price.metadata[featureItem]}
+                              {getFeatureMetadata(price, featureItem)}
                             </li>
                           )
                       )}
                     </ul>
+                    {expandComparison && (
+                      <div className={styles.expandedContainer}>
+                        <hr />
+                        {state.featureTypes.map(
+                          (type) =>
+                            getListItem(type, price.name).length > 0 &&
+                            returnListItem(
+                              type,
+                              price.name,
+                              price.metadata[`feature_${type}_title`]
+                            )
+                        )}
+                      </div>
+                    )}
                     {!isSubscribedProduct(price) &&
                       !shouldShowManage(price) &&
                       price.prices.unit_amount > 0 && (
@@ -502,7 +571,7 @@ export default function Plan() {
                         <Button
                           type='full'
                           color='blue'
-                          size='m'
+                          size='l'
                           label={t('Manage')}
                           onClick={managePlan}
                           aria-label={`manage your ${price.name} subscription`}
@@ -527,21 +596,6 @@ export default function Plan() {
                     {price.prices.unit_amount === 0 && (
                       <div className={styles.btnSpacePlaceholder} />
                     )}
-
-                    {expandComparison && (
-                      <>
-                        <hr />
-                        {state.featureTypes.map(
-                          (type) =>
-                            getListItem(type, price.name).length > 0 &&
-                            returnListItem(
-                              type,
-                              price.name,
-                              price.metadata[`feature_${type}_title`]
-                            )
-                        )}
-                      </>
-                    )}
                   </div>
                 </div>
               ))}
@@ -549,25 +603,35 @@ export default function Plan() {
               <div className={styles.enterprisePlanContainer}>
                 <div className={styles.otherPlanSpacing} />
                 <div className={styles.enterprisePlan}>
-                  <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
+                  <h1 className={styles.enterpriseTitle}> {t('Want more?')}</h1>
+                  <div className={styles.priceTitle}>{t('Contact us')}</div>
                   <p className={styles.enterpriseDetails}>
                     {t(
-                      'We offer several add-on options to increase your limits or the capacity of certain features for a period of time, depending on which plan you use.'
+                      'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
                     )}
-                  </p>
-                  <p className={styles.enterpriseDetails}>
-                    {t(
-                      'If your organization has larger or more specific needs, please contact our team to learn about our enterprise options.'
-                    )}
-                  </p>
-                  <div className={styles.enterpriseLink}>
                     <a
                       href='https://www.kobotoolbox.org/contact/'
                       target='_blanks'
+                      className={styles.enterpriseLink}
                     >
-                      {t('Get in touch for Enterprise options')}
+                      {t('Enterprise Plan')}
                     </a>
-                  </div>
+                    .
+                  </p>
+                  <p className={styles.enterpriseDetails}>
+                    {t(
+                      'We also offer custom solutions and private servers for large organizations. '
+                    )}
+                    <br />
+                    <a
+                      href='https://www.kobotoolbox.org/contact/'
+                      target='_blanks'
+                      className={styles.enterpriseLink}
+                    >
+                      {t('Contact our team')}
+                    </a>
+                    {t(' for more information.')}
+                  </p>
                 </div>
               </div>
             </div>
@@ -582,13 +646,13 @@ export default function Plan() {
                 isFullWidth
                 label={
                   expandComparison
-                    ? t('Collapse')
+                    ? t('Collapse full comparison')
                     : t('Display full comparison')
                 }
                 onClick={() => setExpandComparison(!expandComparison)}
                 aria-label={
                   expandComparison
-                    ? t('Collapse')
+                    ? t('Collapse full comparison')
                     : t('Display full comparison')
                 }
               />

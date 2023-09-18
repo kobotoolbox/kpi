@@ -1,5 +1,6 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/sizes';
+@use 'scss/mixins';
 @use 'js/components/common/icon';
 @use 'sass:color';
 
@@ -153,11 +154,24 @@ $button-border-radius: sizes.$x6;
   border-color: transparent;
   border-radius: $button-border-radius;
   background-color: transparent;
+  transition: background-color 0.2s, opacity 0.2s, color 0.2s;
+}
+
+.long-button-padding {
+  padding: 0 10.5%  !important;
 }
 
 .k-button:active {
   // Make it appear pressed down.
   transform: translateY(sizes.$x1);
+}
+
+.k-button:focus {
+  outline: none;
+}
+
+.k-button:focus-visible {
+  @include mixins.default-ui-focus;
 }
 
 .k-button__label {
@@ -216,6 +230,12 @@ $button-border-radius: sizes.$x6;
   &.k-button--type-full {@include button-full(colors.$kobo-red);}
 }
 
+.k-button.k-button--color-dark-red {
+  &.k-button--type-bare {@include button-bare(colors.$kobo-dark-red);}
+  &.k-button--type-frame {@include button-frame(colors.$kobo-dark-red);}
+  &.k-button--type-full {@include button-full(colors.$kobo-dark-red);}
+}
+
 .k-button.k-button--color-storm {
   &.k-button--type-bare {@include button-bare(colors.$kobo-storm);}
   &.k-button--type-frame {@include button-frame(colors.$kobo-storm);}
@@ -226,6 +246,12 @@ $button-border-radius: sizes.$x6;
   &.k-button--type-bare {@include button-bare(colors.$kobo-cloud);}
   &.k-button--type-frame {@include button-frame(colors.$kobo-cloud);}
   &.k-button--type-full {@include button-full(colors.$kobo-cloud, colors.$kobo-dark-blue);}
+}
+
+.k-button.k-button--color-dark-blue {
+  &.k-button--type-bare {@include button-bare(colors.$kobo-dark-blue);}
+  &.k-button--type-frame {@include button-frame(colors.$kobo-dark-blue);}
+  &.k-button--type-full {@include button-full(colors.$kobo-dark-blue, colors.$kobo-cloud);}
 }
 
 .k-button.k-button--size-s {

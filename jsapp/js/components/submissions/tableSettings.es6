@@ -75,7 +75,7 @@ class TableSettings extends React.Component {
       value: -1,
       label: t('XML Values'),
     });
-    this.props.asset.content.translations.map((trns, n) => {
+    (this.props.asset.content.translations || [null]).map((trns, n) => {
       let label = t('Labels');
       if (trns) {
         label += ` - ${trns}`;

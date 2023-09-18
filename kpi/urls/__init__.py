@@ -5,16 +5,6 @@ from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
-from kobo.apps.superuser_stats.views import (
-    user_report,
-    user_details_report,
-    country_report,
-    retrieve_reports,
-)
-from kobo.apps.accounts.mfa.views import (
-    MfaLoginView,
-    MfaTokenView,
-)
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
@@ -42,6 +32,7 @@ urlpatterns = [
     re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
     re_path(r'^api/v2/', include('kobo.apps.audit_log.urls')),
     path('', include('kobo.apps.accounts.urls')),
+    path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',
