@@ -36,7 +36,7 @@ import type {
   ProjectViewAsset,
   SurveyRow,
   SurveyChoice,
-  Permission,
+  PermissionResponse,
 } from 'js/dataInterface';
 import {
   getSupplementalTranscriptPath,
@@ -251,7 +251,7 @@ export function isLibraryAsset(assetType: AssetTypeName) {
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  * Note that `view_asset` is implied when you have `discover_asset`.
  */
-export function isAssetPublic(permissions?: Permission[]) {
+export function isAssetPublic(permissions?: PermissionResponse[]) {
   let isDiscoverableByAnonymous = false;
   permissions?.forEach((perm) => {
     const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);

@@ -4,7 +4,6 @@ import type {PermissionCodename} from 'js/constants';
 import {
   SUFFIX_PARTIAL,
   SUFFIX_USERS,
-  PARTIAL_CHECKBOX_PAIRS,
   PARTIAL_PERM_PAIRS,
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
@@ -15,19 +14,9 @@ import type {
   CheckboxNameListPartial,
 } from './permConstants';
 import {buildUserUrl, getUsernameFromUrl} from 'js/utils';
-import type {Permission, PartialPermission} from 'js/dataInterface';
+import type {PermissionResponse, PermissionBase, PartialPermission} from 'js/dataInterface';
 import {getPartialCheckboxName} from './utils';
 
-// TODO: describe what is the difference between BackendPerm and UserPerm and
-// ideally use the interfaces defined elsewhere (dataInterface?)
-
-interface BackendPerm {
-  /** User URL */
-  user: string;
-  /** Permission URL */
-  permission: string;
-  partial_permissions?: PartialPermission[];
-}
 
 interface UserPerm {
   /** Url of given permission instance (permission x user). */
@@ -112,8 +101,8 @@ function buildBackendPerm(
   username: string,
   permissionCodename: PermissionCodename,
   partialPerms?: PartialPermission[]
-): BackendPerm {
-  const output: BackendPerm = {
+): PermissionBase {
+  const output: PermissionBase = {
     user: buildUserUrl(username),
     permission: getPermUrl(permissionCodename),
   };
@@ -131,7 +120,7 @@ function buildBackendPerm(
 /**
  * Removes contradictory permissions from the parsed list of BackendPerms.
  */
-function removeContradictoryPerms(parsed: BackendPerm[]): BackendPerm[] {
+function removeContradictoryPerms(parsed: PermissionBase[]): PermissionBase[] {
   const contraPerms = new Set();
   parsed.forEach((backendPerm) => {
     const permDef = permConfig.getPermission(backendPerm.permission);
@@ -148,7 +137,7 @@ function removeContradictoryPerms(parsed: BackendPerm[]): BackendPerm[] {
 /**
  * Removes implied permissions from the parsed list of BackendPerms.
  */
-function removeImpliedPerms(parsed: BackendPerm[]): BackendPerm[] {
+function removeImpliedPerms(parsed: PermissionBase[]): PermissionBase[] {
   const impliedPerms = new Set();
   parsed.forEach((backendPerm) => {
     const permDef = permConfig.getPermission(backendPerm.permission);
@@ -166,7 +155,7 @@ function removeImpliedPerms(parsed: BackendPerm[]): BackendPerm[] {
  * Builds (from form data) an object that Back-end endpoints can understand.
  * Removes contradictory and implied permissions from final output.
  */
-export function parseFormData(data: PermsFormData): BackendPerm[] {
+export function parseFormData(data: PermsFormData): PermissionBase[] {
   let parsed = [];
   // Gather all partial permissions first, and then build a partial_submissions
   // grouped permission to add it to final data.
@@ -286,11 +275,11 @@ export function buildFormData(permissions: UserPerm[]): PermsFormData {
 /**
  * Builds a flat array of permissions for Backend endpoint from a list produced by `parseBackendData`
  */
-export function parseUserWithPermsList(data: UserWithPerms[]): BackendPerm[] {
-  const output: BackendPerm[] = [];
+export function parseUserWithPermsList(data: UserWithPerms[]): PermissionBase[] {
+  const output: PermissionBase[] = [];
   data.forEach((item) => {
     item.permissions.forEach((itemPerm) => {
-      const outputPerm: BackendPerm = {
+      const outputPerm: PermissionBase = {
         user: item.user.url,
         permission: itemPerm.permission,
       };
@@ -309,7 +298,7 @@ export function parseUserWithPermsList(data: UserWithPerms[]): BackendPerm[] {
  */
 export function parseBackendData(
   /** Permissions array (results property from endpoint response) */
-  data: Permission[],
+  data: PermissionResponse[],
   /** Asset owner url (used as identifier) */
   ownerUrl: string,
   /** Whether to include permissions assigned to the anonymous user */

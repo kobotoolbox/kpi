@@ -13,31 +13,33 @@ import type {PermissionCodename} from 'js/constants';
  * E.g for "formView" you will get "formViewPartial" and "formViewPartialUsers"
  */
 export const SUFFIX_PARTIAL = 'Partial';
-export const SUFFIX_USERS = 'Users'; // should be always added to a Partial one
+// `SUFFIX_USERS` should be always added to a Partial one
+export const SUFFIX_USERS = 'Users';
 
-/** Checkboxes for non-partial permissions that have no partial counterpart */
+/** Checkboxes for non-partial permissions that have no partial counterpart. */
 type CheckboxNameRegularSingle =
   | 'formView'
   | 'formEdit'
   | 'formManage'
   | 'submissionsAdd';
-/** Checkboxes for non-partial permissions that have partial counterpart */
+/** Checkboxes for non-partial permissions that have partial counterpart. */
 export type CheckboxNameRegularPair =
   | 'submissionsView'
   | 'submissionsEdit'
   | 'submissionsValidate'
   | 'submissionsDelete';
-/** Checkboxes for partial permissions (the counterparts) */
+/** Checkboxes for partial permissions (the counterparts). */
 export type CheckboxNamePartial =
   | 'submissionsViewPartial'
   | 'submissionsEditPartial'
   | 'submissionsValidatePartial'
   | 'submissionsDeletePartial';
+/** All checkboxes combined. */
 export type CheckboxNameAll =
   | CheckboxNameRegularSingle
   | CheckboxNameRegularPair
   | CheckboxNamePartial;
-
+/** List of usernames for a partial permission checkbox. */
 export type CheckboxNameListPartial =
   | 'submissionsViewPartialUsers'
   | 'submissionsEditPartialUsers'

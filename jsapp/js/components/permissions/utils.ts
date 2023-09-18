@@ -5,7 +5,7 @@ import {ANON_USERNAME, PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import type {
   AssetResponse,
-  Permission,
+  PermissionResponse,
   ProjectViewAsset,
   SubmissionResponse,
 } from 'js/dataInterface';
@@ -19,7 +19,7 @@ import type {
 
 /** For `.find`-ing the permissions */
 function _doesPermMatch(
-  perm: Permission,
+  perm: PermissionResponse,
   permName: string,
   partialPermName: string | null = null
 ) {

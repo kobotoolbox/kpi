@@ -235,10 +235,18 @@ export interface PartialPermission {
   filters: Array<{_submitted_by: {$in: string[]}}>;
 }
 
-/**
- * A single permission instance for a given user.
- */
-export interface Permission {
+
+/** Permission object to be used when making API requests. */
+export interface PermissionBase {
+  /** User URL */
+  user: string;
+  /** Permission URL */
+  permission: string;
+  partial_permissions?: PartialPermission[];
+}
+
+/** A single permission instance for a given user coming from API endpoint. */
+export interface PermissionResponse extends PermissionBase {
   url: string;
   user: string;
   permission: string;
@@ -473,7 +481,7 @@ interface AssetRequestObject {
   content?: AssetContent;
   tag_string: string;
   name: string;
-  permissions: Permission[];
+  permissions: PermissionResponse[];
   export_settings: ExportSetting[];
   data_sharing: {};
   paired_data?: string;
@@ -1163,7 +1171,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetPermissions(assetUid: string): JQuery.jqXHR<Permission[]> {
+  getAssetPermissions(assetUid: string): JQuery.jqXHR<PermissionResponse[]> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
       method: 'GET',
@@ -1173,7 +1181,7 @@ export const dataInterface: DataInterface = {
   bulkSetAssetPermissions(
     assetUid: string,
     perms: Array<{user: string; permission: string}>
-  ): JQuery.jqXHR<Permission[]> {
+  ): JQuery.jqXHR<PermissionResponse[]> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,
       method: 'POST',
