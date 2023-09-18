@@ -30,6 +30,8 @@ class PlanAddOn(models.Model):
     product = models.ForeignKey('djstripe.Product', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
     charge = models.ForeignKey('djstripe.Charge', to_field='id', on_delete=models.CASCADE)
     valid_subscription_products = models.JSONField(default=get_default_valid_subscription_products)
+    created = models.DateTimeField(help_text='The time when the add-on purchased.')
+    id = KpiUidField(uid_prefix='addon_', primary_key=True)
 
     class Meta:
         verbose_name = 'plan add-on'
