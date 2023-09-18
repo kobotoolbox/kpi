@@ -129,7 +129,7 @@ export async function getAccountLimits() {
   let metadata;
   if (activeSubscriptions.length) {
     // get limit data from the user's subscription
-    metadata = activeSubscriptions[0].items[0].price.metadata;
+    metadata = activeSubscriptions[0].items[0].price.product.metadata;
   } else {
     // the user has no subscription, so get limits from the free monthly price
     try {
@@ -148,6 +148,7 @@ export async function getAccountLimits() {
       metadata = {};
     }
   }
+
   const limits: AccountLimit = {
     submission_limit: 'unlimited',
     nlp_seconds_limit: 'unlimited',
