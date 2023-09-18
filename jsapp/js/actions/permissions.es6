@@ -15,6 +15,10 @@ import {
   PERMISSIONS_CODENAMES,
 } from 'js/constants';
 import permConfig from 'js/components/permissions/permConfig';
+import {
+  INVALID_PERMS_ERROR,
+  validateBackendPermissions
+} from 'js/components/permissions/utils';
 
 export const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
@@ -42,7 +46,13 @@ permissionsActions.getConfig.failed.listen(() => {
 
 permissionsActions.getAssetPermissions.listen((assetUid) => {
   dataInterface.getAssetPermissions(assetUid)
-    .done(permissionsActions.getAssetPermissions.completed)
+    .done((response) => {
+      if (validateBackendPermissions(response)) {
+        permissionsActions.getAssetPermissions.completed(response);
+      } else {
+        permissionsActions.getAssetPermissions.failed(INVALID_PERMS_ERROR);
+      }
+    })
     .fail(permissionsActions.getAssetPermissions.failed);
 });
 
