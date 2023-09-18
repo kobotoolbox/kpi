@@ -145,6 +145,7 @@ export namespace actions {
       getConfig: GenericDefinition;
       copyPermissionsFrom: GenericDefinition;
       removeAssetPermission: GenericDefinition;
+      assignAssetPermission: GenericDefinition;
     };
     const help: {
       getInAppMessages: GenericDefinition;

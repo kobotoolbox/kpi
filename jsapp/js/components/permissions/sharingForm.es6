@@ -24,7 +24,7 @@ import './sharingForm.scss';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions.component';
 import UserAssetPermsEditor from './userAssetPermsEditor';
-import PublicShareSettings from './publicShareSettings';
+import PublicShareSettings from './publicShareSettings.component';
 import UserPermissionRow from './userPermissionRow';
 import {
   parseBackendData,
