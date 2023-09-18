@@ -231,15 +231,11 @@ class CheckoutLinkView(APIView):
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             automatic_tax={'enabled': False},
             billing_address_collection='required',
-            custom_fields=[
-                {
-                    'key': 'organization',
-                    'label': {'type': 'custom', 'custom': 'Organization Name'},
-                    'type': 'text',
-                    'optional': 'true',
-                },
-            ],
             customer=customer_id,
+            customer_update={
+                'address': 'auto',
+                'name': 'auto',
+            },
             line_items=[
                 {
                     'price': price.id,
