@@ -143,6 +143,7 @@ export namespace actions {
     const map: object;
     const permissions: {
       getConfig: GenericDefinition;
+      copyPermissionsFrom: GenericDefinition;
       removeAssetPermission: GenericDefinition;
     };
     const help: {
