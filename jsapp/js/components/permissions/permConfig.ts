@@ -1,5 +1,6 @@
 import Reflux from 'reflux';
 import type {PermissionDefinition} from 'js/dataInterface';
+import type {PermissionCodename} from 'js/constants';
 
 class PermConfigStore extends Reflux.Store {
   permissions: PermissionDefinition[] = [];
@@ -8,7 +9,7 @@ class PermConfigStore extends Reflux.Store {
     this.permissions = permissions;
   }
 
-  public getPermissionByCodename(wantedCodename: string) {
+  public getPermissionByCodename(wantedCodename: PermissionCodename) {
     this.verifyReady();
     return this.permissions.find((perm) => perm.codename === wantedCodename);
   }

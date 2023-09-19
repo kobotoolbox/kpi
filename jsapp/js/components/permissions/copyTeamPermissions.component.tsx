@@ -17,8 +17,7 @@ interface ReactSelectOption {
 }
 
 interface CopyTeamPermissionsProps {
-  /** Asset uid */
-  uid: string;
+  assetUid: string;
 }
 
 interface CopyTeamPermissionsState {
@@ -41,8 +40,8 @@ export default class CopyTeamPermissions extends React.Component<
       isCopyFormVisible: false,
       sourceUid: null,
       sourceName: null,
-      targetUid: this.props.uid,
-      targetName: stores.allAssets.byUid[this.props.uid].name,
+      targetUid: this.props.assetUid,
+      targetName: stores.allAssets.byUid[this.props.assetUid].name,
     };
   }
 

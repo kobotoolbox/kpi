@@ -17,6 +17,7 @@ import type {
 } from 'js/constants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
+import type {UserResponse} from 'js/stores/userExistence.store';
 
 interface AssetsRequestData {
   q?: string;
@@ -208,21 +209,25 @@ export interface SubmissionResponse {
   _supplementalDetails?: SubmissionSupplementalDetails;
 }
 
-interface AssignablePermission {
+interface AssignablePermissionRegular {
   url: string;
   label: string;
 }
 
+export interface AssignablePermissionPartialLabel {
+  default: string;
+  view_submissions: string;
+  change_submissions: string;
+  delete_submissions: string;
+  validate_submissions: string;
+}
+
 interface AssignablePermissionPartial {
   url: string;
-  label: {
-    default: string;
-    view_submissions: string;
-    change_submissions: string;
-    delete_submissions: string;
-    validate_submissions: string;
-  };
+  label: AssignablePermissionPartialLabel;
 }
+
+export type AssignablePermission = AssignablePermissionRegular | AssignablePermissionPartial;
 
 export interface LabelValuePair {
   /** Note: the labels are always localized in the current UI language */
@@ -557,9 +562,7 @@ export interface AssetResponse extends AssetRequestObject {
   uid: string;
   kind: string;
   xls_link?: string;
-  assignable_permissions?: Array<
-    AssignablePermission | AssignablePermissionPartial
-  >;
+  assignable_permissions: AssignablePermission[];
   /**
    * A list of all permissions (their codenames) that current user has in
    * regards to this asset. It is a sum of permissions assigned directly for
@@ -635,8 +638,10 @@ export interface PaginatedResponse<T> {
 export interface PermissionDefinition {
   url: string;
   name: string;
-  codename: string;
+  codename: PermissionCodename;
+  /** A list of urls pointing to permissions definitions */
   implied: string[];
+  /** A list of urls pointing to permissions definitions */
   contradictory: string[];
 }
 
@@ -724,15 +729,6 @@ export interface AccountRequest {
 
 interface UserNotLoggedInResponse {
   message: string;
-}
-
-export interface UserResponse {
-  url: string;
-  username: string;
-  assets: PaginatedResponse<{url: string}>;
-  date_joined: string;
-  public_collection_subscribers_count: number;
-  public_collections_count: number;
 }
 
 export interface TransxLanguages {
@@ -854,18 +850,6 @@ export const dataInterface: DataInterface = {
     $ajax({
       url: userUrl,
     }),
-
-  queryUserExistence: (username: string): JQuery.Promise<string, boolean> => {
-    const d = $.Deferred();
-    $ajax({url: `${ROOT_URL}/api/v2/users/${username}/`})
-      .done(() => {
-        d.resolve(username, true);
-      })
-      .fail(() => {
-        d.reject(username, false);
-      });
-    return d.promise();
-  },
 
   logout: (): JQuery.Promise<AccountResponse | UserNotLoggedInResponse> => {
     const d = $.Deferred();

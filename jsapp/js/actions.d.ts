@@ -146,6 +146,8 @@ export namespace actions {
       copyPermissionsFrom: GenericDefinition;
       removeAssetPermission: GenericDefinition;
       assignAssetPermission: GenericDefinition;
+      bulkSetAssetPermissions: GenericDefinition;
+      getAssetPermissions: GenericDefinition;
     };
     const help: {
       getInAppMessages: GenericDefinition;

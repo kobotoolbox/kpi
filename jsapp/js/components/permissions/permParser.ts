@@ -2,23 +2,23 @@ import permConfig from './permConfig';
 import {ANON_USERNAME, PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import {
-  SUFFIX_PARTIAL,
-  SUFFIX_USERS,
   PARTIAL_PERM_PAIRS,
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
-  PERM_CHECKBOX_PAIRS,
-} from './permConstants';
-import type {
-  CheckboxNamePartial,
-  CheckboxNameListPartial,
 } from './permConstants';
 import {buildUserUrl, getUsernameFromUrl} from 'js/utils';
-import type {PermissionResponse, PermissionBase, PartialPermission} from 'js/dataInterface';
-import {getPartialCheckboxName} from './utils';
+import type {
+  PermissionResponse,
+  PermissionBase,
+  PartialPermission,
+} from 'js/dataInterface';
+import {
+  getPartialCheckboxListName,
+  getPartialCheckboxName,
+  getCheckboxNameByPermission,
+} from './utils';
 
-
-interface UserPerm {
+export interface UserPerm {
   /** Url of given permission instance (permission x user). */
   url: string;
   /** Url of given permission type. */
@@ -26,7 +26,7 @@ interface UserPerm {
   partial_permissions?: PartialPermission[];
 }
 
-interface PermsFormData {
+export interface PermsFormData {
   /** Who give permissions to */
   username: string;
   formView?: boolean;
@@ -47,7 +47,7 @@ interface PermsFormData {
   submissionsValidatePartialUsers?: string[];
 }
 
-interface UserWithPerms {
+export interface UserWithPerms {
   user: {
     /** User url (identifier). */
     url: string;
@@ -176,9 +176,8 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
     if (partialCheckboxName && data[partialCheckboxName]) {
       const permCodename = PARTIAL_PERM_PAIRS[partialCheckboxName];
 
-      const usersListName = (partialCheckboxName +
-        SUFFIX_USERS) as CheckboxNameListPartial;
-      const partialUsers = data[usersListName] || [];
+      const listName = getPartialCheckboxListName(partialCheckboxName);
+      const partialUsers = data[listName] || [];
 
       partialPerms.push({
         url: getPermUrl(permCodename),
@@ -229,19 +228,30 @@ export function buildFormData(permissions: UserPerm[]): PermsFormData {
     ) {
       perm.partial_permissions?.forEach((partial) => {
         const permDef = permConfig.getPermission(partial.url);
-        if (permDef) {
-          const checkboxName = (PERM_CHECKBOX_PAIRS[permDef?.codename] +
-            SUFFIX_PARTIAL) as CheckboxNamePartial;
-          formData[checkboxName] = true;
-
-          partial.filters.forEach((filter) => {
-            if (filter._submitted_by) {
-              const usersListName = (checkboxName +
-                SUFFIX_USERS) as CheckboxNameListPartial;
-              formData[usersListName] = filter._submitted_by.$in;
-            }
-          });
+        if (!permDef) {
+          return;
         }
+        const nonPartialCheckboxName = getCheckboxNameByPermission(
+          permDef.codename
+        );
+        if (!nonPartialCheckboxName) {
+          return;
+        }
+        const partialCheckboxName = getPartialCheckboxName(
+          nonPartialCheckboxName
+        );
+        if (!partialCheckboxName) {
+          return;
+        }
+
+        formData[partialCheckboxName] = true;
+
+        partial.filters.forEach((filter) => {
+          if (filter._submitted_by) {
+            const listName = getPartialCheckboxListName(partialCheckboxName);
+            formData[listName] = filter._submitted_by.$in;
+          }
+        });
       });
     }
     if (perm.permission === getPermUrl(PERMISSIONS_CODENAMES.add_submissions)) {
@@ -275,7 +285,9 @@ export function buildFormData(permissions: UserPerm[]): PermsFormData {
 /**
  * Builds a flat array of permissions for Backend endpoint from a list produced by `parseBackendData`
  */
-export function parseUserWithPermsList(data: UserWithPerms[]): PermissionBase[] {
+export function parseUserWithPermsList(
+  data: UserWithPerms[]
+): PermissionBase[] {
   const output: PermissionBase[] = [];
   data.forEach((item) => {
     item.permissions.forEach((itemPerm) => {

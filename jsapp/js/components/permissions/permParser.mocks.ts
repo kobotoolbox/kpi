@@ -1,3 +1,5 @@
+import type {PermissionsConfigResponse} from 'js/dataInterface';
+
 /**
  * Mock permissions endpoints responses for tests.
  *
@@ -5,7 +7,7 @@
  */
 
 // /api/v2/permissions/
-const permissions = {
+const permissions: PermissionsConfigResponse = {
   count: 10,
   next: null,
   previous: null,

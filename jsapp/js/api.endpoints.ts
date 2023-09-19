@@ -7,4 +7,5 @@ export const endpoints = {
   CHECKOUT_URL: '/api/v2/stripe/checkout-link',
   /** Expected parameter: organization_uid  **/
   PORTAL_URL: '/api/v2/stripe/customer-portal',
+  USERS_USER_URL: '/api/v2/users/<username>/',
 };

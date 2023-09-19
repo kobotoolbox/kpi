@@ -11,10 +11,7 @@ import type {PermissionResponse} from 'jsapp/js/dataInterface';
 
 interface PublicShareSettingsProps {
   publicPerms: PermissionResponse[];
-  /** Asset uid */
-  uid: string;
-  /** Asset URL */
-  objectUrl: string;
+  assetUid: string;
   deploymentActive: boolean;
 }
 
@@ -26,9 +23,12 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
         permConfig.getPermissionByCodename(permCodename)?.url
     )[0];
     if (permission) {
-      actions.permissions.removeAssetPermission(this.props.uid, permission.url);
+      actions.permissions.removeAssetPermission(
+        this.props.assetUid,
+        permission.url
+      );
     } else {
-      actions.permissions.assignAssetPermission(this.props.uid, {
+      actions.permissions.assignAssetPermission(this.props.assetUid, {
         user: buildUserUrl(ANON_USERNAME),
         permission: permConfig.getPermissionByCodename(permCodename)?.url,
       });
@@ -36,7 +36,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
   }
 
   render() {
-    const uid = this.props.uid;
+    const uid = this.props.assetUid;
     const url = `${ROOT_URL}/#/forms/${uid}`;
 
     const anonCanViewPermUrl = permConfig.getPermissionByCodename(

@@ -10,18 +10,18 @@ import type {
   SubmissionResponse,
 } from 'js/dataInterface';
 import {isSelfOwned} from 'jsapp/js/assetUtils';
-import {PARTIAL_CHECKBOX_PAIRS} from './permConstants';
 import type {
   CheckboxNameAll,
   CheckboxNamePartial,
-  CheckboxNameRegularPair,
+  CheckboxNameListPartial,
 } from './permConstants';
+import {CHECKBOX_PERM_PAIRS} from './permConstants';
 
 /** For `.find`-ing the permissions */
 function _doesPermMatch(
   perm: PermissionResponse,
-  permName: string,
-  partialPermName: string | null = null
+  permName: PermissionCodename,
+  partialPermName: PermissionCodename | null = null
 ) {
   // Case 1: permissions don't match, stop looking
   if (perm.permission !== permConfig.getPermissionByCodename(permName)?.url) {
@@ -194,20 +194,60 @@ export function isSubmissionWritable(
 }
 
 /**
- * For given checkbox name returns its partial counterpart (another checkbox
+ * For given checkbox name, it returns its partial counterpart (another checkbox
  * name) if it has one.
- *
- * We use this function instead of directly using PARTIAL_CHECKBOX_PAIRS to keep
- * the code DRY, as you can see it requires some juggling.
  */
 export function getPartialCheckboxName(
   checkboxName: CheckboxNameAll
 ): CheckboxNamePartial | undefined {
-  if (checkboxName in PARTIAL_CHECKBOX_PAIRS) {
-    // We need to cast it because TypeScript doesn't understand the next line properly
-    const key = checkboxName as CheckboxNameRegularPair;
-    return PARTIAL_CHECKBOX_PAIRS[key];
+  switch (checkboxName) {
+    case 'submissionsView':
+      return 'submissionsViewPartial';
+    case 'submissionsEdit':
+      return 'submissionsEditPartial';
+    case 'submissionsValidate':
+      return 'submissionsValidatePartial';
+    case 'submissionsDelete':
+      return 'submissionsDeletePartial';
+    default:
+      return undefined;
   }
+}
 
-  return undefined;
+/**
+ * Matches given partial checkbox name with the list name
+ */
+export function getPartialCheckboxListName(
+  checkboxName: CheckboxNamePartial
+): CheckboxNameListPartial {
+  switch (checkboxName) {
+    case 'submissionsViewPartial':
+      return 'submissionsViewPartialUsers';
+    case 'submissionsEditPartial':
+      return 'submissionsEditPartialUsers';
+    case 'submissionsDeletePartial':
+      return 'submissionsDeletePartialUsers';
+    case 'submissionsValidatePartial':
+      return 'submissionsValidatePartialUsers';
+  }
+}
+
+/**
+ * For given permission name it returns a matching checkbox name (non-partial).
+ * It should never return `undefined`, but TypeScript has some limitations.
+ */
+export function getCheckboxNameByPermission(
+  permName: PermissionCodename
+): CheckboxNameAll | undefined {
+  let found: CheckboxNameAll | undefined;
+  for (const [checkboxName, permissionName] of Object.entries(
+    CHECKBOX_PERM_PAIRS
+  )) {
+    // We cast it here because for..of doesn't keep the type of the keys
+    const checkboxNameCast = checkboxName as CheckboxNameAll;
+    if (permName === permissionName) {
+      found = checkboxNameCast;
+    }
+  }
+  return found;
 }

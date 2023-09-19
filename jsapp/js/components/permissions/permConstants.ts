@@ -1,29 +1,20 @@
-/**
- * Hi! Sorry for this being so complex, but I feel it's necessary, if we want to
- * avoid hard to debug bugs. These all are used in files connected to the
- * sharingForm modal. I will describe each of these constants in a detail to not
- * cause confusion by a future reader.
- */
 
-import {createEnum, PERMISSIONS_CODENAMES} from 'js/constants';
+import {createEnum} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 
 /**
- * These two are the text added to a checkbox name to signify a paired property.
- * E.g for "formView" you will get "formViewPartial" and "formViewPartialUsers"
+ * Hi! Sorry for these checkboxes related types and enums being so complex, but
+ * I feel it's necessary, if we want to avoid hard to debug bugs. These all are
+ * used in files connected to the sharingForm modal. I will describe each of
+ * these constants in a detail to not cause confusion by a future reader.
  */
-export const SUFFIX_PARTIAL = 'Partial';
-// `SUFFIX_USERS` should be always added to a Partial one
-export const SUFFIX_USERS = 'Users';
 
-/** Checkboxes for non-partial permissions that have no partial counterpart. */
-type CheckboxNameRegularSingle =
+/** Checkboxes for non-partial permissions. */
+type CheckboxNameRegular =
   | 'formView'
   | 'formEdit'
   | 'formManage'
-  | 'submissionsAdd';
-/** Checkboxes for non-partial permissions that have partial counterpart. */
-export type CheckboxNameRegularPair =
+  | 'submissionsAdd'
   | 'submissionsView'
   | 'submissionsEdit'
   | 'submissionsValidate'
@@ -35,10 +26,7 @@ export type CheckboxNamePartial =
   | 'submissionsValidatePartial'
   | 'submissionsDeletePartial';
 /** All checkboxes combined. */
-export type CheckboxNameAll =
-  | CheckboxNameRegularSingle
-  | CheckboxNameRegularPair
-  | CheckboxNamePartial;
+export type CheckboxNameAll = CheckboxNameRegular | CheckboxNamePartial;
 /** List of usernames for a partial permission checkbox. */
 export type CheckboxNameListPartial =
   | 'submissionsViewPartialUsers'
@@ -68,19 +56,6 @@ export const CHECKBOX_NAMES = createEnum([
 Object.freeze(CHECKBOX_NAMES);
 
 /**
- * This is a map of pairs that connects a general checkbox to a partial checkbox.
- */
-export const PARTIAL_CHECKBOX_PAIRS: {
-  [key in CheckboxNameRegularPair]: CheckboxNamePartial;
-} = {
-  submissionsView: 'submissionsViewPartial',
-  submissionsEdit: 'submissionsEditPartial',
-  submissionsValidate: 'submissionsValidatePartial',
-  submissionsDelete: 'submissionsDeletePartial',
-};
-Object.freeze(PARTIAL_CHECKBOX_PAIRS);
-
-/**
  * This is a map of pairs that connects a partial checkbox to a permission.
  *
  * NOTE: a partial checkbox is using a "partial_submissions" permission, but
@@ -89,10 +64,10 @@ Object.freeze(PARTIAL_CHECKBOX_PAIRS);
 export const PARTIAL_PERM_PAIRS: {
   [key in CheckboxNamePartial]: PermissionCodename;
 } = {
-  submissionsViewPartial: PERMISSIONS_CODENAMES.view_submissions,
-  submissionsEditPartial: PERMISSIONS_CODENAMES.change_submissions,
-  submissionsValidatePartial: PERMISSIONS_CODENAMES.validate_submissions,
-  submissionsDeletePartial: PERMISSIONS_CODENAMES.delete_submissions,
+  submissionsViewPartial: 'view_submissions',
+  submissionsEditPartial: 'change_submissions',
+  submissionsValidatePartial: 'validate_submissions',
+  submissionsDeletePartial: 'delete_submissions',
 };
 Object.freeze(PARTIAL_PERM_PAIRS);
 
@@ -102,28 +77,20 @@ Object.freeze(PARTIAL_PERM_PAIRS);
 export const CHECKBOX_PERM_PAIRS: {
   [key in CheckboxNameAll]: PermissionCodename;
 } = {
-  formView: PERMISSIONS_CODENAMES.view_asset,
-  formEdit: PERMISSIONS_CODENAMES.change_asset,
-  formManage: PERMISSIONS_CODENAMES.manage_asset,
-  submissionsAdd: PERMISSIONS_CODENAMES.add_submissions,
-  submissionsView: PERMISSIONS_CODENAMES.view_submissions,
-  submissionsViewPartial: PERMISSIONS_CODENAMES.partial_submissions,
-  submissionsEdit: PERMISSIONS_CODENAMES.change_submissions,
-  submissionsEditPartial: PERMISSIONS_CODENAMES.partial_submissions,
-  submissionsValidate: PERMISSIONS_CODENAMES.validate_submissions,
-  submissionsValidatePartial: PERMISSIONS_CODENAMES.partial_submissions,
-  submissionsDelete: PERMISSIONS_CODENAMES.delete_submissions,
-  submissionsDeletePartial: PERMISSIONS_CODENAMES.partial_submissions,
+  formView: 'view_asset',
+  formEdit: 'change_asset',
+  formManage: 'manage_asset',
+  submissionsAdd: 'add_submissions',
+  submissionsView: 'view_submissions',
+  submissionsViewPartial: 'partial_submissions',
+  submissionsEdit: 'change_submissions',
+  submissionsEditPartial: 'partial_submissions',
+  submissionsValidate: 'validate_submissions',
+  submissionsValidatePartial: 'partial_submissions',
+  submissionsDelete: 'delete_submissions',
+  submissionsDeletePartial: 'partial_submissions',
 };
 Object.freeze(CHECKBOX_PERM_PAIRS);
-
-/**
- * This is a map that mirrors the CHECKBOX_PERM_PAIRS,
- * so it pairs a permission codename to a checkbox name
- */
-export const PERM_CHECKBOX_PAIRS = Object.fromEntries(
-  Object.entries(CHECKBOX_PERM_PAIRS).map((a) => a.reverse())
-);
 
 /**
  * This is a map to handle exceptions for partial submissions which imply

@@ -1,32 +1,45 @@
 import React from 'react';
-import reactMixin from 'react-mixin';
-import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
-import {
-  stringToColor,
-  escapeHtml,
-} from 'utils';
+import {stringToColor, escapeHtml} from 'js/utils';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
-import UserAssetPermsEditor from './userAssetPermsEditor';
+import UserAssetPermsEditor from './userAssetPermsEditor.component';
 import permConfig from './permConfig';
+import type {UserPerm} from './permParser';
+import type {PermissionBase} from 'js/dataInterface';
+import type {AssignablePermsMap} from './sharingForm.component';
 
-class UserPermissionRow extends React.Component {
-  constructor(props) {
+interface UserPermissionRowProps {
+  assetUid: string;
+  nonOwnerPerms: PermissionBase[];
+  assignablePerms: AssignablePermsMap;
+  permissions: UserPerm[];
+  isUserOwner: boolean;
+  userName: string;
+}
+
+interface UserPermissionRowState {
+  isEditFormVisible: boolean;
+  isBeingDeleted: boolean;
+}
+
+export default class UserPermissionRow extends React.Component<
+  UserPermissionRowProps,
+  UserPermissionRowState
+> {
+  constructor(props: UserPermissionRowProps) {
     super(props);
-    autoBind(this);
 
     this.state = {
       isEditFormVisible: false,
-      isBeingDeleted: false
+      isBeingDeleted: false,
     };
   }
 
   componentDidMount() {
-    this.listenTo(assetStore, this.onAssetChange);
+    assetStore.listen(this.onAssetChange, this);
   }
 
   onAssetChange() {
@@ -38,10 +51,15 @@ class UserPermissionRow extends React.Component {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Remove permissions?'),
-      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${escapeHtml(this.props.user.name)}</strong>`),
+      message: t(
+        'This action will remove all permissions for user ##username##'
+      ).replace(
+        '##username##',
+        `<strong>${escapeHtml(this.props.userName)}</strong>`
+      ),
       labels: {ok: t('Remove'), cancel: t('Cancel')},
       onok: this.removeAllPermissions,
-      oncancel: dialog.destroy
+      oncancel: dialog.destroy,
     };
     dialog.set(opts).show();
   }
@@ -52,13 +70,21 @@ class UserPermissionRow extends React.Component {
    */
   removeAllPermissions() {
     this.setState({isBeingDeleted: true});
-    const userViewAssetPerm = this.props.permissions.find((perm) => {
-      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
-    });
-    actions.permissions.removeAssetPermission(this.props.uid, userViewAssetPerm.url);
+    const userViewAssetPerm = this.props.permissions.find(
+      (perm) =>
+        perm.permission ===
+        permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)
+          ?.url
+    );
+    if (userViewAssetPerm) {
+      actions.permissions.removeAssetPermission(
+        this.props.assetUid,
+        userViewAssetPerm.url
+      );
+    }
   }
 
-  onPermissionsEditorSubmitEnd(isSuccess) {
+  onPermissionsEditorSubmitEnd(isSuccess: boolean) {
     if (isSuccess) {
       this.setState({isEditFormVisible: false});
     }
@@ -71,13 +97,13 @@ class UserPermissionRow extends React.Component {
   // TODO: This doesn't display `partial_permissions` in a nice way, as it
   // assumes that there can be only "view" in them, but this is partially
   // backend's fault for giving a non universal label to "partial_permissions".
-  // See: https://github.com/kobotoolbox/kpi/issues/3920
-  renderPermissions(permissions) {
+  // See: https://github.com/kobotoolbox/kpi/issues/4641
+  renderPermissions(permissions: UserPerm[]) {
     const maxParentheticalUsernames = 3;
     return (
       <bem.UserRow__perms>
         {permissions.map((perm) => {
-          let permUsers = [];
+          let permUsers: string[] = [];
 
           if (perm.partial_permissions) {
             perm.partial_permissions.forEach((partial) => {
@@ -92,13 +118,18 @@ class UserPermissionRow extends React.Component {
           // Keep only unique values
           permUsers = [...new Set(permUsers)];
 
-          let permLabel = '???';
+          // We fallback to "???" so it's clear when some error happens
+          let permLabel: string = '???';
           if (this.props.assignablePerms.has(perm.permission)) {
-            permLabel = this.props.assignablePerms.get(perm.permission);
-            if (typeof permLabel === 'object') {
+            const assignablePerm = this.props.assignablePerms.get(
+              perm.permission
+            );
+            if (typeof assignablePerm === 'object') {
               // let's assume back end always returns a `default` property with
               // nested permissions
-              permLabel = permLabel.default;
+              permLabel = assignablePerm.default;
+            } else if (assignablePerm) {
+              permLabel = assignablePerm;
             }
           }
 
@@ -109,25 +140,32 @@ class UserPermissionRow extends React.Component {
           } else if (permUsers.length <= maxParentheticalUsernames) {
             permNameTemplate = t('##permission_label## (##username_list##)');
           } else if (permUsers.length === maxParentheticalUsernames + 1) {
-            permNameTemplate = t('##permission_label## (##username_list## and 1 other)');
+            permNameTemplate = t(
+              '##permission_label## (##username_list## and 1 other)'
+            );
           } else {
-            permNameTemplate = t('##permission_label## (##username_list## and ' +
-                                 '##hidden_username_count## others)');
+            permNameTemplate = t(
+              '##permission_label## (##username_list## and ' +
+                '##hidden_username_count## others)'
+            );
           }
 
-          let friendlyPermName = (
-            permNameTemplate.replace('##permission_label##', permLabel)
-                            .replace('##username_list##', permUsers.slice(0, maxParentheticalUsernames).join(', '))
-                            .replace('##hidden_username_count##', permUsers.length - maxParentheticalUsernames)
+          const friendlyPermName = permNameTemplate
+            .replace('##permission_label##', permLabel)
+            .replace(
+              '##username_list##',
+              permUsers.slice(0, maxParentheticalUsernames).join(', ')
+            )
+            .replace(
+              '##hidden_username_count##',
+              String(permUsers.length - maxParentheticalUsernames)
+            );
+
+          return (
+            <bem.UserRow__perm key={permLabel}>
+              {friendlyPermName}
+            </bem.UserRow__perm>
           );
-
-
-          return <bem.UserRow__perm
-            title={perm.description}
-            key={permLabel}
-          >
-            {friendlyPermName}
-          </bem.UserRow__perm>;
         })}
       </bem.UserRow__perms>
     );
@@ -135,7 +173,7 @@ class UserPermissionRow extends React.Component {
 
   render() {
     const initialsStyle = {
-      background: `#${stringToColor(this.props.user.name)}`
+      background: `#${stringToColor(this.props.userName)}`,
     };
 
     const modifiers = [];
@@ -151,54 +189,48 @@ class UserPermissionRow extends React.Component {
         <bem.UserRow__info>
           <bem.UserRow__avatar>
             <bem.AccountBox__initials style={initialsStyle}>
-              {this.props.user.name.charAt(0)}
+              {this.props.userName.charAt(0)}
             </bem.AccountBox__initials>
           </bem.UserRow__avatar>
 
-          <bem.UserRow__name>
-            {this.props.user.name}
-          </bem.UserRow__name>
+          <bem.UserRow__name>{this.props.userName}</bem.UserRow__name>
 
-          {this.props.user.isOwner &&
+          {this.props.isUserOwner && (
             <bem.UserRow__perms>{t('is owner')}</bem.UserRow__perms>
-          }
-          {!this.props.user.isOwner &&
+          )}
+          {!this.props.isUserOwner && (
             <React.Fragment>
               {this.renderPermissions(this.props.permissions)}
 
-              <bem.Button m='icon' onClick={this.toggleEditForm}>
-                {this.state.isEditFormVisible &&
-                  <i className='k-icon k-icon-close'/>
-                }
-                {!this.state.isEditFormVisible &&
-                  <i className='k-icon k-icon-edit'/>
-                }
+              <bem.Button m='icon' onClick={this.toggleEditForm.bind(this)}>
+                {this.state.isEditFormVisible && (
+                  <i className='k-icon k-icon-close' />
+                )}
+                {!this.state.isEditFormVisible && (
+                  <i className='k-icon k-icon-edit' />
+                )}
               </bem.Button>
 
-              <bem.Button m='icon' onClick={this.removePermissions}>
+              <bem.Button m='icon' onClick={this.removePermissions.bind(this)}>
                 <i className='k-icon k-icon-trash' />
               </bem.Button>
             </React.Fragment>
-          }
+          )}
         </bem.UserRow__info>
 
-        {this.state.isEditFormVisible &&
+        {this.state.isEditFormVisible && (
           <bem.UserRow__editor>
             <UserAssetPermsEditor
-              uid={this.props.uid}
-              username={this.props.user.name}
+              assetUid={this.props.assetUid}
+              username={this.props.userName}
               permissions={this.props.permissions}
               assignablePerms={this.props.assignablePerms}
               nonOwnerPerms={this.props.nonOwnerPerms}
-              onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+              onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
             />
           </bem.UserRow__editor>
-        }
+        )}
       </bem.UserRow>
-      );
+    );
   }
 }
-
-reactMixin(UserPermissionRow.prototype, Reflux.ListenerMixin);
-
-export default UserPermissionRow;
