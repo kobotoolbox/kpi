@@ -8,11 +8,6 @@
   margin-top: sizes.$x18;
   align-items: center;
   justify-content: space-between;
-
-  &.empty {
-    justify-content: start;
-    gap: 2em;
-  }
 }
 
 .usageRow {

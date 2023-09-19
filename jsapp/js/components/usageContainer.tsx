@@ -26,47 +26,34 @@ const UsageContainer = ({
   if (limit !== 'unlimited' && limit) {
     limitRatio = usage / limit;
   }
-  const isOverLimit = limitRatio > 1;
+  const isOverLimit = limitRatio >= 1;
   const isNearingLimit = !isOverLimit && limitRatio > USAGE_WARNING_RATIO;
   return (
-    <div
-      className={classnames(styles.usage, {
-        [styles.empty]: !usage,
-      })}
-    >
+    <div className={styles.usage}>
       <strong className={styles.description}>
         {label || (period === 'month' ? t('Monthly') : t('Yearly'))}
       </strong>
-      {!usage && (
-        <AriaText
-          uiText='-'
-          screenReaderText={t('none')}
-          classNames={classnames(styles.usageRow, styles.empty)}
-        />
-      )}
-      {Boolean(usage) && (
-        <div
-          className={classnames(styles.usageRow, {
-            [styles.warning]: isNearingLimit,
-            [styles.overlimit]: isOverLimit,
-          })}
-        >
-          {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
-          {isOverLimit && <Icon name='warning' color='red' size='m' />}
-          <strong>
-            {isStorage ? prettyBytes(usage) : usage.toLocaleString()}
-          </strong>
-          {limit !== 'unlimited' && limit && (
-            <>
-              {' '}
-              <AriaText uiText='/' screenReaderText={t('used out of')} />{' '}
-              <span>
-                {isStorage ? prettyBytes(limit) : limit.toLocaleString()}
-              </span>
-            </>
-          )}
-        </div>
-      )}
+      <div
+        className={classnames(styles.usageRow, {
+          [styles.warning]: isNearingLimit,
+          [styles.overlimit]: isOverLimit,
+        })}
+      >
+        {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
+        {isOverLimit && <Icon name='warning' color='red' size='m' />}
+        <strong>
+          {isStorage ? prettyBytes(usage) : usage.toLocaleString()}
+        </strong>
+        {limit !== 'unlimited' && limit && (
+          <>
+            {' '}
+            <AriaText uiText='/' screenReaderText={t('used out of')} />{' '}
+            <span>
+              {isStorage ? prettyBytes(limit) : limit.toLocaleString()}
+            </span>
+          </>
+        )}
+      </div>
     </div>
   );
 };

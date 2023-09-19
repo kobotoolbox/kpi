@@ -1,4 +1,5 @@
-@use "scss/_variables";
+@use 'scss/_variables';
+@use 'scss/sizes';
 @use 'scss/z-indexes';
 @use '~kobo-common/src/styles/colors';
 
@@ -283,7 +284,7 @@
     }
 
     &::after {
-      content: "\25BC";
+      content: '\25BC';
       font-size: 8px;
       margin-left: 3px;
       display: inline-block;
@@ -304,7 +305,7 @@
     padding-left: 0px;
 
     &::after {
-      content: "\25BC";
+      content: '\25BC';
       font-size: 10px;
       margin-left: 5px;
       display: inline-block;
@@ -343,7 +344,7 @@
       position: absolute;
       right: 10px;
       top: 9px;
-      content: "\25BC";
+      content: '\25BC';
       font-size: 10px;
     }
   }
@@ -468,22 +469,19 @@ iframe {
     vertical-align: top;
   }
 
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="url"],
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='url'],
   select,
   textarea {
     width: 100%;
-    padding: 4px 10px;
-    font-size: 15px;
-    border: 1px solid transparent;
-    border-bottom-color: colors.$kobo-gray-92;
-    transition: border-color 0.3s;
+    padding: sizes.$x10 sizes.$x14;
+    font-size: sizes.$x14;
+    border: 1px solid colors.$kobo-gray-92;
 
     &:focus {
-      transition: border-color 0.3s;
-      border-bottom-color: colors.$kobo-blue;
+      border-color: colors.$kobo-blue;
     }
   }
 
@@ -509,7 +507,7 @@ iframe {
   }
 }
 
-.ajs-content input[type="text"],
+.ajs-content input[type='text'],
 .ajs-content textarea {
   width: 100%;
   padding: 6px 0px;

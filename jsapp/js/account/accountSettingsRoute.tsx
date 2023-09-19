@@ -282,7 +282,6 @@ const AccountSettings = observer(() => {
             {/* Full name */}
             {metadata.name && <bem.AccountSettings__item>
               <TextBox
-                customModifiers='on-white'
                 label={getLabel(fieldNames.name)}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -299,7 +298,6 @@ const AccountSettings = observer(() => {
             {/* Organization */}
             {metadata.organization && <bem.AccountSettings__item>
               <TextBox
-                customModifiers='on-white'
                 label={getLabel(fieldNames.organization)}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -313,7 +311,6 @@ const AccountSettings = observer(() => {
             {/* Organization Website */}
             {metadata.organization_website && <bem.AccountSettings__item>
               <TextBox
-                customModifiers='on-white'
                 label={getLabel(fieldNames.organization_website)}
                 value={form.fields.organization_website}
                 onChange={onAnyFieldChange.bind(
@@ -357,7 +354,6 @@ const AccountSettings = observer(() => {
             {/* Bio */}
             {metadata.bio && <bem.AccountSettings__item m='bio'>
               <TextBox
-                customModifiers='on-white'
                 label={getLabel(fieldNames.bio)}
                 value={form.fields.bio}
                 onChange={onAnyFieldChange.bind(
@@ -385,7 +381,6 @@ const AccountSettings = observer(() => {
             {/* City */}
             {metadata.city && <bem.AccountSettings__item m='city'>
               <TextBox
-                customModifiers='on-white'
                 label={getLabel(fieldNames.city)}
                 value={form.fields.city}
                 onChange={onAnyFieldChange.bind(
@@ -397,15 +392,13 @@ const AccountSettings = observer(() => {
             </bem.AccountSettings__item>}
 
             {/* Social */}
-            {(metadata.twitter || metadata.linkedin || metadata.instagram) && <bem.AccountSettings__item m='social'>
+            {(metadata.twitter || metadata.linkedin || metadata.instagram) && <bem.AccountSettings__item>
               <label>{t('Social')}</label>
 
               {/* Twitter */}
-              {metadata.twitter && <label>
-                <i className='k-icon k-icon-logo-twitter' />
-
+              {metadata.twitter && <div className='account-settings-social-row'>
                 <TextBox
-                  customModifiers='on-white'
+                  startIcon='logo-twitter'
                   placeholder={getLabel(fieldNames.twitter)}
                   value={form.fields.twitter}
                   onChange={onAnyFieldChange.bind(
@@ -414,14 +407,12 @@ const AccountSettings = observer(() => {
                   )}
                   errors={form.fieldsWithErrors.extra_details?.twitter}
                 />
-              </label>}
+              </div>}
 
               {/* LinkedIn */}
-              {metadata.linkedin && <label>
-                <i className='k-icon k-icon-logo-linkedin' />
-
+              {metadata.linkedin && <div className='account-settings-social-row'>
                 <TextBox
-                  customModifiers='on-white'
+                  startIcon='logo-linkedin'
                   placeholder={getLabel(fieldNames.linkedin)}
                   value={form.fields.linkedin}
                   onChange={onAnyFieldChange.bind(
@@ -430,14 +421,12 @@ const AccountSettings = observer(() => {
                   )}
                   errors={form.fieldsWithErrors.extra_details?.linkedin}
                 />
-              </label>}
+              </div>}
 
               {/* Instagram */}
-              {metadata.instagram && <label>
-                <i className='k-icon k-icon-logo-instagram' />
-
+              {metadata.instagram && <div className='account-settings-social-row'>
                 <TextBox
-                  customModifiers='on-white'
+                  startIcon='logo-instagram'
                   placeholder={getLabel(fieldNames.instagram)}
                   value={form.fields.instagram}
                   onChange={onAnyFieldChange.bind(
@@ -446,7 +435,7 @@ const AccountSettings = observer(() => {
                   )}
                   errors={form.fieldsWithErrors.extra_details?.instagram}
                 />
-              </label>}
+              </div>}
             </bem.AccountSettings__item>}
           </bem.AccountSettings__item>
         )}
