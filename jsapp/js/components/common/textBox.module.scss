@@ -9,6 +9,7 @@
 // See: https://github.com/kobotoolbox/kpi/issues/3914
 
 $input-color: colors.$kobo-gray-24;
+$wrapper-border-radius: sizes.$x6;
 
 .root {
   width: 100%;
@@ -75,8 +76,9 @@ $input-color: colors.$kobo-gray-24;
   color: $input-color;
   background-color: colors.$kobo-white;
   border: sizes.$x1 solid colors.$kobo-gray-92;
-  padding: sizes.$x10 sizes.$x16;
-  border-radius: sizes.$x6;
+  padding: 0; // size dictates the paddings
+  border-radius: $wrapper-border-radius;
+  cursor: text;
 
   &:focus-within {
     @include mixins.default-ui-focus;
@@ -140,4 +142,20 @@ input[class].input.input {
   font-style: normal;
   color: colors.$kobo-red;
   margin-top: sizes.$x6;
+}
+
+// Note: TextBox is built differently from Button (for many reasons) so we can't
+// connect their styles via some shared bulletproof variables. Just ensure that
+// both components in the same size have the same height :)
+
+.sizeL .inputWrapper {
+  padding: sizes.$x10 sizes.$x16;
+}
+
+.sizeM .inputWrapper {
+  padding: sizes.$x5 sizes.$x12;
+}
+
+.sizeS .inputWrapper {
+  padding: sizes.$x3 sizes.$x10;
 }
