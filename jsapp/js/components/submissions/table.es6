@@ -730,31 +730,14 @@ export class DataTable extends React.Component {
           // Detect supplemental details column and put it after its source column.
           if (q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
             const supplementalColumnSource = key.split('/')[1];
-            // Add extra step if grouped
+            // Add extra step for grouped items
             const sourceCleaned = supplementalColumnSource
               .replace(/-/g, '/')
               .split('/')
               .at(-1);
-            let sourceColumn;
-
-            let isGroup = false;
-            survey.forEach((item) => {
-              if (item.type === 'begin_group') {
-                isGroup = true;
-              }
-            });
-
-            if (isGroup) {
-              sourceColumn = columnsToRender.find(
-                (columnToRender) =>
-                  columnToRender.id === flatPaths[sourceCleaned]
-              );
-            } else {
-              sourceColumn = columnsToRender.find(
-                (columnToRender) =>
-                  columnToRender.id === flatPaths[supplementalColumnSource]
-              );
-            }
+            const sourceColumn = columnsToRender.find(
+              (column) => column.id === flatPaths[sourceCleaned]
+            );
             if (sourceColumn) {
               // This way if we have a source column with index `2`, we will set
               // the supplemental details column to `2__supplementalDetails/…`
