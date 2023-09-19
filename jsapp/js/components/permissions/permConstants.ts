@@ -1,3 +1,6 @@
+// TODO: In future please move `PermissionCodename` and `PERMISSIONS_CODENAMES`
+// from `js/constants` into this file. Also consider moving some things from
+// `js/dataInterface`.
 
 import {createEnum} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
