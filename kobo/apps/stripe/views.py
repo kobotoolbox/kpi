@@ -196,7 +196,7 @@ class CheckoutLinkView(APIView):
         # djstripe doesn't let us do this on customer creation, so modify the customer on Stripe and then fetch locally.
         stripe_customer = stripe.Customer.modify(
             customer.id,
-            name=user.extra_details.data.get('name', None) or user.username,
+            name=customer.name or user.extra_details.data.get('name', user.username),
             description=organization.name,
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             metadata={
