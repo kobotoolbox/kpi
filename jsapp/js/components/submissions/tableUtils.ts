@@ -51,21 +51,9 @@ export function getColumnLabel(
   if (question === undefined && questionPath[0] === SUPPLEMENTAL_DETAILS_PROP) {
     const supplementalPathParts = getSupplementalPathParts(key);
 
-    let sourceName;
+    const groupsIfAnyAndName = supplementalPathParts.sourceRowName.split('-');
+    const sourceName = groupsIfAnyAndName.slice(-1)[0];
 
-    let isGroup = false;
-
-    asset.content?.survey.forEach((item) => {
-      if (item.type === 'begin_group') {
-        isGroup = true;
-      }
-    });
-
-    if (isGroup) {
-      sourceName = supplementalPathParts.sourceRowName.split('-')[1];
-    } else {
-      sourceName = supplementalPathParts.sourceRowName;
-    }
 
     // Supplemental details keys are built like one of:
     // - prefix / source question name / transcript _ language code
