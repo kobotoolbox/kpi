@@ -4,7 +4,6 @@ from django.apps import apps
 from django.db.models import F
 from django.utils import timezone
 
-from kobo.apps.stripe.models import PlanAddOn
 from kpi.utils.django_orm_helper import IncrementValue
 
 
@@ -28,6 +27,7 @@ def update_nlp_counter(
     """
     # Avoid circular import
     NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
+    PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
 
     if not counter_id:
         date = timezone.now()
