@@ -32,12 +32,12 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self.price = baker.make(Price, active=True, product=self.product, type='one_time')
         self.product.save()
 
-    def _create_payment(self, status='succeeded', refunded=False, quantity=1):
+    def _create_payment(self, payment_status='succeeded', refunded=False, quantity=1):
         payment_total = quantity * 2000
         self.payment_intent = baker.make(
             PaymentIntent,
             customer=self.customer,
-            status=status,
+            status=payment_status,
             payment_method_types=["card"],
             livemode=False,
             amount=payment_total,
@@ -51,7 +51,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
             created=timezone.now(),
             payment_intent=self.payment_intent,
             paid=True,
-            status=status,
+            status=payment_status,
             livemode=False,
             amount_refunded=0 if refunded else payment_total,
             amount=payment_total,
@@ -109,11 +109,22 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
 
     def test_addon_inactive_for_cancelled_charge(self):
         self._create_product()
-        self._create_payment(status='cancelled')
+        self._create_payment(payment_status='cancelled')
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
         assert not response.data['results'][0]['is_available']
+
+    def test_total_limits_reflect_addon_quantity(self):
+        limit = 2000
+        quantity = 9
+        self._create_product(metadata={'product_type': 'addon', 'asr_seconds_limit': limit})
+        self._create_payment(quantity=quantity)
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        asr_seconds = response.data['results'][0]['total_usage_limits']['asr_seconds_limit']
+        assert asr_seconds == limit * quantity
 
     def test_anonymous_user(self):
         self._create_product()
