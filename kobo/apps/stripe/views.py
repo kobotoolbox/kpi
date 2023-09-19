@@ -41,7 +41,7 @@ class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(
             charge__livemode=settings.STRIPE_LIVE_MODE,
             organization__organization_users__user=self.request.user,
-        ).prefetch_related('organization')
+        )
 
 
 class ChangePlanView(APIView):
@@ -216,7 +216,7 @@ class CheckoutLinkView(APIView):
                     'price_id': price.id,
                     'quantity': quantity,
                     # product metadata contains the usage limit values for one-time add-ons
-                    **price.product.metadata,
+                    **(price.product.metadata or {}),
                 },
             }
         else:

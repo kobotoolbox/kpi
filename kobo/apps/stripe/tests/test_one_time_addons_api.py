@@ -32,16 +32,17 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self.price = baker.make(Price, active=True, product=self.product, type='one_time')
         self.product.save()
 
-    def _create_payment(self, status='succeeded', refunded=False):
+    def _create_payment(self, status='succeeded', refunded=False, quantity=1):
+        payment_total = quantity * 2000
         self.payment_intent = baker.make(
             PaymentIntent,
             customer=self.customer,
             status=status,
             payment_method_types=["card"],
             livemode=False,
-            amount=2000,
-            amount_capturable=2000,
-            amount_received=2000,
+            amount=payment_total,
+            amount_capturable=payment_total,
+            amount_received=payment_total,
         )
         self.charge = baker.prepare(
             Charge,
@@ -52,14 +53,15 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
             paid=True,
             status=status,
             livemode=False,
-            amount_refunded=0 if refunded else 2000,
-            amount=2000,
-            metadata={
-                'price_id': self.price.id,
-                'organization_id': self.organization.id,
-                **self.product.metadata,
-            }
+            amount_refunded=0 if refunded else payment_total,
+            amount=payment_total,
         )
+        self.charge.metadata = {
+            'price_id': self.price.id,
+            'organization_id': self.organization.id,
+            'quantity': quantity,
+            **(self.product.metadata or {}),
+        }
         self.charge.save()
 
     def test_no_addons(self):
@@ -105,12 +107,13 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert response.data['count'] == 1
         assert not response.data['results'][0]['is_available']
 
-    def test_no_addon_for_cancelled_charge(self):
+    def test_addon_inactive_for_cancelled_charge(self):
         self._create_product()
         self._create_payment(status='cancelled')
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == 0
+        assert response.data['count'] == 1
+        assert not response.data['results'][0]['is_available']
 
     def test_anonymous_user(self):
         self._create_product()
