@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
 from django.utils.decorators import method_decorator
-from django_request_cache import cache_for_request
+from django.views.decorators.cache import cache_page
 from djstripe.models import (
     Customer,
     Price,
@@ -307,6 +307,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+@method_decorator(cache_page(60 * 30), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Returns Product and Price Lists, sorted from the product with the lowest price to highest
@@ -375,7 +376,3 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         .distinct()
     )
     serializer_class = ProductSerializer
-
-    @cache_for_request
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
