@@ -72,8 +72,7 @@ export default class UserPermissionRow extends React.Component<
     const userViewAssetPerm = this.props.permissions.find(
       (perm) =>
         perm.permission ===
-        permConfig.getPermissionByCodename('view_asset')
-          ?.url
+        permConfig.getPermissionByCodename('view_asset')?.url
     );
     if (userViewAssetPerm) {
       actions.permissions.removeAssetPermission(

@@ -212,7 +212,9 @@ describe('permParser', () => {
       );
 
       // Get testUser permissions
-      const testUserPerms = usersWithPerms.find((item) => item.user.name === testUser)?.permissions || [];
+      const testUserPerms =
+        usersWithPerms.find((item) => item.user.name === testUser)
+          ?.permissions || [];
 
       // Build the data again for the testUser
       const builtFormData = buildFormData(testUserPerms, testUser);

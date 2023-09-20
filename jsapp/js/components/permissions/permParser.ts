@@ -222,9 +222,7 @@ export function buildFormData(
     if (perm.permission === getPermUrl('manage_asset')) {
       formData.formManage = true;
     }
-    if (
-      perm.permission === getPermUrl('partial_submissions')
-    ) {
+    if (perm.permission === getPermUrl('partial_submissions')) {
       perm.partial_permissions?.forEach((partial) => {
         const permDef = permConfig.getPermission(partial.url);
         if (!permDef) {
@@ -256,24 +254,16 @@ export function buildFormData(
     if (perm.permission === getPermUrl('add_submissions')) {
       formData.submissionsAdd = true;
     }
-    if (
-      perm.permission === getPermUrl('view_submissions')
-    ) {
+    if (perm.permission === getPermUrl('view_submissions')) {
       formData.submissionsView = true;
     }
-    if (
-      perm.permission === getPermUrl('change_submissions')
-    ) {
+    if (perm.permission === getPermUrl('change_submissions')) {
       formData.submissionsEdit = true;
     }
-    if (
-      perm.permission === getPermUrl('delete_submissions')
-    ) {
+    if (perm.permission === getPermUrl('delete_submissions')) {
       formData.submissionsDelete = true;
     }
-    if (
-      perm.permission === getPermUrl('validate_submissions')
-    ) {
+    if (perm.permission === getPermUrl('validate_submissions')) {
       formData.submissionsValidate = true;
     }
   });
