@@ -24,6 +24,7 @@ export interface EnvStoreFieldItem {
 export interface SocialApp {
   name: string;
   provider: string;
+  provider_id: string;
   client_id: string;
 }
 

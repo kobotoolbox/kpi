@@ -160,7 +160,7 @@ class EnvironmentView(APIView):
         if settings.SOCIALACCOUNT_PROVIDERS:
             social_apps = list(
                 SocialApp.objects.filter(custom_data__isnull=True).values(
-                    'provider', 'name', 'client_id'
+                    'provider', 'name', 'client_id', 'provider_id'
                 )
             )
         data['social_apps'] = social_apps
