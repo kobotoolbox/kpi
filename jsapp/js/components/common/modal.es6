@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import {KEY_CODES} from 'js/constants';
 import bem from 'js/bem';
 import classNames from 'classnames';
+import Button from 'js/components/common/button';
 import './modal.scss';
 
 /**
@@ -64,9 +65,13 @@ export default class Modal extends React.Component {
   renderClose() {
     if (this.props.isDuplicated) {
       return(
-        <a className='modal__done' type='button' onClick={this.props.onClose}>
-          {t('DONE')}
-        </a>
+        <Button
+          type='bare'
+          color='blue'
+          size='l'
+          label={t('DONE')}
+          onClick={this.props.onClose}
+        />
       );
     } else {
       return(
