@@ -1,7 +1,6 @@
 import sessionStore from 'js/stores/session';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl, ANON_USERNAME_URL} from 'js/users/utils';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import type {
   AssetResponse,
@@ -29,7 +28,7 @@ function _doesPermMatch(
   }
 
   // Case 2: permissions match, and we're not looking for partial one
-  if (permName !== PERMISSIONS_CODENAMES.partial_submissions) {
+  if (permName !== 'partial_submissions') {
     return true;
   }
 
@@ -111,7 +110,7 @@ export function userCanPartially(
     return false;
   }
 
-  return userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
+  return userCan('partial_submissions', asset, permName);
 }
 
 /**
@@ -169,7 +168,7 @@ export function isSubmissionWritable(
   const partialPerms = asset.permissions.find(
     (perm) =>
       perm.user === buildUserUrl(currentUsername) &&
-      _doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
+      _doesPermMatch(perm, 'partial_submissions', permName)
   );
 
   const partialPerm = partialPerms?.partial_permissions?.find(

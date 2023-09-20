@@ -4,7 +4,6 @@ import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {stringToColor, escapeHtml} from 'js/utils';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor.component';
 import permConfig from './permConfig';
 import type {UserPerm} from './permParser';
@@ -73,7 +72,7 @@ export default class UserPermissionRow extends React.Component<
     const userViewAssetPerm = this.props.permissions.find(
       (perm) =>
         perm.permission ===
-        permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)
+        permConfig.getPermissionByCodename('view_asset')
           ?.url
     );
     if (userViewAssetPerm) {

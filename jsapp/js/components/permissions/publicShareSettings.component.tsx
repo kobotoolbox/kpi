@@ -5,7 +5,7 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
 import {ANON_USERNAME_URL} from 'js/users/utils';
-import {ROOT_URL, PERMISSIONS_CODENAMES} from 'js/constants';
+import {ROOT_URL} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import type {PermissionResponse} from 'jsapp/js/dataInterface';
 
@@ -40,10 +40,10 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
     const url = `${ROOT_URL}/#/forms/${uid}`;
 
     const anonCanViewPermUrl = permConfig.getPermissionByCodename(
-      PERMISSIONS_CODENAMES.view_asset
+      'view_asset'
     )?.url;
     const anonCanViewDataPermUrl = permConfig.getPermissionByCodename(
-      PERMISSIONS_CODENAMES.view_submissions
+      'view_submissions'
     )?.url;
 
     const anonCanView = Boolean(

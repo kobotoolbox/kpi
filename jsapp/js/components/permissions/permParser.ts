@@ -1,5 +1,4 @@
 import permConfig from './permConfig';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import {
   PARTIAL_PERM_PAIRS,
@@ -82,7 +81,7 @@ export function sortParseBackendOutput(
   });
 }
 
-function getPermUrl(permissionCodename: PermissionCodename) {
+function getPermUrl(permissionCodename: PermissionCodename): string {
   const permUrl =
     permConfig.getPermissionByCodename(permissionCodename)?.url || '';
 
@@ -190,7 +189,7 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
   if (partialPerms.length >= 1) {
     const permObj = buildBackendPerm(
       data.username,
-      PERMISSIONS_CODENAMES.partial_submissions,
+      'partial_submissions',
       partialPerms
     );
     parsed.push(permObj);
@@ -214,17 +213,17 @@ export function buildFormData(
   };
 
   permissions.forEach((perm) => {
-    if (perm.permission === getPermUrl(PERMISSIONS_CODENAMES.view_asset)) {
+    if (perm.permission === getPermUrl('view_asset')) {
       formData.formView = true;
     }
-    if (perm.permission === getPermUrl(PERMISSIONS_CODENAMES.change_asset)) {
+    if (perm.permission === getPermUrl('change_asset')) {
       formData.formEdit = true;
     }
-    if (perm.permission === getPermUrl(PERMISSIONS_CODENAMES.manage_asset)) {
+    if (perm.permission === getPermUrl('manage_asset')) {
       formData.formManage = true;
     }
     if (
-      perm.permission === getPermUrl(PERMISSIONS_CODENAMES.partial_submissions)
+      perm.permission === getPermUrl('partial_submissions')
     ) {
       perm.partial_permissions?.forEach((partial) => {
         const permDef = permConfig.getPermission(partial.url);
@@ -254,26 +253,26 @@ export function buildFormData(
         });
       });
     }
-    if (perm.permission === getPermUrl(PERMISSIONS_CODENAMES.add_submissions)) {
+    if (perm.permission === getPermUrl('add_submissions')) {
       formData.submissionsAdd = true;
     }
     if (
-      perm.permission === getPermUrl(PERMISSIONS_CODENAMES.view_submissions)
+      perm.permission === getPermUrl('view_submissions')
     ) {
       formData.submissionsView = true;
     }
     if (
-      perm.permission === getPermUrl(PERMISSIONS_CODENAMES.change_submissions)
+      perm.permission === getPermUrl('change_submissions')
     ) {
       formData.submissionsEdit = true;
     }
     if (
-      perm.permission === getPermUrl(PERMISSIONS_CODENAMES.delete_submissions)
+      perm.permission === getPermUrl('delete_submissions')
     ) {
       formData.submissionsDelete = true;
     }
     if (
-      perm.permission === getPermUrl(PERMISSIONS_CODENAMES.validate_submissions)
+      perm.permission === getPermUrl('validate_submissions')
     ) {
       formData.submissionsValidate = true;
     }

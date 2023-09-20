@@ -10,7 +10,7 @@ import type {UserPerm, PermsFormData} from './permParser';
 import permConfig from './permConfig';
 import {assign, notify} from 'js/utils';
 import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
-import {KEY_CODES, PERMISSIONS_CODENAMES} from 'js/constants';
+import {KEY_CODES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import {
   PARTIAL_PERM_PAIRS,
@@ -220,7 +220,7 @@ export default class UserAssetPermsEditor extends React.Component<
     let output = clonedeep(stateObj);
 
     if (
-      this.isAssignable(PERMISSIONS_CODENAMES.add_submissions) &&
+      this.isAssignable('add_submissions') &&
       'extra_details' in sessionStore.currentAccount &&
       sessionStore.currentAccount.extra_details?.require_auth !== true
     ) {
@@ -424,9 +424,7 @@ export default class UserAssetPermsEditor extends React.Component<
   }
 
   isAssignable(permCodename: PermissionCodename) {
-    const permDef = permConfig.getPermissionByCodename(
-      PERMISSIONS_CODENAMES[permCodename]
-    );
+    const permDef = permConfig.getPermissionByCodename(permCodename);
     if (!permDef) {
       return false;
     } else {
