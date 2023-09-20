@@ -111,10 +111,7 @@ function buildBackendPerm(
     output.partial_permissions = partialPerms;
   }
 
-  return {
-    user: buildUserUrl(username),
-    permission: getPermUrl(permissionCodename),
-  };
+  return output;
 }
 
 /**
@@ -208,9 +205,12 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
 /**
  * Builds form data from list of permissions.
  */
-export function buildFormData(permissions: UserPerm[]): PermsFormData {
+export function buildFormData(
+  permissions: UserPerm[],
+  username?: string
+): PermsFormData {
   const formData: PermsFormData = {
-    username: '',
+    username: username || '',
   };
 
   permissions.forEach((perm) => {

@@ -399,7 +399,7 @@ export function cloneAssetAsSurvey(sourceUid: string, sourceName: string) {
 
 export function removeAssetSharing(uid: string) {
   /**
-   * Extends `removeAllPermissions` from `userPermissionRow.es6`:
+   * Extends `removeAllPermissions` from `userPermissionRow.component.tsx`:
    * Checks for permissions from current user before finding correct
    * "most basic" permission to remove.
    */

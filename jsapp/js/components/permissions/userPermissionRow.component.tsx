@@ -17,7 +17,7 @@ interface UserPermissionRowProps {
   assignablePerms: AssignablePermsMap;
   permissions: UserPerm[];
   isUserOwner: boolean;
-  userName: string;
+  username: string;
 }
 
 interface UserPermissionRowState {
@@ -55,7 +55,7 @@ export default class UserPermissionRow extends React.Component<
         'This action will remove all permissions for user ##username##'
       ).replace(
         '##username##',
-        `<strong>${escapeHtml(this.props.userName)}</strong>`
+        `<strong>${escapeHtml(this.props.username)}</strong>`
       ),
       labels: {ok: t('Remove'), cancel: t('Cancel')},
       onok: this.removeAllPermissions,
@@ -173,7 +173,7 @@ export default class UserPermissionRow extends React.Component<
 
   render() {
     const initialsStyle = {
-      background: `#${stringToColor(this.props.userName)}`,
+      background: `#${stringToColor(this.props.username)}`,
     };
 
     const modifiers = [];
@@ -189,11 +189,11 @@ export default class UserPermissionRow extends React.Component<
         <bem.UserRow__info>
           <bem.UserRow__avatar>
             <bem.AccountBox__initials style={initialsStyle}>
-              {this.props.userName.charAt(0)}
+              {this.props.username.charAt(0)}
             </bem.AccountBox__initials>
           </bem.UserRow__avatar>
 
-          <bem.UserRow__name>{this.props.userName}</bem.UserRow__name>
+          <bem.UserRow__name>{this.props.username}</bem.UserRow__name>
 
           {this.props.isUserOwner && (
             <bem.UserRow__perms>{t('is owner')}</bem.UserRow__perms>
@@ -222,7 +222,7 @@ export default class UserPermissionRow extends React.Component<
           <bem.UserRow__editor>
             <UserAssetPermsEditor
               assetUid={this.props.assetUid}
-              username={this.props.userName}
+              username={this.props.username}
               permissions={this.props.permissions}
               assignablePerms={this.props.assignablePerms}
               nonOwnerPerms={this.props.nonOwnerPerms}

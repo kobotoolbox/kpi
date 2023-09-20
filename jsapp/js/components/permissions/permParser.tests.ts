@@ -178,9 +178,10 @@ describe('permParser', () => {
         endpoints.assetWithMultipleUsers.results[0].user
       );
 
-      const built = buildFormData(parsed[1].permissions);
+      const built = buildFormData(parsed[1].permissions, 'eric');
 
       chai.expect(built).to.deep.equal({
+        username: 'eric',
         formView: true,
         submissionsView: true,
       });
@@ -192,13 +193,38 @@ describe('permParser', () => {
         endpoints.assetWithPartial.results[0].user
       );
 
-      const built = buildFormData(parsed[1].permissions);
+      const built = buildFormData(parsed[1].permissions, 'tessa');
 
       chai.expect(built).to.deep.equal({
+        username: 'tessa',
         formView: true,
         submissionsViewPartial: true,
         submissionsViewPartialUsers: ['john', 'olivier'],
       });
+    });
+
+    it('should not destroy data when chain parsing and building', () => {
+      const testUser = 'olivier';
+
+      const usersWithPerms = parseBackendData(
+        endpoints.assetWithMultipleUsers.results,
+        endpoints.assetWithMultipleUsers.results[0].user
+      );
+
+      // Get testUser permissions
+      const testUserPerms = usersWithPerms.find((item) => item.user.name === testUser)?.permissions || [];
+
+      // Build the data again for the testUser
+      const builtFormData = buildFormData(testUserPerms, testUser);
+
+      const parsedForm = parseFormData(builtFormData);
+
+      chai.expect(parsedForm).to.deep.equal([
+        {
+          user: '/api/v2/users/olivier/',
+          permission: '/api/v2/permissions/view_asset/',
+        },
+      ]);
     });
   });
 

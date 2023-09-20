@@ -131,14 +131,8 @@ export default class UserAssetPermsEditor extends React.Component<
    * Fills up form with provided user name and permissions (if applicable)
    */
   applyPropsData() {
-    if (this.props.permissions) {
-      const formData = buildFormData(this.props.permissions);
-      this.state = this.applyValidityRules(assign(this.state, formData));
-    }
-
-    if (this.props.username) {
-      this.state = assign(this.state, {username: this.props.username});
-    }
+    const formData = buildFormData(this.props.permissions || [], this.props.username);
+    this.state = this.applyValidityRules(assign(this.state, formData));
 
     this.state = this.applySubmissionsAddRules(this.state);
   }

@@ -207,13 +207,13 @@ export default class SharingForm extends React.Component<
                 assignablePerms={this.state.assignablePerms}
                 permissions={perm.permissions}
                 isUserOwner={perm.user.isOwner}
-                userName={perm.user.name}
+                username={perm.user.name}
               />
             );
           })}
 
           {!this.state.isAddUserEditorVisible && (
-            <bem.KoboButton m='blue' onClick={this.toggleAddUserEditor}>
+            <bem.KoboButton m='blue' onClick={this.toggleAddUserEditor.bind(this)}>
               {t('Add user')}
             </bem.KoboButton>
           )}
@@ -223,7 +223,7 @@ export default class SharingForm extends React.Component<
               <bem.Button
                 m='icon'
                 className='user-permissions-editor-closer'
-                onClick={this.toggleAddUserEditor}
+                onClick={this.toggleAddUserEditor.bind(this)}
               >
                 <i className='k-icon k-icon-close' />
               </bem.Button>
@@ -232,7 +232,7 @@ export default class SharingForm extends React.Component<
                 assetUid={this.props.assetUid}
                 assignablePerms={this.state.assignablePerms}
                 nonOwnerPerms={this.state.nonOwnerPerms}
-                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
               />
             </bem.FormModal__item>
           )}
