@@ -11,8 +11,6 @@ import moment from 'moment';
 import type {Toast, ToastOptions} from 'react-hot-toast';
 import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
-// importing whole constants, as we override ROOT_URL in tests
-import constants from 'js/constants';
 import type {FailResponse} from './dataInterface';
 import type Raven from 'raven';
 
@@ -192,15 +190,6 @@ export function formatSeconds(seconds: number) {
   ).padStart(2, '0')}`;
 }
 
-// works universally for v1 and v2 urls
-export function getUsernameFromUrl(userUrl: string): string | null {
-  const matched = userUrl.match(/\/users\/(.*)\//);
-  if (matched !== null) {
-    return matched[1];
-  }
-  return null;
-}
-
 // TODO: Test if works for both form and library routes, if not make it more general
 // See: https://github.com/kobotoolbox/kpi/issues/3909
 export function getAssetUIDFromUrl(assetUrl: string): string | null {
@@ -209,16 +198,6 @@ export function getAssetUIDFromUrl(assetUrl: string): string | null {
     return matched[1];
   }
   return null;
-}
-
-export function buildUserUrl(username: string): string {
-  if (username.startsWith(window.location.protocol)) {
-    console.error(
-      'buildUserUrl() called with URL instead of username (incomplete v2 migration)'
-    );
-    return username;
-  }
-  return `${constants.ROOT_URL}/api/v2/users/${username}/`;
 }
 
 declare global {

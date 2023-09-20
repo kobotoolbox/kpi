@@ -16,12 +16,9 @@ import {getFormDataTabs} from './formViewSideTabs';
 import {
   formatDate,
   stringToColor,
-  getUsernameFromUrl,
 } from 'utils';
-import {
-  MODAL_TYPES,
-  ANON_USERNAME,
-} from 'js/constants';
+import {getUsernameFromUrl, ANON_USERNAME} from 'js/users/utils';
+import {MODAL_TYPES} from 'js/constants';
 import './formSummary.scss';
 import {userCan} from 'js/components/permissions/utils';
 import FormSummaryProjectInfo from './formSummaryProjectInfo';

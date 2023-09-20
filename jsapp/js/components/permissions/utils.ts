@@ -1,7 +1,7 @@
 import sessionStore from 'js/stores/session';
 import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'js/utils';
-import {ANON_USERNAME, PERMISSIONS_CODENAMES} from 'js/constants';
+import {buildUserUrl, ANON_USERNAME_URL} from 'js/users/utils';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import type {
   AssetResponse,
@@ -82,7 +82,7 @@ export function userCan(
     // if permission is granted publicly, then grant it to current user
     const anonAccess = asset.permissions.some(
       (perm) =>
-        perm.user === buildUserUrl(ANON_USERNAME) &&
+        perm.user === ANON_USERNAME_URL &&
         perm.permission === permConfig.getPermissionByCodename(permName)?.url
     );
     if (anonAccess) {

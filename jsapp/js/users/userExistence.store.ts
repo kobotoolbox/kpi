@@ -1,5 +1,4 @@
 import {fetchGet} from 'js/api';
-import {endpoints} from 'js/api.endpoints';
 import {handleApiFail} from 'js/utils';
 import type {FailResponse} from 'js/dataInterface';
 
@@ -15,8 +14,10 @@ export interface UserResponse {
   public_collections_count: number;
 }
 
+const USERS_USER_URL = '/api/v2/users/<username>/';
+
 /**
- * A store for checing if given user exists.
+ * A store for checking if given user exists.
  */
 class UserExistenceStore {
   private checkedUsers: UserExistenceStoreData = {};
@@ -29,7 +30,7 @@ class UserExistenceStore {
 
     try {
       const result = await fetchGet<UserResponse>(
-        endpoints.USERS_USER_URL.replace('<username>', username)
+        USERS_USER_URL.replace('<username>', username)
       );
       this.checkedUsers[result.username] = true;
       return Promise.resolve(this.checkedUsers[result.username]);

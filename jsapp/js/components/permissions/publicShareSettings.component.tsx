@@ -4,8 +4,8 @@ import TextBox from 'js/components/common/textBox';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'js/utils';
-import {ROOT_URL, ANON_USERNAME, PERMISSIONS_CODENAMES} from 'js/constants';
+import {ANON_USERNAME_URL} from 'js/users/utils';
+import {ROOT_URL, PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import type {PermissionResponse} from 'jsapp/js/dataInterface';
 
@@ -29,7 +29,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
       );
     } else {
       actions.permissions.assignAssetPermission(this.props.assetUid, {
-        user: buildUserUrl(ANON_USERNAME),
+        user: ANON_USERNAME_URL,
         permission: permConfig.getPermissionByCodename(permCodename)?.url,
       });
     }

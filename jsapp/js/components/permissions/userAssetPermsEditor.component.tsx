@@ -8,8 +8,9 @@ import bem from 'js/bem';
 import {parseFormData, buildFormData} from './permParser';
 import type {UserPerm, PermsFormData} from './permParser';
 import permConfig from './permConfig';
-import {assign, notify, buildUserUrl} from 'js/utils';
-import {ANON_USERNAME, KEY_CODES, PERMISSIONS_CODENAMES} from 'js/constants';
+import {assign, notify} from 'js/utils';
+import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
+import {KEY_CODES, PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import {
   PARTIAL_PERM_PAIRS,
@@ -27,7 +28,7 @@ import type {
   PermissionBase,
   AssignablePermissionPartialLabel,
 } from 'js/dataInterface';
-import userExistence from 'js/stores/userExistence.store';
+import userExistence from 'js/users/userExistence.store';
 import {getPartialCheckboxListName} from './utils';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');

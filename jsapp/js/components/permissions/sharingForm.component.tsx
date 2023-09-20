@@ -7,8 +7,9 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
-import {buildUserUrl, replaceBracketsWithLink} from 'js/utils';
-import {ASSET_TYPES, ANON_USERNAME} from 'js/constants';
+import {replaceBracketsWithLink} from 'js/utils';
+import {buildUserUrl, ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
+import {ASSET_TYPES} from 'js/constants';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import './sharingForm.scss';
 // parts
@@ -99,9 +100,8 @@ export default class SharingForm extends React.Component<
     }
 
     const parsedPerms = parseBackendData(permissionAssignments, ownerUrl, true);
-    const anonUserUrl = buildUserUrl(ANON_USERNAME);
     const publicPerms = permissionAssignments.filter(
-      (assignment) => assignment.user === anonUserUrl
+      (assignment) => assignment.user === ANON_USERNAME_URL
     );
     const nonOwnerPerms = parseUserWithPermsList(parsedPerms).filter(
       (perm) => perm.user !== buildUserUrl(ownerUrl)

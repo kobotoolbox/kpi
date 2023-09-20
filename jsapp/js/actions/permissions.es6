@@ -6,14 +6,9 @@ import Reflux from 'reflux';
 import RefluxPromise from 'js/libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 import {dataInterface} from 'js/dataInterface';
-import {
-  notify,
-  buildUserUrl,
-} from 'utils';
-import {
-  ANON_USERNAME,
-  PERMISSIONS_CODENAMES,
-} from 'js/constants';
+import {notify} from 'utils';
+import {ANON_USERNAME_URL} from 'js/users/utils';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import permConfig from 'js/components/permissions/permConfig';
 import {
   INVALID_PERMS_ERROR,
@@ -126,11 +121,11 @@ permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
       return permissionAssignment.user !== asset.owner;
     });
     permsToSet.push({
-      user: buildUserUrl(ANON_USERNAME),
+      user: ANON_USERNAME_URL,
       permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
     });
     permsToSet.push({
-      user: buildUserUrl(ANON_USERNAME),
+      user: ANON_USERNAME_URL,
       permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url
     });
     dataInterface.bulkSetAssetPermissions(asset.uid, permsToSet)
@@ -139,7 +134,7 @@ permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
   } else {
     const permToRemove = asset.permissions.find((permissionAssignment) => {
       return (
-        permissionAssignment.user === buildUserUrl(ANON_USERNAME) &&
+        permissionAssignment.user === ANON_USERNAME_URL &&
         permissionAssignment.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
       );
     });

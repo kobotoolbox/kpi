@@ -1,12 +1,12 @@
 import permConfig from './permConfig';
-import {ANON_USERNAME, PERMISSIONS_CODENAMES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
 import {
   PARTIAL_PERM_PAIRS,
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
 } from './permConstants';
-import {buildUserUrl, getUsernameFromUrl} from 'js/utils';
+import {buildUserUrl, getUsernameFromUrl, ANON_USERNAME} from 'js/users/utils';
 import type {
   PermissionResponse,
   PermissionBase,

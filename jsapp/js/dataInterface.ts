@@ -17,7 +17,7 @@ import type {
 } from 'js/constants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
-import type {UserResponse} from 'js/stores/userExistence.store';
+import type {UserResponse} from 'js/users/userExistence.store';
 
 interface AssetsRequestData {
   q?: string;

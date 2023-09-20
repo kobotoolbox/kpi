@@ -8,6 +8,7 @@ import {
 import permConfig from './permConfig';
 import {endpoints} from './permParser.mocks';
 import constants from 'js/constants';
+import {ANON_USERNAME} from 'js/users/utils';
 
 describe('permParser', () => {
   beforeEach(() => {
@@ -42,7 +43,7 @@ describe('permParser', () => {
       // parsed data should contain data of owner and anonymous user
       chai.expect(parsed.length).to.equal(2);
       chai.expect(parsed[0].user.name).to.equal('kobo');
-      chai.expect(parsed[1].user.name).to.equal(constants.ANON_USERNAME);
+      chai.expect(parsed[1].user.name).to.equal(ANON_USERNAME);
     });
 
     it('should group permissions by users properly', () => {

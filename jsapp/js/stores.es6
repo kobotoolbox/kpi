@@ -25,7 +25,6 @@ import {
   assign,
 } from 'utils';
 import { toast } from 'react-hot-toast';
-import {ANON_USERNAME} from 'js/constants';
 
 const cookies = new Cookies();
 
