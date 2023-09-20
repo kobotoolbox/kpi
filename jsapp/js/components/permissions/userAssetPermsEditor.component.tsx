@@ -2,6 +2,7 @@ import React from 'react';
 import clonedeep from 'lodash.clonedeep';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
+import Button from 'js/components/common/button';
 import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
@@ -554,6 +555,7 @@ export default class UserAssetPermsEditor extends React.Component<
     const listName = getPartialCheckboxListName(checkboxName);
     return (
       <TextBox
+        size='m'
         placeholder={PARTIAL_PLACEHOLDER}
         value={this.state[listName].join(USERNAMES_SEPARATOR)}
         onChange={this.onPartialUsersChange.bind(this, listName)}
@@ -596,6 +598,7 @@ export default class UserAssetPermsEditor extends React.Component<
           // don't display username editor when editing existing user
           <div className='user-permissions-editor__row user-permissions-editor__row--username'>
             <TextBox
+              size='m'
               placeholder={t('username')}
               value={this.state.username}
               onChange={this.onUsernameChange.bind(this)}
@@ -635,13 +638,15 @@ export default class UserAssetPermsEditor extends React.Component<
         </div>
 
         <div className='user-permissions-editor__row'>
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            disabled={!this.isSubmitEnabled()}
-          >
-            {isNew ? t('Grant permissions') : t('Update permissions')}
-          </bem.KoboButton>
+          <Button
+            color='blue'
+            type='full'
+            size='l'
+            onClick={this.onSubmit.bind(this)}
+            label={isNew ? t('Grant permissions') : t('Update permissions')}
+            isDisabled={!this.isSubmitEnabled()}
+            isSubmit
+          />
         </div>
       </bem.FormModal__form>
     );

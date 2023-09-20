@@ -6,6 +6,7 @@ import type {AssetStoreData} from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Button from 'js/components/common/button';
 import InlineMessage from 'js/components/common/inlineMessage';
 import {replaceBracketsWithLink} from 'js/utils';
 import {buildUserUrl, ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
@@ -213,9 +214,13 @@ export default class SharingForm extends React.Component<
           })}
 
           {!this.state.isAddUserEditorVisible && (
-            <bem.KoboButton m='blue' onClick={this.toggleAddUserEditor.bind(this)}>
-              {t('Add user')}
-            </bem.KoboButton>
+            <Button
+              color='blue'
+              type='full'
+              size='l'
+              onClick={this.toggleAddUserEditor.bind(this)}
+              label={t('Add user')}
+            />
           )}
 
           {this.state.isAddUserEditorVisible && (

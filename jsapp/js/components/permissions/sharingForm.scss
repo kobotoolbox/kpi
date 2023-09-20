@@ -143,6 +143,11 @@ $s-gray-row-spacing: 10px;
     background-color: colors.$kobo-white;
   }
 
+  .user-permissions-editor__row > *:not(:last-child),
+  .user-permissions-editor__sub-row > *:not(:last-child) {
+    margin-bottom: 5px;
+  }
+
   .user-permissions-editor__row {
     &:not(:last-child) {
       margin-bottom: 10px;
@@ -164,8 +169,8 @@ $s-gray-row-spacing: 10px;
       left: 10px;
       width: 15px;
       height: 15px;
-      border-left: 1px solid colors.$kobo-gray-92;
-      border-bottom: 1px solid colors.$kobo-gray-92;
+      border-left: 1px solid colors.$kobo-gray-85;
+      border-bottom: 1px solid colors.$kobo-gray-85;
       border-radius: 2px;
     }
   }
