@@ -662,6 +662,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'ku '  # Kurdish
         'ln '  # Lingala
         'my '  # Burmese/Myanmar
+        'ny '  # Chewa/Chichewa/Nyanja
         'ne '  # Nepali
         'pl '  # Polish
         'pt '  # Portuguese
