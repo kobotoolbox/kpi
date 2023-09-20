@@ -596,9 +596,6 @@ class DoNotUseRunner:
 
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
-# # used in kpi.models.sitewide_messages
-# MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
-
 # The backend that handles user authentication must match KoBoCAT's when
 # sharing sessions. ModelBackend does not interfere with object-level
 # permissions: it always denies object-specific requests (see
@@ -666,6 +663,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'ku '  # Kurdish
         'ln '  # Lingala
         'my '  # Burmese/Myanmar
+        'ny '  # Chewa/Chichewa/Nyanja
         'ne '  # Nepali
         'pl '  # Polish
         'pt '  # Portuguese
@@ -714,6 +712,13 @@ PRIVATE_STORAGE_AUTH_FUNCTION = \
 
 # django-markdownx, for in-app messages
 MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
+MARKDOWNX_UPLOAD_CONTENT_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/svg+xml',
+    'image/gif',
+    'image/webp',
+]
 # Github-flavored Markdown from `py-gfm`,
 # ToDo Uncomment when it's compatible with Markdown 3.x
 # MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
