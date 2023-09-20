@@ -26,7 +26,7 @@ def get_provider_appname(context, provider=None):
     provider = provider or context['provider']
     request = context['request']
     try:
-        appname = provider.get_app(request).name
+        appname = provider.app.name
         if appname:
             return appname
         return SocialApp.objects.get_current(provider, request).name
