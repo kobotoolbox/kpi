@@ -1060,7 +1060,7 @@ for key, value in {
 }.items():
     number, setting = key.split("_", 1)
     parsed_key = None
-    nested_key = filter(lambda setting_key : setting.startswith(setting_key), oidc_nested_keys)
+    nested_key = filter(lambda setting_key: setting.startswith(setting_key), oidc_nested_keys)
     nested_key = list(nested_key)
     if len(nested_key):
         _, parsed_key = setting.split(nested_key[0] + "_", 1)
@@ -1087,8 +1087,7 @@ for key, value in {
                 oidc_servers[number] = {setting: {parsed_key: value}}
         else:
             oidc_servers[number] = {setting: value}
-oidc_servers = [x for x in oidc_servers.values()]
-SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
+SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"APPS": oidc_servers}
 
 WEBPACK_LOADER = {
     'DEFAULT': {
