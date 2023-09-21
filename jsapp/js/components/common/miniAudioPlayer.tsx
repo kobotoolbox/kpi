@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {createRef} from 'react';
 import bem, {makeBem} from 'js/bem';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
@@ -30,7 +30,7 @@ class MiniAudioPlayer extends React.Component<
   MiniAudioPlayerProps,
   MiniAudioPlayerState
 > {
-  audioInterface: HTMLAudioElement = new Audio();
+  audioRef = createRef<HTMLAudioElement>();
   /** Useful for stopping. */
   uid = generateUid();
 
@@ -52,9 +52,6 @@ class MiniAudioPlayer extends React.Component<
   }
 
   componentDidUpdate(prevProps: MiniAudioPlayerProps) {
-    if (prevProps.preload !== this.props.preload) {
-      this.audioInterface.preload = this.props.preload ? 'metadata' : 'none';
-    }
     if (prevProps.mediaURL !== this.props.mediaURL) {
       // If the URL changed, and `preload` is not enabled, we need to clear the
       // time from previous file.
@@ -64,27 +61,24 @@ class MiniAudioPlayer extends React.Component<
           totalTime: 0,
         });
       }
-      // Reload audio element when URL changes.
-      this.audioInterface.src = this.props.mediaURL;
     }
   }
 
   componentDidMount() {
-    // Prepare audio.
-    this.audioInterface = document.createElement('audio');
     // NOTE: 'metadata' causes an immediate download of part of the file (to get
     // the metadata), usually requires around 30-50KB, but it may vary. Some
     // browser may simply download whole file.
-    this.audioInterface.preload = this.props.preload ? 'metadata' : 'none';
-    this.audioInterface.src = this.props.mediaURL;
 
     // Set up listeners for audio component.
-    this.audioInterface.addEventListener(
+
+    // We know that audioRef will not be null when these run.
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    this.audioRef.current!.addEventListener(
       'loadedmetadata',
       this.onAudioLoadedBound
     );
-    this.audioInterface.addEventListener('error', this.onAudioErrorBound);
-    this.audioInterface.addEventListener(
+    this.audioRef.current!.addEventListener('error', this.onAudioErrorBound);
+    this.audioRef.current!.addEventListener(
       'timeupdate',
       this.onAudioTimeUpdatedBound
     );
@@ -96,14 +90,14 @@ class MiniAudioPlayer extends React.Component<
 
   componentWillUnmount() {
     // Pausing makes it subject to garbage collection.
-    this.audioInterface.pause();
+    this.audioRef.current!.pause();
 
-    this.audioInterface.removeEventListener(
+    this.audioRef.current!.removeEventListener(
       'loadedmetadata',
       this.onAudioLoadedBound
     );
-    this.audioInterface.removeEventListener('error', this.onAudioErrorBound);
-    this.audioInterface.removeEventListener(
+    this.audioRef.current!.removeEventListener('error', this.onAudioErrorBound);
+    this.audioRef.current!.removeEventListener(
       'timeupdate',
       this.onAudioTimeUpdatedBound
     );
@@ -130,20 +124,20 @@ class MiniAudioPlayer extends React.Component<
     this.setState({
       isLoading: false,
       isBroken: false,
-      totalTime: this.audioInterface.duration,
+      totalTime: this.audioRef.current!.duration,
     });
   }
 
   onAudioTimeUpdated() {
     // Pause the player when it reaches the end
     if (
-      this.audioInterface.currentTime === this.state.totalTime &&
+      this.audioRef.current!.currentTime === this.state.totalTime &&
       this.state.isPlaying
     ) {
       this.stop();
     }
 
-    this.setState({currentTime: this.audioInterface.currentTime});
+    this.setState({currentTime: this.audioRef.current!.currentTime});
   }
 
   onButtonClick() {
@@ -159,15 +153,15 @@ class MiniAudioPlayer extends React.Component<
   }
 
   start() {
-    this.audioInterface.play();
+    this.audioRef.current!.play();
     const event = new CustomEvent(PLAYER_STARTED_EVENT, {detail: this.uid});
     document.dispatchEvent(event);
   }
 
   stop() {
     // Setting time to 0 and pausing is a silly way to "stop" audio.
-    this.audioInterface.currentTime = 0;
-    this.audioInterface.pause();
+    this.audioRef.current!.currentTime = 0;
+    this.audioRef.current!.pause();
     this.setState({
       currentTime: 0,
       isPlaying: false,
@@ -246,6 +240,11 @@ class MiniAudioPlayer extends React.Component<
         m={modifiers}
         {...additionalProps}
       >
+        <audio
+          ref={this.audioRef}
+          src={this.props.mediaURL}
+          preload={this.props.preload ? 'metadata' : 'none'}
+        />
         {this.state.isLoading && this.renderLoading()}
         {!this.state.isLoading && this.state.isBroken && this.renderError()}
         {!this.state.isLoading && !this.state.isBroken && this.renderPlayer()}
