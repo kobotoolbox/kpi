@@ -52,11 +52,7 @@ export function getColumnLabel(
     const supplementalPathParts = getSupplementalPathParts(key);
 
     const groupsIfAnyAndName = supplementalPathParts.sourceRowName.split('-');
-    const sourceName = groupsIfAnyAndName.slice(-1)[0];
-    // Note: For supplemental columns, we don't show the full 'group' path,
-    //   even if 'Show Group Names…' is enabled.
-    //   Use this variant instead if we decide to change this.
-    // const sourceName = groupsIfAnyAndName.join('/');
+    const sourceName = groupsIfAnyAndName.join('/');
 
     // Supplemental details keys are built like one of:
     // - prefix / source question name / transcript _ language code
