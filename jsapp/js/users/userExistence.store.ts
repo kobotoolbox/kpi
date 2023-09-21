@@ -31,7 +31,7 @@ class UserExistenceStore {
     try {
       const result = await fetchGet<UserResponse>(
         USERS_USER_ENDPOINT.replace('<username>', username),
-        {showErrorToast: false}
+        {notifyAboutError: false}
       );
       this.checkedUsers[result.username] = true;
       return Promise.resolve(this.checkedUsers[result.username]);
