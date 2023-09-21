@@ -14,7 +14,7 @@ export interface UserResponse {
   public_collections_count: number;
 }
 
-const USERS_USER_URL = '/api/v2/users/<username>/';
+const USERS_USER_ENDPOINT = '/api/v2/users/<username>/';
 
 /**
  * A store for checking if given user exists.
@@ -30,7 +30,8 @@ class UserExistenceStore {
 
     try {
       const result = await fetchGet<UserResponse>(
-        USERS_USER_URL.replace('<username>', username)
+        USERS_USER_ENDPOINT.replace('<username>', username),
+        {showErrorToast: false}
       );
       this.checkedUsers[result.username] = true;
       return Promise.resolve(this.checkedUsers[result.username]);
@@ -41,6 +42,8 @@ class UserExistenceStore {
         this.checkedUsers[username] = false;
         return Promise.resolve(this.checkedUsers[username]);
       }
+
+      // All the other responses means the call failed for some reason
       handleApiFail(failResult);
       return Promise.reject();
     }
