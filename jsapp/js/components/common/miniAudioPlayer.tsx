@@ -2,10 +2,7 @@ import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
-import {
-  formatSeconds,
-  generateUid,
-} from 'js/utils';
+import {formatSeconds, generateUid} from 'js/utils';
 import 'js/components/common/miniAudioPlayer.scss';
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player');
@@ -29,7 +26,10 @@ interface MiniAudioPlayerState {
 const PLAYER_STARTED_EVENT = 'MiniAudioPlayer:started';
 
 /** Custom audio player to be placed inline in small containers. */
-class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPlayerState> {
+class MiniAudioPlayer extends React.Component<
+  MiniAudioPlayerProps,
+  MiniAudioPlayerState
+> {
   audioInterface: HTMLAudioElement = new Audio();
   /** Useful for stopping. */
   uid = generateUid();
@@ -79,20 +79,38 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     this.audioInterface.src = this.props.mediaURL;
 
     // Set up listeners for audio component.
-    this.audioInterface.addEventListener('loadedmetadata', this.onAudioLoadedBound);
+    this.audioInterface.addEventListener(
+      'loadedmetadata',
+      this.onAudioLoadedBound
+    );
     this.audioInterface.addEventListener('error', this.onAudioErrorBound);
-    this.audioInterface.addEventListener('timeupdate', this.onAudioTimeUpdatedBound);
-    document.addEventListener(PLAYER_STARTED_EVENT, this.onAnyPlayerStartedBound);
+    this.audioInterface.addEventListener(
+      'timeupdate',
+      this.onAudioTimeUpdatedBound
+    );
+    document.addEventListener(
+      PLAYER_STARTED_EVENT,
+      this.onAnyPlayerStartedBound
+    );
   }
 
   componentWillUnmount() {
     // Pausing makes it subject to garbage collection.
     this.audioInterface.pause();
 
-    this.audioInterface.removeEventListener('loadedmetadata', this.onAudioLoadedBound);
+    this.audioInterface.removeEventListener(
+      'loadedmetadata',
+      this.onAudioLoadedBound
+    );
     this.audioInterface.removeEventListener('error', this.onAudioErrorBound);
-    this.audioInterface.removeEventListener('timeupdate', this.onAudioTimeUpdatedBound);
-    document.removeEventListener(PLAYER_STARTED_EVENT, this.onAnyPlayerStartedBound);
+    this.audioInterface.removeEventListener(
+      'timeupdate',
+      this.onAudioTimeUpdatedBound
+    );
+    document.removeEventListener(
+      PLAYER_STARTED_EVENT,
+      this.onAnyPlayerStartedBound
+    );
   }
 
   onAnyPlayerStarted(evt: CustomEventInit<string>) {
@@ -168,12 +186,12 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
           data-cy='mini audio player playstop'
         />
 
-        {this.state.totalTime > 0 &&
+        {this.state.totalTime > 0 && (
           <bem.MiniAudioPlayer__time dateTime={this.state.totalTime}>
             {this.state.isPlaying && formatSeconds(this.state.currentTime)}
             {!this.state.isPlaying && formatSeconds(this.state.totalTime)}
           </bem.MiniAudioPlayer__time>
-        }
+        )}
       </React.Fragment>
     );
   }
@@ -198,7 +216,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   renderError() {
     return (
       <React.Fragment>
-        <Icon name='alert' size='s'/>
+        <Icon name='alert' size='s' />
 
         <bem.MiniAudioPlayer__time>--:--</bem.MiniAudioPlayer__time>
       </React.Fragment>
@@ -217,20 +235,20 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     }
 
     const additionalProps = {
-      'data-tip': this.state.isBroken ? t('Could not load media file') : undefined,
+      'data-tip': this.state.isBroken
+        ? t('Could not load media file')
+        : undefined,
     };
 
     return (
-      <bem.MiniAudioPlayer data-cy={this.props['data-cy']} m={modifiers} {...additionalProps}>
-        {this.state.isLoading &&
-          this.renderLoading()
-        }
-        {!this.state.isLoading && this.state.isBroken &&
-          this.renderError()
-        }
-        {!this.state.isLoading && !this.state.isBroken &&
-          this.renderPlayer()
-        }
+      <bem.MiniAudioPlayer
+        data-cy={this.props['data-cy']}
+        m={modifiers}
+        {...additionalProps}
+      >
+        {this.state.isLoading && this.renderLoading()}
+        {!this.state.isLoading && this.state.isBroken && this.renderError()}
+        {!this.state.isLoading && !this.state.isBroken && this.renderPlayer()}
       </bem.MiniAudioPlayer>
     );
   }
