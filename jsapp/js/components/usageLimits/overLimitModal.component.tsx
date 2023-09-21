@@ -67,12 +67,17 @@ function OverLimitModal(props: OverLimitModalProps) {
               <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.link}>
                 {t('upgrade your plan')}
               </a>{' '}
-              {t('as soon as possible. You can')}{' '}
+              {'as soon as possible or ' /* tone down the language for now */}
+              <a href="https://www.kobotoolbox.org/contact/" target="_blank" className={styles.link}>
+              {'contact us'}
+              </a>
+              {' to speak with our team. You can '}
               <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.link}>
                 {t('review your usage in account settings')}
               </a>
               {'.'}
             </div>
+            {/* remove consequences for now; too scary
             <p className={cx(limitBannerContainer, styles.consequences)}>
               <Icon
                 name='warning'
@@ -86,6 +91,7 @@ function OverLimitModal(props: OverLimitModalProps) {
                 )}
               </span>
             </p>
+            */}
           </div>
         </KoboModalContent>
 
