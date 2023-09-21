@@ -9,7 +9,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Button from 'js/components/common/button';
 import InlineMessage from 'js/components/common/inlineMessage';
 import {replaceBracketsWithLink} from 'js/utils';
-import {buildUserUrl, ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
+import {ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
 import {ASSET_TYPES} from 'js/constants';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import './sharingForm.scss';
@@ -105,7 +105,7 @@ export default class SharingForm extends React.Component<
       (assignment) => assignment.user === ANON_USERNAME_URL
     );
     const nonOwnerPerms = parseUserWithPermsList(parsedPerms).filter(
-      (perm) => perm.user !== buildUserUrl(ownerUrl)
+      (perm) => perm.user !== ownerUrl
     );
 
     this.setState({
