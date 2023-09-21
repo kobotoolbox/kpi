@@ -85,8 +85,11 @@ notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
   notify(msg, 'success', opts);
 
 /**
- * Useful for handling the fail responses from API. It detects if we got HTML
- * string as response and uses a generic message instead.
+ * Useful for handling the fail responses from API. Its main goal is to display
+ * a helpful error toast notification and to pass the error message to Raven.
+ *
+ * It can detect if we got HTML string as response and uses a generic message
+ * instead of spitting it out.
  */
 export function handleApiFail(response: FailResponse) {
   // Avoid displaying toast when purposefuly aborted a request
@@ -116,6 +119,10 @@ export function handleApiFail(response: FailResponse) {
   }
 
   notify.error(message);
+
+  if (window.Raven) {
+    window.Raven.captureMessage(message);
+  }
 }
 
 /**
