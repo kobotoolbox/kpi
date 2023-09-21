@@ -1,12 +1,7 @@
 import constants from 'js/constants';
 
+/** Make sure to not call this with a user url :) */
 export function buildUserUrl(username: string): string {
-  if (username.startsWith(window.location.protocol)) {
-    console.error(
-      'buildUserUrl() called with URL instead of username (incomplete v2 migration)'
-    );
-    return username;
-  }
   return `${constants.ROOT_URL}/api/v2/users/${username}/`;
 }
 
