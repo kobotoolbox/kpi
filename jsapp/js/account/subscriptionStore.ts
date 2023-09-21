@@ -1,10 +1,13 @@
 import {makeAutoObservable} from 'mobx';
 import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
+import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
+import {BasePrice} from 'js/account/stripe.api';
 
+const PRODUCTS_URL = '/api/v2/stripe/products/';
 // For plan displaying purposes we only care about this part of the response
-export interface ProductInfo {
+export interface BaseProduct {
   id: string;
   name: string;
   description: string;
@@ -13,7 +16,7 @@ export interface ProductInfo {
 }
 
 export interface PlanInfo {
-  product: ProductInfo;
+  product: BaseProduct;
   djstripe_created: string;
   djstripe_updated: string;
   id: string;
@@ -75,31 +78,53 @@ export interface SubscriptionInfo {
   pending_setup_intent: any;
   schedule: any;
   default_tax_rates: [];
+  items: {price: BasePrice}[];
+}
+
+// There is probably a better way to hand the nested types
+export interface Product extends BaseProduct {
+  prices: Array<PlanInfo>;
+}
+
+export async function fetchProducts() {
+  return fetchGet<PaginatedResponse<Product>>(PRODUCTS_URL);
 }
 
 class SubscriptionStore {
   public subscriptionResponse: SubscriptionInfo[] = [];
-  public subscribedProduct: ProductInfo | null = null;
+  public subscribedProduct: BaseProduct | null = null;
+  public productsResponse: Product[] | null = null;
+  public isPending = false;
+  public isInitialised = false;
 
   constructor() {
     makeAutoObservable(this);
   }
 
   public fetchSubscriptionInfo() {
+    if (this.isPending) {
+      return;
+    }
+    this.isPending = true;
     $.ajax({
       dataType: 'json',
       method: 'GET',
       url: `${ROOT_URL}/api/v2/stripe/subscriptions/`,
     })
       .done(this.onFetchSubscriptionInfoDone.bind(this))
-      .fail(handleApiFail);
+      .fail((response) => {
+        this.isPending = false;
+        handleApiFail(response);
+      });
   }
 
   private onFetchSubscriptionInfoDone(
     response: PaginatedResponse<SubscriptionInfo>
   ) {
     this.subscriptionResponse = response.results;
-    this.subscribedProduct = response.results[0]?.plan.product;
+    this.subscribedProduct = response.results[0]?.plan?.product || null;
+    this.isPending = false;
+    this.isInitialised = true;
   }
 }
 

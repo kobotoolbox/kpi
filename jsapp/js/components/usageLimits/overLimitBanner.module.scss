@@ -1,0 +1,44 @@
+@use '~kobo-common/src/styles/colors';
+
+.limitBannerContainer {
+  background-color: colors.$kobo-light-red;
+  display: flex;
+  padding: 0 2%;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 75px;
+  flex-shrink: 0;
+  border-radius: 0.5em;
+  margin: 0 1% 1%;
+}
+
+.warningBanner {
+  background-color: colors.$kobo-light-amber;
+}
+
+.bannerContent {
+  padding: 0 2%;
+}
+
+.bannerLink {
+  color: colors.$kobo-dark-blue;
+  text-decoration: underline;
+}
+
+.bannerBtn {
+  flex-shrink: 0;
+  min-width: 120px !important;
+  height: 32px;
+  margin-inline: auto 0;
+}
+
+
+@media (max-width: 979px) {
+  .bannerBtn {
+    min-width: 100px !important;
+  }
+
+  .bannerContent {
+    padding: 2%;
+  }
+}

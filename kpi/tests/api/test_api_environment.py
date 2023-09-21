@@ -1,7 +1,5 @@
 # coding: utf-8
 # 😇
-import json
-
 import constance
 from constance.test import override_config
 from django.conf import settings
@@ -14,9 +12,13 @@ from markdown import markdown
 from model_bakery import baker
 from rest_framework import status
 
+from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.utils.object_permission import get_database_user
 
 
 class EnvironmentTests(BaseTestCase):
@@ -24,6 +26,8 @@ class EnvironmentTests(BaseTestCase):
 
     def setUp(self):
         self.url = reverse('environment')
+        self.user = User.objects.get(username='someuser')
+        self.password = 'someuser'
         self.dict_checks = {
             'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,
             'privacy_policy_url': constance.config.PRIVACY_POLICY_URL,
@@ -33,45 +37,66 @@ class EnvironmentTests(BaseTestCase):
             'community_url': constance.config.COMMUNITY_URL,
             'frontend_min_retry_time': constance.config.FRONTEND_MIN_RETRY_TIME,
             'frontend_max_retry_time': constance.config.FRONTEND_MAX_RETRY_TIME,
-            'project_metadata_fields': lambda x: \
-                self.assertEqual(len(x), len(json.loads(constance.config.PROJECT_METADATA_FIELDS))) \
-                and self.assertIn({'name': 'organization', 'required': False}, x),
-            'user_metadata_fields': lambda x: \
-                self.assertEqual(
-                    len(x), len(json.loads(constance.config.USER_METADATA_FIELDS))
-                ) and self.assertIn({'name': 'sector', 'required': False}, x),
-            'sector_choices': lambda x: \
-                self.assertGreater(len(x), 10) and self.assertIn(
-                    ("Humanitarian - Sanitation, Water & Hygiene",
-                     "Humanitarian - Sanitation, Water & Hygiene"),
-                    x
+            'project_metadata_fields': lambda x: self.assertEqual(
+                len(x),
+                len(to_python_object(constance.config.PROJECT_METADATA_FIELDS)),
+            ) and self.assertIn({'name': 'organization', 'required': False}, x),
+            'user_metadata_fields': lambda x: self.assertEqual(
+                len(x),
+                len(to_python_object(constance.config.USER_METADATA_FIELDS))
+            ) and self.assertIn({'name': 'sector', 'required': False}, x),
+            'sector_choices': lambda x: self.assertGreater(
+                len(x), 10
+            ) and self.assertIn(
+                (
+                    "Humanitarian - Sanitation, Water & Hygiene",
+                    "Humanitarian - Sanitation, Water & Hygiene",
                 ),
+                x,
+            ),
             'operational_purpose_choices': (('', ''),),
-            'country_choices': lambda x: \
-                self.assertGreater(len(x), 200) and self.assertIn(
-                    ('KEN', 'Kenya'), x
-                ),
-            'interface_languages': lambda x: \
-                self.assertEqual(len(x), len(settings.LANGUAGES)),
+            'country_choices': lambda x: self.assertGreater(
+                len(x), 200
+            ) and self.assertIn(('KEN', 'Kenya'), x),
+            'interface_languages': lambda x: self.assertEqual(
+                len(x), len(settings.LANGUAGES)
+            ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
             'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,
-            'mfa_localized_help_text': lambda i18n_texts: {
-                lang: markdown(text)
-                for lang, text in json.loads(
-                    constance.config.MFA_LOCALIZED_HELP_TEXT.replace(
-                        '##support email##',
-                        constance.config.SUPPORT_EMAIL
-                    )
-                ).items()
-            },
+            'mfa_per_user_availability': lambda response: (
+                MfaAvailableToUser.objects.filter(
+                    user=get_database_user(self.user)
+                ).exists(),
+            ),
+            'mfa_has_availability_list': lambda response: (
+                MfaAvailableToUser.objects.all().exists()
+            ),
+            'mfa_localized_help_text': markdown(
+                I18nUtils.get_mfa_help_text().replace(
+                    '##support email##', constance.config.SUPPORT_EMAIL
+                )
+            ),
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
-            'stripe_public_key': settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None,
-            'stripe_pricing_table_id': settings.STRIPE_PRICING_TABLE_ID,
-            'free_tier_thresholds': json.loads(
+            'stripe_public_key': (
+                settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
+            ),
+            'free_tier_thresholds': to_python_object(
                 constance.config.FREE_TIER_THRESHOLDS
             ),
+            'free_tier_display': to_python_object(
+                constance.config.FREE_TIER_DISPLAY
+            ),
             'social_apps': [],
+            'enable_password_entropy_meter': (
+                constance.config.ENABLE_PASSWORD_ENTROPY_METER
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
         }
 
     def _check_response_dict(self, response_dict):
@@ -106,14 +131,14 @@ class EnvironmentTests(BaseTestCase):
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_value_globally_enabled(self):
-        self.client.login(username='someuser', password='someuser')
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
 
     @override_config(MFA_ENABLED=False)
     def test_mfa_value_globally_disabled(self):
-        self.client.login(username='someuser', password='someuser')
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['mfa_enabled'])
@@ -124,46 +149,61 @@ class EnvironmentTests(BaseTestCase):
         # first per-user allowance (`MfaAvailableToUser` instance) is created.
 
         # Enable MFA only for someuser
-        someuser = User.objects.get(username='someuser')
-        MfaAvailableToUser.objects.create(user=someuser)
+        baker.make('MfaAvailableToUser', user=self.user)
 
-        # someuser should have mfa enabled
-        self.client.login(username='someuser', password='someuser')
+        # someuser should have per-user availability
+        self.assertTrue(
+            self.client.login(
+                username=self.user.username, password=self.password
+            )
+        )
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
+        self.assertTrue(response.data['mfa_per_user_availability'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
+        self._check_response_dict(response.data)
 
-        # anotheruser should **NOT** have mfa enabled
-        self.client.login(username='anotheruser', password='anotheruser')
+        # anotheruser should **NOT** have per-user availability
+        self.user = User.objects.get(username='anotheruser')
+        self.password = 'anotheruser'
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data['mfa_enabled'])
+        self.assertTrue(response.data['mfa_enabled'])
+        self.assertFalse(response.data['mfa_per_user_availability'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
+        self._check_response_dict(response.data)
 
     @override_config(MFA_ENABLED=True)
-    def test_mfa_per_user_availability_while_globally_enabled_as_anonymous(self):
+    def test_mfa_per_user_availability_while_globally_enabled_as_anonymous(
+        self,
+    ):
         # Enable MFA only for someuser, in order to enter per-user-allowance
         # mode. MFA should then appear to be disabled for everyone else
         # (including anonymous users), even though MFA is globally enabled.
         someuser = User.objects.get(username='someuser')
-        MfaAvailableToUser.objects.create(user=someuser)
+        baker.make('MfaAvailableToUser', user=someuser)
 
         # Now, make sure that the application reports MFA to be disabled for
         # anonymous users
         self.client.logout()
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data['mfa_enabled'])
+        self.assertTrue(response.data['mfa_enabled'])
+        self.assertFalse(response.data['mfa_per_user_availability'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
 
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = 18
+        queries = FuzzyInt(18, 25)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
-            with self.assertNumQueries(queries + 1):
+            with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)

@@ -1,18 +1,26 @@
-import json
-
 import constance
+from allauth.account import app_settings
+from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as BaseLoginForm
 from allauth.account.forms import SignupForm as BaseSignupForm
+from allauth.account.utils import (
+    get_user_model,
+    user_email,
+    user_username,
+)
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 
-from kobo.static_lists import COUNTRIES
+from hub.utils.i18n import I18nUtils
+from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
+    'name',
     'organization',
     'gender',
     'sector',
@@ -23,22 +31,22 @@ CONFIGURABLE_METADATA_FIELDS = (
 class LoginForm(BaseLoginForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["login"].widget.attrs["placeholder"] = ""
-        self.fields["password"].widget.attrs["placeholder"] = ""
-        self.label_suffix = ""
+        self.fields['login'].widget.attrs['placeholder'] = ''
+        self.fields['password'].widget.attrs['placeholder'] = ''
+        self.label_suffix = ''
 
 
 class KoboSignupMixin(forms.Form):
     name = forms.CharField(
-        label=t('Full name'),
+        label=USER_METADATA_DEFAULT_LABELS['name'],
         required=False,
     )
     organization = forms.CharField(
-        label=t('Organization name'),
+        label=USER_METADATA_DEFAULT_LABELS['organization'],
         required=False,
     )
     gender = forms.ChoiceField(
-        label=t('Gender'),
+        label=USER_METADATA_DEFAULT_LABELS['gender'],
         required=False,
         widget=forms.RadioSelect,
         choices=(
@@ -48,13 +56,13 @@ class KoboSignupMixin(forms.Form):
         ),
     )
     sector = forms.ChoiceField(
-        label=t('Sector'),
+        label=USER_METADATA_DEFAULT_LABELS['sector'],
         required=False,
         # Don't set choices here; set them in the constructor so that changes
         # made in the Django admin interface do not require a server restart
     )
     country = forms.ChoiceField(
-        label=t('Country'),
+        label=USER_METADATA_DEFAULT_LABELS['country'],
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
@@ -78,22 +86,25 @@ class KoboSignupMixin(forms.Form):
 
         # It's easier to _remove_ unwanted fields here in the constructor
         # than to add a new fields *shrug*
-        desired_metadata_fields = json.loads(
-            constance.config.USER_METADATA_FIELDS
-        )
+        desired_metadata_fields = I18nUtils.get_metadata_fields('user')
         desired_metadata_fields = {
             field['name']: field for field in desired_metadata_fields
         }
         for field_name in list(self.fields.keys()):
             if field_name not in CONFIGURABLE_METADATA_FIELDS:
+                # This field is not allowed to be configured
                 continue
-            if field_name not in desired_metadata_fields:
+
+            try:
+                desired_field = desired_metadata_fields[field_name]
+            except KeyError:
+                # This field is unwanted
                 self.fields.pop(field_name)
                 continue
-            else:
-                self.fields[field_name].required = desired_metadata_fields[
-                    field_name
-                ].get('required', False)
+
+            field = self.fields[field_name]
+            field.required = desired_field.get('required', False)
+            self.fields[field_name].label = desired_field['label']
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -128,7 +139,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         super().__init__(*args, **kwargs)
         if settings.UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE:
             self.fields['email'].widget.attrs['readonly'] = True
-        self.label_suffix = ""
+        self.label_suffix = ''
 
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):
@@ -140,3 +151,35 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'sector',
         'country',
     ]
+
+    def clean(self):
+        """
+        Override parent form to pass extra user's attributes to validation.
+        """
+        super(BaseSignupForm, self).clean()
+
+        User = get_user_model()  # noqa
+        dummy_user = User()
+        user_username(dummy_user, self.cleaned_data.get('username'))
+        user_email(dummy_user, self.cleaned_data.get('email'))
+        setattr(dummy_user, 'organization', self.cleaned_data.get('organization', ''))
+        setattr(dummy_user, 'full_name', self.cleaned_data.get('name', ''))
+
+        password = self.cleaned_data.get('password1')
+        if password:
+            try:
+                get_adapter().clean_password(password, user=dummy_user)
+            except forms.ValidationError as e:
+                self.add_error('password1', e)
+
+        if (
+            app_settings.SIGNUP_PASSWORD_ENTER_TWICE
+            and 'password1' in self.cleaned_data
+            and 'password2' in self.cleaned_data
+        ):
+            if self.cleaned_data['password1'] != self.cleaned_data['password2']:
+                self.add_error(
+                    'password2',
+                    t('You must type the same password each time.'),
+                )
+        return self.cleaned_data

@@ -1,0 +1,21 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  @include mixins.centerRowFlex;
+  padding: sizes.$x30 sizes.$x30 sizes.$x40;
+  gap: sizes.$x10 sizes.$x30;
+  flex-wrap: wrap;
+}
+
+.actions {
+  @include mixins.centerRowFlex;
+  flex: 1;
+  justify-content: flex-end;
+}

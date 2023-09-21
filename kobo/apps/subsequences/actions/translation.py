@@ -72,7 +72,6 @@ class TranslationAction(BaseAction):
             record[language] = upd
         return record
 
-
     def init_translation_record(self, langcode, value):
         curtime = self.cur_time()
         data = {**value, 'revisions': []}

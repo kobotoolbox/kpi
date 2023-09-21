@@ -5,7 +5,6 @@ import type {AccountResponse, FailResponse} from 'js/dataInterface';
 import {log, currentLang} from 'js/utils';
 import type {Json} from 'js/components/common/common.interfaces';
 import type {ProjectViewsSettings} from 'js/projects/customViewStore';
-import cloneDeep from 'lodash.clonedeep';
 
 class SessionStore {
   currentAccount: AccountResponse | {username: string} = {

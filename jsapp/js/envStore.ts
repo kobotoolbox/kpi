@@ -18,6 +18,7 @@ import {makeAutoObservable} from 'mobx';
 export interface EnvStoreFieldItem {
   name: string;
   required: boolean;
+  label: string;
 }
 
 export interface SocialApp {
@@ -25,6 +26,25 @@ export interface SocialApp {
   provider: string;
   client_id: string;
 }
+
+export interface FreeTierThresholds {
+  storage: number | null;
+  data: number | null;
+  transcription_minutes: number | null;
+  translation_chars: number | null;
+}
+
+export interface FreeTierDisplay {
+  name: string | null;
+  feature_list: [string] | [];
+}
+
+type ProjectMetadataFieldKey =
+  | 'description'
+  | 'sector'
+  | 'country'
+  | 'operational_purpose'
+  | 'collects_pii';
 
 class EnvStoreData {
   public terms_of_service_url = '';
@@ -45,14 +65,27 @@ class EnvStoreData {
   public translation_languages: TransxLanguages = {};
   public submission_placeholder = '';
   public asr_mt_features_enabled = false;
-  public mfa_localized_help_text: {[name: string]: string} = {};
+  public mfa_localized_help_text = '';
   public mfa_enabled = false;
+  public mfa_per_user_availability = false;
+  public mfa_has_availability_list = false;
   public mfa_code_length = 6;
   public stripe_public_key: string | null = null;
-  public stripe_pricing_table_id: string | null = null;
   public social_apps: SocialApp[] = [];
+  public free_tier_thresholds: FreeTierThresholds = {
+    storage: null,
+    data: null,
+    transcription_minutes: null,
+    translation_chars: null
+  };
+  public free_tier_display: FreeTierDisplay = {name: null, feature_list: []};
+  public enable_custom_password_guidance_text = false;
+  public custom_password_localized_help_text = '';
+  public enable_password_entropy_meter = false;
 
-  getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
+  getProjectMetadataField(
+    fieldName: ProjectMetadataFieldKey
+  ): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
       if (f.name === fieldName) {
         return f;
@@ -60,13 +93,25 @@ class EnvStoreData {
     }
     return false;
   }
-  public getUserMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
-    for (const f of this.user_metadata_fields) {
-      if (f.name === fieldName) {
-        return f;
-      }
+
+  public getProjectMetadataFieldsAsSimpleDict() {
+    // dict[name] => {name, required, label}
+    const dict: Partial<{
+      [fieldName in ProjectMetadataFieldKey]: EnvStoreFieldItem;
+    }> = {};
+    for (const field of this.project_metadata_fields) {
+      dict[field.name as keyof typeof dict] = field;
     }
-    return false;
+    return dict;
+  }
+
+  public getUserMetadataFieldsAsSimpleDict() {
+    // dict[name] => {name, required, label}
+    const dict: {[fieldName: string]: EnvStoreFieldItem} = {};
+    for (const field of this.user_metadata_fields) {
+      dict[field.name] = field;
+    }
+    return dict;
   }
 }
 
@@ -107,10 +152,13 @@ class EnvStore {
     this.data.submission_placeholder = response.submission_placeholder;
     this.data.mfa_localized_help_text = response.mfa_localized_help_text;
     this.data.mfa_enabled = response.mfa_enabled;
+    this.data.mfa_per_user_availability = response.mfa_per_user_availability;
+    this.data.mfa_has_availability_list = response.mfa_has_availability_list;
     this.data.mfa_code_length = response.mfa_code_length;
     this.data.stripe_public_key = response.stripe_public_key;
-    this.data.stripe_pricing_table_id = response.stripe_pricing_table_id;
     this.data.social_apps = response.social_apps;
+    this.data.free_tier_thresholds = response.free_tier_thresholds;
+    this.data.free_tier_display = response.free_tier_display;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs);
@@ -126,6 +174,10 @@ class EnvStore {
     }
 
     this.data.asr_mt_features_enabled = response.asr_mt_features_enabled;
+
+    this.data.enable_custom_password_guidance_text = response.enable_custom_password_guidance_text;
+    this.data.custom_password_localized_help_text = response.custom_password_localized_help_text;
+    this.data.enable_password_entropy_meter = response.enable_password_entropy_meter;
 
     this.isReady = true;
   }

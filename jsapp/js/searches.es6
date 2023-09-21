@@ -5,7 +5,8 @@
  * context everywhere.
  */
 
-import _ from 'underscore';
+import values from 'lodash.values';
+import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
 import SparkMD5 from 'spark-md5';
 
@@ -139,7 +140,7 @@ function SearchContext(opts={}) {
       if (typeof assetOrUid === 'object') {
         asset = assetOrUid;
       } else {
-        asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        asset = stores.allAssets.byUid[assetOrUid];
       }
       // non-owner self permission removal only gives an assetUid string, not
       // an object; for consistency we make it an object here
@@ -257,7 +258,7 @@ function SearchContext(opts={}) {
       if ('parentName' in searchParams) {
         delete searchParams.parentName;
       }
-      paramGroups = paramGroups.concat(_.values(searchParams));
+      paramGroups = paramGroups.concat(values(searchParams));
       if (paramGroups.length > 1) {
         queryData.q = paramGroups.map(function(s){
           return `(${s})`;
@@ -272,13 +273,13 @@ function SearchContext(opts={}) {
   const splitResultsToCategorized = function (results) {
     return {
       Deployed: results.filter((asset) => {
-        return asset.has_deployment && asset.deployment__active;
+        return asset.deployment_status === 'deployed';
       }),
       Draft: results.filter((asset) => {
-        return !asset.has_deployment;
+        return asset.deployment_status === 'draft';
       }),
       Archived: results.filter((asset) => {
-        return asset.has_deployment && !asset.deployment__active;
+        return asset.deployment_status === 'archived';
       })
     }
   };
@@ -426,7 +427,7 @@ function SearchContext(opts={}) {
     }, emptySearchState));
   });
   this.mixin = {
-    debouncedSearch: ( debounceTime ? _.debounce(search, debounceTime) : search ),
+    debouncedSearch: ( debounceTime ? debounce(search, debounceTime) : search ),
     searchValue: search,
     updateStore (vals) {
       searchStore.update(vals);
@@ -545,8 +546,17 @@ function getSearchContext(name, opts={}) {
   return contexts[name];
 }
 
+/** A temporary function for glueing things together with `BulkDeletePrompt`. */
+function forceRefreshFormsList() {
+  const formsContext = getSearchContext('forms');
+  if (formsContext?.mixin?.searchSemaphore) {
+    formsContext.mixin.searchSemaphore();
+  }
+}
+
 export const searches = {
   getSearchContext: getSearchContext,
   common: commonMethods,
   isSearchContext: isSearchContext,
+  forceRefreshFormsList: forceRefreshFormsList,
 };

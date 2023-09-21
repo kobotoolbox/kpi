@@ -10,7 +10,6 @@ import xlsxwriter
 
 from formpack.utils.kobo_locking import (
     revert_kobo_lock_structure,
-    strip_kobo_locking_profile,
 )
 
 

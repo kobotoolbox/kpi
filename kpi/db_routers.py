@@ -36,7 +36,7 @@ class DefaultDatabaseRouter:
         """
         All default models end up in this pool.
         """
-        if app_label in SHADOW_MODEL_APP_LABELS:
+        if db != 'default' or app_label in SHADOW_MODEL_APP_LABELS:
             return False
         return True
 

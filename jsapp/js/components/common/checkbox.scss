@@ -1,6 +1,7 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/_variables';
 @use 'scss/sizes';
+@use 'scss/mixins';
 
 // Note: we can't change this into a CSS Module, because some Data Table and
 // `utils.ts` code relies on `.checkbox__input` being available.
@@ -87,7 +88,7 @@
       top: calc(50% - sizes.$x5);
       left: calc(50% - sizes.$x6);
       transform: rotate(-45deg);
-      border: sizes.$x3 solid currentColor;
+      border: sizes.$x3 solid currentcolor;
       border-top: none;
       border-right: none;
       width: sizes.$x10;
@@ -102,6 +103,11 @@
       background-color: colors.$kobo-blue;
 
       &::after {opacity: 1;}
+    }
+
+    // Keyboard focus styles
+    &:focus-visible {
+      @include mixins.default-ui-focus;
     }
   }
 }
