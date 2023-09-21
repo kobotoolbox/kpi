@@ -65,23 +65,7 @@ class MiniAudioPlayer extends React.Component<
   }
 
   componentDidMount() {
-    // NOTE: 'metadata' causes an immediate download of part of the file (to get
-    // the metadata), usually requires around 30-50KB, but it may vary. Some
-    // browser may simply download whole file.
-
-    // Set up listeners for audio component.
-
-    // We know that audioRef will not be null when these run.
-    /* eslint-disable @typescript-eslint/no-non-null-assertion */
-    this.audioRef.current!.addEventListener(
-      'loadedmetadata',
-      this.onAudioLoadedBound
-    );
-    this.audioRef.current!.addEventListener('error', this.onAudioErrorBound);
-    this.audioRef.current!.addEventListener(
-      'timeupdate',
-      this.onAudioTimeUpdatedBound
-    );
+    // Set up listener for custom event
     document.addEventListener(
       PLAYER_STARTED_EVENT,
       this.onAnyPlayerStartedBound
@@ -89,18 +73,13 @@ class MiniAudioPlayer extends React.Component<
   }
 
   componentWillUnmount() {
+    // We know that audioRef will be ready each time we use audioRef.current
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    // (But you may wish to re-enable this rule while working on this file.)
+
     // Pausing makes it subject to garbage collection.
     this.audioRef.current!.pause();
 
-    this.audioRef.current!.removeEventListener(
-      'loadedmetadata',
-      this.onAudioLoadedBound
-    );
-    this.audioRef.current!.removeEventListener('error', this.onAudioErrorBound);
-    this.audioRef.current!.removeEventListener(
-      'timeupdate',
-      this.onAudioTimeUpdatedBound
-    );
     document.removeEventListener(
       PLAYER_STARTED_EVENT,
       this.onAnyPlayerStartedBound
@@ -243,7 +222,13 @@ class MiniAudioPlayer extends React.Component<
         <audio
           ref={this.audioRef}
           src={this.props.mediaURL}
+          // NOTE: 'metadata' causes an immediate download of part of the file
+          // (to get the metadata), usually requires around 30-50KB, but it may
+          // vary. Some browser may simply download whole file.
           preload={this.props.preload ? 'metadata' : 'none'}
+          onLoadedMetadata={this.onAudioLoadedBound}
+          onTimeUpdate={this.onAudioTimeUpdatedBound}
+          onError={this.onAudioErrorBound}
         />
         {this.state.isLoading && this.renderLoading()}
         {!this.state.isLoading && this.state.isBroken && this.renderError()}
