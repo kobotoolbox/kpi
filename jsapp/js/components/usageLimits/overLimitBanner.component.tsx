@@ -26,9 +26,9 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
       })}
     >
       <Icon
-        name={props.warning || true ? 'alert' : 'warning'} // less scary icon for now
+        name={props.warning ? 'alert' : 'warning'} // less scary icon for now
         size='m'
-        color={props.warning || true ? 'amber' : 'red'} // less scary color for now
+        color={props.warning ? 'amber' : 'red'} // less scary color for now
       />
       <div className={styles.bannerContent}>
         {props.warning
@@ -71,9 +71,14 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           <>
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
               {t('upgrade your plan')}
-            </a>{' as soon as possible or ' /* tone down the language for now */}
-            <a href="https://www.kobotoolbox.org/contact/" target="_blank" className={styles.bannerLink}>
-            {'contact us'}
+            </a>
+            {' as soon as possible or ' /* tone down the language for now */}
+            <a
+              href='https://www.kobotoolbox.org/contact/'
+              target='_blank'
+              className={styles.bannerLink}
+            >
+              {'contact us'}
             </a>
             {' to speak with our team'}
             {!props.usagePage && (
