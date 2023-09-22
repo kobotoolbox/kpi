@@ -20,16 +20,8 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   }
 
   return (
-    <div
-      className={cx(styles.limitBannerContainer, {
-        [styles.warningBanner]: props.warning,
-      })}
-    >
-      <Icon
-        name={props.warning ? 'alert' : 'warning'}
-        size='m'
-        color={props.warning ? 'amber' : 'red'}
-      />
+    <div className={cx(styles.limitBannerContainer, styles.warningBanner)}>
+      <Icon name={'alert'} size='m' color={'amber'} />
       <div className={styles.bannerContent}>
         {props.warning
           ? t('You are approaching your')

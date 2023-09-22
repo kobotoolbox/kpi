@@ -81,7 +81,9 @@ function OverLimitModal(props: OverLimitModalProps) {
               </a>
               {'.'}
             </div>
-            <p className={cx(limitBannerContainer, styles.consequences)}>
+            {
+              // removed to make the message less scary
+              /* <p className={cx(limitBannerContainer, styles.consequences)}>
               <Icon
                 name='warning'
                 size='m'
@@ -93,7 +95,8 @@ function OverLimitModal(props: OverLimitModalProps) {
                   'Users who have exceeded their submission or storage limits may be temporarily blocked from collecting data. Repeatedly exceeding usage limits may result in account suspension.'
                 )}
               </span>
-            </p>
+            </p> */
+            }
           </div>
         </KoboModalContent>
 
