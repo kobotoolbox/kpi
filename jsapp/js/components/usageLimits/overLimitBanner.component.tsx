@@ -19,9 +19,6 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     return null;
   }
 
-  // disable all banners for now
-  return <></>;
-
   return (
     <div
       className={cx(styles.limitBannerContainer, {

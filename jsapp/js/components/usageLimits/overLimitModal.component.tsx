@@ -38,9 +38,6 @@ function OverLimitModal(props: OverLimitModalProps) {
     setShow(props.show);
   }, [props.show]);
 
-  // disable modal entirely for now
-  return <></>;
-
   return (
     <div>
       <KoboModal isOpen={show} onRequestClose={toggleModal} size='medium'>
