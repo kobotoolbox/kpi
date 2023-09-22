@@ -22,13 +22,13 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   return (
     <div
       className={cx(styles.limitBannerContainer, {
-        [styles.warningBanner]: props.warning,
+        [styles.warningBanner]: /* props.warning */ true, // red is too scary for now
       })}
     >
       <Icon
-        name={props.warning ? 'alert' : 'warning'}
+        name={props.warning || true ? 'alert' : 'warning'} // less scary icon for now
         size='m'
-        color={props.warning ? 'amber' : 'red'}
+        color={props.warning || true ? 'amber' : 'red'} // less scary color for now
       />
       <div className={styles.bannerContent}>
         {props.warning
@@ -71,8 +71,11 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           <>
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
               {t('upgrade your plan')}
-            </a>{' '}
-            {t('to continue collecting data')}
+            </a>{' as soon as possible or ' /* tone down the language for now */}
+            <a href="https://www.kobotoolbox.org/contact/" target="_blank" className={styles.bannerLink}>
+            {'contact us'}
+            </a>
+            {' to speak with our team'}
             {!props.usagePage && (
               <>
                 {'. '}
@@ -103,7 +106,8 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
       {(!props.warning || props.usagePage) && (
         <Button
           type={'frame'}
-          color={'dark-red'}
+          /* color={'dark-red'} Perhaps should change permanently? */
+          color={'dark-blue'}
           endIcon='arrow-right'
           size='s'
           label={t('Upgrade now')}
