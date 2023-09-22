@@ -38,9 +38,6 @@ function OverLimitModal(props: OverLimitModalProps) {
     setShow(props.show);
   }, [props.show]);
 
-  // disable modal entirely for now
-  return <></>;
-
   return (
     <div>
       <KoboModal isOpen={show} onRequestClose={toggleModal} size='medium'>
@@ -71,8 +68,12 @@ function OverLimitModal(props: OverLimitModalProps) {
                 {t('upgrade your plan')}
               </a>{' '}
               {'as soon as possible or ' /* tone down the language for now */}
-              <a href="https://www.kobotoolbox.org/contact/" target="_blank" className={styles.link}>
-              {'contact us'}
+              <a
+                href='https://www.kobotoolbox.org/contact/'
+                target='_blank'
+                className={styles.link}
+              >
+                {'contact us'}
               </a>
               {' to speak with our team. You can '}
               <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.link}>
@@ -80,8 +81,9 @@ function OverLimitModal(props: OverLimitModalProps) {
               </a>
               {'.'}
             </div>
-            {/* remove consequences for now; too scary
-            <p className={cx(limitBannerContainer, styles.consequences)}>
+            {
+              // removed to make the message less scary
+              /* <p className={cx(limitBannerContainer, styles.consequences)}>
               <Icon
                 name='warning'
                 size='m'
@@ -93,8 +95,8 @@ function OverLimitModal(props: OverLimitModalProps) {
                   'Users who have exceeded their submission or storage limits may be temporarily blocked from collecting data. Repeatedly exceeding usage limits may result in account suspension.'
                 )}
               </span>
-            </p>
-            */}
+            </p> */
+            }
           </div>
         </KoboModalContent>
 
