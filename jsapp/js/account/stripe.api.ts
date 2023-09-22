@@ -149,18 +149,15 @@ export async function getAccountLimits() {
     }
   }
 
+  // initialize to unlimited
   const limits: AccountLimit = {
     submission_limit: 'unlimited',
     nlp_seconds_limit: 'unlimited',
     nlp_character_limit: 'unlimited',
     storage_bytes_limit: 'unlimited',
   };
-  for (const [key, value] of Object.entries(metadata)) {
-    if (Object.keys(limits).includes(key)) {
-      limits[key as keyof AccountLimit] =
-        value === 'unlimited' ? value : parseInt(value);
-    }
-  }
+
+  // overwrite unlimited with whatever free tier limits exist
   await when(() => envStore.isReady);
   const thresholds = envStore.data.free_tier_thresholds;
   thresholds.storage
@@ -173,5 +170,15 @@ export async function getAccountLimits() {
   thresholds.transcription_minutes
     ? (limits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60)
     : null;
+
+
+  // give the final say to any limits from the user's subscription
+  for (const [key, value] of Object.entries(metadata)) {
+    if (Object.keys(limits).includes(key)) {
+      limits[key as keyof AccountLimit] =
+        value === 'unlimited' ? value : parseInt(value);
+    }
+  }
+
   return limits;
 }
