@@ -522,7 +522,10 @@ export function injectSupplementalRowsIntoListOfRows(
   const additionalFields = asset.analysis_form_json?.additional_fields || [];
   const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {};
   additionalFields.forEach((field: AnalysisFormJsonField) => {
-    // We don't want to display notes in the UI, so we omit it here:
+    // Note questions make sense only in the context of writing responses to
+    // Qualitative Analysis questions. They bear no data, so there is no point
+    // displaying them outside of Single Processing route. As this function is
+    // part of Data Table and Data Downloads, we need to hide the notes.
     if (field.type === QUAL_NOTE_TYPE) {
       return;
     }

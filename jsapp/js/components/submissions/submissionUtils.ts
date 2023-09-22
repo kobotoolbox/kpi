@@ -117,7 +117,10 @@ function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
   const sortedBySource: {[key: string]: string[]} = {};
 
   additionalFields.forEach((field: AnalysisFormJsonField) => {
-    // We don't want to display notes in the UI, so we omit it here:
+    // Note questions make sense only in the context of writing responses to
+    // Qualitative Analysis questions. They bear no data, so there is no point
+    // displaying them outside of Single Processing route. As this function is
+    // part of Single Submission modal, we need to hide the notes.
     if (field.type === QUAL_NOTE_TYPE) {
       return;
     }
