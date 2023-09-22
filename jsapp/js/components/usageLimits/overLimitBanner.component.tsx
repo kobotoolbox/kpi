@@ -22,13 +22,13 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   return (
     <div
       className={cx(styles.limitBannerContainer, {
-        [styles.warningBanner]: /* props.warning */ true, // red is too scary for now
+        [styles.warningBanner]: props.warning,
       })}
     >
       <Icon
-        name={props.warning ? 'alert' : 'warning'} // less scary icon for now
+        name={props.warning ? 'alert' : 'warning'}
         size='m'
-        color={props.warning ? 'amber' : 'red'} // less scary color for now
+        color={props.warning ? 'amber' : 'red'}
       />
       <div className={styles.bannerContent}>
         {props.warning
@@ -111,7 +111,6 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
       {(!props.warning || props.usagePage) && (
         <Button
           type={'frame'}
-          /* color={'dark-red'} Perhaps should change permanently? */
           color={'dark-blue'}
           endIcon='arrow-right'
           size='s'
