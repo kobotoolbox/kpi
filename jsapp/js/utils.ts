@@ -120,9 +120,7 @@ export function handleApiFail(response: FailResponse) {
 
   notify.error(message);
 
-  if (window.Raven) {
-    window.Raven.captureMessage(message);
-  }
+  window.Raven?.captureMessage(message);
 }
 
 /**

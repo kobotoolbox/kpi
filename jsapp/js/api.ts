@@ -45,14 +45,12 @@ const fetchData = async <T>(
   options?: FetchDataOptions
 ) => {
   // Prepare options
-  let notifyAboutError = true;
-  if (typeof options?.notifyAboutError === 'boolean') {
-    notifyAboutError = options.notifyAboutError;
-  }
-  let prependRootUrl = true;
-  if (typeof options?.prependRootUrl === 'boolean') {
-    prependRootUrl = options.prependRootUrl;
-  }
+  const defaults = {notifyAboutError: true, prependRootUrl: true};
+  const {notifyAboutError, prependRootUrl} = Object.assign(
+    {},
+    defaults,
+    options
+  );
 
   const headers: {[key: string]: string} = {
     Accept: JSON_HEADER,
@@ -139,11 +137,7 @@ export const fetchPostUrl = async <T>(
   data: Json,
   options?: FetchDataOptions
 ) => {
-  if (!options) {
-    options = {};
-  }
-  options.prependRootUrl = false;
-
+  options = Object.assign({}, options, {prependRootUrl: false});
   return fetchData<T>(url, 'POST', data, options);
 };
 
