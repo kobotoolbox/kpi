@@ -38,7 +38,6 @@
 */
 import React from 'react';
 import classNames from 'classnames';
-import assign from 'object-assign';
 import PropTypes from 'prop-types';
 
 const reactCreateBemElement = function(base, el='div'){
@@ -65,7 +64,7 @@ const reactCreateBemElement = function(base, el='div'){
 
   class c extends React.Component {
     render () {
-      let props = assign({}, this.props);
+      const props = Object.assign({}, this.props);
 
       // allows modifiers to be a string, an array, or undefined (ignored)
       let modifier = [].concat(props.m)
