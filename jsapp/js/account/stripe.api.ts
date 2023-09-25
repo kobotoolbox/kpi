@@ -104,6 +104,9 @@ export async function postCustomerPortal(organizationId: string) {
 export async function getSubscriptionInterval() {
   await when(() => envStore.isReady);
   if (envStore.data.stripe_public_key) {
+    if (!subscriptionStore.isPending && !subscriptionStore.isInitialised) {
+      subscriptionStore.fetchSubscriptionInfo();
+    }
     await when(() => subscriptionStore.isInitialised);
     const subscriptionList: SubscriptionInfo[] =
       subscriptionStore.subscriptionResponse;
@@ -124,11 +127,13 @@ export async function getAccountLimits() {
     ACTIVE_STRIPE_STATUSES.includes(subscription.status)
   );
   let metadata;
+  let hasFreeTier = false;
   if (activeSubscriptions.length) {
-    // get limit data from the user's subscription
-    metadata = activeSubscriptions[0].items[0].price.metadata;
+    // get metadata from the user's subscription
+    metadata = activeSubscriptions[0].items[0].price.product.metadata;
   } else {
     // the user has no subscription, so get limits from the free monthly price
+    hasFreeTier = true;
     try {
       const products = await getProducts();
       const freeProduct = products.results.filter((product) =>
@@ -145,29 +150,32 @@ export async function getAccountLimits() {
       metadata = {};
     }
   }
+
+  // initialize to unlimited
   const limits: AccountLimit = {
     submission_limit: 'unlimited',
     nlp_seconds_limit: 'unlimited',
     nlp_character_limit: 'unlimited',
     storage_bytes_limit: 'unlimited',
   };
+
+  // get the limits from the metadata
   for (const [key, value] of Object.entries(metadata)) {
     if (Object.keys(limits).includes(key)) {
       limits[key as keyof AccountLimit] =
         value === 'unlimited' ? value : parseInt(value);
     }
   }
-  await when(() => envStore.isReady);
-  const thresholds = envStore.data.free_tier_thresholds;
-  thresholds.storage
-    ? (limits['storage_bytes_limit'] = thresholds.storage)
-    : null;
-  thresholds.data ? (limits['submission_limit'] = thresholds.data) : null;
-  thresholds.translation_chars
-    ? (limits['nlp_character_limit'] = thresholds.translation_chars)
-    : null;
-  thresholds.transcription_minutes
-    ? (limits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60)
-    : null;
+
+  // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
+  if (hasFreeTier) {
+    await when(() => envStore.isReady);
+    const thresholds = envStore.data.free_tier_thresholds;
+    thresholds.storage && (limits['storage_bytes_limit'] = thresholds.storage);
+    thresholds.data && (limits['submission_limit'] = thresholds.data);
+    thresholds.translation_chars && (limits['nlp_character_limit'] = thresholds.translation_chars);
+    thresholds.transcription_minutes && (limits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60);
+  }
+
   return limits;
 }
