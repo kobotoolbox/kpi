@@ -92,6 +92,7 @@ export async function fetchProducts() {
 
 class SubscriptionStore {
   public subscriptionResponse: SubscriptionInfo[] = [];
+  public addOnsResponse: SubscriptionInfo[] = [];
   public subscribedProduct: BaseProduct | null = null;
   public productsResponse: Product[] | null = null;
   public isPending = false;
@@ -121,7 +122,14 @@ class SubscriptionStore {
   private onFetchSubscriptionInfoDone(
     response: PaginatedResponse<SubscriptionInfo>
   ) {
-    this.subscriptionResponse = response.results;
+    // get any plan subscriptions for the user
+    this.subscriptionResponse = response.results.filter(
+      (sub) => sub.items[0]?.price.product.metadata?.product_type == 'plan'
+    );
+    // get any recurring add-on subscriptions for the user
+    this.addOnsResponse = response.results.filter(
+      (sub) => sub.items[0]?.price.product.metadata?.product_type == 'addon'
+    );
     this.subscribedProduct = response.results[0]?.plan?.product || null;
     this.isPending = false;
     this.isInitialised = true;
