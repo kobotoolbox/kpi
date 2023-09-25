@@ -120,6 +120,38 @@ export async function getSubscriptionInterval() {
   return 'month';
 }
 
+const defaultLimits: AccountLimit = Object.freeze({
+  submission_limit: 'unlimited',
+  nlp_seconds_limit: 'unlimited',
+  nlp_character_limit: 'unlimited',
+  storage_bytes_limit: 'unlimited',
+});
+
+function getLimitsForMetadata(
+  metadata: {[key: string]: string},
+  limitsToCompare: false | AccountLimit = false
+) {
+  const limits: Partial<AccountLimit> = {};
+  for (const [key, value] of Object.entries(metadata)) {
+    // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
+    if (limitsToCompare) {
+      if (
+        !limitsToCompare?.[key as keyof AccountLimit] ||
+        (value !== 'unlimited' &&
+          value <= limitsToCompare[key as keyof AccountLimit])
+      ) {
+        continue;
+      }
+    }
+    // only use metadata needed for limit calculations
+    if (key in defaultLimits) {
+      limits[key as keyof AccountLimit] =
+        value === 'unlimited' ? value : parseInt(value);
+    }
+  }
+  return limits;
+}
+
 export async function getAccountLimits() {
   await when(() => subscriptionStore.isInitialised);
   const subscriptions = [...subscriptionStore.subscriptionResponse];
@@ -129,8 +161,11 @@ export async function getAccountLimits() {
   let metadata;
   let hasFreeTier = false;
   if (activeSubscriptions.length) {
-    // get metadata from the user's subscription
-    metadata = activeSubscriptions[0].items[0].price.product.metadata;
+    // get metadata from the user's subscription (prioritize price metadata over product metadata)
+    metadata = {
+      ...activeSubscriptions[0].items[0].price.product.metadata,
+      ...activeSubscriptions[0].items[0].price.metadata,
+    };
   } else {
     // the user has no subscription, so get limits from the free monthly price
     hasFreeTier = true;
@@ -152,29 +187,36 @@ export async function getAccountLimits() {
   }
 
   // initialize to unlimited
-  const limits: AccountLimit = {
-    submission_limit: 'unlimited',
-    nlp_seconds_limit: 'unlimited',
-    nlp_character_limit: 'unlimited',
-    storage_bytes_limit: 'unlimited',
-  };
+  let limits: AccountLimit = {...defaultLimits};
 
-  // get the limits from the metadata
-  for (const [key, value] of Object.entries(metadata)) {
-    if (Object.keys(limits).includes(key)) {
-      limits[key as keyof AccountLimit] =
-        value === 'unlimited' ? value : parseInt(value);
-    }
-  }
+  // apply any limits from the metadata
+  limits = {...limits, ...getLimitsForMetadata(metadata)};
 
-  // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
   if (hasFreeTier) {
+    // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
     await when(() => envStore.isReady);
     const thresholds = envStore.data.free_tier_thresholds;
     thresholds.storage && (limits['storage_bytes_limit'] = thresholds.storage);
     thresholds.data && (limits['submission_limit'] = thresholds.data);
-    thresholds.translation_chars && (limits['nlp_character_limit'] = thresholds.translation_chars);
-    thresholds.transcription_minutes && (limits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60);
+    thresholds.translation_chars &&
+      (limits['nlp_character_limit'] = thresholds.translation_chars);
+    thresholds.transcription_minutes &&
+      (limits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60);
+
+    // if the user has active recurring add-ons, use those as the final say on their limits
+    let activeAddOns = [...subscriptionStore.addOnsResponse];
+    activeAddOns = activeAddOns.filter((subscription) =>
+      ACTIVE_STRIPE_STATUSES.includes(subscription.status)
+    );
+    if (activeAddOns.length) {
+      activeAddOns.forEach((addOn) => {
+        metadata = {
+          ...addOn.items[0].price.product.metadata,
+          ...addOn.items[0].price.metadata,
+        };
+        limits = {...limits, ...getLimitsForMetadata(metadata, limits)};
+      });
+    }
   }
 
   return limits;
