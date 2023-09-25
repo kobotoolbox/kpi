@@ -115,7 +115,13 @@ export function handleApiFail(response: FailResponse) {
 
   if (!message) {
     message = t('An error occurred');
-    message += ` — ${response.status} ${response.statusText}`;
+    if (response.status || response.statusText) {
+      message += ` — ${response.status} ${response.statusText}`;
+    } else if (!window.navigator.onLine) {
+      // another general case — the original fetch response.message might have
+      // something more useful to say.
+      message += ' — ' + t('Your connection is offline');
+    }
   }
 
   notify.error(message);
