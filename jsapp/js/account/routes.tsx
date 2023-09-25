@@ -16,7 +16,7 @@ const AccountSettings = React.lazy(
   () => import(/* webpackPrefetch: true */ './accountSettingsRoute')
 );
 const DataStorage = React.lazy(
-  () => import(/* webpackPrefetch: true */ './usage.component')
+  () => import(/* webpackPrefetch: true */ './usageContent.component')
 );
 
 export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {

@@ -1,0 +1,72 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  margin: sizes.$x32;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  width: 100%;
+  height: sizes.$x48;
+  border-bottom: 1px solid colors.$kobo-gray-85;
+}
+
+.tab {
+  cursor: pointer;
+  color: colors.$kobo-gray-55;
+  position: relative;
+  font-size: sizes.$x14;
+  font-weight: 600;
+  line-height: sizes.$x36;
+  padding: 0 sizes.$x24;
+  border-radius: sizes.$x6 sizes.$x6 0 0;
+
+  &:hover {
+    color: colors.$kobo-gray-40;
+  }
+
+  &:active:not(.activeTab) {
+    transform: translateY(#{sizes.$x1});
+  }
+
+  // We need this for covering the border radius of the white box unkerneath
+  // the tabbed menu - for the first element.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0%;
+    top: 100%;
+    width: 100%;
+    height: sizes.$x6;
+  }
+
+  &.activeTab {
+    color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-white;
+    border: 1px solid colors.$kobo-gray-85;
+    line-height: sizes.$x36;
+
+    &::after {
+      background-color: inherit;
+    }
+  }
+
+  &.disabledTab {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+.body {
+  border-radius: sizes.$x6;
+  flex: 1;
+  overflow-y: auto;
+}

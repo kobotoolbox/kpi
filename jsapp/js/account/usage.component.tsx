@@ -116,7 +116,6 @@ export default function Usage() {
 
   return (
     <div className={styles.root}>
-      <h2>{t('Your account total use')}</h2>
       <UsageContext.Provider value={usage}>
         <LimitNotifications usagePage />
       </UsageContext.Provider>
