@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from hub.utils.i18n import I18nUtils
+from kobo.apps.organizations.models import OrganizationOwner
 from kobo.static_lists import COUNTRIES
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
@@ -174,17 +175,19 @@ class EnvironmentView(APIView):
         )
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
-        if request.user.id and request.user.date_joined.date() > constance.config.FREE_TIER_CUTOFF_DATE:
-            data['free_tier_thresholds'] = {
-                'storage': None,
-                'data': None,
-                'transcription_minutes': None,
-                'translation_chars': None,
-            }
-            data['free_tier_display'] = {
-                'name': None,
-                'feature_list': [],
-            }
+        if request.user.id and request.user.organizations_organization:
+            owner = OrganizationOwner.objects.filter(organization__organization_users=request.user.id).first()
+            if owner and owner.organization_user.user.date_joined.date() > constance.config.FREE_TIER_CUTOFF_DATE:
+                data['free_tier_thresholds'] = {
+                    'storage': None,
+                    'data': None,
+                    'transcription_minutes': None,
+                    'translation_chars': None,
+                }
+                data['free_tier_display'] = {
+                    'name': None,
+                    'feature_list': [],
+                }
 
         return data
 
