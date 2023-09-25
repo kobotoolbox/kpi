@@ -66,6 +66,7 @@ export function convertQuestionsFromInternalToSchema(
       uuid: question.uuid,
       type: question.type,
       labels: question.labels,
+      options: question.options,
       choices: question.additionalFields?.choices,
       scope: 'by_question#survey',
       qpath: qpath,
@@ -86,6 +87,7 @@ export function convertQuestionsFromSchemaToInternal(
       uuid: question.uuid,
       type: question.type,
       labels: question.labels,
+      options: question.options,
       response: '',
     };
     if (question.choices) {

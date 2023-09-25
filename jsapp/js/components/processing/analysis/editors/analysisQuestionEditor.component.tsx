@@ -52,9 +52,12 @@ export default function AnalysisQuestionEditor(
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [additionalFieldsErrorMessage, setAdditionalFieldsErrorMessage] =
     useState<string | undefined>();
+  // We need to clone `additionalFields` here to avoid mutating it
   const [additionalFields, setAdditionalFields] = useState<
     AdditionalFields | undefined
-  >(question.additionalFields ? question.additionalFields : undefined);
+  >(
+    question.additionalFields ? clonedeep(question.additionalFields) : undefined
+  );
 
   function onTextBoxChange(newLabel: string) {
     setLabel(newLabel);
@@ -153,45 +156,54 @@ export default function AnalysisQuestionEditor(
     });
   }
 
+  function onSubmit(evt: React.FormEvent<HTMLFormElement>) {
+    evt.preventDefault();
+  }
+
   return (
     <>
       <header className={styles.header}>
-        <div className={commonStyles.headerIcon}>
-          <Icon name={qaDefinition.icon} size='xl' />
-        </div>
+        <form className={styles.headerForm} onSubmit={onSubmit}>
+          <div className={commonStyles.headerIcon}>
+            <Icon name={qaDefinition.icon} size='xl' />
+          </div>
 
-        <TextBox
-          value={label}
-          onChange={onTextBoxChange}
-          errors={errorMessage}
-          placeholder={t('Type question')}
-          renderFocused
-        />
+          <TextBox
+            value={label}
+            onChange={onTextBoxChange}
+            errors={errorMessage}
+            placeholder={t('Type question')}
+            customClassNames={[styles.labelInput]}
+            renderFocused
+            size='m'
+          />
 
-        <Button
-          type='frame'
-          color='storm'
-          size='m'
-          label={t('Save')}
-          onClick={saveQuestion}
-          isPending={analysisQuestions.state.isPending}
-        />
+          <Button
+            type='frame'
+            color='storm'
+            size='m'
+            label={t('Save')}
+            onClick={saveQuestion}
+            isPending={analysisQuestions.state.isPending}
+            isSubmit
+          />
 
-        <Button
-          type='bare'
-          color='storm'
-          size='m'
-          startIcon='close'
-          onClick={cancelEditing}
-          isDisabled={analysisQuestions.state.isPending}
-        />
+          <Button
+            type='bare'
+            color='storm'
+            size='m'
+            startIcon='close'
+            onClick={cancelEditing}
+            isDisabled={analysisQuestions.state.isPending}
+          />
+        </form>
       </header>
 
       {qaDefinition.additionalFieldNames && (
         <section className={commonStyles.content}>
           {question.type === 'qual_auto_keyword_count' && (
             <KeywordSearchFieldsEditor
-              uuid={question.uuid}
+              questionUuid={question.uuid}
               fields={additionalFields || {source: '', keywords: []}}
               onFieldsChange={onAdditionalFieldsChange}
             />
@@ -200,7 +212,7 @@ export default function AnalysisQuestionEditor(
           {(question.type === 'qual_select_one' ||
             question.type === 'qual_select_multiple') && (
             <SelectXFieldsEditor
-              uuid={question.uuid}
+              questionUuid={question.uuid}
               fields={additionalFields || {choices: []}}
               onFieldsChange={onAdditionalFieldsChange}
             />

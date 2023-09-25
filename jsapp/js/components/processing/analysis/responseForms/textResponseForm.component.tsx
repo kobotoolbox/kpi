@@ -64,6 +64,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
   }
 
   function onInputChange(newResponse: string) {
+    analysisQuestions?.dispatch({type: 'hasUnsavedWork'});
     setResponse(newResponse);
     saveResponseDelayedAndQuietly();
   }
@@ -79,7 +80,6 @@ export default function TextResponseForm(props: TextResponseFormProps) {
           onChange={onInputChange}
           placeholder={t('Type your answer')}
           onBlur={saveResponse}
-          customModifiers='on-white'
         />
       </section>
     </>

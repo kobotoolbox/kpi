@@ -81,4 +81,8 @@ export type AnalysisQuestionsAction =
   | {
       type: 'initialiseSearchCompleted';
       payload: {questions: AnalysisQuestionInternal[]};
+    }
+  // There exist changes in frontend that differes from backend.
+  | {
+      type: 'hasUnsavedWork';
     };

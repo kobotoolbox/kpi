@@ -64,6 +64,7 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
   }
 
   function onInputChange(newResponse: string) {
+    analysisQuestions?.dispatch({type: 'hasUnsavedWork'});
     setResponse(newResponse);
     saveResponseDelayedAndQuietly();
   }

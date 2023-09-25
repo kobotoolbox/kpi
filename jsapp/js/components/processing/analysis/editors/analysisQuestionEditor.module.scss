@@ -4,15 +4,17 @@
 @use '../analysisVariables';
 
 .header {
-  @include mixins.centerRowFlex;
-  align-items: flex-start;
-  gap: analysisVariables.$inner-horizontal-gap;
-
   &:not(:last-child) {
     margin-bottom: analysisVariables.$inner-vertical-gap;
   }
+}
 
-  :global .text-box {
-    flex: 1;
-  }
+.headerForm {
+  @include mixins.centerRowFlex;
+  align-items: flex-start;
+  gap: analysisVariables.$inner-horizontal-gap;
+}
+
+.labelInput {
+  flex: 1;
 }

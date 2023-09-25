@@ -91,6 +91,13 @@ export default function Analysis() {
     setupQuestions();
   }, []);
 
+  useEffect(() => {
+    // The singleProcessingStore is handling navigation blocking for the whole
+    // single processing route. We need to keep it up to date whether the
+    // analysisQuestions.reducer has unsaved changes or not.
+    singleProcessingStore.setAnalysisTabHasUnsavedChanges(state.hasUnsavedWork);
+  }, [state.hasUnsavedWork]);
+
   if (!isInitialised) {
     return <LoadingSpinner hideMessage />;
   }
