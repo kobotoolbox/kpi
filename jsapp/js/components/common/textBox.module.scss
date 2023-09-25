@@ -1,0 +1,161 @@
+@use 'scss/sizes';
+@use 'scss/mixins';
+@use '~kobo-common/src/styles/colors';
+@use 'scss/_variables';
+
+// Note: this needs to override a lot of styles defined in `_kobo.bem.ui.scss`,
+// for the context of `.form-modal__item`. Plus we fight the specificity battle
+// because of too general styles of Form Builder.
+// See: https://github.com/kobotoolbox/kpi/issues/3914
+
+$input-color: colors.$kobo-gray-24;
+$wrapper-border-radius: sizes.$x6;
+
+.root {
+  width: 100%;
+
+  &.hasValue {
+    .inputWrapper {
+      border-color: colors.$kobo-gray-85;
+    }
+  }
+
+  &.isDisabled {
+    .inputWrapper {
+      color: colors.$kobo-gray-65;
+      background-color: colors.$kobo-gray-98;
+      border-color: colors.$kobo-gray-65;
+    }
+
+    .startIcon,
+    .endIcon {
+      color: colors.$kobo-gray-65;
+    }
+  }
+
+  &.hasError {
+    .inputWrapper {
+      border-color: colors.$kobo-red;
+    }
+
+    .input {
+      // Don't type red if there is an error
+      color: $input-color;
+    }
+
+    .startIcon,
+    .endIcon {
+      color: colors.$kobo-red;
+    }
+  }
+}
+
+.label {
+  color: colors.$kobo-gray-24;
+  font-size: sizes.$x12;
+  line-height: 1.6;
+  margin-bottom: sizes.$x3;
+}
+
+.requiredMark {
+  // Smaller than the design, because there is also a single whitespace
+  // character between the label and this mark
+  margin-left: sizes.$x2;
+  color: colors.$kobo-red;
+  font-size: sizes.$x14;
+  // Magic number to align it similarly to Figma designs
+  line-height: sizes.$x16;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.inputWrapper {
+  display: flex;
+  flex-direction: row;
+  align-content: flex-start;
+  color: $input-color;
+  background-color: colors.$kobo-white;
+  border: sizes.$x1 solid colors.$kobo-gray-92;
+  padding: 0; // size dictates the paddings
+  border-radius: $wrapper-border-radius;
+  cursor: text;
+
+  &:focus-within {
+    @include mixins.default-ui-focus;
+  }
+}
+
+// We need this crazy selector here to increse the specificity
+// TODO: use a normal selector in far future when we no longer have bad CSS code
+textarea[class].input.input,
+input[class].input.input {
+  font-size: sizes.$x14;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: $input-color;
+
+  // The wrapper component is handling focus styles
+  &:focus {
+    outline: none;
+  }
+
+  &:disabled {
+    color: colors.$kobo-gray-65;
+    pointer-events: none;
+
+    &::placeholder {
+      color: colors.$kobo-gray-55;
+    }
+  }
+
+  &::placeholder {
+    color: colors.$kobo-gray-55;
+    opacity: 1;
+  }
+}
+
+.startIcon,
+.endIcon {
+  color: colors.$kobo-gray-40;
+}
+
+.startIcon {
+  margin-right: sizes.$x8;
+}
+
+.endIcon,
+.errorIcon {
+  margin-left: sizes.$x8;
+}
+
+.errorIcon {
+  color: colors.$kobo-red;
+}
+
+.errorMessages {
+  font-size: sizes.$x12;
+  line-height: 1.6;
+  font-weight: 400;
+  font-style: normal;
+  color: colors.$kobo-red;
+  margin-top: sizes.$x6;
+}
+
+// Note: TextBox is built differently from Button (for many reasons) so we can't
+// connect their styles via some shared bulletproof variables. Just ensure that
+// both components in the same size have the same height :)
+
+.sizeL .inputWrapper {
+  padding: sizes.$x10 sizes.$x16;
+}
+
+.sizeM .inputWrapper {
+  padding: sizes.$x5 sizes.$x12;
+}
+
+.sizeS .inputWrapper {
+  padding: sizes.$x3 sizes.$x10;
+}

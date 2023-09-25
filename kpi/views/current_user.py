@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import gettext as t
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.response import Response
 
 from kobo.apps.trash_bin.utils import move_to_trash
@@ -92,6 +92,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.none()
     serializer_class = CurrentUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         return self.request.user

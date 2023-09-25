@@ -1,11 +1,11 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
+import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
 import InlineMessage from 'js/components/common/inlineMessage';
 import {actions} from 'js/actions';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import envStore from 'js/envStore';
 import {
@@ -20,9 +20,12 @@ import {
 } from 'js/utils';
 import './formMedia.scss';
 
-const MAX_ITEM_LENGTH = 50;
 const DEFAULT_MEDIA_DESCRIPTION = 'default';
 const MEDIA_SUPPORT_URL = 'media.html';
+
+bem.FormMediaUploadUrl = makeBem(null, 'form-media-upload-url');
+bem.FormMediaUploadUrl__label = makeBem(bem.FormMediaUploadUrl, 'label', 'label');
+bem.FormMediaUploadUrl__form = makeBem(bem.FormMediaUploadUrl, 'form');
 
 /**
  * @prop {object} asset
@@ -165,29 +168,6 @@ class FormMedia extends React.Component {
    * rendering
    */
 
-  renderButton() {
-    const buttonClassNames = [
-      'form-builder-header__button',
-      'form-builder-header__button--save',
-    ];
-
-    if (this.state.isUploadURLPending) {
-      buttonClassNames.push('form-builder-header__button--savepending');
-    }
-
-    return (
-      <button
-        className={buttonClassNames.join(' ')}
-        onClick={this.onSubmitURL}
-        disabled={!this.state.inputURL}
-      >
-        {/* Icon gets populated via CSS like formbuilder, see: kpi#3133 */}
-        <i />
-        {t('Add')}
-      </button>
-    );
-  }
-
   renderFileName(item) {
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
     var fileName = item.metadata.filename;
@@ -295,7 +275,15 @@ class FormMedia extends React.Component {
                   onChange={this.onInputURLChange}
                 />
 
-                {this.renderButton()}
+                <Button
+                  type='frame'
+                  color='blue'
+                  size='l'
+                  label={t('Add')}
+                  onClick={this.onSubmitURL}
+                  isDisabled={!this.state.inputURL}
+                  isPending={this.state.isUploadURLPending}
+                />
               </bem.FormMediaUploadUrl__form>
             </bem.FormMediaUploadUrl>
           </bem.FormMedia__upload>

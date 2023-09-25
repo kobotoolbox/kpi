@@ -14,7 +14,6 @@ from djstripe.models import (
 from djstripe.settings import djstripe_settings
 from organizations.utils import create_organization
 from rest_framework import mixins, status, viewsets
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -27,6 +26,7 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
+from kpi.permissions import IsAuthenticated
 
 
 # Lists the one-time purchases made by the organization that the logged-in user owns

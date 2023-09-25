@@ -23,6 +23,7 @@
 </head>
 <body>
 <div class="registration__bg">
+{% block language_selector %}{% endblock %}
 {% block content %}{% endblock %}
 {% if livereload_address %}
 <script src="{{livereload_address}}"></script>

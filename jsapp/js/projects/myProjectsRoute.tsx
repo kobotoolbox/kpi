@@ -26,25 +26,11 @@ import Dropzone from 'react-dropzone';
 import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
-import LimitModal from '../components/usageLimits/overLimitModal.component';
-import LimitBanner from '../components/usageLimits/overLimitBanner.component';
-import {Cookies} from 'react-cookie';
-import envStore from 'js/envStore';
-import {
-  getAllExceedingLimits,
-  getPlanInterval,
-} from 'js/components/usageLimits/usageCalculations';
-
-const cookies = new Cookies();
+import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  const limits = getAllExceedingLimits();
-  const interval = getPlanInterval();
 
   useEffect(() => {
     customView.setUp(
@@ -53,25 +39,6 @@ function MyProjectsRoute() {
       HOME_DEFAULT_VISIBLE_FIELDS
     );
   }, []);
-
-  useEffect(() => {
-    const limitsCookie = cookies.get('kpiOverLimitsCookie');
-    if (limitsCookie === undefined && limits.exceedList.length > 0) {
-      setShowModal(true);
-      const dateNow = new Date();
-      const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
-      cookies.set('kpiOverLimitsCookie', {
-        expires: expireDate,
-      });
-    }
-    if (limitsCookie && limits.exceedList.length) {
-      setDismissed(true);
-    }
-  }, [limits]);
-
-  const modalDismissed = (dismiss: boolean) => {
-    setDismissed(dismiss);
-  };
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -144,18 +111,7 @@ function MyProjectsRoute() {
             </div>
           )}
         </header>
-        {dismissed && (
-          <LimitBanner interval={interval} limits={limits.exceedList} />
-        )}
-        <LimitBanner warning interval={interval} limits={limits.warningList} />
-        {envStore.data.stripe_public_key !== null && (
-          <LimitModal
-            show={showModal}
-            limits={limits.exceedList}
-            interval={interval}
-            dismissed={(dismiss) => modalDismissed(dismiss)}
-          />
-        )}
+        <LimitNotifications useModal />
         <ProjectsTable
           assets={customView.assets}
           isLoading={!customView.isFirstLoadComplete}

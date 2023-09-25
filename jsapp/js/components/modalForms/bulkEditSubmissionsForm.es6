@@ -350,7 +350,6 @@ class BulkEditSubmissionsForm extends React.Component {
 
               <bem.SimpleTable__cell>
                 <TextBox
-                  customModifiers='on-white'
                   value={this.state.filterByName}
                   onChange={this.onFilterByNameChange}
                   placeholder={t('Type to filter')}
@@ -359,7 +358,6 @@ class BulkEditSubmissionsForm extends React.Component {
 
               <bem.SimpleTable__cell>
                 <TextBox
-                  customModifiers='on-white'
                   value={this.state.filterByValue}
                   onChange={this.onFilterByValueChange}
                   placeholder={t('Type to filter')}
@@ -552,7 +550,7 @@ class BulkEditRowForm extends React.Component {
             <h2>{this.props.question.label}</h2>
 
             <TextBox
-              customModifiers={['on-white', 'bulk-edit-response']}
+              customClassNames={['bulk-edit-response-textbox']}
               type='text-multiline'
               value={inputValue}
               onChange={this.onChange}

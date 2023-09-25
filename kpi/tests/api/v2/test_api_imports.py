@@ -18,6 +18,7 @@ from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
 
+
 class AssetImportTaskTest(BaseTestCase):
     fixtures = ['test_data']
 

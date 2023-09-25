@@ -50,11 +50,6 @@ bem.FormBuilderMessageBox = makeBem(null, 'form-builder-message-box');
 bem.FormBuilderMessageBox__toggle = makeBem(bem.FormBuilderMessageBox, 'toggle', 'button');
 bem.FormBuilderMessageBox__details = makeBem(bem.FormBuilderMessageBox, 'details', 'section');
 
-bem.FormBuilderMeta = makeBem(null, 'form-builder-meta');
-bem.FormBuilderMeta__columns = makeBem(bem.FormBuilderMeta, 'columns');
-bem.FormBuilderMeta__column = makeBem(bem.FormBuilderMeta, 'column');
-bem.FormBuilderMeta__row = makeBem(bem.FormBuilderMeta, 'row');
-
 bem.FormBuilderAside = makeBem(null, 'form-builder-aside');
 bem.FormBuilderAside__content = makeBem(bem.FormBuilderAside, 'content');
 bem.FormBuilderAside__header = makeBem(bem.FormBuilderAside, 'header', 'h2');
@@ -73,10 +68,6 @@ bem.FormMedia__upload = makeBem(bem.FormMedia, 'upload');
 bem.FormMedia__list = makeBem(bem.FormMedia, 'list');
 bem.FormMedia__label = makeBem(bem.FormMedia, 'label', 'label');
 bem.FormMedia__listItem = makeBem(bem.FormMedia, 'list-item', 'li');
-
-bem.FormMediaUploadUrl = makeBem(null, 'form-media-upload-url');
-bem.FormMediaUploadUrl__label = makeBem(bem.FormMediaUploadUrl, 'label', 'label');
-bem.FormMediaUploadUrl__form = makeBem(bem.FormMediaUploadUrl, 'form');
 
 bem.SearchInput = makeBem(null, 'search-input', 'input');
 
@@ -193,9 +184,6 @@ bem.PopoverMenu__item = makeBem(bem.PopoverMenu, 'item');
 bem.PopoverMenu__heading = makeBem(bem.PopoverMenu, 'heading');
 bem.PopoverMenu__moveTo = makeBem(bem.PopoverMenu, 'moveTo');
 
-bem.Header = makeBem(null, 'header');
-bem.Header__logo = makeBem(bem.Header, 'logo', 'span');
-
 bem.LoginBox = makeBem(null, 'login-box');
 
 bem.AccountBox = makeBem(null, 'account-box');
@@ -244,13 +232,6 @@ bem.SimpleTable__cell = makeBem(bem.SimpleTable, 'cell', 'td');
 bem.tagSelect = makeBem(null, 'tag-select');
 bem.collectionFilter = makeBem(null, 'collection-filter');
 
-bem.TextBox = makeBem(null, 'text-box', 'label');
-bem.TextBox__label = makeBem(bem.TextBox, 'label');
-bem.TextBox__labelLink = makeBem(bem.TextBox, 'label-link', 'a');
-bem.TextBox__input = makeBem(bem.TextBox, 'input', 'input');
-bem.TextBox__description = makeBem(bem.TextBox, 'description');
-bem.TextBox__error = makeBem(bem.TextBox, 'error');
-
 bem.ToggleSwitch = makeBem(null, 'toggle-switch');
 bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label');
 bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input');
@@ -267,9 +248,6 @@ bem.AssetInfoBox__cell = makeBem(bem.AssetInfoBox, 'cell');
 bem.AssetInfoBox__toggle = makeBem(bem.AssetInfoBox, 'toggle', 'button');
 
 bem.PrintOnly = makeBem(null, 'print-only');
-
-bem.GitRev = makeBem(null, 'git-rev');
-bem.GitRev__item = makeBem(bem.GitRev, 'item', 'div');
 
 bem.ProjectDownloads = makeBem(null, 'project-downloads');
 bem.ProjectDownloads__advancedView = makeBem(bem.ProjectDownloads, 'advanced-view', 'section');

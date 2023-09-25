@@ -252,10 +252,10 @@ const MFAModals = class MFAModals extends React.Component<
 
           <bem.MFAModal__p>
             <TextBox
+              customClassNames={['mfa-modals-textbox']}
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
-              customModifiers={'on-white'}
             />
           </bem.MFAModal__p>
 
@@ -375,10 +375,10 @@ const MFAModals = class MFAModals extends React.Component<
 
           <bem.MFAModal__p>
             <TextBox
+              customClassNames={['mfa-modals-textbox']}
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
-              customModifiers={'on-white'}
             />
           </bem.MFAModal__p>
 
@@ -429,10 +429,10 @@ const MFAModals = class MFAModals extends React.Component<
 
           <bem.MFAModal__p>
             <TextBox
+              customClassNames={['mfa-modals-textbox']}
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
-              customModifiers={'on-white'}
             />
           </bem.MFAModal__p>
 

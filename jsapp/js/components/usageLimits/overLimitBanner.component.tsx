@@ -10,6 +10,7 @@ interface OverLimitBannerProps {
   warning?: boolean;
   limits: string[];
   interval: string;
+  usagePage: boolean;
 }
 
 const OverLimitBanner = (props: OverLimitBannerProps) => {
@@ -31,14 +32,14 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
       />
       <div className={styles.bannerContent}>
         {props.warning
-          ? t('You are close to surpassing your')
-          : t('You have surpassed your')}{' '}
+          ? t('You are approaching your')
+          : t('You have reached your')}{' '}
         <strong>
-          {`${props.interval}ly`}{' '}
+          {props.interval === 'month' ? t('monthly') : t('yearly')}{' '}
           {props.limits.map((item, i) => (
             <span key={i}>
-              {i > 0 && ', '}
-              {i === props.limits.length - 1 && i > 0 && 'and '}
+              {i > 0 && props.limits.length > 2 && ', '}
+              {i === props.limits.length - 1 && i > 0 && t(' and ')}
               {item}
             </span>
           ))}{' '}
@@ -46,29 +47,48 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           {props.limits.length > 1 && 's'}
         </strong>
         {'. '}
+        {t('Please')}{' '}
         {props.warning && (
           <>
-            {t(
-              'Please review you current usage and consider upgrading to a plan with larger capacity if necessary. You can'
-            )}{' '}
+            {!props.usagePage && (
+              <>
+                <a
+                  href={`#${ACCOUNT_ROUTES.USAGE}`}
+                  className={styles.bannerLink}
+                >
+                  {t('review your usage')}
+                </a>{' '}
+                {t('and')}{' '}
+              </>
+            )}
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
-              {t('upgrade in the plans section')}
-            </a>
+              {t('upgrade your plan')}
+            </a>{' '}
+            {props.usagePage ? t('as soon as possible') : t('if needed')}
           </>
         )}
         {!props.warning && (
           <>
-            {t(
-              'Please upgrade to a plan with a larger capacity to continue collecting data this ##PERIOD##. You can'
-            ).replace(/##PERIOD##/g, props.interval)}{' '}
-            <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.bannerLink}>
-              {t('review your usage here')}
-            </a>
+            <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
+              {t('upgrade your plan')}
+            </a>{' '}
+            {t('to continue collecting data')}
+            {!props.usagePage && (
+              <>
+                {'. '}
+                <a
+                  href={`#${ACCOUNT_ROUTES.USAGE}`}
+                  className={styles.bannerLink}
+                >
+                  {t('Review your usage in account settings')}
+                </a>
+              </>
+            )}
           </>
         )}
         {'.'}
       </div>
-      {props.warning && (
+      {props.warning && !props.usagePage && (
         <Button
           type={'frame'}
           color={'dark-blue'}
@@ -80,9 +100,9 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           classNames={[styles.bannerBtn]}
         />
       )}
-      {!props.warning && (
+      {(!props.warning || props.usagePage) && (
         <Button
-          type={'full'}
+          type={'frame'}
           color={'dark-red'}
           endIcon='arrow-right'
           size='s'

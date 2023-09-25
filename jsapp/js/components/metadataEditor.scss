@@ -1,0 +1,49 @@
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+.form-builder-meta {
+  .form-builder-meta__columns {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .form-builder-meta__row {
+    margin-top: sizes.$x10;
+  }
+
+  .form-builder-meta__row--background-audio {
+    margin-top: sizes.$x20;
+
+    .form-builder-aside__header {
+      margin-bottom: 0;
+    }
+
+    .toggle-switch {
+      margin-top: sizes.$x10;
+    }
+
+    label {
+      font-weight: 500;
+    }
+  }
+
+  .form-builder-meta__column {
+    flex: 1;
+    margin-right: sizes.$x10;
+
+    .checkbox:not(:last-of-type) {
+      margin-bottom: sizes.$x10;
+    }
+  }
+}
+
+.form-builder-meta__label-link {
+  display: inline-block;
+  vertical-align: top;
+  margin-left: sizes.$x3;
+  line-height: 1.4;
+
+  &:hover {
+    color: colors.$kobo-dark-blue;
+  }
+}
