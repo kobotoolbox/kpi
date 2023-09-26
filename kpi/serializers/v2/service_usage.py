@@ -135,16 +135,11 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         self._get_organization_details()
 
-        asset_list = list(
-            Asset.all_objects.values_list('uid', flat=True).filter(
-                owner__in=self._user_ids,
-                date_deployed__isnull=False,
-            )
+        xforms = (
+            KobocatXForm.objects.only('bytes_sum', 'id')
+            .filter(user_id__in=self._user_ids)
+            .exclude(pending_delete=True)
         )
-
-        xforms = KobocatXForm.objects.only('bytes_sum', 'id', 'kpi_asset_uid').filter(
-            kpi_asset_uid__in=asset_list,
-        ).exclude(pending_delete=True)
 
         total_storage_bytes = xforms.aggregate(
             bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
@@ -161,15 +156,9 @@ class ServiceUsageSerializer(serializers.Serializer):
         )
 
         submission_count = (
-            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
-                'date', 'xform', 'counter'
-            )
-            .filter(
-                # get submission counters for all deployed assets OR the null xform counter
-                Q(user_id__in=self._user_ids, xform=None) |
-                Q(xform__kpi_asset_uid__in=asset_list),
-            )
-            .aggregate(
+            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
+                user_id__in=self._user_ids,
+            ).aggregate(
                 all_time=Coalesce(Sum('counter'), 0),
                 current_year=Coalesce(
                     Sum('counter', filter=current_year_filter), 0
@@ -267,8 +256,10 @@ class ServiceUsageSerializer(serializers.Serializer):
             return
 
         # If the user is in an organization, get all org users so we can query their total org usage
-        self._user_ids = User.objects.values_list('pk', flat=True).filter(
-            organizations_organization__id=organization_id
+        self._user_ids = list(
+            User.objects.values_list('pk', flat=True).filter(
+                organizations_organization__id=organization_id
+            )
         )
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
