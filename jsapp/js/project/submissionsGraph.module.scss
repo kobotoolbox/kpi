@@ -1,0 +1,29 @@
+@use 'scss/mixins';
+
+.root {
+  border: 1px solid rebeccapurple;
+}
+
+.periodSwitcher {
+  @include mixins.centerRowFlex;
+}
+
+.periodToggle {
+
+}
+
+.periodToggleActive {
+
+}
+
+.graphWrapper {}
+
+.graph {
+
+}
+
+.noChartMessage {}
+
+.statsWrapper {}
+
+.stats {}
