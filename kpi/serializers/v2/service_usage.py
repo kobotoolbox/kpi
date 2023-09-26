@@ -1,7 +1,6 @@
 from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-
 from rest_framework import serializers
 from rest_framework.fields import empty
 
@@ -129,88 +128,6 @@ class ServiceUsageSerializer(serializers.Serializer):
     def get_current_year_start(self, user):
         return self._current_year_start
 
-    def _get_per_asset_usage(self, user):
-        self._user_ids = [user.pk]
-
-        self._get_organization_details()
-
-        asset_list = list(
-            Asset.all_objects.values_list('uid', flat=True).filter(
-                owner__in=self._user_ids,
-                date_deployed__isnull=False,
-            )
-        )
-
-        xforms = KobocatXForm.objects.only('bytes_sum', 'id', 'kpi_asset_uid').filter(
-            kpi_asset_uid__in=asset_list,
-        )
-
-        total_storage_bytes = xforms.aggregate(
-            bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
-        )
-        self._total_storage_bytes = total_storage_bytes['bytes_sum'] or 0
-
-        self._current_month_start = self._get_current_month_start_date()
-        self._current_year_start = self._get_current_year_start_date()
-        current_month_filter = Q(
-            date__range=[self._current_month_start, self._now]
-        )
-        current_year_filter = Q(
-            date__range=[self._current_year_start, self._now]
-        )
-
-        submission_count = (
-            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
-                'date', 'xform', 'counter'
-            )
-            .filter(
-                # get submission counters for all deployed assets OR the null xform counter
-                Q(user_id__in=self._user_ids, xform=None) |
-                Q(xform__kpi_asset_uid__in=asset_list),
-            )
-            .aggregate(
-                all_time=Coalesce(Sum('counter'), 0),
-                current_year=Coalesce(
-                    Sum('counter', filter=current_year_filter), 0
-                ),
-                current_month=Coalesce(
-                    Sum('counter', filter=current_month_filter), 0
-                ),
-            )
-        )
-
-        for submission_key, count in submission_count.items():
-            self._total_submission_count[submission_key] = (
-                count if count is not None else 0
-            )
-
-        nlp_tracking = (
-            NLPUsageCounter.objects.only(
-                'date', 'total_asr_seconds', 'total_mt_characters'
-            )
-            .filter(
-                user_id__in=self._user_ids,
-            )
-            .aggregate(
-                asr_seconds_current_year=Coalesce(
-                    Sum('total_asr_seconds', filter=current_year_filter), 0
-                ),
-                mt_characters_current_year=Coalesce(
-                    Sum('total_mt_characters', filter=current_year_filter), 0
-                ),
-                asr_seconds_current_month=Coalesce(
-                    Sum('total_asr_seconds', filter=current_month_filter), 0
-                ),
-                mt_characters_current_month=Coalesce(
-                    Sum('total_mt_characters', filter=current_month_filter), 0
-                ),
-                asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
-                mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
-            )
-        )
-        for nlp_key, count in nlp_tracking.items():
-            self._total_nlp_usage[nlp_key] = count if count is not None else 0
-
     def _get_current_month_start_date(self):
         # No subscription info, just use the first day of current month
         if not self._anchor_date:
@@ -247,6 +164,35 @@ class ServiceUsageSerializer(serializers.Serializer):
             return self._anchor_date.replace(year=self._now.year - 1)
         return self._anchor_date.replace(year=self._now.year)
 
+    def _get_nlp_user_counters(self, month_filter, year_filter):
+        nlp_tracking = (
+            NLPUsageCounter.objects.only(
+                'date', 'total_asr_seconds', 'total_mt_characters'
+            )
+            .filter(
+                user_id__in=self._user_ids,
+            )
+            .aggregate(
+                asr_seconds_current_year=Coalesce(
+                    Sum('total_asr_seconds', filter=year_filter), 0
+                ),
+                mt_characters_current_year=Coalesce(
+                    Sum('total_mt_characters', filter=year_filter), 0
+                ),
+                asr_seconds_current_month=Coalesce(
+                    Sum('total_asr_seconds', filter=month_filter), 0
+                ),
+                mt_characters_current_month=Coalesce(
+                    Sum('total_mt_characters', filter=month_filter), 0
+                ),
+                asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
+                mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
+            )
+        )
+
+        for nlp_key, count in nlp_tracking.items():
+            self._total_nlp_usage[nlp_key] = count if count is not None else 0
+
     def _get_organization_details(self):
         # Get the organization ID from the request
         organization_id = self.context.get(
@@ -278,3 +224,67 @@ class ServiceUsageSerializer(serializers.Serializer):
             self._anchor_date = billing_details['billing_cycle_anchor'].date()
             self._period_start = billing_details['current_period_start'].date()
             self._subscription_interval = billing_details['recurring_interval']
+
+    def _get_per_asset_usage(self, user):
+        self._user_ids = [user.pk]
+
+        self._get_organization_details()
+
+        self._get_storage_usage()
+
+        self._current_month_start = self._get_current_month_start_date()
+        self._current_year_start = self._get_current_year_start_date()
+
+        current_month_filter = Q(
+            date__range=[self._current_month_start, self._now]
+        )
+        current_year_filter = Q(
+            date__range=[self._current_year_start, self._now]
+        )
+
+        self._get_submission_counters(current_month_filter, current_year_filter)
+        self._get_nlp_user_counters(current_month_filter, current_year_filter)
+
+    def _get_storage_usage(self):
+        """
+        Get the storage used by non-(soft-)deleted projects for all users
+
+        Users are represented by their ids with `self._user_ids`
+        """
+        xforms = (
+            KobocatXForm.objects.only('bytes_sum', 'id')
+            .filter(user_id__in=self._user_ids)
+            .exclude(pending_delete=True)
+        )
+
+        total_storage_bytes = xforms.aggregate(
+            bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
+        )
+
+        self._total_storage_bytes = total_storage_bytes['bytes_sum'] or 0
+
+    def _get_submission_counters(self, month_filter, year_filter):
+        """
+        Calculate submissions for all users' projects even their deleted ones
+
+        Users are represented by their ids with `self._user_ids`
+        """
+        submission_count = (
+            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
+                user_id__in=self._user_ids,
+            )
+            .aggregate(
+                all_time=Coalesce(Sum('counter'), 0),
+                current_year=Coalesce(
+                    Sum('counter', filter=year_filter), 0
+                ),
+                current_month=Coalesce(
+                    Sum('counter', filter=month_filter), 0
+                ),
+            )
+        )
+
+        for submission_key, count in submission_count.items():
+            self._total_submission_count[submission_key] = (
+                count if count is not None else 0
+            )
