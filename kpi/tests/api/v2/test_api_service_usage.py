@@ -100,7 +100,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         }
         submissions.append(submission)
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
-        self.__update_xform_counters(self.asset.uid, submissions=1)
+        self.__update_xform_counters(self.asset, submissions=1)
 
     def __add_nlp_trackers(self):
         """
@@ -190,9 +190,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         submissions.append(submission2)
 
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
-        self.__update_xform_counters(self.asset.uid, submissions=2)
+        self.__update_xform_counters(self.asset, submissions=2)
 
-    def __update_xform_counters(self, uid, submissions=0):
+    def __update_xform_counters(self, asset: Asset, submissions: int = 0):
         """
         Create/update the daily submission counter and the shadow xform we use to query it
         """
@@ -204,11 +204,13 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             self.xform.save()
         else:
             self.xform = KobocatXForm.objects.create(
-                attachment_storage_bytes=self.__expected_file_size()
-                                         * submissions,
-                kpi_asset_uid=uid,
+                attachment_storage_bytes=(
+                    self.__expected_file_size() * submissions
+                ),
+                kpi_asset_uid=asset.uid,
                 date_created=today,
                 date_modified=today,
+                user_id=asset.owner_id,
             )
             self.xform.save()
 
@@ -221,8 +223,10 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
                     date=today.date(),
                     counter=submissions,
                     xform=self.xform,
+                    user_id=asset.owner_id,
                 )
             )
+            print(vars(self.counter))
             self.counter.save()
 
     def __expected_file_size(self):
@@ -293,6 +297,26 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         assert response.data['total_storage_bytes'] == (
             self.__expected_file_size() * 3
         )
+
+    def test_service_usages_with_projects_in_trash_bin(self):
+        self.test_multiple_forms()
+        # Simulate trash bin
+        self.asset.pending_delete = True
+        self.asset.save(
+            update_fields=['pending_delete'],
+            create_version=False,
+            adjust_content=False,
+        )
+        self.xform.pending_delete = True
+        self.xform.save(update_fields=['pending_delete'])
+
+        # Retry endpoint
+        url = reverse(self._get_endpoint('service-usage-list'))
+        response = self.client.get(url)
+
+        assert response.data['total_submission_count']['current_month'] == 3
+        assert response.data['total_submission_count']['all_time'] == 3
+        assert response.data['total_storage_bytes'] == 0
 
     def test_no_data(self):
         """
