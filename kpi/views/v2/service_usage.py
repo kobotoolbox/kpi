@@ -1,9 +1,11 @@
 # coding: utf-8
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
 from rest_framework import (
     renderers,
     viewsets,
 )
-from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kpi.permissions import IsAuthenticated
@@ -11,6 +13,10 @@ from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 
 
+@method_decorator(cache_page(60 * 30), name='retrieve')
+@method_decorator(cache_page(60 * 30), name='list')
+@method_decorator(vary_on_cookie, name='retrieve')
+@method_decorator(vary_on_cookie, name='list')
 class ServiceUsageViewSet(viewsets.ViewSet):
     """
     ## Service Usage Tracker
@@ -66,7 +72,7 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     pagination_class = None
     permission_classes = (IsAuthenticated,)
 
-    def get_serializer_context(self):
+    def get_serializer_context(self, organization_id=None):
         """
         Extra context provided to the serializer class.
         """
@@ -74,6 +80,7 @@ class ServiceUsageViewSet(viewsets.ViewSet):
             'request': self.request,
             'format': self.format_kwarg,
             'view': self,
+            'organization_id': organization_id,
         }
 
     def list(self, request, *args, **kwargs):
@@ -83,6 +90,9 @@ class ServiceUsageViewSet(viewsets.ViewSet):
         )
         return Response(data=serializer.data)
 
-    @action(methods=['post'], detail=False)
-    def post(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def retrieve(self, request, pk=None):
+        serializer = ServiceUsageSerializer(
+            get_database_user(request.user),
+            context=self.get_serializer_context(pk),
+        )
+        return Response(data=serializer.data)

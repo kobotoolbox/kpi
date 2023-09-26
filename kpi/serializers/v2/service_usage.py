@@ -8,7 +8,6 @@ from rest_framework.fields import empty
 from kobo.apps.organizations.models import Organization
 from kobo.apps.project_views.models.assignment import User
 from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
     ReadOnlyKobocatDailyXFormSubmissionCounter,
@@ -249,9 +248,9 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._anchor_date.replace(year=self._now.year)
 
     def _get_organization_details(self):
-        # Get the organization ID passed in from the query parameters
-        organization_id = self.context['request'].query_params.get(
-            'organization_id'
+        # Get the organization ID from the request
+        organization_id = self.context.get(
+            'organization_id', None
         )
 
         if not organization_id:
@@ -267,8 +266,10 @@ class ServiceUsageSerializer(serializers.Serializer):
             return
 
         # If the user is in an organization, get all org users so we can query their total org usage
-        self._user_ids = User.objects.values_list('pk', flat=True).filter(
-            organizations_organization__id=organization_id
+        self._user_ids = list(
+            User.objects.values_list('pk', flat=True).filter(
+                organizations_organization__id=organization_id
+            )
         )
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
