@@ -51,3 +51,9 @@ h2 {
   display: block;
   font-size: sizes.$x14;
 }
+
+.footer {
+  background-color: colors.$kobo-mid-blue;
+  position: absolute;
+  bottom: 5em;
+}
