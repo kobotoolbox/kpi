@@ -144,7 +144,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         xforms = KobocatXForm.objects.only('bytes_sum', 'id', 'kpi_asset_uid').filter(
             kpi_asset_uid__in=asset_list,
-        )
+        ).exclude(pending_delete=True)
 
         total_storage_bytes = xforms.aggregate(
             bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
