@@ -229,6 +229,7 @@ class CheckoutLinkView(APIView):
             }
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            allow_promotion_codes=True,
             automatic_tax={'enabled': False},
             billing_address_collection='required',
             customer=customer_id,
