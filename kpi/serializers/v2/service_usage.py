@@ -212,8 +212,10 @@ class ServiceUsageSerializer(serializers.Serializer):
             return
 
         # If the user is in an organization, get all org users so we can query their total org usage
-        self._user_ids = User.objects.values_list('pk', flat=True).filter(
-            organizations_organization__id=organization_id
+        self._user_ids = list(
+            User.objects.values_list('pk', flat=True).filter(
+                organizations_organization__id=organization_id
+            )
         )
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
