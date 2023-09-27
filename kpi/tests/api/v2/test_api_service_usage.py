@@ -66,7 +66,6 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             owner=owner,
             asset_type='survey',
         )
-        print(owner)
 
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
