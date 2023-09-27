@@ -160,6 +160,11 @@
     "webpack-dev-server": "^4.8.1",
     "webpack-extract-translation-keys-plugin": "^6.0.0"
   },
+  "overrides": {
+    "reflux": {
+      "react": "$react"
+    }
+  },
   "scripts": {
     "preinstall": "npm run hint",
     "postinstall": "patch-package && npm run copy-fonts",
