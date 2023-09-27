@@ -192,6 +192,14 @@ export function formatSeconds(seconds: number) {
   ).padStart(2, '0')}`;
 }
 
+export function formatRelativeTime(timeStr: string, localize = true): string {
+  let myMoment = moment.utc(timeStr);
+  if (localize) {
+    myMoment = myMoment.local();
+  }
+  return myMoment.fromNow();
+}
+
 // works universally for v1 and v2 urls
 export function getUsernameFromUrl(userUrl: string): string | null {
   const matched = userUrl.match(/\/users\/(.*)\//);
