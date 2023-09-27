@@ -12,7 +12,6 @@ import styles from './usage.module.scss';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {UsageContext, useUsage} from 'js/account/useUsage.hook';
-import InlineMessage from 'js/components/common/inlineMessage';
 
 interface LimitState {
   storageByteLimit: number | 'unlimited';
@@ -173,13 +172,6 @@ export default function Usage() {
           />
         </div>
       </div>
-      <InlineMessage
-        classNames={[styles.footer]}
-        type={'default'}
-        message={t(
-          'Usage information is updated periodically. If your recent submissions are not showing, please check again later.'
-        )}
-      />
     </div>
   );
 }
