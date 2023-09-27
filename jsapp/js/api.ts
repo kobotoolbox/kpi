@@ -25,7 +25,12 @@ const fetchData = async <T>(
    * Useful if you already have a full URL to be called and there is no point
    * adding `ROOT_URL` to it.
    */
-  prependRootUrl = true
+  prependRootUrl = true,
+  /**
+   * Include the headers along with the response body, under the `headers` key.
+   * Useful if, for example, you need to determine the age of a cached response.
+   * **/
+  includeHeaders = false
 ) => {
   const headers: {[key: string]: string} = {
     Accept: JSON_HEADER,
@@ -42,11 +47,16 @@ const fetchData = async <T>(
 
   const url = prependRootUrl ? ROOT_URL + path : path;
 
-  const response = await fetch(url, {
+  const fetchOptions: RequestInit = {
     method: method,
     headers,
-    body: JSON.stringify(data),
-  });
+  };
+
+  if (data) {
+    fetchOptions['body'] = JSON.stringify(data);
+  }
+
+  const response = await fetch(url, fetchOptions);
 
   const contentType = response.headers.get('content-type');
 
@@ -92,6 +102,12 @@ const fetchData = async <T>(
   }
 
   if (contentType && contentType.indexOf('application/json') !== -1) {
+    if (includeHeaders) {
+      return {
+        headers: response.headers,
+        ...(await response.json()),
+      } as {headers: Headers} & T;
+    }
     return (await response.json()) as Promise<T>;
   }
   return {} as T;
@@ -119,3 +135,10 @@ export const fetchPut = async <T>(path: string, data: Json) =>
 /** DELETE data to Kobo API at path, data is optional */
 export const fetchDelete = async (path: string, data?: Json) =>
   fetchData<unknown>(path, 'DELETE', data);
+
+/** Fetch and return headers along with response body, data is optional */
+export const fetchWithHeaders = async <T>(
+  path: string,
+  method = 'GET',
+  data?: Json
+) => fetchData<T>(path, method, data, true, true);
