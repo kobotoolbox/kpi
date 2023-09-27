@@ -310,7 +310,6 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         self.client.login(username='anotheruser', password='anotheruser')
         organization = baker.make(Organization, id='orgAKWMFskafsngf', name='test organization')
         organization.add_user(self.anotheruser, is_admin=True)
-        organization.save()
         self.__create_asset()
         self.__add_submission()
 
@@ -324,7 +323,6 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         )
 
         organization.add_user(self.someuser, is_admin=False)
-        self.someuser.save()
         self.__create_asset(self.someuser)
         self.__add_submission()
         response = self.client.get(detail_url)
