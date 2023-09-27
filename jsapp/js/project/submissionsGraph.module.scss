@@ -1,22 +1,52 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
 @use 'scss/mixins';
 
 .root {
-  border: 1px solid rebeccapurple;
+  background-color: colors.$kobo-white;
+  padding: sizes.$x30;
 }
 
 .periodSwitcher {
   @include mixins.centerRowFlex;
+  gap: sizes.$x10;
+  margin-bottom: sizes.$x20;
 }
 
 .periodToggle {
+  @include mixins.buttonReset;
+  padding: sizes.$x8;
+  border-radius: sizes.$x6;
+  background-color: colors.$kobo-white;
 
+  &[disabled] {
+    opacity: 1;
+  }
 }
 
 .periodToggleActive {
+  color: colors.$kobo-dark-teal;
+  background-color: colors.$kobo-light-teal;
 
+  &::after {
+    width: 0;
+    height: 0;
+    border-left: sizes.$x10 solid transparent;
+    border-right: sizes.$x10 solid transparent;
+    border-top: sizes.$x10 solid colors.$kobo-light-teal;
+    content: '';
+    position: absolute;
+    bottom: -1 * sizes.$x10;
+    left: 50%;
+    margin-left: -1 * sizes.$x10;
+  }
 }
 
-.graphWrapper {}
+.graphWrapper {
+  @include mixins.centerRowFlex;
+  min-height: sizes.$x150;
+  margin-bottom: sizes.$x20;
+}
 
 .graph {
 
@@ -24,6 +54,25 @@
 
 .noChartMessage {}
 
-.statsWrapper {}
+.statsWrapper {
+  @include mixins.centerRowFlex;
+  gap: sizes.$x10;
+}
 
-.stats {}
+.stats {
+  flex: 1;
+  border: sizes.$x1 solid colors.$kobo-gray-92;
+  padding: sizes.$x20;
+}
+
+.statsCount {
+  display: block;
+  font-size: sizes.$x32;
+  font-weight: 600;
+  color: colors.$kobo-teal;
+}
+
+.statsDateRange {
+  display: block;
+  margin-top: sizes.$x8;
+}

@@ -362,7 +362,7 @@ class FormSummary extends React.Component {
             {this.renderSubmissionsGraph()}
 
             {this.state.uid &&
-              <SubmissionsGraph asset={this.state}/>
+              <SubmissionsGraph assetUid={this.state.uid}/>
             }
           </bem.FormView__column>
 
