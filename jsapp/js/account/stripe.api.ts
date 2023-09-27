@@ -108,8 +108,7 @@ export async function getSubscriptionInterval() {
       subscriptionStore.fetchSubscriptionInfo();
     }
     await when(() => subscriptionStore.isInitialised);
-    const subscriptionList: SubscriptionInfo[] =
-      subscriptionStore.subscriptionResponse;
+    const subscriptionList: SubscriptionInfo[] = subscriptionStore.planResponse;
     const activeSubscription = subscriptionList.find((sub) =>
       ACTIVE_STRIPE_STATUSES.includes(sub.status)
     );
@@ -154,8 +153,8 @@ function getLimitsForMetadata(
 
 export async function getAccountLimits() {
   await when(() => subscriptionStore.isInitialised);
-  const subscriptions = [...subscriptionStore.subscriptionResponse];
-  const activeSubscriptions = subscriptions.filter((subscription) =>
+  const plans = [...subscriptionStore.planResponse];
+  const activeSubscriptions = plans.filter((subscription) =>
     ACTIVE_STRIPE_STATUSES.includes(subscription.status)
   );
   let metadata;

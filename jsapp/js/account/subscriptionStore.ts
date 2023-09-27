@@ -91,10 +91,9 @@ export async function fetchProducts() {
 }
 
 class SubscriptionStore {
-  public subscriptionResponse: SubscriptionInfo[] = [];
+  public planResponse: SubscriptionInfo[] = [];
   public addOnsResponse: SubscriptionInfo[] = [];
   public subscribedProduct: BaseProduct | null = null;
-  public productsResponse: Product[] | null = null;
   public isPending = false;
   public isInitialised = false;
 
@@ -123,14 +122,15 @@ class SubscriptionStore {
     response: PaginatedResponse<SubscriptionInfo>
   ) {
     // get any plan subscriptions for the user
-    this.subscriptionResponse = response.results.filter(
+    this.planResponse = response.results.filter(
       (sub) => sub.items[0]?.price.product.metadata?.product_type == 'plan'
     );
     // get any recurring add-on subscriptions for the user
     this.addOnsResponse = response.results.filter(
       (sub) => sub.items[0]?.price.product.metadata?.product_type == 'addon'
     );
-    this.subscribedProduct = response.results[0]?.plan?.product || null;
+    this.subscribedProduct =
+      this.planResponse[0]?.items[0]?.price.product || null;
     this.isPending = false;
     this.isInitialised = true;
   }
