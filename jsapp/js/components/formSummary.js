@@ -25,6 +25,7 @@ import SubmissionsCountGraph from 'js/project/submissionsCountGraph.component';
 class FormSummary extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {};
     autoBind(this);
   }
 

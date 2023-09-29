@@ -53,9 +53,9 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
 
   /** Handles days in past */
   const getDateRangeLabel = useCallback(
-    (periodName: StatsPeriodName) => {
+    () => {
       // We need 1 day less than period length, because we omit today
-      const daysAmount = StatsPeriods[periodName] - 1;
+      const daysAmount = StatsPeriods[currentPeriod] - 1;
 
       const daysFromLabel = formatDate(moment().subtract(daysAmount, 'days').format());
       const daysToLabel = formatDate(moment().format());
@@ -64,7 +64,7 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
 
       return (<>{daysFromLabel} &ndash; {daysToLabel}</>);
     },
-    []
+    [currentPeriod]
   );
 
   const renderPeriodToggle = useCallback(
@@ -233,6 +233,8 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
 
   const hasData = !isLoading && counts.total_submission_count > 0;
 
+  const totalPeriodCount = Object.values(counts.daily_submission_counts).reduce((partialSum, a) => partialSum + a, 0);
+
   return (
     <section className={styles.root}>
       <nav className={styles.periodSwitcher}>
@@ -261,9 +263,11 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
 
       <div className={styles.statsWrapper}>
         <div className={styles.stats}>
-          <span className={styles.statsCount}>0</span>
+          <span className={styles.statsCount}>
+            {isLoading ? '-' : totalPeriodCount}
+          </span>
           <time className={styles.statsDateRange}>
-            {getDateRangeLabel(currentPeriod)}
+            {getDateRangeLabel()}
           </time>
         </div>
 
