@@ -80,6 +80,7 @@
     "@storybook/testing-library": "^0.2.0",
     "@swc/core": "^1.3.38",
     "@types/chai": "^4.3.1",
+    "@types/chart.js": "^2.9.38",
     "@types/gtag.js": "^0.0.12",
     "@types/jquery": "^3.5.10",
     "@types/lodash.clonedeep": "^4.5.6",

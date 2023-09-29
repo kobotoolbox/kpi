@@ -42,14 +42,23 @@
   }
 }
 
-.graphWrapper {
+.graph {
   @include mixins.centerRowFlex;
+  position: relative;
   min-height: sizes.$x150;
   margin-bottom: sizes.$x20;
 }
 
-.graph {
+.graph:not(.graphVisible) canvas {
+  opacity: 0;
+  visibility: hidden;
+}
 
+.graph :global .loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .noChartMessage {}
