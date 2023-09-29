@@ -175,7 +175,7 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
     Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
 
     const opts: Chart.ChartConfiguration = {
-      type: 'line',
+      type: 'bar',
       options: {
         maintainAspectRatio: false,
         responsive: true,

@@ -183,7 +183,15 @@ class FormSummary extends React.Component {
             }
 
             {this.state.uid &&
-              <SubmissionsCountGraph assetUid={this.state.uid}/>
+              <bem.FormView__row>
+                <bem.FormView__cell m={['label', 'first']}>
+                  {t('Submissions')}
+                </bem.FormView__cell>
+
+                <bem.FormView__cell m='box'>
+                  <SubmissionsCountGraph assetUid={this.state.uid}/>
+                </bem.FormView__cell>
+              </bem.FormView__row>
             }
           </bem.FormView__column>
 
