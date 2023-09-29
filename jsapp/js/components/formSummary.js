@@ -25,7 +25,7 @@ import {
 import './formSummary.scss';
 import {userCan} from 'js/components/permissions/utils';
 import FormSummaryProjectInfo from './formSummaryProjectInfo';
-import SubmissionsGraph from 'js/project/submissionsGraph.component';
+import SubmissionsCountGraph from 'js/project/submissionsCountGraph.component';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -362,7 +362,7 @@ class FormSummary extends React.Component {
             {this.renderSubmissionsGraph()}
 
             {this.state.uid &&
-              <SubmissionsGraph assetUid={this.state.uid}/>
+              <SubmissionsCountGraph assetUid={this.state.uid}/>
             }
           </bem.FormView__column>
 

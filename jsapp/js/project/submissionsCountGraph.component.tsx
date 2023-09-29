@@ -6,7 +6,7 @@ import type {FailResponse} from 'js/dataInterface';
 import {fetchGet} from 'js/api';
 import {formatDate, handleApiFail} from 'js/utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import styles from './submissionsGraph.module.scss';
+import styles from './submissionsCountGraph.module.scss';
 
 interface DailySubmissionCounts {[/** YYYY-MM-DD */ date: string]: number}
 
@@ -40,11 +40,11 @@ const emptyCounts = {
   total_submission_count: 0,
 };
 
-interface SubmissionsGraphProps {
+interface SubmissionsCountGraphProps {
   assetUid: string;
 }
 
-export default function SubmissionsGraph(props: SubmissionsGraphProps) {
+export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPeriod, setCurrentPeriod] = useState<StatsPeriodName>(DEFAULT_PERIOD);
   const [counts, setCounts] = useState<AssetCountsResponse>(emptyCounts);
