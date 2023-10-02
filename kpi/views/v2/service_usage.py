@@ -62,7 +62,7 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     @staticmethod
-    def get_serializer_context(cls, organization_id=None):
+    def get_serializer_context(cls):
         """
         Extra context provided to the serializer class.
         """
@@ -70,7 +70,6 @@ class ServiceUsageViewSet(viewsets.ViewSet):
             'request': cls.request,
             'format': cls.format_kwarg,
             'view': cls,
-            'organization_id': organization_id,
         }
 
     def list(self, request, *args, **kwargs):

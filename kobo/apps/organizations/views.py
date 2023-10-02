@@ -80,8 +80,12 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### CURRENT ENDPOINT
         """
 
+        context = {
+            'organization_id': kwargs.get('id', None),
+            **ServiceUsageViewSet.get_serializer_context(self)
+        }
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
-            context=ServiceUsageViewSet.get_serializer_context(self, kwargs.get('id', None)),
+            context=context,
         )
         return Response(data=serializer.data)
