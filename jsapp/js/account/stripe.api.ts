@@ -50,11 +50,17 @@ export interface Organization {
   slug: string;
 }
 
+enum Limits {
+  'unlimited' = 'unlimited',
+}
+
+type LimitAmount = number | Limits.unlimited;
+
 export interface AccountLimit {
-  submission_limit: 'unlimited' | number;
-  nlp_seconds_limit: 'unlimited' | number;
-  nlp_character_limit: 'unlimited' | number;
-  storage_bytes_limit: 'unlimited' | number;
+  submission_limit: LimitAmount | number;
+  nlp_seconds_limit: LimitAmount | number;
+  nlp_character_limit: LimitAmount | number;
+  storage_bytes_limit: LimitAmount | number;
 }
 
 export interface Product extends BaseProduct {
@@ -120,10 +126,10 @@ export async function getSubscriptionInterval() {
 }
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
-  submission_limit: 'unlimited',
-  nlp_seconds_limit: 'unlimited',
-  nlp_character_limit: 'unlimited',
-  storage_bytes_limit: 'unlimited',
+  submission_limit: Limits.unlimited,
+  nlp_seconds_limit: Limits.unlimited,
+  nlp_character_limit: Limits.unlimited,
+  storage_bytes_limit: Limits.unlimited,
 });
 
 function getLimitsForMetadata(
@@ -131,13 +137,18 @@ function getLimitsForMetadata(
   limitsToCompare: false | AccountLimit = false
 ) {
   const limits: Partial<AccountLimit> = {};
-  for (const [key, value] of Object.entries(metadata)) {
+  for (const [key, value] of Object.entries(metadata) as Array<
+    [string | keyof AccountLimit, string]
+  >) {
     // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
     if (limitsToCompare) {
+      if (!(key in limitsToCompare)) {
+        continue;
+      }
       if (
-        !limitsToCompare?.[key as keyof AccountLimit] ||
-        (value !== 'unlimited' &&
-          value <= limitsToCompare[key as keyof AccountLimit])
+        key in limitsToCompare &&
+        value !== Limits.unlimited &&
+        value <= limitsToCompare[key as keyof AccountLimit]
       ) {
         continue;
       }
@@ -145,7 +156,7 @@ function getLimitsForMetadata(
     // only use metadata needed for limit calculations
     if (key in DEFAULT_LIMITS) {
       limits[key as keyof AccountLimit] =
-        value === 'unlimited' ? value : parseInt(value);
+        value === Limits.unlimited ? Limits.unlimited : parseInt(value);
     }
   }
   return limits;
