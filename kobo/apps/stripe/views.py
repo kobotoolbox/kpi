@@ -312,6 +312,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Returns Product and Price Lists, sorted from the product with the lowest price to highest
+    <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/stripe/products/

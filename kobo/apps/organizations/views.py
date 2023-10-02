@@ -46,9 +46,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def service_usage(self, request, pk=None, *args, **kwargs):
         """
         ## Organization Usage Tracker
-        <p>Tracks the total usage of different services for each account in the current user's organization</p>
+        <p>Tracks the total usage of different services for each account in an organization</p>
         <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
         <p>Tracks the current total storage used</p>
+        <p>If no organization is found with the provided ID, returns the usage for the logged-in user</p>
+        <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
 
         <pre class="prettyprint">
         <b>GET</b> /api/v2/organizations/{organization_id}/service_usage/
@@ -80,6 +82,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
-            context=ServiceUsageViewSet.get_serializer_context(self, pk),
+            context=ServiceUsageViewSet.get_serializer_context(self, kwargs.get('id', None)),
         )
         return Response(data=serializer.data)

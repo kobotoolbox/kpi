@@ -22,6 +22,7 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     <p>Tracks the total usage of different services for the logged-in user</p>
     <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
     <p>Tracks the current total storage used</p>
+    <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/service_usage/
