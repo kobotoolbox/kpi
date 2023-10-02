@@ -119,7 +119,7 @@ export async function getSubscriptionInterval() {
   return 'month';
 }
 
-const defaultLimits: AccountLimit = Object.freeze({
+const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: 'unlimited',
   nlp_seconds_limit: 'unlimited',
   nlp_character_limit: 'unlimited',
@@ -143,7 +143,7 @@ function getLimitsForMetadata(
       }
     }
     // only use metadata needed for limit calculations
-    if (key in defaultLimits) {
+    if (key in DEFAULT_LIMITS) {
       limits[key as keyof AccountLimit] =
         value === 'unlimited' ? value : parseInt(value);
     }
@@ -223,7 +223,7 @@ export async function getAccountLimits() {
   const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus();
 
   // initialize to unlimited
-  let limits: AccountLimit = {...defaultLimits};
+  let limits: AccountLimit = {...DEFAULT_LIMITS};
 
   // apply any limits from the metadata
   limits = {...limits, ...getLimitsForMetadata(metadata)};
