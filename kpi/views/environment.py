@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from hub.utils.i18n import I18nUtils
 from kobo.apps.organizations.models import OrganizationOwner
+from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from kobo.static_lists import COUNTRIES
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
@@ -179,22 +180,17 @@ class EnvironmentView(APIView):
             # default to checking the user's join date
             date_joined = request.user.date_joined.date()
             # if the user is in an organization, use the organization owner's join date instead
-            if request.user.organizations_organization:
-                owner = OrganizationOwner.objects.filter(organization__organization_users=request.user.id).first()
-                if owner:
-                    date_joined = owner.organization_user.user.date_joined.date()
-            # if they didn't register before FREE_TIER_CUTOFF_DATE, don't display the custom free tier
+            owner_join_dates = list(
+                OrganizationOwner.objects.filter(
+                    organization__organization_users__user=request.user
+                ).values_list('organization_user__user__date_joined', flat=True)
+            )
+            if len(owner_join_dates):
+                date_joined = owner_join_dates[0].date()
+            # if they didn't register on/before FREE_TIER_CUTOFF_DATE, don't display the custom free tier
             if date_joined > constance.config.FREE_TIER_CUTOFF_DATE:
-                data['free_tier_thresholds'] = {
-                    'storage': None,
-                    'data': None,
-                    'transcription_minutes': None,
-                    'translation_chars': None,
-                }
-                data['free_tier_display'] = {
-                    'name': None,
-                    'feature_list': [],
-                }
+                data['free_tier_thresholds'] = FREE_TIER_NO_THRESHOLDS
+                data['free_tier_display'] = FREE_TIER_EMPTY_DISPLAY
 
         return data
 
