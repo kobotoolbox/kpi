@@ -194,9 +194,9 @@ class ServiceUsageSerializer(serializers.Serializer):
             self._total_nlp_usage[nlp_key] = count if count is not None else 0
 
     def _get_organization_details(self):
-        # Get the organization ID passed in from the query parameters
-        organization_id = self.context['request'].query_params.get(
-            'organization_id'
+        # Get the organization ID from the request
+        organization_id = self.context.get(
+            'organization_id', None
         )
 
         if not organization_id:

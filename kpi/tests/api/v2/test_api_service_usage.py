@@ -8,8 +8,10 @@ from django.contrib.auth.models import User
 from django.db import connection
 from django.urls import reverse
 from django.utils import timezone
+from model_bakery import baker
 from rest_framework import status
 
+from kobo.apps.organizations.models import Organization
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
@@ -36,11 +38,13 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         super().setUp()
         self.client.login(username='anotheruser', password='anotheruser')
         self.anotheruser = User.objects.get(username='anotheruser')
+        self.someuser = User.objects.get(username='someuser')
         with connection.schema_editor() as schema_editor:
             for unmanaged_model in self.unmanaged_models:
                 schema_editor.create_model(unmanaged_model)
 
-    def __create_asset(self):
+    def __create_asset(self, user=None):
+        owner = user or self.anotheruser
         content_source_asset = {
             'survey': [
                 {
@@ -59,7 +63,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         }
         self.asset = Asset.objects.create(
             content=content_source_asset,
-            owner=self.anotheruser,
+            owner=owner,
             asset_type='survey',
         )
 
@@ -296,6 +300,36 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         assert response.data['total_submission_count']['all_time'] == 3
         assert response.data['total_storage_bytes'] == (
             self.__expected_file_size() * 3
+        )
+
+    def test_usage_for_organization(self):
+        """
+        Test that the endpoint aggregates usage for each user in the organization
+        when viewing /service_usage/{organization_id}/
+        """
+        self.client.login(username='anotheruser', password='anotheruser')
+        organization = baker.make(Organization, id='orgAKWMFskafsngf', name='test organization')
+        organization.add_user(self.anotheruser, is_admin=True)
+        self.__create_asset()
+        self.__add_submission()
+
+        url = reverse(self._get_endpoint('organizations-list'))
+        detail_url = f'{url}{organization.id}/service_usage/'
+        response = self.client.get(detail_url)
+        assert response.data['total_submission_count']['current_month'] == 1
+        assert response.data['total_submission_count']['all_time'] == 1
+        assert response.data['total_storage_bytes'] == (
+            self.__expected_file_size()
+        )
+
+        organization.add_user(self.someuser, is_admin=False)
+        self.__create_asset(self.someuser)
+        self.__add_submission()
+        response = self.client.get(detail_url)
+        assert response.data['total_submission_count']['current_month'] == 2
+        assert response.data['total_submission_count']['all_time'] == 2
+        assert response.data['total_storage_bytes'] == (
+            self.__expected_file_size() * 2
         )
 
     def test_service_usages_with_projects_in_trash_bin(self):
