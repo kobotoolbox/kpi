@@ -229,6 +229,7 @@ class CheckoutLinkView(APIView):
             }
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            allow_promotion_codes=True,
             automatic_tax={'enabled': False},
             billing_address_collection='required',
             customer=customer_id,
@@ -307,10 +308,11 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-@method_decorator(cache_page(60 * 30), name='list')
+@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Returns Product and Price Lists, sorted from the product with the lowest price to highest
+    <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/stripe/products/
