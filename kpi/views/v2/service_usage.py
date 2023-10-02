@@ -14,9 +14,9 @@ from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 
 
-@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
-@method_decorator(vary_on_cookie, name='list')
-class ServiceUsageViewSet(viewsets.ViewSet):
+# @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
+# @method_decorator(vary_on_cookie, name='list')
+class ServiceUsageViewSet(viewsets.GenericViewSet):
     """
     ## Service Usage Tracker
     <p>Tracks the total usage of different services for the logged-in user</p>
@@ -61,20 +61,9 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     pagination_class = None
     permission_classes = (IsAuthenticated,)
 
-    @staticmethod
-    def get_serializer_context(cls):
-        """
-        Extra context provided to the serializer class.
-        """
-        return {
-            'request': cls.request,
-            'format': cls.format_kwarg,
-            'view': cls,
-        }
-
     def list(self, request, *args, **kwargs):
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
-            context=self.get_serializer_context(self),
+            context=self.get_serializer_context(),
         )
         return Response(data=serializer.data)

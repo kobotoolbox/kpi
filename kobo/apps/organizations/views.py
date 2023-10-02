@@ -81,9 +81,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         """
 
         context = {
-            'organization_id': kwargs.get('id', None),
-            **ServiceUsageViewSet.get_serializer_context(self)
+            # Commented out until the Enterprise plan is implemented
+            #   'organization_id': kwargs.get('id', None),
+            **self.get_serializer_context(),
         }
+
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
             context=context,
