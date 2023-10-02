@@ -313,8 +313,8 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         self.__create_asset()
         self.__add_submission()
 
-        url = reverse(self._get_endpoint('service-usage-list'))
-        detail_url = f'{url}{organization.id}/'
+        url = reverse(self._get_endpoint('organizations-list'))
+        detail_url = f'{url}{organization.id}/service_usage/'
         response = self.client.get(detail_url)
         assert response.data['total_submission_count']['current_month'] == 1
         assert response.data['total_submission_count']['all_time'] == 1

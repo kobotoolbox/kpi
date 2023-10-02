@@ -14,31 +14,18 @@ from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 
 
-@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='retrieve')
 @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
-@method_decorator(vary_on_cookie, name='retrieve')
 @method_decorator(vary_on_cookie, name='list')
 class ServiceUsageViewSet(viewsets.ViewSet):
     """
     ## Service Usage Tracker
-    <p>Tracks the total usage of different services for each account in the current user's organization</p>
+    <p>Tracks the total usage of different services for the logged-in user</p>
     <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
     <p>Tracks the current total storage used</p>
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/service_usage/?=organization_id={organization_id}
+    <b>GET</b> /api/v2/service_usage/
     </pre>
-
-        > **Payload**
-    >
-    >        {
-    >           "organization_id": "orgA34cds8fmske3tf",
-    >        }
-
-    where:
-
-    * "organization_id" (optional) is an organization ID string. User must be the organization's owner.
-    If "organization_id" is set, endpoint will return aggregated usage data for all the organization's users.
 
     > Example
     >
@@ -73,27 +60,21 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     pagination_class = None
     permission_classes = (IsAuthenticated,)
 
-    def get_serializer_context(self, organization_id=None):
+    @staticmethod
+    def get_serializer_context(cls, organization_id=None):
         """
         Extra context provided to the serializer class.
         """
         return {
-            'request': self.request,
-            'format': self.format_kwarg,
-            'view': self,
+            'request': cls.request,
+            'format': cls.format_kwarg,
+            'view': cls,
             'organization_id': organization_id,
         }
 
     def list(self, request, *args, **kwargs):
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
-            context=self.get_serializer_context(),
-        )
-        return Response(data=serializer.data)
-
-    def retrieve(self, request, pk=None):
-        serializer = ServiceUsageSerializer(
-            get_database_user(request.user),
-            context=self.get_serializer_context(pk),
+            context=self.get_serializer_context(self),
         )
         return Response(data=serializer.data)

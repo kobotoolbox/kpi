@@ -32,10 +32,14 @@ export interface UsageResponse {
 }
 
 const USAGE_URL = '/api/v2/service_usage/';
+const ORGANIZATION_USAGE_URL =
+  '/api/v2/organizations/##ORGANIZATION_ID##/service_usage/';
 
 export async function getUsage(organization_id: string | null = null) {
   if (organization_id) {
-    return fetchWithHeaders<UsageResponse>(`${USAGE_URL}${organization_id}/`);
+    return fetchWithHeaders<UsageResponse>(
+      ORGANIZATION_USAGE_URL.replace('##ORGANIZATION_ID##', organization_id)
+    );
   }
   return fetchWithHeaders<UsageResponse>(USAGE_URL);
 }
