@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie
@@ -13,8 +14,8 @@ from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 
 
-@method_decorator(cache_page(60 * 30), name='retrieve')
-@method_decorator(cache_page(60 * 30), name='list')
+@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='retrieve')
+@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
 @method_decorator(vary_on_cookie, name='retrieve')
 @method_decorator(vary_on_cookie, name='list')
 class ServiceUsageViewSet(viewsets.ViewSet):

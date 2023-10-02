@@ -308,7 +308,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-@method_decorator(cache_page(60 * 30), name='list')
+@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Returns Product and Price Lists, sorted from the product with the lowest price to highest

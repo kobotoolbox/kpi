@@ -1363,6 +1363,9 @@ CACHES = {
     'default': env.cache(default='redis://redis_cache:6380/3'),
 }
 
+# How long to retain cached responses for kpi endpoints
+ENDPOINT_CACHE_DURATION = env.str('ENDPOINT_CACHE_DURATION', 60 * 15)  # 15 minutes
+
 ENV = None
 
 # The maximum size in bytes that a request body may be before a
