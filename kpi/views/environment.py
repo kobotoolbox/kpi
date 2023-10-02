@@ -177,9 +177,7 @@ class EnvironmentView(APIView):
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
         if request.user.id:
-            # default to checking the user's join date
-            date_joined = request.user.date_joined.date()
-            # if the user is in an organization, use the organization owner's join date instead
+            # if the user is in an organization, use the organization owner's join date
             owner_join_dates = list(
                 OrganizationOwner.objects.filter(
                     organization__organization_users__user=request.user
@@ -187,6 +185,9 @@ class EnvironmentView(APIView):
             )
             if len(owner_join_dates):
                 date_joined = owner_join_dates[0].date()
+            else:
+                # default to checking the user's join date
+                date_joined = request.user.date_joined.date()
             # if they didn't register on/before FREE_TIER_CUTOFF_DATE, don't display the custom free tier
             if date_joined > constance.config.FREE_TIER_CUTOFF_DATE:
                 data['free_tier_thresholds'] = FREE_TIER_NO_THRESHOLDS
