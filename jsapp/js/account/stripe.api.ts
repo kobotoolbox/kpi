@@ -151,7 +151,39 @@ function getLimitsForMetadata(
   return limits;
 }
 
-export async function getAccountLimits() {
+const getFreeTierLimits = async (limits: AccountLimit) => {
+  await when(() => envStore.isReady);
+  const thresholds = envStore.data.free_tier_thresholds;
+  const newLimits: AccountLimit = {...limits};
+  thresholds.storage && (newLimits['storage_bytes_limit'] = thresholds.storage);
+  thresholds.data && (newLimits['submission_limit'] = thresholds.data);
+  thresholds.translation_chars &&
+    (newLimits['nlp_character_limit'] = thresholds.translation_chars);
+  thresholds.transcription_minutes &&
+    (newLimits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60);
+  return newLimits;
+};
+
+const getRecurringAddOnLimits = (limits: AccountLimit) => {
+  let newLimits = {...limits};
+  let activeAddOns = [...subscriptionStore.addOnsResponse];
+  let metadata = {};
+  activeAddOns = activeAddOns.filter((subscription) =>
+    ACTIVE_STRIPE_STATUSES.includes(subscription.status)
+  );
+  if (activeAddOns.length) {
+    activeAddOns.forEach((addOn) => {
+      metadata = {
+        ...addOn.items[0].price.product.metadata,
+        ...addOn.items[0].price.metadata,
+      };
+      newLimits = {...newLimits, ...getLimitsForMetadata(metadata, newLimits)};
+    });
+  }
+  return newLimits;
+};
+
+const getStripeMetadataAndFreeTierStatus = async () => {
   await when(() => subscriptionStore.isInitialised);
   const plans = [...subscriptionStore.planResponse];
   const activeSubscriptions = plans.filter((subscription) =>
@@ -175,15 +207,20 @@ export async function getAccountLimits() {
           (price: BasePrice) =>
             price.unit_amount === 0 && price.recurring?.interval === 'month'
         )
-      );
+      )[0];
       metadata = {
-        ...freeProduct[0].metadata,
-        ...freeProduct[0].prices[0].metadata,
+        ...freeProduct.metadata,
+        ...freeProduct.prices[0].metadata,
       };
     } catch (error) {
       metadata = {};
     }
   }
+  return {metadata, hasFreeTier};
+};
+
+export async function getAccountLimits() {
+  const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus();
 
   // initialize to unlimited
   let limits: AccountLimit = {...defaultLimits};
@@ -193,29 +230,10 @@ export async function getAccountLimits() {
 
   if (hasFreeTier) {
     // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
-    await when(() => envStore.isReady);
-    const thresholds = envStore.data.free_tier_thresholds;
-    thresholds.storage && (limits['storage_bytes_limit'] = thresholds.storage);
-    thresholds.data && (limits['submission_limit'] = thresholds.data);
-    thresholds.translation_chars &&
-      (limits['nlp_character_limit'] = thresholds.translation_chars);
-    thresholds.transcription_minutes &&
-      (limits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60);
+    limits = await getFreeTierLimits(limits);
 
     // if the user has active recurring add-ons, use those as the final say on their limits
-    let activeAddOns = [...subscriptionStore.addOnsResponse];
-    activeAddOns = activeAddOns.filter((subscription) =>
-      ACTIVE_STRIPE_STATUSES.includes(subscription.status)
-    );
-    if (activeAddOns.length) {
-      activeAddOns.forEach((addOn) => {
-        metadata = {
-          ...addOn.items[0].price.product.metadata,
-          ...addOn.items[0].price.metadata,
-        };
-        limits = {...limits, ...getLimitsForMetadata(metadata, limits)};
-      });
-    }
+    limits = getRecurringAddOnLimits(limits);
   }
 
   return limits;
