@@ -322,6 +322,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             self.__expected_file_size()
         )
 
+        """
+        Commented out until the Enterprise plan is implemented
+
         organization.add_user(self.someuser, is_admin=False)
         self.__create_asset(self.someuser)
         self.__add_submission()
@@ -331,6 +334,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         assert response.data['total_storage_bytes'] == (
             self.__expected_file_size() * 2
         )
+        """
 
     def test_service_usages_with_projects_in_trash_bin(self):
         self.test_multiple_forms()

@@ -81,8 +81,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         """
 
         context = {
-            # Commented out until the Enterprise plan is implemented
-            #   'organization_id': kwargs.get('id', None),
+            'organization_id': kwargs.get('id', None),
             **self.get_serializer_context(),
         }
 
