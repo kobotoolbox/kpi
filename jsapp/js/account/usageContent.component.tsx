@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import Usage from './usage.component';
+import PerAssetUsage from './perAsset.component';
 import styles from './usageContent.module.scss';
 import classNames from 'classnames';
 
@@ -17,7 +18,7 @@ export default function UsageContent() {
       case 'organization':
         return <Usage />;
       case 'perAsset':
-        return <h2>hello</h2>;
+        return <PerAssetUsage />;
       default:
         return null;
     }

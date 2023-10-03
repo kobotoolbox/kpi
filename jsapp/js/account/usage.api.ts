@@ -1,14 +1,20 @@
 import {fetchGet, fetchPost} from 'jsapp/js/api';
 import {getOrganization} from 'js/account/stripe.api';
 import {createContext} from 'react';
+import {PaginatedResponse} from '../dataInterface';
 
-interface AssetUsage {
+interface NlpUsage {
+  total_nlp_asr_seconds: number;
+  total_nlp_mt_characters: number;
+}
+
+export interface AssetUsage {
   asset: string;
   asset__name: string;
   submission_count_current_month: number;
   submission_count_all_time: number;
-  nlp_usage_current_month: unknown;
-  nlp_usage_all_time: unknown;
+  nlp_usage_current_month: NlpUsage;
+  nlp_usage_all_time: NlpUsage;
   storage_bytes: number;
 }
 
@@ -34,6 +40,8 @@ export interface UsageResponse {
 
 const USAGE_URL = '/api/v2/service_usage/';
 
+const PER_ASSET_USAGE_URL = '/api/v2/asset_usage/';
+
 export async function getUsage(organization_id: string | null = null) {
   if (organization_id) {
     return fetchPost<UsageResponse>(USAGE_URL, {organization_id});
@@ -45,6 +53,17 @@ export async function getUsageForOrganization() {
   try {
     const organizations = await getOrganization();
     return await getUsage(organizations.results?.[0].id);
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function getPerAssetUsage() {
+  try {
+    const perAssetUsage = await fetchGet<PaginatedResponse<AssetUsage>>(
+      PER_ASSET_USAGE_URL
+    );
+    return perAssetUsage;
   } catch (error) {
     return null;
   }

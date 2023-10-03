@@ -2,7 +2,7 @@
 @use '~kobo-common/src/styles/colors';
 
 .root {
-  padding: sizes.$x40;
+  padding: sizes.$x40 0 0 0;
 }
 
 h2 {
