@@ -54,7 +54,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     super(props);
     this.canvasRef = React.createRef();
   }
-  canvasRef: React.RefObject<any>;
+  canvasRef: React.RefObject<HTMLCanvasElement>;
   itemChart?: Chart;
 
   componentDidMount() {
@@ -72,7 +72,18 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     }
   }
 
+  // HACK: We no longer keep built PreparedTable in state, it's simply rebuilt
+  // during render. We keep this to ensure that re-render happens when props
+  // change.
+  static getDerivedStateFromProps() {
+    return {};
+  }
+
   loadChart() {
+    if (this.canvasRef.current === null) {
+      return;
+    }
+
     const opts = this.buildChartOptions();
 
     if (this.itemChart) {
