@@ -15,6 +15,7 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
+  ROOT_URL
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import type {
@@ -531,11 +532,35 @@ export function getMediaAttachment(
   );
 
   submission._attachments.forEach((attachment) => {
+
     if (attachment.filename.includes(validFileName)) {
-      mediaAttachment = attachment;
+      // Check if the audio filetype is of type not supported by player and send it to format to mp3
+      if(attachment.mimetype.includes('audio/')
+        && !attachment.mimetype.includes('/mp3')
+        && !attachment.mimetype.includes('mpeg')
+        && !attachment.mimetype.includes('/wav')
+        && !attachment.mimetype.includes('ogg')
+      )
+      {
+        const lastItem = attachment.filename.split("/").pop();
+        const questionPath = Object.keys(submission).find(key => submission[key] === lastItem);
+
+        const newAudioURL = 
+        `${ROOT_URL}/api/v2/assets/${submission._xform_id_string}/data/${attachment.instance}/attachments/?xpath=${questionPath}&format=mp3`;
+        const newAttachment = {
+          ...attachment,
+          download_url: newAudioURL,
+          download_large_url: newAudioURL,
+          download_medium_url: newAudioURL,
+          download_small_url: newAudioURL,
+          mimetype: 'audio/mp3',
+        }
+        mediaAttachment = newAttachment;
+      } else {
+        mediaAttachment = attachment;
+      }
     }
   });
-
   return mediaAttachment;
 }
 
