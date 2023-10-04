@@ -9,9 +9,14 @@ import sessionStore from 'js/stores/session';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
 import type {ReportStyleChartJsName} from './reportsConstants';
 import ReportTable from './reportTable';
-import type {ReportsResponse, ReportsResponseData} from 'jsapp/js/dataInterface';
+import type {
+  ReportsResponse,
+  ReportsResponseData,
+} from 'jsapp/js/dataInterface';
 
-export type PreparedTable = Array<[string | undefined, number | undefined, number | undefined]>;
+export type PreparedTable = Array<
+  [string | undefined, number | undefined, number | undefined]
+>;
 
 function truncateLabel(label: string, length = 25) {
   if (label.length > length) {
@@ -20,7 +25,9 @@ function truncateLabel(label: string, length = 25) {
   return label;
 }
 
-function getPreparedTable(data: ReportsResponseData): PreparedTable | undefined {
+function getPreparedTable(
+  data: ReportsResponseData
+): PreparedTable | undefined {
   if (data.mean) {
     return undefined;
   }
@@ -29,7 +36,7 @@ function getPreparedTable(data: ReportsResponseData): PreparedTable | undefined 
     return zip(
       data.responseLabels || data.responses,
       data.frequencies,
-      data.percentages,
+      data.percentages
     );
   }
 
@@ -94,8 +101,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     const baseColor = colors[0];
     Chart.defaults.elements.bar.backgroundColor = baseColor;
     Chart.defaults.elements.line.borderColor = baseColor;
-    Chart.defaults.elements.line.backgroundColor =
-      'rgba(255, 255, 255, 0.1)';
+    Chart.defaults.elements.line.backgroundColor = 'rgba(255, 255, 255, 0.1)';
     Chart.defaults.elements.point.backgroundColor = baseColor;
     Chart.defaults.elements.point.radius = 4;
     Chart.defaults.elements.arc.backgroundColor = baseColor;
@@ -177,7 +183,9 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     }
 
     maxPercentage =
-      maxPercentage < 85 ? (parseInt(String(maxPercentage / 10), 10) + 1) * 10 : 100;
+      maxPercentage < 85
+        ? (parseInt(String(maxPercentage / 10), 10) + 1) * 10
+        : 100;
 
     const opts: ChartConfiguration = {
       type: chartJsType,
@@ -284,7 +292,10 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
                 .replace('#2', String(this.props.data.total_count))}
             </span>
             <span>
-              {t('(# were without data.)').replace('#', String(this.props.data.not_provided))}
+              {t('(# were without data.)').replace(
+                '#',
+                String(this.props.data.not_provided)
+              )}
             </span>
           </bem.ReportView__headingMeta>
           {this.props.data.show_graph && sessionStore.isLoggedIn && (
@@ -295,7 +306,10 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
               data-question={this.props.name}
               data-tip={t('Override Graph Style')}
             >
-              <i className='k-icon k-icon-more' data-question={this.props.name} />
+              <i
+                className='k-icon k-icon-more'
+                data-question={this.props.name}
+              />
             </bem.Button>
           )}
         </bem.ReportView__itemHeading>
@@ -310,17 +324,23 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
           {reportTableData && !this.props.data.values && (
             <ReportTable rows={reportTableData} type='regular' />
           )}
-          {this.props.data.values?.[0]?.[1] && 'percentages' in this.props.data.values[0][1] && this.props.data.values[0][1].percentages && (
+          {this.props.data.values?.[0]?.[1] &&
+            'percentages' in this.props.data.values[0][1] &&
+            this.props.data.values[0][1].percentages && (
               <ReportTable
                 rows={this.props.data.values}
                 responseLabels={this.props.data.responseLabels}
                 type='disaggregated'
               />
             )}
-          {this.props.data.values?.[0]?.[1] && 'mean' in this.props.data.values[0][1] && this.props.data.values[0][1].mean && (
-            <ReportTable rows={this.props.data.values} type='numerical' />
+          {this.props.data.values?.[0]?.[1] &&
+            'mean' in this.props.data.values[0][1] &&
+            this.props.data.values[0][1].mean && (
+              <ReportTable rows={this.props.data.values} type='numerical' />
+            )}
+          {this.props.data.mean && (
+            <ReportTable values={this.props.data} type='numerical' />
           )}
-          {this.props.data.mean && <ReportTable values={this.props.data} type='numerical' />}
         </bem.ReportView__itemContent>
       </div>
     );

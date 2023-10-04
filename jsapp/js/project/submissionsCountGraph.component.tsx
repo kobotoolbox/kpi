@@ -9,7 +9,9 @@ import {formatDate, handleApiFail} from 'js/utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import styles from './submissionsCountGraph.module.scss';
 
-interface DailySubmissionCounts {[/** YYYY-MM-DD */ date: string]: number}
+interface DailySubmissionCounts {
+  [/** YYYY-MM-DD */ date: string]: number;
+}
 
 interface AssetCountsResponse {
   daily_submission_counts: DailySubmissionCounts;
@@ -45,28 +47,33 @@ interface SubmissionsCountGraphProps {
   assetUid: string;
 }
 
-export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps) {
+export default function SubmisCountsionsGraph(
+  props: SubmissionsCountGraphProps
+) {
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPeriod, setCurrentPeriod] = useState<StatsPeriodName>(DEFAULT_PERIOD);
+  const [currentPeriod, setCurrentPeriod] =
+    useState<StatsPeriodName>(DEFAULT_PERIOD);
   const [counts, setCounts] = useState<AssetCountsResponse>(emptyCounts);
   const [myGraph, setMyGraph] = useState<Chart | undefined>(undefined);
-  const canvasRef: React.MutableRefObject<HTMLCanvasElement | null> = useRef(null);
+  const canvasRef: React.MutableRefObject<HTMLCanvasElement | null> =
+    useRef(null);
 
   /** Handles days in past */
-  const getDateRangeLabel = useCallback(
-    () => {
-      // We need 1 day less than period length, because we omit today
-      const daysAmount = StatsPeriods[currentPeriod] - 1;
+  const getDateRangeLabel = useCallback(() => {
+    // We need 1 day less than period length, because we omit today
+    const daysAmount = StatsPeriods[currentPeriod] - 1;
 
-      const daysFromLabel = formatDate(moment().subtract(daysAmount, 'days').format());
-      const daysToLabel = formatDate(moment().format());
+    const daysFromLabel = formatDate(
+      moment().subtract(daysAmount, 'days').format()
+    );
+    const daysToLabel = t('Today');
 
-      // TODO: what if we go with `t('Today')` for `daysTolabel`?
-
-      return (<>{daysFromLabel} &ndash; {daysToLabel}</>);
-    },
-    [currentPeriod]
-  );
+    return (
+      <>
+        {daysFromLabel} &ndash; {daysToLabel}
+      </>
+    );
+  }, [currentPeriod]);
 
   const renderPeriodToggle = useCallback(
     (periodName: StatsPeriodName, label: string) => (
@@ -95,7 +102,10 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
       const today = moment();
       // Get the furthest day in the past that we need. We subtract one day,
       // because we already start from today.
-      let day = today.clone().startOf('days').subtract(total - 1, 'days');
+      let day = today
+        .clone()
+        .startOf('days')
+        .subtract(total - 1, 'days');
       // Loop over days and add them to the list. We need all the days, not just
       // the ones with data.
       while (day <= today) {
@@ -120,7 +130,10 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
       const today = moment();
       // Get the furthest month in the past that we need. We subtract one month,
       // because we already start from today.
-      let month = today.clone().startOf('months').subtract(total - 1, 'months');
+      let month = today
+        .clone()
+        .startOf('months')
+        .subtract(total - 1, 'months');
       // Loop over months and add them to the list. We need all the months, not
       // just the ones with data.
       while (month <= today) {
@@ -229,7 +242,10 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
         // Here we handle all the periods that display days
         case 'week':
         case 'month': {
-          graphData = getDaysData(counts.daily_submission_counts, StatsPeriods[currentPeriod]);
+          graphData = getDaysData(
+            counts.daily_submission_counts,
+            StatsPeriods[currentPeriod]
+          );
           break;
         }
         case '3months': {
@@ -246,12 +262,14 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
       myGraph.data.datasets = [{data: Array.from(graphData.values())}];
       myGraph.update();
     }
-
   }, [counts]);
 
   const hasData = !isLoading && counts.total_submission_count > 0;
 
-  const totalPeriodCount = Object.values(counts.daily_submission_counts).reduce((partialSum, a) => partialSum + a, 0);
+  const totalPeriodCount = Object.values(counts.daily_submission_counts).reduce(
+    (partialSum, a) => partialSum + a,
+    0
+  );
 
   return (
     <section className={styles.root}>
@@ -262,15 +280,17 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
         {renderPeriodToggle('12months', t('Past 12 months'))}
       </nav>
 
-      <div className={classNames({
-        [styles.graph]: true,
-        // We need graph to be rendered all the times, we just hide from
-        // the view until it is rebuilt with new data.
-        [styles.graphVisible]: !isLoading && hasData,
-      })}>
+      <div
+        className={classNames({
+          [styles.graph]: true,
+          // We need graph to be rendered all the times, we just hide from
+          // the view until it is rebuilt with new data.
+          [styles.graphVisible]: !isLoading && hasData,
+        })}
+      >
         {isLoading && <LoadingSpinner hideMessage />}
 
-        <canvas ref={canvasRef}/>
+        <canvas ref={canvasRef} />
 
         {!isLoading && !hasData && (
           <p className={styles.noChartMessage}>
@@ -284,9 +304,7 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
           <span className={styles.statsCount}>
             {isLoading ? '-' : totalPeriodCount}
           </span>
-          <time className={styles.statsDateRange}>
-            {getDateRangeLabel()}
-          </time>
+          <time className={styles.statsDateRange}>{getDateRangeLabel()}</time>
         </div>
 
         <div className={styles.stats}>
@@ -294,9 +312,7 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
             {counts.total_submission_count}
           </span>
 
-          <span className={styles.statsDateRange}>
-            {t('Total')}
-          </span>
+          <span className={styles.statsDateRange}>{t('Total')}</span>
         </div>
       </div>
     </section>

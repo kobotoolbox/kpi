@@ -1,5 +1,11 @@
-export type ReportStyleName = 'vertical' | 'donut' | 'area' | 'horizontal' | 'pie' | 'line';
-export type ReportStyleChartJsName = 'bar'| 'pie'| 'line' | 'pie'| 'line';
+export type ReportStyleName =
+  | 'vertical'
+  | 'donut'
+  | 'area'
+  | 'horizontal'
+  | 'pie'
+  | 'line';
+export type ReportStyleChartJsName = 'bar' | 'pie' | 'line' | 'pie' | 'line';
 
 interface ReportStyle {
   value: ReportStyleName;

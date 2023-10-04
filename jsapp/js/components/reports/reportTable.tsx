@@ -1,6 +1,9 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
-import type {ReportsResponseData, ReportsResponseDataValues} from 'jsapp/js/dataInterface';
+import type {
+  ReportsResponseData,
+  ReportsResponseDataValues,
+} from 'jsapp/js/dataInterface';
 import type {PreparedTable} from './reportViewItem';
 
 interface ReportTableProps {
@@ -32,7 +35,9 @@ export default class ReportTable extends React.Component<ReportTableProps> {
         <table>
           <thead>
             <tr>
-              {th.map((t, i) => (<th key={i}>{t}</th>))}
+              {th.map((t, i) => (
+                <th key={i}>{t}</th>
+              ))}
             </tr>
           </thead>
           {this.props.values && (
@@ -75,11 +80,19 @@ export default class ReportTable extends React.Component<ReportTableProps> {
       }
     }
 
-    if (this.props.type === 'disaggregated' && this.props.rows && this.props.rows.length > 0) {
+    if (
+      this.props.type === 'disaggregated' &&
+      this.props.rows &&
+      this.props.rows.length > 0
+    ) {
       const rowsB = clonedeep(this.props.rows) || [];
       if (this.props.responseLabels) {
         th = th.concat(this.props.responseLabels);
-      } else if (typeof rowsB?.[0]?.[1] === 'object' && 'responses' in rowsB?.[0]?.[1] && rowsB?.[0]?.[1]?.responses) {
+      } else if (
+        typeof rowsB?.[0]?.[1] === 'object' &&
+        'responses' in rowsB?.[0]?.[1] &&
+        rowsB?.[0]?.[1]?.responses
+      ) {
         th = th.concat(rowsB[0][1].responses);
       }
 
@@ -106,17 +119,19 @@ export default class ReportTable extends React.Component<ReportTableProps> {
       <table>
         <thead>
           <tr>
-            {th.map((t, i) => (<th key={i}>{t}</th>))}
+            {th.map((t, i) => (
+              <th key={i}>{t}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) =>
-            (
-              <tr key={row[0]}>
-                {row.map((r, i: number) => (<td key={i}>{r}</td>))}
-              </tr>
-            )
-          )}
+          {rows.map((row) => (
+            <tr key={row[0]}>
+              {row.map((r, i: number) => (
+                <td key={i}>{r}</td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
     );
