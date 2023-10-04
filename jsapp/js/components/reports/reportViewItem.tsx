@@ -1,0 +1,330 @@
+import React from 'react';
+import {observer} from 'mobx-react';
+import zip from 'lodash.zip';
+import Chart from 'chart.js/auto';
+import type {ChartDataset, ChartConfiguration} from 'chart.js/auto';
+import clonedeep from 'lodash.clonedeep';
+import bem from 'js/bem';
+import sessionStore from 'js/stores/session';
+import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
+import type {ReportStyleChartJsName} from './reportsConstants';
+import ReportTable from './reportTable';
+import type {ReportsResponse, ReportsResponseData} from 'jsapp/js/dataInterface';
+
+export type PreparedTable = Array<[string | undefined, number | undefined, number | undefined]>;
+
+function truncateLabel(label: string, length = 25) {
+  if (label.length > length) {
+    return label.substring(0, length - 3) + '…';
+  }
+  return label;
+}
+
+function getPreparedTable(data: ReportsResponseData): PreparedTable | undefined {
+  if (data.mean) {
+    return undefined;
+  }
+
+  if (data.percentages && data.responses && data.frequencies) {
+    return zip(
+      data.responseLabels || data.responses,
+      data.frequencies,
+      data.percentages,
+    );
+  }
+
+  return [];
+}
+
+/** We expect reports response to be passed together with some other props */
+interface ReportViewItemProps extends ReportsResponse {
+  label: string;
+  triggerQuestionSettings: () => void;
+}
+
+class ReportViewItem extends React.Component<ReportViewItemProps> {
+  constructor(props: ReportViewItemProps) {
+    super(props);
+    this.canvasRef = React.createRef();
+  }
+  canvasRef: React.RefObject<any>;
+  itemChart?: Chart;
+
+  componentDidMount() {
+    if (this.props.data.show_graph) {
+      this.loadChart();
+    }
+  }
+
+  componentDidUpdate() {
+    // refreshes a chart right after render()
+    // TODO: ideally this shouldn't refresh a chart if it hasn't changed
+    // See: https://github.com/kobotoolbox/kpi/issues/3921
+    if (this.props.data.show_graph) {
+      this.loadChart();
+    }
+  }
+
+  loadChart() {
+    const opts = this.buildChartOptions();
+
+    if (this.itemChart) {
+      this.itemChart.destroy();
+      this.itemChart = new Chart(this.canvasRef.current, opts);
+    } else {
+      this.itemChart = new Chart(this.canvasRef.current, opts);
+    }
+  }
+
+  buildChartOptions() {
+    // We need to clone the data object to not pollute it with mutations. This
+    // fixes a bug when we want to truncate labels for the chart, but they
+    // end up being truncated everywhere in report view.
+    const data = clonedeep(this.props.data);
+    const chartType = this.props.style.report_type || 'vertical';
+    let chartJsType: ReportStyleChartJsName = 'bar';
+
+    let maxPercentage = 100;
+    let showLegend = false;
+
+    // TODO: set as default globally in a higher level (PM)
+    // https://github.com/kobotoolbox/kpi/issues/3921
+    const colors = this.buildChartColors();
+
+    const baseColor = colors[0];
+    Chart.defaults.elements.bar.backgroundColor = baseColor;
+    Chart.defaults.elements.line.borderColor = baseColor;
+    Chart.defaults.elements.line.backgroundColor =
+      'rgba(255, 255, 255, 0.1)';
+    Chart.defaults.elements.point.backgroundColor = baseColor;
+    Chart.defaults.elements.point.radius = 4;
+    Chart.defaults.elements.arc.backgroundColor = baseColor;
+    Chart.defaults.maintainAspectRatio = false;
+
+    // if report styles are invalid we default to vertical
+    if (Object.keys(REPORT_STYLES).includes(chartType) !== true) {
+      chartJsType = REPORT_STYLES.vertical.chartJsType;
+    }
+
+    if (chartType === REPORT_STYLES.donut.value) {
+      chartJsType = REPORT_STYLES.donut.chartJsType;
+    }
+
+    if (chartType === REPORT_STYLES.area.value) {
+      chartJsType = REPORT_STYLES.area.chartJsType;
+    }
+
+    if (chartType === REPORT_STYLES.vertical.value) {
+      chartJsType = REPORT_STYLES.vertical.chartJsType;
+    }
+
+    if (chartType === REPORT_STYLES.horizontal.value) {
+      chartJsType = 'bar';
+    }
+
+    const datasets: ChartDataset[] = [];
+
+    if (data.values !== undefined) {
+      if (data.responseLabels) {
+        data.responseLabels.forEach((r, i) => {
+          if (data.responseLabels) {
+            data.responseLabels[i] = truncateLabel(r);
+          }
+        });
+      }
+
+      let allPercentages: number[] = [];
+      data.values.forEach(function (val: any, i: number) {
+        const choiceLabel = val[2] || val[0] || '';
+        let itemPerc = [];
+        // TODO: Make the backend behave consistently?
+        // https://github.com/kobotoolbox/kpi/issues/2562
+        if (Array.isArray(val[1].percentage)) {
+          itemPerc = val[1].percentage;
+        }
+        if (Array.isArray(val[1].percentages)) {
+          itemPerc = val[1].percentages;
+        }
+        allPercentages = [...new Set([...allPercentages, ...itemPerc])];
+        datasets.push({
+          label: truncateLabel(choiceLabel, 20),
+          data: itemPerc,
+          backgroundColor: colors[i],
+        });
+      });
+
+      maxPercentage = Math.max(...allPercentages);
+      showLegend = true;
+    } else {
+      if (data.percentages) {
+        maxPercentage = Math.max(...data.percentages);
+        datasets.push({data: data.percentages, barPercentage: 0.5});
+      }
+      if (data.responseLabels) {
+        data.responseLabels.forEach((r, i) => {
+          if (data.responseLabels) {
+            data.responseLabels[i] = truncateLabel(r);
+          }
+        });
+      }
+      if (data.responses) {
+        data.responses.forEach((r, i) => {
+          if (data.responses) {
+            data.responses[i] = truncateLabel(r);
+          }
+        });
+      }
+    }
+
+    maxPercentage =
+      maxPercentage < 85 ? (parseInt(String(maxPercentage / 10), 10) + 1) * 10 : 100;
+
+    const opts: ChartConfiguration = {
+      type: chartJsType,
+      data: {
+        labels: data.responseLabels || data.responses,
+        datasets: datasets,
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: showLegend,
+          },
+        },
+        animation: {
+          duration: 500,
+        },
+        scales: {
+          x: {
+            // ticks: {autoSkip: false},
+            max: maxPercentage,
+            beginAtZero: true,
+          },
+          y: {
+            // ticks: {autoSkip: false},
+            max: maxPercentage,
+            beginAtZero: true,
+          },
+        },
+      },
+    };
+
+    if (chartType === 'horizontal') {
+      if (opts.options) {
+        opts.options.indexAxis = 'y';
+      }
+    }
+
+    if (chartType === 'pie') {
+      if (opts.options?.plugins?.legend) {
+        opts.options.plugins.legend.display = true;
+      }
+      opts.data.datasets[0].backgroundColor = colors;
+      if (opts.options && !opts.options.scales) {
+        opts.options.scales = {x: {}, y: {}};
+      }
+    }
+
+    if (this.props.style.report_type === REPORT_STYLES.area.value) {
+      opts.data.datasets[0].backgroundColor = colors[0];
+    }
+
+    return opts;
+  }
+
+  buildChartColors() {
+    let output = this.props.style.report_colors || REPORT_COLOR_SETS[0].colors;
+
+    const c1 = output.slice(0).map((c) => {
+      c = c.replace('1)', '0.75)');
+      return c.replace('0.8', '0.5');
+    });
+    output = output.concat(c1);
+
+    const c2 = output.slice(0).map((c) => {
+      c = c.replace('1)', '0.5)');
+      return c.replace('0.8', '0.25');
+    });
+    output = output.concat(c2);
+
+    return output;
+  }
+
+  render() {
+    const reportTableData = getPreparedTable(this.props.data);
+
+    const rowType = this.props.row.type;
+
+    if (!rowType) {
+      console.error('No type given for row: ', this.props);
+      return (
+        <p className='error'>
+          {'Error displaying row: '}
+          <code>{this.props.kuid}</code>
+        </p>
+      );
+    }
+
+    // TODO WTF: no idea why this was here, maybe some ancient code fallback?
+    // I've commented this out for now, will delete later…
+    // if (rowType.select_one || rowType.select_multiple) {
+    //   rowType = Object.keys(rowType)[0];
+    // }
+    // rowType = JSON.stringify(rowType);
+
+    return (
+      <div>
+        <bem.ReportView__itemHeading>
+          <h2>{this.props.label}</h2>
+          <bem.ReportView__headingMeta>
+            <span className='type'>{t('Type: ') + rowType + t('. ')}</span>
+            <span className='respondents'>
+              {t('#1 out of #2 respondents answered this question. ')
+                .replace('#1', String(this.props.data.provided))
+                .replace('#2', String(this.props.data.total_count))}
+            </span>
+            <span>
+              {t('(# were without data.)').replace('#', String(this.props.data.not_provided))}
+            </span>
+          </bem.ReportView__headingMeta>
+          {this.props.data.show_graph && sessionStore.isLoggedIn && (
+            <bem.Button
+              m='icon'
+              className='report-button__question-settings'
+              onClick={this.props.triggerQuestionSettings}
+              data-question={this.props.name}
+              data-tip={t('Override Graph Style')}
+            >
+              <i className='k-icon k-icon-more' data-question={this.props.name} />
+            </bem.Button>
+          )}
+        </bem.ReportView__itemHeading>
+        <bem.ReportView__itemContent>
+          {this.props.data.show_graph && (
+            <bem.ReportView__chart
+              style={{width: this.props.style.graphWidth + 'px'}}
+            >
+              <canvas ref={this.canvasRef} />
+            </bem.ReportView__chart>
+          )}
+          {reportTableData && !this.props.data.values && (
+            <ReportTable rows={reportTableData} type='regular' />
+          )}
+          {this.props.data.values?.[0]?.[1] && 'percentages' in this.props.data.values[0][1] && this.props.data.values[0][1].percentages && (
+              <ReportTable
+                rows={this.props.data.values}
+                responseLabels={this.props.data.responseLabels}
+                type='disaggregated'
+              />
+            )}
+          {this.props.data.values?.[0]?.[1] && 'mean' in this.props.data.values[0][1] && this.props.data.values[0][1].mean && (
+            <ReportTable rows={this.props.data.values} type='numerical' />
+          )}
+          {this.props.data.mean && <ReportTable values={this.props.data} type='numerical' />}
+        </bem.ReportView__itemContent>
+      </div>
+    );
+  }
+}
+
+export default observer(ReportViewItem);

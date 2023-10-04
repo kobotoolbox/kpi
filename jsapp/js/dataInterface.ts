@@ -10,6 +10,7 @@ import {ROOT_URL, COMMON_QUERIES} from './constants';
 import type {EnvStoreFieldItem, FreeTierDisplay, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
+  AnyRowTypeName,
   AssetTypeName,
   ValidationStatus,
   AssetFileType,
@@ -18,6 +19,7 @@ import type {
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
 import type {FreeTierThresholds} from 'js/envStore';
+import type {ReportStyleName} from './components/reports/reportsConstants';
 
 interface AssetsRequestData {
   q?: string;
@@ -281,9 +283,7 @@ export interface SurveyRow {
   $qpath: string;
   $autoname: string;
   $kuid: string;
-  // We use dynamic import to avoid changing this ambient module to a normal
-  // module: see https://stackoverflow.com/a/51114250/2311247
-  type: import('js/constants').AnyRowTypeName;
+  type: AnyRowTypeName;
   calculation?: string;
   label?: string[];
   hint?: string[];
@@ -794,6 +794,61 @@ interface AssetSnapshotResponse {
   source: AssetContent;
 }
 
+interface ReportsResponseDataValueRegular {
+  responses: string;
+  frequencies: number;
+  percentages: number;
+}
+
+interface ReportsResponseDataValueNumerical {
+  median?: number | '*';
+  mean?: number | '*';
+  mode?: number | '*';
+  stdev?: number | '*';
+}
+
+export type ReportsResponseDataValues = Array<[number, ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical]>;
+
+export interface ReportsResponseData {
+  total_count: number;
+  not_provided: number;
+  provided: number;
+  show_graph: boolean;
+  /**
+   * The `values` property appears in the API response when `?split_by` query
+   * param is being used
+   */
+  values?: ReportsResponseDataValues;
+  responses?: string[];
+  responseLabels?: string[];
+  /** Integer */
+  frequencies?: number[];
+  /** Number with 2 decimal points */
+  percentages?: number[];
+  /** It shows up sometimes as empty array, no idea what is it for. */
+  percentage?: any[];
+  /** All four are for `integer`, `decimal`, `range` types */
+  median?: number | '*';
+  mean?: number | '*';
+  mode?: number | '*';
+  stdev?: number | '*';
+}
+
+export interface ReportsResponse {
+  name: string;
+  row: {
+    type: AnyRowTypeName;
+  };
+  data: ReportsResponseData;
+  kuid: string;
+  style: {
+    // There could be more properties here
+    graphWidth?: number;
+    report_type?: ReportStyleName;
+    report_colors?: string[];
+  };
+}
+
 const DEFAULT_PAGE_SIZE = 100;
 
 interface ExternalServiceRequestData {
@@ -1019,7 +1074,7 @@ export const dataInterface: DataInterface = {
     uid: string;
     identifiers: string[];
     group_by: string;
-  }): JQuery.jqXHR<any> {
+  }): JQuery.jqXHR<PaginatedResponse<ReportsResponse>> {
     let identifierString;
     if (data.identifiers) {
       identifierString = `?names=${data.identifiers.join(',')}`;

@@ -1,4 +1,15 @@
-export const REPORT_STYLES = Object.freeze({
+export type ReportStyleName = 'vertical' | 'donut' | 'area' | 'horizontal' | 'pie' | 'line';
+export type ReportStyleChartJsName = 'bar'| 'pie'| 'line' | 'pie'| 'line';
+
+interface ReportStyle {
+  value: ReportStyleName;
+  label: string;
+  chartJsType: ReportStyleChartJsName;
+}
+
+type ReportStyles = {[P in ReportStyleName]: ReportStyle};
+
+export const REPORT_STYLES: ReportStyles = Object.freeze({
   vertical: {
     value: 'vertical',
     label: t('Vertical'),
@@ -17,7 +28,9 @@ export const REPORT_STYLES = Object.freeze({
   horizontal: {
     value: 'horizontal',
     label: t('Horizontal'),
-    chartJsType: 'horizontalBar',
+    // This used to be `horizontalBar`, but it was removed from Chart.js
+    // https://www.chartjs.org/docs/latest/charts/bar.html#horizontal-bar-chart
+    chartJsType: 'bar',
   },
   pie: {
     value: 'pie',

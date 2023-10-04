@@ -1,7 +1,8 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import classNames from 'classnames';
 import moment from 'moment';
-import Chart from 'chart.js';
+import Chart from 'chart.js/auto';
+import type {ChartConfiguration} from 'chart.js/auto';
 import type {FailResponse} from 'js/dataInterface';
 import {fetchGet} from 'js/api';
 import {formatDate, handleApiFail} from 'js/utils';
@@ -48,8 +49,8 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
   const [isLoading, setIsLoading] = useState(true);
   const [currentPeriod, setCurrentPeriod] = useState<StatsPeriodName>(DEFAULT_PERIOD);
   const [counts, setCounts] = useState<AssetCountsResponse>(emptyCounts);
+  const [myGraph, setMyGraph] = useState<Chart | undefined>(undefined);
   const canvasRef: React.MutableRefObject<HTMLCanvasElement | null> = useRef(null);
-  let graph: Chart | undefined;
 
   /** Handles days in past */
   const getDateRangeLabel = useCallback(
@@ -165,46 +166,63 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
     getStats();
   }, [currentPeriod]);
 
+  // Prepare the chart
   useEffect(() => {
-    if (!Chart.defaults.global.elements) {
-      Chart.defaults.global.elements = {};
-    }
-    if (!Chart.defaults.global.elements.rectangle) {
-      Chart.defaults.global.elements.rectangle = {};
-    }
-    Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
+    Chart.defaults.elements.bar.backgroundColor = 'rgba(61, 194, 212, 0.6)';
 
-    const opts: Chart.ChartConfiguration = {
+    const opts: ChartConfiguration = {
       type: 'bar',
+      data: {
+        datasets: [],
+      },
       options: {
         maintainAspectRatio: false,
         responsive: true,
-        events: [''],
-        legend: {
-          display: false,
+        elements: {
+          bar: {
+            backgroundColor: '#64c0ff', // $kobo-alt-blue
+            borderRadius: 4,
+          },
+          point: {
+            radius: 0,
+          },
+        },
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            enabled: false,
+          },
         },
         scales: {
-          yAxes: [{
+          y: {
+            beginAtZero: true,
             ticks: {
-              beginAtZero: true,
               // Only show full numbers
-              callback: (label: number) => {
-                if (Math.floor(label) === label) {
+              callback: (label: string | number) => {
+                if (typeof label === 'number' && Math.floor(label) === label) {
                   return label;
                 }
                 return undefined;
               },
             },
-          }],
+          },
         },
       },
     };
 
-    if (!graph && canvasRef.current) {
-      graph = new Chart(canvasRef.current, opts);
+    if (!myGraph && canvasRef.current) {
+      setMyGraph(new Chart(canvasRef.current, opts));
     }
 
-    if (graph) {
+    return () => {
+      myGraph?.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (myGraph) {
       let graphData: GraphData = new Map<string, number>();
 
       switch (currentPeriod) {
@@ -224,9 +242,9 @@ export default function SubmisCountsionsGraph(props: SubmissionsCountGraphProps)
         }
       }
 
-      graph.data.labels = Array.from(graphData.keys());
-      graph.data.datasets = [{data: Array.from(graphData.values())}];
-      graph.update();
+      myGraph.data.labels = Array.from(graphData.keys());
+      myGraph.data.datasets = [{data: Array.from(graphData.values())}];
+      myGraph.update();
     }
 
   }, [counts]);
