@@ -60,7 +60,7 @@
               <li>
                 <a title="{{ social_app.name }}"
                    class="socialaccount_provider {{ social_app.provider }} kobo-button kobo-button--sso kobo-button--fullwidth"
-                   href="{% provider_login_url social_app.provider_id process='login' scope=scope auth_params=auth_params %}"
+                   href="{% provider_login_url social_app.provider process='login' scope=scope auth_params=auth_params %}"
                 >
                   {{ social_app.name }}
                 </a>
