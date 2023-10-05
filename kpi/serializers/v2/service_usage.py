@@ -131,34 +131,19 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._current_year_start
 
     def _get_per_asset_usage(self, user):
-        self._users = [user]
+        self._user_ids = [user.pk]
 
-        # Get the organization ID passed in from the query parameters
-        organization_id = self.context['request'].query_params.get(
-            'organization_id'
-        )
-        self._get_organization_details(organization_id)
+        self._get_organization_details()
 
-        # Only use fields we need to improve SQL query speed
-        user_assets = (
-            Asset.objects.only(
-                'pk',
-                'uid',
-                '_deployment_data',
-                'owner_id',
-                'name',
-            )
-            .select_related('owner')
-            .filter(
-                owner__in=self._users,
-                asset_type=ASSET_TYPE_SURVEY,
-                # Make sure we're only getting assets that are deployed
-                _deployment_data__has_key='backend',
+        asset_list = list(
+            Asset.all_objects.values_list('uid', flat=True).filter(
+                owner__in=self._user_ids,
+                date_deployed__isnull=False,
             )
         )
 
-        xforms = KobocatXForm.objects.only('bytes_sum', 'id').filter(
-            kpi_asset_uid__in=[user_asset.uid for user_asset in user_assets]
+        xforms = KobocatXForm.objects.only('bytes_sum', 'id', 'kpi_asset_uid').filter(
+            kpi_asset_uid__in=asset_list,
         )
 
         total_storage_bytes = xforms.aggregate(
@@ -180,7 +165,9 @@ class ServiceUsageSerializer(serializers.Serializer):
                 'date', 'xform', 'counter'
             )
             .filter(
-                xform__in=xforms,
+                # get submission counters for all deployed assets OR the null xform counter
+                Q(user_id__in=self._user_ids, xform=None) |
+                Q(xform__kpi_asset_uid__in=asset_list),
             )
             .aggregate(
                 all_time=Coalesce(Sum('counter'), 0),
@@ -203,7 +190,7 @@ class ServiceUsageSerializer(serializers.Serializer):
                 'date', 'total_asr_seconds', 'total_mt_characters'
             )
             .filter(
-                asset_id__in=user_assets,
+                user_id__in=self._user_ids,
             )
             .aggregate(
                 asr_seconds_current_year=Coalesce(
@@ -261,7 +248,12 @@ class ServiceUsageSerializer(serializers.Serializer):
             return self._anchor_date.replace(year=self._now.year - 1)
         return self._anchor_date.replace(year=self._now.year)
 
-    def _get_organization_details(self, organization_id=None):
+    def _get_organization_details(self):
+        # Get the organization ID passed in from the query parameters
+        organization_id = self.context['request'].query_params.get(
+            'organization_id'
+        )
+
         if not organization_id:
             return
 
@@ -275,7 +267,7 @@ class ServiceUsageSerializer(serializers.Serializer):
             return
 
         # If the user is in an organization, get all org users so we can query their total org usage
-        self._users = User.objects.filter(
+        self._user_ids = User.objects.values_list('pk', flat=True).filter(
             organizations_organization__id=organization_id
         )
 

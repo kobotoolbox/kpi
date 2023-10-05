@@ -67,13 +67,23 @@ function OverLimitModal(props: OverLimitModalProps) {
               <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.link}>
                 {t('upgrade your plan')}
               </a>{' '}
-              {t('as soon as possible. You can')}{' '}
+              {'as soon as possible or ' /* tone down the language for now */}
+              <a
+                href='https://www.kobotoolbox.org/contact/'
+                target='_blank'
+                className={styles.link}
+              >
+                {'contact us'}
+              </a>
+              {' to speak with our team. You can '}
               <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.link}>
                 {t('review your usage in account settings')}
               </a>
               {'.'}
             </div>
-            <p className={cx(limitBannerContainer, styles.consequences)}>
+            {
+              // removed to make the message less scary
+              /* <p className={cx(limitBannerContainer, styles.consequences)}>
               <Icon
                 name='warning'
                 size='m'
@@ -85,7 +95,8 @@ function OverLimitModal(props: OverLimitModalProps) {
                   'Users who have exceeded their submission or storage limits may be temporarily blocked from collecting data. Repeatedly exceeding usage limits may result in account suspension.'
                 )}
               </span>
-            </p>
+            </p> */
+            }
           </div>
         </KoboModalContent>
 
