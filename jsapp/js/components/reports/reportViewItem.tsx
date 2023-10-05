@@ -284,13 +284,6 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       );
     }
 
-    // TODO WTF: no idea why this was here, maybe some ancient code fallback?
-    // I've commented this out for now, will delete later…
-    // if (rowType.select_one || rowType.select_multiple) {
-    //   rowType = Object.keys(rowType)[0];
-    // }
-    // rowType = JSON.stringify(rowType);
-
     return (
       <div>
         <bem.ReportView__itemHeading>
