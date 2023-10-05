@@ -5,6 +5,7 @@ from django.utils.timezone import now
 
 from kpi.fields.kpi_uid import UUID_LENGTH
 
+
 class AuditAction(models.TextChoices):
 
     CREATE = 'create', 'CREATE'

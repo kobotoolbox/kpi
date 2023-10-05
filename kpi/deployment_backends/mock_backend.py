@@ -9,6 +9,11 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
+
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -22,7 +27,7 @@ from django.utils.translation import gettext as t
 from lxml import etree
 from rest_framework import status
 
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -55,15 +60,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         'formhub',
         'meta',
     ]
-
-    @property
-    def all_time_submission_count(self):
-        # FIXME, does not reproduce KoBoCAT behaviour.
-        #   Deleted submissions are not taken into account but they should be
-        monthly_counter = len(
-            self.get_submissions(self.asset.owner)
-        )
-        return monthly_counter
 
     @property
     def attachment_storage_bytes(self):
@@ -131,7 +127,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     'uuid': _uuid,
                     'status_code': status.HTTP_201_CREATED,
                     'message': 'Successful submission',
-                    'updated_submission': etree.tostring(xml_parsed) # only for testing
+                    'updated_submission': etree.tostring(xml_parsed)  # only for testing
                 }
             )
 
@@ -152,31 +148,38 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'downloadable': active,
                 'has_kpi_hook': self.asset.has_active_hooks,
                 'kpi_asset_uid': self.asset.uid
-            }
+            },
+            'version': self.asset.version_id,
         })
 
-    @property
-    def current_month_nlp_tracking(self):
+    def nlp_tracking_data(self, start_date=None):
         """
-        Get the current month's NLP tracking data
+        Get the NLP tracking data since a specified date
+        If no date is provided, get all-time data
         """
-        today = datetime.today()
+        filter_args = {}
+        if start_date:
+            filter_args = {'date__gte': start_date}
         try:
-            monthly_nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('counters').get(
+            nlp_tracking = (
+                NLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
+                .filter(
                     asset_id=self.asset.id,
-                    year=today.year,
-                    month=today.month,
-                ).counters
+                    **filter_args
+                ).aggregate(
+                    total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
+                    total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
+                )
             )
-        except MonthlyNLPUsageCounter.DoesNotExist:
-            # return empty dict to match `monthly_nlp_tracking`
-            return {}
+        except NLPUsageCounter.DoesNotExist:
+            return {
+                'total_nlp_asr_seconds': 0,
+                'total_nlp_mt_characters': 0,
+            }
         else:
-            return monthly_nlp_tracking
+            return nlp_tracking
 
-    @property
-    def current_month_submission_count(self):
+    def submission_count_since_date(self, start_date=None):
         # FIXME, does not reproduce KoBoCAT behaviour.
         #   Deleted submissions are not taken into account but they should be
         monthly_counter = len(
@@ -495,28 +498,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     @property
     def mongo_userform_id(self):
         return f'{self.asset.owner.username}_{self.asset.uid}'
-
-    @property
-    def nlp_tracking(self):
-        """
-        Get the current month's NLP tracking data
-        """
-        try:
-            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
-                asset_id=self.asset.id
-            )
-            total_counters = {}
-            for nlp_counters in nlp_usage_counters:
-                counters = nlp_counters.counters
-                for key in counters.keys():
-                    if key not in total_counters:
-                        total_counters[key] = 0
-                    total_counters[key] += counters[key]
-        except MonthlyNLPUsageCounter.DoesNotExist:
-            # return empty dict to match `total_counters`
-            return {}
-        else:
-            return total_counters
 
     def redeploy(self, active: bool = None):
         """

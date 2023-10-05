@@ -2,6 +2,8 @@ import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from djstripe.models import (
     Customer,
     Price,
@@ -14,7 +16,6 @@ from djstripe.models import (
 from djstripe.settings import djstripe_settings
 from organizations.utils import create_organization
 from rest_framework import mixins, status, viewsets
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -27,6 +28,7 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
+from kpi.permissions import IsAuthenticated
 
 
 # Lists the one-time purchases made by the organization that the logged-in user owns
@@ -190,30 +192,50 @@ class CheckoutLinkView(APIView):
         customer, _ = Customer.get_or_create(
             subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
         )
-        # Add the name and organization to the customer if not present.
+        # Update the customer's name and organization name in Stripe.
         # djstripe doesn't let us do this on customer creation, so modify the customer on Stripe and then fetch locally.
-        if not customer.name and user.extra_details.data['name']:
-            stripe_customer = stripe.Customer.modify(
-                customer.id,
-                name=user.extra_details.data['name'],
-                description=organization.name,
-                api_key=djstripe_settings.STRIPE_SECRET_KEY,
-            )
-            customer.sync_from_stripe_data(stripe_customer)
+        stripe_customer = stripe.Customer.modify(
+            customer.id,
+            name=customer.name or user.extra_details.data.get('name', user.username),
+            description=organization.name,
+            api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            metadata={
+                'kpi_owner_username': user.username,
+                'kpi_owner_user_id': user.id,
+                'request_url': settings.KOBOFORM_URL,
+                'organization_id': organization_id,
+            },
+        )
+        customer.sync_from_stripe_data(stripe_customer)
         session = CheckoutLinkView.start_checkout_session(
-            customer.id, price, organization.id
+            customer.id, price, organization.id, user,
         )
         return session['url']
 
     @staticmethod
-    def start_checkout_session(customer_id, price, organization_id):
+    def start_checkout_session(customer_id, price, organization_id, user):
         checkout_mode = (
             'payment' if price.type == 'one_time' else 'subscription'
         )
+        kwargs = {}
+        if checkout_mode == 'subscription':
+            kwargs['subscription_data'] = {
+                'metadata': {
+                    'kpi_owner_username': user.username,
+                    'kpi_owner_user_id': user.id,
+                    'request_url': settings.KOBOFORM_URL,
+                    'organization_id': organization_id,
+                },
+            }
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             automatic_tax={'enabled': False},
+            billing_address_collection='required',
             customer=customer_id,
+            customer_update={
+                'address': 'auto',
+                'name': 'auto',
+            },
             line_items=[
                 {
                     'price': price.id,
@@ -223,9 +245,11 @@ class CheckoutLinkView(APIView):
             metadata={
                 'organization_id': organization_id,
                 'price_id': price.id,
+                'kpi_owner_username': user.username,
             },
             mode=checkout_mode,
             success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+            **kwargs,
         )
 
     def post(self, request):
@@ -283,6 +307,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+@method_decorator(cache_page(60 * 30), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Returns Product and Price Lists, sorted from the product with the lowest price to highest

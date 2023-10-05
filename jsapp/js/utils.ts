@@ -14,6 +14,7 @@ import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 import type {FailResponse} from './dataInterface';
+import type Raven from 'raven';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -24,53 +25,71 @@ const cookies = new Cookies();
 /**
  * Pop up a notification with react-hot-toast
  * Some default options are set in the <Toaster/> component
+ *
+ * Also log messages to browser console to help with debugging.
  */
-export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOptions): Toast['id'] {
+export function notify(
+  msg: Toast['message'],
+  atype = 'success',
+  opts?: ToastOptions
+): Toast['id'] {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
 
   // avoid displaying a (specific) JSON structure in the notification
   if (typeof msg === 'string' && msg[0] === '{') {
     try {
-      let parsed = JSON.parse(msg);
+      const parsed = JSON.parse(msg);
       if (Object.keys(parsed).length === 1 && 'detail' in parsed) {
         msg = `${parsed.detail}`;
       }
     } catch (err) {
-      console.error('notification starts with { but is not parseable JSON.')
+      console.error('notification starts with { but is not parseable JSON.');
     }
   }
 
+  /* eslint-disable no-console */
   switch (atype) {
-
     case 'success':
+      console.log('[notify] ✅ ' + msg);
       return toast.success(msg, opts);
 
     case 'error':
+      console.error('[notify] ❌ ' + msg);
       return toast.error(msg, opts);
 
     case 'warning':
+      console.warn('[notify] ⚠️ ' + msg);
       return toast(msg, Object.assign({icon: '⚠️'}, opts));
 
     case 'empty':
+      console.log('[notify] 📢 ' + msg);
       return toast(msg, opts); // No icon
 
     // Defensively render empty if we're passed an unknown atype,
     // in case we missed something.
     //   e.g. notify('mystery!', '?') //
     default:
+      console.log('[notify] 📢 ' + msg);
       return toast(msg, opts); // No icon
   }
+  /* eslint-enable no-console */
 }
 
 // Convenience functions for code readability, consolidated here
-notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'error', opts);
-notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'warning', opts);
-notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'success', opts);
+notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
+  notify(msg, 'error', opts);
+notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
+  notify(msg, 'warning', opts);
+notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
+  notify(msg, 'success', opts);
 
 /**
- * Useful for handling the fail responses from API. It detects if we got HTML
- * string as response and uses a generic message instead.
+ * Useful for handling the fail responses from API. Its main goal is to display
+ * a helpful error toast notification and to pass the error message to Raven.
+ *
+ * It can detect if we got HTML string as response and uses a generic message
+ * instead of spitting it out.
  */
 export function handleApiFail(response: FailResponse) {
   // Avoid displaying toast when purposefuly aborted a request
@@ -90,15 +109,24 @@ export function handleApiFail(response: FailResponse) {
     // for Werkzeug Debugger only. It is being used on development environment,
     // on production this would most probably result in undefined message (and
     // thus falling back to the generic message below).
-    const htmlDoc = (new DOMParser).parseFromString(message, 'text/html');
+    const htmlDoc = new DOMParser().parseFromString(message, 'text/html');
     message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
   }
 
   if (!message) {
-    message = `An unexpected error occurred ${response.status} ${response.statusText}`;
+    message = t('An error occurred');
+    if (response.status || response.statusText) {
+      message += ` — ${response.status} ${response.statusText}`;
+    } else if (!window.navigator.onLine) {
+      // another general case — the original fetch response.message might have
+      // something more useful to say.
+      message += ' — ' + t('Your connection is offline');
+    }
   }
 
   notify.error(message);
+
+  window.Raven?.captureMessage(message);
 }
 
 /**
@@ -129,35 +157,39 @@ export function formatTime(timeStr: string): string {
 }
 
 /**
+ * Returns something like "Mar 15, 2021"
+ */
+export function formatDate(
+  timeStr: string,
+  localize = true,
+  format = 'll'
+): string {
+  let myMoment = moment.utc(timeStr);
+  if (localize) {
+    myMoment = myMoment.local();
+  }
+  return myMoment.format(format);
+}
+
+/**
  * Returns something like "March 15, 2021 4:06 PM"
  */
-export function formatTimeDate(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('LLL');
+export function formatTimeDate(timeStr: string, localize = true): string {
+  return formatDate(timeStr, localize, 'LLL');
 }
 
 /**
  * Returns something like "Sep 4, 1986 8:30 PM"
  */
-export function formatTimeDateShort(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('lll');
+export function formatTimeDateShort(timeStr: string, localize = true): string {
+  return formatDate(timeStr, localize, 'lll');
 }
 
 /**
- * Returns something like "Mar 15, 2021"
+ * Returns something like "March 2021"
  */
-export function formatDate(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('ll');
-}
-
-/**
- * Returns something like "March, 2021"
- */
-export function formatMonth(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('MMMM YYYY');
+export function formatMonth(timeStr: string, localize = true): string {
+  return formatDate(timeStr, localize, 'MMMM YYYY');
 }
 
 /** Returns something like "07:59" */
@@ -166,7 +198,9 @@ export function formatSeconds(seconds: number) {
   const secondsRound = Math.round(seconds);
   const minutes = Math.floor(secondsRound / 60);
   const secondsLeftover = secondsRound - minutes * 60;
-  return `${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`;
+  return `${String(minutes).padStart(2, '0')}:${String(
+    secondsLeftover
+  ).padStart(2, '0')}`;
 }
 
 // works universally for v1 and v2 urls
@@ -190,7 +224,9 @@ export function getAssetUIDFromUrl(assetUrl: string): string | null {
 
 export function buildUserUrl(username: string): string {
   if (username.startsWith(window.location.protocol)) {
-    console.error('buildUserUrl() called with URL instead of username (incomplete v2 migration)');
+    console.error(
+      'buildUserUrl() called with URL instead of username (incomplete v2 migration)'
+    );
     return username;
   }
   return `${constants.ROOT_URL}/api/v2/users/${username}/`;
@@ -199,11 +235,13 @@ export function buildUserUrl(username: string): string {
 declare global {
   interface Window {
     log: () => void;
+    Raven?: Raven.Client;
   }
 }
 
 export const log = (function () {
   const innerLogFn = function (...args: any[]) {
+    // eslint-disable-next-line no-console
     console.log.apply(console, args);
     return args[0];
   };
@@ -299,19 +337,23 @@ export function stringToColor(str: string, prc?: number) {
     const num = parseInt(color, 16);
     const amt = Math.round(2.55 * prc2);
     const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    return (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-      (B < 255 ? B < 1 ? 0 : B : 255))
+    const G = ((num >> 8) & 0x00ff) + amt;
+    const B = (num & 0x0000ff) + amt;
+    return (
+      0x1000000 +
+      (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+      (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+      (B < 255 ? (B < 1 ? 0 : B) : 255)
+    )
       .toString(16)
       .slice(1);
   };
   const intToRgba = function (i: number) {
-    const color = ((i >> 24) & 0xFF).toString(16) +
-      ((i >> 16) & 0xFF).toString(16) +
-      ((i >> 8) & 0xFF).toString(16) +
-      (i & 0xFF).toString(16);
+    const color =
+      ((i >> 24) & 0xff).toString(16) +
+      ((i >> 16) & 0xff).toString(16) +
+      ((i >> 8) & 0xff).toString(16) +
+      (i & 0xff).toString(16);
     return color;
   };
   return shade(intToRgba(hash(str)), prc);
@@ -333,7 +375,6 @@ export function checkLatLng(geolocation: any[]) {
     return false;
   }
 }
-
 
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
@@ -365,7 +406,7 @@ export function renderCheckbox(id: string, label: string, isImportant = false) {
 
 export function hasLongWords(text: string, limit = 25): boolean {
   const textArr = text.split(' ');
-  const maxLength = Math.max(...(textArr.map((el) => el.length)));
+  const maxLength = Math.max(...textArr.map((el) => el.length));
   return maxLength >= limit;
 }
 
@@ -380,7 +421,8 @@ interface CSSStyleDeclarationForMicrosoft extends CSSStyleDeclaration {
 export function getScrollbarWidth(): number {
   // Creating invisible container
   const outer = document.createElement('div');
-  const style: CSSStyleDeclarationForMicrosoft = outer.style as CSSStyleDeclarationForMicrosoft;
+  const style: CSSStyleDeclarationForMicrosoft =
+    outer.style as CSSStyleDeclarationForMicrosoft;
   style.visibility = 'hidden';
   style.overflow = 'scroll'; // forcing scrollbar to appear
   style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
@@ -391,7 +433,7 @@ export function getScrollbarWidth(): number {
   outer.appendChild(inner);
 
   // Calculating difference between container's full width and the child width
-  const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
 
   // Removing temporary elements from the DOM
   if (outer.parentNode !== null) {
@@ -448,25 +490,37 @@ export function truncateFile(str: string, length: number) {
 }
 
 /**
+ * Truncates a floating point number to a fixed number of decimal places (default 2)
+ */
+export const truncateNumber = (decimal: number, decimalPlaces = 2) =>
+  parseFloat(decimal.toFixed(decimalPlaces));
+
+/**
  * Generates a simple lowercase, underscored version of a string. Useful for
  * quick filename generation
  *
  * Inspired by the way backend handles generating autonames for translations:
  * https://github.com/kobotoolbox/kpi/blob/27220c2e65b47a7f150c5bef64db97226987f8fc/kpi/utils/autoname.py#L132-L138
  */
-export function generateAutoname(str: string, startIndex = 0, endIndex: number = str.length) {
+export function generateAutoname(
+  str: string,
+  startIndex = 0,
+  endIndex: number = str.length
+) {
   return str
-  .toLowerCase()
-  .substring(startIndex, endIndex)
-  .replace(/(\ |\.)/g, '_');
+    .toLowerCase()
+    .substring(startIndex, endIndex)
+    .replace(/(\ |\.)/g, '_');
 }
 
 /** Simple unique ID generator. */
 export function generateUid() {
   return String(
-    Math.random().toString(16) + '_' +
-    Date.now().toString(32) + '_' +
-    Math.random().toString(16)
+    Math.random().toString(16) +
+      '_' +
+      Date.now().toString(32) +
+      '_' +
+      Math.random().toString(16)
   ).replace(/\./g, '');
 }
 

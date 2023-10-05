@@ -1,4 +1,6 @@
 # coding: utf-8
+from django.utils import timezone
+
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import BadAssetTypeException, DeploymentNotFound
 from kpi.models.asset_file import AssetFile
@@ -9,11 +11,11 @@ from .base_backend import BaseDeploymentBackend
 
 class DeployableMixin:
 
-    def async_media_files(self, force=True):
+    def sync_media_files_async(self, always=True):
         """
         Synchronize form media files with deployment backend asynchronously
         """
-        if force or self.asset_files.filter(
+        if always or self.asset_files.filter(
             file_type=AssetFile.FORM_MEDIA, synced_with_backend=False
         ).exists():
             self.save(create_version=False, adjust_content=False)
@@ -39,8 +41,8 @@ class DeployableMixin:
             else:
                 self.deployment.redeploy(active=active)
 
-            self._mark_latest_version_as_deployed()
-            self.async_media_files()
+            self._mark_latest_version_as_deployed(save=False)
+            self.sync_media_files_async()  # This saves the asset to the database!
 
         else:
             raise BadAssetTypeException(
@@ -62,19 +64,29 @@ class DeployableMixin:
     def set_deployment(self, deployment: BaseDeploymentBackend):
         setattr(self, '__deployment_backend', deployment)
 
-    def _mark_latest_version_as_deployed(self, save: bool = False):
+    def _mark_latest_version_as_deployed(self, save: bool = True):
         """
         `sync_kobocat_xforms` calls this, since it manipulates
         `_deployment_data` directly. Everything else should probably call
         `deploy()` above.
 
-        If `self.save()` is called after this method, it can be forced
-        to persist `date_deployed` in DB by settings the parameter `save`to True.
+        If `self.save()` is called after this method, `save` can be set
+        to `False` to avoid writing the `Asset` twice to the database.
+
+        The latest `AssetVersion` is always saved to the database unless its
+        `deployed` flag was already set to `True`.
         """
         latest_version = self.latest_version
-        latest_version.deployed = True
-        latest_version.save()
-        self.date_deployed = latest_version.date_modified
+        if not latest_version.deployed:
+            latest_version.deployed = True
+            # The save method updates `date_modified` of the version, so do not
+            # call it unless the `deployed` flag has actually been modified.
+            # Redeployments without content modification are normal, e.g. when
+            # form media files are changed.
+            latest_version.save()
+
+        self.date_deployed = timezone.now()
+
         if save:
             self.save(
                 update_fields=['date_deployed'],

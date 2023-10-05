@@ -423,7 +423,6 @@ export default class RESTServicesForm extends React.Component {
           <bem.FormModal__item m='wrapper'>
             <bem.FormModal__item>
               <TextBox
-                customModifiers='on-white'
                 label={t('Name')}
                 type='text'
                 placeholder={t('Service Name')}
@@ -435,7 +434,6 @@ export default class RESTServicesForm extends React.Component {
 
             <bem.FormModal__item>
               <TextBox
-                customModifiers='on-white'
                 label={t('Endpoint URL')}
                 type='text'
                 placeholder={t('https://')}
@@ -489,7 +487,6 @@ export default class RESTServicesForm extends React.Component {
             {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
                 <TextBox
-                  customModifiers='on-white'
                   label={t('Username')}
                   type='text'
                   value={this.state.authUsername}
@@ -497,7 +494,6 @@ export default class RESTServicesForm extends React.Component {
                 />
 
                 <TextBox
-                  customModifiers='on-white'
                   label={t('Password')}
                   type='text'
                   value={this.state.authPassword}
@@ -513,7 +509,6 @@ export default class RESTServicesForm extends React.Component {
             {this.state.type === EXPORT_TYPES.json.value &&
               <bem.FormModal__item m='rest-custom-wrapper'>
                 <TextBox
-                  customModifiers='on-white'
                   label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
                   type='text-multiline'
                   placeholder={t('Add Custom Wrapper')}

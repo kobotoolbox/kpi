@@ -2,6 +2,7 @@
 from __future__ import annotations
 import abc
 import copy
+import datetime
 import json
 from datetime import date
 from typing import Union, Iterator, Optional
@@ -23,7 +24,7 @@ from kpi.constants import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.jsonbfield_helper import ReplaceValues
+from kpi.utils.django_orm_helper import ReplaceValues
 
 
 class BaseDeploymentBackend(abc.ABC):
@@ -40,11 +41,6 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def active(self):
         return self.get_data('active', False)
-
-    @property
-    @abc.abstractmethod
-    def all_time_submission_count(self):
-        pass
 
     @property
     @abc.abstractmethod
@@ -75,16 +71,15 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def current_month_submission_count(self):
+    def submission_count_since_date(self, start_date: Optional[datetime.date] = None):
         pass
 
     @abc.abstractmethod
     def connect(self, active=False):
         pass
 
-    @property
     @abc.abstractmethod
-    def current_month_nlp_tracking(self):
+    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
         pass
 
     def delete(self):
@@ -100,7 +95,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def duplicate_submission(
-        self,  submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: 'auth.User'
     ) -> dict:
         pass
 
@@ -255,11 +250,6 @@ class BaseDeploymentBackend(abc.ABC):
     def mongo_userform_id(self):
         return None
 
-    @property
-    @abc.abstractmethod
-    def nlp_tracking(self):
-        pass
-
     @abc.abstractmethod
     def redeploy(self, active: bool = None):
         pass
@@ -282,14 +272,17 @@ class BaseDeploymentBackend(abc.ABC):
         # Avoid circular imports
         # use `self.asset.__class__` instead of `from kpi.models import Asset`
         now = timezone.now()
+
+        self.store_data(updates)
+        self.asset.set_deployment_status()
         self.asset.__class__.objects.filter(id=self.asset.pk).update(
             _deployment_data=ReplaceValues(
                 '_deployment_data',
                 updates=updates,
             ),
             date_modified=now,
+            _deployment_status=self.asset.deployment_status
         )
-        self.store_data(updates)
         self.asset.date_modified = now
 
     @abc.abstractmethod
@@ -324,6 +317,7 @@ class BaseDeploymentBackend(abc.ABC):
         return self.get_data('status')
 
     def store_data(self, values: dict):
+        """ Saves in memory only; writes nothing to the database """
         self.__stored_data_key = ShortUUID().random(24)
         values['_stored_data_key'] = self.__stored_data_key
         self.asset._deployment_data.update(values)  # noqa
@@ -421,7 +415,6 @@ class BaseDeploymentBackend(abc.ABC):
                 )
 
         if not isinstance(submission_ids, list):
-
             raise serializers.ValidationError(
                 {'submission_ids': t('Value must be a list.')}
             )

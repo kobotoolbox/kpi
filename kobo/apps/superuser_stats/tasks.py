@@ -25,11 +25,10 @@ from django.db.models import (
     Sum,
     Value,
 )
-from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
@@ -39,7 +38,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
-from kpi.models.asset import Asset
+from kpi.models.asset import Asset, AssetDeploymentStatus
 
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
@@ -58,8 +57,7 @@ def generate_country_report(
             '_deployment_data__backend_response__formid', flat=True
         ).filter(
             settings__country_codes__in_array=[code_],
-            _deployment_data__active=True,
-            _deployment_data__has_key='backend',
+            _deployment_status=AssetDeploymentStatus.DEPLOYED,
             asset_type=ASSET_TYPE_SURVEY,
         )
         # Doing it this way because this report is focused on crises in
@@ -108,7 +106,7 @@ def generate_continued_usage_report(output_filename: str, end_date: str):
         last_login__date__range=(twelve_months_time, end_date),
     )
 
-    for user in users:
+    for user in users.iterator():
         # twelve months
         assets = user.assets.values('pk', 'date_created').filter(
             date_created__date__range=(twelve_months_time, end_date),
@@ -189,7 +187,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
     # get a list of the domains
     domains = [
         email.split('@')[1] if '@' in email else 'Invalid domain ' + email
-        for email in emails
+        for email in emails.iterator()
     ]
     domain_users = Counter(domains)
 
@@ -312,7 +310,7 @@ def generate_media_storage_report(output_filename: str):
 
     data = []
 
-    for attachment_count in attachments:
+    for attachment_count in attachments.iterator():
         data.append([
             attachment_count['user__username'],
             attachment_count['attachment_storage_bytes'],
@@ -343,7 +341,7 @@ def generate_user_count_by_organization(output_filename: str):
 
     has_no_organizations = False
     data = []
-    for o in organizations:
+    for o in organizations.iterator():
         if not o['extra_details__data__organization']:
             has_no_organizations = True
             o['extra_details__data__organization'] = 'Unspecified'
@@ -476,11 +474,13 @@ def generate_user_statistics_report(
     }
 
     # Filter the asset_queryset for active deployments
-    asset_queryset = asset_queryset.filter(_deployment_data__active=True)
+    asset_queryset = asset_queryset.filter(
+        _deployment_status=AssetDeploymentStatus.DEPLOYED
+    )
     records = asset_queryset.annotate(deployment_count=Count('pk')).order_by()
     deployment_count = {
         record['owner_id']: record['deployment_count']
-        for record in records
+        for record in records.iterator()
     }
 
     # Get records from SubmissionCounter
@@ -500,12 +500,9 @@ def generate_user_statistics_report(
 
     # get NLP statistics
     nlp_counters = (
-        MonthlyNLPUsageCounter.objects.annotate(
-            date=Cast(
-                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
-                DateField(),
-            ),
-        ).filter(date__range=(start_date, end_date)).values(
+        NLPUsageCounter.objects.filter(
+            date__range=(start_date, end_date)
+        ).values(
             'user_id',
         ).annotate(
             total_google_asr=Sum(
@@ -525,7 +522,7 @@ def generate_user_statistics_report(
 
         return value
 
-    for record in records:
+    for record in records.iterator():
         user_id = record['user_id']
         user_details, created = ExtraUserDetail.objects.get_or_create(
             user_id=user_id
@@ -534,7 +531,7 @@ def generate_user_statistics_report(
         # specified period so a fallback is needed
         try:
             nlp_totals = nlp_counters.get(user_id=user_id)
-        except MonthlyNLPUsageCounter.DoesNotExist:
+        except NLPUsageCounter.DoesNotExist:
             nlp_totals = {}
         data.append([
             record['user__username'],
@@ -572,7 +569,11 @@ def generate_user_statistics_report(
 
 
 @shared_task
-def generate_user_details_report(output_filename: str):
+def generate_user_details_report(
+    output_filename: str,
+    start_date: str,
+    end_date: str
+):
     USER_COLS = [
         'id',
         'username',
@@ -624,7 +625,10 @@ def generate_user_details_report(output_filename: str):
     values = USER_COLS + METADATA_COL
 
     data = (
-        User.objects.exclude(pk=settings.ANONYMOUS_USER_ID)
+        User.objects.filter(
+            date_joined__date__range=(start_date, end_date),
+        )
+        .exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
             mfa_is_active=F('mfa_methods__is_active'),
             metadata=F('extra_details__data'),
@@ -645,7 +649,7 @@ def generate_user_details_report(output_filename: str):
         columns = USER_COLS + EXTRA_DETAILS_COLS
         writer = csv.writer(f)
         writer.writerow(columns)
-        for row in data:
+        for row in data.iterator():
             metadata = row.pop('metadata', {}) or {}
             flatten_metadata_inplace(metadata)
             row.update(metadata)
