@@ -223,6 +223,12 @@ export function getQuestionOrChoiceDisplayName(
   questionOrChoice: SurveyChoice | SurveyRow,
   translationIndex = 0
 ): string {
+  // The `translationIndex` is set to `-1` when user chooses to display xml
+  // values instead of labels
+  if (translationIndex === -1) {
+    return getRowName(questionOrChoice);
+  }
+
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
