@@ -103,15 +103,10 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     const data = clonedeep(this.props.data);
     const chartType = this.props.style.report_type || 'vertical';
 
-    console.log('name', this.props.name);
-    console.log('report_type', this.props.style.report_type);
-
     let maxPercentage = 100;
     let showLegend = false;
 
     const colors = this.buildChartColors();
-
-    console.log('colors', colors);
 
     const baseColor = colors[0];
     Chart.defaults.elements.bar.backgroundColor = baseColor;
