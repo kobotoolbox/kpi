@@ -5,7 +5,7 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import {assign} from 'utils';
-import ChartTypePicker from './chartTypePicker';
+import ChartTypePicker from './chartTypePicker.component';
 import ChartColorsPicker from './chartColorsPicker';
 
 export default class ReportStyleSettings extends React.Component {

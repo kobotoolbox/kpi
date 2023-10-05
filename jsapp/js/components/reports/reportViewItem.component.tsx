@@ -2,17 +2,21 @@ import React from 'react';
 import {observer} from 'mobx-react';
 import zip from 'lodash.zip';
 import Chart from 'chart.js/auto';
-import type {ChartDataset, ChartConfiguration} from 'chart.js/auto';
+import type {
+  ChartTypeRegistry,
+  ChartDataset,
+  ChartConfiguration,
+} from 'chart.js/auto';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import sessionStore from 'js/stores/session';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
-import type {ReportStyleChartJsName} from './reportsConstants';
-import ReportTable from './reportTable';
+import ReportTable from './reportTable.component';
 import type {
   ReportsResponse,
   ReportsResponseData,
 } from 'jsapp/js/dataInterface';
+import Button from 'js/components/common/button';
 
 export type PreparedTable = Array<
   [string | undefined, number | undefined, number | undefined]
@@ -46,7 +50,7 @@ function getPreparedTable(
 /** We expect reports response to be passed together with some other props */
 interface ReportViewItemProps extends ReportsResponse {
   label: string;
-  triggerQuestionSettings: () => void;
+  triggerQuestionSettings: (questionName: string) => void;
 }
 
 class ReportViewItem extends React.Component<ReportViewItemProps> {
@@ -65,8 +69,6 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
 
   componentDidUpdate() {
     // refreshes a chart right after render()
-    // TODO: ideally this shouldn't refresh a chart if it hasn't changed
-    // See: https://github.com/kobotoolbox/kpi/issues/3921
     if (this.props.data.show_graph) {
       this.loadChart();
     }
@@ -100,14 +102,16 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     // end up being truncated everywhere in report view.
     const data = clonedeep(this.props.data);
     const chartType = this.props.style.report_type || 'vertical';
-    let chartJsType: ReportStyleChartJsName = 'bar';
+
+    console.log('name', this.props.name);
+    console.log('report_type', this.props.style.report_type);
 
     let maxPercentage = 100;
     let showLegend = false;
 
-    // TODO: set as default globally in a higher level (PM)
-    // https://github.com/kobotoolbox/kpi/issues/3921
     const colors = this.buildChartColors();
+
+    console.log('colors', colors);
 
     const baseColor = colors[0];
     Chart.defaults.elements.bar.backgroundColor = baseColor;
@@ -118,28 +122,13 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     Chart.defaults.elements.arc.backgroundColor = baseColor;
     Chart.defaults.maintainAspectRatio = false;
 
-    // if report styles are invalid we default to vertical
-    if (Object.keys(REPORT_STYLES).includes(chartType) !== true) {
-      chartJsType = REPORT_STYLES.vertical.chartJsType;
-    }
-
-    if (chartType === REPORT_STYLES.donut.value) {
-      chartJsType = REPORT_STYLES.donut.chartJsType;
-    }
-
-    if (chartType === REPORT_STYLES.area.value) {
-      chartJsType = REPORT_STYLES.area.chartJsType;
-    }
-
-    if (chartType === REPORT_STYLES.vertical.value) {
-      chartJsType = REPORT_STYLES.vertical.chartJsType;
-    }
-
-    if (chartType === REPORT_STYLES.horizontal.value) {
-      chartJsType = 'bar';
-    }
+    // If there is some invalid data we default to bar type
+    const chartJsType: keyof ChartTypeRegistry =
+      REPORT_STYLES[chartType]?.chartJsType || 'bar';
 
     const datasets: ChartDataset[] = [];
+
+    const isArea = this.props.style.report_type === REPORT_STYLES.area.value;
 
     if (data.values !== undefined) {
       if (data.responseLabels) {
@@ -166,6 +155,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
         datasets.push({
           label: truncateLabel(choiceLabel, 20),
           data: itemPerc,
+          fill: isArea,
           backgroundColor: colors[i],
         });
       });
@@ -175,7 +165,11 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     } else {
       if (data.percentages) {
         maxPercentage = Math.max(...data.percentages);
-        datasets.push({data: data.percentages, barPercentage: 0.5});
+        datasets.push({
+          data: data.percentages,
+          barPercentage: 0.5,
+          fill: isArea,
+        });
       }
       if (data.responseLabels) {
         data.responseLabels.forEach((r, i) => {
@@ -303,18 +297,17 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
             </span>
           </bem.ReportView__headingMeta>
           {this.props.data.show_graph && sessionStore.isLoggedIn && (
-            <bem.Button
-              m='icon'
-              className='report-button__question-settings'
-              onClick={this.props.triggerQuestionSettings}
-              data-question={this.props.name}
-              data-tip={t('Override Graph Style')}
-            >
-              <i
-                className='k-icon k-icon-more'
-                data-question={this.props.name}
-              />
-            </bem.Button>
+            <Button
+              type='bare'
+              color='storm'
+              size='m'
+              startIcon='more'
+              classNames={['report-button__question-settings']}
+              onClick={() =>
+                this.props.triggerQuestionSettings(this.props.name)
+              }
+              tooltip={t('Override Graph Style')}
+            />
           )}
         </bem.ReportView__itemHeading>
         <bem.ReportView__itemContent>

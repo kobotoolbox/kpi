@@ -1,16 +1,21 @@
+import type {ChartTypeRegistry} from 'chart.js/auto';
+
 export type ReportStyleName =
   | 'vertical'
+  | 'horizontal'
+  | 'line'
+  // | 'scatter'
+  // | 'bubble'
+  | 'pie'
   | 'donut'
   | 'area'
-  | 'horizontal'
-  | 'pie'
-  | 'line';
-export type ReportStyleChartJsName = 'bar' | 'pie' | 'line' | 'pie' | 'line';
+  | 'polar'
+  | 'radar';
 
 interface ReportStyle {
   value: ReportStyleName;
   label: string;
-  chartJsType: ReportStyleChartJsName;
+  chartJsType: keyof ChartTypeRegistry;
 }
 
 type ReportStyles = {[P in ReportStyleName]: ReportStyle};
@@ -21,32 +26,57 @@ export const REPORT_STYLES: ReportStyles = Object.freeze({
     label: t('Vertical'),
     chartJsType: 'bar',
   },
-  donut: {
-    value: 'donut',
-    label: t('Donut'),
-    chartJsType: 'pie',
-  },
-  area: {
-    value: 'area',
-    label: t('Area'),
-    chartJsType: 'line',
-  },
   horizontal: {
     value: 'horizontal',
     label: t('Horizontal'),
-    // This used to be `horizontalBar`, but it was removed from Chart.js
+    // This used to be `horizontalBar`, but it was removed from Chart.js, see:
     // https://www.chartjs.org/docs/latest/charts/bar.html#horizontal-bar-chart
+    // To make it horizontal we override the settings later in the code.
     chartJsType: 'bar',
-  },
-  pie: {
-    value: 'pie',
-    label: t('Pie'),
-    chartJsType: 'pie',
   },
   line: {
     value: 'line',
     label: t('Line'),
     chartJsType: 'line',
+  },
+  // TODO: the `scatter` and `bubble` types require different type of data, one
+  // that the reports endpoint doesn't provide yet. We need to update the
+  // Back-end code first, before uncommenting this.
+  // scatter: {
+  //   value: 'scatter',
+  //   label: t('Scatter'),
+  //   chartJsType: 'scatter',
+  // },
+  // bubble: {
+  //   value: 'bubble',
+  //   label: t('Bubble'),
+  //   chartJsType: 'bubble',
+  // },
+  pie: {
+    value: 'pie',
+    label: t('Pie'),
+    chartJsType: 'pie',
+  },
+  donut: {
+    value: 'donut',
+    label: t('Donut'),
+    chartJsType: 'doughnut',
+  },
+  area: {
+    value: 'area',
+    label: t('Area'),
+    // We use same chart type as `line` above, we override settings later on.
+    chartJsType: 'line',
+  },
+  polar: {
+    value: 'polar',
+    label: t('Polar area'),
+    chartJsType: 'polarArea',
+  },
+  radar: {
+    value: 'radar',
+    label: t('Radar'),
+    chartJsType: 'radar',
   },
 });
 

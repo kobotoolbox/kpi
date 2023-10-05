@@ -4,7 +4,7 @@ import type {
   ReportsResponseData,
   ReportsResponseDataValues,
 } from 'jsapp/js/dataInterface';
-import type {PreparedTable} from './reportViewItem';
+import type {PreparedTable} from './reportViewItem.component';
 
 interface ReportTableProps {
   type: 'regular' | 'numerical' | 'disaggregated';
