@@ -1,72 +1,52 @@
+{% extends "base_simple.html" %}
+
 {% load static %}
 {% load render_bundle from webpack_loader %}
 {% load i18n %}
-<!doctype html>
-<html class="no-js">
-  <head>
-    <!-- Setup -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% if google_analytics_token %}
-      <meta name="google-analytics-token" content="{{ google_analytics_token }}">
-    {% endif %}
 
-    <!-- Title and description -->
-    <title>KoboToolbox {% block title %}{% endblock %}</title>
-    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
+{% block head_scripts %}
+  {% render_bundle 'app' 'js' %}
+{% endblock %}
 
-    <!-- Scripts -->
-    <!-- Make Django's internationalization functionality available in client code. -->
-    <script src="{% url 'javascript-catalog' %}"></script>
-    <script src="{% static 'js/global_t.js' %}"></script>
-    {% render_bundle 'app' 'js' %}
+{% block head_stylesheets %}
+  {% render_bundle 'app' 'css' %}
+{% endblock %}
 
-    <!-- Icons -->
-    <link rel="icon" href="{% static 'favicon.png' %}" />
-    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}" />
-    <link rel="manifest" href="{% static 'site.webmanifest' %}" />
-    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#2095f3" />
-
-    <!-- Stylesheets -->
-    {% render_bundle 'app' 'css' %}
-
-    {% block head %}{% endblock %}
-  </head>
-  <body>
-    <div class="registration__bg">
+{% block body %}
+  <div class="registration__bg">
     {% block language_selector %}{% endblock %}
+
     {% block content %}{% endblock %}
+
     {% if livereload_address %}
       <script src="{{livereload_address}}"></script>
     {% endif %}
 
-    {% block foot %}
-      <div class="registration__footer">
-        <div class="registration__legal">
-          {% if config.TERMS_OF_SERVICE_URL %}
-            <a href="{{config.TERMS_OF_SERVICE_URL}}" target="_blank">
-              {% trans "Terms and Conditions" %}
-            </a>
-          {% endif %}
-          {% if config.PRIVACY_POLICY_URL %}
-            <a href="{{config.PRIVACY_POLICY_URL}}" target="_blank">
-              {% trans "Privacy Policy" %}
-            </a>
-          {% endif %}
-        </div>
-        {% block background_credit %}
-          {{ block.super }}
-        {% endblock %}
+    <div class="registration__footer">
+      <div class="registration__legal">
+        {% if config.TERMS_OF_SERVICE_URL %}
+          <a href="{{config.TERMS_OF_SERVICE_URL}}" target="_blank">
+            {% trans "Terms and Conditions" %}
+          </a>
+        {% endif %}
+        {% if config.PRIVACY_POLICY_URL %}
+          <a href="{{config.PRIVACY_POLICY_URL}}" target="_blank">
+            {% trans "Privacy Policy" %}
+          </a>
+        {% endif %}
       </div>
-    {% endblock %}
-    </div>
 
-    {% block extra_javascript %}{% endblock %}
-    {% if google_analytics_token %}
-      <!-- Google tag (gtag.js) -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
-      <!-- The rest of the setup is in main.es6 file -->
-    {% endif %}
-  </body>
-</html>
+      {% block background_credit %}
+        {{ block.super }}
+      {% endblock %}
+    </div>
+  </div>
+
+  {% block extra_javascript %}{% endblock %}
+
+  {% if google_analytics_token %}
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
+    <!-- The rest of the setup is in main.es6 file -->
+  {% endif %}
+{% endblock %}

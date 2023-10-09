@@ -1,73 +1,62 @@
+{% extends "base_simple.html" %}
+
 {% load static %}
 {% load render_bundle from webpack_loader %}
-<!doctype html>
-<html>
-  <head>
-    <!-- Setup -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% if google_analytics_token %}
-      <meta name="google-analytics-token" content="{{ google_analytics_token }}">
-    {% endif %}
-    {# From the Django documentation: the `url` tag "Returns an absolute path reference (a URL without the domain name)" #}
-    <meta name="kpi-root-path" content="{% url 'kpi-root' %}">
-    {% if csrf_token %}
-      <meta name="csrf-token" content="{{csrf_token}}">
-    {% endif %}
 
-    <!-- Title and description -->
-    <title>{{title}}</title>
-    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
+{% block head_meta %}
+  {# From the Django documentation: the `url` tag "Returns an absolute path reference (a URL without the domain name)" #}
+  <meta name="kpi-root-path" content="{% url 'kpi-root' %}">
+  {% if csrf_token %}
+    <meta name="csrf-token" content="{{csrf_token}}">
+  {% endif %}
+{% endblock %}
 
-    <!-- Scripts -->
-    <!-- Make Django's internationalization functionality available in client code. -->
-    <script src="{% url 'javascript-catalog' %}"></script>
-    <script src="{% static 'js/global_t.js' %}"></script>
-    {% render_bundle 'app' 'js' %}
-    <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
+{% block title %}{{title}}{% endblock %}
 
-    <!-- Raven setup -->
-    {% if raven_js_dsn %}
-      <meta name="sentry-dsn" content="{{ raven_js_dsn }}">
-      <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
-      <script src="{% static 'js/sentry.js' %}"></script>
-    {% endif %}
+{% block head_scripts %}
+  <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
 
-    <!-- Icons -->
-    <link rel="icon" href="{% static 'favicon.png' %}" />
-    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}" />
-    <link rel="manifest" href="{% static 'site.webmanifest' %}" />
-    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#2095f3" />
+  <!-- Raven setup -->
+  {% if raven_js_dsn %}
+    <meta name="sentry-dsn" content="{{ raven_js_dsn }}">
+    <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
+    <script src="{% static 'js/sentry.js' %}"></script>
+  {% endif %}
+{% endblock %}
 
-    <!-- Stylesheets -->
-    {% render_bundle 'app' 'css' %}
+{% block head_stylesheets %}
+  {% render_bundle 'app' 'css' %}
+{% endblock %}
 
-    <!-- Logo overrides -->
-    {% if config.logo %}
-      <style>
+{% block head_end %}
+  <!-- Logo overrides -->
+  {% if config.logo %}
+    <style>
+      .mdl-layout__header .header__logo {
+        background-image: url('{{ config.logo }}') !important;
+      }
+    </style>
+  {% endif %}
+  {% if config.logo_small %}
+    <style>
+      @media screen and (max-width: 767px) {
         .mdl-layout__header .header__logo {
-          background-image: url('{{ config.logo }}') !important;
+          background-image: url('{{ config.logo_small }}') !important;
         }
-      </style>
-    {% endif %}
-    {% if config.logo_small %}
-      <style>
-        @media screen and (max-width: 767px) {
-          .mdl-layout__header .header__logo {
-            background-image: url('{{ config.logo_small }}') !important;
-          }
-        }
-      </style>
-    {% endif %}
-  </head>
-  <body>
-    {# Here the `/jsapp/js/main.es6` file will create and inject some HTML element, so that React SPA would render inside of it. #}
+      }
+    </style>
+  {% endif %}
+{% endblock %}
 
-    {% if google_analytics_token %}
-      <!-- Google tag (gtag.js) -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
-      <!-- The rest of the GA setup is in `/jsapp/js/main.es6` file -->
-    {% endif %}
-  </body>
-</html>
+{% block body %}
+  {# Here the `/jsapp/js/main.es6` file will create and inject some HTML element, so that React SPA would render inside of it. #}
+
+  {# We load the main js file here, not in the head, because we need the body element to exist in order to inject stuff into it with JS. #}
+  {% render_bundle 'app' 'js' %}
+
+  {% if google_analytics_token %}
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
+    <!-- The rest of the GA setup is in `/jsapp/js/main.es6` file -->
+  {% endif %}
+{% endblock %}
