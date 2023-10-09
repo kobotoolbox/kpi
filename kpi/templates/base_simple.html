@@ -1,22 +1,31 @@
+{% load static %}
 {% load i18n %}
-<!DOCTYPE html>
+<!doctype html>
 <html>
+  <head>
+    <!-- Setup -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<head>
-  {% load static %}
   <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
-  <link rel="stylesheet" href="{% static 'css/kpi_simple.css' %}">
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>KoboToolbox {% block title %}{% endblock %}</title>
-  <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
-  {% block head %}{% endblock %}
-</head>
+    <!-- Title and description -->
+    <title>KoboToolbox {% block title %}{% endblock %}</title>
+    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
 
-<body>
-  {% block content %}{% endblock %}
-</body>
+    <!-- Icons -->
+    <link rel="icon" href="{% static 'favicon.png' %}" />
+    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'site.webmanifest' %}" />
+    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#2095f3" />
 
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/kpi_simple.css' %}">
+
+    {% block head %}{% endblock %}
+  </head>
+
+  <body>
+    {% block content %}{% endblock %}
+  </body>
 </html>

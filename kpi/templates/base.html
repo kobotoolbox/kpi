@@ -1,28 +1,37 @@
 {% load static %}
 {% load render_bundle from webpack_loader %}
 {% load i18n %}
-<!DOCTYPE html>
+<!doctype html>
 <html class="no-js">
   <head>
-    <!-- Make Django's internationalization functionality available in client code. -->
-    <script src="{% url 'javascript-catalog' %}"></script>
-    <script src="{% static 'js/global_t.js' %}"></script>
-
-    {% render_bundle 'app' 'css' %}
-    {% render_bundle 'app' 'js' %}
-
     <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
+    <!-- Setup -->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>KoboToolbox {% block title %}{% endblock %}</title>
-    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="{% static 'favicon.png' %}" />
-    <!-- iPhone + iPad icons -->
-    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
     {% if google_analytics_token %}
       <meta name="google-analytics-token" content="{{ google_analytics_token }}">
     {% endif %}
+
+    <!-- Title and description -->
+    <title>KoboToolbox {% block title %}{% endblock %}</title>
+    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
+
+    <!-- Scripts -->
+    <!-- Make Django's internationalization functionality available in client code. -->
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'js/global_t.js' %}"></script>
+    {% render_bundle 'app' 'js' %}
+
+    <!-- Icons -->
+    <link rel="icon" href="{% static 'favicon.png' %}" />
+    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'site.webmanifest' %}" />
+    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#2095f3" />
+
+    <!-- Stylesheets -->
+    {% render_bundle 'app' 'css' %}
+
     {% block head %}{% endblock %}
   </head>
   <body>
