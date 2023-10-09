@@ -41,6 +41,7 @@
     "lodash.zip": "^4.2.0",
     "mobx": "^6.6.1",
     "mobx-react": "^7.5.1",
+    "normalize.css": "^8.0.1",
     "pretty-bytes": "^6.1.1",
     "prop-types": "^15.7.2",
     "qrcode.react": "^1.0.1",
