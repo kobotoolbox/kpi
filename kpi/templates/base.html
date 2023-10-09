@@ -3,7 +3,11 @@
 <head>
     {% load static %}
     {% load render_bundle from webpack_loader %}
+
+    <!-- Make Django's internationalization functionality available in client code. -->
+    <script src="{% url 'javascript-catalog' %}"></script>
     <script src="{% static 'js/global_t.js' %}"></script>
+
     {% render_bundle 'app' 'css' %}
     {% render_bundle 'app' 'js' %}
 
@@ -47,7 +51,6 @@
 {% endblock %}
 </div>
 
-<script src="{% static 'js/global_t.js' %}"></script>
 {% block extra_javascript %}{% endblock %}
 {% if google_analytics_token %}
   <!-- Google tag (gtag.js) -->
