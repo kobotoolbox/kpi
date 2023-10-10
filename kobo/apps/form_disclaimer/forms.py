@@ -81,6 +81,14 @@ class OverriddenFormDisclaimerForm(ModelForm):
         message = self.cleaned_data.get('message', '')
         asset = self.cleaned_data.get('asset', None)
 
+        if not FormDisclaimer.objects.filter(
+            asset__isnull=True
+        ).exists():
+            raise ValidationError(
+                'You must set a global disclaimer first.',
+                'no_global_disclaimer',
+            )
+
         if not hidden and (not language or not message):
             raise ValidationError(
                 'You must specify a language and a message if the disclaimer '
