@@ -182,12 +182,18 @@ const getFreeTierLimits = async (limits: AccountLimit) => {
   await when(() => envStore.isReady);
   const thresholds = envStore.data.free_tier_thresholds;
   const newLimits: AccountLimit = {...limits};
-  thresholds.storage && (newLimits['storage_bytes_limit'] = thresholds.storage);
-  thresholds.data && (newLimits['submission_limit'] = thresholds.data);
-  thresholds.translation_chars &&
-    (newLimits['nlp_character_limit'] = thresholds.translation_chars);
-  thresholds.transcription_minutes &&
-    (newLimits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60);
+  if (thresholds.storage) {
+    newLimits['storage_bytes_limit'] = thresholds.storage;
+  }
+  if (thresholds.data) {
+    newLimits['submission_limit'] = thresholds.data;
+  }
+  if (thresholds.translation_chars) {
+    newLimits['nlp_character_limit'] = thresholds.translation_chars;
+  }
+  if (thresholds.transcription_minutes) {
+    newLimits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60;
+  }
   return newLimits;
 };
 
