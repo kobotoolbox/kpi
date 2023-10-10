@@ -151,9 +151,7 @@ function getLimitsForMetadata(
   limitsToCompare: false | AccountLimit = false
 ) {
   const limits: Partial<AccountLimit> = {};
-  for (const [key, value] of Object.entries(metadata) as Array<
-    [string | keyof AccountLimit, string]
-  >) {
+  for (const [key, value] of Object.entries(metadata)) {
     // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
     if (limitsToCompare) {
       if (!(key in limitsToCompare)) {
