@@ -57,7 +57,7 @@ export default class UserPermissionRow extends React.Component<
         `<strong>${escapeHtml(this.props.username)}</strong>`
       ),
       labels: {ok: t('Remove'), cancel: t('Cancel')},
-      onok: this.removeAllPermissions,
+      onok: this.removeAllPermissions.bind(this),
       oncancel: dialog.destroy,
     };
     dialog.set(opts).show();
