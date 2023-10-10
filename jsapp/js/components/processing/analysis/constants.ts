@@ -5,7 +5,7 @@ export const AUTO_SAVE_TYPING_DELAY = 3000;
 
 /**
  * To differentiate these question types from the ones we use in Form Builder,
- * let's prefix them with `qual_` (abbreviation for "analysis question").
+ * we prefix them with `qual_` (coming from "qualitative analysis question").
  */
 export type AnalysisQuestionType =
   | 'qual_auto_keyword_count'
@@ -15,6 +15,10 @@ export type AnalysisQuestionType =
   | 'qual_select_one'
   | 'qual_tags'
   | 'qual_text';
+
+// We need this singled out as const, because some other parts of code (not
+// related to Qualitative Analysis) need to exclude notes from output.
+export const QUAL_NOTE_TYPE: AnalysisQuestionType = 'qual_note';
 
 interface AnalysisLabels {
   _default: string;

@@ -23,9 +23,11 @@ import type {
   SubmissionAttachment,
   AssetResponse,
   AssetAdvancedFeatures,
+  AnalysisFormJsonField,
 } from 'js/dataInterface';
 import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
 import type {AnalysisResponse} from 'js/components/processing/analysis/constants';
+import {QUAL_NOTE_TYPE} from 'js/components/processing/analysis/constants';
 import {findQuestionChoiceInSchema} from 'js/components/processing/analysis/utils';
 
 export enum DisplayGroupTypeName {
@@ -108,16 +110,26 @@ export class DisplayResponse {
 
 /**
  * Returns a sorted object of transcript/translation keys
+ *
+ * Note: we omit returning `qual_note` questions.
  */
-export function sortAnalysisFormJsonKeys(additionalFields: Array<{source: string, dtpath: string}>) {
+function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
   const sortedBySource: {[key: string]: string[]} = {};
 
-  additionalFields?.forEach((afParams) => {
-    const expandedPath = `_supplementalDetails/${afParams.dtpath}`;
-    if (!sortedBySource[afParams.source]) {
-      sortedBySource[afParams.source] = [];
+  additionalFields.forEach((field: AnalysisFormJsonField) => {
+    // Note questions make sense only in the context of writing responses to
+    // Qualitative Analysis questions. They bear no data, so there is no point
+    // displaying them outside of Single Processing route. As this function is
+    // part of Single Submission modal, we need to hide the notes.
+    if (field.type === QUAL_NOTE_TYPE) {
+      return;
     }
-    sortedBySource[afParams.source].push(expandedPath);
+
+    const expandedPath = `_supplementalDetails/${field.dtpath}`;
+    if (!sortedBySource[field.source]) {
+      sortedBySource[field.source] = [];
+    }
+    sortedBySource[field.source].push(expandedPath);
   });
   return sortedBySource;
 }
@@ -145,6 +157,7 @@ export function getSubmissionDisplayData(
   const supplementalDetailKeys = sortAnalysisFormJsonKeys(
     asset.analysis_form_json?.additional_fields || []
   );
+
   /**
    * Recursively generates a nested architecture of survey with data.
    */
