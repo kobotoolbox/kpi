@@ -79,6 +79,13 @@ export interface Portal {
   url: string;
 }
 
+const DEFAULT_LIMITS: AccountLimit = Object.freeze({
+  submission_limit: Limits.unlimited,
+  nlp_seconds_limit: Limits.unlimited,
+  nlp_character_limit: Limits.unlimited,
+  storage_bytes_limit: Limits.unlimited,
+});
+
 export async function getProducts() {
   return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL);
 }
@@ -93,6 +100,9 @@ export async function getOrganization() {
   return fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL);
 }
 
+/**
+ * Start a checkout session for the given price and organization. Response contains the checkout URL.
+ */
 export async function postCheckout(priceId: string, organizationId: string) {
   return fetchPost<Checkout>(
     `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}`,
@@ -100,6 +110,9 @@ export async function postCheckout(priceId: string, organizationId: string) {
   );
 }
 
+/**
+ * Get the URL of the Stripe customer portal for an organization.
+ */
 export async function postCustomerPortal(organizationId: string) {
   return fetchPost<Portal>(
     `${endpoints.PORTAL_URL}?organization_id=${organizationId}`,
@@ -107,6 +120,10 @@ export async function postCustomerPortal(organizationId: string) {
   );
 }
 
+/**
+ * Get the subscription interval (`'month'` or `'year'`) for the logged-in user.
+ * Returns `'month'` for users on the free plan.
+ */
 export async function getSubscriptionInterval() {
   await when(() => envStore.isReady);
   if (envStore.data.stripe_public_key) {
@@ -125,13 +142,10 @@ export async function getSubscriptionInterval() {
   return 'month';
 }
 
-const DEFAULT_LIMITS: AccountLimit = Object.freeze({
-  submission_limit: Limits.unlimited,
-  nlp_seconds_limit: Limits.unlimited,
-  nlp_character_limit: Limits.unlimited,
-  storage_bytes_limit: Limits.unlimited,
-});
-
+/**
+ * Extract the limits from Stripe product/price metadata and convert their values from string to number (if necessary.)
+ * Will only return limits that exceed the ones in `limitsToCompare`, or all limits if `limitsToCompare` is not present.
+ */
 function getLimitsForMetadata(
   metadata: {[key: string]: string},
   limitsToCompare: false | AccountLimit = false
@@ -162,6 +176,10 @@ function getLimitsForMetadata(
   return limits;
 }
 
+/**
+ * Get limits for the custom free tier (from `FREE_TIER_THRESHOLDS`), and merges them with the user's limits.
+ * The `/environment/` endpoint handles checking whether the logged-in user registered before `FREE_TIER_CUTOFF_DATE`.
+ */
 const getFreeTierLimits = async (limits: AccountLimit) => {
   await when(() => envStore.isReady);
   const thresholds = envStore.data.free_tier_thresholds;
@@ -175,10 +193,14 @@ const getFreeTierLimits = async (limits: AccountLimit) => {
   return newLimits;
 };
 
+/**
+ * Get limits for any recurring add-ons the user has, merged with the rest of their limits.
+ */
 const getRecurringAddOnLimits = (limits: AccountLimit) => {
   let newLimits = {...limits};
   let activeAddOns = [...subscriptionStore.addOnsResponse];
   let metadata = {};
+  // only check active add-ons
   activeAddOns = activeAddOns.filter((subscription) =>
     ACTIVE_STRIPE_STATUSES.includes(subscription.status)
   );
@@ -194,9 +216,13 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
   return newLimits;
 };
 
+/**
+ * Get all metadata keys for the logged-in user's plan, or from the free tier if they have no plan.
+ */
 const getStripeMetadataAndFreeTierStatus = async () => {
   await when(() => subscriptionStore.isInitialised);
   const plans = [...subscriptionStore.planResponse];
+  // only use metadata for active subscriptions
   const activeSubscriptions = plans.filter((subscription) =>
     ACTIVE_STRIPE_STATUSES.includes(subscription.status)
   );
@@ -209,7 +235,7 @@ const getStripeMetadataAndFreeTierStatus = async () => {
       ...activeSubscriptions[0].items[0].price.metadata,
     };
   } else {
-    // the user has no subscription, so get limits from the free monthly price
+    // the user has no subscription, so get limits from the free monthly product
     hasFreeTier = true;
     try {
       const products = await getProducts();
@@ -224,12 +250,20 @@ const getStripeMetadataAndFreeTierStatus = async () => {
         ...freeProduct.prices[0].metadata,
       };
     } catch (error) {
+      // couldn't find the free monthly product, continue in case we have limits to display from the free tier override
       metadata = {};
     }
   }
   return {metadata, hasFreeTier};
 };
 
+/**
+ * Get the complete account limits for the logged-in user.
+ * Checks (in descending order of priority):
+ *  - the user's recurring add-ons
+ *  - the `FREE_TIER_THRESHOLDS` override
+ *  - the user's subscription limits
+ */
 export async function getAccountLimits() {
   const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus();
 
