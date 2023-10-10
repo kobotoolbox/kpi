@@ -32,6 +32,9 @@ import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import useWhen from 'js/hooks/useWhen.hook';
+import PlanAddOns from 'js/account/plans/planAddOns.component';
+import subscriptionStore from 'js/account/subscriptionStore';
+import {when} from 'mobx';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -151,12 +154,16 @@ export default function Plan() {
   useWhen(
     () => envStore.isReady,
     () => {
-      // If Stripe isn't loaded, just redirect to the account page
+      // If Stripe isn't active, just redirect to the account page
       if (!envStore.data.stripe_public_key) {
         navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
         return;
       }
       const fetchPromises = [];
+
+      if (!subscriptionStore.isInitialised || !subscriptionStore.isPending) {
+        subscriptionStore.fetchSubscriptionInfo();
+      }
 
       fetchPromises[0] = getProducts().then((data) => {
         // If we have no products, redirect
@@ -174,12 +181,14 @@ export default function Plan() {
           prodData: data.results[0],
         });
       });
-      fetchPromises[2] = getSubscription().then((data) => {
-        dispatch({
-          type: 'initialSub',
-          prodData: data.results,
-        });
-      });
+      fetchPromises[2] = when(() => subscriptionStore.isInitialised).then(
+        () => {
+          dispatch({
+            type: 'initialSub',
+            prodData: subscriptionStore.planResponse,
+          });
+        }
+      );
       Promise.all(fetchPromises).then(() => {
         setAreButtonsDisabled(false);
       });
@@ -658,6 +667,7 @@ export default function Plan() {
               />
             </div>
           )}
+          <PlanAddOns products={state.products} />
         </div>
       )}
     </>
