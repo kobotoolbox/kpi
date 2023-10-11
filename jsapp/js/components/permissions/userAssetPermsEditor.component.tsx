@@ -9,7 +9,7 @@ import bem from 'js/bem';
 import {parseFormData, buildFormData} from './permParser';
 import type {UserPerm, PermsFormData} from './permParser';
 import permConfig from './permConfig';
-import {assign, notify} from 'js/utils';
+import {notify} from 'js/utils';
 import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
 import {KEY_CODES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
@@ -136,7 +136,7 @@ export default class UserAssetPermsEditor extends React.Component<
       this.props.permissions || [],
       this.props.username
     );
-    this.state = this.applyValidityRules(assign(this.state, formData));
+    this.state = this.applyValidityRules(Object.assign(this.state, formData));
 
     this.state = this.applySubmissionsAddRules(this.state);
   }
@@ -186,7 +186,7 @@ export default class UserAssetPermsEditor extends React.Component<
     // Step 2: Enable all checkboxes (make them not disabled) before applying
     // the rules
     for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
-      output = assign(output, {[checkboxName + SUFFIX_DISABLED]: false});
+      output = Object.assign(output, {[checkboxName + SUFFIX_DISABLED]: false});
     }
 
     // Step 3: Lock submission add
@@ -207,7 +207,7 @@ export default class UserAssetPermsEditor extends React.Component<
         const listName = getPartialCheckboxListName(
           checkboxName as CheckboxNamePartial
         );
-        output = assign(output, {[listName]: []});
+        output = Object.assign(output, {[listName]: []});
       }
     }
 
@@ -228,7 +228,7 @@ export default class UserAssetPermsEditor extends React.Component<
       'extra_details' in sessionStore.currentAccount &&
       sessionStore.currentAccount.extra_details?.require_auth !== true
     ) {
-      output = assign(output, {
+      output = Object.assign(output, {
         [CHECKBOX_NAMES.submissionsAdd]: true,
         [CHECKBOX_NAMES.submissionsAdd + SUFFIX_DISABLED]: true,
       });
@@ -282,7 +282,7 @@ export default class UserAssetPermsEditor extends React.Component<
       }
 
       impliedCheckboxes.forEach((impliedCheckbox) => {
-        output = assign(output, {
+        output = Object.assign(output, {
           [impliedCheckbox]: true,
           [impliedCheckbox + SUFFIX_DISABLED]: true,
         });
@@ -300,7 +300,7 @@ export default class UserAssetPermsEditor extends React.Component<
         contradictoryPermDef.codename
       );
       contradictoryCheckboxes.forEach((contradictoryCheckbox) => {
-        output = assign(output, {
+        output = Object.assign(output, {
           [contradictoryCheckbox]: false,
           [contradictoryCheckbox + SUFFIX_DISABLED]: true,
         });
@@ -316,7 +316,7 @@ export default class UserAssetPermsEditor extends React.Component<
    */
   onCheckboxChange(checkboxName: CheckboxNameAll, isChecked: boolean) {
     let output = clonedeep(this.state);
-    output = assign(output, {[checkboxName]: isChecked});
+    output = Object.assign(output, {[checkboxName]: isChecked});
     this.setState(this.applyValidityRules(output));
   }
 
@@ -368,7 +368,7 @@ export default class UserAssetPermsEditor extends React.Component<
    */
   onPartialUsersChange(prop: CheckboxNameListPartial, users: string) {
     let output = clonedeep(this.state);
-    output = assign(output, {
+    output = Object.assign(output, {
       [prop]: users.split(USERNAMES_SEPARATOR).map((user) => user.trim()),
     });
     this.setState(output);

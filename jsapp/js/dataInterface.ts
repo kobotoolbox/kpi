@@ -5,7 +5,6 @@
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
-import {assign} from 'js/utils';
 import {ROOT_URL, COMMON_QUERIES} from './constants';
 import type {EnvStoreFieldItem, FreeTierDisplay, FreeTierThresholds, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
@@ -833,7 +832,7 @@ interface DataInterface {
 }
 
 const $ajax = (o: {}) =>
-  $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
+  $.ajax(Object.assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
   getProfile: () =>
@@ -1531,7 +1530,7 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/tags/`,
       method: 'GET',
-      data: assign(
+      data: Object.assign(
         {
           // If this number is too big (e.g. 9999) it causes a deadly timeout
           // whenever Form Builder displays the aside Library search

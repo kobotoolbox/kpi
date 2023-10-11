@@ -22,7 +22,6 @@ import {actions} from './actions';
 import {
   log,
   notify,
-  assign,
 } from 'utils';
 import { toast } from 'react-hot-toast';
 
@@ -64,7 +63,7 @@ stores.surveyState = Reflux.createStore({
   setState (state) {
     var chz = changes(this.state, state);
     if (chz) {
-      assign(this.state, state);
+      Object.assign(this.state, state);
       this.trigger(chz);
     }
   },
@@ -102,7 +101,7 @@ stores.translations = Reflux.createStore({
   setState (change) {
     const changed = changes(this.state, change);
     if (changed) {
-      assign(this.state, changed);
+      Object.assign(this.state, changed);
       this.trigger(changed);
     }
   },
@@ -123,7 +122,7 @@ stores.pageState = Reflux.createStore({
   setState (chz) {
     var changed = changes(this.state, chz);
     if (changed) {
-      assign(this.state, changed);
+      Object.assign(this.state, changed);
       this.trigger(changed);
     }
   },
@@ -131,7 +130,7 @@ stores.pageState = Reflux.createStore({
     var _changes = {};
     var newval = !this.state.showFixedDrawer;
     _changes.showFixedDrawer = newval;
-    assign(this.state, _changes);
+    Object.assign(this.state, _changes);
     this.trigger(_changes);
   },
   showModal (params) {
@@ -172,10 +171,10 @@ stores.snapshots = Reflux.createStore({
     this.listenTo(actions.resources.createSnapshot.failed, this.snapshotCreationFailed);
   },
   snapshotCreated (snapshot) {
-    this.trigger(assign({success: true}, snapshot));
+    this.trigger(Object.assign({success: true}, snapshot));
   },
   snapshotCreationFailed (jqxhr) {
-    this.trigger(assign({success: false}, jqxhr.responseJSON));
+    this.trigger(Object.assign({success: false}, jqxhr.responseJSON));
   },
 });
 

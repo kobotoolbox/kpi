@@ -14,7 +14,6 @@ import LibrarySidebar from 'js/components/library/librarySidebar';
 import HelpBubble from 'js/components/support/helpBubble';
 import {COMMON_QUERIES, MODAL_TYPES} from '../constants';
 import {ROUTES} from 'js/router/routerConstants';
-import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {router, routerIsActive, withRouter} from '../router/legacy';
@@ -36,14 +35,14 @@ const FormSidebar = observer(
   class FormSidebar extends Reflux.Component {
     constructor(props) {
       super(props);
-      this.state = assign(
+      this.state = Object.assign(
         {
           currentAssetId: false,
           files: [],
         },
         stores.pageState.state
       );
-      this.state = assign(INITIAL_STATE, this.state);
+      this.state = Object.assign(INITIAL_STATE, this.state);
 
       this.stores = [stores.pageState];
       autoBind(this);
