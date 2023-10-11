@@ -8,7 +8,7 @@
       "scss/*": ["scss/*"],
       "test/*": ["test/*"],
     },
-    "target": "es2016",
+    "target": "es2017",
     "module": "es2020",
     "esModuleInterop": true,
     "moduleResolution": "node",

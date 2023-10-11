@@ -1,12 +1,10 @@
 import LimitBanner from 'js/components/usageLimits/overLimitBanner.component';
 import LimitModal from 'js/components/usageLimits/overLimitModal.component';
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {Cookies} from 'react-cookie';
-import {
-  getAllExceedingLimits,
-  getPlanInterval,
-} from 'js/components/usageLimits/usageCalculations';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
+import {UsageContext} from 'js/account/useUsage.hook';
+import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
 
 const cookies = new Cookies();
 
@@ -23,8 +21,8 @@ const LimitNotifications = ({
   const [dismissed, setDismissed] = useState(!useModal);
   const [stripeEnabled, setStripeEnabled] = useState(false);
 
-  const limits = getAllExceedingLimits();
-  const interval = getPlanInterval();
+  const usage = useContext(UsageContext);
+  const limits = useExceedingLimits();
 
   useWhenStripeIsEnabled(() => {
     setStripeEnabled(true);
@@ -62,24 +60,24 @@ const LimitNotifications = ({
     <>
       {dismissed && (
         <LimitBanner
-          interval={interval}
+          interval={usage.trackingPeriod}
           limits={limits.exceedList}
-          usagePage={usagePage}
+          usagePage={Boolean(usagePage)}
         />
       )}
       {!limits.exceedList.length && (
         <LimitBanner
           warning
-          interval={interval}
+          interval={usage.trackingPeriod}
           limits={limits.warningList}
-          usagePage={usagePage}
+          usagePage={Boolean(usagePage)}
         />
       )}
       {useModal && (
         <LimitModal
           show={showModal}
           limits={limits.exceedList}
-          interval={interval}
+          interval={usage.trackingPeriod}
           dismissed={modalDismissed}
         />
       )}
