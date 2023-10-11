@@ -4,7 +4,6 @@ import Radio from 'js/components/common/radio';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
-import {assign} from 'utils';
 import ChartTypePicker from './chartTypePicker';
 import ChartColorsPicker from './chartColorsPicker';
 
@@ -35,7 +34,7 @@ export default class ReportStyleSettings extends React.Component {
 
   reportStyleChange(params, value) {
     let styles = this.state.reportStyle;
-    assign(styles, value);
+    Object.assign(styles, value);
     this.setState({reportStyle: styles});
   }
 
@@ -70,7 +69,7 @@ export default class ReportStyleSettings extends React.Component {
       actions.reports.setCustom(assetUid, report_custom);
     } else {
       let sett_ = this.props.parentState.reportStyles;
-      assign(sett_.default, this.state.ReportStyle);
+      Object.assign(sett_.default, this.state.ReportStyle);
       actions.reports.setStyle(assetUid, sett_);
     }
   }
