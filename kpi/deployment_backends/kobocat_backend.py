@@ -158,14 +158,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
+        # Otherwise, they have full access.
         if submission_ids:
-            partial_perms = True
             # Reset query, because all the submission ids have been already
             # retrieve
             data['query'] = {}
         else:
-            partial_perms = False
             submission_ids = data['submission_ids']
 
         submissions = self.get_submissions(
@@ -694,14 +692,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise XPathNotFoundException
 
             filters = {
-                # TODO: hide attachments that were deleted or replaced; see
-                # kobotoolbox/kobocat#792
-                # 'replaced_at': None,
                 'media_file_basename': attachment_filename,
             }
         else:
             filters = {
-                # 'replaced_at': None,
                 'pk': attachment_id,
             }
 
