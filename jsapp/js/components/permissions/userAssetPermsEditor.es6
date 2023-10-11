@@ -11,7 +11,6 @@ import bem from 'js/bem';
 import {permParser} from './permParser';
 import permConfig from './permConfig';
 import {
-  assign,
   notify,
   buildUserUrl,
 } from 'utils';
@@ -93,7 +92,7 @@ class UserAssetPermsEditor extends React.Component {
   applyPropsData() {
     if (this.props.permissions) {
       const formData = permParser.buildFormData(this.props.permissions);
-      this.state = this.applyValidityRules(assign(this.state, formData));
+      this.state = this.applyValidityRules(Object.assign(this.state, formData));
     }
 
     if (this.props.username) {
