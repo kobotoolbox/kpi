@@ -10,7 +10,7 @@ import AssetNavigator from './assetNavigator';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {assign, escapeHtml} from '../utils';
+import {escapeHtml} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -73,7 +73,7 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html';
  * the `launchAppForSurveyContent` method below for all the magic.
  */
 
-export default assign({
+export default Object.assign({
   componentDidMount() {
     this.loadAsideSettings();
 

@@ -18,8 +18,6 @@ import type Raven from 'raven';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
-export const assign = require('object-assign');
-
 const cookies = new Cookies();
 
 /**
