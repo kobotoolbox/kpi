@@ -8,17 +8,10 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import type {
-  BaseSubscription,
-  Product,
-  Organization,
-  BasePrice,
-  Price,
-} from './stripe.api';
+import type {Product, Organization, BasePrice, Price} from './stripe.api';
 import {
   getOrganization,
   getProducts,
-  getSubscription,
   postCheckout,
   postCustomerPortal,
 } from './stripe.api';
@@ -33,11 +26,13 @@ import envStore from 'js/envStore';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import useWhen from 'js/hooks/useWhen.hook';
 import PlanAddOns from 'js/account/plans/planAddOns.component';
+import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
+import {processCheckoutResponse} from 'js/account/stripe.utils';
 
 interface PlanState {
-  subscribedProduct: null | BaseSubscription;
+  subscribedProduct: null | SubscriptionInfo[];
   intervalFilter: string;
   filterToggle: boolean;
   products: null | Product[];
@@ -46,17 +41,29 @@ interface PlanState {
 }
 
 // An interface for our action
-interface DataUpdates {
-  type: string;
-  prodData?: any;
-}
+type DataUpdates =
+  | {
+      type: 'initialProd';
+      prodData: Product[];
+    }
+  | {
+      type: 'initialSub';
+      prodData: SubscriptionInfo[];
+    }
+  | {
+      type: 'initialOrg';
+      prodData: Organization;
+    }
+  | {
+      type: 'month' | 'year';
+    };
 
 interface FreeTierOverride extends FreeTierThresholds {
   name: string | null;
   [key: `feature_list_${number}`]: string | null;
 }
 
-const initialState = {
+const initialState: PlanState = {
   subscribedProduct: null,
   intervalFilter: 'month',
   filterToggle: true,
@@ -67,7 +74,7 @@ const initialState = {
 
 const subscriptionUpgradeMessageDuration = 8000;
 
-function planReducer(state: PlanState, action: DataUpdates) {
+function planReducer(state: PlanState, action: DataUpdates): PlanState {
   switch (action.type) {
     case 'initialProd':
       return {...state, products: action.prodData};
@@ -93,7 +100,12 @@ function planReducer(state: PlanState, action: DataUpdates) {
 }
 
 export default function Plan() {
-  const [state, dispatch] = useReducer(planReducer, initialState);
+  // type definitions for useReducer incorrectly require an initializer arg - see https://github.com/facebook/react/issues/27052
+  // @ts-ignore
+  const [state, dispatch]: [PlanState, (arg: DataUpdates) => void] = useReducer(
+    planReducer,
+    initialState
+  );
   const [expandComparison, setExpandComparison] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
@@ -108,7 +120,7 @@ export default function Plan() {
   );
 
   const hasManageableStatus = useCallback(
-    (subscription: BaseSubscription) =>
+    (subscription: SubscriptionInfo) =>
       ACTIVE_STRIPE_STATUSES.includes(subscription.status),
     []
   );
@@ -134,7 +146,7 @@ export default function Plan() {
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
-      return state.subscribedProduct.some((subscription: BaseSubscription) =>
+      return state.subscribedProduct.some((subscription: SubscriptionInfo) =>
         hasManageableStatus(subscription)
       );
     }
@@ -142,10 +154,10 @@ export default function Plan() {
   }, [state.subscribedProduct]);
 
   useMemo(() => {
-    if (state.subscribedProduct?.length > 0) {
+    if (state.subscribedProduct && state.subscribedProduct.length > 0) {
       const subscribedFilter =
-        state.subscribedProduct?.[0].items[0].price.recurring?.interval;
-      if (hasManageableStatus(state.subscribedProduct?.[0])) {
+        state.subscribedProduct[0].items[0].price.recurring?.interval;
+      if (subscribedFilter && hasManageableStatus(state.subscribedProduct[0])) {
         dispatch({type: subscribedFilter});
       }
     }
@@ -218,10 +230,12 @@ export default function Plan() {
     }
     const priceId = searchParams.get('checkout');
     if (priceId) {
-      const isSubscriptionUpdated = state.subscribedProduct.find(
-        (subscription: BaseSubscription) =>
+      const isSubscriptionUpdated = false;
+      if (state.subscribedProduct) {
+        state.subscribedProduct.find((subscription: SubscriptionInfo) =>
           subscription.items.find((item) => item.price.id === priceId)
-      );
+        );
+      }
       if (isSubscriptionUpdated) {
         notify.success(
           t(
@@ -247,7 +261,7 @@ export default function Plan() {
   // Filter prices based on plan interval and filter out recurring addons
   const filterPrices = useMemo((): Price[] => {
     if (state.products !== null) {
-      const filterAmount = state.products.map((product: Product) => {
+      const filterAmount = state.products.map((product: Product): Price => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.recurring?.interval;
           return (
@@ -258,40 +272,42 @@ export default function Plan() {
 
         return {
           ...product,
-          prices: filteredPrices?.[0],
+          prices: filteredPrices[0],
         };
       });
 
-      return filterAmount
-        .filter((product: Product) => product.prices)
-        .sort(
-          (priceA: Price, priceB: Price) =>
-            priceA.prices.unit_amount > priceB.prices.unit_amount
-        );
+      return filterAmount.filter((price) => price.prices);
     }
     return [];
   }, [state.products, state.intervalFilter]);
 
   const getSubscriptionsForProductId = useCallback(
-    (productId: String) =>
-      state.subscribedProduct.filter(
-        (subscription: BaseSubscription) =>
-          subscription.items[0].price.product.id === productId
-      ),
+    (productId: String) => {
+      if (state.subscribedProduct) {
+        return state.subscribedProduct.filter(
+          (subscription: SubscriptionInfo) =>
+            subscription.items[0].price.product.id === productId
+        );
+      }
+      return null;
+    },
     [state.subscribedProduct]
   );
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (!product.prices.unit_amount && !hasActiveSubscription) {
+      if (
+        !(product.prices && product.prices.unit_amount) &&
+        !hasActiveSubscription
+      ) {
         return true;
       }
 
       const subscriptions = getSubscriptionsForProductId(product.id);
 
-      if (subscriptions.length > 0) {
+      if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
-          (subscription: BaseSubscription) =>
+          (subscription: SubscriptionInfo) =>
             subscription.items[0].price.id === product.prices.id &&
             hasManageableStatus(subscription)
         );
@@ -304,11 +320,11 @@ export default function Plan() {
   const shouldShowManage = useCallback(
     (product: Price) => {
       const subscriptions = getSubscriptionsForProductId(product.id);
-      if (!subscriptions.length || !state.organization?.id) {
+      if (!subscriptions || !subscriptions.length || !state.organization?.id) {
         return false;
       }
 
-      return subscriptions.some((subscription: BaseSubscription) =>
+      return subscriptions.some((subscription: SubscriptionInfo) =>
         hasManageableStatus(subscription)
       );
     },
@@ -316,18 +332,12 @@ export default function Plan() {
   );
 
   const upgradePlan = (priceId: string) => {
-    if (!priceId || areButtonsDisabled) {
+    if (!priceId || areButtonsDisabled || !state.organization?.id) {
       return;
     }
     setAreButtonsDisabled(true);
-    postCheckout(priceId, state.organization?.id)
-      .then((data) => {
-        if (!data.url) {
-          notify.error(t('There has been an issue, please try again later.'));
-        } else {
-          window.location.assign(data.url);
-        }
-      })
+    postCheckout(priceId, state.organization.id)
+      .then(processCheckoutResponse)
       .catch(() => setAreButtonsDisabled(false));
   };
 
@@ -337,13 +347,7 @@ export default function Plan() {
     }
     setAreButtonsDisabled(true);
     postCustomerPortal(state.organization.id)
-      .then((data) => {
-        if (!data.url) {
-          notify.error(t('There has been an issue, please try again later.'));
-        } else {
-          window.location.assign(data.url);
-        }
-      })
+      .then(processCheckoutResponse)
       .catch(() => setAreButtonsDisabled(false));
   };
 
@@ -416,7 +420,7 @@ export default function Plan() {
     }>,
     title?: string
   ) => (
-    <div className={styles.expandedFeature} key={title}>
+    <div key={title}>
       <h2 className={styles.listTitle}>{title} </h2>
       <ul>
         {items.map((item) => (
@@ -667,7 +671,10 @@ export default function Plan() {
               />
             </div>
           )}
-          <PlanAddOns products={state.products} />
+          <PlanAddOns
+            products={state.products}
+            organization={state.organization}
+          />
         </div>
       )}
     </>
