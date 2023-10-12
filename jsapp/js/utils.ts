@@ -28,11 +28,11 @@ const cookies = new Cookies();
  *
  * Also log messages to browser console to help with debugging.
  */
-export function notify(
+const notify = (
   msg: Toast['message'],
   atype = 'success',
   opts?: ToastOptions
-): Toast['id'] {
+): Toast['id'] => {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
 
@@ -74,7 +74,7 @@ export function notify(
       return toast(msg, opts); // No icon
   }
   /* eslint-enable no-console */
-}
+};
 
 // Convenience functions for code readability, consolidated here
 notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
@@ -83,6 +83,8 @@ notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
   notify(msg, 'warning', opts);
 notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
   notify(msg, 'success', opts);
+
+export {notify};
 
 /**
  * Useful for handling the fail responses from API. It detects if we got HTML
