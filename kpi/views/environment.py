@@ -178,13 +178,11 @@ class EnvironmentView(APIView):
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
         if request.user.id:
             # if the user is in an organization, use the organization owner's join date
-            owner_join_dates = list(
-                OrganizationOwner.objects.filter(
-                    organization__organization_users__user=request.user
-                ).values_list('organization_user__user__date_joined', flat=True)
-            )
-            if len(owner_join_dates):
-                date_joined = owner_join_dates[0].date()
+            owner_join_date = OrganizationOwner.objects.filter(
+                organization__organization_users__user=request.user
+            ).values_list('organization_user__user__date_joined', flat=True).first()
+            if owner_join_date:
+                date_joined = owner_join_date.date()
             else:
                 # default to checking the user's join date
                 date_joined = request.user.date_joined.date()
