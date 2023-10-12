@@ -20,10 +20,24 @@ const USERS_USER_ENDPOINT = '/api/v2/users/<username>/';
  * A store for checking if given user exists.
  */
 class UserExistenceStore {
+  /** Stores a boolean for known/checked usernames. */
   private checkedUsers: UserExistenceStoreData = {};
+  private lastCheckDate: Date = new Date();
 
-  /** Uses memoized value or makes a call to API */
-  async checkUsername(username: string) {
+  /** Resolves with either memoized value or API call response. */
+  async checkUsername(username: string): Promise<boolean> {
+    // If few minutes passed since the last check, we want to wipe the memoized
+    // values, since there is a chance a user might be created in the meantime
+    // and we don't want to risk storing untrue `false` that will never be fixed
+    // (unless user reloads the browser).
+    const now = new Date();
+    const diffMs = (now.valueOf() - this.lastCheckDate.valueOf());
+    const diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000);
+    if (diffMins >= 3) {
+      this.checkedUsers = {};
+    }
+    this.lastCheckDate = new Date();
+
     if (username in this.checkedUsers) {
       return Promise.resolve(this.checkedUsers[username]);
     }
