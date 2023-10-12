@@ -12,7 +12,7 @@ export interface BaseProduct {
   name: string;
   description: string;
   type: string;
-  metadata: {[key: string]: string};
+  metadata: {[p: string]: string};
 }
 
 export type RecurringInterval = 'year' | 'month';
