@@ -8,13 +8,13 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import type {Product, Organization, BasePrice, Price} from './stripe.api';
+import type {Product, Organization, BasePrice, Price} from '../stripe.api';
 import {
   getOrganization,
   getProducts,
   postCheckout,
   postCustomerPortal,
-} from './stripe.api';
+} from '../stripe.api';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
