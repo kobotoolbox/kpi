@@ -1,6 +1,7 @@
 import React from 'react';
 import {observer} from 'mobx-react';
 import zip from 'lodash.zip';
+import isEqual from 'lodash.isequal';
 import Chart from 'chart.js/auto';
 import type {
   ChartTypeRegistry,
@@ -11,10 +12,7 @@ import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import sessionStore from 'js/stores/session';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
-import type {
-  ReportsResponse,
-  ReportsResponseData,
-} from './reportsConstants';
+import type {ReportsResponse, ReportsResponseData} from './reportsConstants';
 import ReportTable from './reportTable.component';
 import Button from 'js/components/common/button';
 
@@ -67,9 +65,15 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     }
   }
 
-  componentDidUpdate() {
-    // refreshes a chart right after render()
-    if (this.props.data.show_graph) {
+  componentDidUpdate(prevProps: ReportViewItemProps) {
+    if (!this.props.data.show_graph) {
+      // Some items will only display a table, in such case, we make sure
+      // any previously created graph is destroyed.
+      this.itemChart?.destroy();
+      this.itemChart = undefined;
+    } else if (this.props.data.show_graph && !isEqual(prevProps, this.props)) {
+      // When props are identical, we make sure to not build the graph again,
+      // as it causes the animation to start again.
       this.loadChart();
     }
   }
@@ -86,14 +90,15 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       return;
     }
 
-    const opts = this.buildChartOptions();
-
+    // We need to destroy existing chart, so that we can use the canvas element
+    // for new one
     if (this.itemChart) {
       this.itemChart.destroy();
-      this.itemChart = new Chart(this.canvasRef.current, opts);
-    } else {
-      this.itemChart = new Chart(this.canvasRef.current, opts);
     }
+    this.itemChart = new Chart(
+      this.canvasRef.current,
+      this.buildChartOptions()
+    );
   }
 
   buildChartOptions() {
@@ -164,6 +169,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
           data: data.percentages,
           barPercentage: 0.5,
           fill: isArea,
+          backgroundColor: colors,
         });
       }
       if (data.responseLabels) {
