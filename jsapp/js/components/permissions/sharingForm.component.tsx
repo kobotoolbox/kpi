@@ -72,14 +72,18 @@ export default class SharingForm extends React.Component<
     };
   }
 
+  private unlisteners: Function[] = [];
+
   componentDidMount() {
-    assetStore.listen(this.onAssetChange, this);
-    stores.allAssets.listen(this.onAllAssetsChange, this);
-    actions.permissions.bulkSetAssetPermissions.completed.listen(
-      this.onAssetPermissionsUpdated.bind(this)
-    );
-    actions.permissions.getAssetPermissions.completed.listen(
-      this.onAssetPermissionsUpdated.bind(this)
+    this.unlisteners.push(
+      assetStore.listen(this.onAssetChange, this),
+      stores.allAssets.listen(this.onAllAssetsChange, this),
+      actions.permissions.bulkSetAssetPermissions.completed.listen(
+        this.onAssetPermissionsUpdated.bind(this)
+      ),
+      actions.permissions.getAssetPermissions.completed.listen(
+        this.onAssetPermissionsUpdated.bind(this)
+      )
     );
 
     if (this.props.assetUid) {
@@ -87,6 +91,12 @@ export default class SharingForm extends React.Component<
     }
 
     this.onAllAssetsChange();
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   onAllAssetsChange() {
