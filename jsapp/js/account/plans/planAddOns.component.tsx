@@ -2,15 +2,23 @@ import React, {useCallback, useEffect, useState} from 'react';
 import useWhen from 'js/hooks/useWhen.hook';
 import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import subscriptionStore from 'js/account/subscriptionStore';
-import type {BasePrice, Organization, Product} from 'js/account/stripe.api';
+import type {
+  BasePrice,
+  BaseProduct,
+  Organization,
+  Product,
+} from 'js/account/stripe.api';
 import Button from 'js/components/common/button';
 import {
   isAddonProduct,
   isRecurringAddonProduct,
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
-import {postCheckout, postCustomerPortal} from 'js/account/stripe.api';
-import {navigate} from '@storybook/addon-links';
+import {
+  changeSubscription,
+  postCheckout,
+  postCustomerPortal,
+} from 'js/account/stripe.api';
 
 const PlanAddOns = (props: {
   products: Product[] | null;
@@ -18,6 +26,9 @@ const PlanAddOns = (props: {
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>(
     []
+  );
+  const [subscribedPlan, setSubscribedPlan] = useState<BaseProduct | null>(
+    null
   );
   const [addOnProducts, setAddOnProducts] = useState<Product[]>([]);
   const [hasSubscription, setHasSubscription] = useState(false);
@@ -40,6 +51,7 @@ const PlanAddOns = (props: {
     () => subscriptionStore.isInitialised,
     () => {
       setSubscribedAddOns(subscriptionStore.addOnsResponse);
+      setSubscribedPlan(subscriptionStore.subscribedProduct);
       setHasSubscription(
         subscriptionStore.addOnsResponse.length > 0 ||
           subscriptionStore.planResponse.length > 0
@@ -61,7 +73,7 @@ const PlanAddOns = (props: {
       return;
     }
     if (hasSubscription) {
-      // TODO: change plans
+      changeSubscription(price.id);
     } else {
       postCheckout(price.id, props.organization.id).then(
         processCheckoutResponse

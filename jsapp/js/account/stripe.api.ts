@@ -90,9 +90,12 @@ export async function getProducts() {
   return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL);
 }
 
-export async function getSubscription() {
-  return fetchGet<PaginatedResponse<BaseSubscription>>(
-    endpoints.SUBSCRIPTION_URL
+export async function changeSubscription(
+  priceId: string,
+  subscriptionId: string
+) {
+  return fetchGet(
+    `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}`
   );
 }
 
