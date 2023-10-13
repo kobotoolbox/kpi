@@ -3,7 +3,7 @@ import clonedeep from 'lodash.clonedeep';
 import type {
   ReportsResponseData,
   ReportsResponseDataValues,
-} from 'jsapp/js/dataInterface';
+} from './reportsConstants';
 import type {PreparedTable} from './reportViewItem.component';
 
 interface ReportTableProps {

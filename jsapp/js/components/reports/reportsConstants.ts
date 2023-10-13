@@ -1,4 +1,62 @@
 import type {ChartTypeRegistry} from 'chart.js/auto';
+import type {AnyRowTypeName} from 'js/constants';
+
+interface ReportsResponseDataValueRegular {
+  responses: string;
+  frequencies: number;
+  percentages: number;
+}
+
+interface ReportsResponseDataValueNumerical {
+  median?: number | '*';
+  mean?: number | '*';
+  mode?: number | '*';
+  stdev?: number | '*';
+}
+
+export type ReportsResponseDataValues = Array<
+  [number, ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical]
+>;
+
+export interface ReportsResponseData {
+  total_count: number;
+  not_provided: number;
+  provided: number;
+  show_graph: boolean;
+  /**
+   * The `values` property appears in the API response when `?split_by` query
+   * param is being used
+   */
+  values?: ReportsResponseDataValues;
+  responses?: string[];
+  responseLabels?: string[];
+  /** Integer */
+  frequencies?: number[];
+  /** Number with 2 decimal points */
+  percentages?: number[];
+  /** It shows up sometimes as empty array, no idea what is it for. */
+  percentage?: [];
+  /** All four are for `integer`, `decimal`, `range` types */
+  median?: number | '*';
+  mean?: number | '*';
+  mode?: number | '*';
+  stdev?: number | '*';
+}
+
+export interface ReportsResponse {
+  name: string;
+  row: {
+    type: AnyRowTypeName;
+  };
+  data: ReportsResponseData;
+  kuid: string;
+  style: {
+    // There could be more properties here
+    graphWidth?: number;
+    report_type?: ReportStyleName;
+    report_colors?: string[];
+  };
+}
 
 export type ReportStyleName =
   | 'vertical'

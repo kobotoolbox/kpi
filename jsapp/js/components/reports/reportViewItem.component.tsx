@@ -11,11 +11,11 @@ import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import sessionStore from 'js/stores/session';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
-import ReportTable from './reportTable.component';
 import type {
   ReportsResponse,
   ReportsResponseData,
-} from 'jsapp/js/dataInterface';
+} from './reportsConstants';
+import ReportTable from './reportTable.component';
 import Button from 'js/components/common/button';
 
 export type PreparedTable = Array<

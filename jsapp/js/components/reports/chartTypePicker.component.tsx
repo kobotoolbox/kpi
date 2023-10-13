@@ -1,7 +1,7 @@
 import React from 'react';
-import bem from 'js/bem';
 import {REPORT_STYLES} from './reportsConstants';
 import type {ReportStyleName} from './reportsConstants';
+import styles from './chartTypePicker.module.scss';
 
 interface ChartTypePickerProps {
   onChange: (
@@ -19,10 +19,11 @@ export default function ChartTypePicker(props: ChartTypePickerProps) {
   }
 
   return (
-    <bem.GraphSettings__charttype>
+    <section className={styles.root}>
       {Object.entries(REPORT_STYLES).map(([, styleDefinition], i) => (
-        <bem.GraphSettings__radio m={styleDefinition.value} key={i}>
+        <div key={i} className={styles.style} data-name={styleDefinition.value}>
           <input
+            className={styles.styleInput}
             type='radio'
             name='chart_type'
             value={styleDefinition.value}
@@ -30,11 +31,15 @@ export default function ChartTypePicker(props: ChartTypePickerProps) {
             onChange={() => defaultReportStyleChange(styleDefinition.value)}
             id={'type-' + styleDefinition.value}
           />
-          <label htmlFor={'type-' + styleDefinition.value}>
+
+          <label
+            className={styles.styleLabel}
+            htmlFor={'type-' + styleDefinition.value}
+          >
             {styleDefinition.label}
           </label>
-        </bem.GraphSettings__radio>
+        </div>
       ))}
-    </bem.GraphSettings__charttype>
+    </section>
   );
 }

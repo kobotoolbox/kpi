@@ -50,8 +50,7 @@
 }
 
 .graph:not(.graphVisible) canvas {
-  opacity: 0;
-  visibility: hidden;
+  display: none !important;
 }
 
 .graph :global .loading {
@@ -61,7 +60,11 @@
   transform: translate(-50%, -50%);
 }
 
-.noChartMessage {}
+.noChartMessage {
+  width: 100%;
+  text-align: center;
+  margin: 0;
+}
 
 .statsWrapper {
   @include mixins.centerRowFlex;

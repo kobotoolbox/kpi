@@ -47,7 +47,7 @@ interface SubmissionsCountGraphProps {
   assetUid: string;
 }
 
-export default function SubmisCountsionsGraph(
+export default function SubmissionsCountGraph(
   props: SubmissionsCountGraphProps
 ) {
   const [isLoading, setIsLoading] = useState(true);
@@ -109,8 +109,10 @@ export default function SubmisCountsionsGraph(
       // Loop over days and add them to the list. We need all the days, not just
       // the ones with data.
       while (day <= today) {
+        // e.g. 1999-12-24
         const date = day.format('YYYY-MM-DD');
         const count = dailyCounts[date] || 0;
+        // e.g 24 Dec
         output.set(day.format('DD MMM'), count);
         day = day.clone().add(1, 'd');
       }
@@ -137,6 +139,7 @@ export default function SubmisCountsionsGraph(
       // Loop over months and add them to the list. We need all the months, not
       // just the ones with data.
       while (month <= today) {
+        // e.g. 12
         const monthNumber = month.format('MM');
 
         // Gather all counts from days from current month
@@ -148,6 +151,7 @@ export default function SubmisCountsionsGraph(
           }
         });
 
+        // e.g. Dec
         output.set(month.format('MMM'), count);
         month = month.clone().add(1, 'M');
       }
@@ -264,12 +268,12 @@ export default function SubmisCountsionsGraph(
     }
   }, [counts]);
 
-  const hasData = !isLoading && counts.total_submission_count > 0;
-
   const totalPeriodCount = Object.values(counts.daily_submission_counts).reduce(
     (partialSum, a) => partialSum + a,
     0
   );
+
+  const hasData = !isLoading && totalPeriodCount > 0;
 
   return (
     <section className={styles.root}>
