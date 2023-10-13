@@ -27,7 +27,6 @@ import type {
   PermissionResponse,
   AssignablePermissionPartialLabel,
 } from 'js/dataInterface';
-import {getRouteAssetUid} from 'js/router/routerUtils';
 
 interface SharingFormProps {
   assetUid: string;
@@ -116,10 +115,9 @@ export default class SharingForm extends React.Component<
   }
 
   onAssetChange(data: AssetStoreData) {
-    // TODO: check if it is possible to get no assetUid! because most probably
-    // we don't need that fallback
-    const uid = this.props.assetUid || getRouteAssetUid();
-    const asset = Object.values(data).find((item) => item.uid === uid);
+    const asset = Object.values(data).find(
+      (item) => item.uid === this.props.assetUid
+    );
 
     if (!asset) {
       return;
@@ -132,7 +130,7 @@ export default class SharingForm extends React.Component<
 
     // we need to fetch permissions after asset has loaded, as we need to have
     // the owner username first to parse permissions
-    actions.permissions.getAssetPermissions(uid);
+    actions.permissions.getAssetPermissions(this.props.assetUid);
   }
 
   getAssignablePermsMap(backendPerms: AssignablePermission[]) {
