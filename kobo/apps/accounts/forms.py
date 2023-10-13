@@ -45,6 +45,14 @@ class KoboSignupMixin(forms.Form):
         label=USER_METADATA_DEFAULT_LABELS['organization'],
         required=False,
     )
+    organization_type = forms.ChoiceField(
+        label=USER_METADATA_DEFAULT_LABELS['organization_type'],
+        required=False,
+        choices=(
+            ("", t('')),
+            ("", t('')),
+        ),
+    )
     gender = forms.ChoiceField(
         label=USER_METADATA_DEFAULT_LABELS['gender'],
         required=False,
