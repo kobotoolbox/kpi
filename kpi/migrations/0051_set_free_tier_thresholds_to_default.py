@@ -1,5 +1,3 @@
-import json
-
 from constance import config
 from django.db import migrations
 
