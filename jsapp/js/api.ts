@@ -125,8 +125,10 @@ export const fetchGet = async <T>(path: string, options?: FetchDataOptions) =>
   fetchData<T>(path, 'GET', undefined, options);
 
 /** GET Kobo API at url */
-export const fetchGetUrl = async <T>(url: string) =>
-  fetchData<T>(url, 'GET', undefined, false);
+export const fetchGetUrl = async <T>(url: string, options?: FetchDataOptions) => {
+  options = Object.assign({}, options, {prependRootUrl: false});
+  return fetchData<T>(url, 'GET', undefined, options);
+};
 
 /** POST data to Kobo API at path */
 export const fetchPost = async <T>(
