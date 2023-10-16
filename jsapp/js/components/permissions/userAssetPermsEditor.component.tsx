@@ -52,6 +52,8 @@ interface UserAssetPermsEditorProps {
 
 interface UserAssetPermsEditorState {
   isSubmitPending: boolean;
+  // We need both `isEditingUsername` and `isCheckingUsername` to block sending
+  // permissions to Back end, when we're not sure if user exists.
   isEditingUsername: boolean;
   isCheckingUsername: boolean;
   // Properties for configuring the permission in the form:
@@ -127,6 +129,15 @@ export default class UserAssetPermsEditor extends React.Component<
 
     this.applyPropsData();
   }
+
+  /**
+   * A cached list of checked usernames; saves us some backend calls. It will
+   * be wiped as soon as the editor is closed, so it's a minor improvement.
+   *
+   * TODO: think about a better caching mechanism, probably added inside
+   * the `userExistence` store.
+   */
+  checkedUsernames: Map<string, boolean> = new Map();
 
   /**
    * Fills up form with provided user name and permissions (if applicable)
@@ -332,28 +343,55 @@ export default class UserAssetPermsEditor extends React.Component<
   }
 
   /**
-   * Checks if username exist on the Backend and clears input if doesn't.
+   * Checks if username exist on the Back end, and clears input if doesn't.
    */
   async onUsernameChangeEnd() {
     this.setState({isEditingUsername: false});
 
     const usernameToCheck = this.state.username;
 
-    // Don't check empty string
+    // We don't check empty string.
     if (usernameToCheck === '') {
       return;
     }
 
+    // If we have previously checked, and user does exist, we do nothing :).
+    if (
+      this.checkedUsernames.has(usernameToCheck) &&
+      this.checkedUsernames.get(usernameToCheck) === true
+    ) {
+      return;
+    }
+
+    // If we have previously checked, and user doesn't exist, we notify and
+    // clear input
+    if (
+      this.checkedUsernames.has(usernameToCheck) &&
+      this.checkedUsernames.get(usernameToCheck) === false
+    ) {
+      this.notifyUnknownUser(usernameToCheck);
+      this.setState({username: ''});
+    }
+
+    // If we didn't check for user, we do it here (and cache result).
     this.setState({isCheckingUsername: true});
     const checkResult = await userExistence.checkUsername(usernameToCheck);
+    this.checkedUsernames.set(usernameToCheck, checkResult);
     if (checkResult === false) {
-      // Notify unknown user, but only if there is internet connection
+      // Notify about unknown user - but only if there is internet connection,
+      // so that we don't display a scary "User not found" notification
+      // untruthfuly.
       if (navigator.onLine) {
-        notify(`${t('User not found:')} ${usernameToCheck}`, 'warning');
+        this.notifyUnknownUser(usernameToCheck);
       }
       this.setState({username: ''});
     }
+
     this.setState({isCheckingUsername: false});
+  }
+
+  notifyUnknownUser(username: string) {
+    notify(`${t('User not found:')} ${username}`, 'warning');
   }
 
   onInputKeyPress(key: string, evt: React.KeyboardEvent<HTMLInputElement>) {
