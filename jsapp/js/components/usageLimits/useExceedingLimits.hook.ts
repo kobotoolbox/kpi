@@ -7,7 +7,7 @@ import {USAGE_WARNING_RATIO} from 'js/constants';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
-import {UsageContext} from 'js/account/useUsage.hook';
+import {UsageContext} from 'js/account/usage/useUsage.hook';
 
 interface SubscribedState {
   subscribedProduct: null | BaseSubscription;

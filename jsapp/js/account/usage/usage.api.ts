@@ -1,4 +1,4 @@
-import {fetchWithHeaders} from 'jsapp/js/api';
+import {fetchWithHeaders} from 'js/api';
 import {getOrganization} from 'js/account/stripe.api';
 
 interface AssetUsage {

@@ -11,7 +11,7 @@ import {formatDate} from 'js/utils';
 import styles from './usage.module.scss';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {UsageContext, useUsage} from 'js/account/useUsage.hook';
+import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
 interface LimitState {
   storageByteLimit: number | 'unlimited';
