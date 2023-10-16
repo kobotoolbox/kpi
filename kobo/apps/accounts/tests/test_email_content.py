@@ -45,6 +45,7 @@ class EmailContentModelTestCase(TestCase):
         username = 'user001'
         email = username + '@example.com'
         data = {
+            'name': 'username',
             'email': email,
             'password1': username,
             'password2': username,
@@ -92,6 +93,7 @@ class EmailContentModelTestCase(TestCase):
         username = 'user002'
         email = username + '@example.com'
         data = {
+            'name': username,
             'email': email,
             'password1': username,
             'password2': username,
@@ -136,6 +138,7 @@ class EmailContentModelTestCase(TestCase):
         username = 'user003'
         email = username + '@example.com'
         data = {
+            'name': username,
             'email': email,
             'password1': username,
             'password2': username,

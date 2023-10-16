@@ -17,6 +17,7 @@ from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
 
 from kpi.utils.json import LazyJSONSerializable
+from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -281,7 +282,7 @@ CONSTANCE_CONFIG = {
     ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
-            {'name': 'name', 'required': False},
+            {'name': 'name', 'required': True},
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},
             {'name': 'sector', 'required': False},
@@ -339,12 +340,7 @@ CONSTANCE_CONFIG = {
         'positive_int'
     ),
     'FREE_TIER_THRESHOLDS': (
-        LazyJSONSerializable({
-            'storage': None,
-            'data': None,
-            'transcription_minutes': None,
-            'translation_chars': None,
-        }),
+        LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
         'Free tier thresholds: storage in kilobytes, '
         'data (number of submissions), '
         'minutes of transcription, '
@@ -353,10 +349,7 @@ CONSTANCE_CONFIG = {
         'free_tier_threshold_jsonschema',
     ),
     'FREE_TIER_DISPLAY': (
-        LazyJSONSerializable({
-            'name': None,
-            'feature_list': [],
-        }),
+        LazyJSONSerializable(FREE_TIER_EMPTY_DISPLAY),
         'Free tier frontend settings: name to use for the free tier, '
         'array of text strings to display on the feature list of the Plans page',
         'free_tier_display_jsonschema',
