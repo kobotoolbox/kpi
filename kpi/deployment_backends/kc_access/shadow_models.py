@@ -524,7 +524,7 @@ class ReadOnlyModel(ShadowModel):
 class ReadOnlyKobocatAttachmentManager(models.Manager):
 
     def get_queryset(self):
-        return super().get_queryset().exclude(replaced_at__isnull=False)
+        return super().get_queryset().exclude(deleted_at__isnull=False)
 
 
 class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
@@ -547,7 +547,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
-    replaced_at = models.DateTimeField(blank=True, null=True)
+    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
     objects = ReadOnlyKobocatAttachmentManager()
 
     @property
