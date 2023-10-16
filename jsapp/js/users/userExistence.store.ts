@@ -32,8 +32,8 @@ class UserExistenceStore {
     // (unless user reloads the browser).
     const now = new Date();
     const diffMs = (now.valueOf() - this.lastCheckDate.valueOf());
-    const diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000);
-    if (diffMins >= 3) {
+    const limitMs = 3 * 60 * 1000; // 3 minutes
+    if (diffMs >= limitMs) {
       this.checkedUsers = {};
     }
     this.lastCheckDate = new Date();
