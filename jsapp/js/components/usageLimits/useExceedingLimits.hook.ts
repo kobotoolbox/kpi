@@ -60,7 +60,7 @@ export const useExceedingLimits = () => {
         () => subscriptionStore.isInitialised,
         () => {
           dispatch({
-            prodData: subscriptionStore.subscriptionResponse,
+            prodData: subscriptionStore.planResponse,
           });
         }
       ),

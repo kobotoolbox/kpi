@@ -1,5 +1,6 @@
 # coding: utf-8
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
@@ -23,22 +24,39 @@ class UserListTests(BaseTestCase):
         )
 
     def test_delete_token(self):
+        assert Token.objects.filter(user__username=self.username).exists()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        assert not Token.objects.filter(user__username=self.username).exists()
 
-    def test_create_token(self):
+    def test_create_token_via_get(self):
+        # Originally, a POST was required to generate a token, but no longer
         self.test_delete_token()
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(
+            response.data['token'],
+            Token.objects.get(user__username=self.username).key
+        )
+
+    def test_create_token_via_post(self):
+        # Retained for API stability
+        self.test_delete_token()
         response = self.client.post(self.url, format='json')
         self.assertEqual(
             response.data['token'],
             Token.objects.get(user__username=self.username).key
         )
+
+    def test_new_user_has_token_automatically_created(self):
+        User = get_user_model()
+        u = User.objects.create_user(
+            username='token_test', password='token_test'
+        )
+        self.client.login(username='token_test', password='token_test')
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_anonymous_access_denied(self):
         self.client.logout()

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.constraints import UniqueConstraint
@@ -66,13 +67,15 @@ class FormDisclaimer(AbstractMarkdownxModel):
 
         with transaction.atomic():
             super().save(*args, **kwargs)
-            KobocatFormDisclaimer.sync(self)
+            if not settings.TESTING:
+                KobocatFormDisclaimer.sync(self)
 
     def delete(self, using=None, keep_parents=False):
         pk = self.pk
         with transaction.atomic():
             value = super().delete(using, keep_parents)
-            KobocatFormDisclaimer.objects.filter(pk=pk).delete()
+            if not settings.TESTING:
+                KobocatFormDisclaimer.objects.filter(pk=pk).delete()
         return value
 
 
