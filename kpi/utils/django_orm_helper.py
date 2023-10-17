@@ -38,13 +38,19 @@ class IncrementValue(Func):
         )
 
 
-class OrderRandom(Func):
+class OrderCustom(Func):
 
     function = 'array_position'
     template = '%(function)s(ARRAY%(order_list)s, %(expressions)s)'
     arity = 1
 
-    def __init__(self, expression: str, order_list: list, **extra):
+    def __init__(self, expression: str, order_list: list, array_type: str, **extra):
+
+        # With PostgreSQL 13 (and older), `array_position` needs explicit type
+        # casts to work. By default, `order_list` is treated as `text[]`
+        # TODO Remove this condition when PostgreSQL 13 becomes deprecated.
+        if array_type == 'varchar':
+            self.template = '%(function)s(ARRAY%(order_list)s::varchar[], %(expressions)s)'
 
         if expression.startswith('-'):
             order_list.reverse()
