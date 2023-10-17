@@ -1462,3 +1462,5 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'kpi.password_validation.MostRecentPasswordValidator',
     },
 ]
+
+AZURE_ENV = env.bool('AZURE_ENV', False)

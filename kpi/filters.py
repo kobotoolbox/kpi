@@ -119,12 +119,15 @@ class AssetOrderingFilter(filters.OrderingFilter):
             return queryset.order_by(*ordering)
         else:
             # Default ordering
-            return queryset.order_by(
-                OrderRandom(
-                    '_deployment_status', self.DEPLOYMENT_STATUS_DEFAULT_ORDER
-                ),
-                '-date_modified',
-            )
+            if settings.AZURE_ENV:
+                return queryset.order_by('-_deployment_status', '-date_modified')
+            else:
+                return queryset.order_by(
+                    OrderRandom(
+                        '_deployment_status', self.DEPLOYMENT_STATUS_DEFAULT_ORDER
+                    ),
+                    '-date_modified',
+                )
 
         return queryset
 
