@@ -57,10 +57,10 @@ enum Limits {
 type LimitAmount = number | Limits.unlimited;
 
 export interface AccountLimit {
-  submission_limit: LimitAmount | number;
-  nlp_seconds_limit: LimitAmount | number;
-  nlp_character_limit: LimitAmount | number;
-  storage_bytes_limit: LimitAmount | number;
+  submission_limit: LimitAmount;
+  nlp_seconds_limit: LimitAmount;
+  nlp_character_limit: LimitAmount;
+  storage_bytes_limit: LimitAmount;
 }
 
 export interface Product extends BaseProduct {
