@@ -1,5 +1,7 @@
-# coding: utf-8
+from __future__ import annotations
+
 import json
+from typing import Optional, Literal
 
 from django.db.models import Lookup, Field
 from django.db.models.expressions import Func, Value
@@ -44,7 +46,13 @@ class OrderCustom(Func):
     template = '%(function)s(ARRAY%(order_list)s, %(expressions)s)'
     arity = 1
 
-    def __init__(self, expression: str, order_list: list, array_type: str, **extra):
+    def __init__(
+        self,
+        expression: str,
+        order_list: list,
+        array_type: Optional[Literal['varchar']] = None,
+        **extra
+    ):
 
         # With PostgreSQL 13 (and older), `array_position` needs explicit type
         # casts to work. By default, `order_list` is treated as `text[]`
