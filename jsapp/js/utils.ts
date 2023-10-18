@@ -18,8 +18,6 @@ import type Raven from 'raven';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
-export const assign = require('object-assign');
-
 const cookies = new Cookies();
 
 /**
@@ -201,6 +199,14 @@ export function formatSeconds(seconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(
     secondsLeftover
   ).padStart(2, '0')}`;
+}
+
+export function formatRelativeTime(timeStr: string, localize = true): string {
+  let myMoment = moment.utc(timeStr);
+  if (localize) {
+    myMoment = myMoment.local();
+  }
+  return myMoment.fromNow();
 }
 
 // works universally for v1 and v2 urls

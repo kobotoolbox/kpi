@@ -17,13 +17,13 @@ export async function hasActiveSubscription() {
   }
 
   await when(() => subscriptionStore.isInitialised);
-  const subscriptions = subscriptionStore.subscriptionResponse;
-  if (!subscriptions.length) {
+  const plans = subscriptionStore.planResponse;
+  if (!plans.length) {
     return false;
   }
 
   return (
-    subscriptions.filter(
+    plans.filter(
       (sub) =>
         ACTIVE_STRIPE_STATUSES.includes(sub.status) &&
         sub.items?.[0].price.unit_amount > 0

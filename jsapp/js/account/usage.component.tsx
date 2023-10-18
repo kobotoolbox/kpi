@@ -116,7 +116,17 @@ export default function Usage() {
 
   return (
     <div className={styles.root}>
-      <h2>{t('Your account total use')}</h2>
+      <header className={styles.header}>
+        <h2>{t('Your account total use')}</h2>
+        {typeof usage.lastUpdated === 'string' && (
+          <p className={styles.updated}>
+            {t('Last update: ##LAST_UPDATE_TIME##').replace(
+              '##LAST_UPDATE_TIME##',
+              usage.lastUpdated
+            )}
+          </p>
+        )}
+      </header>
       <UsageContext.Provider value={usage}>
         <LimitNotifications usagePage />
       </UsageContext.Provider>

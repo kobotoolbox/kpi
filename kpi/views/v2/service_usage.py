@@ -1,9 +1,12 @@
 # coding: utf-8
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
 from rest_framework import (
     renderers,
     viewsets,
 )
-from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kpi.permissions import IsAuthenticated
@@ -11,27 +14,19 @@ from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 
 
-class ServiceUsageViewSet(viewsets.ViewSet):
+# @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
+# @method_decorator(vary_on_cookie, name='list')
+class ServiceUsageViewSet(viewsets.GenericViewSet):
     """
     ## Service Usage Tracker
-    <p>Tracks the total usage of different services for each account in the current user's organization</p>
+    <p>Tracks the total usage of different services for the logged-in user</p>
     <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
     <p>Tracks the current total storage used</p>
+    <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/service_usage/?=organization_id={organization_id}
+    <b>GET</b> /api/v2/service_usage/
     </pre>
-
-        > **Payload**
-    >
-    >        {
-    >           "organization_id": "orgA34cds8fmske3tf",
-    >        }
-
-    where:
-
-    * "organization_id" (optional) is an organization ID string. User must be the organization's owner.
-    If "organization_id" is set, endpoint will return aggregated usage data for all the organization's users.
 
     > Example
     >
@@ -66,23 +61,9 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     pagination_class = None
     permission_classes = (IsAuthenticated,)
 
-    def get_serializer_context(self):
-        """
-        Extra context provided to the serializer class.
-        """
-        return {
-            'request': self.request,
-            'format': self.format_kwarg,
-            'view': self,
-        }
-
     def list(self, request, *args, **kwargs):
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
             context=self.get_serializer_context(),
         )
         return Response(data=serializer.data)
-
-    @action(methods=['post'], detail=False)
-    def post(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)

@@ -521,6 +521,12 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
+class ReadOnlyKobocatAttachmentManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(deleted_at__isnull=False)
+
+
 class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
 
     class Meta(ReadOnlyModel.Meta):
@@ -541,9 +547,8 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
-    # TODO: hide attachments that were deleted or replaced; see
-    # kobotoolbox/kobocat#792
-    # replaced_at = models.DateTimeField(blank=True, null=True)
+    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    objects = ReadOnlyKobocatAttachmentManager()
 
     @property
     def absolute_mp3_path(self):

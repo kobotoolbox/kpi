@@ -20,7 +20,7 @@ import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
 import {actions} from './actions';
-import {log, assign, notify, escapeHtml, join} from 'js/utils';
+import {log, notify, escapeHtml, join} from 'js/utils';
 import type {
   AssetResponse,
   CreateImportRequest,
@@ -234,7 +234,7 @@ const mixins: MixinsObject = {
       const uid = this._getAssetUid();
       const asset = data[uid];
       if (asset) {
-        this.setState(assign({}, data[uid]));
+        this.setState(Object.assign({}, data[uid]));
       }
     },
     _getAssetUid() {
@@ -272,7 +272,7 @@ const mixins: MixinsObject = {
       // this nice SSOT as described in TODO comment above.
       const uid = this._getAssetUid();
       if (uid && this.props.initialAssetLoadNotNeeded) {
-        this.setState(assign({}, assetStore.data[uid]));
+        this.setState(Object.assign({}, assetStore.data[uid]));
       } else if (uid) {
         actions.resources.loadAsset({id: uid});
       }
@@ -342,7 +342,7 @@ const mixins: MixinsObject = {
 
       const isLibrary = routerIsActive('library');
       const multipleFiles = params.totalFiles && totalFiles > 1 ? true : false;
-      params = assign({library: isLibrary}, params);
+      params = Object.assign({library: isLibrary}, params);
 
       if (params.base64Encoded) {
         stores.pageState.showModal({
@@ -358,7 +358,7 @@ const mixins: MixinsObject = {
       if (!isLibrary && params.base64Encoded) {
         const destination = params.destination || this.state.url;
         if (destination) {
-          params = assign({destination: destination}, params);
+          params = Object.assign({destination: destination}, params);
         }
       }
 
@@ -457,7 +457,7 @@ const mixins: MixinsObject = {
       files.map((file) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const params = assign(
+          const params = Object.assign(
             {
               name: file.name,
               base64Encoded: reader.result,
