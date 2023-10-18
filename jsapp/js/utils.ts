@@ -199,6 +199,14 @@ export function formatSeconds(seconds: number) {
   ).padStart(2, '0')}`;
 }
 
+export function formatRelativeTime(timeStr: string, localize = true): string {
+  let myMoment = moment.utc(timeStr);
+  if (localize) {
+    myMoment = myMoment.local();
+  }
+  return myMoment.fromNow();
+}
+
 // TODO: Test if works for both form and library routes, if not make it more general
 // See: https://github.com/kobotoolbox/kpi/issues/3909
 export function getAssetUIDFromUrl(assetUrl: string): string | null {

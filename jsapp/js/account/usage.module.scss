@@ -15,6 +15,19 @@ h2 {
   }
 }
 
+.header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.updated {
+  border-radius: 0.25em;
+  background-color: colors.$kobo-cloud;
+  padding: 0.5em;
+}
+
 .row {
   display: flex;
   justify-content: center;
