@@ -16,6 +16,8 @@ const JSON_HEADER = 'application/json';
 //   500 // half second
 // );
 
+type FetchHttpMethod = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE';
+
 interface FetchDataOptions {
   /**
    * By default we display an error toast notification when response is not good
@@ -33,6 +35,11 @@ interface FetchDataOptions {
    * `true` by default
    */
   prependRootUrl?: boolean;
+  /**
+   * Include the headers along with the response body, under the `headers` key.
+   * Useful if, for example, you need to determine the age of a cached response.
+   * **/
+  includeHeaders?: boolean;
 }
 
 const fetchData = async <T>(
@@ -40,7 +47,7 @@ const fetchData = async <T>(
    * If you have full url to be called, remember to use `prependRootUrl` option.
    */
   path: string,
-  method: 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE',
+  method: FetchHttpMethod,
   data?: Json,
   options?: FetchDataOptions
 ) => {
@@ -71,12 +78,16 @@ const fetchData = async <T>(
   // there is no point adding anything to it.
   const url = prependRootUrl ? ROOT_URL + path : path;
 
-  // Make the call :)
-  const response = await fetch(url, {
+  const fetchOptions: RequestInit = {
     method: method,
     headers,
-    body: JSON.stringify(data),
-  });
+  };
+
+  if (data) {
+    fetchOptions['body'] = JSON.stringify(data);
+  }
+
+  const response = await fetch(url, fetchOptions);
 
   const contentType = response.headers.get('content-type');
 
@@ -115,6 +126,12 @@ const fetchData = async <T>(
   }
 
   if (contentType && contentType.indexOf('application/json') !== -1) {
+    if (options?.includeHeaders) {
+      return {
+        headers: response.headers,
+        ...(await response.json()),
+      } as {headers: Headers} & T;
+    }
     return (await response.json()) as Promise<T>;
   }
   return {} as T;
@@ -162,8 +179,8 @@ export const fetchPut = async <T>(
 ) => fetchData<T>(path, 'PUT', data, options);
 
 /** DELETE data to Kobo API at path, data is optional */
-export const fetchDelete = async (
+export const fetchDelete = async <T>(
   path: string,
   data?: Json,
   options?: FetchDataOptions
-) => fetchData<unknown>(path, 'DELETE', data, options);
+) => fetchData<T>(path, 'DELETE', data, options);
