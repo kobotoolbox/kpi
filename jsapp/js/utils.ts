@@ -212,17 +212,15 @@ window.log = log;
 
 const originalSupportEmail = 'help@kobotoolbox.org';
 
-// use this utility function to replace hardcoded email in transifex translations
-//
-// TODO: make this use environment endpoint's `support_email` property.
-// Currently no place is using this correctly.
-// See: https://github.com/kobotoolbox/kpi/issues/3910
 /**
  * Replaces the hardcoded email string (coming from transifex translation) with
  * the one from the `/environment` endpoint.
  */
 export function replaceSupportEmail(str: string): string {
-  if (typeof envStore.data.support_email === 'string' && envStore.data.support_email.length !== 0) {
+  if (
+    typeof envStore.data.support_email === 'string' &&
+    envStore.data.support_email.length !== 0
+  ) {
     return str.replace(originalSupportEmail, envStore.data.support_email);
   } else {
     return str;

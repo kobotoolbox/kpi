@@ -735,39 +735,6 @@ export interface TransxLanguages {
   };
 }
 
-export interface EnvironmentResponse {
-  mfa_has_availability_list: boolean;
-  terms_of_service_url: string;
-  privacy_policy_url: string;
-  source_code_url: string;
-  support_email: string;
-  support_url: string;
-  community_url: string;
-  project_metadata_fields: EnvStoreFieldItem[];
-  user_metadata_fields: EnvStoreFieldItem[];
-  sector_choices: string[][];
-  operational_purpose_choices: string[][];
-  country_choices: string[][];
-  interface_languages: string[][];
-  transcription_languages: TransxLanguages;
-  translation_languages: TransxLanguages;
-  submission_placeholder: string;
-  frontend_min_retry_time: number;
-  frontend_max_retry_time: number;
-  asr_mt_features_enabled: boolean;
-  mfa_localized_help_text: string;
-  mfa_enabled: boolean;
-  mfa_per_user_availability: boolean;
-  mfa_code_length: number;
-  stripe_public_key: string | null;
-  social_apps: SocialApp[];
-  free_tier_thresholds: FreeTierThresholds;
-  free_tier_display: FreeTierDisplay;
-  enable_custom_password_guidance_text: boolean;
-  custom_password_localized_help_text: string;
-  enable_password_entropy_meter: boolean;
-}
-
 export interface AssetSubscriptionsResponse {
   /** url of subscription */
   url: string;
@@ -1781,9 +1748,5 @@ export const dataInterface: DataInterface = {
       method: 'POST',
       data: data,
     });
-  },
-
-  environment(): JQuery.jqXHR<EnvironmentResponse> {
-    return $ajax({url: `${ROOT_URL}/environment/`});
   },
 };
