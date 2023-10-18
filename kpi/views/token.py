@@ -30,13 +30,16 @@ class TokenView(APIView):
         return user
 
     def get(self, request, *args, **kwargs):
-        """ Retrieve an existing token only """
+        """ Retrieve an existing token, or create and retrieve a new one """
         user = self._which_user(request)
-        token = get_object_or_404(Token, user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
 
     def post(self, request, *args, **kwargs):
-        """ Return a token, creating a new one if none exists """
+        """
+        Return a token, creating a new one if none exists. Unnecessary now that
+        GET also creates a token, but left here for API stability
+        """
         user = self._which_user(request)
         token, created = Token.objects.get_or_create(user=user)
         return Response(

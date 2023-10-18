@@ -1,8 +1,9 @@
 import {createContext, useEffect, useState} from 'react';
 import type {RecurringInterval} from 'js/account/stripe.api';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
-import {truncateNumber} from 'js/utils';
+import {formatRelativeTime, truncateNumber} from 'js/utils';
 import {getUsageForOrganization} from 'js/account/usage.api';
+import moment from 'moment';
 
 export interface UsageState {
   storage: number;
@@ -13,6 +14,7 @@ export interface UsageState {
   currentYearStart: string;
   trackingPeriod: RecurringInterval;
   isPeriodLoaded: boolean;
+  lastUpdated?: String | null;
   isLoaded: boolean;
 }
 
@@ -26,6 +28,7 @@ export function useUsage() {
     currentYearStart: '',
     trackingPeriod: 'month',
     isPeriodLoaded: false,
+    lastUpdated: '',
     isLoaded: false,
   });
 
@@ -46,10 +49,16 @@ export function useUsage() {
     if (!usage.isPeriodLoaded) {
       return;
     }
-
     getUsageForOrganization().then((data) => {
       if (!data) {
         return;
+      }
+      let lastUpdated: UsageState['lastUpdated'] = null;
+      if ('headers' in data && data.headers instanceof Headers) {
+        const lastUpdateDate = data.headers.get('date');
+        if (lastUpdateDate) {
+          lastUpdated = formatRelativeTime(lastUpdateDate);
+        }
       }
       setUsage((prevState) => {
         return {
@@ -70,6 +79,7 @@ export function useUsage() {
             ],
           currentMonthStart: data.current_month_start,
           currentYearStart: data.current_year_start,
+          lastUpdated: lastUpdated,
           isLoaded: true,
         };
       });
