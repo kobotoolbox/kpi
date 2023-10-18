@@ -1,0 +1,90 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+
+.root {
+  background-color: colors.$kobo-white;
+  padding: sizes.$x30;
+}
+
+.periodSwitcher {
+  @include mixins.centerRowFlex;
+  gap: sizes.$x10;
+  margin-bottom: sizes.$x20;
+}
+
+.periodToggle {
+  @include mixins.buttonReset;
+  padding: sizes.$x8;
+  border-radius: sizes.$x6;
+  background-color: colors.$kobo-white;
+
+  &[disabled] {
+    opacity: 1;
+  }
+}
+
+.periodToggleActive {
+  color: colors.$kobo-dark-teal;
+  background-color: colors.$kobo-light-teal;
+
+  &::after {
+    width: 0;
+    height: 0;
+    border-left: sizes.$x10 solid transparent;
+    border-right: sizes.$x10 solid transparent;
+    border-top: sizes.$x10 solid colors.$kobo-light-teal;
+    content: '';
+    position: absolute;
+    bottom: -1 * sizes.$x10;
+    left: 50%;
+    margin-left: -1 * sizes.$x10;
+  }
+}
+
+.graph {
+  @include mixins.centerRowFlex;
+  position: relative;
+  min-height: sizes.$x150;
+  margin-bottom: sizes.$x20;
+}
+
+.graph:not(.graphVisible) canvas {
+  display: none !important;
+}
+
+.graph :global .loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.noChartMessage {
+  width: 100%;
+  text-align: center;
+  margin: 0;
+}
+
+.statsWrapper {
+  @include mixins.centerRowFlex;
+  gap: sizes.$x10;
+}
+
+.stats {
+  flex: 1;
+  border: sizes.$x1 solid colors.$kobo-gray-92;
+  padding: sizes.$x20;
+}
+
+.statsCount {
+  display: block;
+  font-size: sizes.$x32;
+  font-weight: 600;
+  color: colors.$kobo-teal;
+}
+
+.statsDateRange {
+  display: block;
+  margin-top: sizes.$x8;
+}
