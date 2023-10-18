@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
-import {notify, handleApiFail} from 'js/utils';
+import {notify} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,

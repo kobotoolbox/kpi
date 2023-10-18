@@ -1,10 +1,11 @@
-import {actions} from 'js/actions';
 import type {
   LabelValuePair,
   TransxLanguages,
   EnvironmentResponse,
+  FailResponse,
 } from 'js/dataInterface';
 import {makeAutoObservable} from 'mobx';
+import {fetchGet, handleApiFail} from 'js/api';
 
 /*
  * NOTE: This store is written to use MobX, but its imports do not need to be
@@ -122,9 +123,17 @@ class EnvStore {
   constructor() {
     makeAutoObservable(this);
     this.data = new EnvStoreData();
+    this.fetchData();
+  }
 
-    actions.auth.getEnvironment.completed.listen(this.onGetEnvCompleted.bind(this));
-    actions.auth.getEnvironment();
+  async fetchData() {
+    try {
+      const response = await fetchGet<EnvironmentResponse>('environment/');
+      this.onGetEnvCompleted(response);
+    } catch (err) {
+      const errorObj = err as FailResponse;
+      handleApiFail(errorObj);
+    }
   }
 
   /**
