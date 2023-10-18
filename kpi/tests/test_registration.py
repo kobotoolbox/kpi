@@ -12,6 +12,7 @@ class RegistrationTestCase(TestCase):
     def valid_data(self):
         User = get_user_model()
         return {
+            'name': 'alice',
             User.USERNAME_FIELD: 'alice',
             'email': 'alice@example.com',
             'password1': 'swordfish',
