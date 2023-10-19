@@ -4,7 +4,7 @@ from djstripe.models import (
     Product,
     Session,
     Subscription,
-    SubscriptionItem,
+    SubscriptionItem, SubscriptionSchedule,
 )
 from rest_framework import serializers
 
@@ -42,6 +42,7 @@ class BasePriceSerializer(serializers.ModelSerializer):
             'recurring',
             'unit_amount',
             'human_readable_price',
+            'active',
             'metadata',
         )
 
@@ -100,6 +101,7 @@ class PriceSerializer(BasePriceSerializer):
             'unit_amount',
             'human_readable_price',
             'metadata',
+            'active',
             'product',
         )
 
@@ -119,8 +121,16 @@ class SubscriptionItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'price')
 
 
+class SubscriptionScheduleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SubscriptionSchedule
+        fields = ('phases', 'status')
+
+
 class SubscriptionSerializer(serializers.ModelSerializer):
     items = SubscriptionItemSerializer(many=True)
+    schedule = SubscriptionScheduleSerializer()
 
     class Meta:
         model = Subscription
