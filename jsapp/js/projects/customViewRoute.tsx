@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import {notify} from 'js/utils';
-import {handleApiFail} from 'js/api';
+import {handleApiFail, fetchPostUrl} from 'js/api';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
@@ -21,7 +21,6 @@ import projectViewsStore from './projectViews/projectViewsStore';
 import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
 import {ROOT_URL} from 'js/constants';
-import {fetchPostUrl} from 'js/api';
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
