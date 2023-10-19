@@ -54,12 +54,12 @@ class ChangePlanView(APIView):
     If the user is downgrading to a lower price, it will schedule the change at the end of the current billing period.
 
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
+    <b>GET</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/stripe/change-plan/
+    >       curl -X GET https://[kpi]/api/v2/stripe/change-plan/
 
     > **Payload**
     >
@@ -83,15 +83,15 @@ class ChangePlanView(APIView):
         # Exit immediately if the price we're changing to is the same as the price they're currently paying
         if price.id == subscription_item.price.id:
             return Response(
-                {'status': 'already subscribed to plan'},
+                {'status': 'already subscribed'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # If we're upgrading their plan or moving to a plan with the same price, change the subscription immediately
         if price.unit_amount >= subscription_item.price.unit_amount:
-            stripe.Subscription.modify(
+            stripe_response = stripe.Subscription.modify(
                 subscription.id,
-                cancel_at_period_end=False,
-                proration_behavior='create_prorations',
+                payment_behavior='pending_if_incomplete',
+                proration_behavior='always_invoice',
                 items=[
                     {
                         'id': subscription_item.id,
@@ -99,7 +99,11 @@ class ChangePlanView(APIView):
                     }
                 ],
             )
-            return Response({'status': 'upgraded'})
+            return Response({
+                'url': f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+                'status': 'success',
+                'stripe_object': stripe_response,
+            })
         # We're downgrading the subscription, schedule a subscription change at the end of the current period
         return ChangePlanView.schedule_subscription_change(
             subscription, subscription_item, price.id
@@ -115,7 +119,7 @@ class ChangePlanView(APIView):
             # If the subscription is already scheduled to change to the given price, quit
             if schedule.phases[-1]['items'][0]['price'] == price_id:
                 return Response(
-                    {'status': 'already scheduled to change to given price'},
+                    {'status': 'error'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         # If we couldn't find a schedule, make a new one
@@ -298,6 +302,8 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(
             livemode=settings.STRIPE_LIVE_MODE,
             customer__subscriber__users=self.request.user,
+        ).select_related(
+            'schedule'
         ).prefetch_related(
             Prefetch(
                 'items',
