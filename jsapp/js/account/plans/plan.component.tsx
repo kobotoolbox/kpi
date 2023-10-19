@@ -10,6 +10,7 @@ import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
 import type {Product, Organization, BasePrice, Price} from '../stripe.api';
 import {
+  changeSubscription,
   getOrganization,
   getProducts,
   postCheckout,
@@ -25,11 +26,16 @@ import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import useWhen from 'js/hooks/useWhen.hook';
-import PlanAddOns from 'js/account/plans/planAddOns.component';
+import AddOnList from 'js/account/plans/addOnList.component';
 import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
-import {processCheckoutResponse} from 'js/account/stripe.utils';
+import {
+  processChangePlanResponse,
+  processCheckoutResponse,
+} from 'js/account/stripe.utils';
+import type {ConfirmChangeProps} from './confirmChangeModal.component';
+import ConfirmChangeModal from './confirmChangeModal.component';
 
 interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
@@ -109,6 +115,13 @@ export default function Plan() {
   const [expandComparison, setExpandComparison] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
+  const [activeSubscriptions, setActiveSubscriptions] = useState<
+    SubscriptionInfo[]
+  >([]);
+  const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
+    price: null,
+    subscription: null,
+  });
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const navigate = useNavigate();
@@ -173,7 +186,11 @@ export default function Plan() {
       }
       const fetchPromises = [];
 
-      if (!subscriptionStore.isInitialised || !subscriptionStore.isPending) {
+      if (
+        shouldRevalidate ||
+        !subscriptionStore.isInitialised ||
+        !subscriptionStore.isPending
+      ) {
         subscriptionStore.fetchSubscriptionInfo();
       }
 
@@ -199,6 +216,7 @@ export default function Plan() {
             type: 'initialSub',
             prodData: subscriptionStore.planResponse,
           });
+          setActiveSubscriptions(subscriptionStore.activeSubscriptions);
         }
       );
       Promise.all(fetchPromises).then(() => {
@@ -296,10 +314,7 @@ export default function Plan() {
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (
-        !(product.prices && product.prices.unit_amount) &&
-        !hasActiveSubscription
-      ) {
+      if (!product.prices?.unit_amount && !hasActiveSubscription) {
         return true;
       }
 
@@ -331,14 +346,27 @@ export default function Plan() {
     [state.subscribedProduct]
   );
 
-  const upgradePlan = (priceId: string) => {
-    if (!priceId || areButtonsDisabled || !state.organization?.id) {
+  const dismissConfirmModal = () => {
+    setConfirmModal({price: null, subscription: null});
+    setAreButtonsDisabled(false);
+  };
+
+  const upgradePlan = (price: BasePrice) => {
+    if (!price.id || areButtonsDisabled || !state.organization?.id) {
       return;
     }
     setAreButtonsDisabled(true);
-    postCheckout(priceId, state.organization.id)
-      .then(processCheckoutResponse)
-      .catch(() => setAreButtonsDisabled(false));
+    if (activeSubscriptions.length) {
+      // if the user has active subscriptions, make them confirm the subscription change
+      setConfirmModal({
+        price,
+        subscription: activeSubscriptions[0],
+      });
+    } else {
+      postCheckout(price.id, state.organization.id)
+        .then(processCheckoutResponse)
+        .catch(() => setAreButtonsDisabled(false));
+    }
   };
 
   const managePlan = () => {
@@ -459,10 +487,9 @@ export default function Plan() {
     });
     return renderFeaturesList(items, featureTitle);
   };
-  if (state.products) {
-    if (!state.products.length) {
-      return null;
-    }
+
+  if (!state.products?.length) {
+    return null;
   }
 
   return (
@@ -506,7 +533,7 @@ export default function Plan() {
                   {isSubscribedProduct(price) ? (
                     <div className={styles.currentPlan}>{t('Your plan')}</div>
                   ) : (
-                    <div className={styles.otherPlanSpacing} />
+                    <div />
                   )}
                   <div
                     className={classnames({
@@ -572,7 +599,7 @@ export default function Plan() {
                           color='blue'
                           size='m'
                           label={t('Upgrade')}
-                          onClick={() => upgradePlan(price.prices.id)}
+                          onClick={() => upgradePlan(price.prices)}
                           aria-label={`upgrade to ${price.name}`}
                           aria-disabled={areButtonsDisabled}
                           isDisabled={areButtonsDisabled}
@@ -614,7 +641,6 @@ export default function Plan() {
               ))}
 
               <div className={styles.enterprisePlanContainer}>
-                <div className={styles.otherPlanSpacing} />
                 <div className={styles.enterprisePlan}>
                   <h1 className={styles.enterpriseTitle}> {t('Want more?')}</h1>
                   <div className={styles.priceTitle}>{t('Contact us')}</div>
@@ -651,7 +677,7 @@ export default function Plan() {
           </div>
 
           {hasMetaFeatures() && (
-            <div className={styles.expandBtn}>
+            <div>
               <Button
                 type='full'
                 color='cloud'
@@ -671,9 +697,13 @@ export default function Plan() {
               />
             </div>
           )}
-          <PlanAddOns
+          <AddOnList
             products={state.products}
             organization={state.organization}
+          />
+          <ConfirmChangeModal
+            toggleModal={dismissConfirmModal}
+            {...confirmModal}
           />
         </div>
       )}
