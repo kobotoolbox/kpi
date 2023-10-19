@@ -24,6 +24,7 @@ export interface BasePrice {
   type: string;
   unit_amount: number;
   human_readable_price: string;
+  active: boolean;
   recurring?: {
     interval: RecurringInterval;
     aggregate_usage: string;
@@ -75,9 +76,24 @@ export interface Checkout {
   url: string;
 }
 
-export interface Portal {
-  url: string;
+export enum ChangePlanStatus {
+  'success' = 'success',
+  'scheduled' = 'scheduled',
+  'error' = 'error',
 }
+
+export type ChangePlan =
+  | {
+      status: 'success';
+      url: string;
+      stripe_object: Record<string, string>;
+    }
+  | {
+      status: 'scheduled';
+    }
+  | {
+      status: 'error';
+    };
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -94,7 +110,7 @@ export async function changeSubscription(
   priceId: string,
   subscriptionId: string
 ) {
-  return fetchGet(
+  return fetchGet<ChangePlan>(
     `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}`
   );
 }
@@ -117,7 +133,7 @@ export async function postCheckout(priceId: string, organizationId: string) {
  * Get the URL of the Stripe customer portal for an organization.
  */
 export async function postCustomerPortal(organizationId: string) {
-  return fetchPost<Portal>(
+  return fetchPost<Checkout>(
     `${endpoints.PORTAL_URL}?organization_id=${organizationId}`,
     {}
   );
