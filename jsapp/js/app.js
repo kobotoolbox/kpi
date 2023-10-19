@@ -22,9 +22,12 @@ import BigModal from 'js/components/bigModal/bigModal';
 import ToasterConfig from './toasterConfig';
 import {withRouter, routerGetAssetId, router} from './router/legacy';
 import {Tracking} from './router/useTracking';
-import sessionStore from 'js/stores/session';
 import InvalidatedPassword from 'js/router/invalidatedPassword.component';
 import TOSAgreement from 'js/router/tosAgreement.component';
+import {
+  isInvalidatedPasswordRouteBlockerActive,
+  isTOSAgreementRouteBlockerActive,
+} from 'js/router/routerUtils';
 
 class App extends React.Component {
   constructor(props) {
@@ -51,21 +54,11 @@ class App extends React.Component {
   }
 
   render() {
-    // When user is marked as having invalidated password, we block all the UI
-    // and display a special component.
-    if (
-      sessionStore.isLoggedIn &&
-      sessionStore.currentAccount.validated_password === false
-    ) {
+    if (isInvalidatedPasswordRouteBlockerActive()) {
       return <InvalidatedPassword />;
     }
 
-    // When user has not accepted latest TOS, we display special component
-    if (
-      sessionStore.isLoggedIn &&
-      // TODO check something else here:
-      sessionStore.currentAccount.validated_password === true
-    ) {
+    if (isTOSAgreementRouteBlockerActive()) {
       return <TOSAgreement />;
     }
 

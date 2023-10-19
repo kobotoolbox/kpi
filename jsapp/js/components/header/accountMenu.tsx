@@ -9,6 +9,7 @@ import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
+import {isAnyRouteBlockerActive} from 'js/router/routerUtils';
 
 /**
  * UI element that display things only for logged-in user. An avatar that gives
@@ -83,11 +84,6 @@ export default function AccountMenu() {
     </bem.AccountBox__initials>
   );
 
-  const isInvalidatedPasswordUser = (
-    'validated_password' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.validated_password === false
-  );
-
   return (
     <bem.AccountBox>
       <PopoverMenu type='account-menu' triggerLabel={accountMenuLabel}>
@@ -103,10 +99,10 @@ export default function AccountMenu() {
             </bem.AccountBox__menuItem>
 
             {/*
-              There is no UI we can show to a user with invalidated password, so
+              There is no UI we can show to a user who sees a router blocker, so
               we don't allow any in-app navigation.
             */}
-            {!isInvalidatedPasswordUser &&
+            {isAnyRouteBlockerActive() && (
               <bem.AccountBox__menuItem m={'settings'}>
                 <bem.KoboButton
                   onClick={openAccountSettings}
@@ -115,7 +111,7 @@ export default function AccountMenu() {
                   {t('Account Settings')}
                 </bem.KoboButton>
               </bem.AccountBox__menuItem>
-            }
+            )}
           </bem.AccountBox__menuLI>
 
           {shouldDisplayUrls && (

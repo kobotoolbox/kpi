@@ -12,9 +12,7 @@ import BasicLayout from './basicLayout.component';
 export default function TOSAgreement() {
   return (
     <BasicLayout>
-      <div className={styles.root}>
-        TOS agreement here :)
-      </div>
+      <div className={styles.root}>TOS agreement here :)</div>
     </BasicLayout>
   );
 }

@@ -8,11 +8,9 @@
  * of defined ROUTES.
  */
 
-import {
-  ROUTES,
-  PATHS,
-} from 'js/router/routerConstants';
+import {ROUTES, PATHS} from 'js/router/routerConstants';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
+import sessionStore from 'js/stores/session';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -241,4 +239,35 @@ export function getSingleProcessingRouteParameters(): {
     qpath: splitPath[5],
     submissionEditId: splitPath[6],
   };
+}
+
+/**
+ * InvalidatedPassword is displayed When user is marked as having invalidated
+ * password.
+ */
+export function isInvalidatedPasswordRouteBlockerActive() {
+  return (
+    sessionStore.isLoggedIn &&
+    'validated_password' in sessionStore.currentAccount &&
+    sessionStore.currentAccount.validated_password === false
+  );
+}
+
+/** TOSAgreement is displayed when user has not accepted latest TOS. */
+export function isTOSAgreementRouteBlockerActive() {
+  // TODO: use proper information here
+  return sessionStore.isLoggedIn && true;
+}
+
+/**
+ * Whether we currently display a route blocker type component. It's one that
+ * displays some UI requiring user to take action and blocks any navigation,
+ * thus blocking user from using any part of the app. E.g. `TOSAgreement` when
+ * user have not accepted the new TOS yet.
+ */
+export function isAnyRouteBlockerActive() {
+  return (
+    isInvalidatedPasswordRouteBlockerActive() ||
+    isTOSAgreementRouteBlockerActive()
+  );
 }

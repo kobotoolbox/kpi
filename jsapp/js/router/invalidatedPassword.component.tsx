@@ -22,9 +22,7 @@ export default function InvalidatedPassword() {
       <div className={styles.root}>
         <header className={styles.header}>
           <Icon name='warning' size='l' color='red' />
-          <h1>
-            {t('Temporary Access Restriction: Password Update Required')}
-          </h1>
+          <h1>{t('Temporary Access Restriction: Password Update Required')}</h1>
         </header>
 
         <p className={styles.message}>
