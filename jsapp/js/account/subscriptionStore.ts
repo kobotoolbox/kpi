@@ -1,6 +1,6 @@
 import {makeAutoObservable} from 'mobx';
 import {handleApiFail} from 'js/utils';
-import {ROOT_URL} from 'js/constants';
+import {ACTIVE_STRIPE_STATUSES, ROOT_URL} from 'js/constants';
 import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {BasePrice} from 'js/account/stripe.api';
@@ -41,6 +41,45 @@ export interface PlanInfo {
   djstripe_owner_account: string;
 }
 
+interface SubscriptionPhase {
+  items: [
+    {
+      plan: string;
+      price: string;
+      metadata: Record<string, string>;
+      quantity: number;
+      tax_rates: [number];
+      billing_thresholds: Record<string, string>;
+    }
+  ];
+  coupon: null;
+  currency: string;
+  end_date: number | null;
+  metadata: {};
+  trial_end: number | null;
+  start_date: number | null;
+  description: string | null;
+  on_behalf_of: string | null;
+  automatic_tax: {
+    enabled: boolean;
+  };
+  transfer_data: string | null;
+  invoice_settings: string | null;
+  add_invoice_items: [];
+  collection_method: string | null;
+  default_tax_rates: [];
+  billing_thresholds: null;
+  proration_behavior: string;
+  billing_cycle_anchor: number | null;
+  default_payment_method: string | null;
+  application_fee_percent: number | null;
+}
+
+interface SubscriptionSchedule {
+  phases: SubscriptionPhase[] | null;
+  status: 'not_started' | 'active' | 'completed' | 'released' | 'canceled';
+}
+
 export interface SubscriptionInfo {
   plan: PlanInfo;
   djstripe_created: string;
@@ -76,7 +115,7 @@ export interface SubscriptionInfo {
   default_source: any;
   latest_invoice: string;
   pending_setup_intent: any;
-  schedule: any;
+  schedule: SubscriptionSchedule;
   default_tax_rates: [];
   items: {price: BasePrice}[];
 }
@@ -93,7 +132,7 @@ export async function fetchProducts() {
 class SubscriptionStore {
   public planResponse: SubscriptionInfo[] = [];
   public addOnsResponse: SubscriptionInfo[] = [];
-  public subscribedProduct: BaseProduct | null = null;
+  public activeSubscriptions: SubscriptionInfo[] = [];
   public isPending = false;
   public isInitialised = false;
 
@@ -106,6 +145,7 @@ class SubscriptionStore {
       return;
     }
     this.isPending = true;
+    this.isInitialised = false;
     $.ajax({
       dataType: 'json',
       method: 'GET',
@@ -121,16 +161,19 @@ class SubscriptionStore {
   private onFetchSubscriptionInfoDone(
     response: PaginatedResponse<SubscriptionInfo>
   ) {
-    // get any plan subscriptions for the user
-    this.planResponse = response.results.filter(
+    // get all active subscriptions for the user
+    this.activeSubscriptions = response.results.filter((sub) =>
+      ACTIVE_STRIPE_STATUSES.includes(sub.status)
+    );
+    // get any active plan subscriptions for the user
+    this.planResponse = this.activeSubscriptions.filter(
       (sub) => sub.items[0]?.price.product.metadata?.product_type == 'plan'
     );
-    // get any recurring add-on subscriptions for the user
-    this.addOnsResponse = response.results.filter(
+    // get any active recurring add-on subscriptions for the user
+    this.addOnsResponse = this.activeSubscriptions.filter(
       (sub) => sub.items[0]?.price.product.metadata?.product_type == 'addon'
     );
-    this.subscribedProduct =
-      this.planResponse[0]?.items[0]?.price.product || null;
+
     this.isPending = false;
     this.isInitialised = true;
   }
