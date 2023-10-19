@@ -42,7 +42,13 @@ const AddOnList = (props: {
     const addonProducts = props.products
       .filter(isAddonProduct)
       // TODO: remove the next line when one-time add-ons are ready
-      .filter(isRecurringAddonProduct);
+      .filter(isRecurringAddonProduct)
+      .map((product) => {
+        return {
+          ...product,
+          prices: product.prices.filter((price) => price.active),
+        };
+      });
     setAddOnProducts(addonProducts);
   }, [props.products]);
 
@@ -57,7 +63,7 @@ const AddOnList = (props: {
   );
 
   const isSubscribedAddOnPrice = useCallback(
-    (price) =>
+    (price: BasePrice) =>
       isChangeScheduled(price, activeSubscriptions) ||
       subscribedAddOns.some(
         (subscription) => subscription.items[0].price.id === price.id
@@ -87,7 +93,7 @@ const AddOnList = (props: {
     postCustomerPortal(props.organization.id).then(processCheckoutResponse);
   };
 
-  if (!addOnProducts || subscribedPlans || !props.organization) {
+  if (!addOnProducts.length || subscribedPlans.length || !props.organization) {
     return null;
   }
 
@@ -100,7 +106,7 @@ const AddOnList = (props: {
         {addOnProducts.map((product) =>
           product.prices.map((price) => (
             <tr key={price.id}>
-              <td>{product.name}</td>
+              <td>{price.nickname}</td>
               <td>{price.human_readable_price}</td>
               <td>
                 {isSubscribedAddOnPrice(price) && (
