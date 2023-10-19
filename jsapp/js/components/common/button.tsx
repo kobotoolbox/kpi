@@ -1,3 +1,4 @@
+import type {KeyboardEventHandler} from 'react';
 import React from 'react';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import type {IconSize} from 'js/components/common/icon';
@@ -141,12 +142,19 @@ const Button = (props: ButtonProps) => {
     additionalButtonAttributes['data-cy'] = props['data-cy'];
   }
 
+  const onKeyUp = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (props.onClick && (event?.key === 'space' || event?.key === 'enter')) {
+      props.onClick(event);
+    }
+  };
+
   return (
     <button
       className={classNames.join(' ')}
       type={props.isSubmit ? 'submit' : 'button'}
       disabled={props.isDisabled}
       onClick={props.onClick}
+      onKeyUp={onKeyUp}
       {...additionalButtonAttributes}
     >
       {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
