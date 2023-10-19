@@ -2,7 +2,7 @@
 import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
-import {toast} from 'react-hot-toast';
+import {notify} from './utils';
 
 /**
  * Useful for handling the fail responses from API. Its main goal is to display
@@ -44,9 +44,7 @@ export function handleApiFail(response: FailResponse) {
     }
   }
 
-  // We don't use `notify` from `js/utils` to avoid circular dependency error.
-  console.error(message);
-  toast.error(message);
+  notify.error(message);
 
   window.Raven?.captureMessage(message);
 }
