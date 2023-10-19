@@ -8,9 +8,7 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import type {Product, Organization, BasePrice, Price} from '../stripe.api';
 import {
-  changeSubscription,
   getOrganization,
   getProducts,
   postCheckout,
@@ -27,15 +25,18 @@ import envStore from 'js/envStore';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import useWhen from 'js/hooks/useWhen.hook';
 import AddOnList from 'js/account/plans/addOnList.component';
-import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
-import {
-  processChangePlanResponse,
-  processCheckoutResponse,
-} from 'js/account/stripe.utils';
+import {processCheckoutResponse} from 'js/account/stripe.utils';
 import type {ConfirmChangeProps} from './confirmChangeModal.component';
 import ConfirmChangeModal from './confirmChangeModal.component';
+import type {
+  BasePrice,
+  Organization,
+  Price,
+  Product,
+  SubscriptionInfo,
+} from '../stripe';
 
 interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];

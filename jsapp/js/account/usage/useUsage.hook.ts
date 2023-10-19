@@ -1,5 +1,5 @@
 import {createContext, useEffect, useState} from 'react';
-import type {RecurringInterval} from 'js/account/stripe.api';
+import type {RecurringInterval} from 'js/account/stripe';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
 import {formatRelativeTime, truncateNumber} from 'js/utils';
 import {getUsageForOrganization} from 'js/account/usage/usage.api';

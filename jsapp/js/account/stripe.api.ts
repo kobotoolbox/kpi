@@ -1,5 +1,4 @@
 import {when} from 'mobx';
-import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
@@ -7,93 +6,14 @@ import type {PaginatedResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
 import {fetchGet, fetchPost} from 'jsapp/js/api';
 
-export interface BaseProduct {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  metadata: {[p: string]: string};
-}
-
-export type RecurringInterval = 'year' | 'month';
-
-export interface BasePrice {
-  id: string;
-  nickname: string;
-  currency: string;
-  type: string;
-  unit_amount: number;
-  human_readable_price: string;
-  active: boolean;
-  recurring?: {
-    interval: RecurringInterval;
-    aggregate_usage: string;
-    interval_count: number;
-    usage_type: 'metered' | 'licensed';
-  };
-  metadata: {[key: string]: string};
-  product: BaseProduct;
-}
-
-export interface BaseSubscription {
-  id: number;
-  price: Product;
-  status: string;
-  items: [{price: BasePrice}];
-}
-
-export interface Organization {
-  id: string;
-  name: string;
-  is_active: boolean;
-  created: string;
-  modified: string;
-  slug: string;
-}
-
-enum Limits {
-  'unlimited' = 'unlimited',
-}
-
-type LimitAmount = number | Limits.unlimited;
-
-export interface AccountLimit {
-  submission_limit: LimitAmount | number;
-  nlp_seconds_limit: LimitAmount | number;
-  nlp_character_limit: LimitAmount | number;
-  storage_bytes_limit: LimitAmount | number;
-}
-
-export interface Product extends BaseProduct {
-  prices: BasePrice[];
-}
-
-export interface Price extends BaseProduct {
-  prices: BasePrice;
-}
-
-export interface Checkout {
-  url: string;
-}
-
-export enum ChangePlanStatus {
-  'success' = 'success',
-  'scheduled' = 'scheduled',
-  'error' = 'error',
-}
-
-export type ChangePlan =
-  | {
-      status: 'success';
-      url: string;
-      stripe_object: Record<string, string>;
-    }
-  | {
-      status: 'scheduled';
-    }
-  | {
-      status: 'error';
-    };
+import type {
+  AccountLimit,
+  ChangePlan,
+  Checkout,
+  Organization,
+  Product,
+} from 'js/account/stripe';
+import {Limits} from 'js/account/stripe';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -150,7 +70,7 @@ export async function getSubscriptionInterval() {
       subscriptionStore.fetchSubscriptionInfo();
     }
     await when(() => subscriptionStore.isInitialised);
-    const subscriptionList: SubscriptionInfo[] = subscriptionStore.planResponse;
+    const subscriptionList = subscriptionStore.planResponse;
     const activeSubscription = subscriptionList.find((sub) =>
       ACTIVE_STRIPE_STATUSES.includes(sub.status)
     );
@@ -264,7 +184,7 @@ const getStripeMetadataAndFreeTierStatus = async () => {
       const products = await getProducts();
       const freeProduct = products.results.filter((product) =>
         product.prices.filter(
-          (price: BasePrice) =>
+          (price) =>
             price.unit_amount === 0 && price.recurring?.interval === 'month'
         )
       )[0];

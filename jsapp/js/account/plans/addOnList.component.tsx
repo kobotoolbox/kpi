@@ -1,8 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import useWhen from 'js/hooks/useWhen.hook';
-import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import subscriptionStore from 'js/account/subscriptionStore';
-import type {BasePrice, Organization, Product} from 'js/account/stripe.api';
+import type {
+  BasePrice,
+  Organization,
+  Product,
+  SubscriptionInfo,
+} from 'js/account/stripe';
 import Button from 'js/components/common/button';
 import {
   isAddonProduct,

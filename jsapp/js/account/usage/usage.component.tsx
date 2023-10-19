@@ -1,7 +1,7 @@
 import {when} from 'mobx';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useLocation} from 'react-router-dom';
-import type {AccountLimit} from 'js/account/stripe.api';
+import type {AccountLimit} from 'js/account/stripe';
 import {getAccountLimits} from 'js/account/stripe.api';
 import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';

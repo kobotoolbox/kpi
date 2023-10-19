@@ -6,14 +6,14 @@ import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import Button from 'js/components/common/button';
 import Checkbox from 'js/components/common/checkbox';
 import styles from './confirmChangeModal.module.scss';
-import type {BasePrice} from 'js/account/stripe.api';
-import {ChangePlanStatus, changeSubscription} from 'js/account/stripe.api';
+import type {BasePrice, SubscriptionInfo} from 'js/account/stripe';
+import {changeSubscription} from 'js/account/stripe.api';
 import {processChangePlanResponse} from 'js/account/stripe.utils';
-import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import {formatDate, notify} from 'js/utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import cx from 'classnames';
 import InlineMessage from 'js/components/common/inlineMessage';
+import {ChangePlanStatus} from 'js/account/stripe';
 
 export interface ConfirmChangeProps {
   price: BasePrice | null;
