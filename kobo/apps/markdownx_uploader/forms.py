@@ -23,3 +23,10 @@ class MarkdownxUploaderImageForm(ImageForm):
         return reverse(
             'markdownx-uploader-file-content', args=(image_object.content.name,)
         )
+
+    @staticmethod
+    def _process_raster(image, extension):
+        """
+        Bypass markdownx resizing and upload image as-is
+        """
+        return image

@@ -5,7 +5,6 @@ import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
 import {fetchGet, fetchPost} from 'jsapp/js/api';
-
 import type {
   AccountLimit,
   ChangePlan,

@@ -18,8 +18,6 @@ import type Raven from 'raven';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
-export const assign = require('object-assign');
-
 const cookies = new Cookies();
 
 /**
@@ -87,8 +85,11 @@ notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
 export {notify};
 
 /**
- * Useful for handling the fail responses from API. It detects if we got HTML
- * string as response and uses a generic message instead.
+ * Useful for handling the fail responses from API. Its main goal is to display
+ * a helpful error toast notification and to pass the error message to Raven.
+ *
+ * It can detect if we got HTML string as response and uses a generic message
+ * instead of spitting it out.
  */
 export function handleApiFail(response: FailResponse) {
   // Avoid displaying toast when purposefuly aborted a request
@@ -114,10 +115,18 @@ export function handleApiFail(response: FailResponse) {
 
   if (!message) {
     message = t('An error occurred');
-    message += ` — ${response.status} ${response.statusText}`;
+    if (response.status || response.statusText) {
+      message += ` — ${response.status} ${response.statusText}`;
+    } else if (!window.navigator.onLine) {
+      // another general case — the original fetch response.message might have
+      // something more useful to say.
+      message += ' — ' + t('Your connection is offline');
+    }
   }
 
   notify.error(message);
+
+  window.Raven?.captureMessage(message);
 }
 
 /**

@@ -5,11 +5,11 @@
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
-import {assign} from 'js/utils';
 import {ROOT_URL, COMMON_QUERIES} from './constants';
 import type {EnvStoreFieldItem, FreeTierDisplay, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
+  AnyRowTypeName,
   AssetTypeName,
   ValidationStatus,
   AssetFileType,
@@ -18,6 +18,7 @@ import type {
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
 import type {FreeTierThresholds} from 'js/envStore';
+import type {ReportsResponse} from 'js/components/reports/reportsConstants';
 
 interface AssetsRequestData {
   q?: string;
@@ -281,9 +282,7 @@ export interface SurveyRow {
   $qpath: string;
   $autoname: string;
   $kuid: string;
-  // We use dynamic import to avoid changing this ambient module to a normal
-  // module: see https://stackoverflow.com/a/51114250/2311247
-  type: import('js/constants').AnyRowTypeName;
+  type: AnyRowTypeName;
   calculation?: string;
   label?: string[];
   hint?: string[];
@@ -829,7 +828,7 @@ interface DataInterface {
 }
 
 const $ajax = (o: {}) =>
-  $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
+  $.ajax(Object.assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
   getProfile: () =>
@@ -1019,7 +1018,7 @@ export const dataInterface: DataInterface = {
     uid: string;
     identifiers: string[];
     group_by: string;
-  }): JQuery.jqXHR<any> {
+  }): JQuery.jqXHR<PaginatedResponse<ReportsResponse>> {
     let identifierString;
     if (data.identifiers) {
       identifierString = `?names=${data.identifiers.join(',')}`;
@@ -1539,7 +1538,7 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/tags/`,
       method: 'GET',
-      data: assign(
+      data: Object.assign(
         {
           // If this number is too big (e.g. 9999) it causes a deadly timeout
           // whenever Form Builder displays the aside Library search

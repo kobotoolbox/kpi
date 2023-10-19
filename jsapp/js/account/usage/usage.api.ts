@@ -1,4 +1,4 @@
-import {fetchWithHeaders} from 'js/api';
+import {fetchGet} from 'jsapp/js/api';
 import {getOrganization} from 'js/account/stripe.api';
 
 interface AssetUsage {
@@ -37,11 +37,12 @@ const ORGANIZATION_USAGE_URL =
 
 export async function getUsage(organization_id: string | null = null) {
   if (organization_id) {
-    return fetchWithHeaders<UsageResponse>(
-      ORGANIZATION_USAGE_URL.replace('##ORGANIZATION_ID##', organization_id)
+    return fetchGet<UsageResponse>(
+      ORGANIZATION_USAGE_URL.replace('##ORGANIZATION_ID##', organization_id),
+      {includeHeaders: true}
     );
   }
-  return fetchWithHeaders<UsageResponse>(USAGE_URL);
+  return fetchGet<UsageResponse>(USAGE_URL, {includeHeaders: true});
 }
 
 export async function getUsageForOrganization() {
