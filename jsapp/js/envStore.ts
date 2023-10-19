@@ -160,7 +160,7 @@ class EnvStore {
 
   async fetchData() {
     try {
-      const response = await fetchGet<EnvironmentResponse>('environment/');
+      const response = await fetchGet<EnvironmentResponse>('/environment/');
       this.onGetEnvCompleted(response);
     } catch (err) {
       const errorObj = err as FailResponse;
