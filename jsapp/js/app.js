@@ -24,6 +24,7 @@ import {withRouter, routerGetAssetId, router} from './router/legacy';
 import {Tracking} from './router/useTracking';
 import sessionStore from 'js/stores/session';
 import InvalidatedPassword from 'js/router/invalidatedPassword.component';
+import TOSAgreement from 'js/router/tosAgreement.component';
 
 class App extends React.Component {
   constructor(props) {
@@ -57,6 +58,15 @@ class App extends React.Component {
       sessionStore.currentAccount.validated_password === false
     ) {
       return <InvalidatedPassword />;
+    }
+
+    // When user has not accepted latest TOS, we display special component
+    if (
+      sessionStore.isLoggedIn &&
+      // TODO check something else here:
+      sessionStore.currentAccount.validated_password === true
+    ) {
+      return <TOSAgreement />;
     }
 
     const assetid = routerGetAssetId();
