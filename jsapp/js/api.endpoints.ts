@@ -8,5 +8,5 @@ export const endpoints = {
   /** Expected parameter: organization_id  **/
   PORTAL_URL: '/api/v2/stripe/customer-portal',
   /** Expected parameters: price_id and subscription_id **/
-  CHANGE_PLAN_URL: '/api/v2/stripe/customer-portal',
+  CHANGE_PLAN_URL: '/api/v2/stripe/change-plan',
 };
