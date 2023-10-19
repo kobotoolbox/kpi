@@ -6,6 +6,8 @@ import type {
 import {makeAutoObservable} from 'mobx';
 import {fetchGet, handleApiFail} from 'js/api';
 
+const ENV_ENDPOINT = '/environment/';
+
 interface EnvironmentResponse {
   mfa_has_availability_list: boolean;
   terms_of_service_url: string;
@@ -160,7 +162,7 @@ class EnvStore {
 
   async fetchData() {
     try {
-      const response = await fetchGet<EnvironmentResponse>('/environment/');
+      const response = await fetchGet<EnvironmentResponse>(ENV_ENDPOINT);
       this.onGetEnvCompleted(response);
     } catch (err) {
       const errorObj = err as FailResponse;
