@@ -210,7 +210,7 @@ export const log = (function () {
 })();
 window.log = log;
 
-const originalSupportEmail = 'help@kobotoolbox.org';
+const ORIGINAL_SUPPORT_EMAIL = 'help@kobotoolbox.org';
 
 /**
  * Replaces the hardcoded email string (coming from transifex translation) with
@@ -221,7 +221,7 @@ export function replaceSupportEmail(str: string): string {
     typeof envStore.data.support_email === 'string' &&
     envStore.data.support_email.length !== 0
   ) {
-    return str.replace(originalSupportEmail, envStore.data.support_email);
+    return str.replace(ORIGINAL_SUPPORT_EMAIL, envStore.data.support_email);
   } else {
     return str;
   }
