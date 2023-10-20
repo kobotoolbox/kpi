@@ -8,6 +8,7 @@
 button {
   display: flex;
   justify-content: center;
+  font-weight: 700;
   @extend .uppercase;
 }
 
@@ -24,9 +25,9 @@ button {
 }
 
 .table {
-  padding: 1em;
   table-layout: fixed;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 1em;
 
   & td {
     padding-block: 0.5em;
@@ -40,23 +41,37 @@ button {
 }
 
 .product {
-  min-width: fit-content;
-  max-width: 60%;
+  width: 40%;
   @extend .border;
 }
 
 .price {
-  width: 12em;
-  margin: 0;
+  width: 40%;
   @extend .border;
 }
 
 .buy {
-  width: 10em;
+  width: max(20%, 40em);
 }
 
-@media screen and (min-width: breakpoints.$b960) {
+@media screen and (min-width: breakpoints.$b1140) {
+  .table {
+    padding: 1em;
+  }
+
   .product {
-    width: 60%;
+    width: 65%;
+  }
+
+  .price {
+    width: auto;
+  }
+
+  .buy {
+    width: 15%;
+  }
+
+  .table td:nth-child(2) {
+    margin-inline-end: 10em;
   }
 }

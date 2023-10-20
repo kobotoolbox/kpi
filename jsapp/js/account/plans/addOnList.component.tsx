@@ -146,14 +146,13 @@ const AddOnList = (props: {
           product.prices.map((price) => (
             <tr key={price.id}>
               <td>{product.name}</td>
-              <td>{price.human_readable_price}</td>
+              <td className={styles.price}>{price.human_readable_price}</td>
               <td>
                 {isSubscribedAddOnPrice(price) && (
                   <Button
                     color={'blue'}
                     type={'full'}
                     size={'m'}
-                    classNames={styles.button}
                     label={t('manage subscription')}
                     onClick={manageAddOn}
                     isFullWidth
@@ -164,7 +163,6 @@ const AddOnList = (props: {
                     color={'blue'}
                     type={'full'}
                     size={'m'}
-                    classNames={styles.button}
                     label={t('buy now')}
                     onClick={() => purchaseAddOn(price)}
                     isFullWidth
