@@ -86,3 +86,16 @@ export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
     return '';
   });
 }
+
+/**
+ * Finds all `q=` queries in the URL and returns an array of them. For example
+ * for `?…q=foo AND bar AND…` it would return `['foo', 'bar']`
+ */
+export function getQueriesFromUrl(url: string): string[] {
+  const allQueries = url.slice(url.indexOf('?') + 1).split('&');
+  const qQuery = allQueries.find((item) => item.startsWith('q='));
+  if (qQuery) {
+    return qQuery.replace('q=', '').split('AND');
+  }
+  return [];
+}
