@@ -13,7 +13,7 @@ import type {
   ProjectFieldName,
   ProjectsFilterDefinition,
 } from './projectViews/constants';
-import {buildQueriesFromFilters} from './projectViews/utils';
+import {buildQueriesFromFilters, getQueriesFromUrl} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 import session from 'js/stores/session';
 import searchBoxStore from 'js/components/header/searchBoxStore';
@@ -163,24 +163,44 @@ class CustomViewStore {
    * already.
    */
   public fetchAssets() {
+    if (!this.baseUrl) {
+      return;
+    }
+
+    // Step 1: cleanup and prepare store for getting new assets
     this.isFirstLoadComplete = false;
     this.isLoading = true;
     this.assets = [];
-    const queries = buildQueriesFromFilters(this.filters);
+
+    // Step 2: get queries from configured filters
+    let queries = buildQueriesFromFilters(this.filters);
+
+    // Step 3: sometimes the `baseUrl` might already contain some queries. We
+    // need to remove them and will reapply later with some additional ones
+    queries = queries.concat(getQueriesFromUrl(this.baseUrl));
+    // remove existing queries from baseUrl
+    const url = this.baseUrl.split('?')[0];
+
+    // Step 4: add search query
     if (searchBoxStore.data.searchPhrase !== '') {
       queries.push(`"${searchBoxStore.data.searchPhrase}"`);
     }
+
+    // Step 5: build final queries and ordering strings for API call
     const queriesString = queries.join(' AND ');
     const orderingString = this.getOrderQuery();
 
+    // Step 6: stop any ongoing call (no longer needed)
     if (this.ongoingFetch) {
       this.ongoingFetch.abort();
     }
+
+    // Step 7: make API call :)
     this.ongoingFetch = $.ajax({
       dataType: 'json',
       method: 'GET',
       url:
-        `${this.baseUrl}&limit=${PAGE_SIZE}` +
+        `${url}?limit=${PAGE_SIZE}` +
         (orderingString ? `&ordering=${orderingString}` : '') +
         (queriesString ? `&q=${queriesString}` : ''),
     })
