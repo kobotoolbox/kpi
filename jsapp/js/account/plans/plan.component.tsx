@@ -114,7 +114,7 @@ export default function Plan() {
     initialState
   );
   const [expandComparison, setExpandComparison] = useState(false);
-  const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
+  const [isBusy, setIsBusy] = useState(true);
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [activeSubscriptions, setActiveSubscriptions] = useState<
     SubscriptionInfo[]
@@ -221,7 +221,7 @@ export default function Plan() {
         }
       );
       Promise.all(fetchPromises).then(() => {
-        setAreButtonsDisabled(false);
+        setIsBusy(false);
       });
     },
     [searchParams, shouldRevalidate]
@@ -349,14 +349,14 @@ export default function Plan() {
 
   const dismissConfirmModal = () => {
     setConfirmModal({price: null, subscription: null});
-    setAreButtonsDisabled(false);
+    setIsBusy(false);
   };
 
   const upgradePlan = (price: BasePrice) => {
-    if (!price.id || areButtonsDisabled || !state.organization?.id) {
+    if (!price.id || isBusy || !state.organization?.id) {
       return;
     }
-    setAreButtonsDisabled(true);
+    setIsBusy(true);
     if (activeSubscriptions.length) {
       // if the user has active subscriptions, make them confirm the subscription change
       setConfirmModal({
@@ -366,18 +366,18 @@ export default function Plan() {
     } else {
       postCheckout(price.id, state.organization.id)
         .then(processCheckoutResponse)
-        .catch(() => setAreButtonsDisabled(false));
+        .catch(() => setIsBusy(false));
     }
   };
 
   const managePlan = () => {
-    if (!state.organization?.id || areButtonsDisabled) {
+    if (!state.organization?.id || isBusy) {
       return;
     }
-    setAreButtonsDisabled(true);
+    setIsBusy(true);
     postCustomerPortal(state.organization.id)
       .then(processCheckoutResponse)
-      .catch(() => setAreButtonsDisabled(false));
+      .catch(() => setIsBusy(false));
   };
 
   // Get feature items and matching icon boolean
@@ -500,7 +500,7 @@ export default function Plan() {
       ) : (
         <div
           className={classnames(styles.accountPlan, {
-            [styles.wait]: areButtonsDisabled,
+            [styles.wait]: isBusy,
           })}
         >
           <div className={styles.plansSection}>
@@ -602,8 +602,8 @@ export default function Plan() {
                           label={t('Upgrade')}
                           onClick={() => upgradePlan(price.prices)}
                           aria-label={`upgrade to ${price.name}`}
-                          aria-disabled={areButtonsDisabled}
-                          isDisabled={areButtonsDisabled}
+                          aria-disabled={isBusy}
+                          isDisabled={isBusy}
                         />
                       )}
                     {isSubscribedProduct(price) &&
@@ -616,8 +616,8 @@ export default function Plan() {
                           label={t('Manage')}
                           onClick={managePlan}
                           aria-label={`manage your ${price.name} subscription`}
-                          aria-disabled={areButtonsDisabled}
-                          isDisabled={areButtonsDisabled}
+                          aria-disabled={isBusy}
+                          isDisabled={isBusy}
                         />
                       )}
                     {!isSubscribedProduct(price) &&
@@ -630,8 +630,8 @@ export default function Plan() {
                           label={t('Change plan')}
                           onClick={managePlan}
                           aria-label={`change your subscription to ${price.name}`}
-                          aria-disabled={areButtonsDisabled}
-                          isDisabled={areButtonsDisabled}
+                          aria-disabled={isBusy}
+                          isDisabled={isBusy}
                         />
                       )}
                     {price.prices.unit_amount === 0 && (
@@ -699,6 +699,8 @@ export default function Plan() {
             </div>
           )}
           <AddOnList
+            isBusy={isBusy}
+            setIsBusy={setIsBusy}
             products={state.products}
             organization={state.organization}
           />
