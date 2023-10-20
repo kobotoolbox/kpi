@@ -6,7 +6,12 @@
  */
 
 import {ROOT_URL, COMMON_QUERIES} from './constants';
-import type {EnvStoreFieldItem, FreeTierDisplay, FreeTierThresholds, SocialApp} from 'js/envStore';
+import type {
+  EnvStoreFieldItem,
+  FreeTierDisplay,
+  FreeTierThresholds,
+  SocialApp
+} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AnyRowTypeName,
@@ -18,7 +23,6 @@ import type {
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
 import type {UserResponse} from 'js/users/userExistence.store';
-import type {FreeTierThresholds} from 'js/envStore';
 import type {ReportsResponse} from 'js/components/reports/reportsConstants';
 
 interface AssetsRequestData {
