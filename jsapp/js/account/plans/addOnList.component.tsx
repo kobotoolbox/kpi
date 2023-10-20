@@ -17,13 +17,17 @@ import {
 } from 'js/account/stripe.utils';
 import {
   changeSubscription,
+  notifyCheckoutFailure,
   postCheckout,
   postCustomerPortal,
 } from 'js/account/stripe.api';
+import styles from './addOnList.module.scss';
 
 const AddOnList = (props: {
   products: Product[] | null;
   organization: Organization | null;
+  isBusy: boolean;
+  setIsBusy: (value: boolean) => void;
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>(
     []
@@ -75,26 +79,45 @@ const AddOnList = (props: {
     [subscribedAddOns]
   );
 
-  const purchaseAddOn = (price: BasePrice) => {
-    if (!props.organization) {
-      return;
-    }
-    if (activeSubscriptions.length) {
-      changeSubscription(price.id, activeSubscriptions[0].id)
-        .then(processChangePlanResponse)
-        .catch((err) => console.log(err));
-    } else {
-      postCheckout(price.id, props.organization.id).then(
-        processCheckoutResponse
-      );
-    }
+  const handleCheckoutError = () => {
+    notifyCheckoutFailure();
+    props.setIsBusy(false);
   };
 
   const manageAddOn = () => {
-    if (!props.organization) {
+    if (!props.organization || props.isBusy) {
       return;
     }
-    postCustomerPortal(props.organization.id).then(processCheckoutResponse);
+    props.setIsBusy(true);
+    postCustomerPortal(props.organization.id)
+      .then(processCheckoutResponse)
+      .catch(handleCheckoutError);
+  };
+
+  const purchaseAddOn = (price: BasePrice) => {
+    if (!props.organization || props.isBusy) {
+      return;
+    }
+    props.setIsBusy(true);
+    if (activeSubscriptions.length) {
+      if (
+        activeSubscriptions[0].items[0].price.product.metadata.product_type ===
+        'addon'
+      ) {
+        // if the user's subscription is for a recurring add-on, send them to the customer portal to change plans
+        manageAddOn();
+      } else {
+        // if the user's subscription is for a plan, open a modal to confirm the change
+        changeSubscription(price.id, activeSubscriptions[0].id)
+          .then(processChangePlanResponse)
+          .catch(handleCheckoutError);
+      }
+    } else {
+      // if the user doesn't currently have a subscription, just send them to Stripe checkout
+      postCheckout(price.id, props.organization.id)
+        .then(processCheckoutResponse)
+        .catch(handleCheckoutError);
+    }
   };
 
   if (!addOnProducts.length || subscribedPlans.length || !props.organization) {
@@ -102,15 +125,27 @@ const AddOnList = (props: {
   }
 
   return (
-    <table>
-      <caption>
-        <h2>{t('available add-ons')}</h2>
+    <table className={styles.table}>
+      <caption className={styles.caption}>
+        <label className={styles.header}>{t('available add-ons')}</label>
+        <p>
+          {t(
+            `Add-ons can be added to your plan to increase your usage limits. If you are approaching or
+            have reached the usage limits included with your plan, increase your limits with add-ons to continue
+            data collection.`
+          )}
+        </p>
       </caption>
+      <colgroup>
+        <col className={styles.product} />
+        <col className={styles.price} />
+        <col className={styles.buy} />
+      </colgroup>
       <tbody>
         {addOnProducts.map((product) =>
           product.prices.map((price) => (
             <tr key={price.id}>
-              <td>{price.nickname}</td>
+              <td>{product.name}</td>
               <td>{price.human_readable_price}</td>
               <td>
                 {isSubscribedAddOnPrice(price) && (
@@ -118,8 +153,10 @@ const AddOnList = (props: {
                     color={'blue'}
                     type={'full'}
                     size={'m'}
+                    classNames={styles.button}
                     label={t('manage subscription')}
                     onClick={manageAddOn}
+                    isFullWidth
                   />
                 )}
                 {!isSubscribedAddOnPrice(price) && (
@@ -127,8 +164,10 @@ const AddOnList = (props: {
                     color={'blue'}
                     type={'full'}
                     size={'m'}
+                    classNames={styles.button}
                     label={t('buy now')}
                     onClick={() => purchaseAddOn(price)}
+                    isFullWidth
                   />
                 )}
               </td>

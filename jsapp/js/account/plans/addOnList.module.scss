@@ -1,0 +1,62 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+button {
+  display: flex;
+  justify-content: center;
+  @extend .uppercase;
+}
+
+.header {
+  font-size: 1.125em;
+  font-weight: 700;
+  color: colors.$kobo-storm;
+
+  @extend .uppercase;
+}
+
+.caption {
+  text-align: start;
+}
+
+.table {
+  padding: 1em;
+  table-layout: fixed;
+  border-collapse: collapse;
+
+  & td {
+    padding-block: 0.5em;
+    font-weight: 700;
+    overflow: hidden;
+  }
+}
+
+.border {
+  border-top: 1px solid colors.$kobo-light-storm;
+}
+
+.product {
+  min-width: fit-content;
+  max-width: 60%;
+  @extend .border;
+}
+
+.price {
+  width: 12em;
+  margin: 0;
+  @extend .border;
+}
+
+.buy {
+  width: 10em;
+}
+
+@media screen and (min-width: breakpoints.$b960) {
+  .product {
+    width: 60%;
+  }
+}
