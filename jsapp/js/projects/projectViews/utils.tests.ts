@@ -1,8 +1,43 @@
 import chai from 'chai';
 import type {ProjectsFilterDefinition} from './constants';
-import {removeIncorrectFilters, buildQueriesFromFilters} from './utils';
+import {
+  removeIncorrectFilters,
+  buildQueriesFromFilters,
+  getQueriesFromUrl,
+} from './utils';
 
 describe('projectViewsUtils', () => {
+  describe('getQueriesFromUrl', () => {
+    const cases: Array<{in: string; out: string[]}> = [
+      {
+        in: 'http://kf.kobo.local/api/v2/assets/abc123/',
+        out: [],
+      },
+      {
+        in: 'http://kf.kobo.local/api/v2/assets/abc123/?foo=bar',
+        out: [],
+      },
+      {
+        in: 'http://kf.kobo.local/api/v2/assets/abc123/?foo=bar&q=asset_type:survey',
+        out: ['asset_type:survey'],
+      },
+      {
+        in: 'http://kf.kobo.local/api/v2/assets/abc123/?q=asset_type:survey',
+        out: ['asset_type:survey'],
+      },
+      {
+        in: 'http://kf.kobo.local/api/v2/assets/abc123/?q=asset_type:survey AND "search phrase"',
+        out: ['asset_type:survey', '"search phrase"'],
+      },
+    ];
+    cases.forEach((testCase) => {
+      it(`should return "${testCase.out}" queries from url "${testCase.in}"`, () => {
+        const test = getQueriesFromUrl(testCase.in);
+        chai.expect(test).to.deep.equal(testCase.out);
+      });
+    });
+  });
+
   describe('removeIncorrectFilters', () => {
     it('should return only correct filters', () => {
       const dirty: ProjectsFilterDefinition[] = [
