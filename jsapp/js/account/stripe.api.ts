@@ -13,6 +13,7 @@ import type {
   Product,
 } from 'js/account/stripe';
 import {Limits} from 'js/account/stripe';
+import {notify} from 'js/utils';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -224,4 +225,10 @@ export async function getAccountLimits() {
   }
 
   return limits;
+}
+
+export function notifyCheckoutFailure() {
+  notify.error(
+    t('There was an error processing your transaction. Please try again later.')
+  );
 }
