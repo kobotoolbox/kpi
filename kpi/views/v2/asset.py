@@ -400,6 +400,7 @@ class AssetViewSet(
             try:
                 asset = Asset.objects.get(uid=self.kwargs['uid'])
             except Asset.DoesNotExist:
+                0 / 0
                 raise Http404
 
             self.check_object_permissions(self.request, asset)

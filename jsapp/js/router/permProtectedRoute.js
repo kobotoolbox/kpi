@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import {actions} from 'js/actions';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDenied from 'js/router/accessDenied';
+import SomethingWrong from 'js/router/somethingWrong';
 import {withRouter} from './legacy';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
 
@@ -29,6 +30,7 @@ class PermProtectedRoute extends React.Component {
       // Whether loadAsset call was made and ended, regardless of success or failure
       isLoadAssetFinished: false,
       userHasRequiredPermissions: null,
+      fiveHundredError: null,
       errorMessage: null,
       asset: null,
     };
@@ -84,10 +86,21 @@ class PermProtectedRoute extends React.Component {
   }
 
   onLoadAssetFailed(response) {
-    if (response.status >= 400) {
+    if (response.status >= 400 && response.status < 500) {
       this.setState({
         isLoadAssetFinished: true,
         userHasRequiredPermissions: false,
+        fiveHundredError: false,
+        errorMessage: `${response.status.toString()}: ${
+          response.responseJSON?.detail || response.statusText
+        }`,
+      });
+    }
+    else {
+      this.setState({
+        isLoadAssetFinished: true,
+        userHasRequiredPermissions: false,
+        fiveHundredError: true,
         errorMessage: `${response.status.toString()}: ${
           response.responseJSON?.detail || response.statusText
         }`,
@@ -124,7 +137,12 @@ class PermProtectedRoute extends React.Component {
         </Suspense>
       );
     } else {
-      return <AccessDenied errorMessage={this.state.errorMessage} />;
+      if (this.state.fiveHundredError){
+        return <SomethingWrong errorMessage={this.state.errorMessage} />;
+      }
+      else{
+        return <AccessDenied errorMessage={this.state.errorMessage} />;
+      }
     }
   }
 }
