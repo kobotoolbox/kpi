@@ -20,6 +20,12 @@ const AccessDenied = (props: AccessDeniedProps) => {
   let headerText;
   let bodyText;
   let errorNumber;
+  const loggedIn = t(
+    `Please try logging in using the header button or [contact the support team] if you think it's an error.`
+  );
+  const loggedOut = t(
+    `Please [contact the support team] if you think it's an error.`
+  );
 
   // Obtaining error message number
   if(props.errorMessage){
@@ -32,36 +38,28 @@ const AccessDenied = (props: AccessDeniedProps) => {
   // Conditionally rendering error message based on number
   if(errorNumber == 403 || errorNumber == 401){
     headerText = t(`Access Denied`);
-    bodyText = t(`You don't have access to this page`);
+    bodyText = t(`You don't have access to this page.`);
     if (sessionStore.isLoggedIn) {
-      messageText = t(
-        `Please try logging in using the header button or [contact the support team] if you think it's an error.`
-      );
+      messageText = loggedIn;
     } else {
-      messageText = t(
-        `Please [contact the support team] if you think it's an error.`
-      );
+      messageText = loggedOut;
     }
   }
-  else if (errorNumber >= 500){
+  else if (errorNumber == 404){
+    headerText = t(`Access Denied`);
+    bodyText = t(`Either you don't have access to this page or this page simply doesn't exist.`);
+    if (sessionStore.isLoggedIn) {
+      messageText = loggedIn;
+    } else {
+      messageText = loggedOut;
+    }
+  }
+  else{
     headerText = t(`Something went wrong`);
-    bodyText = t(`We're sorry, but the server encountered an error while trying to serve this page.`);
+    bodyText = t(`We're sorry, but there was an unexpected error while trying to serve this page.`);
     messageText = t(
       `Please try again later, or [contact the support team] if this happens repeatedly.`
     );
-  }
-  else{
-    headerText = t(`Access Denied`);
-    bodyText = t(`Either you don't have access to this page or this page simply doesn't exist`);
-    if (sessionStore.isLoggedIn) {
-      messageText = t(
-        `Please try logging in using the header button or [contact the support team] if you think it's an error.`
-      );
-    } else {
-      messageText = t(
-        `Please [contact the support team] if you think it's an error.`
-      );
-    }
   }
 
   let messageHtml = replaceBracketsWithLink(
@@ -85,7 +83,7 @@ const AccessDenied = (props: AccessDeniedProps) => {
           <p dangerouslySetInnerHTML={{__html: messageHtml}} />
         </bem.AccessDenied__text>
 
-        {props.errorMessage && errorNumber < 500 && (
+        {props.errorMessage && (
           <bem.AccessDenied__text>
             {t('Additional details:')}
 
