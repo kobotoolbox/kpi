@@ -99,11 +99,19 @@ class ChangePlanView(APIView):
                     }
                 ],
             )
-            return Response({
-                'url': f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
-                'status': 'success',
-                'stripe_object': stripe_response,
-            })
+            # If there are pending updates, there was a problem scheduling the change to their plan
+            if stripe_response['pending_update']:
+                return Response({
+                    'status': 'pending',
+                })
+            # Upgraded successfully!
+            else:
+                return Response({
+                    'url': f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+                    'status': 'success',
+                    'stripe_object': stripe_response,
+                })
+
         # We're downgrading the subscription, schedule a subscription change at the end of the current period
         return ChangePlanView.schedule_subscription_change(
             subscription, subscription_item, price.id
