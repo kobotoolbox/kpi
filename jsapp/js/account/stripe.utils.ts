@@ -50,7 +50,9 @@ export function isRecurringAddonProduct(product: Product) {
 
 export function processCheckoutResponse(data: Checkout) {
   if (!data?.url) {
-    notify.error(t('There has been an issue, please try again later.'));
+    notify.error(t('There has been an issue, please try again later.'), {
+      duration: 10000,
+    });
   } else {
     window.location.assign(data.url);
   }
@@ -72,20 +74,29 @@ export async function processChangePlanResponse(data: ChangePlan) {
       notify.success(
         t(
           'Success! Your subscription will change at the end of the current billing period.'
-        )
+        ),
+        {
+          duration: 10000,
+        }
       );
       break;
     default:
       notify.error(
         t(
-          'There was an error processing your plan change. Please try again later.'
-        )
+          'There was an error processing your plan change. Your previous plan has not been changed. Please try again later.'
+        ),
+        {
+          duration: 10000,
+        }
       );
       break;
   }
   return data.status;
 }
 
+/**
+ * Check if any of a list of subscriptions are scheduled to change to a given price at some point.
+ */
 export function isChangeScheduled(
   price: BasePrice,
   subscriptions: SubscriptionInfo[]
