@@ -188,18 +188,19 @@ export interface Checkout {
 export enum ChangePlanStatus {
   'success' = 'success',
   'scheduled' = 'scheduled',
+  'pending' = 'pending',
   'error' = 'error',
 }
 
 export type ChangePlan =
   | {
-      status: 'success';
+      status: ChangePlanStatus.success | ChangePlanStatus.pending;
       url: string;
       stripe_object: Record<string, string>;
     }
   | {
-      status: 'scheduled';
+      status: ChangePlanStatus.scheduled;
     }
   | {
-      status: 'error';
+      status: ChangePlanStatus.error;
     };
