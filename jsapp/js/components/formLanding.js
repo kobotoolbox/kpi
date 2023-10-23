@@ -14,6 +14,7 @@ import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import Checkbox from 'js/components/common/checkbox';
 import {
   MODAL_TYPES,
   COLLECTION_METHODS,
@@ -28,6 +29,7 @@ import {
 } from 'react-router-dom';
 import {withRouter} from 'js/router/legacy';
 import {userCan, userCanRemoveSharedProject} from 'js/components/permissions/utils';
+import Icon from './common/icon';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -38,7 +40,8 @@ class FormLanding extends React.Component {
       selectedCollectMethod: COLLECTION_METHODS.offline_url.id,
       DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
       nextPageUrl: null,
-      nextPagesVersions: []
+      nextPagesVersions: [],
+      allowAnonymousSubmissions: false,
     };
     autoBind(this);
   }
@@ -278,13 +281,13 @@ class FormLanding extends React.Component {
     return (
       <bem.FormView__row>
         <bem.FormView__cell m={['label', 'first']}>
-            {t('Collect data')}
+          {t('Collect data')}
         </bem.FormView__cell>
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
             <bem.FormView__cell>
               <PopoverMenu
-                type="collectData-menu"
+                type='collectData-menu'
                 triggerLabel={COLLECTION_METHODS[chosenMethod].label}
               >
                 {deployment__links_list.map((c) => {
@@ -303,31 +306,36 @@ class FormLanding extends React.Component {
               </PopoverMenu>
             </bem.FormView__cell>
 
-            <bem.FormView__cell>
-              {this.renderCollectLink()}
-            </bem.FormView__cell>
+            <bem.FormView__cell>{this.renderCollectLink()}</bem.FormView__cell>
           </bem.FormView__cell>
-          <bem.FormView__cell m={['padding', 'bordertop', 'collect-meta']}>
+          <bem.FormView__cell m={['small-padding', 'collect-meta']}>
             {chosenMethod !== COLLECTION_METHODS.android.id &&
-              COLLECTION_METHODS[chosenMethod].desc
-            }
+              COLLECTION_METHODS[chosenMethod].desc}
 
-            {chosenMethod === COLLECTION_METHODS.iframe_url.id &&
+            {chosenMethod === COLLECTION_METHODS.iframe_url.id && (
               <pre>
                 {`<iframe src="${chosenMethodLink}" width="800" height="600"></iframe>`}
               </pre>
-            }
+            )}
 
-            {chosenMethod === COLLECTION_METHODS.android.id &&
+            {chosenMethod === COLLECTION_METHODS.android.id && (
               <ol>
                 <li>
                   {t('Install')}
                   &nbsp;
-                  <a href='https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en' target='_blank'>KoboCollect</a>
+                  <a
+                    href='https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en'
+                    target='_blank'
+                  >
+                    KoboCollect
+                  </a>
                   &nbsp;
                   {t('on your Android device.')}
                 </li>
-                <li>{t('Click on')} <i className='k-icon k-icon-more-vertical'/> {t('to open settings.')}</li>
+                <li>
+                  {t('Click on')} <i className='k-icon k-icon-more-vertical' />{' '}
+                  {t('to open settings.')}
+                </li>
                 <li>
                   {t('Enter the server URL')}&nbsp;
                   <code>{kobocollect_url}</code>&nbsp;
@@ -336,8 +344,22 @@ class FormLanding extends React.Component {
                 <li>{t('Open "Get Blank Form" and select this project. ')}</li>
                 <li>{t('Open "Enter Data."')}</li>
               </ol>
-            }
-
+            )}
+          </bem.FormView__cell>
+          <bem.FormView__cell m={['padding', 'bordertop', 'anonymous-submissions']}>
+            <Checkbox
+              checked={this.state.allowAnonymousSubmissions}
+              onChange={() => {
+                this.setState({
+                  allowAnonymousSubmissions:
+                    !this.state.allowAnonymousSubmissions,
+                });
+              }}
+            />
+            <div className={'anonymous-submissions'}>{t('Allow anonymous submissions to this form')}</div>
+            <a data-tip={t('Tooltip?')}>
+              <Icon size='s' name='help' color='storm' />
+            </a>
           </bem.FormView__cell>
         </bem.FormView__cell>
       </bem.FormView__row>

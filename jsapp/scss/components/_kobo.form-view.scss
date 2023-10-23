@@ -293,6 +293,10 @@ $side-tabs-width-mobile: 70px;
     padding: 20px;
   }
 
+  &.form-view__cell--small-padding {
+    padding: 10px 20px 20px 20px;
+  }
+
   &.form-view__cell--padding-small {
     padding: 10px 20px;
   }
@@ -658,6 +662,13 @@ $side-tabs-width-mobile: 70px;
       vertical-align: top;
       font-size: 24px;
     }
+  }
+}
+
+.form-view__cell--anonymous-submissions {
+  display: flex;
+  .anonymous-submissions {
+    padding: 0 10px 0 10px;
   }
 }
 
