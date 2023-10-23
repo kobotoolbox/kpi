@@ -17,14 +17,48 @@ export interface AccessDeniedProps {
 }
 const AccessDenied = (props: AccessDeniedProps) => {
   let messageText;
+  let headerText;
+  let bodyText;
+  let errorNumber;
+  const loggedIn = t(
+    `Please try logging in using the header button or [contact the support team] if you think it's an error.`
+  );
+  const loggedOut = t(
+    `Please [contact the support team] if you think it's an error.`
+  );
 
-  if (sessionStore.isLoggedIn) {
+  // Obtaining error message number
+  if(props.errorMessage){
+    errorNumber = parseInt(props.errorMessage.replace( /[^\d].*/, '' ));
+  }
+  else{
+    errorNumber = 404;
+  }
+  
+  // Conditionally rendering error message based on number
+  if(errorNumber == 403 || errorNumber == 401){
+    headerText = t(`Access Denied`);
+    bodyText = t(`You don't have access to this page.`);
+    if (sessionStore.isLoggedIn) {
+      messageText = loggedIn;
+    } else {
+      messageText = loggedOut;
+    }
+  }
+  else if (errorNumber == 404){
+    headerText = t(`Access Denied`);
+    bodyText = t(`Either you don't have access to this page or this page simply doesn't exist.`);
+    if (sessionStore.isLoggedIn) {
+      messageText = loggedIn;
+    } else {
+      messageText = loggedOut;
+    }
+  }
+  else{
+    headerText = t(`Something went wrong`);
+    bodyText = t(`We're sorry, but there was an unexpected error while trying to serve this page.`);
     messageText = t(
-      `Please try logging in using the header button or [contact the support team] if you think it's an error.`
-    );
-  } else {
-    messageText = t(
-      `Please [contact the support team] if you think it's an error.`
+      `Please try again later, or [contact the support team] if this happens repeatedly.`
     );
   }
 
@@ -37,14 +71,14 @@ const AccessDenied = (props: AccessDeniedProps) => {
     <bem.AccessDenied>
       <bem.AccessDenied__body>
         <bem.AccessDenied__header>
-          <i className='k-icon k-icon-lock-alt' />
-          {t('Access denied')}
+          {errorNumber < 500 && 
+            <i className='k-icon k-icon-lock-alt' />
+          }
+          {headerText}
         </bem.AccessDenied__header>
 
         <bem.AccessDenied__text>
-          {t(
-            "Either you don't have access to this page or this page simply doesn't exist."
-          )}
+          {bodyText}
 
           <p dangerouslySetInnerHTML={{__html: messageHtml}} />
         </bem.AccessDenied__text>
