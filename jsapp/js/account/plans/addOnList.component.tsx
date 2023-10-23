@@ -153,7 +153,8 @@ const AddOnList = (props: {
                     color={'blue'}
                     type={'full'}
                     size={'m'}
-                    label={t('manage subscription')}
+                    label={t('manage')}
+                    isDisabled={props.isBusy}
                     onClick={manageAddOn}
                     isFullWidth
                   />
@@ -164,6 +165,7 @@ const AddOnList = (props: {
                     type={'full'}
                     size={'m'}
                     label={t('buy now')}
+                    isDisabled={props.isBusy}
                     onClick={() => purchaseAddOn(price)}
                     isFullWidth
                   />
