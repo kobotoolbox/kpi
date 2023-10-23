@@ -1,4 +1,3 @@
-import type {KeyboardEventHandler} from 'react';
 import React from 'react';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import type {IconSize} from 'js/components/common/icon';
@@ -142,9 +141,15 @@ const Button = (props: ButtonProps) => {
     additionalButtonAttributes['data-cy'] = props['data-cy'];
   }
 
-  const onKeyUp = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (props.onClick && (event?.key === 'space' || event?.key === 'enter')) {
+  const handleClick = (event: React.BaseSyntheticEvent) => {
+    if (!props.isDisabled && props.onClick) {
       props.onClick(event);
+    }
+  };
+
+  const onKeyUp = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event?.key === 'space' || event?.key === 'enter') {
+      handleClick(event);
     }
   };
 
@@ -152,7 +157,7 @@ const Button = (props: ButtonProps) => {
     <button
       className={classNames.join(' ')}
       type={props.isSubmit ? 'submit' : 'button'}
-      disabled={props.isDisabled}
+      aria-disabled={props.isDisabled}
       onClick={props.onClick}
       onKeyUp={onKeyUp}
       {...additionalButtonAttributes}
