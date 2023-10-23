@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import {actions} from 'js/actions';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDenied from 'js/router/accessDenied';
-import SomethingWrong from 'js/router/somethingWrong';
 import {withRouter} from './legacy';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
 
