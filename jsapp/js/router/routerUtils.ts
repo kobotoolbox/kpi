@@ -255,8 +255,11 @@ export function isInvalidatedPasswordRouteBlockerActive() {
 
 /** TOSAgreement is displayed when user has not accepted latest TOS. */
 export function isTOSAgreementRouteBlockerActive() {
-  // TODO: use proper information here
-  return sessionStore.isLoggedIn && true;
+  return (
+    sessionStore.isLoggedIn &&
+    'tos_accepted_date' in sessionStore.currentAccount &&
+    sessionStore.currentAccount.tos_accepted_date !== null
+  );
 }
 
 /**
