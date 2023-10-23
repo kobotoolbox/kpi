@@ -107,8 +107,7 @@ function planReducer(state: PlanState, action: DataUpdates): PlanState {
 }
 
 export default function Plan() {
-  // type definitions for useReducer incorrectly require an initializer arg - see https://github.com/facebook/react/issues/27052
-  // @ts-ignore
+  // useReducer type defs incorrectly require an initializer arg - see https://github.com/facebook/react/issues/27052
   const [state, dispatch]: [PlanState, (arg: DataUpdates) => void] = useReducer(
     planReducer,
     initialState
