@@ -30,7 +30,6 @@ class PermProtectedRoute extends React.Component {
       // Whether loadAsset call was made and ended, regardless of success or failure
       isLoadAssetFinished: false,
       userHasRequiredPermissions: null,
-      fiveHundredError: null,
       errorMessage: null,
       asset: null,
     };
@@ -86,21 +85,10 @@ class PermProtectedRoute extends React.Component {
   }
 
   onLoadAssetFailed(response) {
-    if (response.status >= 400 && response.status < 500) {
+    if (response.status >= 400) {
       this.setState({
         isLoadAssetFinished: true,
         userHasRequiredPermissions: false,
-        fiveHundredError: false,
-        errorMessage: `${response.status.toString()}: ${
-          response.responseJSON?.detail || response.statusText
-        }`,
-      });
-    }
-    else {
-      this.setState({
-        isLoadAssetFinished: true,
-        userHasRequiredPermissions: false,
-        fiveHundredError: true,
         errorMessage: `${response.status.toString()}: ${
           response.responseJSON?.detail || response.statusText
         }`,
@@ -137,12 +125,7 @@ class PermProtectedRoute extends React.Component {
         </Suspense>
       );
     } else {
-      if (this.state.fiveHundredError){
-        return <SomethingWrong errorMessage={this.state.errorMessage} />;
-      }
-      else{
-        return <AccessDenied errorMessage={this.state.errorMessage} />;
-      }
+      return <AccessDenied errorMessage={this.state.errorMessage} />;
     }
   }
 }
