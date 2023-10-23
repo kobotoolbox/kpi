@@ -1,19 +1,19 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import cx from 'classnames';
+
+import Button from 'js/components/common/button';
+import InlineMessage from 'js/components/common/inlineMessage';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
-import Button from 'js/components/common/button';
-import Checkbox from 'js/components/common/checkbox';
-import styles from './confirmChangeModal.module.scss';
 import type {BasePrice, SubscriptionInfo} from 'js/account/stripe';
+import {ChangePlanStatus} from 'js/account/stripe';
 import {changeSubscription} from 'js/account/stripe.api';
 import {processChangePlanResponse} from 'js/account/stripe.utils';
 import {formatDate, notify} from 'js/utils';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
-import cx from 'classnames';
-import InlineMessage from 'js/components/common/inlineMessage';
-import {ChangePlanStatus} from 'js/account/stripe';
+import styles from './confirmChangeModal.module.scss';
 
 export interface ConfirmChangeProps {
   price: BasePrice | null;
@@ -27,7 +27,6 @@ const ConfirmChangeModal = ({
 }: ConfirmChangeProps & {
   toggleModal: () => void;
 }) => {
-  const [isConfirmed, setIsConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const shouldShow = useMemo(
@@ -37,15 +36,10 @@ const ConfirmChangeModal = ({
 
   useEffect(() => {
     setIsLoading(false);
-    setIsConfirmed(false);
   }, [shouldShow]);
 
-  const setConfirmation = (isChecked: boolean) => {
-    setIsConfirmed(isChecked);
-  };
-
   const submitChange = () => {
-    if (isLoading || !isConfirmed || !price || !subscription) {
+    if (isLoading || !price || !subscription) {
       return;
     }
     setIsLoading(true);
@@ -90,7 +84,7 @@ const ConfirmChangeModal = ({
                   {t(
                     `Your old storage add-on cost ##old_price## per ##interval##.
                       Any remainder from the add-on for the current month will be prorated
-                      as a credit and the cost for the new plan will be charged pro-rated
+                      as a credit and the cost for the new plan will be charged prorated
                       for the remainder of this ##interval##.`
                   )
                     .replace(
@@ -121,34 +115,22 @@ const ConfirmChangeModal = ({
                 </p>
               </>
             )}
-          <fieldset>
-            <label>
-              <strong>
-                {t('Your card on file will be charged once you confirm.')}
-              </strong>
-            </label>
-            <Checkbox
-              checked={isConfirmed}
-              onChange={setConfirmation}
-              label={'Yes, I agree to this transaction'}
-            />
-          </fieldset>
         </section>
       </KoboModalContent>
       <KoboModalFooter>
         <Button
-          type={isConfirmed ? 'full' : 'frame'}
-          color={isConfirmed ? 'blue' : 'storm'}
+          type={'full'}
+          color={'blue'}
           size='l'
-          classNames={[cx({hidden: isLoading})]}
+          isDisabled={isLoading}
           onClick={submitChange}
           label={t('Submit')}
         />
         <Button
           type='full'
-          color={isLoading ? 'storm' : 'red'}
+          color={'red'}
           size='l'
-          classNames={[cx({hidden: isLoading})]}
+          isDisabled={isLoading}
           onClick={toggleModal}
           label={t('Cancel')}
         />
