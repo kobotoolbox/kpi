@@ -16,16 +16,16 @@ export interface AccessDeniedProps {
   errorMessage?: string;
 }
 const AccessDenied = (props: AccessDeniedProps) => {
-  let messageText;
-  let headerText;
-  let bodyText;
-  let errorNumber;
   const loggedIn = t(
     `Please [contact the support team] if you think it's an error.`
   );
   const loggedOut = t(
     `Please try logging in using the header button or [contact the support team] if you think it's an error.`
   );
+  let bodyText;
+  let errorNumber;
+  let headerText = t(`Access Denied`);
+  let messageText = sessionStatus();
 
   // Obtaining error message number
   if(props.errorMessage){
@@ -38,22 +38,10 @@ const AccessDenied = (props: AccessDeniedProps) => {
   // Conditionally rendering error message based on number
   switch (errorNumber){
     case 403 || 401:
-      headerText = t(`Access Denied`);
       bodyText = t(`You don't have access to this page.`);
-      if (sessionStore.isLoggedIn) {
-        messageText = loggedIn;
-      } else {
-        messageText = loggedOut;
-      }
       break;
     case 404:
-      headerText = t(`Access Denied`);
       bodyText = t(`Either you don't have access to this page or this page simply doesn't exist.`);
-      if (sessionStore.isLoggedIn) {
-        messageText = loggedIn;
-      } else {
-        messageText = loggedOut;
-      }
       break;
     default:
       headerText = t(`Something went wrong`);
@@ -62,6 +50,14 @@ const AccessDenied = (props: AccessDeniedProps) => {
         `Please try again later, or [contact the support team] if this happens repeatedly.`
       );
       break;
+  }
+
+  function sessionStatus(){
+    if (sessionStore.isLoggedIn) {
+      return loggedIn;
+    } else {
+      return loggedOut;
+    }
   }
 
   let messageHtml = replaceBracketsWithLink(
