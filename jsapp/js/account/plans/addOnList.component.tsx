@@ -153,6 +153,7 @@ const AddOnList = (props: {
                     color={'blue'}
                     type={'full'}
                     size={'m'}
+                    classNames={[styles.button]}
                     label={t('manage')}
                     isDisabled={props.isBusy}
                     onClick={manageAddOn}
@@ -164,6 +165,7 @@ const AddOnList = (props: {
                     color={'blue'}
                     type={'full'}
                     size={'m'}
+                    classNames={[styles.button]}
                     label={t('buy now')}
                     isDisabled={props.isBusy}
                     onClick={() => purchaseAddOn(price)}
