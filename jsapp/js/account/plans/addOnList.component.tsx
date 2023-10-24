@@ -22,6 +22,7 @@ import {
   postCustomerPortal,
 } from 'js/account/stripe.api';
 import styles from './addOnList.module.scss';
+import PlanButton from 'js/account/plans/planButton.component';
 
 const AddOnList = (props: {
   products: Product[] | null;
@@ -149,11 +150,8 @@ const AddOnList = (props: {
               <td className={styles.price}>{price.human_readable_price}</td>
               <td>
                 {isSubscribedAddOnPrice(price) && (
-                  <Button
-                    color={'blue'}
-                    type={'full'}
+                  <PlanButton
                     size={'m'}
-                    classNames={[styles.button]}
                     label={t('manage')}
                     isDisabled={props.isBusy}
                     onClick={manageAddOn}
@@ -161,11 +159,8 @@ const AddOnList = (props: {
                   />
                 )}
                 {!isSubscribedAddOnPrice(price) && (
-                  <Button
-                    color={'blue'}
-                    type={'full'}
+                  <PlanButton
                     size={'m'}
-                    classNames={[styles.button]}
                     label={t('buy now')}
                     isDisabled={props.isBusy}
                     onClick={() => purchaseAddOn(price)}

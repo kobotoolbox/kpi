@@ -14,6 +14,8 @@ import {changeSubscription} from 'js/account/stripe.api';
 import {processChangePlanResponse} from 'js/account/stripe.utils';
 import {formatDate, notify} from 'js/utils';
 import styles from './confirmChangeModal.module.scss';
+import {button} from './addOnList.module.scss';
+import PlanButton from 'js/account/plans/planButton.component';
 
 export interface ConfirmChangeProps {
   price: BasePrice | null;
@@ -118,18 +120,15 @@ const ConfirmChangeModal = ({
         </section>
       </KoboModalContent>
       <KoboModalFooter>
-        <Button
-          type={'full'}
-          color={'blue'}
-          size='l'
+        <PlanButton
+          classNames={[button]}
           isDisabled={isLoading}
           onClick={submitChange}
           label={t('Submit')}
         />
-        <Button
-          type='full'
-          color={'red'}
-          size='l'
+        <PlanButton
+          color='red'
+          classNames={[button]}
           isDisabled={isLoading}
           onClick={toggleModal}
           label={t('Cancel')}

@@ -37,6 +37,7 @@ import type {
   Product,
   SubscriptionInfo,
 } from '../stripe';
+import PlanButton from 'js/account/plans/planButton.component';
 
 interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
@@ -594,10 +595,7 @@ export default function Plan() {
                     {!isSubscribedProduct(price) &&
                       !shouldShowManage(price) &&
                       price.prices.unit_amount > 0 && (
-                        <Button
-                          type='full'
-                          color='blue'
-                          size='m'
+                        <PlanButton
                           label={t('Upgrade')}
                           onClick={() => upgradePlan(price.prices)}
                           aria-label={`upgrade to ${price.name}`}
@@ -608,10 +606,7 @@ export default function Plan() {
                     {isSubscribedProduct(price) &&
                       shouldShowManage(price) &&
                       price.prices.unit_amount > 0 && (
-                        <Button
-                          type='full'
-                          color='blue'
-                          size='l'
+                        <PlanButton
                           label={t('Manage')}
                           onClick={managePlan}
                           aria-label={`manage your ${price.name} subscription`}
@@ -622,10 +617,7 @@ export default function Plan() {
                     {!isSubscribedProduct(price) &&
                       shouldShowManage(price) &&
                       price.prices.unit_amount > 0 && (
-                        <Button
-                          type='full'
-                          color='blue'
-                          size='m'
+                        <PlanButton
                           label={t('Change plan')}
                           onClick={managePlan}
                           aria-label={`change your subscription to ${price.name}`}

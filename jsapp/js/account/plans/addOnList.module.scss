@@ -1,23 +1,11 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/breakpoints';
 
-.uppercase {
-  text-transform: uppercase;
-}
-
-.button {
-  display: flex;
-  justify-content: center;
-  font-weight: 700;
-  @extend .uppercase;
-}
-
 .header {
   font-size: 1.125em;
   font-weight: 700;
   color: colors.$kobo-storm;
-
-  @extend .uppercase;
+  text-transform: uppercase;
 }
 
 .caption {
