@@ -43,7 +43,7 @@ ButtonToIconAloneMap.set('s', 'm');
 ButtonToIconAloneMap.set('m', 'l');
 ButtonToIconAloneMap.set('l', 'l');
 
-interface ButtonProps {
+export interface ButtonProps {
   type: ButtonType;
   color: ButtonColor;
   /** Note: this size will also be carried over to the icon. */
@@ -141,12 +141,25 @@ const Button = (props: ButtonProps) => {
     additionalButtonAttributes['data-cy'] = props['data-cy'];
   }
 
+  const handleClick = (event: React.BaseSyntheticEvent) => {
+    if (!props.isDisabled && props.onClick) {
+      props.onClick(event);
+    }
+  };
+
+  const onKeyUp = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event?.key === 'space' || event?.key === 'enter') {
+      handleClick(event);
+    }
+  };
+
   return (
     <button
       className={classNames.join(' ')}
       type={props.isSubmit ? 'submit' : 'button'}
-      disabled={props.isDisabled}
+      aria-disabled={props.isDisabled}
       onClick={props.onClick}
+      onKeyUp={onKeyUp}
       {...additionalButtonAttributes}
     >
       {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
