@@ -648,6 +648,7 @@ export class DataTable extends React.Component {
     const choices = this.props.asset.content.choices;
     const flatPaths = getSurveyFlatPaths(survey);
     allColumns.forEach((key, columnIndex) => {
+      let q;
       if (key.includes('/')) {
         const qParentG = key.split('/');
         q = survey.find(
