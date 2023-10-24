@@ -104,7 +104,7 @@ const AddOnList = (props: {
         activeSubscriptions[0].items[0].price.product.metadata.product_type ===
         'addon'
       ) {
-        // if the user's subscription is for a recurring add-on, send them to the customer portal to change plans
+        // if the user's subscription is for a recurring add-on, send them to the customer portal to change products
         manageAddOn();
       } else {
         // if the user's subscription is for a plan, open a modal to confirm the change
