@@ -20,6 +20,13 @@ class SessionStore {
     makeAutoObservable(this);
     this.verifyLogin();
     // TODO make this not awful
+    //
+    // HACK FIX: avoid double calls to `/me` endpoint.
+    // Context: when this store is being initialized, a call to `/me/` endpoint
+    // is being made (to get all the user info). When `AccountSettingsRoute` is
+    // being initialized (either by any navigation to the route or visiting it
+    // via a direct url) it also makes a call. We want to avoid double calls
+    // (happens in some cases), so we've introduced that `isInitialRoute` flag.
     setTimeout(() => (this.isInitialRoute = false), 1000);
   }
 
