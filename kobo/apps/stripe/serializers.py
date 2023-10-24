@@ -4,7 +4,8 @@ from djstripe.models import (
     Product,
     Session,
     Subscription,
-    SubscriptionItem, SubscriptionSchedule,
+    SubscriptionItem,
+    SubscriptionSchedule,
 )
 from rest_framework import serializers
 
