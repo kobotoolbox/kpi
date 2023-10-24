@@ -21,10 +21,10 @@ const AccessDenied = (props: AccessDeniedProps) => {
   let bodyText;
   let errorNumber;
   const loggedIn = t(
-    `Please try logging in using the header button or [contact the support team] if you think it's an error.`
+    `Please [contact the support team] if you think it's an error.`
   );
   const loggedOut = t(
-    `Please [contact the support team] if you think it's an error.`
+    `Please try logging in using the header button or [contact the support team] if you think it's an error.`
   );
 
   // Obtaining error message number
@@ -36,30 +36,32 @@ const AccessDenied = (props: AccessDeniedProps) => {
   }
   
   // Conditionally rendering error message based on number
-  if(errorNumber == 403 || errorNumber == 401){
-    headerText = t(`Access Denied`);
-    bodyText = t(`You don't have access to this page.`);
-    if (sessionStore.isLoggedIn) {
-      messageText = loggedIn;
-    } else {
-      messageText = loggedOut;
-    }
-  }
-  else if (errorNumber == 404){
-    headerText = t(`Access Denied`);
-    bodyText = t(`Either you don't have access to this page or this page simply doesn't exist.`);
-    if (sessionStore.isLoggedIn) {
-      messageText = loggedIn;
-    } else {
-      messageText = loggedOut;
-    }
-  }
-  else{
-    headerText = t(`Something went wrong`);
-    bodyText = t(`We're sorry, but there was an unexpected error while trying to serve this page.`);
-    messageText = t(
-      `Please try again later, or [contact the support team] if this happens repeatedly.`
-    );
+  switch (errorNumber){
+    case 403 || 401:
+      headerText = t(`Access Denied`);
+      bodyText = t(`You don't have access to this page.`);
+      if (sessionStore.isLoggedIn) {
+        messageText = loggedIn;
+      } else {
+        messageText = loggedOut;
+      }
+      break;
+    case 404:
+      headerText = t(`Access Denied`);
+      bodyText = t(`Either you don't have access to this page or this page simply doesn't exist.`);
+      if (sessionStore.isLoggedIn) {
+        messageText = loggedIn;
+      } else {
+        messageText = loggedOut;
+      }
+      break;
+    default:
+      headerText = t(`Something went wrong`);
+      bodyText = t(`We're sorry, but there was an unexpected error while trying to serve this page.`);
+      messageText = t(
+        `Please try again later, or [contact the support team] if this happens repeatedly.`
+      );
+      break;
   }
 
   let messageHtml = replaceBracketsWithLink(
