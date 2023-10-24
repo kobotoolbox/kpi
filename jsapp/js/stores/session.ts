@@ -1,5 +1,5 @@
 import {action, makeAutoObservable} from 'mobx';
-import {ANON_USERNAME} from 'js/constants';
+import {ANON_USERNAME} from 'js/users/utils';
 import {dataInterface} from 'js/dataInterface';
 import type {AccountResponse, FailResponse} from 'js/dataInterface';
 import {log, currentLang} from 'js/utils';
