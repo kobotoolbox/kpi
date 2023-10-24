@@ -36,6 +36,13 @@ class SessionStore {
       action(
         'verifyLoginSuccess',
         (account: AccountResponse | {message: string}) => {
+          // TEMP
+          // Override the response to cause TOS Screen to appear
+          if ('email' in account) {
+            account.tos_accepted_date = null;
+          }
+          // END TEMP
+
           this.isPending = false;
           this.isInitialLoadComplete = true;
           if ('email' in account) {
