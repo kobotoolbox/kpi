@@ -102,7 +102,7 @@ export default function AccountMenu() {
               There is no UI we can show to a user who sees a router blocker, so
               we don't allow any in-app navigation.
             */}
-            {isAnyRouteBlockerActive() && (
+            {!isAnyRouteBlockerActive() && (
               <bem.AccountBox__menuItem m={'settings'}>
                 <bem.KoboButton
                   onClick={openAccountSettings}
