@@ -104,7 +104,7 @@ export default function TOSForm() {
           isSubmit
           isFullWidth
           isDisabled={isFormPending}
-          label={t("I Agree, let's go")}
+          label={t("I agree, let's go")}
         />
 
         <Button

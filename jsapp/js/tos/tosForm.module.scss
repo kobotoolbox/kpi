@@ -1,18 +1,18 @@
 @use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
 
 .root {
-  background: lightgoldenrodyellow;
   max-width: sizes.$x800;
   margin: 0 auto;
 }
 
 .message {
-  background: lightskyblue;
+  margin-bottom: sizes.$x24;
 }
 
 .message :global h1 {
   font-weight: 600;
-  font-size: sizes.$x16;
+  font-size: sizes.$x18;
   margin-bottom: sizes.$x16;
 }
 
@@ -22,6 +22,11 @@
   }
 }
 
+.message :global a {
+  text-decoration: underline;
+  color: colors.$kobo-dark-blue;
+}
+
 .fieldsHeader {
   font-weight: 600;
   font-size: sizes.$x16;
@@ -29,9 +34,13 @@
 }
 
 .metaFields {
-  background: lightsteelblue;
+  margin-bottom: sizes.$x24;
 }
 
 .footer {
   background: lightcoral;
+}
+
+.footer :global button[type="submit"] {
+  text-transform: uppercase;
 }
