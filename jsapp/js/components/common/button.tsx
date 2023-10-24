@@ -43,7 +43,7 @@ ButtonToIconAloneMap.set('s', 'm');
 ButtonToIconAloneMap.set('m', 'l');
 ButtonToIconAloneMap.set('l', 'l');
 
-interface ButtonProps {
+export interface ButtonProps {
   type: ButtonType;
   color: ButtonColor;
   /** Note: this size will also be carried over to the icon. */
