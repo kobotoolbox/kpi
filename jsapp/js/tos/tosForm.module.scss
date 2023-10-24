@@ -1,0 +1,37 @@
+@use 'scss/sizes';
+
+.root {
+  background: lightgoldenrodyellow;
+  max-width: sizes.$x800;
+  margin: 0 auto;
+}
+
+.message {
+  background: lightskyblue;
+}
+
+.message :global h1 {
+  font-weight: 600;
+  font-size: sizes.$x16;
+  margin-bottom: sizes.$x16;
+}
+
+.message :global p {
+  &:not(:last-child) {
+    margin-bottom: sizes.$x16;
+  }
+}
+
+.fieldsHeader {
+  font-weight: 600;
+  font-size: sizes.$x16;
+  margin-bottom: sizes.$x16;
+}
+
+.metaFields {
+  background: lightsteelblue;
+}
+
+.footer {
+  background: lightcoral;
+}

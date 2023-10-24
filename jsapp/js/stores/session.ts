@@ -89,6 +89,20 @@ class SessionStore {
     );
   }
 
+  public logOut() {
+    dataInterface.logout().then(
+      action('logOutSuccess', () => {
+        // Reload so a new CSRF token is issued
+        window.setTimeout(() => {
+          window.location.replace('');
+        }, 1);
+      }),
+      action('logOutFailed', () => {
+        console.error('logout failed for some reason. what should happen now?');
+      }),
+    );
+  }
+
   private saveUiLanguage() {
     // We want to save the language if it differs from the one we saved or if
     // none is saved yet.

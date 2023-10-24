@@ -46,7 +46,7 @@ type ProjectMetadataFieldKey =
   | 'operational_purpose'
   | 'collects_pii';
 
-class EnvStoreData {
+export class EnvStoreData {
   public terms_of_service_url = '';
   public privacy_policy_url = '';
   public source_code_url = '';

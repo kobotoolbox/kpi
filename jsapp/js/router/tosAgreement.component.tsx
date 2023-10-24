@@ -1,8 +1,7 @@
-import React, {useState} from 'react';
-import Icon from 'js/components/common/icon';
-import Button from 'js/components/common/button';
+import React from 'react';
 import styles from './tosAgreement.module.scss';
 import BasicLayout from './basicLayout.component';
+import TOSForm from 'js/tos/tosForm.component';
 
 /**
  * This is a route blocker component to be used for accounts that have not
@@ -12,7 +11,9 @@ import BasicLayout from './basicLayout.component';
 export default function TOSAgreement() {
   return (
     <BasicLayout>
-      <div className={styles.root}>TOS agreement here :)</div>
+      <div className={styles.root}>
+        <TOSForm />
+      </div>
     </BasicLayout>
   );
 }
