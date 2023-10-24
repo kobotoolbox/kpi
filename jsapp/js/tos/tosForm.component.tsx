@@ -2,13 +2,12 @@ import React, {useState, useEffect} from 'react';
 import Button from 'js/components/common/button';
 import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
-import {fetchGetUrl} from 'js/api';
+import {fetchGetUrl, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
-import type {FailResponse} from '../dataInterface';
+import type {FailResponse} from 'js/dataInterface';
 import type {TOSGetResponse} from './tos.constants';
-import {handleApiFail} from '../utils';
-import LoadingSpinner from '../components/common/loadingSpinner';
-import Checkbox from '../components/common/checkbox';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Checkbox from 'js/components/common/checkbox';
 import {buildTOSFormFields} from './tos.utils';
 import type {TOSFormField} from './tos.utils';
 
