@@ -105,10 +105,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
         }
 
         setIsPending(false);
-        // Accounting for double error edge case when error status is 403
-        if (errorObj.status !== 403){
-          notify(t('failed to change password'), 'error');
-        }
+        notify(t('failed to change password'), 'error');
       }
     }
   }
