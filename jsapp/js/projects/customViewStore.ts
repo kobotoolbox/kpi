@@ -13,10 +13,11 @@ import type {
   ProjectFieldName,
   ProjectsFilterDefinition,
 } from './projectViews/constants';
-import {buildQueriesFromFilters, getQueriesFromUrl} from './projectViews/utils';
+import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 import session from 'js/stores/session';
 import searchBoxStore from 'js/components/header/searchBoxStore';
+import {COMMON_QUERIES} from 'js/constants';
 
 const SAVE_DATA_NAME = 'project_views_settings';
 const PAGE_SIZE = 50;
@@ -167,42 +168,45 @@ class CustomViewStore {
       return;
     }
 
-    // Step 1: cleanup and prepare store for getting new assets
+    // Step 1: Cleanup and prepare store for getting new assets
     this.isFirstLoadComplete = false;
     this.isLoading = true;
     this.assets = [];
 
-    // Step 2: get queries from configured filters
-    let queries = buildQueriesFromFilters(this.filters);
+    // Step 2: Prepare url
+    const url = new URL(this.baseUrl);
+    const params = new URLSearchParams(url.search);
 
-    // Step 3: sometimes the `baseUrl` might already contain some queries. We
-    // need to remove them and will reapply later with some additional ones
-    queries = queries.concat(getQueriesFromUrl(this.baseUrl));
-    // remove existing queries from baseUrl
-    const url = this.baseUrl.split('?')[0];
-
-    // Step 4: add search query
+    // Step 3: Build queries for Back end (for `q=`)
+    const queries = buildQueriesFromFilters(this.filters);
+    // We are only interested in surveys
+    queries.push(COMMON_QUERIES.s);
+    // Add search query, wrapped in double quotes
     if (searchBoxStore.data.searchPhrase !== '') {
       queries.push(`"${searchBoxStore.data.searchPhrase}"`);
     }
-
-    // Step 5: build final queries and ordering strings for API call
     const queriesString = queries.join(' AND ');
-    const orderingString = this.getOrderQuery();
+    params.set('q', queriesString);
 
-    // Step 6: stop any ongoing call (no longer needed)
+    // Step 4: Build ordering string
+    const orderingString = this.getOrderQuery();
+    if (orderingString) {
+      params.set('ordering', orderingString);
+    }
+
+    // Step 5: Stop any ongoing call (as it is no longer needed)
     if (this.ongoingFetch) {
       this.ongoingFetch.abort();
     }
 
-    // Step 7: make API call :)
+    // Step 6: Set limit
+    params.set('limit', String(PAGE_SIZE));
+
+    // Step 6: Make API call :)
     this.ongoingFetch = $.ajax({
       dataType: 'json',
       method: 'GET',
-      url:
-        `${url}?limit=${PAGE_SIZE}` +
-        (orderingString ? `&ordering=${orderingString}` : '') +
-        (queriesString ? `&q=${queriesString}` : ''),
+      url: `${url}?${params}`,
     })
       .done(this.onFetchAssetsDone.bind(this))
       .fail(this.onAnyFail.bind(this));
