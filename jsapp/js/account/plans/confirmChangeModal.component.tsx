@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import cx from 'classnames';
 
-import Button from 'js/components/common/button';
 import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import KoboModal from 'js/components/modals/koboModal';
@@ -14,7 +13,6 @@ import {changeSubscription} from 'js/account/stripe.api';
 import {processChangePlanResponse} from 'js/account/stripe.utils';
 import {formatDate, notify} from 'js/utils';
 import styles from './confirmChangeModal.module.scss';
-import {button} from './addOnList.module.scss';
 import PlanButton from 'js/account/plans/planButton.component';
 
 export interface ConfirmChangeProps {
@@ -121,14 +119,12 @@ const ConfirmChangeModal = ({
       </KoboModalContent>
       <KoboModalFooter>
         <PlanButton
-          classNames={[button]}
           isDisabled={isLoading}
           onClick={submitChange}
           label={t('Submit')}
         />
         <PlanButton
           color='red'
-          classNames={[button]}
           isDisabled={isLoading}
           onClick={toggleModal}
           label={t('Cancel')}
