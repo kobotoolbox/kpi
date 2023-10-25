@@ -72,7 +72,6 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
 
     if (!hasErrors) {
       setIsPending(true);
-
       try {
         await fetchPatch(endpoints.ME_URL, {
           current_password: currentPassword,
@@ -105,7 +104,10 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
         }
 
         setIsPending(false);
-        notify(t('failed to change password'), 'error');
+        // Accounting for double error edge case when error status is 403
+        if (errorObj.status !== 403){
+          notify(t('failed to change password'), 'error');
+        }
       }
     }
   }
