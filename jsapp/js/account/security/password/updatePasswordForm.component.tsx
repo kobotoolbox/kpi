@@ -72,6 +72,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
 
     if (!hasErrors) {
       setIsPending(true);
+
       try {
         await fetchPatch(endpoints.ME_URL, {
           current_password: currentPassword,
