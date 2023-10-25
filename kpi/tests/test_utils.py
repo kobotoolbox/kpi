@@ -255,6 +255,20 @@ class UtilsTestCase(TestCase):
             parse(query_string, default_field_lookups)
         assert 'Your query is too short' in str(e.exception)
 
+    def test_query_parser_short_and_long_terms(self):
+        """
+        As long as at least *one* term is long enough, or one term explicitly
+        specifies a field, a search should succeed. See
+        https://github.com/kobotoolbox/kpi/issues/3483
+        """
+        # should succeed due to long-enough terms
+        parse('my great project', ['some_field'])
+        # should suceeed due to explicit field specification
+        parse('some_field:hi', ['some_field'])
+        with self.assertRaises(SearchQueryTooShortException) as e:
+            # should fail, all terms are short
+            parse('me oh my', ['some_field'])
+
     def test_allow_choice_duplicates(self):
         surv = {
             'survey': [
