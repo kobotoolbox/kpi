@@ -9,8 +9,9 @@ RUN pip install --quiet pip==22.0.4 && \
 COPY ./dependencies/pip/external_services.txt "/tmp/pip_dependencies.txt"
 RUN pip-sync "/tmp/pip_dependencies.txt" 1>/dev/null
 
+FROM python:3.10-slim
 
-from python:3.10-slim
+RUN apt -y update && apt -y upgrade
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
@@ -52,27 +53,27 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 # Install `apt` packages.                #
 ##########################################
 
-RUN apt-get -qq update -y && \
-    apt-get -qq -y install curl && \
+RUN apt -qq update -y && \
+    apt -qq -y install curl && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt-get -qq -y install --no-install-recommends \
-        npm \
-        ffmpeg \
-        gdal-bin \
-        gettext \
-        git \
-        gosu \
-        less \
-        libproj-dev \
-        locales \
-        nodejs \
-        postgresql-client \
-        rsync \
-        runit-init \
-        vim-tiny \
-        wait-for-it && \
-    apt-get clean && \
-        rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    apt -qq -y install --no-install-recommends \
+    npm \
+    ffmpeg \
+    gdal-bin \
+    gettext \
+    git \
+    gosu \
+    less \
+    libproj-dev \
+    locales \
+    nodejs \
+    postgresql-client \
+    rsync \
+    runit-init \
+    vim-tiny \
+    wait-for-it && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ###########################
 # Install locales         #
@@ -106,7 +107,7 @@ COPY --from=build-python "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
-    npm install -g npm@8.5.5 && \
+    npm install -g npm@8.11.0 && \
     npm config set legacy-peer-deps true && \
     npm install -g check-dependencies && \
     npm install --quiet && \
@@ -169,6 +170,69 @@ RUN chown -R ":${UWSGI_GROUP}" ${CELERY_PID_DIR} && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_LOGS_DIR} && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR}
 
+################################
+# Clean up vulnerable packages.#
+################################
+RUN npm run copy-fonts && npm run build && python manage.py collectstatic --noinput
+RUN npm prune --production
+RUN pip install pyyaml
+RUN apt remove -y vim-tiny\
+    vim-common\
+    perl\
+    openssl\
+    linux-libc-dev\
+    libwebpdemux2\
+    libxerces-c3.2\
+    libnode-dev\
+    curl \
+    git \
+    git-man \
+    gnupg \
+    gnupg-l10n \
+    gnupg-utils \
+    gpg \
+    gpg-agent \
+    gpgconf \
+    gpgsm \
+    libaom3 \
+    libavutil57 \
+    libc-ares2 \
+    libc-dev-bin \
+    libc-l10n \
+    libc6-dev \
+    libcaca0 \
+    libcairo-gobject2 \
+    libcairo2 \
+    libcurl3-gnutls \
+    libcurl4 \
+    libdav1d6 \
+    libde265-0 \
+    libgfortran5 \
+    libgif7 \
+    libglib2.0-0 \
+    libgomp1 \
+    libgssapi-krb5-2 \
+    libjbig-dev \
+    libk5crypto3 \
+    libkrb5-3 \
+    libkrb5support0 \
+    libldap-2.5-0 \
+    libldap-common \
+    libllvm15 \
+    libmbedcrypto7 \
+    libnss3 \
+    libopenjp2-7 \
+    libperl5.36 \
+    libpixman-1-0 \
+    libquadmath0 \
+    librabbitmq4 \
+    libsndfile1 \
+    libjxl0.7 \
+    libtiff6
+
+RUN apt update -y  && \
+    apt -y install libpq-dev && \
+    apt -y install build-essential libgdal-dev
 
 EXPOSE 8000
 
