@@ -158,7 +158,7 @@ const Button = (props: ButtonProps) => {
       className={classNames.join(' ')}
       type={props.isSubmit ? 'submit' : 'button'}
       aria-disabled={props.isDisabled}
-      onClick={props.onClick}
+      onClick={handleClick}
       onKeyUp={onKeyUp}
       {...additionalButtonAttributes}
     >
