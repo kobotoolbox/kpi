@@ -163,10 +163,7 @@ export const fetchPatch = async <T>(
   path: string,
   data: Json,
   options?: FetchDataOptions
-) => {
-  options = Object.assign({}, options, {notifyAboutError: false});
-  return fetchData<T>(path, 'PATCH', data, options);
-};
+) => fetchData<T>(path, 'PATCH', data, options);
 
 /** PUT (replace) data to Kobo API at path */
 export const fetchPut = async <T>(
