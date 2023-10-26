@@ -181,11 +181,11 @@ class CustomViewStore {
     const queries = buildQueriesFromFilters(this.filters);
     // We are only interested in surveys
     queries.push(COMMON_QUERIES.s);
-    // Add search query, wrapped in double quotes
+    // Add search query
     if (searchBoxStore.data.searchPhrase !== '') {
-      queries.push(`"${searchBoxStore.data.searchPhrase}"`);
+      queries.push((searchBoxStore.data.searchPhrase ?? '').trim());
     }
-    const queriesString = queries.join(' AND ');
+    const queriesString = '(' + queries.join(') AND (') + ')';
     params.set('q', queriesString);
 
     // Step 4: Build ordering string
@@ -202,7 +202,7 @@ class CustomViewStore {
     // Step 6: Set limit
     params.set('limit', String(PAGE_SIZE));
 
-    // Step 6: Make API call :)
+    // Step 7: Make API call :)
     this.ongoingFetch = $.ajax({
       dataType: 'json',
       method: 'GET',
