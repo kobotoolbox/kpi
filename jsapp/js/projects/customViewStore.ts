@@ -182,8 +182,9 @@ class CustomViewStore {
     // We are only interested in surveys
     queries.push(COMMON_QUERIES.s);
     // Add search query
-    if (searchBoxStore.data.searchPhrase !== '') {
-      queries.push((searchBoxStore.data.searchPhrase ?? '').trim());
+    const searchPhrase = (searchBoxStore.data.searchPhrase ?? '').trim();
+    if (searchPhrase !== '') {
+      queries.push(searchPhrase);
     }
     const queriesString = '(' + queries.join(') AND (') + ')';
     params.set('q', queriesString);
