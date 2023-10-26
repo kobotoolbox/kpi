@@ -29,7 +29,8 @@ grammar Kobo.Query
   term      <- field:(name ":")? value:value   %term
   value     <- string
              / word
-  word      <-  [^\s():]+                      %word
+  word      <- [^\s():"']+ "'" [^\s():"']+     %word
+             / [^\s():]+                       %word
   string    <- '"' ("\\" . / [^"])* '"'        %string
              / "'" ("\\" . / [^'])* "'"        %string
   name      <- [a-zA-Z_\[\]] [a-zA-Z0-9\-_\[\]]*       %name
