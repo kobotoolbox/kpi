@@ -48,9 +48,11 @@ export default function TOSForm() {
     getTOS();
   }, []);
 
+  // After both environment and session stores are ready, we build the form
+  // fields with all the required metadata fields
   useEffect(() => {
-    if ('email' in sessionStore.currentAccount) {
-      console.log('envStore or sessionStore is ready', buildTOSFormFields(sessionStore.currentAccount, envStore.data));
+    if ('email' in sessionStore.currentAccount && envStore.isReady) {
+      console.log('envStore and sessionStore are ready', buildTOSFormFields(sessionStore.currentAccount, envStore.data));
       setFields(buildTOSFormFields(sessionStore.currentAccount, envStore.data));
     }
   }, [envStore.isReady, sessionStore.isAuthStateKnown]);
