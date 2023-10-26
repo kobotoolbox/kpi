@@ -5,7 +5,7 @@ import type {AccountLimit} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import UsageContainer from 'js/components/usageContainer';
+import UsageContainer from 'js/account/usage/usageContainer';
 import envStore from 'js/envStore';
 import {formatDate} from 'js/utils';
 import styles from './usage.module.scss';
