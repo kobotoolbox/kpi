@@ -36,7 +36,7 @@ import type {
   Price,
   Product,
   SubscriptionInfo,
-} from '../stripe';
+} from 'js/account/stripe.types';
 import PlanButton from 'js/account/plans/planButton.component';
 
 interface PlanState {

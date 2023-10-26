@@ -8,10 +8,10 @@ import type {
   Checkout,
   Product,
   SubscriptionInfo,
-} from 'js/account/stripe';
+} from 'js/account/stripe.types';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {notify} from 'js/utils';
-import {ChangePlanStatus} from 'js/account/stripe';
+import {ChangePlanStatus} from 'js/account/stripe.types';
 
 // check if the currently logged-in user has a paid subscription in an active status
 // promise returns a boolean, or `null` if Stripe is not active - we check for the existence of `stripe_public_key`

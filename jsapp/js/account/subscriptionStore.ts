@@ -3,7 +3,7 @@ import {handleApiFail} from 'js/utils';
 import {ACTIVE_STRIPE_STATUSES, ROOT_URL} from 'js/constants';
 import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
-import {Product, SubscriptionInfo} from 'js/account/stripe';
+import {Product, SubscriptionInfo} from 'js/account/stripe.types';
 
 const PRODUCTS_URL = '/api/v2/stripe/products/';
 

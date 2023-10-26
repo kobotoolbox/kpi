@@ -11,8 +11,8 @@ import type {
   Checkout,
   Organization,
   Product,
-} from 'js/account/stripe';
-import {Limits} from 'js/account/stripe';
+} from 'js/account/stripe.types';
+import {Limits} from 'js/account/stripe.types';
 import {notify} from 'js/utils';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({

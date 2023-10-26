@@ -6,8 +6,7 @@ import type {
   Organization,
   Product,
   SubscriptionInfo,
-} from 'js/account/stripe';
-import Button from 'js/components/common/button';
+} from 'js/account/stripe.types';
 import {
   isAddonProduct,
   isChangeScheduled,

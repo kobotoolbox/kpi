@@ -1,6 +1,6 @@
 import {useState, useReducer, useContext, useEffect} from 'react';
-import type {BaseSubscription} from '../../account/stripe';
-import {getAccountLimits} from '../../account/stripe.api';
+import type {BaseSubscription} from 'js/account/stripe.types';
+import {getAccountLimits} from 'js/account/stripe.api';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {when} from 'mobx';
