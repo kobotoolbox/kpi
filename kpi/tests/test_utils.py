@@ -178,7 +178,7 @@ class UtilsTestCase(TestCase):
 
     def test_query_parser(self):
         query_string = '''
-            (a:a OR b:b AND c:c) AND d:d OR (
+            (a:a OR b:b AND c:can't) AND d:do"you"say OR (
                 snakes:🐍🐍 AND NOT alphabet:🍲soup
             ) NOT 'in a house' NOT "with a mouse"
         '''
@@ -189,7 +189,7 @@ class UtilsTestCase(TestCase):
         ]
 
         expected_q = (
-            (Q(a='a') | Q(b='b') & Q(c='c')) & Q(d='d') | (
+            (Q(a='a') | Q(b='b') & Q(c="can't")) & Q(d='do"you"say') | (
                 Q(snakes='🐍🐍') & ~Q(alphabet='🍲soup')
             )
             & ~(
