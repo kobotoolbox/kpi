@@ -100,6 +100,15 @@ $k-select-menu-padding: sizes.$x6;
   margin: 0;
 }
 
+.k-select__error {
+  font-size: sizes.$x12;
+  line-height: 1.6;
+  font-weight: 400;
+  font-style: normal;
+  color: colors.$kobo-red;
+  margin-top: sizes.$x6;
+}
+
 .k-select__option {
   font-weight: 500;
 
