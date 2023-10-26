@@ -31,7 +31,8 @@ export async function changeSubscription(
   subscriptionId: string
 ) {
   return fetchGet<ChangePlan>(
-    `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}`
+    `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}`,
+    {notifyAboutError: false}
   );
 }
 
