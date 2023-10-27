@@ -29,6 +29,13 @@ interface FetchDataOptions {
    */
   notifyAboutError?: boolean;
   /**
+   * Override the default error toast message text. Raven will still receive the
+   * default error message, for debugging purposes.
+   *
+   * Only applies when `notifyAboutError` is `true`.
+   */
+  errorMessageDisplay?: string;
+  /**
    * Useful if you already have a full URL to be called and there is no point
    * adding `ROOT_URL` to it.
    *
@@ -119,7 +126,7 @@ const fetchData = async <T>(
         response.status === 404 ||
         response.status >= 500)
     ) {
-      handleApiFail(failResponse);
+      handleApiFail(failResponse, options?.errorMessageDisplay);
     }
 
     return Promise.reject(failResponse);
