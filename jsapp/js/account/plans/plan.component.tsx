@@ -330,7 +330,7 @@ export default function Plan() {
       }
       return false;
     },
-    [state.subscribedProduct, state.intervalFilter]
+    [state.subscribedProduct, state.intervalFilter, state.products]
   );
 
   const shouldShowManage = useCallback(
@@ -344,7 +344,7 @@ export default function Plan() {
         hasManageableStatus(subscription)
       );
     },
-    [state.subscribedProduct]
+    [state.subscribedProduct, state.organization, state.products]
   );
 
   const dismissConfirmModal = () => {
