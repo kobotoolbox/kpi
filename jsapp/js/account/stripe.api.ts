@@ -13,7 +13,6 @@ import type {
   Product,
 } from 'js/account/stripe.types';
 import {Limits} from 'js/account/stripe.types';
-import {notify} from 'js/utils';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -23,7 +22,9 @@ const DEFAULT_LIMITS: AccountLimit = Object.freeze({
 });
 
 export async function getProducts() {
-  return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL);
+  return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL, {
+    errorMessageDisplay: t('There was an error getting the list of plans.'),
+  });
 }
 
 export async function changeSubscription(
@@ -32,12 +33,18 @@ export async function changeSubscription(
 ) {
   return fetchGet<ChangePlan>(
     `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}`,
-    {notifyAboutError: false}
+    {
+      errorMessageDisplay: t(
+        "We couldn't make the requested change to your plan.\nYour current plan has not been changed."
+      ),
+    }
   );
 }
 
 export async function getOrganization() {
-  return fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL);
+  return fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL, {
+    errorMessageDisplay: t("Couldn't get data for your organization."),
+  });
 }
 
 /**
@@ -46,7 +53,11 @@ export async function getOrganization() {
 export async function postCheckout(priceId: string, organizationId: string) {
   return fetchPost<Checkout>(
     `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}`,
-    {}
+    {},
+    {
+      errorMessageDisplay:
+        'There was an error creating the checkout session. Please try again later.',
+    }
   );
 }
 
@@ -56,7 +67,11 @@ export async function postCheckout(priceId: string, organizationId: string) {
 export async function postCustomerPortal(organizationId: string) {
   return fetchPost<Checkout>(
     `${endpoints.PORTAL_URL}?organization_id=${organizationId}`,
-    {}
+    {},
+    {
+      errorMessageDisplay:
+        'There was an error sending you to the billing portal. Please try again later.',
+    }
   );
 }
 
@@ -226,10 +241,4 @@ export async function getAccountLimits() {
   }
 
   return limits;
-}
-
-export function notifyCheckoutFailure() {
-  notify.error(
-    t('There was an error processing your transaction. Please try again later.')
-  );
 }
