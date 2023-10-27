@@ -89,9 +89,10 @@ export {notify};
  * a helpful error toast notification and to pass the error message to Raven.
  *
  * It can detect if we got HTML string as response and uses a generic message
- * instead of spitting it out.
+ * instead of spitting it out. The error message displayed to the user can be
+ * customized using the optional toastMessage argument.
  */
-export function handleApiFail(response: FailResponse) {
+export function handleApiFail(response: FailResponse, toastMessage?: string) {
   // Avoid displaying toast when purposefuly aborted a request
   if (response.status === 0 && response.statusText === 'abort') {
     return;
@@ -124,7 +125,7 @@ export function handleApiFail(response: FailResponse) {
     }
   }
 
-  notify.error(message);
+  notify.error(toastMessage || message);
 
   window.Raven?.captureMessage(message);
 }
