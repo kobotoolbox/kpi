@@ -7,7 +7,11 @@
  * NOTE: We have other utils files related to asset, submissions, etc.
  */
 
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import calendar from 'dayjs/plugin/calendar';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
 import type {Toast, ToastOptions} from 'react-hot-toast';
 import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
@@ -17,6 +21,12 @@ import type {FailResponse} from './dataInterface';
 import type Raven from 'raven';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
+
+// extend dayjs with the plugins we need
+dayjs.extend(utc);
+dayjs.extend(calendar);
+dayjs.extend(relativeTime);
+dayjs.extend(localizedFormat);
 
 const cookies = new Cookies();
 
@@ -150,7 +160,7 @@ export function join(arr: any[], separator: any): any[] {
  * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
  */
 export function formatTime(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
+  const myMoment = dayjs.utc(timeStr).local();
   return myMoment.calendar(null, {sameElse: 'LL'});
 }
 
@@ -162,7 +172,7 @@ export function formatDate(
   localize = true,
   format = 'll'
 ): string {
-  let myMoment = moment.utc(timeStr);
+  let myMoment = dayjs.utc(timeStr);
   if (localize) {
     myMoment = myMoment.local();
   }
@@ -202,7 +212,7 @@ export function formatSeconds(seconds: number) {
 }
 
 export function formatRelativeTime(timeStr: string, localize = true): string {
-  let myMoment = moment.utc(timeStr);
+  let myMoment = dayjs.utc(timeStr);
   if (localize) {
     myMoment = myMoment.local();
   }
