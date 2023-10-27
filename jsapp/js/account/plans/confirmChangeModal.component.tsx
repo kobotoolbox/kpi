@@ -51,14 +51,7 @@ const ConfirmChangeModal = ({
           }
         });
       })
-      .catch(() => {
-        toggleModal();
-        notify.error(
-          t(
-            'There was an error processing the change to your plan. Please try again later.'
-          )
-        );
-      });
+      .catch(toggleModal);
   };
 
   return (

@@ -16,7 +16,6 @@ import {
 } from 'js/account/stripe.utils';
 import {
   changeSubscription,
-  notifyCheckoutFailure,
   postCheckout,
   postCustomerPortal,
 } from 'js/account/stripe.api';
@@ -80,7 +79,6 @@ const AddOnList = (props: {
   );
 
   const handleCheckoutError = () => {
-    notifyCheckoutFailure();
     props.setIsBusy(false);
   };
 
