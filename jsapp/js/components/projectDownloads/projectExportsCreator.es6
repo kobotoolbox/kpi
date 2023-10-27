@@ -553,11 +553,7 @@ export default class ProjectExportsCreator extends React.Component {
         <bem.ProjectDownloads__column m='left'>
           <label className='project-downloads__column-row'>
             <bem.ProjectDownloads__title>
-              {t('Export')}
-              &nbsp;
-              <em>{t('Select Many')}</em>
-              &nbsp;
-              {t('questions as…')}
+              {t('Export Select Many questions as…')}
             </bem.ProjectDownloads__title>
 
             <Select
@@ -709,7 +705,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   render() {
-    let formClassNames = ['project-downloads__exports-creator'];
+    const formClassNames = ['project-downloads__exports-creator'];
     if (!this.state.isComponentReady) {
       formClassNames.push('project-downloads__exports-creator--loading');
     }
