@@ -22,13 +22,11 @@ import type Raven from 'raven';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
-// extend dayjs with the plugins we need
-dayjs.extend(utc);
-dayjs.extend(calendar);
-dayjs.extend(relativeTime);
-dayjs.extend(localizedFormat);
-
 const cookies = new Cookies();
+
+export function currentLang(): string {
+  return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
+}
 
 /**
  * Pop up a notification with react-hot-toast
@@ -156,12 +154,21 @@ export function join(arr: any[], separator: any): any[] {
   return result;
 }
 
+// extend dayjs with the plugins we need
+dayjs.extend(utc);
+dayjs.extend(calendar);
+dayjs.extend(relativeTime);
+dayjs.extend(localizedFormat);
+
+// localize dates using the current language setting
+dayjs.locale(currentLang());
+
 /**
  * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
  */
 export function formatTime(timeStr: string): string {
-  const myMoment = dayjs.utc(timeStr).local();
-  return myMoment.calendar(null, {sameElse: 'LL'});
+  const time = dayjs.utc(timeStr).local();
+  return time.calendar(null, {sameElse: 'LL'});
 }
 
 /**
@@ -172,11 +179,11 @@ export function formatDate(
   localize = true,
   format = 'll'
 ): string {
-  let myMoment = dayjs.utc(timeStr);
+  let date = dayjs.utc(timeStr);
   if (localize) {
-    myMoment = myMoment.local();
+    date = date.local();
   }
-  return myMoment.format(format);
+  return date.format(format);
 }
 
 /**
@@ -212,11 +219,11 @@ export function formatSeconds(seconds: number) {
 }
 
 export function formatRelativeTime(timeStr: string, localize = true): string {
-  let myMoment = dayjs.utc(timeStr);
+  let relativeTime = dayjs.utc(timeStr);
   if (localize) {
-    myMoment = myMoment.local();
+    relativeTime = relativeTime.local();
   }
-  return myMoment.fromNow();
+  return relativeTime.fromNow();
 }
 
 // works universally for v1 and v2 urls
@@ -288,10 +295,6 @@ export function replaceBracketsWithLink(str: string, url?: string): string {
   }
   const linkHtml = `<a href="${url}" target="_blank">$1</a>`;
   return str.replace(bracketRegex, linkHtml);
-}
-
-export function currentLang(): string {
-  return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
 interface LangObject {
