@@ -160,7 +160,7 @@ class ChangePlanView(APIView):
         )
         return Response({'status': 'scheduled'})
 
-    def get(self, request):
+    def post(self, request):
         serializer = ChangePlanSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         price = serializer.validated_data.get('price_id')
