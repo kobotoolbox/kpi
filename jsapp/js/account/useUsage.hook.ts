@@ -3,7 +3,6 @@ import type {RecurringInterval} from 'js/account/stripe.api';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
 import {formatRelativeTime, truncateNumber} from 'js/utils';
 import {getUsageForOrganization} from 'js/account/usage.api';
-import moment from 'moment';
 
 export interface UsageState {
   storage: number;
