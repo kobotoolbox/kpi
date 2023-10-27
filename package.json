@@ -133,7 +133,6 @@
     "fork-ts-checker-webpack-plugin": "^8.0.0",
     "mocha": "^7.1.2",
     "mocha-chrome": "^2.2.0",
-    "moment": "^2.25.3",
     "patch-package": "^6.5.1",
     "postcss": "^7.0.30",
     "postcss-loader": "^4.2.0",
