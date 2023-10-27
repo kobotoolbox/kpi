@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import classNames from 'classnames';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import Chart from 'chart.js/auto';
 import type {ChartConfiguration} from 'chart.js/auto';
 import type {FailResponse} from 'js/dataInterface';
@@ -64,7 +64,7 @@ export default function SubmissionsCountGraph(
     const daysAmount = StatsPeriods[currentPeriod] - 1;
 
     const daysFromLabel = formatDate(
-      moment().subtract(daysAmount, 'days').format()
+      dayjs().subtract(daysAmount, 'days').format()
     );
     const daysToLabel = t('Today');
 
@@ -99,7 +99,7 @@ export default function SubmissionsCountGraph(
       total: number
     ) => {
       const output: GraphData = new Map<string, number>();
-      const today = moment();
+      const today = dayjs();
       // Get the furthest day in the past that we need. We subtract one day,
       // because we already start from today.
       let day = today
@@ -129,7 +129,7 @@ export default function SubmissionsCountGraph(
       total: number
     ) => {
       const output: GraphData = new Map();
-      const today = moment();
+      const today = dayjs();
       // Get the furthest month in the past that we need. We subtract one month,
       // because we already start from today.
       let month = today
