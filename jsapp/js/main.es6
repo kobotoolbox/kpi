@@ -4,7 +4,7 @@
  */
 
 require('jquery-ui/ui/widgets/sortable');
-import moment from 'moment';
+import dayjs from 'dayjs';
 import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader';
@@ -15,8 +15,8 @@ import {csrfSafeMethod, currentLang} from 'utils';
 require('../scss/main.scss');
 import Modal from 'react-modal';
 
-// Tell moment library what is the app language
-moment.locale(currentLang());
+// Tell dayjs library which language the app is using
+dayjs.locale(currentLang());
 
 // Setup Google Analytics
 const gaTokenEl = document.head.querySelector('meta[name=google-analytics-token]');
