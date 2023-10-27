@@ -36,7 +36,7 @@ class SubscriptionStore {
       .done(this.onFetchSubscriptionInfoDone.bind(this))
       .fail((response) => {
         this.isPending = false;
-        handleApiFail(response);
+        handleApiFail(response, t('There was an issue fetching your plan information.'));
       });
   }
 
