@@ -705,7 +705,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   render() {
-    const formClassNames = ['project-downloads__exports-creator'];
+    let formClassNames = ['project-downloads__exports-creator'];
     if (!this.state.isComponentReady) {
       formClassNames.push('project-downloads__exports-creator--loading');
     }
