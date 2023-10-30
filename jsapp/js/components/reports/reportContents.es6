@@ -1,7 +1,7 @@
 import React from 'react';
 import bem from 'js/bem';
 import {QUESTION_TYPES} from 'js/constants';
-import ReportViewItem from './reportViewItem';
+import ReportViewItem from './reportViewItem.component';
 
 export default class ReportContents extends React.Component {
   constructor(props) {
@@ -154,7 +154,7 @@ export default class ReportContents extends React.Component {
                 <ReportViewItem
                   {...rowContent}
                   label={label}
-                  triggerQuestionSettings={this.props.triggerQuestionSettings}
+                  triggerQuestionSettings={this.props.triggerQuestionSettings.bind(this)}
                 />
               </bem.ReportView__item>
             );
