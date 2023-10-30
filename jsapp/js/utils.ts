@@ -7,11 +7,6 @@
  * NOTE: We have other utils files related to asset, submissions, etc.
  */
 
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import calendar from 'dayjs/plugin/calendar';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
 import type {Toast, ToastOptions} from 'react-hot-toast';
 import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
@@ -19,6 +14,17 @@ import {Cookies} from 'react-cookie';
 import constants from 'js/constants';
 import type {FailResponse} from './dataInterface';
 import type Raven from 'raven';
+
+import dayjs from 'dayjs';
+
+// import dayjs plugins
+import utc from 'dayjs/plugin/utc';
+import calendar from 'dayjs/plugin/calendar';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+
+// import specific locales for dayjs
+import 'js/locales';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
