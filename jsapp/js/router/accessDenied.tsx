@@ -2,7 +2,7 @@ import React from 'react';
 import {observer} from 'mobx-react';
 import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
-import {replaceBracketsWithLink} from 'js/utils';
+import {replaceBracketsWithLink} from 'js/textUtils';
 
 import envStore from 'js/envStore';
 import './accessDenied.scss';

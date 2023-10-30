@@ -21,7 +21,7 @@ import EncryptForm from 'js/components/modalForms/encryptForm';
 import BulkEditSubmissionsForm from 'js/components/modalForms/bulkEditSubmissionsForm';
 import ProjectSettings from 'js/components/modalForms/projectSettings';
 import RESTServicesForm from 'js/components/RESTServices/RESTServicesForm';
-import SharingForm from 'js/components/permissions/sharingForm';
+import SharingForm from 'js/components/permissions/sharingForm.component';
 import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm';
 import SubmissionModal from 'js/components/submissions/submissionModal';
 import TableSettings from 'js/components/submissions/tableSettings';
@@ -310,7 +310,7 @@ class BigModal extends React.Component {
       >
         <Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
-              <SharingForm uid={uid} />
+              <SharingForm assetUid={uid} />
             }
             { this.props.params.type === MODAL_TYPES.NEW_FORM &&
               <ProjectSettings

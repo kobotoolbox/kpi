@@ -30,6 +30,4 @@ export namespace stores {
     isLoggedIn: boolean
   }
   const allAssets: any
-
-  const userExists: any
 }
