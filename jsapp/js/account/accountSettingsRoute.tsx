@@ -11,6 +11,7 @@ import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
 import type {LabelValuePair} from 'js/dataInterface';
+import Icon from '../components/common/icon';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -263,6 +264,25 @@ const AccountSettings = observer(() => {
 
         {sessionStore.isInitialLoadComplete && (
           <bem.AccountSettings__item m='fields'>
+            <bem.AccountSettings__item m='anonymous-submission-notice'>
+              <Icon name='information' color='amber' size='m' />
+              <div className='anonymous-submission-notice-copy'>
+                <strong>
+                  {t(
+                    '"Require authentication to see forms and submit data" has been moved.'
+                  )}
+                </strong>
+                &nbsp;
+                <div>
+                  {t(
+                    'This privacy feature is now a per-project setting. New projects will require authentication by default.'
+                  )}
+                </div>
+                &nbsp;
+                <a href='#'>{t('Learn more about these changes here.')}</a>
+              </div>
+            </bem.AccountSettings__item>
+
             {/* Privacy */}
             <bem.AccountSettings__item>
               <label>{t('Privacy')}</label>
@@ -280,163 +300,190 @@ const AccountSettings = observer(() => {
             </bem.AccountSettings__item>
 
             {/* Full name */}
-            {metadata.name && <bem.AccountSettings__item>
-              <TextBox
-                label={getLabel(fieldNames.name)}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.name
-                )}
-                value={form.fields.name}
-                errors={form.fieldsWithErrors.extra_details?.name}
-                placeholder={t(
-                  'Use this to display your real name to other users'
-                )}
-              />
-            </bem.AccountSettings__item>}
+            {metadata.name && (
+              <bem.AccountSettings__item>
+                <TextBox
+                  label={getLabel(fieldNames.name)}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.name
+                  )}
+                  value={form.fields.name}
+                  errors={form.fieldsWithErrors.extra_details?.name}
+                  placeholder={t(
+                    'Use this to display your real name to other users'
+                  )}
+                />
+              </bem.AccountSettings__item>
+            )}
 
             {/* Organization */}
-            {metadata.organization && <bem.AccountSettings__item>
-              <TextBox
-                label={getLabel(fieldNames.organization)}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.organization
-                )}
-                value={form.fields.organization}
-                errors={form.fieldsWithErrors.extra_details?.organization}
-              />
-            </bem.AccountSettings__item>}
+            {metadata.organization && (
+              <bem.AccountSettings__item>
+                <TextBox
+                  label={getLabel(fieldNames.organization)}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.organization
+                  )}
+                  value={form.fields.organization}
+                  errors={form.fieldsWithErrors.extra_details?.organization}
+                />
+              </bem.AccountSettings__item>
+            )}
 
             {/* Organization Website */}
-            {metadata.organization_website && <bem.AccountSettings__item>
-              <TextBox
-                label={getLabel(fieldNames.organization_website)}
-                value={form.fields.organization_website}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.organization_website
-                )}
-                errors={
-                  form.fieldsWithErrors.extra_details?.organization_website
-                }
-              />
-            </bem.AccountSettings__item>}
+            {metadata.organization_website && (
+              <bem.AccountSettings__item>
+                <TextBox
+                  label={getLabel(fieldNames.organization_website)}
+                  value={form.fields.organization_website}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.organization_website
+                  )}
+                  errors={
+                    form.fieldsWithErrors.extra_details?.organization_website
+                  }
+                />
+              </bem.AccountSettings__item>
+            )}
 
             {/* Primary Sector */}
-            {metadata.sector && <bem.AccountSettings__item m='primary-sector'>
-              <WrappedSelect
-                label={getLabel(fieldNames.sector)}
-                value={sectorValue}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.sector
-                )}
-                options={form.sectorChoices}
-                error={form.fieldsWithErrors.extra_details?.sector}
-              />
-            </bem.AccountSettings__item>}
+            {metadata.sector && (
+              <bem.AccountSettings__item m='primary-sector'>
+                <WrappedSelect
+                  label={getLabel(fieldNames.sector)}
+                  value={sectorValue}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.sector
+                  )}
+                  options={form.sectorChoices}
+                  error={form.fieldsWithErrors.extra_details?.sector}
+                />
+              </bem.AccountSettings__item>
+            )}
 
             {/* Gender */}
-            {metadata.gender && <bem.AccountSettings__item m='gender'>
-              <WrappedSelect
-                label={getLabel(fieldNames.gender)}
-                value={choiceToSelectOptions(form.fields.gender, genderChoices)}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.gender
-                )}
-                options={genderSelectOptions}
-                error={form.fieldsWithErrors.extra_details?.gender}
-              />
-            </bem.AccountSettings__item>}
+            {metadata.gender && (
+              <bem.AccountSettings__item m='gender'>
+                <WrappedSelect
+                  label={getLabel(fieldNames.gender)}
+                  value={choiceToSelectOptions(
+                    form.fields.gender,
+                    genderChoices
+                  )}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.gender
+                  )}
+                  options={genderSelectOptions}
+                  error={form.fieldsWithErrors.extra_details?.gender}
+                />
+              </bem.AccountSettings__item>
+            )}
 
             {/* Bio */}
-            {metadata.bio && <bem.AccountSettings__item m='bio'>
-              <TextBox
-                label={getLabel(fieldNames.bio)}
-                value={form.fields.bio}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.bio
-                )}
-                errors={form.fieldsWithErrors.extra_details?.bio}
-              />
-            </bem.AccountSettings__item>}
+            {metadata.bio && (
+              <bem.AccountSettings__item m='bio'>
+                <TextBox
+                  label={getLabel(fieldNames.bio)}
+                  value={form.fields.bio}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.bio
+                  )}
+                  errors={form.fieldsWithErrors.extra_details?.bio}
+                />
+              </bem.AccountSettings__item>
+            )}
 
             {/* Country */}
-            {metadata.country && <bem.AccountSettings__item m='country'>
-              <WrappedSelect
-                label={getLabel(fieldNames.country)}
-                value={countryValue}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.country
-                )}
-                options={form.countryChoices}
-                error={form.fieldsWithErrors.extra_details?.country}
-              />
-            </bem.AccountSettings__item>}
+            {metadata.country && (
+              <bem.AccountSettings__item m='country'>
+                <WrappedSelect
+                  label={getLabel(fieldNames.country)}
+                  value={countryValue}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.country
+                  )}
+                  options={form.countryChoices}
+                  error={form.fieldsWithErrors.extra_details?.country}
+                />
+              </bem.AccountSettings__item>
+            )}
 
             {/* City */}
-            {metadata.city && <bem.AccountSettings__item m='city'>
-              <TextBox
-                label={getLabel(fieldNames.city)}
-                value={form.fields.city}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.city
-                )}
-                errors={form.fieldsWithErrors.extra_details?.city}
-              />
-            </bem.AccountSettings__item>}
+            {metadata.city && (
+              <bem.AccountSettings__item m='city'>
+                <TextBox
+                  label={getLabel(fieldNames.city)}
+                  value={form.fields.city}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    fieldNames.city
+                  )}
+                  errors={form.fieldsWithErrors.extra_details?.city}
+                />
+              </bem.AccountSettings__item>
+            )}
 
             {/* Social */}
-            {(metadata.twitter || metadata.linkedin || metadata.instagram) && <bem.AccountSettings__item>
-              <label>{t('Social')}</label>
+            {(metadata.twitter || metadata.linkedin || metadata.instagram) && (
+              <bem.AccountSettings__item>
+                <label>{t('Social')}</label>
 
-              {/* Twitter */}
-              {metadata.twitter && <div className='account-settings-social-row'>
-                <TextBox
-                  startIcon='logo-twitter'
-                  placeholder={getLabel(fieldNames.twitter)}
-                  value={form.fields.twitter}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    fieldNames.twitter
-                  )}
-                  errors={form.fieldsWithErrors.extra_details?.twitter}
-                />
-              </div>}
+                {/* Twitter */}
+                {metadata.twitter && (
+                  <div className='account-settings-social-row'>
+                    <TextBox
+                      startIcon='logo-twitter'
+                      placeholder={getLabel(fieldNames.twitter)}
+                      value={form.fields.twitter}
+                      onChange={onAnyFieldChange.bind(
+                        onAnyFieldChange,
+                        fieldNames.twitter
+                      )}
+                      errors={form.fieldsWithErrors.extra_details?.twitter}
+                    />
+                  </div>
+                )}
 
-              {/* LinkedIn */}
-              {metadata.linkedin && <div className='account-settings-social-row'>
-                <TextBox
-                  startIcon='logo-linkedin'
-                  placeholder={getLabel(fieldNames.linkedin)}
-                  value={form.fields.linkedin}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    fieldNames.linkedin
-                  )}
-                  errors={form.fieldsWithErrors.extra_details?.linkedin}
-                />
-              </div>}
+                {/* LinkedIn */}
+                {metadata.linkedin && (
+                  <div className='account-settings-social-row'>
+                    <TextBox
+                      startIcon='logo-linkedin'
+                      placeholder={getLabel(fieldNames.linkedin)}
+                      value={form.fields.linkedin}
+                      onChange={onAnyFieldChange.bind(
+                        onAnyFieldChange,
+                        fieldNames.linkedin
+                      )}
+                      errors={form.fieldsWithErrors.extra_details?.linkedin}
+                    />
+                  </div>
+                )}
 
-              {/* Instagram */}
-              {metadata.instagram && <div className='account-settings-social-row'>
-                <TextBox
-                  startIcon='logo-instagram'
-                  placeholder={getLabel(fieldNames.instagram)}
-                  value={form.fields.instagram}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    fieldNames.instagram
-                  )}
-                  errors={form.fieldsWithErrors.extra_details?.instagram}
-                />
-              </div>}
-            </bem.AccountSettings__item>}
+                {/* Instagram */}
+                {metadata.instagram && (
+                  <div className='account-settings-social-row'>
+                    <TextBox
+                      startIcon='logo-instagram'
+                      placeholder={getLabel(fieldNames.instagram)}
+                      value={form.fields.instagram}
+                      onChange={onAnyFieldChange.bind(
+                        onAnyFieldChange,
+                        fieldNames.instagram
+                      )}
+                      errors={form.fieldsWithErrors.extra_details?.instagram}
+                    />
+                  </div>
+                )}
+              </bem.AccountSettings__item>
+            )}
           </bem.AccountSettings__item>
         )}
       </bem.AccountSettings__item>

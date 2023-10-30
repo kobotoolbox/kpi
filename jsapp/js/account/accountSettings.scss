@@ -52,6 +52,23 @@
         font-size: 16px;
       }
     }
+
+    .form-modal__item--anonymous-submission-notice {
+      display: flex;
+      line-height: 24px;
+      background-color: colors.$kobo-light-amber;
+      margin-top: 12px;
+      padding: 18px;
+      border-radius: 8px;
+
+      .anonymous-submission-notice-copy {
+        padding-left: 16px;
+        padding-right: 8px;
+        > * {
+          display: inline;
+        }
+      }
+    }
   }
 
   .account-settings__actions {

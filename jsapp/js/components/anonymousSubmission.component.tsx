@@ -23,7 +23,7 @@ export default function AnonymousSubmission() {
       <div className={styles.copy}>
         {t('Allow anonymous submissions to this form')}
       </div>
-      <a data-tip={t('Tooltip?')}>
+      <a href={'#'} data-tip={t('Tooltip?')}>
         <Icon size='s' name='help' color='storm' />
       </a>
     </div>
