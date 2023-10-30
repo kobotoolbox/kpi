@@ -18,7 +18,7 @@ import customViewStore from './customViewStore';
 import styles from './projectViews.module.scss';
 import routeStyles from './myProjectsRoute.module.scss';
 import {toJS} from 'mobx';
-import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
+import {ROOT_URL} from 'js/constants';
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
@@ -37,7 +37,7 @@ function MyProjectsRoute() {
   useEffect(() => {
     customView.setUp(
       HOME_VIEW.uid,
-      `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.s}`,
+      `${ROOT_URL}/api/v2/assets/`,
       HOME_DEFAULT_VISIBLE_FIELDS
     );
   }, []);
