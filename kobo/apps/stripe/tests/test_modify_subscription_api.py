@@ -75,7 +75,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
             }
         ])
         subscription_schedule_create.return_value = subscription_schedule
-        return self.client.get(url)
+        return self.client.post(url)
 
     def test_upgrades_subscription(self):
         response = self._modify_price(self.low_price, self.high_price)
@@ -87,7 +87,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
 
     def test_rejects_invalid_query_params(self):
         url = self._get_url({'price_id': 'test', 'subscription_id': 'test'})
-        response = self.client.get(url)
+        response = self.client.post(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_doesnt_modify_subscription_if_not_owner(self):
