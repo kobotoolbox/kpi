@@ -1,7 +1,7 @@
 import React from 'react';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
-import {addRequiredToLabel} from 'js/textUtils';
+import {addRequiredToLabel} from 'js/utils';
 import envStore from '../envStore';
 import styles from './accountFieldsEditor.module.scss';
 import KoboSelect from 'js/components/common/koboSelect';
@@ -28,7 +28,7 @@ const genderSelectOptions = [
 
 type UserFieldValue = string | boolean;
 
-interface AccountFieldsValues {
+export interface AccountFieldsValues {
   name: string;
   organization: string;
   organization_website: string;
@@ -46,20 +46,31 @@ interface AccountFieldsValues {
 interface AccountFieldsEditorProps {
   /**
    * A list of fields to display in editor. Regardless of this list, all
-   * the fields values will be returned with `onChange` callback.
+   * the fields values will be returned with `onChange` callback (to avoid
+   * losing data). If this is not provided, we display all fields :)
    */
-  displayedFields: UserFieldName[];
-  errors: {[name in UserFieldName]: string};
+  displayedFields?: UserFieldName[];
+  /** Errors to be displayed for fields */
+  errors?: {[name in UserFieldName]?: string | undefined};
+  /**
+   * We need values for all fields, even if only few are displayed (via
+   * `displayedFields` prop)
+   */
   values: AccountFieldsValues;
   onChange: (fields: AccountFieldsValues) => void;
 }
 
+/**
+ * A component that displays fields from user account and allows editing their
+ * values. It DOES NOT handle the API calls to update the values on the endpoint.
+ */
 export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   if (!envStore.isReady) {
     return null;
   }
 
   const metadata = envStore.data.getUserMetadataFieldsAsSimpleDict();
+
   /** Get label and (required) for a given user metadata fieldname */
   function getLabel(fieldName: UserFieldName): string {
     const label =
@@ -77,8 +88,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     props.onChange(newValues);
   }
 
+  /**
+   * Field will be displayed if it's enabled on Back end and it's not omitted
+   * in `displayedFields`.
+   */
   function isFieldToBeDisplayed(name: UserFieldName) {
-    return props.displayedFields.includes(name);
+    return (
+      name in metadata &&
+      (!props.displayedFields || props.displayedFields.includes(name))
+    );
   }
 
   return (
@@ -105,7 +123,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             label={getLabel('name')}
             onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
             value={props.values.name}
-            errors={props.errors.name}
+            errors={props.errors?.name}
             placeholder={t('Use this to display your real name to other users')}
           />
         </div>
@@ -118,7 +136,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             label={getLabel('organization')}
             onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization')}
             value={props.values.organization}
-            errors={props.errors.organization}
+            errors={props.errors?.organization}
           />
         </div>
       )}
@@ -133,7 +151,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               onAnyFieldChange,
               'organization_website'
             )}
-            errors={props.errors.organization_website}
+            errors={props.errors?.organization_website}
           />
         </div>
       )}
@@ -147,12 +165,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             type='outline'
             size='l'
             isClearable
+            isSearchable
             selectedOption={props.values.sector}
             onChange={(value: string | null) =>
               onAnyFieldChange('sector', value || '')
             }
             options={envStore.data.sector_choices}
-            error={props.errors.sector}
+            error={props.errors?.sector}
           />
         </div>
       )}
@@ -166,12 +185,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             type='outline'
             size='l'
             isClearable
+            isSearchable
             selectedOption={props.values.gender}
             onChange={(value: string | null) =>
               onAnyFieldChange('gender', value || '')
             }
             options={genderSelectOptions}
-            error={props.errors.gender}
+            error={props.errors?.gender}
           />
         </div>
       )}
@@ -183,7 +203,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             label={getLabel('bio')}
             value={props.values.bio}
             onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
-            errors={props.errors.bio}
+            errors={props.errors?.bio}
           />
         </div>
       )}
@@ -197,12 +217,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             type='outline'
             size='l'
             isClearable
+            isSearchable
             selectedOption={props.values.country}
             onChange={(value: string | null) =>
               onAnyFieldChange('country', value || '')
             }
             options={envStore.data.country_choices}
-            error={props.errors.country}
+            error={props.errors?.country}
           />
         </div>
       )}
@@ -214,7 +235,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             label={getLabel('city')}
             value={props.values.city}
             onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
-            errors={props.errors.city}
+            errors={props.errors?.city}
           />
         </div>
       )}
@@ -234,7 +255,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 placeholder={getLabel('twitter')}
                 value={props.values.twitter}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
-                errors={props.errors.twitter}
+                errors={props.errors?.twitter}
               />
             </div>
           )}
@@ -247,7 +268,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 placeholder={getLabel('linkedin')}
                 value={props.values.linkedin}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
-                errors={props.errors.linkedin}
+                errors={props.errors?.linkedin}
               />
             </div>
           )}
@@ -260,7 +281,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 placeholder={getLabel('instagram')}
                 value={props.values.instagram}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'instagram')}
-                errors={props.errors.instagram}
+                errors={props.errors?.instagram}
               />
             </div>
           )}

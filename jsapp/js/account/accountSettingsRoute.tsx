@@ -11,6 +11,8 @@ import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
 import type {LabelValuePair} from 'js/dataInterface';
+import AccountFieldsEditor from './accountFieldsEditor.component';
+import type {AccountFieldsValues} from './accountFieldsEditor.component';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -204,6 +206,13 @@ const AccountSettings = observer(() => {
       isPristine: false,
     });
   };
+  const onAccountFieldsEditorChange = (fields: AccountFieldsValues) => {
+    setForm({
+      ...form,
+      fields: fields,
+      isPristine: false,
+    });
+  };
   const onUpdateComplete = () => {
     notify(t('Updated profile successfully'));
     setForm({
@@ -263,6 +272,8 @@ const AccountSettings = observer(() => {
 
         {sessionStore.isInitialLoadComplete && (
           <bem.AccountSettings__item m='fields'>
+            <h1>OLD FIELDS</h1>
+
             {/* Privacy */}
             <bem.AccountSettings__item>
               <label>{t('Privacy')}</label>
@@ -440,6 +451,15 @@ const AccountSettings = observer(() => {
           </bem.AccountSettings__item>
         )}
       </bem.AccountSettings__item>
+
+      <>
+        <h1>NEW FIELDS</h1>
+        <AccountFieldsEditor
+          errors={form.fieldsWithErrors.extra_details}
+          values={form.fields}
+          onChange={onAccountFieldsEditorChange}
+        />
+      </>
     </bem.AccountSettings>
   );
 });
