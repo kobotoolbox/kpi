@@ -54,12 +54,12 @@ class ChangePlanView(APIView):
     If the user is downgrading to a lower price, it will schedule the change at the end of the current billing period.
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
+    <b>POST</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/api/v2/stripe/change-plan/
+    >       curl -X POST https://[kpi]/api/v2/stripe/change-plan/
 
     > **Payload**
     >
