@@ -5,6 +5,7 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'utils';
+import AnonymousSubmission from 'js/components/anonymousSubmission.component';
 import {
   ROOT_URL,
   ANON_USERNAME,
@@ -68,6 +69,8 @@ class PublicShareSettings extends React.Component {
             <input type='text' value={url} readOnly />
           </bem.FormModal__item>
         }
+
+        <AnonymousSubmission />
       </bem.FormModal__item>
     );
   }

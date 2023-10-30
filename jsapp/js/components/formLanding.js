@@ -14,7 +14,6 @@ import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import Checkbox from 'js/components/common/checkbox';
 import {
   MODAL_TYPES,
   COLLECTION_METHODS,
@@ -29,7 +28,7 @@ import {
 } from 'react-router-dom';
 import {withRouter} from 'js/router/legacy';
 import {userCan, userCanRemoveSharedProject} from 'js/components/permissions/utils';
-import Icon from './common/icon';
+import AnonymousSubmission from 'js/components/anonymousSubmission.component';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -41,7 +40,6 @@ class FormLanding extends React.Component {
       DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
       nextPageUrl: null,
       nextPagesVersions: [],
-      allowAnonymousSubmissions: false,
     };
     autoBind(this);
   }
@@ -346,20 +344,8 @@ class FormLanding extends React.Component {
               </ol>
             )}
           </bem.FormView__cell>
-          <bem.FormView__cell m={['padding', 'bordertop', 'anonymous-submissions']}>
-            <Checkbox
-              checked={this.state.allowAnonymousSubmissions}
-              onChange={() => {
-                this.setState({
-                  allowAnonymousSubmissions:
-                    !this.state.allowAnonymousSubmissions,
-                });
-              }}
-            />
-            <div className={'anonymous-submissions'}>{t('Allow anonymous submissions to this form')}</div>
-            <a data-tip={t('Tooltip?')}>
-              <Icon size='s' name='help' color='storm' />
-            </a>
+          <bem.FormView__cell m={['small-padding']}>
+            <AnonymousSubmission />
           </bem.FormView__cell>
         </bem.FormView__cell>
       </bem.FormView__row>
