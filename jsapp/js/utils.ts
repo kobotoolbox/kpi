@@ -23,9 +23,6 @@ import calendar from 'dayjs/plugin/calendar';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 
-// import specific locales for dayjs
-import 'js/locales';
-
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
 const cookies = new Cookies();
@@ -165,9 +162,6 @@ dayjs.extend(utc);
 dayjs.extend(calendar);
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
-
-// localize dates using the current language setting
-dayjs.locale(currentLang());
 
 /**
  * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"

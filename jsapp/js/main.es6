@@ -5,6 +5,8 @@
 
 require('jquery-ui/ui/widgets/sortable');
 import dayjs from 'dayjs';
+// import specific locales for dayjs
+import 'js/locales';
 import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader';
