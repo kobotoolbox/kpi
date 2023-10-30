@@ -5,20 +5,7 @@ import {addRequiredToLabel} from 'js/utils';
 import envStore from '../envStore';
 import styles from './accountFieldsEditor.module.scss';
 import KoboSelect from 'js/components/common/koboSelect';
-
-type UserFieldName =
-  | 'name'
-  | 'organization'
-  | 'organization_website'
-  | 'sector'
-  | 'gender'
-  | 'bio'
-  | 'city'
-  | 'country'
-  | 'require_auth'
-  | 'twitter'
-  | 'linkedin'
-  | 'instagram';
+import type {UserFieldName} from './account.constants';
 
 const genderSelectOptions = [
   {value: 'male', label: t('Male')},
