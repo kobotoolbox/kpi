@@ -1,3 +1,5 @@
+import http
+
 import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -289,6 +291,12 @@ class CustomerPortalView(APIView):
             'id', 'subscriptions__id', 'subscriptions__items__id'
         ).first()
 
+        if not customer:
+            return Response(
+                {'error': f"Couldn't find customer with organization id {organization_id}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         portal_kwargs = {}
 
         # if we're generating a portal link for an add-on, generate a custom portal configuration
@@ -297,9 +305,17 @@ class CustomerPortalView(APIView):
                 api_key=djstripe_settings.STRIPE_SECRET_KEY,
                 limit=100,
             )
+
+            if not len(all_configs):
+                return Response({'error': "Missing Stripe billing configuration."}, status=status.HTTP_502_BAD_GATEWAY)
+
             # get the portal configuration that lets us switch to the provided price
             current_config = next(
-                (config for config in all_configs if config.metadata.get('portal_price', None) == price.id), None
+                (config for config in all_configs if (
+                        config['active'] and
+                        config['livemode'] == settings.STRIPE_LIVE_MODE and
+                        config['metadata'].get('portal_price', None) == price.id
+                )), None
             )
 
             # we couldn't find the right configuration, let's try making a new one
@@ -307,25 +323,24 @@ class CustomerPortalView(APIView):
                 # get the active default configuration
                 current_config = next(
                     (config for config in all_configs if (
-                        config.is_default and
-                        config.active and
-                        config.livemode == settings.STRIPE_LIVE_MODE
+                        config['is_default'] and
+                        config['active'] and
+                        config['livemode'] == settings.STRIPE_LIVE_MODE
                     )), None
                 )
                 # add the price we're switching into to the list of prices that allow subscription updates
-                new_products = [
+                new_product = [
                     {
                         'prices': [price.id],
                         'product': price.product.id,
                     },
-                    *current_config['features']['subscription_update'].get('products', []),
                 ]
-                current_config['features']['subscription_update']['products'] = new_products
+                current_config['features']['subscription_update']['products'].append(new_product)
                 # create the billing configuration on Stripe, so it's ready when we send the customer to check out
                 current_config = stripe.billing_portal.Configuration.create(
                     api_key=djstripe_settings.STRIPE_SECRET_KEY,
                     business_profile=current_config['business_profile'],
-                    features=current_config.features,
+                    features=current_config['features'],
                     metadata={
                         'portal_price': price.id,
                     }
@@ -347,21 +362,21 @@ class CustomerPortalView(APIView):
                 },
             }
 
-        session = stripe.billing_portal.Session.create(
+        stripe_response = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             customer=customer['id'],
             return_url=f'{settings.KOBOFORM_URL}/#/account/plan',
             **portal_kwargs,
         )
-        return session
+        return Response({'url': stripe_response['url']})
 
     def post(self, request):
         serializer = CustomerPortalSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         organization_id = serializer.validated_data['organization_id']
         price = serializer.validated_data.get('price_id', None)
-        session = self.generate_portal_link(request.user, organization_id, price)
-        return Response({'url': session['url']})
+        response = self.generate_portal_link(request.user, organization_id, price)
+        return response
 
 
 class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
