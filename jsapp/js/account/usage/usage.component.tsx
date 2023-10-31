@@ -57,7 +57,9 @@ export default function Usage() {
 
   const dateRange = useMemo(() => {
     let startDate: string;
-    const endDate = formatDate(new Date().toUTCString());
+    const endDate = usage.billingPeriodEnd
+      ? formatDate(usage.billingPeriodEnd)
+      : formatDate(new Date().toUTCString());
     switch (usage.trackingPeriod) {
       case 'year':
         startDate = formatDate(usage.currentYearStart, false);
