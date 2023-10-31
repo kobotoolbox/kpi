@@ -64,9 +64,9 @@ export async function postCheckout(priceId: string, organizationId: string) {
 /**
  * Get the URL of the Stripe customer portal for an organization.
  */
-export async function postCustomerPortal(organizationId: string) {
+export async function postCustomerPortal(organizationId: string, priceId?: string) {
   return fetchPost<Checkout>(
-    `${endpoints.PORTAL_URL}?organization_id=${organizationId}`,
+    `${endpoints.PORTAL_URL}?organization_id=${organizationId}&price_id=${priceId || ''}`,
     {},
     {
       errorMessageDisplay:

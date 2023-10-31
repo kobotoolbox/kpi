@@ -28,8 +28,6 @@ import AddOnList from 'js/account/plans/addOnList.component';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
 import {processCheckoutResponse} from 'js/account/stripe.utils';
-import type {ConfirmChangeProps} from './confirmChangeModal.component';
-import ConfirmChangeModal from './confirmChangeModal.component';
 import type {
   BasePrice,
   Organization,
@@ -119,10 +117,6 @@ export default function Plan() {
   const [activeSubscriptions, setActiveSubscriptions] = useState<
     SubscriptionInfo[]
   >([]);
-  const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
-    price: null,
-    subscription: null,
-  });
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const navigate = useNavigate();
@@ -347,23 +341,18 @@ export default function Plan() {
     [state.subscribedProduct, state.organization, state.products]
   );
 
-  const dismissConfirmModal = () => {
-    setConfirmModal({price: null, subscription: null});
-    setIsBusy(false);
-  };
-
   const upgradePlan = (price: BasePrice) => {
     if (!price.id || isBusy || !state.organization?.id) {
       return;
     }
     setIsBusy(true);
     if (activeSubscriptions.length) {
-      // if the user has active subscriptions, make them confirm the subscription change
-      setConfirmModal({
-        price,
-        subscription: activeSubscriptions[0],
-      });
+      // if the user has active subscriptions, send them to the customer portal to change to the new price
+      postCustomerPortal(state.organization.id, price.id)
+        .then(processCheckoutResponse)
+        .catch(() => setIsBusy(false));
     } else {
+      // just send the user to the checkout page
       postCheckout(price.id, state.organization.id)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false));
@@ -694,10 +683,6 @@ export default function Plan() {
             setIsBusy={setIsBusy}
             products={state.products}
             organization={state.organization}
-          />
-          <ConfirmChangeModal
-            toggleModal={dismissConfirmModal}
-            {...confirmModal}
           />
         </div>
       )}
