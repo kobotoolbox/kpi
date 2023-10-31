@@ -33,7 +33,7 @@ from kpi.exceptions import (
     SearchQueryTooShortException,
 )
 from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
-from kpi.utils.django_orm_helper import OrderCustom
+from kpi.utils.django_orm_helper import OrderCustomCharField
 from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
 from kpi.utils.object_permission import (
     get_objects_for_user,
@@ -120,10 +120,9 @@ class AssetOrderingFilter(filters.OrderingFilter):
         else:
             # Default ordering
             return queryset.order_by(
-                OrderCustom(
+                OrderCustomCharField(
                     '_deployment_status',
                     self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
-                    array_type='varchar',
                 ),
                 '-date_modified',
             )

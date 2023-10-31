@@ -178,7 +178,7 @@ class UtilsTestCase(TestCase):
 
     def test_query_parser(self):
         query_string = '''
-            (a:a OR b:b AND c:c) AND d:d OR (
+            (a:a OR b:b AND c:can't) AND d:do"you"say OR (
                 snakes:🐍🐍 AND NOT alphabet:🍲soup
             ) NOT 'in a house' NOT "with a mouse"
         '''
@@ -189,7 +189,7 @@ class UtilsTestCase(TestCase):
         ]
 
         expected_q = (
-            (Q(a='a') | Q(b='b') & Q(c='c')) & Q(d='d') | (
+            (Q(a='a') | Q(b='b') & Q(c="can't")) & Q(d='do"you"say') | (
                 Q(snakes='🐍🐍') & ~Q(alphabet='🍲soup')
             )
             & ~(
@@ -254,6 +254,20 @@ class UtilsTestCase(TestCase):
         with self.assertRaises(SearchQueryTooShortException) as e:
             parse(query_string, default_field_lookups)
         assert 'Your query is too short' in str(e.exception)
+
+    def test_query_parser_short_and_long_terms(self):
+        """
+        As long as at least *one* term is long enough, or one term explicitly
+        specifies a field, a search should succeed. See
+        https://github.com/kobotoolbox/kpi/issues/3483
+        """
+        # should succeed due to long-enough terms
+        parse('my great project', ['some_field'])
+        # should suceeed due to explicit field specification
+        parse('some_field:hi', ['some_field'])
+        with self.assertRaises(SearchQueryTooShortException) as e:
+            # should fail, all terms are short
+            parse('me oh my', ['some_field'])
 
     def test_allow_choice_duplicates(self):
         surv = {

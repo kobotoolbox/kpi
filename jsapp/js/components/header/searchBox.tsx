@@ -61,7 +61,7 @@ class SearchBox extends React.Component<SearchBoxProps, SearchBoxState> {
   }
 
   setSearchPhrase(searchPhrase: string) {
-    searchBoxStore.setSearchPhrase(searchPhrase.trim());
+    searchBoxStore.setSearchPhrase(searchPhrase);
   }
 
   clear() {

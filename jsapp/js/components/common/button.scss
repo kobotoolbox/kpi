@@ -184,7 +184,7 @@ $button-border-radius: sizes.$x6;
   justify-content: center;
 }
 
-.k-button[disabled] {
+.k-button[aria-disabled=true] {
   pointer-events: none;
   opacity: 0.5;
 }
