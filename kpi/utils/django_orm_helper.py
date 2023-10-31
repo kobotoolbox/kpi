@@ -40,26 +40,36 @@ class IncrementValue(Func):
         )
 
 
-class OrderCustom(Func):
+class OrderCustomCharField(Func):
+    """
+    DO NOT use on fields other than CharField while the application maintains
+    support for PostgreSQL below version 14.
+
+    PostgreSQL 14 includes an improvement to "Allow some array functions to
+    operate on a mix of compatible data types", which "makes them less fussy
+    about exact matches of argument types"
+    (https://www.postgresql.org/docs/14/release-14.html).
+
+    However, older Postgres requires an exact match, meaning that the array
+    argument must be cast to `varchar` to match `CharField`.
+
+    After Kobo drops support for older Postgres, this class could be renamed to
+    `OrderCustom`, and the explicit `varchar` cast could be removed.
+    """
 
     function = 'array_position'
-    template = '%(function)s(ARRAY%(order_list)s, %(expressions)s)'
+    # By default, `order_list` is treated as `text[]` and must be cast to
+    # `varchar[]`
+    template = '%(function)s(ARRAY%(order_list)s::varchar[], %(expressions)s)'
+    # template = '%(function)s(ARRAY%(order_list)s, %(expressions)s)'
     arity = 1
 
     def __init__(
         self,
         expression: str,
         order_list: list,
-        array_type: Optional[Literal['varchar']] = None,
         **extra
     ):
-
-        # With PostgreSQL 13 (and older), `array_position` needs explicit type
-        # casts to work. By default, `order_list` is treated as `text[]`
-        # TODO Remove this condition when PostgreSQL 13 becomes deprecated.
-        if array_type == 'varchar':
-            self.template = '%(function)s(ARRAY%(order_list)s::varchar[], %(expressions)s)'
-
         if expression.startswith('-'):
             order_list.reverse()
             expression = expression[1:]
