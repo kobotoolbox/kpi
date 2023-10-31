@@ -39,26 +39,10 @@ export default function Usage() {
     [usage.isLoaded, limits.isLoaded]
   );
 
-  const shortDate = useMemo(() => {
-    let format: string;
-    let date: string;
-    switch (usage.trackingPeriod) {
-      case 'year':
-        format = 'YYYY';
-        date = usage.currentYearStart;
-        break;
-      default:
-        format = 'MMM YYYY';
-        date = usage.currentMonthStart;
-        break;
-    }
-    return formatDate(date, false, format);
-  }, [usage.currentYearStart, usage.currentMonthStart, usage.trackingPeriod]);
-
   const dateRange = useMemo(() => {
     let startDate: string;
     const endDate = usage.billingPeriodEnd
-      ? formatDate(usage.billingPeriodEnd)
+      ? formatDate(usage.billingPeriodEnd, false)
       : formatDate(new Date().toUTCString());
     switch (usage.trackingPeriod) {
       case 'year':
@@ -162,7 +146,7 @@ export default function Usage() {
             <strong className={styles.title}>
               {t('Transcription minutes')}
             </strong>
-            <time className={styles.date}>{shortDate}</time>
+            <time className={styles.date}>{dateRange}</time>
           </span>
           <UsageContainer
             usage={usage.transcriptionMinutes}
@@ -175,7 +159,7 @@ export default function Usage() {
             <strong className={styles.title}>
               {t('Translation characters')}
             </strong>
-            <time className={styles.date}>{shortDate}</time>
+            <time className={styles.date}>{dateRange}</time>
           </span>
           <UsageContainer
             usage={usage.translationChars}
