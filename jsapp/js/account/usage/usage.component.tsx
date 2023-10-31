@@ -12,6 +12,7 @@ import styles from './usage.module.scss';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
+import moment from 'moment';
 
 interface LimitState {
   storageByteLimit: number | 'unlimited';
@@ -43,7 +44,7 @@ export default function Usage() {
     let startDate: string;
     const endDate = usage.billingPeriodEnd
       ? formatDate(usage.billingPeriodEnd, false)
-      : formatDate(new Date().toUTCString());
+      : formatDate(moment().endOf('month').toISOString());
     switch (usage.trackingPeriod) {
       case 'year':
         startDate = formatDate(usage.currentYearStart, false);
