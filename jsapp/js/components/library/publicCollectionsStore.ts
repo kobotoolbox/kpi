@@ -143,7 +143,7 @@ class PublicCollectionsStore extends Reflux.Store {
 
   getSearchParams() {
     const params: SearchAssetsPredefinedParams = {
-      searchPhrase: searchBoxStore.data.searchPhrase,
+      searchPhrase: (searchBoxStore.data.searchPhrase ?? '').trim(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
     };
