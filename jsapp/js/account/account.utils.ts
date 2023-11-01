@@ -24,7 +24,10 @@ export function getInitialAccountFieldsValues(): AccountFieldsValues {
  * updating the `extra_details`.
  */
 export function getProfilePatchData(fields: AccountFieldsValues) {
-  const output = {
+  // HACK: dumb down the `output` type here, so TS doesn't have a problem with
+  // types inside the `forEach` loop below, and the output is compatible with
+  // functions from `api.ts` file.
+  const output: {extra_details: {[key: string]: any}} = {
     extra_details: getInitialAccountFieldsValues(),
   };
 
@@ -50,10 +53,7 @@ export function getProfilePatchData(fields: AccountFieldsValues) {
 
   // Populate the patch with user form input, or empty strings.
   presentMetadataFields.forEach((fieldName) => {
-    // HACK: override the types during value setting, as TS doesn't have
-    // the means to know if we're dealing with `boolean` or `string` inside
-    // this loop
-    (output.extra_details as {[key: string]: any})[fieldName] = fields[fieldName];
+    output.extra_details[fieldName] = fields[fieldName];
   });
 
   // Always include require_auth, defaults to 'false'.

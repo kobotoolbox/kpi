@@ -30,6 +30,8 @@ export interface AccountFieldsValues {
   instagram: string;
 }
 
+export type AccountFieldsErrors = {[name in UserFieldName]?: string};
+
 interface AccountFieldsEditorProps {
   /**
    * A list of fields to display in editor. Regardless of this list, all
@@ -38,7 +40,7 @@ interface AccountFieldsEditorProps {
    */
   displayedFields?: UserFieldName[];
   /** Errors to be displayed for fields */
-  errors?: {[name in UserFieldName]?: string};
+  errors?: AccountFieldsErrors;
   /**
    * We need values for all fields, even if only few are displayed (via
    * `displayedFields` prop)
