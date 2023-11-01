@@ -5,13 +5,14 @@ import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
 import {notify, stringToColor} from 'js/utils';
-import envStore from '../envStore';
 import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
 import type {AccountFieldsValues} from './accountFieldsEditor.component';
-import {USER_FIELD_NAMES} from './account.constants';
 import type {UserFieldName} from './account.constants';
-import {getInitialAccountFieldsValues} from './account.utils';
+import {
+  getInitialAccountFieldsValues,
+  getProfilePatchData,
+} from './account.utils';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -21,6 +22,11 @@ bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
 interface Form {
   isPristine: boolean;
+  /**
+   * Whether we have loaded the user metadata values. Used to avoid displaying
+   * blank form with values coming in a moment later (in visible way).
+   */
+  isUserDataLoaded: boolean;
   fields: AccountFieldsValues;
   fieldsWithErrors: {
     extra_details?: {[name in UserFieldName]?: string};
@@ -28,9 +34,9 @@ interface Form {
 }
 
 const AccountSettings = observer(() => {
-  const environment = envStore.data;
   const [form, setForm] = useState<Form>({
     isPristine: true,
+    isUserDataLoaded: false,
     fields: getInitialAccountFieldsValues(),
     fieldsWithErrors: {},
   });
@@ -53,6 +59,7 @@ const AccountSettings = observer(() => {
     ) {
       setForm({
         ...form,
+        isUserDataLoaded: true,
         fields: {
           name: currentAccount.extra_details.name,
           organization: currentAccount.extra_details.organization,
@@ -77,36 +84,7 @@ const AccountSettings = observer(() => {
     message: t('You have unsaved changes. Leave settings without saving?'),
   });
   const updateProfile = () => {
-    // To patch correctly with recent changes to the backend,
-    // ensure that we send empty strings if the field is left blank.
-
-    // We should only overwrite user metadata that the user can see.
-    // Fields that:
-    //   (a) are enabled in constance
-    //   (b) the frontend knows about
-
-    // Make a list of user metadata fields to include in the patch
-    const presentMetadataFields = Object.keys(
-        // Fields enabled in constance
-        environment.getUserMetadataFieldsAsSimpleDict()
-      )
-      // Intersected with:
-      .filter((key) => (
-        // Fields the frontend knows about
-        key in USER_FIELD_NAMES
-      )
-    );
-
-    // Populate the patch with user form input, or empty strings.
-    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
-    const extra_details: any = {};
-    presentMetadataFields.forEach((key) => {
-      extra_details[key] = form.fields[key as keyof typeof form.fields] || '';
-    });
-    // Always include require_auth, defaults to 'false'.
-    extra_details.require_auth = form.fields.require_auth ? true : false;
-
-    const profilePatchData = {extra_details};
+    const profilePatchData = getProfilePatchData(form.fields);
     dataInterface
       .patchProfile(profilePatchData)
       .done(() => {
@@ -169,7 +147,7 @@ const AccountSettings = observer(() => {
           <h4>{accountName}</h4>
         </bem.AccountSettings__item>
 
-        {sessionStore.isInitialLoadComplete && (
+        {sessionStore.isInitialLoadComplete && form.isUserDataLoaded && (
           <bem.AccountSettings__item m='fields'>
             <AccountFieldsEditor
               errors={form.fieldsWithErrors.extra_details}

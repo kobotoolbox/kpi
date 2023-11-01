@@ -1,10 +1,6 @@
-import type {
-  LabelValuePair,
-  TransxLanguages,
-  FailResponse,
-} from 'js/dataInterface';
+import type {LabelValuePair, TransxLanguages} from 'js/dataInterface';
 import {makeAutoObservable} from 'mobx';
-import {fetchGet, handleApiFail} from 'js/api';
+import {fetchGet} from 'js/api';
 import type {UserFieldName} from './account/account.constants';
 
 const ENV_ENDPOINT = '/environment/';
@@ -154,6 +150,10 @@ class EnvStoreData {
       dict[field.name] = field;
     }
     return dict;
+  }
+
+  public getUserMetadataFieldNames(): UserFieldName[] {
+    return this.user_metadata_fields.map((item) => item.name);
   }
 }
 
