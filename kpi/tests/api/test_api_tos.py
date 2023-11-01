@@ -17,13 +17,9 @@ class TOSTestCase(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
 
     def test_post(self):
-        # Check user account is as expected
-        assert self.user.is_active is True
-
         # Prepare and send the request with empty payload
-        data = {}
         time = now().strftime('%Y-%m-%dT%H:%M:%SZ')
-        response = self.client.post(self.url, data=data)
+        response = self.client.post(self.url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
         # Check the db to make sure the expected changes were made
