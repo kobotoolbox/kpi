@@ -1,0 +1,9 @@
+@use 'scss/sizes';
+
+.row {
+  width: 100%;
+
+  &:not(:last-child) {
+    margin-bottom: sizes.$x15;
+  }
+}

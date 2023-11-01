@@ -21,6 +21,7 @@ bem.KoboSelect__clear = makeBem(bem.KoboSelect, 'clear');
 bem.KoboSelect__menu = makeBem(bem.KoboSelect, 'menu', 'menu');
 bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button');
 bem.KoboSelect__menuMessage = makeBem(bem.KoboSelect, 'menu-message', 'p');
+bem.KoboSelect__error = makeBem(bem.KoboSelect, 'error', 'p');
 
 const SEARCHBOX_NAME = 'kobo-select-search-box';
 
@@ -70,6 +71,7 @@ interface KoboSelectProps {
   onChange: (newSelectedOption: string | null) => void;
   'data-cy'?: string;
   placeholder?: string;
+  error?: string;
 }
 
 interface KoboSelectState {
@@ -335,6 +337,12 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           menuContent={this.renderMenu()}
           data-cy={this.props['data-cy']}
         />
+
+        {this.props.error &&
+          <bem.KoboSelect__error>
+            {this.props.error}
+          </bem.KoboSelect__error>
+        }
       </bem.KoboSelect>
     );
   }

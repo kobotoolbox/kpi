@@ -4,35 +4,18 @@ import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
-import Checkbox from '../components/common/checkbox';
-import TextBox from '../components/common/textBox';
 import {notify, stringToColor} from 'js/utils';
-import {addRequiredToLabel} from 'js/textUtils';
 import envStore from '../envStore';
-import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
-import type {LabelValuePair} from 'js/dataInterface';
+import AccountFieldsEditor from './accountFieldsEditor.component';
+import type {AccountFieldsValues} from './accountFieldsEditor.component';
+import {USER_FIELD_NAMES} from './account.constants';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
-
-const fieldNames = {
-  name: 'name',
-  organization: 'organization',
-  organization_website: 'organization_website',
-  sector: 'sector',
-  gender: 'gender',
-  bio: 'bio',
-  city: 'city',
-  country: 'country',
-  require_auth: 'require_auth',
-  twitter: 'twitter',
-  linkedin: 'linkedin',
-  instagram: 'instagram',
-};
 
 interface Form {
   isPristine: boolean;
@@ -66,28 +49,7 @@ interface Form {
       instagram?: string;
     };
   };
-  sectorChoices: LabelValuePair[];
-  countryChoices: LabelValuePair[];
 }
-const genderChoices: {[key: string]: string} = {
-  male: t('Male'),
-  female: t('Female'),
-  other: t('Other'),
-};
-
-const choiceToSelectOptions = (
-  value: string,
-  choices: {[key: string]: string}
-) => {
-  return {
-    value,
-    label: choices[value],
-  };
-};
-
-const genderSelectOptions = Object.keys(genderChoices).map((key) =>
-  choiceToSelectOptions(key, genderChoices)
-);
 
 const AccountSettings = observer(() => {
   const environment = envStore.data;
@@ -108,8 +70,6 @@ const AccountSettings = observer(() => {
       instagram: '',
     },
     fieldsWithErrors: {},
-    sectorChoices: environment.sector_choices,
-    countryChoices: environment.country_choices,
   });
 
   useEffect(() => {
@@ -170,7 +130,7 @@ const AccountSettings = observer(() => {
       // Intersected with:
       .filter((key) => (
         // Fields the frontend knows about
-        fieldNames[key as keyof typeof fieldNames] !== undefined
+        key in USER_FIELD_NAMES
       )
     );
 
@@ -193,18 +153,15 @@ const AccountSettings = observer(() => {
         onUpdateFail(args);
       });
   };
-  const onAnyFieldChange = (name: string, value: any) => {
-    // Convert Selection option to just its value
-    // Improvement idea: move this logic to wrappedSelect
-    if (typeof value === 'object') {
-      value = value['value'];
-    }
+
+  const onAccountFieldsEditorChange = (fields: AccountFieldsValues) => {
     setForm({
       ...form,
-      fields: {...form.fields, [name]: value},
+      fields: fields,
       isPristine: false,
     });
   };
+
   const onUpdateComplete = () => {
     notify(t('Updated profile successfully'));
     setForm({
@@ -213,6 +170,7 @@ const AccountSettings = observer(() => {
       fieldsWithErrors: {},
     });
   };
+
   const onUpdateFail = (data: any) => {
     setForm({
       ...form,
@@ -225,20 +183,6 @@ const AccountSettings = observer(() => {
   const initialsStyle = {
     background: `#${stringToColor(accountName)}`,
   };
-  const metadata = environment.getUserMetadataFieldsAsSimpleDict();
-  /** Get label and (required) for a given user metadata fieldname */
-  const getLabel = (fieldName: string): string => {
-    const label = metadata[fieldName]?.label || (console.error(`No label for fieldname "${fieldName}"`), fieldName);
-    const required = metadata[fieldName]?.required || false;
-    return addRequiredToLabel(label, required);
-  };
-
-  const sectorValue = form.sectorChoices.find(
-    (sectorChoice) => sectorChoice.value === form.fields.sector
-  );
-  const countryValue = form.countryChoices.find(
-    (countryChoice) => countryChoice.value === form.fields.country
-  );
 
   return (
     <bem.AccountSettings>
@@ -264,180 +208,11 @@ const AccountSettings = observer(() => {
 
         {sessionStore.isInitialLoadComplete && (
           <bem.AccountSettings__item m='fields'>
-            {/* Privacy */}
-            <bem.AccountSettings__item>
-              <label>{t('Privacy')}</label>
-
-              {/* Require authentication to see forms and submit data */}
-              <Checkbox
-                checked={form.fields.require_auth}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.require_auth
-                )}
-                name={fieldNames.require_auth}
-                label={t('Require authentication to see forms and submit data')}
-              />
-            </bem.AccountSettings__item>
-
-            {/* Full name */}
-            {metadata.name && <bem.AccountSettings__item>
-              <TextBox
-                label={getLabel(fieldNames.name)}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.name
-                )}
-                value={form.fields.name}
-                errors={form.fieldsWithErrors.extra_details?.name}
-                placeholder={t(
-                  'Use this to display your real name to other users'
-                )}
-              />
-            </bem.AccountSettings__item>}
-
-            {/* Organization */}
-            {metadata.organization && <bem.AccountSettings__item>
-              <TextBox
-                label={getLabel(fieldNames.organization)}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.organization
-                )}
-                value={form.fields.organization}
-                errors={form.fieldsWithErrors.extra_details?.organization}
-              />
-            </bem.AccountSettings__item>}
-
-            {/* Organization Website */}
-            {metadata.organization_website && <bem.AccountSettings__item>
-              <TextBox
-                label={getLabel(fieldNames.organization_website)}
-                value={form.fields.organization_website}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.organization_website
-                )}
-                errors={
-                  form.fieldsWithErrors.extra_details?.organization_website
-                }
-              />
-            </bem.AccountSettings__item>}
-
-            {/* Primary Sector */}
-            {metadata.sector && <bem.AccountSettings__item m='primary-sector'>
-              <WrappedSelect
-                label={getLabel(fieldNames.sector)}
-                value={sectorValue}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.sector
-                )}
-                options={form.sectorChoices}
-                error={form.fieldsWithErrors.extra_details?.sector}
-              />
-            </bem.AccountSettings__item>}
-
-            {/* Gender */}
-            {metadata.gender && <bem.AccountSettings__item m='gender'>
-              <WrappedSelect
-                label={getLabel(fieldNames.gender)}
-                value={choiceToSelectOptions(form.fields.gender, genderChoices)}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.gender
-                )}
-                options={genderSelectOptions}
-                error={form.fieldsWithErrors.extra_details?.gender}
-              />
-            </bem.AccountSettings__item>}
-
-            {/* Bio */}
-            {metadata.bio && <bem.AccountSettings__item m='bio'>
-              <TextBox
-                label={getLabel(fieldNames.bio)}
-                value={form.fields.bio}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.bio
-                )}
-                errors={form.fieldsWithErrors.extra_details?.bio}
-              />
-            </bem.AccountSettings__item>}
-
-            {/* Country */}
-            {metadata.country && <bem.AccountSettings__item m='country'>
-              <WrappedSelect
-                label={getLabel(fieldNames.country)}
-                value={countryValue}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.country
-                )}
-                options={form.countryChoices}
-                error={form.fieldsWithErrors.extra_details?.country}
-              />
-            </bem.AccountSettings__item>}
-
-            {/* City */}
-            {metadata.city && <bem.AccountSettings__item m='city'>
-              <TextBox
-                label={getLabel(fieldNames.city)}
-                value={form.fields.city}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  fieldNames.city
-                )}
-                errors={form.fieldsWithErrors.extra_details?.city}
-              />
-            </bem.AccountSettings__item>}
-
-            {/* Social */}
-            {(metadata.twitter || metadata.linkedin || metadata.instagram) && <bem.AccountSettings__item>
-              <label>{t('Social')}</label>
-
-              {/* Twitter */}
-              {metadata.twitter && <div className='account-settings-social-row'>
-                <TextBox
-                  startIcon='logo-twitter'
-                  placeholder={getLabel(fieldNames.twitter)}
-                  value={form.fields.twitter}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    fieldNames.twitter
-                  )}
-                  errors={form.fieldsWithErrors.extra_details?.twitter}
-                />
-              </div>}
-
-              {/* LinkedIn */}
-              {metadata.linkedin && <div className='account-settings-social-row'>
-                <TextBox
-                  startIcon='logo-linkedin'
-                  placeholder={getLabel(fieldNames.linkedin)}
-                  value={form.fields.linkedin}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    fieldNames.linkedin
-                  )}
-                  errors={form.fieldsWithErrors.extra_details?.linkedin}
-                />
-              </div>}
-
-              {/* Instagram */}
-              {metadata.instagram && <div className='account-settings-social-row'>
-                <TextBox
-                  startIcon='logo-instagram'
-                  placeholder={getLabel(fieldNames.instagram)}
-                  value={form.fields.instagram}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    fieldNames.instagram
-                  )}
-                  errors={form.fieldsWithErrors.extra_details?.instagram}
-                />
-              </div>}
-            </bem.AccountSettings__item>}
+            <AccountFieldsEditor
+              errors={form.fieldsWithErrors.extra_details}
+              values={form.fields}
+              onChange={onAccountFieldsEditorChange}
+            />
           </bem.AccountSettings__item>
         )}
       </bem.AccountSettings__item>
