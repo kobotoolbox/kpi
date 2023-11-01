@@ -69,6 +69,10 @@ class BaseDeploymentBackend(abc.ABC):
     def calculated_submission_count(self, user: 'auth.User', **kwargs):
         pass
 
+    @abc.abstractmethod
+    def set_enketo_open_rosa_server(self, require_auth: bool):
+        pass
+
     @property
     @abc.abstractmethod
     def submission_count_since_date(self, start_date: Optional[datetime.date] = None):
@@ -97,6 +101,11 @@ class BaseDeploymentBackend(abc.ABC):
     def duplicate_submission(
         self, submission_id: int, user: 'auth.User'
     ) -> dict:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def enketo_id(self):
         pass
 
     @abc.abstractmethod

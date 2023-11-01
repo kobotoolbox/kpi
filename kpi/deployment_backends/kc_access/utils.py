@@ -291,6 +291,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
         if remove:
             flags = {flag: not value for flag, value in flags.items()}
         xform_updates.update(flags)
+
     # Write to the KC database
     KobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
 
