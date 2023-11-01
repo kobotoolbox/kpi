@@ -161,13 +161,9 @@ class EnvStore {
   }
 
   async fetchData() {
-    try {
-      const response = await fetchGet<EnvironmentResponse>(ENV_ENDPOINT);
-      this.onGetEnvCompleted(response);
-    } catch (err) {
-      const errorObj = err as FailResponse;
-      handleApiFail(errorObj);
-    }
+    // Error handling is done inside `fetchGet`
+    const response = await fetchGet<EnvironmentResponse>(ENV_ENDPOINT);
+    this.onGetEnvCompleted(response);
   }
 
   /**
