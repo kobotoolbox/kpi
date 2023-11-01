@@ -7,8 +7,10 @@ import './accountSettings.scss';
 import {notify, stringToColor} from 'js/utils';
 import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
-import type {AccountFieldsValues} from './accountFieldsEditor.component';
-import type {UserFieldName} from './account.constants';
+import type {
+  AccountFieldsValues,
+  AccountFieldsErrors,
+} from './accountFieldsEditor.component';
 import {
   getInitialAccountFieldsValues,
   getProfilePatchData,
@@ -29,7 +31,7 @@ interface Form {
   isUserDataLoaded: boolean;
   fields: AccountFieldsValues;
   fieldsWithErrors: {
-    extra_details?: {[name in UserFieldName]?: string};
+    extra_details?: AccountFieldsErrors;
   };
 }
 
