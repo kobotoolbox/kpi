@@ -359,12 +359,12 @@ export default function Plan() {
     }
   };
 
-  const managePlan = () => {
+  const managePlan = (price?: BasePrice) => {
     if (!state.organization?.id || isBusy) {
       return;
     }
     setIsBusy(true);
-    postCustomerPortal(state.organization.id)
+    postCustomerPortal(state.organization.id, price?.id)
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false));
   };
@@ -608,7 +608,7 @@ export default function Plan() {
                       price.prices.unit_amount > 0 && (
                         <PlanButton
                           label={t('Change plan')}
-                          onClick={managePlan}
+                          onClick={() => managePlan(price.prices)}
                           aria-label={`change your subscription to ${price.name}`}
                           aria-disabled={isBusy}
                           isDisabled={isBusy}
