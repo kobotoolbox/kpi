@@ -1,7 +1,7 @@
-from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.urls import reverse
 from rest_framework import status
+from model_bakery import baker
 
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -9,12 +9,10 @@ from kpi.tests.base_test_case import BaseTestCase
 class TOSTestCase(BaseTestCase):
     def setUp(self) -> None:
         self.url = reverse(self._get_endpoint('tos'))
-        self.user = User.objects.create_user(
-            username='someuser',
-            password='someuser',
-            is_active=True,
+        self.user = baker.make(
+            'auth.User', username='spongebob', email='me@sponge.bob'
         )
-        self.client.login(username='someuser', password='someuser')
+        self.client.force_login(self.user)
 
     def test_post(self):
         # Prepare and send the request with empty payload
