@@ -1,10 +1,6 @@
-import type {
-  LabelValuePair,
-  TransxLanguages,
-  FailResponse,
-} from 'js/dataInterface';
+import type {LabelValuePair, TransxLanguages} from 'js/dataInterface';
 import {makeAutoObservable} from 'mobx';
-import {fetchGet, handleApiFail} from 'js/api';
+import {fetchGet} from 'js/api';
 import type {UserFieldName} from './account/account.constants';
 
 const ENV_ENDPOINT = '/environment/';
@@ -157,7 +153,13 @@ export class EnvStoreData {
   }
 
   public getUserMetadataRequiredFieldNames(): UserFieldName[] {
-    return this.user_metadata_fields.filter((item) => item.required).map((item) => item.name);
+    return this.user_metadata_fields
+      .filter((item) => item.required)
+      .map((item) => item.name);
+  }
+
+  public getUserMetadataFieldNames(): UserFieldName[] {
+    return this.user_metadata_fields.map((item) => item.name);
   }
 }
 
