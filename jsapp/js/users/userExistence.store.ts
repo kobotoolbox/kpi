@@ -1,5 +1,5 @@
 import {fetchGet} from 'js/api';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import type {FailResponse} from 'js/dataInterface';
 
 export interface UserResponse {
