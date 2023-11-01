@@ -7,9 +7,12 @@ import styles from './tosForm.module.scss';
 import type {FailResponse} from 'js/dataInterface';
 import type {TOSGetResponse} from './tos.constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import Checkbox from 'js/components/common/checkbox';
-import {buildTOSFormFields} from './tos.utils';
-import type {TOSFormField} from './tos.utils';
+import {getInitialAccountFieldsValues} from 'js/account/account.utils';
+import AccountFieldsEditor from 'js/account/accountFieldsEditor.component';
+import type {AccountFieldsValues} from 'js/account/accountFieldsEditor.component';
+import type {UserFieldName} from 'js/account/account.constants';
+
+type FieldsErrors = {[name in UserFieldName]?: string | undefined};
 
 export default function TOSForm() {
   // Initialize:
@@ -29,8 +32,8 @@ export default function TOSForm() {
 
   const [isFormPending, setIsFormPending] = useState(false);
   const [message, setMessage] = useState<string | undefined>();
-  const [newsletterEnabled, setNewsletterEnabled] = useState(false);
-  const [fields, setFields] = useState<TOSFormField[] | undefined>(undefined);
+  const [fields, setFields] = useState<AccountFieldsValues>(getInitialAccountFieldsValues());
+  const [fieldsErrors, setFieldsErrors] = useState<FieldsErrors>({});
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -43,6 +46,7 @@ export default function TOSForm() {
       } catch (error) {
         const errorObj = error as FailResponse;
         handleApiFail(errorObj);
+        setMessage('error happened');
       }
     };
     getTOS();
@@ -52,15 +56,32 @@ export default function TOSForm() {
   // fields with all the required metadata fields
   useEffect(() => {
     if ('email' in sessionStore.currentAccount && envStore.isReady) {
-      console.log('envStore and sessionStore are ready', buildTOSFormFields(sessionStore.currentAccount, envStore.data));
-      setFields(buildTOSFormFields(sessionStore.currentAccount, envStore.data));
+      const data = sessionStore.currentAccount;
+      setFields({
+        name: data.extra_details.name,
+        organization: data.extra_details.organization,
+        organization_website: data.extra_details.organization_website,
+        sector: data.extra_details.sector,
+        gender: data.extra_details.gender,
+        bio: data.extra_details.bio,
+        city: data.extra_details.city,
+        country: data.extra_details.country,
+        require_auth: data.extra_details.require_auth,
+        twitter: data.extra_details.twitter,
+        linkedin: data.extra_details.linkedin,
+        instagram: data.extra_details.instagram,
+      });
     }
-  }, [envStore.isReady, sessionStore.isAuthStateKnown]);
+  }, [sessionStore.isAuthStateKnown]);
+
+  function onAccountFieldsEditorChange(newFields: AccountFieldsValues) {
+    setFields(newFields);
+  }
 
   function submitForm(evt: React.FormEvent<HTMLFormElement>) {
     evt.preventDefault();
     setIsFormPending(true);
-    console.log('submit!');
+    console.log('submit!', fields, fieldsErrors);
   }
 
   function leaveForm() {
@@ -88,13 +109,11 @@ export default function TOSForm() {
           {t('Please make sure the following details are filled out correctly:')}
         </h2>
 
-        <div>HERE RENDER FIELDS</div>
-
-        <Checkbox
-          checked={newsletterEnabled}
-          disabled={isFormPending}
-          onChange={setNewsletterEnabled}
-          label={'I want to receive occasional updates'}
+        <AccountFieldsEditor
+          displayedFields={envStore.data.getUserMetadataRequiredFieldNames()}
+          errors={fieldsErrors}
+          values={fields}
+          onChange={onAccountFieldsEditorChange}
         />
       </section>
 

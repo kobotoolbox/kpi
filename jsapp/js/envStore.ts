@@ -148,6 +148,10 @@ export class EnvStoreData {
     }
     return dict;
   }
+
+  public getUserMetadataRequiredFieldNames(): UserFieldName[] {
+    return this.user_metadata_fields.filter((item) => item.required).map((item) => item.name);
+  }
 }
 
 class EnvStore {
