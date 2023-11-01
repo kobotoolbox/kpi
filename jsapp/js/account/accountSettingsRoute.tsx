@@ -10,6 +10,8 @@ import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
 import type {AccountFieldsValues} from './accountFieldsEditor.component';
 import {USER_FIELD_NAMES} from './account.constants';
+import type {UserFieldName} from './account.constants';
+import {getInitialAccountFieldsValues} from './account.utils';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -19,35 +21,9 @@ bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
 interface Form {
   isPristine: boolean;
-  fields: {
-    name: string;
-    organization: string;
-    organization_website: string;
-    sector: string;
-    gender: string;
-    bio: string;
-    city: string;
-    country: string;
-    require_auth: boolean;
-    twitter: string;
-    linkedin: string;
-    instagram: string;
-  };
+  fields: AccountFieldsValues;
   fieldsWithErrors: {
-    extra_details?: {
-      name?: string;
-      organization?: string;
-      organization_website?: string;
-      sector?: string;
-      gender?: string;
-      bio?: string;
-      city?: string;
-      country?: string;
-      require_auth?: string;
-      twitter?: string;
-      linkedin?: string;
-      instagram?: string;
-    };
+    extra_details?: {[name in UserFieldName]?: string};
   };
 }
 
@@ -55,20 +31,7 @@ const AccountSettings = observer(() => {
   const environment = envStore.data;
   const [form, setForm] = useState<Form>({
     isPristine: true,
-    fields: {
-      name: '',
-      organization: '',
-      organization_website: '',
-      sector: '',
-      gender: '',
-      bio: '',
-      city: '',
-      country: '',
-      require_auth: false,
-      twitter: '',
-      linkedin: '',
-      instagram: '',
-    },
+    fields: getInitialAccountFieldsValues(),
     fieldsWithErrors: {},
   });
 

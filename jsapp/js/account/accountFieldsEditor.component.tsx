@@ -38,7 +38,7 @@ interface AccountFieldsEditorProps {
    */
   displayedFields?: UserFieldName[];
   /** Errors to be displayed for fields */
-  errors?: {[name in UserFieldName]?: string | undefined};
+  errors?: {[name in UserFieldName]?: string};
   /**
    * We need values for all fields, even if only few are displayed (via
    * `displayedFields` prop)
