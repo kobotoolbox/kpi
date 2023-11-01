@@ -82,12 +82,12 @@ const AddOnList = (props: {
     props.setIsBusy(false);
   };
 
-  const manageAddOn = (price: BasePrice) => {
+  const manageAddOn = (price?: BasePrice) => {
     if (!props.organization || props.isBusy) {
       return;
     }
     props.setIsBusy(true);
-    postCustomerPortal(props.organization.id, price.id)
+    postCustomerPortal(props.organization.id, price?.id)
       .then(processCheckoutResponse)
       .catch(handleCheckoutError);
   };
@@ -151,7 +151,7 @@ const AddOnList = (props: {
                     size={'m'}
                     label={t('manage')}
                     isDisabled={props.isBusy}
-                    onClick={() => manageAddOn(price)}
+                    onClick={manageAddOn}
                     isFullWidth
                   />
                 )}
