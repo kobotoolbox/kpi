@@ -5,10 +5,8 @@ import autoBind from 'react-autobind';
 import permConfig from './permConfig';
 import {actions} from '../../actions';
 import union from 'lodash.union';
-import {
-  notify,
-  replaceSupportEmail
-} from 'utils';
+import {notify} from 'js/utils';
+import {replaceSupportEmail} from 'js/textUtils';
 
 const INVALID_PERMS_ERROR = t('The stored permissions are invalid. Please assign them again. If this problem persists, contact help@kobotoolbox.org');
 

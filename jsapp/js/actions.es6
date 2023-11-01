@@ -17,10 +17,8 @@ import submissionsActions from './actions/submissions';
 import formMediaActions from './actions/mediaActions';
 import exportsActions from './actions/exportsActions';
 import dataShareActions from './actions/dataShareActions';
-import {
-  notify,
-  replaceSupportEmail,
-} from 'utils';
+import {notify} from 'js/utils';
+import {replaceSupportEmail} from 'js/textUtils';
 
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
@@ -45,7 +43,6 @@ actions.auth = Reflux.createActions({
   verifyLogin: {children: ['loggedin', 'anonymous', 'failed']},
   logout: {children: ['completed', 'failed']},
   changePassword: {children: ['completed', 'failed']},
-  getEnvironment: {children: ['completed', 'failed']},
   getApiToken: {children: ['completed', 'failed']},
 });
 
@@ -464,17 +461,6 @@ actions.auth.changePassword.completed.listen(() => {
 });
 actions.auth.changePassword.failed.listen(() => {
   notify(t('failed to change password'), 'error');
-});
-
-actions.auth.getEnvironment.listen(function(){
-  dataInterface.environment()
-    .done((data)=>{
-      actions.auth.getEnvironment.completed(data);
-    })
-    .fail(actions.auth.getEnvironment.failed);
-});
-actions.auth.getEnvironment.failed.listen(() => {
-  notify(t('failed to load environment data'), 'error');
 });
 
 actions.auth.getApiToken.listen(() => {
