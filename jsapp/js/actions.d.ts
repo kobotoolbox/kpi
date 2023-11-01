@@ -42,17 +42,6 @@ interface GetProcessingSubmissionsCompletedDefinition extends Function {
   listen: (callback: (response: GetProcessingSubmissionsResponse) => void) => Function;
 }
 
-interface GetEnvironmentDefinition extends Function {
-  (): void;
-  completed: GetEnvironmentCompletedDefinition;
-  failed: GenericFailedDefinition;
-}
-
-interface GetEnvironmentCompletedDefinition extends Function {
-  (response: EnvironmentResponse): void;
-  listen: (callback: (response: EnvironmentResponse) => void) => Function;
-}
-
 interface LoadAssetDefinition extends Function {
   (params: {id: string}): void;
   completed: LoadAssetCompletedDefinition;
@@ -107,7 +96,6 @@ export namespace actions {
       routeUpdate: GenericCallbackDefinition;
     };
     const auth: {
-      getEnvironment: GetEnvironmentDefinition;
       verifyLogin: {
         loggedin: GenericCallbackDefinition;
       };

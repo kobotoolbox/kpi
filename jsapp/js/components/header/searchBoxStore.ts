@@ -35,7 +35,7 @@ class SearchBoxStore {
 
   /** This method is for the SearchBox component. */
   public setSearchPhrase(newVal: string) {
-    if (this.data.searchPhrase !== newVal) {
+    if ((this.data.searchPhrase ?? '').trim() !== newVal.trim()) {
       this.data.searchPhrase = newVal;
     }
   }
