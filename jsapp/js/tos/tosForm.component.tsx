@@ -2,17 +2,28 @@ import React, {useState, useEffect} from 'react';
 import Button from 'js/components/common/button';
 import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
-import {fetchGetUrl, handleApiFail} from 'js/api';
+import {fetchGetUrl, fetchPatch, fetchPost, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
 import type {FailResponse} from 'js/dataInterface';
 import type {TOSGetResponse} from './tos.constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {getInitialAccountFieldsValues} from 'js/account/account.utils';
+import {
+  getInitialAccountFieldsValues,
+  getProfilePatchData,
+} from 'js/account/account.utils';
 import AccountFieldsEditor from 'js/account/accountFieldsEditor.component';
-import type {AccountFieldsValues} from 'js/account/accountFieldsEditor.component';
-import type {UserFieldName} from 'js/account/account.constants';
+import type {
+  AccountFieldsValues,
+  AccountFieldsErrors,
+} from 'js/account/accountFieldsEditor.component';
+import {Json} from 'js/components/common/common.interfaces';
 
-type FieldsErrors = {[name in UserFieldName]?: string | undefined};
+const ME_ENDPOINT = '/me/';
+const TOS_ENDPOINT = '/api/v2/tos/';
+
+interface MePatchFailResponse {
+  extra_details: AccountFieldsErrors;
+}
 
 export default function TOSForm() {
   // Initialize:
@@ -32,8 +43,12 @@ export default function TOSForm() {
 
   const [isFormPending, setIsFormPending] = useState(false);
   const [message, setMessage] = useState<string | undefined>();
-  const [fields, setFields] = useState<AccountFieldsValues>(getInitialAccountFieldsValues());
-  const [fieldsErrors, setFieldsErrors] = useState<FieldsErrors>({});
+  const [fields, setFields] = useState<AccountFieldsValues>(
+    getInitialAccountFieldsValues()
+  );
+  const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({});
+
+  const requiredFields = envStore.data.getUserMetadataRequiredFieldNames();
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -78,10 +93,46 @@ export default function TOSForm() {
     setFields(newFields);
   }
 
-  function submitForm(evt: React.FormEvent<HTMLFormElement>) {
+  /**
+   * Submitting does two things (calls):
+   * 1. Updates user data for all required fields (if any)
+   * 2. Accepts TOS
+   */
+  async function submitForm(evt: React.FormEvent<HTMLFormElement>) {
     evt.preventDefault();
     setIsFormPending(true);
-    console.log('submit!', fields, fieldsErrors);
+
+    let hasAnyErrors = false;
+
+    // If there are no required fields, there is no point doing a call to update
+    // them.
+    if (requiredFields.length > 0) {
+      // Get data for the user endpoint
+      const profilePatchData = getProfilePatchData(fields);
+
+      try {
+        await fetchPatch(ME_ENDPOINT, profilePatchData);
+        // Remove any obsolete errors
+        setFieldsErrors({});
+        hasAnyErrors = false;
+      } catch (err) {
+        const patchFailResult = err as MePatchFailResponse;
+        setFieldsErrors(patchFailResult.extra_details || {});
+        hasAnyErrors = true;
+      }
+    }
+
+    console.log('hasErrors', hasAnyErrors);
+    if (!hasAnyErrors) {
+      try {
+        await fetchPost(TOS_ENDPOINT, {});
+      } catch (err) {
+        const failResult = err as FailResponse;
+        console.log('failed to accept TOS', failResult);
+      }
+    }
+
+    setIsFormPending(false);
   }
 
   function leaveForm() {
@@ -104,18 +155,23 @@ export default function TOSForm() {
         }}
       />
 
-      <section className={styles.metaFields}>
-        <h2 className={styles.fieldsHeader}>
-          {t('Please make sure the following details are filled out correctly:')}
-        </h2>
+      {/* No point displaying the form and header if there are no requied fields */}
+      {requiredFields.length > 0 &&
+        <section className={styles.metaFields}>
+          <h2 className={styles.fieldsHeader}>
+            {t(
+              'Please make sure the following details are filled out correctly:'
+            )}
+          </h2>
 
-        <AccountFieldsEditor
-          displayedFields={envStore.data.getUserMetadataRequiredFieldNames()}
-          errors={fieldsErrors}
-          values={fields}
-          onChange={onAccountFieldsEditorChange}
-        />
-      </section>
+          <AccountFieldsEditor
+            displayedFields={requiredFields}
+            errors={fieldsErrors}
+            values={fields}
+            onChange={onAccountFieldsEditorChange}
+          />
+        </section>
+      }
 
       <footer className={styles.footer}>
         <Button

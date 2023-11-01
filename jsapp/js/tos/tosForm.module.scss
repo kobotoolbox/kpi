@@ -37,10 +37,10 @@
   margin-bottom: sizes.$x24;
 }
 
-.footer {
-  background: lightcoral;
+.footer :global button:not(:last-child) {
+  margin-bottom: sizes.$x6;
 }
 
-.footer :global button[type="submit"] {
+.footer :global button[type='submit'] {
   text-transform: uppercase;
 }
