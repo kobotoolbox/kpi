@@ -252,6 +252,10 @@ export class ListExpandToggle extends React.Component {
     this.listenTo(this.searchStore, this.searchStoreChanged);
   }
 
+  componentWillUnmount() {
+    this.stopListening(this.searchStore, this.searchStoreChanged);
+  }
+
   searchStoreChanged(searchStoreState) {
     this.setState(searchStoreState);
   }
