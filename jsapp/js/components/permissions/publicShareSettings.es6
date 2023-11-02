@@ -5,18 +5,18 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'utils';
-import {
-  ROOT_URL,
-  ANON_USERNAME,
-  PERMISSIONS_CODENAMES,
-} from 'js/constants';
+import {ROOT_URL, ANON_USERNAME, PERMISSIONS_CODENAMES} from 'js/constants';
 
 class PublicShareSettings extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.anonCanViewPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
-    this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url;
+    this.anonCanViewPermUrl = permConfig.getPermissionByCodename(
+      PERMISSIONS_CODENAMES.view_asset
+    ).url;
+    this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(
+      PERMISSIONS_CODENAMES.view_submissions
+    ).url;
   }
   togglePerms(permCodename) {
     const permission = this.props.publicPerms.filter(
@@ -26,21 +26,22 @@ class PublicShareSettings extends React.Component {
     if (permission) {
       actions.permissions.removeAssetPermission(this.props.uid, permission.url);
     } else {
-      actions.permissions.assignAssetPermission(
-        this.props.uid, {
-          user: buildUserUrl(ANON_USERNAME),
-          permission: permConfig.getPermissionByCodename(permCodename).url
-        }
-      );
+      actions.permissions.assignAssetPermission(this.props.uid, {
+        user: buildUserUrl(ANON_USERNAME),
+        permission: permConfig.getPermissionByCodename(permCodename).url,
+      });
     }
   }
-  render () {
+  render() {
     const uid = this.props.uid;
     const url = `${ROOT_URL}/#/forms/${uid}`;
 
-    const anonCanView = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewPermUrl;})[0];
-    console.log('modal', anonCanView ? true : false);
-    const anonCanViewData = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewDataPermUrl;})[0];
+    const anonCanView = this.props.publicPerms.filter((perm) => {
+      return perm.permission === this.anonCanViewPermUrl;
+    })[0];
+    const anonCanViewData = this.props.publicPerms.filter((perm) => {
+      return perm.permission === this.anonCanViewDataPermUrl;
+    })[0];
 
     return (
       <bem.FormModal__item m='permissions'>
@@ -61,7 +62,7 @@ class PublicShareSettings extends React.Component {
           />
         </bem.FormModal__item>
 
-        { this.props.deploymentActive &&
+        {this.props.deploymentActive && (
           <bem.FormModal__item>
             <Checkbox
               checked={anonCanViewData ? true : false}
@@ -69,16 +70,14 @@ class PublicShareSettings extends React.Component {
               label={t('Anyone can view submissions made to this form')}
             />
           </bem.FormModal__item>
-        }
+        )}
 
-        { anonCanView &&
+        {anonCanView && (
           <bem.FormModal__item m='shareable-link'>
-            <label>
-              {t('Shareable link')}
-            </label>
+            <label>{t('Shareable link')}</label>
             <input type='text' value={url} readOnly />
           </bem.FormModal__item>
-        }
+        )}
       </bem.FormModal__item>
     );
   }

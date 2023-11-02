@@ -16,28 +16,23 @@ import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import {
-  MODAL_TYPES,
-  COLLECTION_METHODS,
-  ANON_USERNAME,
-} from '../constants';
+import {MODAL_TYPES, COLLECTION_METHODS, ANON_USERNAME} from '../constants';
 import {ROUTES} from 'js/router/routerConstants';
-import {
-  formatTime,
-  notify,
-  buildUserUrl,
-} from 'utils';
-import {
-  Link,
-} from 'react-router-dom';
+import {formatTime, notify, buildUserUrl} from 'utils';
+import {Link} from 'react-router-dom';
 import {withRouter} from 'js/router/legacy';
-import {userCan, userCanRemoveSharedProject} from 'js/components/permissions/utils';
+import {
+  userCan,
+  userCanRemoveSharedProject,
+} from 'js/components/permissions/utils';
 import permConfig from 'js/components/permissions/permConfig';
-import { PERMISSIONS_CODENAMES } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 // TODO: replace with new endpoint
-const ANON_CAN_VIEW_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
+const ANON_CAN_VIEW_PERM_URL = permConfig.getPermissionByCodename(
+  PERMISSIONS_CODENAMES.view_asset
+).url;
 
 class FormLanding extends React.Component {
   constructor(props) {
@@ -87,7 +82,7 @@ class FormLanding extends React.Component {
     if (this.state.anonymousSubmissions) {
       actions.permissions.removeAssetPermission(
         this.props.params.uid,
-        permission.url,
+        permission.url
       );
     } else {
       actions.permissions.assignAssetPermission(this.props.params.uid, {
@@ -421,7 +416,9 @@ class FormLanding extends React.Component {
               </ol>
             )}
           </bem.FormView__cell>
-          <bem.FormView__cell m={['padding', 'anonymous-submissions', 'bordertop']}>
+          <bem.FormView__cell
+            m={['padding', 'anonymous-submissions', 'bordertop']}
+          >
             <Checkbox
               checked={this.state.anonymousSubmissions}
               onChange={() => this.updateAssetAnonymousSubmissions()}
@@ -736,7 +733,7 @@ reactMixin(FormLanding.prototype, mixins.dmix);
 reactMixin(FormLanding.prototype, Reflux.ListenerMixin);
 
 FormLanding.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.object,
 };
 
 export default withRouter(FormLanding);
