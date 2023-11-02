@@ -83,8 +83,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    */
   function isFieldToBeDisplayed(name: UserFieldName) {
     return (
+      // Check if field is enabled by Back-end configuration
       name in metadata &&
-      (!props.displayedFields || props.displayedFields.includes(name))
+      // Check if parent code is not limiting displayed fields to a selection
+      (!props.displayedFields ||
+        // Check if parent code is limiting displayed fields to a selection, and
+        // that selection includes the field
+        props.displayedFields.includes(name))
     );
   }
 
