@@ -2,6 +2,7 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use 'js/components/common/button';
+@use 'js/components/common/textBox.module';
 
 $k-select-option-height: sizes.$x36;
 $k-select-menu-padding: sizes.$x6;
@@ -145,7 +146,7 @@ $k-select-menu-padding: sizes.$x6;
   background-color: transparent;
   border: 0;
   padding: 0;
-  font-size: inherit;
+  font-size: sizes.$x14;
 
   &:focus-visible {
     // wrapper element is handling that
@@ -290,6 +291,14 @@ $k-select-menu-padding: sizes.$x6;
   .k-select__trigger .k-icon {
     color: colors.$kobo-gray-85;
   }
+}
+
+// This needs to have stronger specificity because of `.form-modal__item`
+.k-select label.k-select__label {
+  color: colors.$kobo-gray-24;
+  font-size: sizes.$x12;
+  line-height: textBox.$label-leading;
+  margin-bottom: textBox.$label-margin;
 }
 
 // Sets the different sizes for given size of a trigger button.
