@@ -109,6 +109,21 @@ $k-select-menu-padding: sizes.$x6;
   margin-top: sizes.$x6;
 }
 
+.k-select.k-select--has-error {
+  &.k-select--type-outline {
+    .k-select__trigger {
+      border-color: colors.$kobo-red;
+    }
+  }
+
+  &.k-select--type-blue,
+  &.k-select--type-gray {
+    .k-select__trigger {
+      background-color: colors.$kobo-light-red;
+    }
+  }
+}
+
 .k-select__option {
   font-weight: 500;
 

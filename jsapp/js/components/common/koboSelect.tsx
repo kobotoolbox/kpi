@@ -326,6 +326,10 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       modifiers.push('is-menu-visible');
     }
 
+    if (this.props.error) {
+      modifiers.push('has-error');
+    }
+
     return (
       <bem.KoboSelect m={modifiers}>
         <KoboDropdown
