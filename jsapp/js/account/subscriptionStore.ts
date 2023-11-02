@@ -1,5 +1,5 @@
 import {makeAutoObservable} from 'mobx';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import {ACTIVE_STRIPE_STATUSES, ROOT_URL} from 'js/constants';
 import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
@@ -36,7 +36,10 @@ class SubscriptionStore {
       .done(this.onFetchSubscriptionInfoDone.bind(this))
       .fail((response) => {
         this.isPending = false;
-        handleApiFail(response, t('There was an issue fetching your plan information.'));
+        handleApiFail(
+          response,
+          t('There was an issue fetching your plan information.')
+        );
       });
   }
 

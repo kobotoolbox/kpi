@@ -2,7 +2,53 @@
 import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
-import {handleApiFail} from 'js/utils';
+import {notify} from 'js/utils';
+
+/**
+ * Useful for handling the fail responses from API. Its main goal is to display
+ * a helpful error toast notification and to pass the error message to Raven.
+ *
+ * It can detect if we got HTML string as response and uses a generic message
+ * instead of spitting it out. The error message displayed to the user can be
+ * customized using the optional toastMessage argument.
+ */
+export function handleApiFail(response: FailResponse, toastMessage?: string) {
+  // Avoid displaying toast when purposefuly aborted a request
+  if (response.status === 0 && response.statusText === 'abort') {
+    return;
+  }
+
+  let message = response.responseText;
+
+  // Detect if response is HTML code string
+  if (
+    typeof message === 'string' &&
+    message.includes('</html>') &&
+    message.includes('</body>')
+  ) {
+    // Try plucking the useful error message from the HTML string - this works
+    // for Werkzeug Debugger only. It is being used on development environment,
+    // on production this would most probably result in undefined message (and
+    // thus falling back to the generic message below).
+    const htmlDoc = new DOMParser().parseFromString(message, 'text/html');
+    message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
+  }
+
+  if (!message) {
+    message = t('An error occurred');
+    if (response.status || response.statusText) {
+      message += ` — ${response.status} ${response.statusText}`;
+    } else if (!window.navigator.onLine) {
+      // another general case — the original fetch response.message might have
+      // something more useful to say.
+      message += ' — ' + t('Your connection is offline');
+    }
+  }
+
+  notify.error(toastMessage || message);
+
+  window.Raven?.captureMessage(message);
+}
 
 const JSON_HEADER = 'application/json';
 

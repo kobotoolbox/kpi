@@ -13,7 +13,6 @@ import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
-import type {FailResponse} from './dataInterface';
 import type Raven from 'raven';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
@@ -83,52 +82,6 @@ notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
   notify(msg, 'success', opts);
 
 export {notify};
-
-/**
- * Useful for handling the fail responses from API. Its main goal is to display
- * a helpful error toast notification and to pass the error message to Raven.
- *
- * It can detect if we got HTML string as response and uses a generic message
- * instead of spitting it out. The error message displayed to the user can be
- * customized using the optional toastMessage argument.
- */
-export function handleApiFail(response: FailResponse, toastMessage?: string) {
-  // Avoid displaying toast when purposefuly aborted a request
-  if (response.status === 0 && response.statusText === 'abort') {
-    return;
-  }
-
-  let message = response.responseText;
-
-  // Detect if response is HTML code string
-  if (
-    typeof message === 'string' &&
-    message.includes('</html>') &&
-    message.includes('</body>')
-  ) {
-    // Try plucking the useful error message from the HTML string - this works
-    // for Werkzeug Debugger only. It is being used on development environment,
-    // on production this would most probably result in undefined message (and
-    // thus falling back to the generic message below).
-    const htmlDoc = new DOMParser().parseFromString(message, 'text/html');
-    message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
-  }
-
-  if (!message) {
-    message = t('An error occurred');
-    if (response.status || response.statusText) {
-      message += ` — ${response.status} ${response.statusText}`;
-    } else if (!window.navigator.onLine) {
-      // another general case — the original fetch response.message might have
-      // something more useful to say.
-      message += ' — ' + t('Your connection is offline');
-    }
-  }
-
-  notify.error(toastMessage || message);
-
-  window.Raven?.captureMessage(message);
-}
 
 /**
  * Returns a copy of arr with separator inserted in every other place.
@@ -258,31 +211,6 @@ export const log = (function () {
 })();
 window.log = log;
 
-const originalSupportEmail = 'help@kobotoolbox.org';
-
-// use this utility function to replace hardcoded email in transifex translations
-//
-// TODO: make this use environment endpoint's `support_email` property.
-// Currently no place is using this correctly.
-// See: https://github.com/kobotoolbox/kpi/issues/3910
-export function replaceSupportEmail(str: string, newEmail?: string): string {
-  if (typeof newEmail === 'string') {
-    return str.replace(originalSupportEmail, newEmail);
-  } else {
-    return str;
-  }
-}
-
-// returns an HTML string where [bracket] notation is replaced with a hyperlink
-export function replaceBracketsWithLink(str: string, url?: string): string {
-  const bracketRegex = /\[([^\]]+)\]/g;
-  if (!url) {
-    return str.replace(bracketRegex, '$1');
-  }
-  const linkHtml = `<a href="${url}" target="_blank">$1</a>`;
-  return str.replace(bracketRegex, linkHtml);
-}
-
 export function currentLang(): string {
   return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
 }
@@ -322,14 +250,6 @@ export function getLangString(obj: LangObject): string | undefined {
   } else {
     return undefined;
   }
-}
-
-export function addRequiredToLabel(label: string, isRequired = true): string {
-  if (!isRequired) {
-    return label;
-  }
-  const requiredTemplate = t('##field_label## (required)');
-  return requiredTemplate.replace('##field_label##', label);
 }
 
 export function stringToColor(str: string, prc?: number) {
@@ -413,12 +333,6 @@ export function renderCheckbox(id: string, label: string, isImportant = false) {
   return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}" data-cy="checkbox"><span class="checkbox__label">${label}</span></label></div>`;
 }
 
-export function hasLongWords(text: string, limit = 25): boolean {
-  const textArr = text.split(' ');
-  const maxLength = Math.max(...textArr.map((el) => el.length));
-  return maxLength >= limit;
-}
-
 export function hasVerticalScrollbar(element: HTMLElement): boolean {
   return element.scrollHeight > element.offsetHeight;
 }
@@ -450,10 +364,6 @@ export function getScrollbarWidth(): number {
   }
 
   return scrollbarWidth;
-}
-
-export function toTitleCase(str: string): string {
-  return str.replace(/(^|\s)\S/g, (t) => t.toUpperCase());
 }
 
 export function launchPrinting() {
