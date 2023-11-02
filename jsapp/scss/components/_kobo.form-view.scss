@@ -667,8 +667,13 @@ $side-tabs-width-mobile: 70px;
 
 .form-view__cell--anonymous-submissions {
   display: flex;
-  .anonymous-submissions {
-    padding: 0 10px 0 10px;
+
+  .checkbox {
+    padding-right: 8px;
+  }
+
+  .checkbox__label {
+    max-width: 100%;
   }
 }
 
