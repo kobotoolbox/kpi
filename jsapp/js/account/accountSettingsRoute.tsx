@@ -7,14 +7,14 @@ import './accountSettings.scss';
 import {notify, stringToColor} from 'js/utils';
 import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
-import type {
-  AccountFieldsValues,
-  AccountFieldsErrors,
-} from './accountFieldsEditor.component';
 import {
   getInitialAccountFieldsValues,
   getProfilePatchData,
 } from './account.utils';
+import type {
+  AccountFieldsValues,
+  AccountFieldsErrors,
+} from './account.constants';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');

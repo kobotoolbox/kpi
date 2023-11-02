@@ -5,7 +5,11 @@ import {addRequiredToLabel} from 'js/textUtils';
 import envStore from '../envStore';
 import styles from './accountFieldsEditor.module.scss';
 import KoboSelect from 'js/components/common/koboSelect';
-import type {UserFieldName} from './account.constants';
+import type {
+  UserFieldName,
+  AccountFieldsValues,
+  AccountFieldsErrors,
+} from './account.constants';
 
 const genderSelectOptions = [
   {value: 'male', label: t('Male')},
@@ -14,23 +18,6 @@ const genderSelectOptions = [
 ];
 
 type UserFieldValue = string | boolean;
-
-export interface AccountFieldsValues {
-  name: string;
-  organization: string;
-  organization_website: string;
-  sector: string;
-  gender: string;
-  bio: string;
-  city: string;
-  country: string;
-  require_auth: boolean;
-  twitter: string;
-  linkedin: string;
-  instagram: string;
-}
-
-export type AccountFieldsErrors = {[name in UserFieldName]?: string};
 
 interface AccountFieldsEditorProps {
   /**
