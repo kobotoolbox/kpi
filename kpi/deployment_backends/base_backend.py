@@ -284,6 +284,10 @@ class BaseDeploymentBackend(abc.ABC):
 
         self.store_data(updates)
         self.asset.set_deployment_status()
+
+        # never save `_stored_data_key` attribute
+        updates.pop('_stored_data_key', None)
+
         self.asset.__class__.objects.filter(id=self.asset.pk).update(
             _deployment_data=UpdateJSONFieldAttributes(
                 '_deployment_data',
@@ -327,6 +331,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def store_data(self, values: dict):
         """ Saves in memory only; writes nothing to the database """
+        values = copy.deepcopy(values)
         self.__stored_data_key = ShortUUID().random(24)
         values['_stored_data_key'] = self.__stored_data_key
         self.asset._deployment_data.update(values)  # noqa

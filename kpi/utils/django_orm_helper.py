@@ -77,6 +77,32 @@ class OrderCustomCharField(Func):
         super().__init__(expression, order_list=order_list, **extra)
 
 
+class RemoveJSONFieldAttribute(Func):
+
+    """
+    Remove attribute from models.JSONField. It supports nested attributes by
+    targeting the attribute with its dotted path.
+    E.g., to remove `foo1` in `{"foo": {"foo1": "bar1", "foo2": "bar2"}}`,
+    `foo.foo1` should be passed as `attribute_dotted_path` parameter.
+    """
+
+    arg_joiner = ' #- '
+    template = "%(expressions)s"
+    arity = 2
+
+    def __init__(
+        self,
+        expression: str,
+        attribute_dotted_path: str,
+        **extra,
+    ):
+        super().__init__(
+            expression,
+            Value(f"{{{attribute_dotted_path.replace('.', ',')}}}"),
+            **extra,
+        )
+
+
 class UpdateJSONFieldAttributes(Func):
     """
     Updates several attributes at once of a models.JSONField without overwriting

@@ -879,7 +879,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self.save_to_db({'enketo_id': enketo_id})
 
         if self.xform.require_auth:
-            self.set_enketo_open_rosa_server(require_auth=True, enketo_id=enketo_id)
+            # Unfortunately, EE creates unique ID based on OpenRosa server URL.
+            # Thus, we need to always generated the ID with the same URL
+            # (i.e.: with username) to be retro-compatible and then,
+            # overwrite the OpenRosa server URL again.
+            self.set_enketo_open_rosa_server(
+                require_auth=True, enketo_id=enketo_id
+            )
 
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try:
