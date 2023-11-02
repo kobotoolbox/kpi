@@ -24,7 +24,7 @@ from kpi.constants import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
 
 class BaseDeploymentBackend(abc.ABC):
@@ -285,7 +285,7 @@ class BaseDeploymentBackend(abc.ABC):
         self.store_data(updates)
         self.asset.set_deployment_status()
         self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=ReplaceValues(
+            _deployment_data=UpdateJSONFieldAttributes(
                 '_deployment_data',
                 updates=updates,
             ),

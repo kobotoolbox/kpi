@@ -77,10 +77,10 @@ class OrderCustomCharField(Func):
         super().__init__(expression, order_list=order_list, **extra)
 
 
-class ReplaceValues(Func):
+class UpdateJSONFieldAttributes(Func):
     """
-    Updates several properties at once of a models.JSONField without overwriting the
-    whole document.
+    Updates several attributes at once of a models.JSONField without overwriting
+    the whole document.
     Avoids race conditions when document is saved in two different transactions
     at the same time. (i.e.: `Asset._deployment['status']`)
     https://www.postgresql.org/docs/current/functions-json.html
