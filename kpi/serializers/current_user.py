@@ -38,6 +38,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         source='socialaccount_set', many=True, read_only=True
     )
     validated_password = serializers.SerializerMethodField()
+    accepted_tos = serializers.BooleanField(default=False)
 
     class Meta:
         model = User
@@ -58,9 +59,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'new_password',
             'git_rev',
             'social_accounts',
-            'validated_password'
+            'validated_password',
+            'accepted_tos',
         )
-        read_only_fields = ('email',)
+        read_only_fields = (
+            'email',
+            'accepted_tos',
+        )
 
     def get_server_time(self, obj):
         # Currently unused on the front end
