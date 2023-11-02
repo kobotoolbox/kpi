@@ -108,7 +108,9 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
               value={props.values.name}
               errors={props.errors?.name}
-              placeholder={t('Use this to display your real name to other users')}
+              placeholder={t(
+                'Use this to display your real name to other users'
+              )}
             />
           </div>
         )}
@@ -274,7 +276,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                   startIcon='logo-instagram'
                   placeholder={getLabel('instagram')}
                   value={props.values.instagram}
-                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'instagram')}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    'instagram'
+                  )}
                   errors={props.errors?.instagram}
                 />
               </div>
