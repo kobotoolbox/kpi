@@ -11,14 +11,9 @@ import {
   isAddonProduct,
   isChangeScheduled,
   isRecurringAddonProduct,
-  processChangePlanResponse,
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
-import {
-  changeSubscription,
-  postCheckout,
-  postCustomerPortal,
-} from 'js/account/stripe.api';
+import {postCustomerPortal} from 'js/account/stripe.api';
 import styles from './addOnList.module.scss';
 import PlanButton from 'js/account/plans/planButton.component';
 
@@ -27,6 +22,7 @@ const AddOnList = (props: {
   organization: Organization | null;
   isBusy: boolean;
   setIsBusy: (value: boolean) => void;
+  buyAddOn: (price: BasePrice) => void;
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>(
     []
@@ -92,32 +88,6 @@ const AddOnList = (props: {
       .catch(handleCheckoutError);
   };
 
-  const purchaseAddOn = (price: BasePrice) => {
-    if (!props.organization || props.isBusy) {
-      return;
-    }
-    props.setIsBusy(true);
-    if (activeSubscriptions.length) {
-      if (
-        activeSubscriptions[0].items[0].price.product.metadata.product_type ===
-        'addon'
-      ) {
-        // if the user's subscription is for a recurring add-on, send them to the customer portal to change products
-        manageAddOn(price);
-      } else {
-        // if the user's subscription is for a plan, open a modal to confirm the change
-        changeSubscription(price.id, activeSubscriptions[0].id)
-          .then(processChangePlanResponse)
-          .catch(handleCheckoutError);
-      }
-    } else {
-      // if the user doesn't currently have a subscription, just send them to Stripe checkout
-      postCheckout(price.id, props.organization.id)
-        .then(processCheckoutResponse)
-        .catch(handleCheckoutError);
-    }
-  };
-
   if (!addOnProducts.length || subscribedPlans.length || !props.organization) {
     return null;
   }
@@ -128,7 +98,7 @@ const AddOnList = (props: {
         <label className={styles.header}>{t('available add-ons')}</label>
         <p>
           {t(
-            `Add-ons can be added to your plan to increase your usage limits. If you are approaching or
+            `Add-ons can be added to your Community plan to increase your usage limits. If you are approaching or
             have reached the usage limits included with your plan, increase your limits with add-ons to continue
             data collection.`
           )}
@@ -160,7 +130,7 @@ const AddOnList = (props: {
                     size={'m'}
                     label={t('buy now')}
                     isDisabled={props.isBusy}
-                    onClick={() => purchaseAddOn(price)}
+                    onClick={() => props.buyAddOn(price)}
                     isFullWidth
                   />
                 )}

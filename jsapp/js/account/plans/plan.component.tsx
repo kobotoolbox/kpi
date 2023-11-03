@@ -36,6 +36,8 @@ import type {
   SubscriptionInfo,
 } from 'js/account/stripe.types';
 import PlanButton from 'js/account/plans/planButton.component';
+import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
+import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 
 interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
@@ -117,6 +119,12 @@ export default function Plan() {
   const [activeSubscriptions, setActiveSubscriptions] = useState<
     SubscriptionInfo[]
   >([]);
+  const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
+    price: null,
+    products: [],
+    subscription: null,
+  });
+
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const navigate = useNavigate();
@@ -341,16 +349,36 @@ export default function Plan() {
     [state.subscribedProduct, state.organization, state.products]
   );
 
-  const upgradePlan = (price: BasePrice) => {
+  const dismissConfirmModal = () => {
+    setConfirmModal((prevState) => {
+      return {...prevState, price: null, subscription: null};
+    });
+    setIsBusy(false);
+  };
+
+  const buySubscription = (price: BasePrice) => {
     if (!price.id || isBusy || !state.organization?.id) {
       return;
     }
     setIsBusy(true);
     if (activeSubscriptions.length) {
-      // if the user has active subscriptions, send them to the customer portal to change to the new price
-      postCustomerPortal(state.organization.id, price.id)
-        .then(processCheckoutResponse)
-        .catch(() => setIsBusy(false));
+      if (
+        activeSubscriptions[0].items[0].price.unit_amount < price.unit_amount
+      ) {
+        // if the user is upgrading prices, send them to the customer portal
+        // this will immediately change their subscription
+        postCustomerPortal(state.organization.id, price.id)
+          .then(processCheckoutResponse)
+          .catch(() => setIsBusy(false));
+      } else {
+        // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
+        // this will downgrade the subscription at the end of the current billing period
+        setConfirmModal({
+          products: state.products,
+          price: price,
+          subscription: activeSubscriptions[0],
+        });
+      }
     } else {
       // just send the user to the checkout page
       postCheckout(price.id, state.organization.id)
@@ -359,7 +387,7 @@ export default function Plan() {
     }
   };
 
-  const managePlan = (price?: BasePrice) => {
+  const manageSubscription = (price?: BasePrice) => {
     if (!state.organization?.id || isBusy) {
       return;
     }
@@ -586,7 +614,7 @@ export default function Plan() {
                       price.prices.unit_amount > 0 && (
                         <PlanButton
                           label={t('Upgrade')}
-                          onClick={() => upgradePlan(price.prices)}
+                          onClick={() => buySubscription(price.prices)}
                           aria-label={`upgrade to ${price.name}`}
                           aria-disabled={isBusy}
                           isDisabled={isBusy}
@@ -597,7 +625,7 @@ export default function Plan() {
                       price.prices.unit_amount > 0 && (
                         <PlanButton
                           label={t('Manage')}
-                          onClick={managePlan}
+                          onClick={manageSubscription}
                           aria-label={`manage your ${price.name} subscription`}
                           aria-disabled={isBusy}
                           isDisabled={isBusy}
@@ -608,7 +636,7 @@ export default function Plan() {
                       price.prices.unit_amount > 0 && (
                         <PlanButton
                           label={t('Change plan')}
-                          onClick={() => managePlan(price.prices)}
+                          onClick={() => buySubscription(price.prices)}
                           aria-label={`change your subscription to ${price.name}`}
                           aria-disabled={isBusy}
                           isDisabled={isBusy}
@@ -683,6 +711,11 @@ export default function Plan() {
             setIsBusy={setIsBusy}
             products={state.products}
             organization={state.organization}
+            buyAddOn={buySubscription}
+          />
+          <ConfirmChangeModal
+            toggleModal={dismissConfirmModal}
+            {...confirmModal}
           />
         </div>
       )}
