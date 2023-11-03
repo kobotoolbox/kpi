@@ -1,5 +1,3 @@
-import http
-
 import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -299,8 +297,9 @@ class CustomerPortalView(APIView):
 
         portal_kwargs = {}
 
-        # if we're generating a portal link for an add-on, generate a custom portal configuration
-        if price and price.product.metadata['product_type'] == 'addon':
+        # if we're generating a portal link for a price change, find or generate a matching portal configuration
+        if price:
+            current_config = None
             all_configs = stripe.billing_portal.Configuration.list(
                 api_key=djstripe_settings.STRIPE_SECRET_KEY,
                 limit=100,
@@ -309,18 +308,22 @@ class CustomerPortalView(APIView):
             if not len(all_configs):
                 return Response({'error': "Missing Stripe billing configuration."}, status=status.HTTP_502_BAD_GATEWAY)
 
-            # get the portal configuration that lets us switch to the provided price
-            current_config = next(
-                (config for config in all_configs if (
-                        config['active'] and
-                        config['livemode'] == settings.STRIPE_LIVE_MODE and
-                        config['metadata'].get('portal_price', None) == price.id
-                )), None
-            )
+            if price.product.metadata['product_type'] == 'addon':
+                """
+                Recurring add-ons aren't included in the default billing configuration.
+                This lets us hide them as an 'upgrade' option for paid plan users.
+                Here, we try getting the portal configuration that lets us switch to the provided price.
+                """
+                current_config = next(
+                    (config for config in all_configs if (
+                            config['active'] and
+                            config['livemode'] == settings.STRIPE_LIVE_MODE and
+                            config['metadata'].get('portal_price', None) == price.id
+                    )), None
+                )
 
-            # we couldn't find the right configuration, let's try making a new one
             if not current_config:
-                # get the active default configuration
+                # get the active default configuration - we'll use this if our product is a 'plan'
                 current_config = next(
                     (config for config in all_configs if (
                         config['is_default'] and
@@ -328,23 +331,28 @@ class CustomerPortalView(APIView):
                         config['livemode'] == settings.STRIPE_LIVE_MODE
                     )), None
                 )
-                # add the price we're switching into to the list of prices that allow subscription updates
-                new_product = [
-                    {
-                        'prices': [price.id],
-                        'product': price.product.id,
-                    },
-                ]
-                current_config['features']['subscription_update']['products'].append(new_product)
-                # create the billing configuration on Stripe, so it's ready when we send the customer to check out
-                current_config = stripe.billing_portal.Configuration.create(
-                    api_key=djstripe_settings.STRIPE_SECRET_KEY,
-                    business_profile=current_config['business_profile'],
-                    features=current_config['features'],
-                    metadata={
-                        'portal_price': price.id,
-                    }
-                )
+
+                if price.product.metadata['product_type'] == 'addon':
+                    """
+                    we couldn't find a custom configuration, let's try making a new one
+                    add the price we're switching into to the list of prices that allow subscription updates
+                    """
+                    new_products = [
+                        {
+                            'prices': [price.id],
+                            'product': price.product.id,
+                        },
+                    ]
+                    current_config['features']['subscription_update']['products'] = new_products
+                    # create the billing configuration on Stripe, so it's ready when we send the customer to check out
+                    current_config = stripe.billing_portal.Configuration.create(
+                        api_key=djstripe_settings.STRIPE_SECRET_KEY,
+                        business_profile=current_config['business_profile'],
+                        features=current_config['features'],
+                        metadata={
+                            'portal_price': price.id,
+                        }
+                    )
 
             portal_kwargs = {
                 'configuration': current_config['id'],
@@ -358,7 +366,13 @@ class CustomerPortalView(APIView):
                             },
                         ],
                         'subscription': customer['subscriptions__id'],
-                    }
+                    },
+                    'after_completion': {
+                        'type': 'redirect',
+                        'redirect': {
+                            'return_url': f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+                        },
+                    },
                 },
             }
 
