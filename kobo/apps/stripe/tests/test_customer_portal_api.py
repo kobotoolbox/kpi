@@ -56,9 +56,10 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         url = self._get_url_for_expected_request()
         list_config.return_value = [
             {
-                'metadata': {
-                    'portal_price': self.price.id,
-                },
+                'id': 'test config',
+                'is_default': True,
+                'active': True,
+                'livemode': False,
             },
         ]
         response = self.client.post(url)
