@@ -15,6 +15,12 @@ $k-select-menu-padding: sizes.$x6;
   }
 }
 
+// Focus styles for the trigger. The element getting actual focus here is the
+// trigger from KoboDropdown, so we need this long selector
+.k-select .kobo-dropdown__trigger:focus-visible .k-select__trigger {
+  @include mixins.default-ui-focus;
+}
+
 .k-select__trigger {
   @include mixins.centerRowFlex;
   justify-content: space-between;
@@ -127,11 +133,18 @@ $k-select-menu-padding: sizes.$x6;
 
 .k-select__option {
   font-weight: 500;
+  position: relative;
 
-  &:hover ,
+  &:hover,
   &.k-select__option--selected {
     color: colors.$kobo-gray-24;
     background-color: colors.$kobo-gray-96;
+  }
+
+  &:focus-visible {
+    @include mixins.default-ui-focus;
+    // Needed so that option--selected never appears above focus styles
+    z-index: 1;
   }
 }
 
