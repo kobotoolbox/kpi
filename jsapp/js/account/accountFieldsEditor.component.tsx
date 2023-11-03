@@ -11,7 +11,7 @@ import type {
   AccountFieldsErrors,
 } from './account.constants';
 
-const genderSelectOptions = [
+const GENDER_SELECT_OPTIONS = [
   {value: 'male', label: t('Male')},
   {value: 'female', label: t('Female')},
   {value: 'other', label: t('Other')},
@@ -129,7 +129,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               onChange={(value: string | null) =>
                 onAnyFieldChange('gender', value || '')
               }
-              options={genderSelectOptions}
+              options={GENDER_SELECT_OPTIONS}
               error={props.errors?.gender}
             />
           </div>
