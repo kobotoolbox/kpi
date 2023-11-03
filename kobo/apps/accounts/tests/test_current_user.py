@@ -124,3 +124,18 @@ class CurrentUserAPITestCase(APITestCase):
         assert self.user.extra_details.validated_password
         assert self.user.extra_details.password_date_changed is not None
         assert self.user.extra_details.password_date_changed >= now
+
+    def test_accepted_tos(self):
+        # Ensure accepted_tos is initially False
+        response = self.client.get(self.url)
+        assert response.data['accepted_tos'] == False
+
+        # Submit a ToS acceptance request and save the current time
+        response = self.client.post(reverse('tos'))
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.user.refresh_from_db()
+        assert self.user.extra_details.private_data['current_time'] is not None
+
+        # Ensure accepted_tos is now True after accepting ToS
+        response = self.client.get(self.url)
+        assert response.data['accepted_tos'] == True

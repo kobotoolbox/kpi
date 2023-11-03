@@ -38,7 +38,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         source='socialaccount_set', many=True, read_only=True
     )
     validated_password = serializers.SerializerMethodField()
-    accepted_tos = serializers.BooleanField(default=False)
+    accepted_tos = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -102,6 +102,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return True
 
         return extra_details.validated_password
+
+    def get_accepted_tos(self, obj):
+        request_details = self.context['request'].user.extra_details
+        obj.accepted_tos = 'current_time' in request_details.private_data.keys()
+        return obj.accepted_tos
 
     def to_representation(self, obj):
         if obj.is_anonymous:
