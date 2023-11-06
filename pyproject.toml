@@ -10,11 +10,12 @@ known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
 
 [tool.mypy]
+# Exclude virtual environment projects that cause mypy to error
 exclude = [
-    "env/src/django-digest",
-    "env/src/formpack",
-    "env/src/kobo-service-account",
-    "env/src/python-digest"
+    "src/django-digest",
+    "src/formpack",
+    "src/kobo-service-account",
+    "src/python-digest"
 ]
 [tool.django-stubs]
 django_settings_module = "kobo.settings"
