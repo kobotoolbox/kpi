@@ -104,6 +104,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return extra_details.validated_password
 
     def get_accepted_tos(self, obj: User) -> bool:
+        """
+        Verifies user acceptance of terms of service (tos) by checking that the tos
+        endpoint was called and stored the current time in the `private_data` property
+        """
         try:
             user_extra_details = obj.extra_details
         except obj.extra_details.RelatedObjectDoesNotExist:
