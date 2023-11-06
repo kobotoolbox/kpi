@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import cx from 'classnames';
 
-import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
@@ -59,7 +58,10 @@ const ConfirmChangeModal = ({
       const product = getProductForPrice(price);
       if (price && product) {
         if (isAddonProduct(product)) {
-          return t('a storage add-on');
+          return t('the ##add_on_name## add-on').replace(
+            '##add_on_name##',
+            product.name
+          );
         }
         if (price.recurring?.interval === 'month') {
           return t('the monthly ##plan_name## plan').replace(
@@ -120,10 +122,6 @@ const ConfirmChangeModal = ({
       <KoboModalContent>
         <section className={cx(styles.loading, {hidden: !isLoading})}>
           <LoadingSpinner message={t('Processing your transaction...')} />
-          <InlineMessage
-            message={t("Please don't navigate away from this page.")}
-            type={'default'}
-          />
         </section>
         <section hidden={isLoading}>
           {price?.recurring &&
@@ -151,17 +149,14 @@ const ConfirmChangeModal = ({
                 </p>
                 <p>
                   {t(
-                    `Your old ##old_product_type## cost ##old_price## per ##interval##.
-                      Any remainder from the ##old_product_type## for the current ##interval## will be prorated
-                      as a credit and the cost for the new ##new_product_type## will be charged prorated
-                      for the remainder of this ##interval##.`
+                    'Your old ##product_type## cost ##price## per ##interval##.'
                   )
                     .replace(
-                      /##old_product_type##/g,
+                      /##product_type##/g,
                       getPriceType(subscription.items[0].price)
                     )
                     .replace(
-                      '##old_price##',
+                      '##price##',
                       subscription.items[0].price.human_readable_price.split(
                         '/'
                       )[0]
@@ -169,10 +164,7 @@ const ConfirmChangeModal = ({
                     .replace(
                       /##interval##/g,
                       subscription.items[0].price.recurring.interval
-                    )
-                    .replace('##new_product_type##', getPriceType(price))}
-                </p>
-                <p>
+                    )}{' '}
                   {t(
                     `Starting on ##billing_end_date## and until you cancel,
                       we will bill you ##new_price## per ##interval##.`
