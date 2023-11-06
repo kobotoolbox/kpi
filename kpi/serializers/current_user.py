@@ -105,8 +105,8 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_accepted_tos(self, obj):
         request_details = self.context['request'].user.extra_details
-        obj.accepted_tos = 'current_time' in request_details.private_data.keys()
-        return obj.accepted_tos
+        accepted_tos = 'current_time' in request_details.private_data.keys()
+        return accepted_tos
 
     def to_representation(self, obj):
         if obj.is_anonymous:
