@@ -133,10 +133,13 @@ const ConfirmChangeModal = ({
                   {t(
                     'You are switching from ##old_product_type## to ##new_product_type##.'
                   )
-                    .replace('##old_product_type##', getPriceDescription(price))
+                    .replace(
+                      '##old_product_type##',
+                      getPriceDescription(subscription.items[0].price)
+                    )
                     .replace(
                       '##new_product_type##',
-                      getPriceDescription(subscription.items[0].price)
+                      getPriceDescription(price)
                     )}
                   {price.metadata['product_type'] === 'plan' &&
                     subscription?.items[0].price.product.metadata[
@@ -153,7 +156,10 @@ const ConfirmChangeModal = ({
                       as a credit and the cost for the new ##new_product_type## will be charged prorated
                       for the remainder of this ##interval##.`
                   )
-                    .replace(/##old_product_type##/g, getPriceType(price))
+                    .replace(
+                      /##old_product_type##/g,
+                      getPriceType(subscription.items[0].price)
+                    )
                     .replace(
                       '##old_price##',
                       subscription.items[0].price.human_readable_price.split(
@@ -164,10 +170,7 @@ const ConfirmChangeModal = ({
                       /##interval##/g,
                       subscription.items[0].price.recurring.interval
                     )
-                    .replace(
-                      '##new_product_type##',
-                      getPriceType(subscription.items[0].price)
-                    )}
+                    .replace('##new_product_type##', getPriceType(price))}
                 </p>
                 <p>
                   {t(
