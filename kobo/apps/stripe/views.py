@@ -308,7 +308,9 @@ class CustomerPortalView(APIView):
             if not len(all_configs):
                 return Response({'error': "Missing Stripe billing configuration."}, status=status.HTTP_502_BAD_GATEWAY)
 
-            if price.product.metadata['product_type'] == 'addon':
+            is_price_for_addon = price.product.metadata.get('product_type', '') == 'addon'
+
+            if is_price_for_addon:
                 """
                 Recurring add-ons aren't included in the default billing configuration.
                 This lets us hide them as an 'upgrade' option for paid plan users.
@@ -318,7 +320,7 @@ class CustomerPortalView(APIView):
                     (config for config in all_configs if (
                             config['active'] and
                             config['livemode'] == settings.STRIPE_LIVE_MODE and
-                            config['metadata'].get('portal_price', None) == price.id
+                            config['metadata'].get('portal_price', '') == price.id
                     )), None
                 )
 
@@ -332,7 +334,7 @@ class CustomerPortalView(APIView):
                     )), None
                 )
 
-                if price.product.metadata['product_type'] == 'addon':
+                if is_price_for_addon:
                     """
                     we couldn't find a custom configuration, let's try making a new one
                     add the price we're switching into to the list of prices that allow subscription updates
@@ -387,7 +389,7 @@ class CustomerPortalView(APIView):
     def post(self, request):
         serializer = CustomerPortalSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        organization_id = serializer.validated_data['organization_id']
+        organization_id = serializer.validated_data.get('organization_id', None)
         price = serializer.validated_data.get('price_id', None)
         response = self.generate_portal_link(request.user, organization_id, price)
         return response
