@@ -10,7 +10,6 @@ from kpi.views import home, browser_tests, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
-from kpi.views.tos import TOSView
 
 from .router_api_v1 import router_api_v1
 from .router_api_v2 import router_api_v2, URL_NAMESPACE
@@ -46,7 +45,6 @@ urlpatterns = [
     path('jsi18n/', JavaScriptCatalog.as_view(),
          name='javascript-catalog'),
     path('token/', TokenView.as_view(), name='token'),
-    path('me/tos/', TOSView.as_view(), name='tos'),
     path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.content_view, name='configurationfile'),
