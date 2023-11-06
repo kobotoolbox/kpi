@@ -26,22 +26,9 @@ interface MePatchFailResponse {
   };
 }
 
+// TODO: this needs more comments
 export default function TOSForm() {
-  // Initialize:
-  // 1. get required fields from envStore
-  // 2. get data for fields from session store
-  // 3. get tos text from new endpoint
-
-  // endpoint:
-  // https://kobo-tos.free.beeceptor.com/
-  // GET --> TOSResponse
-  // POST --> TOSPostResponse
-
-  // when submitting form:
-  // 1. make call to session to update missing required fields
-  // 2. make call to new endpoint to accept TOS
   // After "Accept" button is clicked, this will be true until the call(s) resolve
-
   const [isFormPending, setIsFormPending] = useState(false);
   const [message, setMessage] = useState<string | undefined>();
   const [fields, setFields] = useState<AccountFieldsValues>(
@@ -123,10 +110,18 @@ export default function TOSForm() {
       }
     }
 
-    console.log('hasErrors', hasAnyErrors);
+    // If there are some errors in the form, we need user to fix them before
+    // trying to submit the form again.
     if (!hasAnyErrors) {
       try {
-        await fetchPost(TOS_ENDPOINT, {});
+        const tosResponse = await fetchPost<TOSPostResponse>(TOS_ENDPOINT, {});
+        // We don't know what the response would be, ideally we need the same
+        // info as in `sessionStore.currentAccount.tos_accepted_date`
+        console.log(tosResponse);
+        // TODO On acceptance we need to stop displaying the route blocker UI,
+        // so we need to either make the `sessionStore` update itself (via call
+        // or we hack update it ourselves assuming the new data will be there),
+        // or to reload the page (ugly).
       } catch (err) {
         const failResult = err as FailResponse;
         console.log('failed to accept TOS', failResult);
