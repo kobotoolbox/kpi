@@ -103,9 +103,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
         return extra_details.validated_password
 
-    def get_accepted_tos(self, obj):
-        request_details = self.context['request'].user.extra_details
-        accepted_tos = 'current_time' in request_details.private_data.keys()
+    def get_accepted_tos(self, obj: User) -> bool:
+        try:
+            user_extra_details = obj.extra_details
+        except obj.extra_details.RelatedObjectDoesNotExist:
+            return False
+        accepted_tos = 'current_time' in user_extra_details.private_data.keys()
         return accepted_tos
 
     def to_representation(self, obj):
