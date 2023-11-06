@@ -113,7 +113,7 @@ $k-select-menu-padding: sizes.$x6;
   font-weight: 400;
   font-style: normal;
   color: colors.$kobo-red;
-  margin-top: sizes.$x6;
+  margin: sizes.$x6 auto 0;
 }
 
 .k-select.k-select--has-error {
