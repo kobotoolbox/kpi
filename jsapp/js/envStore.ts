@@ -1,10 +1,7 @@
-import type {
-  LabelValuePair,
-  TransxLanguages,
-  FailResponse,
-} from 'js/dataInterface';
+import type {LabelValuePair, TransxLanguages} from 'js/dataInterface';
 import {makeAutoObservable} from 'mobx';
-import {fetchGet, handleApiFail} from 'js/api';
+import {fetchGet} from 'js/api';
+import type {UserFieldName} from './account/account.constants';
 
 const ENV_ENDPOINT = '/environment/';
 
@@ -17,7 +14,7 @@ interface EnvironmentResponse {
   support_url: string;
   community_url: string;
   project_metadata_fields: EnvStoreFieldItem[];
-  user_metadata_fields: EnvStoreFieldItem[];
+  user_metadata_fields: UserMetadataField[];
   sector_choices: string[][];
   operational_purpose_choices: string[][];
   country_choices: string[][];
@@ -49,6 +46,12 @@ interface EnvironmentResponse {
  * constant environment variables that are set by the docker container. Thus it
  * JustWorks™ given our frontend architecture.
  */
+
+export interface UserMetadataField {
+  name: UserFieldName;
+  required: boolean;
+  label: string;
+}
 
 export interface EnvStoreFieldItem {
   name: string;
@@ -91,7 +94,7 @@ class EnvStoreData {
   public min_retry_time = 4; // seconds
   public max_retry_time: number = 4 * 60; // seconds
   public project_metadata_fields: EnvStoreFieldItem[] = [];
-  public user_metadata_fields: EnvStoreFieldItem[] = [];
+  public user_metadata_fields: UserMetadataField[] = [];
   public sector_choices: LabelValuePair[] = [];
   public operational_purpose_choices: LabelValuePair[] = [];
   public country_choices: LabelValuePair[] = [];
@@ -142,11 +145,15 @@ class EnvStoreData {
 
   public getUserMetadataFieldsAsSimpleDict() {
     // dict[name] => {name, required, label}
-    const dict: {[fieldName: string]: EnvStoreFieldItem} = {};
+    const dict: {[fieldName: string]: UserMetadataField} = {};
     for (const field of this.user_metadata_fields) {
       dict[field.name] = field;
     }
     return dict;
+  }
+
+  public getUserMetadataFieldNames(): UserFieldName[] {
+    return this.user_metadata_fields.map((item) => item.name);
   }
 }
 
