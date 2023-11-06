@@ -8,3 +8,13 @@ skip-string-normalization = true
 profile = "black"
 known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
+
+[tool.mypy]
+exclude = [
+    "env/src/django-digest",
+    "env/src/formpack",
+    "env/src/kobo-service-account",
+    "env/src/python-digest"
+]
+[tool.django-stubs]
+django_settings_module = "kobo.settings"
