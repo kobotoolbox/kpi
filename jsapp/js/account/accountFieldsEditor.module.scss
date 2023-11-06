@@ -1,0 +1,36 @@
+@use 'scss/sizes';
+@use 'js/components/common/textBox.module';
+@use '~kobo-common/src/styles/colors';
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: 0 sizes.$x20;
+  width: 100%;
+
+  &:not(:last-child) {
+    margin-bottom: sizes.$x15;
+  }
+
+  // This handles the issue of grouping the possibly not displayed items in
+  // a simple and elegant way - as opposed to adding more logic to the TSX file.
+  &:empty {
+    display: none;
+  }
+}
+
+.field {
+  width: 100%;
+  flex: 1;
+}
+
+.socialLabel {
+  width: 100%;
+  color: colors.$kobo-gray-24;
+  font-size: sizes.$x12;
+  line-height: textBox.$label-leading;
+  margin-bottom: textBox.$label-margin;
+}
