@@ -11,10 +11,8 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
-import {
-  buildUserUrl,
-  replaceBracketsWithLink,
-} from 'utils';
+import {buildUserUrl} from 'js/utils';
+import {replaceBracketsWithLink} from 'js/textUtils';
 import {
   ASSET_TYPES,
   ANON_USERNAME,
