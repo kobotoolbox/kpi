@@ -62,4 +62,4 @@ jobs:
     - name: Run coveralls for back-end code
       uses: AndreMiras/coveralls-python-action@develop
       with:
-        debug: ${{ runner.debug }} || "false"
+        debug: ${{ runner.debug || "false" }}
