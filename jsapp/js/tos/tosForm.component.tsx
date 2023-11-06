@@ -5,7 +5,7 @@ import sessionStore from 'js/stores/session';
 import {fetchGetUrl, fetchPatch, fetchPost, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
 import type {FailResponse} from 'js/dataInterface';
-import type {TOSGetResponse} from './tos.constants';
+import type {TOSGetResponse, TOSPostResponse} from './tos.constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {
   getInitialAccountFieldsValues,
