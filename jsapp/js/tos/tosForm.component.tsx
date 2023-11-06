@@ -15,14 +15,15 @@ import AccountFieldsEditor from 'js/account/accountFieldsEditor.component';
 import type {
   AccountFieldsValues,
   AccountFieldsErrors,
-} from 'js/account/accountFieldsEditor.component';
-import {Json} from 'js/components/common/common.interfaces';
+} from 'js/account/account.constants';
 
 const ME_ENDPOINT = '/me/';
 const TOS_ENDPOINT = '/api/v2/tos/';
 
 interface MePatchFailResponse {
-  extra_details: AccountFieldsErrors;
+  responseJSON: {
+    extra_details: AccountFieldsErrors;
+  };
 }
 
 export default function TOSForm() {
@@ -117,7 +118,7 @@ export default function TOSForm() {
         hasAnyErrors = false;
       } catch (err) {
         const patchFailResult = err as MePatchFailResponse;
-        setFieldsErrors(patchFailResult.extra_details || {});
+        setFieldsErrors(patchFailResult.responseJSON.extra_details || {});
         hasAnyErrors = true;
       }
     }
@@ -156,7 +157,7 @@ export default function TOSForm() {
       />
 
       {/* No point displaying the form and header if there are no requied fields */}
-      {requiredFields.length > 0 &&
+      {requiredFields.length > 0 && (
         <section className={styles.metaFields}>
           <h2 className={styles.fieldsHeader}>
             {t(
@@ -171,7 +172,7 @@ export default function TOSForm() {
             onChange={onAccountFieldsEditorChange}
           />
         </section>
-      }
+      )}
 
       <footer className={styles.footer}>
         <Button
@@ -180,7 +181,7 @@ export default function TOSForm() {
           size={'l'}
           isSubmit
           isFullWidth
-          isDisabled={isFormPending}
+          isPending={isFormPending}
           label={t("I agree, let's go")}
         />
 
