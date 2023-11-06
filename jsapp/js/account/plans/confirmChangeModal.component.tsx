@@ -80,7 +80,7 @@ const ConfirmChangeModal = ({
     [products]
   );
 
-  //
+  // get the product type to display as a translatable string
   const getPriceType = useCallback(
     (price: BasePrice) => {
       const product = getProductForPrice(price);
