@@ -10,6 +10,9 @@
 
 $input-color: colors.$kobo-gray-24;
 $wrapper-border-radius: sizes.$x6;
+// This is being shared by multiple components
+$label-margin: sizes.$x3;
+$label-leading: sizes.$x20;
 
 .root {
   width: 100%;
@@ -53,8 +56,8 @@ $wrapper-border-radius: sizes.$x6;
 .label {
   color: colors.$kobo-gray-24;
   font-size: sizes.$x12;
-  line-height: 1.6;
-  margin-bottom: sizes.$x3;
+  line-height: $label-leading;
+  margin-bottom: $label-margin;
 }
 
 .requiredMark {
@@ -149,7 +152,7 @@ input[class].input.input {
 // both components in the same size have the same height :)
 
 .sizeL .inputWrapper {
-  padding: sizes.$x10 sizes.$x16;
+  padding: sizes.$x8 sizes.$x16;
 }
 
 .sizeM .inputWrapper {

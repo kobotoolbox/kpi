@@ -14,6 +14,7 @@ import './koboSelect.scss';
 
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
 bem.KoboSelect = makeBem(null, 'k-select');
+bem.KoboSelect__label = makeBem(bem.KoboSelect, 'label', 'label');
 bem.KoboSelect__trigger = makeBem(bem.KoboSelect, 'trigger');
 bem.KoboSelect__triggerSelectedOption = makeBem(bem.KoboSelect, 'trigger-selected-option', 'span');
 bem.KoboSelect__searchBox = makeBem(bem.KoboSelect, 'search-box', 'input');
@@ -48,6 +49,8 @@ export interface KoboSelectOption {
 interface KoboSelectProps {
   /** Unique name. */
   name: string;
+  /** Will be displayed above the component. */
+  label?: string;
   type: KoboSelectType;
   /**
    * The size is the height of the trigger, but it also influences its paddings.
@@ -326,8 +329,18 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       modifiers.push('is-menu-visible');
     }
 
+    if (this.props.error) {
+      modifiers.push('has-error');
+    }
+
     return (
       <bem.KoboSelect m={modifiers}>
+        {this.props.label &&
+          <bem.KoboSelect__label htmlFor={this.props.name}>
+            {this.props.label}
+          </bem.KoboSelect__label>
+        }
+
         <KoboDropdown
           name={this.props.name}
           placement={'down-center'}
