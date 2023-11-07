@@ -12,6 +12,7 @@ import type {
 import subscriptionStore from 'js/account/subscriptionStore';
 import {notify} from 'js/utils';
 import {ChangePlanStatus} from 'js/account/stripe.types';
+import {ACCOUNT_ROUTES} from 'js/account/routes';
 
 // check if the currently logged-in user has a paid subscription in an active status
 // promise returns a boolean, or `null` if Stripe is not active - we check for the existence of `stripe_public_key`
@@ -59,18 +60,20 @@ export function processCheckoutResponse(data: Checkout) {
 }
 
 export async function processChangePlanResponse(data: ChangePlan) {
+  /**
+    Wait a bit for the Stripe webhook to (hopefully) complete and the subscription list to update.
+    We do this for 90% of use cases, since we can't tell on the frontend when the webhook has completed.
+    The other 10% will be directed to refresh the page if the subscription isn't updated in the UI.
+   */
+  await new Promise((resolve) => setTimeout(resolve, 2000));
   switch (data.status) {
     case ChangePlanStatus.success:
-      /**
-        Wait a bit for the Stripe webhook to (hopefully) complete and the subscription list to update.
-        We do this for 90% of use cases, since we can't tell on the frontend when the webhook has completed.
-        The other 10% will be directed to refresh the page if the subscription isn't updated in the UI.
-       */
-      await new Promise((resolve) => setTimeout(resolve, 2000));
       processCheckoutResponse(data);
       location.reload();
       break;
     case ChangePlanStatus.scheduled:
+      location.hash = '';
+      location.hash = ACCOUNT_ROUTES.PLAN;
       notify.success(
         t(
           'Success! Your subscription will change at the end of the current billing period.'
@@ -99,11 +102,27 @@ export async function processChangePlanResponse(data: ChangePlan) {
  */
 export function isChangeScheduled(
   price: BasePrice,
-  subscriptions: SubscriptionInfo[]
+  subscriptions: SubscriptionInfo[] | null
 ) {
-  return subscriptions.some((subscription) =>
-    subscription.schedule?.phases?.some((phase) =>
-      phase.items.some((item) => item.price === price.id)
+  return (
+    !subscriptions ||
+    subscriptions.some((subscription) =>
+      subscription.schedule?.phases?.some((phase) =>
+        phase.items.some((item) => item.price === price.id)
+      )
     )
   );
 }
+
+export const getSubscriptionsForProductId = (
+  productId: String,
+  subscriptions: SubscriptionInfo[] | null
+) => {
+  if (subscriptions) {
+    return subscriptions.filter(
+      (subscription: SubscriptionInfo) =>
+        subscription.items[0].price.product.id === productId
+    );
+  }
+  return null;
+};

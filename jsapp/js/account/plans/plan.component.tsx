@@ -27,7 +27,10 @@ import useWhen from 'js/hooks/useWhen.hook';
 import AddOnList from 'js/account/plans/addOnList.component';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
-import {processCheckoutResponse} from 'js/account/stripe.utils';
+import {
+  getSubscriptionsForProductId,
+  processCheckoutResponse,
+} from 'js/account/stripe.utils';
 import type {
   BasePrice,
   Organization,
@@ -35,9 +38,9 @@ import type {
   Product,
   SubscriptionInfo,
 } from 'js/account/stripe.types';
-import PlanButton from 'js/account/plans/planButton.component';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
+import {PlanButton} from 'js/account/plans/planButton.component';
 
 interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
@@ -189,11 +192,7 @@ export default function Plan() {
       }
       const fetchPromises = [];
 
-      if (
-        shouldRevalidate ||
-        !subscriptionStore.isInitialised ||
-        !subscriptionStore.isPending
-      ) {
+      if (!subscriptionStore.isInitialised || !subscriptionStore.isPending) {
         subscriptionStore.fetchSubscriptionInfo();
       }
 
@@ -233,7 +232,7 @@ export default function Plan() {
   useEffect(() => {
     const handlePersisted = (event: PageTransitionEvent) => {
       if (event.persisted) {
-        setShouldRevalidate(!shouldRevalidate);
+        setShouldRevalidate((prevState) => !prevState);
       }
     };
     window.addEventListener('pageshow', handlePersisted);
@@ -302,18 +301,7 @@ export default function Plan() {
     return [];
   }, [state.products, state.intervalFilter]);
 
-  const getSubscriptionsForProductId = useCallback(
-    (productId: String) => {
-      if (state.subscribedProduct) {
-        return state.subscribedProduct.filter(
-          (subscription: SubscriptionInfo) =>
-            subscription.items[0].price.product.id === productId
-        );
-      }
-      return null;
-    },
-    [state.subscribedProduct]
-  );
+  const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
@@ -321,7 +309,10 @@ export default function Plan() {
         return true;
       }
 
-      const subscriptions = getSubscriptionsForProductId(product.id);
+      const subscriptions = getSubscribedProduct(
+        product.id,
+        state.subscribedProduct
+      );
 
       if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
@@ -333,20 +324,6 @@ export default function Plan() {
       return false;
     },
     [state.subscribedProduct, state.intervalFilter, state.products]
-  );
-
-  const shouldShowManage = useCallback(
-    (product: Price) => {
-      const subscriptions = getSubscriptionsForProductId(product.id);
-      if (!subscriptions || !subscriptions.length || !state.organization?.id) {
-        return false;
-      }
-
-      return subscriptions.some((subscription: SubscriptionInfo) =>
-        hasManageableStatus(subscription)
-      );
-    },
-    [state.subscribedProduct, state.organization, state.products]
   );
 
   const dismissConfirmModal = () => {
@@ -385,16 +362,6 @@ export default function Plan() {
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false));
     }
-  };
-
-  const manageSubscription = (price?: BasePrice) => {
-    if (!state.organization?.id || isBusy) {
-      return;
-    }
-    setIsBusy(true);
-    postCustomerPortal(state.organization.id, price?.id)
-      .then(processCheckoutResponse)
-      .catch(() => setIsBusy(false));
   };
 
   // Get feature items and matching icon boolean
@@ -506,7 +473,7 @@ export default function Plan() {
     return renderFeaturesList(items, featureTitle);
   };
 
-  if (!state.products?.length) {
+  if (!state.products?.length || !state.organization) {
     return null;
   }
 
@@ -609,42 +576,16 @@ export default function Plan() {
                         )}
                       </div>
                     )}
-                    {!isSubscribedProduct(price) &&
-                      !shouldShowManage(price) &&
-                      price.prices.unit_amount > 0 && (
-                        <PlanButton
-                          label={t('Upgrade')}
-                          onClick={() => buySubscription(price.prices)}
-                          aria-label={`upgrade to ${price.name}`}
-                          aria-disabled={isBusy}
-                          isDisabled={isBusy}
-                        />
-                      )}
-                    {isSubscribedProduct(price) &&
-                      shouldShowManage(price) &&
-                      price.prices.unit_amount > 0 && (
-                        <PlanButton
-                          label={t('Manage')}
-                          onClick={manageSubscription}
-                          aria-label={`manage your ${price.name} subscription`}
-                          aria-disabled={isBusy}
-                          isDisabled={isBusy}
-                        />
-                      )}
-                    {!isSubscribedProduct(price) &&
-                      shouldShowManage(price) &&
-                      price.prices.unit_amount > 0 && (
-                        <PlanButton
-                          label={t('Change plan')}
-                          onClick={() => buySubscription(price.prices)}
-                          aria-label={`change your subscription to ${price.name}`}
-                          aria-disabled={isBusy}
-                          isDisabled={isBusy}
-                        />
-                      )}
-                    {price.prices.unit_amount === 0 && (
-                      <div className={styles.btnSpacePlaceholder} />
-                    )}
+                    <PlanButton
+                      price={price}
+                      hasManageableStatus={hasManageableStatus}
+                      isSubscribedProduct={isSubscribedProduct}
+                      buySubscription={buySubscription}
+                      plans={state.subscribedProduct}
+                      isBusy={isBusy}
+                      setIsBusy={setIsBusy}
+                      organization={state.organization}
+                    />
                   </div>
                 </div>
               ))}

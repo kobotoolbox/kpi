@@ -19,7 +19,7 @@ import {
 } from 'js/account/stripe.utils';
 import {formatDate} from 'js/utils';
 import styles from './confirmChangeModal.module.scss';
-import PlanButton from 'js/account/plans/planButton.component';
+import BillingButton from 'js/account/plans/billingButton.component';
 
 export interface ConfirmChangeProps {
   price: BasePrice | null;
@@ -162,12 +162,12 @@ const ConfirmChangeModal = ({
         </section>
       </KoboModalContent>
       <KoboModalFooter>
-        <PlanButton
+        <BillingButton
           isDisabled={isLoading}
           onClick={submitChange}
           label={t('Submit')}
         />
-        <PlanButton
+        <BillingButton
           color='red'
           isDisabled={isLoading}
           onClick={toggleModal}
