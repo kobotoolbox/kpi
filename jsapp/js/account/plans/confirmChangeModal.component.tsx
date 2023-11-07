@@ -58,18 +58,18 @@ const ConfirmChangeModal = ({
       const product = getProductForPrice(price);
       if (price && product) {
         if (isAddonProduct(product)) {
-          return t('the ##add_on_name## add-on').replace(
+          return t('##add_on_name## add-on').replace(
             '##add_on_name##',
             product.name
           );
         }
         if (price.recurring?.interval === 'month') {
-          return t('the monthly ##plan_name## plan').replace(
+          return t('monthly ##plan_name## plan').replace(
             '##plan_name##',
             product.name
           );
         } else {
-          return t('the yearly ##plan_name## plan').replace(
+          return t('yearly ##plan_name## plan').replace(
             '##plan_name##',
             product.name
           );
@@ -128,49 +128,27 @@ const ConfirmChangeModal = ({
             subscription?.items[0].price.recurring?.interval && (
               <>
                 <p>
-                  {t(
-                    'You are switching from ##old_product_type## to ##new_product_type##.'
-                  )
-                    .replace(
-                      '##old_product_type##',
-                      getPriceDescription(subscription.items[0].price)
-                    )
-                    .replace(
-                      '##new_product_type##',
-                      getPriceDescription(price)
-                    )}
+                  {t('You are switching to the ##new_product_type##.').replace(
+                    /##new_product_type##/g,
+                    getPriceDescription(price)
+                  )}{' '}
                   {price.metadata['product_type'] === 'plan' &&
                     subscription?.items[0].price.product.metadata[
                       'product_type'
                     ] === 'addon' &&
                     t(
                       'Because this plan includes unlimited storage, your storage add-on will be canceled.'
-                    )}
-                </p>
-                <p>
+                    ) + ' '}
                   {t(
-                    'Your old ##product_type## cost ##price## per ##interval##.'
+                    `Your current ##product_type## will remain in effect until ##billing_end_date##.
+                    Starting on ##billing_end_date## and until you cancel, we will bill you ##new_price## per ##interval##.`
                   )
                     .replace(
                       /##product_type##/g,
                       getPriceType(subscription.items[0].price)
                     )
                     .replace(
-                      '##price##',
-                      subscription.items[0].price.human_readable_price.split(
-                        '/'
-                      )[0]
-                    )
-                    .replace(
-                      /##interval##/g,
-                      subscription.items[0].price.recurring.interval
-                    )}{' '}
-                  {t(
-                    `Starting on ##billing_end_date## and until you cancel,
-                      we will bill you ##new_price## per ##interval##.`
-                  )
-                    .replace(
-                      '##billing_end_date##',
+                      /##billing_end_date##/g,
                       formatDate(subscription.current_period_end)
                     )
                     .replace(
