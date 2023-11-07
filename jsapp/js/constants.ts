@@ -37,8 +37,6 @@ export const ROOT_URL = (() => {
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
 
-export const ANON_USERNAME = 'AnonymousUser';
-
 export type PermissionCodename =
   | 'add_submissions'
   | 'change_asset'
@@ -673,7 +671,6 @@ export const USAGE_WARNING_RATIO = 0.8;
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
-  ANON_USERNAME,
   PERMISSIONS_CODENAMES,
   HOOK_LOG_STATUSES,
   KEY_CODES,

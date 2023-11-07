@@ -85,8 +85,6 @@ actions.hooks = Reflux.createActions({
 
 actions.misc = Reflux.createActions({
   getUser: {children: ['completed', 'failed']},
-  checkUsername: {asyncResult: true, children: ['completed', 'failed']},
-  updateProfile: {children: ['completed', 'failed']},
 });
 
 permissionsActions.assignAssetPermission.failed.listen(() => {
@@ -120,43 +118,6 @@ actions.misc.getUser.listen((userUrl) => {
   dataInterface.getUser(userUrl)
     .done(actions.misc.getUser.completed)
     .fail(actions.misc.getUser.failed);
-});
-
-actions.misc.checkUsername.listen(function(username){
-  dataInterface.queryUserExistence(username)
-    .done(actions.misc.checkUsername.completed)
-    .fail(actions.misc.checkUsername.failed);
-});
-
-actions.misc.updateProfile.listen(function(data, callbacks={}){
-  dataInterface.patchProfile(data)
-    .done((...args) => {
-      actions.misc.updateProfile.completed(...args)
-      if (callbacks.onComplete) {
-        callbacks.onComplete(...args);
-      }
-    })
-    .fail((...args) => {
-      actions.misc.updateProfile.failed(...args)
-      if (callbacks.onFail) {
-        callbacks.onFail(...args);
-      }
-    });
-});
-
-actions.misc.updateProfile.failed.listen(function(data) {
-  let hadFieldsErrors = false;
-  for (const [errorProp, errorValue] of Object.entries(data.responseJSON)){
-    if (errorProp !== 'non_fields_error') {
-      hadFieldsErrors = true;
-    }
-  }
-
-  if (hadFieldsErrors) {
-    notify(t('Some fields contain errors!'), 'error');
-  } else {
-    notify(t('Failed to update profile!'), 'error');
-  }
 });
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {
