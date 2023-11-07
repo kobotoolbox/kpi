@@ -390,7 +390,6 @@ class KobocatUserPermission(ShadowModel):
 class KobocatUserProfile(ShadowModel):
     """
     From onadata/apps/main/models/user_profile.py
-    Not read-only because we need write access to `require_auth`
     """
     class Meta(ShadowModel.Meta):
         db_table = 'main_userprofile'
@@ -410,10 +409,7 @@ class KobocatUserProfile(ShadowModel):
     home_page = models.CharField(max_length=255, blank=True)
     twitter = models.CharField(max_length=255, blank=True)
     description = models.CharField(max_length=255, blank=True)
-    require_auth = models.BooleanField(
-        default=False,
-        verbose_name="Require authentication to see forms and submit data"
-    )
+    require_auth = models.BooleanField(default=True)
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
     num_of_submissions = models.IntegerField(default=0)
