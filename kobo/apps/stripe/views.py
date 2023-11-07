@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from djstripe import enums
 from djstripe.models import (
     Customer,
     Price,
@@ -123,12 +124,13 @@ class ChangePlanView(APIView):
         # First, try getting the existing schedule for the user's subscription
         try:
             schedule = SubscriptionSchedule.objects.get(
-                subscription=subscription
+                subscription=subscription,
+                status=enums.SubscriptionScheduleStatus.active,
             )
             # If the subscription is already scheduled to change to the given price, quit
             if schedule.phases[-1]['items'][0]['price'] == price_id:
                 return Response(
-                    {'status': 'error'},
+                    {'status': 'already scheduled to change to price'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         # If we couldn't find a schedule, make a new one
@@ -285,8 +287,10 @@ class CustomerPortalView(APIView):
             subscriber__owner__organization_user__user_id=user,
             subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
             livemode=settings.STRIPE_LIVE_MODE,
+        ).select_related(
+            'subscriptions__schedule'
         ).values(
-            'id', 'subscriptions__id', 'subscriptions__items__id'
+            'id', 'subscriptions__id', 'subscriptions__items__id', 'subscriptions__schedule__id'
         ).first()
 
         if not customer:
@@ -299,6 +303,18 @@ class CustomerPortalView(APIView):
 
         # if we're generating a portal link for a price change, find or generate a matching portal configuration
         if price:
+            """
+            Customers with subscription schedules can't upgrade from the portal
+            So if the customer has a subscription schedule, release it, keeping the subscription intact
+            """
+            schedule_id = customer['subscriptions__schedule__id']
+            if schedule_id:
+                stripe.SubscriptionSchedule.release(
+                    schedule_id,
+                    api_key=djstripe_settings.STRIPE_SECRET_KEY,
+                    preserve_cancel_date=False
+                )
+
             current_config = None
             all_configs = stripe.billing_portal.Configuration.list(
                 api_key=djstripe_settings.STRIPE_SECRET_KEY,
