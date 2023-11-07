@@ -292,12 +292,13 @@ CONSTANCE_CONFIG = {
             {'name': 'twitter', 'required': False},
             {'name': 'linkedin', 'required': False},
             {'name': 'instagram', 'required': False},
+            {'name': 'newsletter_subscription', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
         "Possible fields are:\n"
         "'organization', 'organization_website', 'sector', 'gender', 'bio', "
-        "'city', 'country', 'twitter', 'linkedin', and 'instagram'.\n\n"
+        "'city', 'country', 'twitter', 'linkedin', 'instagram', and 'newsletter_subscription'.\n\n"
         'To add another language, follow the example below.\n\n'
         '{"name": "name", "required": False, "label": '
         '{"default": "Full Name", "fr": "Nom Complet"}}\n'

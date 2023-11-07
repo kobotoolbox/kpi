@@ -360,4 +360,5 @@ USER_METADATA_DEFAULT_LABELS = {
     'twitter': t('Twitter'),
     'linkedin': t('LinkedIn'),
     'instagram': t('Instagram'),
+    'newsletter_subscription': t('Newsletter Subscription'),
 }

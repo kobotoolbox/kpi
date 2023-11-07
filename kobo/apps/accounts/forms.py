@@ -25,6 +25,7 @@ CONFIGURABLE_METADATA_FIELDS = (
     'gender',
     'sector',
     'country',
+    'newsletter_subscription',
 )
 
 
@@ -66,6 +67,13 @@ class KoboSignupMixin(forms.Form):
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
+    newsletter_subscription = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['newsletter_subscription'],
+        required=False,
+    )
+    # forms.CheckboxInput(
+    #    attrs={'id': 'newsletter_subscription'}
+    # )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -150,6 +158,7 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'email',
         'sector',
         'country',
+        'newsletter_subscription',
     ]
 
     def clean(self):
