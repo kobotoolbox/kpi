@@ -5,6 +5,7 @@
 
 require('jquery-ui/ui/widgets/sortable');
 import moment from 'moment';
+import {DateTime, Settings} from 'luxon';
 import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader';
@@ -18,11 +19,17 @@ import Modal from 'react-modal';
 // Tell moment library what is the app language
 moment.locale(currentLang());
 
+Settings.defaultLocale = currentLang();
+
 // Setup Google Analytics
-const gaTokenEl = document.head.querySelector('meta[name=google-analytics-token]');
+const gaTokenEl = document.head.querySelector(
+  'meta[name=google-analytics-token]'
+);
 if (gaTokenEl !== null && gaTokenEl.content) {
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function() {window.dataLayer.push(arguments);};
+  window.gtag = function () {
+    window.dataLayer.push(arguments);
+  };
   window.gtag('js', new Date());
   window.gtag('config', gaTokenEl.content);
 }

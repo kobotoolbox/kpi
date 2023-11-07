@@ -8,6 +8,7 @@
  */
 
 import moment from 'moment';
+import {DateTime} from 'luxon';
 import type {Toast, ToastOptions} from 'react-hot-toast';
 import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
@@ -101,11 +102,22 @@ export function join(arr: any[], separator: any): any[] {
 }
 
 /**
+ * Check if a DateTime object is today, based on locale settings
+ * @param date
+ */
+const isToday = (date: DateTime) => {
+  return date.toISODate() === DateTime.local().toISODate();
+};
+
+/**
  * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
  */
 export function formatTime(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.calendar(null, {sameElse: 'LL'});
+  const relativeTime = DateTime.fromISO(timeStr);
+  if (isToday(relativeTime)) {
+    return relativeTime.toRelative({base: DateTime.now()}) || '';
+  }
+  return relativeTime.toLocaleString(DateTime.DATE_FULL) || '';
 }
 
 /**
