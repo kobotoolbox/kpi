@@ -92,7 +92,6 @@ def get_kc_profile_data(user_id):
         'address',
         'city',
         'country',
-        'require_auth',
         'twitter',
         'metadata',
     ]

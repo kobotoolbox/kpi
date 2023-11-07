@@ -123,16 +123,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        # `require_auth` needs to be read from KC every time
-        # except during testing, when KC's database is not available
-        if (
-            settings.KOBOCAT_URL
-            and settings.KOBOCAT_INTERNAL_URL
-            and not settings.TESTING
-        ):
-            extra_details['require_auth'] = get_kc_profile_data(obj.pk).get(
-                'require_auth', False
-            )
+        # TODO Remove `require_auth` when front end do not use it anymore.
+        #   It is not used anymore by back end. Still there for retro-compatibility
+        extra_details['require_auth'] = True
 
         return rep
 
