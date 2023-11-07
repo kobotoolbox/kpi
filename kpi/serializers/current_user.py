@@ -38,6 +38,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         source='socialaccount_set', many=True, read_only=True
     )
     validated_password = serializers.SerializerMethodField()
+    accepted_tos = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -58,9 +59,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'new_password',
             'git_rev',
             'social_accounts',
-            'validated_password'
+            'validated_password',
+            'accepted_tos',
         )
-        read_only_fields = ('email',)
+        read_only_fields = (
+            'email',
+            'accepted_tos',
+        )
 
     def get_server_time(self, obj):
         # Currently unused on the front end
@@ -97,6 +102,18 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return True
 
         return extra_details.validated_password
+
+    def get_accepted_tos(self, obj: User) -> bool:
+        """
+        Verifies user acceptance of terms of service (tos) by checking that the tos
+        endpoint was called and stored the current time in the `private_data` property
+        """
+        try:
+            user_extra_details = obj.extra_details
+        except obj.extra_details.RelatedObjectDoesNotExist:
+            return False
+        accepted_tos = 'current_time' in user_extra_details.private_data.keys()
+        return accepted_tos
 
     def to_representation(self, obj):
         if obj.is_anonymous:
