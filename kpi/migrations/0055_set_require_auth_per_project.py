@@ -11,7 +11,7 @@ CHUNK_SIZE = 2000
 
 
 def assign_add_submissions_to_anonymous_users(apps, schema_editor):
-    if settings.SKIP_HEAVY_MIGRATIONS:
+    if settings.SKIP_HEAVY_MIGRATIONS or settings.TESTING:
         return
 
     print(
