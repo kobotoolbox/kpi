@@ -5,11 +5,16 @@
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
-import {assign} from 'js/utils';
 import {ROOT_URL, COMMON_QUERIES} from './constants';
-import type {EnvStoreFieldItem, FreeTierDisplay, SocialApp} from 'js/envStore';
+import type {
+  EnvStoreFieldItem,
+  FreeTierDisplay,
+  FreeTierThresholds,
+  SocialApp
+} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
+  AnyRowTypeName,
   AssetTypeName,
   ValidationStatus,
   AssetFileType,
@@ -17,7 +22,8 @@ import type {
 } from 'js/constants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
-import type {FreeTierThresholds} from 'js/envStore';
+import type {UserResponse} from 'js/users/userExistence.store';
+import type {ReportsResponse} from 'js/components/reports/reportsConstants';
 
 interface AssetsRequestData {
   q?: string;
@@ -209,21 +215,25 @@ export interface SubmissionResponse {
   _supplementalDetails?: SubmissionSupplementalDetails;
 }
 
-interface AssignablePermission {
+interface AssignablePermissionRegular {
   url: string;
   label: string;
 }
 
+export interface AssignablePermissionPartialLabel {
+  default: string;
+  view_submissions: string;
+  change_submissions: string;
+  delete_submissions: string;
+  validate_submissions: string;
+}
+
 interface AssignablePermissionPartial {
   url: string;
-  label: {
-    default: string;
-    view_submissions: string;
-    change_submissions: string;
-    delete_submissions: string;
-    validate_submissions: string;
-  };
+  label: AssignablePermissionPartialLabel;
 }
+
+export type AssignablePermission = AssignablePermissionRegular | AssignablePermissionPartial;
 
 export interface LabelValuePair {
   /** Note: the labels are always localized in the current UI language */
@@ -231,18 +241,28 @@ export interface LabelValuePair {
   value: string;
 }
 
-/**
- * A single permission instance for a given user.
- */
-export interface Permission {
+export interface PartialPermission {
+  url: string;
+  filters: Array<{_submitted_by: {$in: string[]}}>;
+}
+
+
+/** Permission object to be used when making API requests. */
+export interface PermissionBase {
+  /** User URL */
+  user: string;
+  /** Permission URL */
+  permission: string;
+  partial_permissions?: PartialPermission[];
+}
+
+/** A single permission instance for a given user coming from API endpoint. */
+export interface PermissionResponse extends PermissionBase {
   url: string;
   user: string;
   permission: string;
   label: string;
-  partial_permissions?: Array<{
-    url: string;
-    filters: Array<{_submitted_by: {$in: string[]}}>;
-  }>;
+  partial_permissions?: PartialPermission[];
 }
 
 /**
@@ -281,9 +301,7 @@ export interface SurveyRow {
   $qpath: string;
   $autoname: string;
   $kuid: string;
-  // We use dynamic import to avoid changing this ambient module to a normal
-  // module: see https://stackoverflow.com/a/51114250/2311247
-  type: import('js/constants').AnyRowTypeName;
+  type: AnyRowTypeName;
   calculation?: string;
   label?: string[];
   hint?: string[];
@@ -472,7 +490,7 @@ interface AssetRequestObject {
   content?: AssetContent;
   tag_string: string;
   name: string;
-  permissions: Permission[];
+  permissions: PermissionResponse[];
   export_settings: ExportSetting[];
   data_sharing: {};
   paired_data?: string;
@@ -548,9 +566,7 @@ export interface AssetResponse extends AssetRequestObject {
   uid: string;
   kind: string;
   xls_link?: string;
-  assignable_permissions?: Array<
-    AssignablePermission | AssignablePermissionPartial
-  >;
+  assignable_permissions: AssignablePermission[];
   /**
    * A list of all permissions (their codenames) that current user has in
    * regards to this asset. It is a sum of permissions assigned directly for
@@ -626,9 +642,10 @@ export interface PaginatedResponse<T> {
 export interface PermissionDefinition {
   url: string;
   name: string;
-  description: string;
-  codename: string;
+  codename: PermissionCodename;
+  /** A list of urls pointing to permissions definitions */
   implied: string[];
+  /** A list of urls pointing to permissions definitions */
   contradictory: string[];
 }
 
@@ -718,15 +735,6 @@ interface UserNotLoggedInResponse {
   message: string;
 }
 
-export interface UserResponse {
-  url: string;
-  username: string;
-  assets: PaginatedResponse<{url: string}>;
-  date_joined: string;
-  public_collection_subscribers_count: number;
-  public_collections_count: number;
-}
-
 export interface TransxLanguages {
   [languageCode: string]: {
     /** Human readable and localized language name. */
@@ -734,39 +742,6 @@ export interface TransxLanguages {
     /** A list of available services. */
     options: string[];
   };
-}
-
-export interface EnvironmentResponse {
-  mfa_has_availability_list: boolean;
-  terms_of_service_url: string;
-  privacy_policy_url: string;
-  source_code_url: string;
-  support_email: string;
-  support_url: string;
-  community_url: string;
-  project_metadata_fields: EnvStoreFieldItem[];
-  user_metadata_fields: EnvStoreFieldItem[];
-  sector_choices: string[][];
-  operational_purpose_choices: string[][];
-  country_choices: string[][];
-  interface_languages: string[][];
-  transcription_languages: TransxLanguages;
-  translation_languages: TransxLanguages;
-  submission_placeholder: string;
-  frontend_min_retry_time: number;
-  frontend_max_retry_time: number;
-  asr_mt_features_enabled: boolean;
-  mfa_localized_help_text: string;
-  mfa_enabled: boolean;
-  mfa_per_user_availability: boolean;
-  mfa_code_length: number;
-  stripe_public_key: string | null;
-  social_apps: SocialApp[];
-  free_tier_thresholds: FreeTierThresholds;
-  free_tier_display: FreeTierDisplay;
-  enable_custom_password_guidance_text: boolean;
-  custom_password_localized_help_text: string;
-  enable_password_entropy_meter: boolean;
 }
 
 export interface AssetSubscriptionsResponse {
@@ -829,7 +804,7 @@ interface DataInterface {
 }
 
 const $ajax = (o: {}) =>
-  $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
+  $.ajax(Object.assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
   getProfile: () =>
@@ -846,18 +821,6 @@ export const dataInterface: DataInterface = {
     $ajax({
       url: userUrl,
     }),
-
-  queryUserExistence: (username: string): JQuery.Promise<string, boolean> => {
-    const d = $.Deferred();
-    $ajax({url: `${ROOT_URL}/api/v2/users/${username}/`})
-      .done(() => {
-        d.resolve(username, true);
-      })
-      .fail(() => {
-        d.reject(username, false);
-      });
-    return d.promise();
-  },
 
   logout: (): JQuery.Promise<AccountResponse | UserNotLoggedInResponse> => {
     const d = $.Deferred();
@@ -1019,7 +982,7 @@ export const dataInterface: DataInterface = {
     uid: string;
     identifiers: string[];
     group_by: string;
-  }): JQuery.jqXHR<any> {
+  }): JQuery.jqXHR<PaginatedResponse<ReportsResponse>> {
     let identifierString;
     if (data.identifiers) {
       identifierString = `?names=${data.identifiers.join(',')}`;
@@ -1163,7 +1126,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetPermissions(assetUid: string): JQuery.jqXHR<any> {
+  getAssetPermissions(assetUid: string): JQuery.jqXHR<PermissionResponse[]> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
       method: 'GET',
@@ -1173,7 +1136,7 @@ export const dataInterface: DataInterface = {
   bulkSetAssetPermissions(
     assetUid: string,
     perms: Array<{user: string; permission: string}>
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<PermissionResponse[]> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,
       method: 'POST',
@@ -1539,7 +1502,7 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/tags/`,
       method: 'GET',
-      data: assign(
+      data: Object.assign(
         {
           // If this number is too big (e.g. 9999) it causes a deadly timeout
           // whenever Form Builder displays the aside Library search
@@ -1782,9 +1745,5 @@ export const dataInterface: DataInterface = {
       method: 'POST',
       data: data,
     });
-  },
-
-  environment(): JQuery.jqXHR<EnvironmentResponse> {
-    return $ajax({url: `${ROOT_URL}/environment/`});
   },
 };

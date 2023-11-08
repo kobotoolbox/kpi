@@ -7,7 +7,7 @@ import type {
   PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import {DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS} from './projectViews/constants';
 import type {
   ProjectFieldName,

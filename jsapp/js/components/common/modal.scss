@@ -120,7 +120,7 @@ $z-modal-x: 10;
 
 .modal__x {
   z-index: $z-modal-x;
-  color: colors.$kobo-gray-55;
+  color: colors.$kobo-white;
   background-color: inherit;
   padding: 8px;
   margin: 11px 15px 11px 11px;
@@ -134,15 +134,14 @@ $z-modal-x: 10;
   }
 
   &:hover {opacity: 0.7;}
-}
 
-.modal__done {
-  @extend .modal__x;
-  padding: 24px;
-  margin: 0px;
-  font-size: 18px;
-  font-weight: 600;
-  color: colors.$kobo-blue;
+  // Some modals have light background for the header, so we need some other
+  // color than white
+  .modal-submission &,
+  .modal--media-preview &,
+  .modal--mfa-setup & {
+    color: colors.$kobo-gray-55;
+  }
 }
 
 // NOTE: Subheader element is weirdly positioned because it is inside a padded

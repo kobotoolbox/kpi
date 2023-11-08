@@ -17,8 +17,6 @@ import MainHeader from 'js/components/header/mainHeader.component';
 import Drawer from 'js/components/drawer';
 import FormViewSideTabs from 'js/components/formViewSideTabs';
 import ProjectTopTabs from 'js/project/projectTopTabs.component';
-import PermValidator from 'js/components/permissions/permValidator';
-import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import ToasterConfig from './toasterConfig';
 import {withRouter, routerGetAssetId, router} from './router/legacy';
@@ -29,7 +27,7 @@ import InvalidatedPassword from 'js/router/invalidatedPassword.component';
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = assign({
+    this.state = Object.assign({
       pageState: stores.pageState.state,
     });
   }
@@ -87,7 +85,6 @@ class App extends React.Component {
         <React.Fragment>
           <Tracking />
           <ToasterConfig />
-          <PermValidator />
           <div className='header-stretch-bg' />
           <bem.PageWrapper
             m={pageWrapperModifiers}
