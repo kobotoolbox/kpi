@@ -67,12 +67,13 @@ class KoboSignupMixin(forms.Form):
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
-    newsletter_subscription = forms.CharField(
-        label=USER_METADATA_DEFAULT_LABELS['newsletter_subscription'],
-        required=False,
+    newsletter_subscription = forms.CheckboxInput(
+        attrs={'id': 'newsletter_subscription'}
     )
-    # forms.CheckboxInput(
-    #    attrs={'id': 'newsletter_subscription'}
+
+    # forms.CharField(
+    #     label=USER_METADATA_DEFAULT_LABELS['newsletter_subscription'],
+    #     required=False,
     # )
 
     def __init__(self, *args, **kwargs):
@@ -171,7 +172,11 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         dummy_user = User()
         user_username(dummy_user, self.cleaned_data.get('username'))
         user_email(dummy_user, self.cleaned_data.get('email'))
-        setattr(dummy_user, 'organization', self.cleaned_data.get('organization', ''))
+        setattr(
+            dummy_user,
+            'organization',
+            self.cleaned_data.get('organization', ''),
+        )
         setattr(dummy_user, 'full_name', self.cleaned_data.get('name', ''))
 
         password = self.cleaned_data.get('password1')
