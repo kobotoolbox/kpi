@@ -34,6 +34,11 @@ interface AccountFieldsEditorProps {
    */
   values: AccountFieldsValues;
   onChange: (fields: AccountFieldsValues) => void;
+  /**
+   * Handles the require authentication checkbox. If not provided, the checkbox
+   * will be displayed.
+   */
+  isRequireAuthDisplayed?: boolean;
 }
 
 /**
@@ -84,7 +89,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     <div>
       <div className={styles.row}>
         {/* Privacy */}
-        {isFieldToBeDisplayed('require_auth') && (
+        {props.isRequireAuthDisplayed !== false && (
           <div className={styles.field}>
             <label>{t('Privacy')}</label>
 
