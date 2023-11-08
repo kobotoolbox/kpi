@@ -24,7 +24,7 @@ from kpi.constants import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
 
 class BaseDeploymentBackend(abc.ABC):
@@ -69,6 +69,10 @@ class BaseDeploymentBackend(abc.ABC):
     def calculated_submission_count(self, user: 'auth.User', **kwargs):
         pass
 
+    @abc.abstractmethod
+    def set_enketo_open_rosa_server(self, require_auth: bool):
+        pass
+
     @property
     @abc.abstractmethod
     def submission_count_since_date(self, start_date: Optional[datetime.date] = None):
@@ -97,6 +101,11 @@ class BaseDeploymentBackend(abc.ABC):
     def duplicate_submission(
         self, submission_id: int, user: 'auth.User'
     ) -> dict:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def enketo_id(self):
         pass
 
     @abc.abstractmethod
@@ -275,8 +284,12 @@ class BaseDeploymentBackend(abc.ABC):
 
         self.store_data(updates)
         self.asset.set_deployment_status()
+
+        # never save `_stored_data_key` attribute
+        updates.pop('_stored_data_key', None)
+
         self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=ReplaceValues(
+            _deployment_data=UpdateJSONFieldAttributes(
                 '_deployment_data',
                 updates=updates,
             ),
@@ -318,6 +331,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def store_data(self, values: dict):
         """ Saves in memory only; writes nothing to the database """
+        values = copy.deepcopy(values)
         self.__stored_data_key = ShortUUID().random(24)
         values['_stored_data_key'] = self.__stored_data_key
         self.asset._deployment_data.update(values)  # noqa

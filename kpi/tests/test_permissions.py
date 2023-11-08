@@ -255,7 +255,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
     def test_implied_asset_grant_permissions(self):
         implications = {
             PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
-            PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
             PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
             PERM_CHANGE_SUBMISSIONS: (
                 PERM_VIEW_ASSET,
@@ -304,6 +303,9 @@ class PermissionsTestCase(BasePermissionsTestCase):
             sorted(asset.get_perms(grantee)), sorted(expected_perms)
         )
         asset.remove_perm(grantee, PERM_VIEW_ASSET)
+        # `add_submissions` does not imply `view_asset` anymore.
+        self.assertListEqual(asset.get_perms(grantee), [PERM_ADD_SUBMISSIONS])
+        asset.remove_perm(grantee, PERM_ADD_SUBMISSIONS)
         self.assertListEqual(asset.get_perms(grantee), [])
 
         asset.assign_perm(grantee, PERM_VALIDATE_SUBMISSIONS)
@@ -350,7 +352,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 user=grantee, deny=True).values_list(
                     'permission__codename', flat=True)
             ), [
-                PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
                 PERM_DELETE_SUBMISSIONS,
@@ -378,7 +379,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 user=grantee, deny=True).values_list(
                     'permission__codename', flat=True)
             ), [
-                PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
                 PERM_DELETE_SUBMISSIONS,

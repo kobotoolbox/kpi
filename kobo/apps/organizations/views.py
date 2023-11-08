@@ -75,6 +75,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >           },
         >           "current_month_start": {string (date), YYYY-MM-DD format},
         >           "current_year_start": {string (date), YYYY-MM-DD format},
+        >           "billing_period_end": {string (date), YYYY-MM-DD format}|{None},
         >       }
         ### CURRENT ENDPOINT
         """

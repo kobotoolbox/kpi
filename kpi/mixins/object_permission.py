@@ -30,6 +30,8 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
     get_database_user,
     perm_parse,
+    post_assign_perm,
+    post_remove_perm,
 )
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.project_views import (
@@ -539,8 +541,15 @@ class ObjectPermissionMixin:
         if defer_recalc:
             return new_permission
 
-        self._update_partial_permissions(user_obj, perm,
-                                         partial_perms=partial_perms)
+        self._update_partial_permissions(
+            user_obj, perm, partial_perms=partial_perms
+        )
+        post_assign_perm.send_robust(
+            sender=self.__class__,
+            instance=self,
+            user=user_obj,
+            codename=codename,
+        )
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()
@@ -700,6 +709,14 @@ class ObjectPermissionMixin:
             return
 
         self._update_partial_permissions(user_obj, perm, remove=True)
+
+        post_remove_perm.send_robust(
+            sender=self.__class__,
+            instance=self,
+            user=user_obj,
+            codename=codename,
+        )
+
         # Recalculate all descendants
         self.recalculate_descendants_perms()
 

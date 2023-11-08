@@ -131,7 +131,11 @@ export namespace actions {
     const map: object;
     const permissions: {
       getConfig: GenericDefinition;
+      copyPermissionsFrom: GenericDefinition;
       removeAssetPermission: GenericDefinition;
+      assignAssetPermission: GenericDefinition;
+      bulkSetAssetPermissions: GenericDefinition;
+      getAssetPermissions: GenericDefinition;
     };
     const help: {
       getInAppMessages: GenericDefinition;
