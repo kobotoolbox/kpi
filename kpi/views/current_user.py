@@ -46,7 +46,8 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "organization": string,
     >               "require_auth": boolean,
     >               "last_ui_language": string,
-    >               "organization_website": sting,
+    >               "organization_website": string,
+    >               "newsletter_subscription": boolean,
     >           },
     >           "git_rev": {
     >               "short": boolean,
@@ -90,6 +91,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
 
     ### Current User Endpoint
     """
+
     queryset = User.objects.none()
     serializer_class = CurrentUserSerializer
     permission_classes = [permissions.IsAuthenticated]
