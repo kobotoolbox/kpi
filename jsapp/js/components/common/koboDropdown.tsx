@@ -230,7 +230,7 @@ export default class KoboDropdown extends React.Component<
       <bem.KoboDropdown m={this.getWrapperModifiers()} {...additionalWrapperAttributes}>
         <bem.KoboDropdown__trigger
           onClick={this.onTriggerClick.bind(this)}
-          tabindex='0'
+          tabIndex='0'
           onKeyDown={this.onTriggerKeyDown.bind(this)}
         >
           {this.props.triggerContent}
