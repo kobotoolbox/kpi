@@ -604,6 +604,7 @@ def generate_user_details_report(
         'instagram',
         'metadata',
         'last_ui_language',
+        'newsletter_subscription',
     ]
 
     def flatten_metadata_inplace(metadata: dict):

@@ -15,6 +15,7 @@ export interface AccountFieldsValues {
   twitter: string;
   linkedin: string;
   instagram: string;
+  newsletter_subscription: boolean;
 }
 
 export type AccountFieldsErrors = {[name in UserFieldName]?: string};
@@ -34,4 +35,6 @@ export const USER_FIELD_NAMES: Record<UserFieldName, UserFieldName> = {
   twitter: 'twitter',
   linkedin: 'linkedin',
   instagram: 'instagram',
+  newsletter_subscription: 'newsletter_subscription',
+
 };

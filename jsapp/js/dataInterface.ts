@@ -696,6 +696,7 @@ export interface AccountResponse {
     project_views_settings: ProjectViewsSettings;
     /** We store this for usage statistics only. */
     last_ui_language?: string;
+    newsletter_subscription: boolean;
     // JSON values are the backend reality, but we make assumptions
     [key: string]: Json | ProjectViewsSettings | undefined;
   };
@@ -726,6 +727,7 @@ export interface AccountRequest {
     instagram?: string;
     project_views_settings?: ProjectViewsSettings;
     last_ui_language?: string;
+    newsletter_subscription?: boolean;
   };
   current_password?: string;
   new_password?: string;

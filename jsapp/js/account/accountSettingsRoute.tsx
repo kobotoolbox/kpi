@@ -76,6 +76,7 @@ const AccountSettings = observer(() => {
           twitter: currentAccount.extra_details.twitter,
           linkedin: currentAccount.extra_details.linkedin,
           instagram: currentAccount.extra_details.instagram,
+          newsletter_subscription: currentAccount.extra_details.newsletter_subscription,
         },
         fieldsWithErrors: {},
       });

@@ -16,6 +16,7 @@ export function getInitialAccountFieldsValues(): AccountFieldsValues {
     twitter: '',
     linkedin: '',
     instagram: '',
+    newsletter_subscription: false,
   };
 }
 
@@ -58,6 +59,8 @@ export function getProfilePatchData(fields: AccountFieldsValues) {
 
   // Always include require_auth, defaults to 'false'.
   output.extra_details.require_auth = fields.require_auth ? true : false;
+
+  output.extra_details.newsletter_subscription = fields.newsletter_subscription ? true : false;
 
   return output;
 }
