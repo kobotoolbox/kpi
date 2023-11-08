@@ -448,9 +448,15 @@
       > .name,
       > .organization,
       > .sector,
-      > .newsletter_subscription,
       > .country {
         min-width: 40%; // These fields can sit next to each other in pairs.
+      }
+      > .newsletter_subscription {
+        input[type='checkbox'] {
+          float: left;
+          margin-right: 10px;
+          margin-top: 4px;
+        }
       }
     }
 
