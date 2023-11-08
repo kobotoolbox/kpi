@@ -172,11 +172,7 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         dummy_user = User()
         user_username(dummy_user, self.cleaned_data.get('username'))
         user_email(dummy_user, self.cleaned_data.get('email'))
-        setattr(
-            dummy_user,
-            'organization',
-            self.cleaned_data.get('organization', ''),
-        )
+        setattr(dummy_user, 'organization', self.cleaned_data.get('organization', ''))
         setattr(dummy_user, 'full_name', self.cleaned_data.get('name', ''))
 
         password = self.cleaned_data.get('password1')
