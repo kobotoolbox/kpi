@@ -17,6 +17,7 @@ import type {
 } from 'js/account/account.constants';
 import {currentLang, notify} from 'js/utils';
 
+/** A slug for the `sitewide_messages` endpoint */
 const TOS_SLUG = 'terms_of_service';
 /** Where `<language>` is language code, e.g. "fr" */
 const TOS_SLUG_TRANSLATED = `${TOS_SLUG}_<language>`;
@@ -39,11 +40,17 @@ interface SitewideMessage {
 
 type SitewideMessagesResponse = PaginatedResponse<SitewideMessage>;
 
-// TODO: this needs more comments
+/**
+ * This form displays a TOS announcement message together with user metadata
+ * fields editor (only for required fields). There is an accept button that will
+ * cause the UI to be unlocked, and decline button that will log out the user.
+ */
 export default function TOSForm() {
   // After "Accept" button is clicked, this will be true until the call(s) resolve
   const [isFormPending, setIsFormPending] = useState(false);
-  const [announcementMessage, setAnnouncementMessage] = useState<string | undefined>();
+  const [announcementMessage, setAnnouncementMessage] = useState<
+    string | undefined
+  >();
   const [fields, setFields] = useState<AccountFieldsValues>(
     getInitialAccountFieldsValues()
   );
@@ -55,13 +62,22 @@ export default function TOSForm() {
   useEffect(() => {
     const getTOS = async () => {
       try {
-        const response = await fetchGet<SitewideMessagesResponse>(SITEWIDE_MESSAGES_ENDPOINT);
+        const response = await fetchGet<SitewideMessagesResponse>(
+          SITEWIDE_MESSAGES_ENDPOINT
+        );
 
         // First we try to find and set the translated TOS message, if not present
         // we go with fallback. Otherwise we will display an error.
-        const translatedSlug = TOS_SLUG_TRANSLATED.replace('<language>', currentLang());
-        const translatedMessage = response.results.find((item) => item.slug === translatedSlug);
-        const fallbackMessage = response.results.find((item) => item.slug === TOS_SLUG);
+        const translatedSlug = TOS_SLUG_TRANSLATED.replace(
+          '<language>',
+          currentLang()
+        );
+        const translatedMessage = response.results.find(
+          (item) => item.slug === translatedSlug
+        );
+        const fallbackMessage = response.results.find(
+          (item) => item.slug === TOS_SLUG
+        );
         if (translatedMessage) {
           setAnnouncementMessage(translatedMessage.body);
         } else if (fallbackMessage) {
@@ -79,10 +95,11 @@ export default function TOSForm() {
     getTOS();
   }, []);
 
-  // After both environment and session stores are ready, we build the form
-  // fields with all the required metadata fields
+  // After session store is ready, we fill in all the fields for the form
+  // (including the non-required ones that will be hidden, but passed to the API
+  // so that they will not get erased).
   useEffect(() => {
-    if ('email' in sessionStore.currentAccount && envStore.isReady) {
+    if ('email' in sessionStore.currentAccount) {
       const data = sessionStore.currentAccount;
       setFields({
         name: data.extra_details.name,
@@ -109,6 +126,8 @@ export default function TOSForm() {
    * Submitting does two things (with two consecutive API calls):
    * 1. Updates user data for all required fields (if any)
    * 2. Accepts TOS
+   * When TOS is successfully accepted, we reload the page to display
+   * the unblocked UI.
    */
   async function submitForm(evt: React.FormEvent<HTMLFormElement>) {
     evt.preventDefault();
@@ -162,7 +181,11 @@ export default function TOSForm() {
 
   // We are waiting for few pieces of data: the message, fields definitions from
   // environment endpoint and fields data from me endpoint
-  if (!announcementMessage) {
+  if (
+    !announcementMessage ||
+    !envStore.isReady ||
+    !sessionStore.isAuthStateKnown
+  ) {
     return <LoadingSpinner hideMessage />;
   }
 
