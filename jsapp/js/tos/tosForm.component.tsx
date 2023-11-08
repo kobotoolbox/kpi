@@ -2,9 +2,9 @@ import React, {useState, useEffect} from 'react';
 import Button from 'js/components/common/button';
 import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
-import {fetchGetUrl, fetchPatch, fetchPost, handleApiFail} from 'js/api';
+import {fetchGet, fetchPatch, fetchPost, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
-import type {FailResponse} from 'js/dataInterface';
+import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {
   getInitialAccountFieldsValues,
@@ -15,9 +15,15 @@ import type {
   AccountFieldsValues,
   AccountFieldsErrors,
 } from 'js/account/account.constants';
+import {currentLang, notify} from 'js/utils';
+
+const TOS_SLUG = 'terms_of_service';
+/** Where `<language>` is language code, e.g. "fr" */
+const TOS_SLUG_TRANSLATED = `${TOS_SLUG}_<language>`;
 
 const ME_ENDPOINT = '/me/';
-const TOS_ENDPOINT = '/me/tos/';
+const TOS_ACCEPT_ENDPOINT = '/me/tos/';
+const SITEWIDE_MESSAGES_ENDPOINT = '/sitewide_messages/';
 
 interface MePatchFailResponse {
   responseJSON: {
@@ -25,16 +31,19 @@ interface MePatchFailResponse {
   };
 }
 
-interface TOSGetResponse {
-  /** Containts HTML */
-  text: string;
+interface SitewideMessage {
+  slug: string;
+  /** HTML or Markdown code. For TOS Announcement this will definitely be HTML. */
+  body: string;
 }
+
+type SitewideMessagesResponse = PaginatedResponse<SitewideMessage>;
 
 // TODO: this needs more comments
 export default function TOSForm() {
   // After "Accept" button is clicked, this will be true until the call(s) resolve
   const [isFormPending, setIsFormPending] = useState(false);
-  const [message, setMessage] = useState<string | undefined>();
+  const [announcementMessage, setAnnouncementMessage] = useState<string | undefined>();
   const [fields, setFields] = useState<AccountFieldsValues>(
     getInitialAccountFieldsValues()
   );
@@ -46,14 +55,25 @@ export default function TOSForm() {
   useEffect(() => {
     const getTOS = async () => {
       try {
-        const response = await fetchGetUrl<TOSGetResponse>(
-          'https://kobo-tos.free.beeceptor.com'
-        );
-        setMessage(response.text);
+        const response = await fetchGet<SitewideMessagesResponse>(SITEWIDE_MESSAGES_ENDPOINT);
+
+        // First we try to find and set the translated TOS message, if not present
+        // we go with fallback. Otherwise we will display an error.
+        const translatedSlug = TOS_SLUG_TRANSLATED.replace('<language>', currentLang());
+        const translatedMessage = response.results.find((item) => item.slug === translatedSlug);
+        const fallbackMessage = response.results.find((item) => item.slug === TOS_SLUG);
+        if (translatedMessage) {
+          setAnnouncementMessage(translatedMessage.body);
+        } else if (fallbackMessage) {
+          setAnnouncementMessage(fallbackMessage.body);
+        } else {
+          setAnnouncementMessage('');
+          notify(t('TOS Update Message not found'), 'error');
+        }
       } catch (err) {
         const failResult = err as FailResponse;
         handleApiFail(failResult);
-        setMessage('error happened');
+        setAnnouncementMessage('');
       }
     };
     getTOS();
@@ -86,7 +106,7 @@ export default function TOSForm() {
   }
 
   /**
-   * Submitting does two things (calls):
+   * Submitting does two things (with two consecutive API calls):
    * 1. Updates user data for all required fields (if any)
    * 2. Accepts TOS
    */
@@ -119,7 +139,7 @@ export default function TOSForm() {
     if (!hasAnyErrors) {
       try {
         // Accepting TOS is simply POSTing to this endpoint
-        await fetchPost(TOS_ENDPOINT, {});
+        await fetchPost(TOS_ACCEPT_ENDPOINT, {});
         // TODO ideally we could make the sessionStore fetch new account data
         // or even override the `accepted_tos` flag without fetching. But this
         // requires the `app.js` file to be reworked in a bit different fashion,
@@ -142,7 +162,7 @@ export default function TOSForm() {
 
   // We are waiting for few pieces of data: the message, fields definitions from
   // environment endpoint and fields data from me endpoint
-  if (!message) {
+  if (!announcementMessage) {
     return <LoadingSpinner hideMessage />;
   }
 
@@ -151,7 +171,7 @@ export default function TOSForm() {
       <section
         className={styles.message}
         dangerouslySetInnerHTML={{
-          __html: message,
+          __html: announcementMessage,
         }}
       />
 
