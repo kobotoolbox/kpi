@@ -680,11 +680,7 @@ export interface AccountResponse {
    * sensitive. The default value is `true`.
    */
   validated_password: boolean;
-  /**
-   * The date when TOS was accepted by user. Will be `null` if given user has
-   * not accepted latest TOS.
-   */
-  tos_accepted_date: string | null;
+  accepted_tos: boolean;
   extra_details: {
     name: string;
     gender: string;

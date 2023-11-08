@@ -5,7 +5,6 @@ import sessionStore from 'js/stores/session';
 import {fetchGetUrl, fetchPatch, fetchPost, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
 import type {FailResponse} from 'js/dataInterface';
-import type {TOSGetResponse, TOSPostResponse} from './tos.constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {
   getInitialAccountFieldsValues,
@@ -18,12 +17,17 @@ import type {
 } from 'js/account/account.constants';
 
 const ME_ENDPOINT = '/me/';
-const TOS_ENDPOINT = '/api/v2/tos/';
+const TOS_ENDPOINT = '/me/tos/';
 
 interface MePatchFailResponse {
   responseJSON: {
     extra_details: AccountFieldsErrors;
   };
+}
+
+interface TOSGetResponse {
+  /** Containts HTML */
+  text: string;
 }
 
 // TODO: this needs more comments
@@ -46,9 +50,9 @@ export default function TOSForm() {
           'https://kobo-tos.free.beeceptor.com'
         );
         setMessage(response.text);
-      } catch (error) {
-        const errorObj = error as FailResponse;
-        handleApiFail(errorObj);
+      } catch (err) {
+        const failResult = err as FailResponse;
+        handleApiFail(failResult);
         setMessage('error happened');
       }
     };
@@ -114,17 +118,17 @@ export default function TOSForm() {
     // trying to submit the form again.
     if (!hasAnyErrors) {
       try {
-        const tosResponse = await fetchPost<TOSPostResponse>(TOS_ENDPOINT, {});
-        // We don't know what the response would be, ideally we need the same
-        // info as in `sessionStore.currentAccount.tos_accepted_date`
-        console.log(tosResponse);
-        // TODO On acceptance we need to stop displaying the route blocker UI,
-        // so we need to either make the `sessionStore` update itself (via call
-        // or we hack update it ourselves assuming the new data will be there),
-        // or to reload the page (ugly).
+        // Accepting TOS is simply POSTing to this endpoint
+        await fetchPost(TOS_ENDPOINT, {});
+        // TODO ideally we could make the sessionStore fetch new account data
+        // or even override the `accepted_tos` flag without fetching. But this
+        // requires the `app.js` file to be reworked in a bit different fashion,
+        // so that it could react to `sessionStore.accepted_tos` change. For now
+        // we do ugly and simple forced reload :)
+        window.location.replace('');
       } catch (err) {
         const failResult = err as FailResponse;
-        console.log('failed to accept TOS', failResult);
+        handleApiFail(failResult);
       }
     }
 

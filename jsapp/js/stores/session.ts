@@ -38,8 +38,8 @@ class SessionStore {
         (account: AccountResponse | {message: string}) => {
           // TEMP
           // Override the response to cause TOS Screen to appear
-          if ('email' in account) {
-            account.tos_accepted_date = null;
+          if ('accepted_tos' in account) {
+            account.accepted_tos = false;
           }
           // END TEMP
 
