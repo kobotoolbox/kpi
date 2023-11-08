@@ -4,6 +4,7 @@ from djstripe.models import (
     Product,
     Subscription,
     SubscriptionItem,
+    SubscriptionSchedule,
 )
 from rest_framework import serializers
 
@@ -43,6 +44,7 @@ class BasePriceSerializer(serializers.ModelSerializer):
             'recurring',
             'unit_amount',
             'human_readable_price',
+            'active',
             'metadata',
         )
 
@@ -77,14 +79,24 @@ class ChangePlanSerializer(PriceIdSerializer):
 
 class CustomerPortalSerializer(serializers.Serializer):
     organization_id = serializers.CharField(required=True)
+    price_id = serializers.SlugRelatedField(
+        'id',
+        queryset=Price.objects.all(),
+        required=False,
+        allow_empty=True,
+    )
 
     def validate_organization_id(self, organization_id):
         if organization_id.startswith('org'):
             return organization_id
         raise ValidationError('Invalid organization ID')
 
+    class Meta:
+        model = Price
+        fields = ('id',)
 
-class CheckoutLinkSerializer(PriceIdSerializer, CustomerPortalSerializer):
+
+class CheckoutLinkSerializer(PriceIdSerializer):
     organization_id = serializers.CharField(required=False)
     quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
@@ -102,6 +114,7 @@ class PriceSerializer(BasePriceSerializer):
             'unit_amount',
             'human_readable_price',
             'metadata',
+            'active',
             'product',
         )
 
@@ -121,8 +134,16 @@ class SubscriptionItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'price')
 
 
+class SubscriptionScheduleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SubscriptionSchedule
+        fields = ('phases', 'status')
+
+
 class SubscriptionSerializer(serializers.ModelSerializer):
     items = SubscriptionItemSerializer(many=True)
+    schedule = SubscriptionScheduleSerializer()
 
     class Meta:
         model = Subscription

@@ -417,8 +417,6 @@ class KobocatUserProfile(ShadowModel):
     )
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
-    created_by = models.ForeignKey(KobocatUser, null=True, blank=True,
-                                   on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     attachment_storage_bytes = models.BigIntegerField(default=0)
     metadata = models.JSONField(default=dict, blank=True)
@@ -521,6 +519,12 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
+class ReadOnlyKobocatAttachmentManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(deleted_at__isnull=False)
+
+
 class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
 
     class Meta(ReadOnlyModel.Meta):
@@ -541,9 +545,8 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
-    # TODO: hide attachments that were deleted or replaced; see
-    # kobotoolbox/kobocat#792
-    # replaced_at = models.DateTimeField(blank=True, null=True)
+    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    objects = ReadOnlyKobocatAttachmentManager()
 
     @property
     def absolute_mp3_path(self):
@@ -616,14 +619,15 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
 class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
 
     date = models.DateField()
+    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(
-        KobocatXForm, related_name='daily_counts', on_delete=models.CASCADE
+        KobocatXForm, related_name='daily_counts', null=True, on_delete=models.CASCADE
     )
     counter = models.IntegerField(default=0)
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_dailyxformsubmissioncounter'
-        unique_together = ('date', 'xform')
+        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):

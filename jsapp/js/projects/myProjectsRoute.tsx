@@ -18,7 +18,7 @@ import customViewStore from './customViewStore';
 import styles from './projectViews.module.scss';
 import routeStyles from './myProjectsRoute.module.scss';
 import {toJS} from 'mobx';
-import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
+import {ROOT_URL} from 'js/constants';
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
@@ -27,15 +27,17 @@ import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import {UsageContext, useUsage} from 'js/account/useUsage.hook';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const usage = useUsage();
 
   useEffect(() => {
     customView.setUp(
       HOME_VIEW.uid,
-      `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.s}`,
+      `${ROOT_URL}/api/v2/assets/`,
       HOME_DEFAULT_VISIBLE_FIELDS
     );
   }, []);
@@ -111,7 +113,9 @@ function MyProjectsRoute() {
             </div>
           )}
         </header>
-        <LimitNotifications useModal />
+        <UsageContext.Provider value={usage}>
+          <LimitNotifications useModal />
+        </UsageContext.Provider>
         <ProjectsTable
           assets={customView.assets}
           isLoading={!customView.isFirstLoadComplete}

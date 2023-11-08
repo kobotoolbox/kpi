@@ -1,4 +1,4 @@
-import {fetchGet, fetchPost} from 'jsapp/js/api';
+import {fetchGet} from 'jsapp/js/api';
 import {getOrganization} from 'js/account/stripe.api';
 
 interface AssetUsage {
@@ -11,7 +11,7 @@ interface AssetUsage {
   storage_bytes: number;
 }
 
-interface UsageResponse {
+export interface UsageResponse {
   current_month_start: string;
   current_year_start: string;
   per_asset_usage: AssetUsage[];
@@ -32,12 +32,17 @@ interface UsageResponse {
 }
 
 const USAGE_URL = '/api/v2/service_usage/';
+const ORGANIZATION_USAGE_URL =
+  '/api/v2/organizations/##ORGANIZATION_ID##/service_usage/';
 
 export async function getUsage(organization_id: string | null = null) {
   if (organization_id) {
-    return fetchPost<UsageResponse>(USAGE_URL, {organization_id});
+    return fetchGet<UsageResponse>(
+      ORGANIZATION_USAGE_URL.replace('##ORGANIZATION_ID##', organization_id),
+      {includeHeaders: true}
+    );
   }
-  return fetchGet<UsageResponse>(USAGE_URL);
+  return fetchGet<UsageResponse>(USAGE_URL, {includeHeaders: true});
 }
 
 export async function getUsageForOrganization() {

@@ -534,11 +534,10 @@ export default class ProjectExportsCreator extends React.Component {
   renderAdvancedView() {
     const includeAllVersionsLabel = (
       <span>
-        {t('Include data from all')}
-        &nbsp;
-        <strong>{this.props.asset.deployed_versions.count}</strong>
-        &nbsp;
-        {t('versions')}
+        {t('Include fields from all ##count## versions').replace(
+          '##count##',
+          String(this.props.asset.deployed_versions.count)
+        )}
       </span>
     );
 
