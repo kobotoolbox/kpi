@@ -24,7 +24,7 @@ from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.deployment_backends.kc_access.shadow_models import (
-    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
+    KobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import AssetDeploymentStatus
 from .filters import UserAdvancedSearchFilter
@@ -215,7 +215,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         displayed in the Django admin user changelist page
         """
         today = timezone.now().date()
-        instances = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+        instances = KobocatMonthlyXFormSubmissionCounter.objects.filter(
             user_id=obj.id,
             year=today.year,
             month=today.month,

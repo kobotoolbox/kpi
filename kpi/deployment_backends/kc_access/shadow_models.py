@@ -113,6 +113,25 @@ class KobocatContentType(ShadowModel):
         return self.model
 
 
+class KobocatDailyXFormSubmissionCounter(ShadowModel):
+
+    date = models.DateField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser', null=True, on_delete=models.CASCADE
+    )
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='daily_counts',
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_dailyxformsubmissioncounter'
+        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
+
+
 class KobocatDigestPartial(ShadowModel):
 
     user = models.ForeignKey('KobocatUser', on_delete=models.CASCADE)
@@ -251,6 +270,27 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 ]
             else:
                 return []
+
+
+class KobocatMonthlyXFormSubmissionCounter(ShadowModel):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser',
+        on_delete=models.CASCADE,
+    )
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='monthly_counts',
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ShadowModel.Meta):
+        app_label = 'superuser_stats'
+        db_table = 'logger_monthlyxformsubmissioncounter'
+        verbose_name_plural = 'User Statistics'
 
 
 class KobocatPermission(ShadowModel):
@@ -616,20 +656,6 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
         return str(self.media_file)
 
 
-class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
-
-    date = models.DateField()
-    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(
-        KobocatXForm, related_name='daily_counts', null=True, on_delete=models.CASCADE
-    )
-    counter = models.IntegerField(default=0)
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_dailyxformsubmissioncounter'
-        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
-
-
 class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     class Meta(ReadOnlyModel.Meta):
@@ -648,27 +674,6 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     status = models.CharField(max_length=20,
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
-
-
-class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
-    year = models.IntegerField()
-    month = models.IntegerField()
-    user = models.ForeignKey(
-        'shadow_model.KobocatUser',
-        on_delete=models.CASCADE,
-    )
-    xform = models.ForeignKey(
-        'shadow_model.KobocatXForm',
-        related_name='monthly_counts',
-        null=True,
-        on_delete=models.SET_NULL,
-    )
-    counter = models.IntegerField(default=0)
-
-    class Meta:
-        app_label = 'superuser_stats'
-        db_table = 'logger_monthlyxformsubmissioncounter'
-        verbose_name_plural = 'User Statistics'
 
 
 def safe_kc_read(func):

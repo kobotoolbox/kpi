@@ -5,11 +5,10 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.project_views.models.assignment import User
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
-    ReadOnlyKobocatDailyXFormSubmissionCounter,
+    KobocatDailyXFormSubmissionCounter,
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models.asset import Asset
@@ -280,7 +279,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         Users are represented by their ids with `self._user_ids`
         """
         submission_count = (
-            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
+            KobocatDailyXFormSubmissionCounter.objects.filter(
                 user_id__in=self._user_ids,
             )
             .aggregate(
