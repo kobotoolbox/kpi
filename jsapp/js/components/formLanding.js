@@ -16,9 +16,10 @@ import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import {MODAL_TYPES, COLLECTION_METHODS, ANON_USERNAME} from '../constants';
+import {MODAL_TYPES, COLLECTION_METHODS} from '../constants';
 import {ROUTES} from 'js/router/routerConstants';
-import {formatTime, notify, buildUserUrl} from 'utils';
+import {formatTime, notify} from 'utils';
+import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
 import {Link} from 'react-router-dom';
 import {withRouter} from 'js/router/legacy';
 import {
