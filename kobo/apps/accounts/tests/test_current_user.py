@@ -134,7 +134,10 @@ class CurrentUserAPITestCase(APITestCase):
         response = self.client.post(reverse('tos'))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         self.user.refresh_from_db()
-        assert self.user.extra_details.private_data['current_time'] is not None
+        assert (
+            self.user.extra_details.private_data['last_tos_accept_time']
+            is not None
+        )
 
         # Ensure accepted_tos is now True after accepting ToS
         response = self.client.get(self.url)

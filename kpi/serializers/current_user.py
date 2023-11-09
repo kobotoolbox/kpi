@@ -1,5 +1,6 @@
 # coding: utf-8
 import datetime
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -112,7 +113,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             user_extra_details = obj.extra_details
         except obj.extra_details.RelatedObjectDoesNotExist:
             return False
-        accepted_tos = 'current_time' in user_extra_details.private_data.keys()
+        accepted_tos = (
+            'last_tos_accept_time' in user_extra_details.private_data.keys()
+        )
         return accepted_tos
 
     def to_representation(self, obj):
