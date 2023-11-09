@@ -53,7 +53,7 @@ export function getProfilePatchData(fields: AccountFieldsValues) {
 
   // Populate the patch with user form input, or empty strings.
   presentMetadataFields.forEach((fieldName) => {
-    output.extra_details[fieldName] = fields[fieldName];
+    output.extra_details[fieldName] = fields[fieldName] || '';
   });
 
   // Always include require_auth, defaults to 'false'.
