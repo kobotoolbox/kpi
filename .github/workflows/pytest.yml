@@ -59,8 +59,6 @@ jobs:
       # Explicitly name the directories where coverage should be measured;
       # specifying just `--cov=.` includes `src`, which contains third-party packages
       run: pytest --cov=hub --cov=kobo --cov=kpi -ra
-    - name: Run coveralls for back-end code
-      uses: AndreMiras/coveralls-python-action@develop
-      # Coveralls action will intermittently give 422 errors
-      # only run this action on `main` or `beta`, since the issue only seems to affect PRs
-      if: ${{ github.event_name != 'pull_request' }}
+    # Coveralls action will intermittently give 422 errors - until that issue is resolved this step is commented out.
+    #- name: Run coveralls for back-end code
+    #  uses: AndreMiras/coveralls-python-action@develop
