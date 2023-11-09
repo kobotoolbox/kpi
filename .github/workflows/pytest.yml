@@ -63,4 +63,4 @@ jobs:
       uses: AndreMiras/coveralls-python-action@develop
       # Coveralls action will intermittently give 422 errors
       # only run this action on `main` or `beta`, since the issue only seems to affect PRs
-      if: ${{ github.event_name != "pull_request" }}
+      if: ${{ github.event_name != 'pull_request' }}
