@@ -109,9 +109,8 @@ class ChangePlanView(APIView):
             # Upgraded successfully!
             else:
                 return Response({
-                    'url': f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+                    'price_id': price.id,
                     'status': 'success',
-                    'stripe_object': stripe_response,
                 })
 
         # We're downgrading the subscription, schedule a subscription change at the end of the current period
