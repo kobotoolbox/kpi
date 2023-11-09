@@ -59,6 +59,7 @@ jobs:
       # Explicitly name the directories where coverage should be measured;
       # specifying just `--cov=.` includes `src`, which contains third-party packages
       run: pytest --cov=hub --cov=kobo --cov=kpi -ra
-    # Coveralls action will intermittently give 422 errors - until that issue is resolved this step is commented out.
-    #- name: Run coveralls for back-end code
-    #  uses: AndreMiras/coveralls-python-action@develop
+    - name: Run coveralls for back-end code
+      uses: AndreMiras/coveralls-python-action@develop
+      # Coveralls action will intermittently give 422 errors - until that issue is resolved this step allowed to error.
+      continue-on-error: true
