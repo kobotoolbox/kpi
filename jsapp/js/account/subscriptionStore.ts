@@ -1,5 +1,5 @@
 import {makeAutoObservable} from 'mobx';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import {ROOT_URL} from 'js/constants';
 import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
@@ -91,9 +91,9 @@ export async function fetchProducts() {
 }
 
 class SubscriptionStore {
-  public subscriptionResponse: SubscriptionInfo[] = [];
+  public planResponse: SubscriptionInfo[] = [];
+  public addOnsResponse: SubscriptionInfo[] = [];
   public subscribedProduct: BaseProduct | null = null;
-  public productsResponse: Product[] | null = null;
   public isPending = false;
   public isInitialised = false;
 
@@ -121,8 +121,16 @@ class SubscriptionStore {
   private onFetchSubscriptionInfoDone(
     response: PaginatedResponse<SubscriptionInfo>
   ) {
-    this.subscriptionResponse = response.results;
-    this.subscribedProduct = response.results[0]?.plan?.product || null;
+    // get any plan subscriptions for the user
+    this.planResponse = response.results.filter(
+      (sub) => sub.items[0]?.price.product.metadata?.product_type == 'plan'
+    );
+    // get any recurring add-on subscriptions for the user
+    this.addOnsResponse = response.results.filter(
+      (sub) => sub.items[0]?.price.product.metadata?.product_type == 'addon'
+    );
+    this.subscribedProduct =
+      this.planResponse[0]?.items[0]?.price.product || null;
     this.isPending = false;
     this.isInitialised = true;
   }

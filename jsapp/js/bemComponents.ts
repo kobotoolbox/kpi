@@ -155,8 +155,6 @@ bem.ReportView__headingButton = makeBem(bem.ReportView, 'headingButton', 'button
 bem.ReportView__chart = makeBem(bem.ReportView, 'chart');
 
 bem.GraphSettings = makeBem(null, 'graph-settings');
-bem.GraphSettings__buttons = makeBem(bem.GraphSettings, 'buttons');
-bem.GraphSettings__charttype = makeBem(bem.GraphSettings, 'charttype');
 bem.GraphSettings__colors = makeBem(bem.GraphSettings, 'colors');
 bem.GraphSettings__radio = makeBem(bem.GraphSettings, 'radio');
 

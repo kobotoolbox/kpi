@@ -269,7 +269,10 @@ export function writeParameters(obj) {
       if (typeof value === 'object') {
         value = JSON.stringify(value);
       }
-      params.push(`${key}=${value}`);
+      // Preventing addition of `seed=` which blocks project from deploying
+      if (!(key === 'seed' && value === '')){
+        params.push(`${key}=${value}`);
+      } 
     }
   });
   return params.join(';');

@@ -1,7 +1,7 @@
 import throttle from 'lodash.throttle';
 import {makeAutoObservable, when} from 'mobx';
 import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import {ROOT_URL} from 'js/constants';
 import sessionStore from 'js/stores/session';
 

@@ -10,7 +10,6 @@ import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
-import {assign} from 'utils';
 import {userCan} from 'js/components/permissions/utils';
 
 export function getFormDataTabs(assetUid) {
@@ -58,7 +57,7 @@ class FormViewSideTabs extends Reflux.Component {
 
   assetLoad(data) {
     var asset = data[this.currentAssetID()];
-    this.setState(assign({asset: asset}));
+    this.setState(Object.assign({asset: asset}));
   }
 
   triggerRefresh(evt) {

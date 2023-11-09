@@ -375,9 +375,9 @@ class ConnectProjects extends React.Component {
           />
 
           {this.state.fieldsErrors?.source &&
-            <bem.KoboSelect__errors>
+            <bem.KoboSelect__error>
               {this.state.fieldsErrors?.source}
-            </bem.KoboSelect__errors>
+            </bem.KoboSelect__error>
           }
         </bem.KoboSelect__wrapper>
       );

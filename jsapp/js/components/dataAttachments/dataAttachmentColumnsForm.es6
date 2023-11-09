@@ -91,13 +91,17 @@ class DataAttachmentColumnsForm extends React.Component {
   onAttachToSourceCompleted() {
     this.props.onModalClose();
   }
-  onBulkSelect() {
+  onBulkSelect(evt) {
+    evt.preventDefault();
+
     let newList = this.state.columnsToDisplay.map((item) => {
       return {label: item.label, checked: true}
     });
     this.setState({columnsToDisplay: newList})
   }
-  onBulkDeselect() {
+  onBulkDeselect(evt) {
+    evt.preventDefault();
+
     let newList = this.state.columnsToDisplay.map((item) => {
       return {label: item.label, checked: false}
     });
