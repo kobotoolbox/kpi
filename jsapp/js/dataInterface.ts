@@ -680,7 +680,11 @@ export interface AccountResponse {
    * sensitive. The default value is `true`.
    */
   validated_password: boolean;
-  accepted_tos: boolean;
+  /**
+   * This will be `true` for user who accepted the latest TOS. If it's missing
+   * or `false`, it means that the latest TOS was not accepted.
+   */
+  accepted_tos?: boolean;
   extra_details: {
     name: string;
     gender: string;

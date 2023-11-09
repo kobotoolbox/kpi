@@ -257,8 +257,9 @@ export function isInvalidatedPasswordRouteBlockerActive() {
 export function isTOSAgreementRouteBlockerActive() {
   return (
     sessionStore.isLoggedIn &&
-    'accepted_tos' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.accepted_tos === false
+    // We check for email, because `currentAccount` can be two different things
+    'email' in sessionStore.currentAccount &&
+    sessionStore.currentAccount.accepted_tos !== true
   );
 }
 
