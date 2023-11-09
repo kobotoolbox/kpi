@@ -30,8 +30,8 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 // TODO: replace with new endpoint
-const ANON_CAN_VIEW_PERM_URL = permConfig.getPermissionByCodename(
-  PERMISSIONS_CODENAMES.view_asset
+const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
+  PERMISSIONS_CODENAMES.add_submissions
 ).url;
 
 class FormLanding extends React.Component {
@@ -43,7 +43,7 @@ class FormLanding extends React.Component {
       nextPageUrl: null,
       nextPagesVersions: [],
       anonymousSubmissions: false,
-      anonymousePermissions: [],
+      anonymousPermissions: [],
     };
     autoBind(this);
   }
@@ -65,19 +65,19 @@ class FormLanding extends React.Component {
       (assignment) => assignment.user === buildUserUrl(ANON_USERNAME)
     );
     const anonCanView = publicPerms.filter(
-      (perm) => perm.permission === ANON_CAN_VIEW_PERM_URL
+      (perm) => perm.permission === ANON_CAN_ADD_PERM_URL
     )[0];
 
     this.setState({
-      anonymousePermissions: publicPerms,
+      anonymousPermissions: publicPerms,
       anonymousSubmissions: anonCanView ? true : false,
     });
   }
   updateAssetAnonymousSubmissions() {
-    const permission = this.state.anonymousePermissions.filter(
+    const permission = this.state.anonymousPermissions.filter(
       (perm) =>
         perm.permission ===
-        permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
+        permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
     )[0];
     if (this.state.anonymousSubmissions) {
       actions.permissions.removeAssetPermission(
@@ -87,7 +87,7 @@ class FormLanding extends React.Component {
     } else {
       actions.permissions.assignAssetPermission(this.props.params.uid, {
         user: buildUserUrl(ANON_USERNAME),
-        permission: ANON_CAN_VIEW_PERM_URL,
+        permission: ANON_CAN_ADD_PERM_URL,
       });
     }
   }
