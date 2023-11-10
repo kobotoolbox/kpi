@@ -17,13 +17,16 @@ import MainHeader from 'js/components/header/mainHeader.component';
 import Drawer from 'js/components/drawer';
 import FormViewSideTabs from 'js/components/formViewSideTabs';
 import ProjectTopTabs from 'js/project/projectTopTabs.component';
-import PermValidator from 'js/components/permissions/permValidator';
 import BigModal from 'js/components/bigModal/bigModal';
 import ToasterConfig from './toasterConfig';
 import {withRouter, routerGetAssetId, router} from './router/legacy';
 import {Tracking} from './router/useTracking';
-import sessionStore from 'js/stores/session';
 import InvalidatedPassword from 'js/router/invalidatedPassword.component';
+import TOSAgreement from 'js/router/tosAgreement.component';
+import {
+  isInvalidatedPasswordRouteBlockerActive,
+  isTOSAgreementRouteBlockerActive,
+} from 'js/router/routerUtils';
 
 class App extends React.Component {
   constructor(props) {
@@ -50,13 +53,12 @@ class App extends React.Component {
   }
 
   render() {
-    // When user is marked as having invalidated password, we block all the UI
-    // and display a special component.
-    if (
-      sessionStore.isLoggedIn &&
-      sessionStore.currentAccount.validated_password === false
-    ) {
+    if (isInvalidatedPasswordRouteBlockerActive()) {
       return <InvalidatedPassword />;
+    }
+
+    if (isTOSAgreementRouteBlockerActive()) {
+      return <TOSAgreement />;
     }
 
     const assetid = routerGetAssetId();
@@ -86,7 +88,6 @@ class App extends React.Component {
         <React.Fragment>
           <Tracking />
           <ToasterConfig />
-          <PermValidator />
           <div className='header-stretch-bg' />
           <bem.PageWrapper
             m={pageWrapperModifiers}

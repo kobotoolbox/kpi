@@ -19,7 +19,7 @@
     "jquery": "^3.5.1",
     "jquery-ui": "1.12.1",
     "jszip": "^3.4.0",
-    "kobo-common": "https://github.com/kobotoolbox/kobo-common.git#semver:1.28.0",
+    "kobo-common": "https://github.com/kobotoolbox/kobo-common.git#semver:1.33.0",
     "leaflet": "^1.9.2",
     "leaflet.heat": "^0.2.0",
     "leaflet.markercluster": "^1.5.3",
@@ -159,6 +159,11 @@
     "webpack-dev-middleware": "^5.3.1",
     "webpack-dev-server": "^4.8.1",
     "webpack-extract-translation-keys-plugin": "^6.0.0"
+  },
+  "overrides": {
+    "reflux": {
+      "react": "$react"
+    }
   },
   "scripts": {
     "preinstall": "npm run hint",
