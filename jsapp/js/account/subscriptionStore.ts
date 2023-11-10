@@ -1,5 +1,5 @@
 import {makeAutoObservable} from 'mobx';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import {ROOT_URL} from 'js/constants';
 import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
