@@ -382,7 +382,7 @@ export default class ProjectExportsCreator extends React.Component {
 
     // include_media_url is only for xls and csv
     if (this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
-        this.state.selectedExportType.value === EXPORT_TYPES.csv.value
+      this.state.selectedExportType.value === EXPORT_TYPES.csv.value
     ) {
       payload.export_settings.include_media_url = this.state.isIncludeMediaUrlEnabled;
     }
@@ -407,10 +407,10 @@ export default class ProjectExportsCreator extends React.Component {
     // need to make sure we are not losing some settings when patching.
     if (foundDefinedExport) {
       Object.entries(foundDefinedExport.data.export_settings).forEach(([key, value]) => {
-        if (!Object.prototype.hasOwnProperty.call(payload.export_settings, key)) {
-          payload.export_settings[key] = value;
-        }
-      });
+          if (!Object.prototype.hasOwnProperty.call(payload.export_settings, key)) {
+            payload.export_settings[key] = value;
+          }
+        });
     }
 
     this.setState({isPending: true});
@@ -427,22 +427,22 @@ export default class ProjectExportsCreator extends React.Component {
       !userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset)
     ) {
       this.handleScheduledExport(payload);
-    // Case 3: There is a defined export with the same name already, so we need
-    // to update it.
+      // Case 3: There is a defined export with the same name already, so we need
+      // to update it.
     } else if (foundDefinedExport) {
       this.clearScheduledExport = actions.exports.updateExportSetting.completed.listen(
-        this.handleScheduledExport
-      );
+          this.handleScheduledExport
+        );
       actions.exports.updateExportSetting(
         this.props.asset.uid,
         foundDefinedExport.data.uid,
         payload,
       );
-    // Case 4: There is no defined export like this one, we need to create it.
+      // Case 4: There is no defined export like this one, we need to create it.
     } else {
       this.clearScheduledExport = actions.exports.createExportSetting.completed.listen(
-        this.handleScheduledExport
-      );
+          this.handleScheduledExport
+        );
       actions.exports.createExportSetting(
         this.props.asset.uid,
         payload,
@@ -547,13 +547,17 @@ export default class ProjectExportsCreator extends React.Component {
       EXPORT_MULTIPLE_OPTIONS.summary,
       EXPORT_MULTIPLE_OPTIONS.both,
     ];
+    const template = t('Export ##SELECT_MANY## questions as…');
+    const [firstPart, nextPart] = template.split('##SELECT_MANY##');
 
     return (
       <bem.ProjectDownloads__advancedView>
         <bem.ProjectDownloads__column m='left'>
           <label className='project-downloads__column-row'>
             <bem.ProjectDownloads__title>
-              {t('Export Select Many questions as…')}
+              {firstPart}
+              <em>{t('Select Many')}</em>
+              {nextPart}
             </bem.ProjectDownloads__title>
 
             <Select
@@ -623,7 +627,7 @@ export default class ProjectExportsCreator extends React.Component {
           }
 
           {(this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
-              this.state.selectedExportType.value == EXPORT_TYPES.csv.value) &&
+            this.state.selectedExportType.value == EXPORT_TYPES.csv.value) &&
             <bem.ProjectDownloads__columnRow>
               <Checkbox
                 checked={this.state.isIncludeMediaUrlEnabled}
@@ -775,32 +779,32 @@ export default class ProjectExportsCreator extends React.Component {
 
                   {this.state.selectedDefinedExport &&
                     userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
-                    <bem.ProjectDownloads__deleteSettingsButton
-                      onClick={this.onDeleteExportSetting.bind(
-                        this,
-                        this.state.selectedDefinedExport.data.uid
-                      )}
+                      <bem.ProjectDownloads__deleteSettingsButton
+                        onClick={this.onDeleteExportSetting.bind(
+                          this,
+                          this.state.selectedDefinedExport.data.uid
+                        )}
                       >
                         <i className='k-icon k-icon-trash'/>
                       </bem.ProjectDownloads__deleteSettingsButton>
                     }
-                  </React.Fragment>
-                }
-              </bem.ProjectDownloads__exportsSelector>
+                </React.Fragment>
+              }
+            </bem.ProjectDownloads__exportsSelector>
 
-              <bem.KoboButton
-                m='blue'
-                type='submit'
-                onClick={this.onSubmit}
-                disabled={
-                  this.state.selectedRows.size === 0 ||
+            <bem.KoboButton
+              m='blue'
+              type='submit'
+              onClick={this.onSubmit}
+              disabled={
+                this.state.selectedRows.size === 0 ||
                   this.state.isPending
-                }
-              >
-                {t('Export')}
-              </bem.KoboButton>
-            </bem.ProjectDownloads__submitRow>
-          </bem.FormView__form>
+              }
+            >
+              {t('Export')}
+            </bem.KoboButton>
+          </bem.ProjectDownloads__submitRow>
+        </bem.FormView__form>
       </bem.FormView__cell>
     );
   }
