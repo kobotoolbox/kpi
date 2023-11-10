@@ -111,7 +111,9 @@ class AccountFormsTestCase(TestCase):
             with translation.override('fr'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
                 assert form.fields['organization'].required
-                assert form.fields['organization'].label == 'Organisation secrète'
+                assert (
+                    form.fields['organization'].label == 'Organisation secrète'
+                )
 
     def test_field_without_custom_label_can_be_optional(self):
         with override_config(
@@ -178,3 +180,17 @@ class AccountFormsTestCase(TestCase):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
                 assert form.fields['organization'].required is False
                 assert form.fields['organization'].label == 'Organization'
+
+    def test_newsletter_subscription_valid_field(self):
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {
+                        'name': 'newsletter_subscription',
+                        'required': False,
+                    },
+                ]
+            )
+        ):
+            form = SocialSignupForm(sociallogin=self.sociallogin)
+            assert 'newsletter_subscription' in form.fields
