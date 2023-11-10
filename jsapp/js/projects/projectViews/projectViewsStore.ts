@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import {makeAutoObservable, when} from 'mobx';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {ROOT_URL} from 'js/constants';
 import sessionStore from 'js/stores/session';

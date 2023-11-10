@@ -98,6 +98,7 @@ class ServiceUsageSerializer(serializers.Serializer):
     total_submission_count = serializers.SerializerMethodField()
     current_month_start = serializers.SerializerMethodField()
     current_year_start = serializers.SerializerMethodField()
+    billing_period_end = serializers.SerializerMethodField()
     _now = timezone.now().date()
 
     def __init__(self, instance=None, data=empty, **kwargs):
@@ -110,6 +111,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._current_year_start = None
         self._anchor_date = None
         self._period_start = None
+        self._period_end = None
         self._subscription_interval = None
         self._get_per_asset_usage(instance)
 
@@ -127,6 +129,9 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def get_current_year_start(self, user):
         return self._current_year_start
+
+    def get_billing_period_end(self, user):
+        return self._period_end
 
     def _get_current_month_start_date(self):
         # No subscription info, just use the first day of current month
@@ -227,6 +232,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         if billing_details:
             self._anchor_date = billing_details['billing_cycle_anchor'].date()
             self._period_start = billing_details['current_period_start'].date()
+            self._period_end = billing_details['current_period_end'].date()
             self._subscription_interval = billing_details['recurring_interval']
 
     def _get_per_asset_usage(self, user):
