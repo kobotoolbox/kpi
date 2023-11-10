@@ -22,6 +22,8 @@ from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 CONFIGURABLE_METADATA_FIELDS = (
     'name',
     'organization',
+    'organization_type',
+    'organization_website',
     'gender',
     'sector',
     'country',
@@ -45,6 +47,22 @@ class KoboSignupMixin(forms.Form):
     organization = forms.CharField(
         label=USER_METADATA_DEFAULT_LABELS['organization'],
         required=False,
+    )
+    organization_website = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['organization_website'],
+        required=False,
+    )
+    organization_type = forms.ChoiceField(
+        label=USER_METADATA_DEFAULT_LABELS['organization_type'],
+        required=False,
+        choices=(
+            ('', ''),
+            ('non-profit', t('Non-profit organization')),
+            ('government', t('Government institution')),
+            ('educational', t('Educational organization')),
+            ('commercial', t('A commercial/for-profit')),
+            ('none', t('I am not associated with any organization')),
+        ),
     )
     gender = forms.ChoiceField(
         label=USER_METADATA_DEFAULT_LABELS['gender'],
@@ -80,6 +98,9 @@ class KoboSignupMixin(forms.Form):
                 self.fields[field_name].widget.attrs['placeholder'] = ''
         if 'password2' in self.fields:
             self.fields['password2'].label = t('Password confirmation')
+        if 'email' in self.fields:
+            self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
+
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
@@ -150,11 +171,13 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
 class SignupForm(KoboSignupMixin, BaseSignupForm):
     field_order = [
         'name',
-        'organization',
         'username',
         'email',
-        'sector',
         'country',
+        'organization',
+        'organization_website',
+        'organization_type'
+        'sector',
         'newsletter_subscription',
     ]
 

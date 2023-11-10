@@ -190,6 +190,13 @@
   margin-bottom: 16px;
 }
 
+.registration select,
+.registration input {
+   // unify heights and margin
+  height: 38px;
+  margin-top: 2px;
+  margin-bottom: 0;
+}
 .registration input[type=text],
 .registration input[type=password],
 .registration input[type=submit],
@@ -202,7 +209,6 @@
   border-radius: 6px;
   font-size: variables.$base-font-size;
   border-bottom: 3px solid transparent;
-  margin-top: 1px;
   background-color: colors.$kobo-cloud;
 
   &:focus {
@@ -241,7 +247,6 @@
 
 .registration {
   select {
-    margin-top: 4px;
     border-bottom: none;
   }
 
@@ -442,20 +447,28 @@
       align-items: flex-end;
       column-gap: 4%;
       > * {
-        min-width: 75%; // Most rows are wide enough to get their own row,
+        min-width: 80%; // By default, rows are wide enough to get their own row,
         flex: 1; // and when they do, they grow to occupy full available width.
       }
       > .name,
+      > .username,
+      > .email,
+      > .country,
       > .organization,
-      > .sector,
-      > .country {
+      > .organization_website,
+      > .organization_type,
+      > .sector {
         min-width: 40%; // These fields can sit next to each other in pairs.
+      }
+      > .password1,
+      > .password2 {
+        flex: 0; // Let these be shorter to match designs
       }
       > .newsletter_subscription {
         input[type='checkbox'] {
           float: left;
           margin-right: 10px;
-          margin-top: 4px;
+          margin-top: -8.5px;
         }
       }
     }

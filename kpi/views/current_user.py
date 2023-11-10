@@ -56,6 +56,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "tag": boolean,
     >           },
     >           "social_accounts": []
+    >           "accepted_tos": boolean,
     >       }
 
     Update account details

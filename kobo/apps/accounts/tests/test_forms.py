@@ -181,6 +181,20 @@ class AccountFormsTestCase(TestCase):
                 assert form.fields['organization'].required is False
                 assert form.fields['organization'].label == 'Organization'
 
+    def test_organization_type_valid_field(self):
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {
+                        'name': 'organization_type',
+                        'required': False,
+                    },
+                ]
+            )
+        ):
+            form = SocialSignupForm(sociallogin=self.sociallogin)
+            assert 'organization_type' in form.fields
+
     def test_newsletter_subscription_valid_field(self):
         with override_config(
             USER_METADATA_FIELDS=LazyJSONSerializable(
