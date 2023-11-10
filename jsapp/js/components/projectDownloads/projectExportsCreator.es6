@@ -381,10 +381,10 @@ export default class ProjectExportsCreator extends React.Component {
     }
 
     // include_media_url is only for xls and csv
-   if (this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
+    if (this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
         this.state.selectedExportType.value === EXPORT_TYPES.csv.value
     ) {
-     payload.export_settings.include_media_url = this.state.isIncludeMediaUrlEnabled;
+      payload.export_settings.include_media_url = this.state.isIncludeMediaUrlEnabled;
     }
 
     // if custom export is enabled, but there is no name provided
@@ -409,8 +409,8 @@ export default class ProjectExportsCreator extends React.Component {
       Object.entries(foundDefinedExport.data.export_settings).forEach(([key, value]) => {
         if (!Object.prototype.hasOwnProperty.call(payload.export_settings, key)) {
           payload.export_settings[key] = value;
-          }
-        });
+        }
+      });
     }
 
     this.setState({isPending: true});
@@ -440,7 +440,7 @@ export default class ProjectExportsCreator extends React.Component {
       );
     // Case 4: There is no defined export like this one, we need to create it.
     } else {
-       this.clearScheduledExport = actions.exports.createExportSetting.completed.listen(
+      this.clearScheduledExport = actions.exports.createExportSetting.completed.listen(
         this.handleScheduledExport
       );
       actions.exports.createExportSetting(
@@ -672,13 +672,13 @@ export default class ProjectExportsCreator extends React.Component {
               disabled={(
                 !this.state.isCustomSelectionEnabled ||
                 this.state.selectedRows.size === this.state.selectableRowsCount
-               )}
+              )}
               onClick={this.selectAllRows}
             >
               {t('Select all')}
             </bem.ProjectDownloads__textButton>
 
-           <span className='project-downloads__vr' />;
+            <span className='project-downloads__vr'/>
 
             <bem.ProjectDownloads__textButton
               disabled={(
