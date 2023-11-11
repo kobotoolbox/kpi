@@ -212,6 +212,12 @@ class BulkEditSubmissionsForm extends React.Component {
     }
   }
 
+  disableButton(questionType) {
+    return ['audio', 'background-audio', 'video', 'image', 'file'].includes(
+      questionType
+    );
+  }
+
   renderRow(questionData, itemIndex) {
     let question = questionData;
     if (typeof questionData.refIndex !== 'undefined') {
@@ -253,8 +259,9 @@ class BulkEditSubmissionsForm extends React.Component {
 
         <bem.SimpleTable__cell>
           <bem.KoboTextButton
-            m='blue'
+            m={this.disableButton(question.type) ? 'grey' : 'blue'}
             onClick={this.selectQuestion.bind(this, question)}
+            disabled={this.disableButton(question.type)}
           >
             {t('Edit')}
           </bem.KoboTextButton>
