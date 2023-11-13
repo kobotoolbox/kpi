@@ -198,7 +198,7 @@ export default function TOSForm() {
         }}
       />
 
-      {/* No point displaying the form and header if there are no requied fields */}
+      {/* No point displaying the form and header if there are no required fields */}
       {requiredFields.length > 0 && (
         <section className={styles.metaFields}>
           <h2 className={styles.fieldsHeader}>
