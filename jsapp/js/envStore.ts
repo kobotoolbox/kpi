@@ -36,6 +36,12 @@ interface EnvironmentResponse {
   enable_custom_password_guidance_text: boolean;
   custom_password_localized_help_text: string;
   enable_password_entropy_meter: boolean;
+  /**
+   * Whether the TOS message is defined. This causes the whole TOS Screen checks
+   * to be put into motion; i.e. when this is `false` we don't bother to check
+   * if we should display TOS Screen to user :)
+   */
+  terms_of_service__sitewidemessage__exists: boolean;
 }
 
 /*
@@ -120,6 +126,7 @@ export class EnvStoreData {
   public enable_custom_password_guidance_text = false;
   public custom_password_localized_help_text = '';
   public enable_password_entropy_meter = false;
+  public terms_of_service__sitewidemessage__exists = false;
 
   getProjectMetadataField(
     fieldName: ProjectMetadataFieldKey
@@ -240,6 +247,9 @@ class EnvStore {
       response.custom_password_localized_help_text;
     this.data.enable_password_entropy_meter =
       response.enable_password_entropy_meter;
+
+    this.data.terms_of_service__sitewidemessage__exists =
+      response.terms_of_service__sitewidemessage__exists;
 
     this.isReady = true;
   }
