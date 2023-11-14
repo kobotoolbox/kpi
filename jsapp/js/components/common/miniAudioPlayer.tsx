@@ -2,7 +2,7 @@ import React, {createRef} from 'react';
 import bem, {makeBem} from 'js/bem';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
-import {formatSeconds, generateUid} from 'js/utils';
+import {formatSeconds, generateUid, notify} from 'js/utils';
 import 'js/components/common/miniAudioPlayer.scss';
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player');
@@ -132,9 +132,13 @@ class MiniAudioPlayer extends React.Component<
   }
 
   start() {
-    this.audioRef.current!.play();
-    const event = new CustomEvent(PLAYER_STARTED_EVENT, {detail: this.uid});
-    document.dispatchEvent(event);
+    const playPromise = this.audioRef.current!.play();
+    playPromise.then(() => {
+      const event = new CustomEvent(PLAYER_STARTED_EVENT, {detail: this.uid});
+      document.dispatchEvent(event);
+    }).catch((reason) => {
+      notify.error(reason.name + ' ' + reason.message);
+    });
   }
 
   stop() {
