@@ -316,7 +316,7 @@ export default class ProjectExportsCreator extends React.Component {
     // Select custom export toggle if not all rows are selected
     // but only if at least one is selected
     const customSelectionEnabled = (
-      data.export_settings.fields.length !== 0 &&
+      data.export_settings.fields?.length &&
       this.state.selectableRowsCount !== data.export_settings.fields.length
     );
 
