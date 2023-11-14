@@ -547,17 +547,17 @@ export default class ProjectExportsCreator extends React.Component {
       EXPORT_MULTIPLE_OPTIONS.summary,
       EXPORT_MULTIPLE_OPTIONS.both,
     ];
+    const template = t('Export ##SELECT_MANY## questions as…');
+    const [firstPart, nextPart] = template.split('##SELECT_MANY##');
 
     return (
       <bem.ProjectDownloads__advancedView>
         <bem.ProjectDownloads__column m='left'>
           <label className='project-downloads__column-row'>
             <bem.ProjectDownloads__title>
-              {t('Export')}
-              &nbsp;
+              {firstPart}
               <em>{t('Select Many')}</em>
-              &nbsp;
-              {t('questions as…')}
+              {nextPart}
             </bem.ProjectDownloads__title>
 
             <Select
