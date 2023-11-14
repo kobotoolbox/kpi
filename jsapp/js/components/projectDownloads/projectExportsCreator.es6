@@ -628,7 +628,7 @@ export default class ProjectExportsCreator extends React.Component {
           }
 
           {(this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
-              this.state.selectedExportType.value == EXPORT_TYPES.csv.value) &&
+              this.state.selectedExportType.value === EXPORT_TYPES.csv.value) &&
             <bem.ProjectDownloads__columnRow>
               <Checkbox
                 checked={this.state.isIncludeMediaUrlEnabled}
@@ -710,7 +710,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   render() {
-    let formClassNames = ['project-downloads__exports-creator'];
+    const formClassNames = ['project-downloads__exports-creator'];
     if (!this.state.isComponentReady) {
       formClassNames.push('project-downloads__exports-creator--loading');
     }
