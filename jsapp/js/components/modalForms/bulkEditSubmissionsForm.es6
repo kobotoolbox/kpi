@@ -212,7 +212,7 @@ class BulkEditSubmissionsForm extends React.Component {
     }
   }
 
-  disableEdit(questionType) {
+  isEditDisabled(questionType) {
     return ['audio', 'background-audio', 'video', 'image', 'file'].includes(
       questionType
     );
@@ -259,9 +259,13 @@ class BulkEditSubmissionsForm extends React.Component {
 
         <bem.SimpleTable__cell>
           <bem.KoboTextButton
-            m={this.disableEdit(question.type) ? 'grey' : 'blue'}
-            onClick={this.selectQuestion.bind(this, question)}
-            disabled={this.disableEdit(question.type)}
+            m={this.isEditDisabled(question.type) ? 'grey' : 'blue'}
+            onClick={() => {
+              if (!this.isEditDisabled(question.type)) {
+                this.selectQuestion(question);
+              }
+            }}
+            aria-disabled={this.isEditDisabled(question.type)}
           >
             {t('Edit')}
           </bem.KoboTextButton>
