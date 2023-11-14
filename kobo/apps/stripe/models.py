@@ -1,21 +1,27 @@
+from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from djstripe.models import Charge, Price
+from djstripe.enums import PaymentIntentStatus
+from djstripe.models import Charge, Price, Subscription
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.utils import get_default_add_on_limits, get_default_valid_subscription_products
+from kobo.apps.stripe.utils import get_default_add_on_limits
 from kpi.fields import KpiUidField
-
-# TODO: implement subscription restrictions
 
 
 class PlanAddOn(models.Model):
     id = KpiUidField(uid_prefix='addon_', primary_key=True)
-    created = models.DateTimeField()
-    organization = models.ForeignKey('organizations.Organization', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
+    created = models.DateTimeField(help_text='The time when the add-on purchased.')
+    organization = models.ForeignKey(
+        'organizations.Organization',
+        to_field='id',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     usage_limits = models.JSONField(
         default=get_default_add_on_limits,
@@ -23,48 +29,51 @@ class PlanAddOn(models.Model):
         Multiply this value by `quantity` to get the total limits for this add-on. Possible keys:
         "submission_limit", "asr_seconds_limit", and/or "mt_characters_limit"''',
     )
-    limits_used = models.JSONField(
+    limits_remaining = models.JSONField(
         default=get_default_add_on_limits,
-        help_text='The amount of each of the add-on\'s individual limits that has been used.',
+        help_text='The amount of each of the add-on\'s individual limits left to use.',
     )
     product = models.ForeignKey('djstripe.Product', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
     charge = models.ForeignKey('djstripe.Charge', to_field='id', on_delete=models.CASCADE)
-    valid_subscription_products = models.JSONField(default=get_default_valid_subscription_products)
-    created = models.DateTimeField(help_text='The time when the add-on purchased.')
-    id = KpiUidField(uid_prefix='addon_', primary_key=True)
 
     class Meta:
         verbose_name = 'plan add-on'
         verbose_name_plural = 'plan add-ons'
+        indexes = [
+            models.Index(fields=['organization', 'limits_remaining', 'charge']),
+        ]
 
     @property
     def is_expended(self):
         """
         Whether the addon is at/over its usage limits.
         """
-        for limit_type, limit_value in self.usage_limits.items():
-            if limit_type in self.limits_used and self.limits_used[limit_type] >= limit_value > 0:
+        for limit_type, limit_value in self.limits_remaining.items():
+            if limit_value <= 0:
                 return True
         return False
 
     @property
     def total_usage_limits(self):
         """
-        The total usage limits for this addon, based on the usage_limits for a single add-on and the quantity.
+        The total usage limits for this add-on, based on the usage_limits for a single add-on and the quantity.
         """
         return {key: value * self.quantity for key, value in self.usage_limits.items()}
 
     @property
-    def is_available(self):
-        return self.charge.payment_intent.status == 'succeeded' and not (self.is_expended or self.charge.refunded)
+    def valid_subscription_products(self):
+        """
+        The subscription products required to purchase this add-on.
+        If the org that purchased this add-on no longer has a subscription in this list, the add-on will be inactive.
+        If the add-on doesn't require a specific subscription, this property will return an empty list.
+        """
+        return self.product.metadata.get('valid_subscription_products', [])
 
-    @property
-    def limits_available(self):
-        limits = {}
-        for limit_type, limit_amount in self.limits_used.items():
-            limits_available = self.total_usage_limits[limit_type] - self.limits_used[limit_type]
-            limits[limit_type] = max(limits_available, 0)
-        return limits
+    @admin.display(boolean=True, description='available')
+    def is_available(self):
+        return self.charge.payment_intent.status == PaymentIntentStatus.succeeded and not (
+            self.is_expended or self.charge.refunded
+        ) and bool(self.organization)
 
     def increment(self, limit_type, amount_used):
         """
@@ -75,7 +84,7 @@ class PlanAddOn(models.Model):
         if limit_type in self.usage_limits.keys():
             limit_available = self.limits_available[limit_type]
             amount_to_use = min(amount_used, limit_available)
-            self.limits_used[limit_type] += amount_to_use
+            self.limits_remaining[limit_type] -= amount_to_use
             self.save()
             return amount_to_use
         return 0
@@ -86,34 +95,38 @@ class PlanAddOn(models.Model):
         Create a PlanAddOn object from a Charge object, if the Charge is for a one-time add-on.
         Returns True if a PlanAddOn was created, false otherwise.
         """
-        if 'price_id' not in charge.metadata or 'quantity' not in charge.metadata:
+        if not charge.metadata.get('price_id', None) or not charge.metadata.get('quantity', None):
             # make sure the charge is for a successful addon purchase
             return False
 
         try:
             product = Price.objects.get(
-                id=charge.metadata['price_id']
+                id=charge.metadata.get('price_id', '')
             ).product
             organization = Organization.objects.get(id=charge.metadata['organization_id'])
         except ObjectDoesNotExist:
+            # no product/price/org/subscription, just bail
             return False
 
-        if product.metadata['product_type'] != 'addon':
+        if product.metadata.get('product_type', '') != 'addon':
             # might be some other type of payment
             return False
 
-        valid_subscription_products = []
-        if 'valid_subscription_products' in product.metadata:
-            for product_id in product.metadata['valid_subscription_products'].split(','):
-                valid_subscription_products.append(product_id)
+        valid_subscription_products = product.metadata.get('valid_subscription_products', '').split(',')
+        if valid_subscription_products and not Subscription.objects.filter(
+            customer__subscriber=organization,
+            items__price__product__id__in=valid_subscription_products,
+        ).exists():
+            # this user doesn't have the subscription level they need for this addon, bail
+            return False
 
         usage_limits = {}
-        limits_used = {}
+        limits_remaining = {}
         for limit_type in get_default_add_on_limits().keys():
-            if limit_type in charge.metadata:
-                limit_value = charge.metadata[limit_type]
+            limit_value = charge.metadata.get(limit_type, None)
+            if limit_value is not None:
                 usage_limits[limit_type] = int(limit_value)
-                limits_used[limit_type] = 0
+                limits_remaining[limit_type] = int(limit_value)
 
         if not len(usage_limits):
             # not a valid plan add-on
@@ -125,8 +138,7 @@ class PlanAddOn(models.Model):
             add_on.quantity = int(charge.metadata['quantity'])
             add_on.organization = organization
             add_on.usage_limits = usage_limits
-            add_on.limits_used = limits_used
-            add_on.valid_subscription_products = valid_subscription_products
+            add_on.limits_remaining = limits_remaining
             add_on.save()
         return add_on_created
 
@@ -150,15 +162,17 @@ class PlanAddOn(models.Model):
         Will always increment the add-on with the most used first, so that add-ons are used up in FIFO order.
         Returns the amount of usage that was not applied to an add-on.
         """
+        limit_key = f'limits_remaining__{usage_type}'
         add_ons = PlanAddOn.objects.filter(
             organization__organization_users__user__id=user_id,
             usage_limits__has_key=usage_type,
             charge__refunded=False,
-            charge__payment_intent__status='succeeded',
-        ).order_by(f'-limits_used__{usage_type}')
+            charge__payment_intent__status=PaymentIntentStatus.succeeded,
+            **{f'{limit_key}__gt': 0}
+        ).order_by(limit_key)
         remaining = amount
         for add_on in add_ons.iterator():
-            if add_on.is_available and remaining:
+            if add_on.is_available():
                 remaining -= add_on.increment(limit_type=usage_type, amount_used=remaining)
         return remaining
 
