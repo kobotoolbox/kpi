@@ -260,9 +260,11 @@ class BulkEditSubmissionsForm extends React.Component {
         <bem.SimpleTable__cell>
           <bem.KoboTextButton
             m={this.isEditDisabled(question.type) ? 'grey' : 'blue'}
-            onClick={() => {
+            onClick={(event) => {
               if (!this.isEditDisabled(question.type)) {
                 this.selectQuestion(question);
+              } else {
+                event.preventDefault();
               }
             }}
             aria-disabled={this.isEditDisabled(question.type)}
