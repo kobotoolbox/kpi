@@ -308,29 +308,17 @@ class EnvironmentTests(BaseTestCase):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
 
-    def test_tos_sitewide_message_exists(self):
-        # Create SitewideMessage object and check that it exsists
+    def test_tos_sitewide_message(self):
+        # Check that fixtures properly stores terms of service
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert not response.data['terms_of_service__sitewidemessage__exists']
+
+        # Create SitewideMessage object and check that it properly updates terms of service
         SitewideMessage.objects.create(
             slug='terms_of_service',
             body='tos agreement',
         )
-        exists = SitewideMessage.objects.filter(
-            slug='terms_of_service'
-        ).exists()
-        self.assertTrue(exists)
-        self.assertNotEqual(
-            self.dict_checks['terms_of_service__sitewidemessage__exists'],
-            exists,
-        )
-
-    def test_tos_sitewide_message_does_not_exsist(self):
-        # Delete SitewideMessage object and check that it doesn't exsist
-        SitewideMessage.objects.filter(slug='terms_of_service').delete()
-        exists = SitewideMessage.objects.filter(
-            slug='terms_of_service'
-        ).exists()
-        self.assertFalse(exists)
-        self.assertEqual(
-            self.dict_checks['terms_of_service__sitewidemessage__exists'],
-            exists,
-        )
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['terms_of_service__sitewidemessage__exists']
