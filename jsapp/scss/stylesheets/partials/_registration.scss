@@ -464,6 +464,13 @@
       > .password2 {
         flex: 0; // Let these be shorter to match designs
       }
+      > .newsletter_subscription {
+        input[type='checkbox'] {
+          float: left;
+          margin-right: 10px;
+          margin-top: -8.5px;
+        }
+      }
     }
 
     .registration__second-half {

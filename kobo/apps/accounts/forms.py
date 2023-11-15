@@ -27,6 +27,7 @@ CONFIGURABLE_METADATA_FIELDS = (
     'gender',
     'sector',
     'country',
+    'newsletter_subscription',
 )
 
 
@@ -83,6 +84,10 @@ class KoboSignupMixin(forms.Form):
         label=USER_METADATA_DEFAULT_LABELS['country'],
         required=False,
         choices=(('', ''),) + COUNTRIES,
+    )
+    newsletter_subscription = forms.BooleanField(
+        label=USER_METADATA_DEFAULT_LABELS['newsletter_subscription'],
+        required=False,
     )
 
     def __init__(self, *args, **kwargs):
@@ -173,6 +178,7 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'organization_website',
         'organization_type'
         'sector',
+        'newsletter_subscription',
     ]
 
     def clean(self):
