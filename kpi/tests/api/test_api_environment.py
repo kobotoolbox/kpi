@@ -309,7 +309,7 @@ class EnvironmentTests(BaseTestCase):
         self.assertContains(response, app.name)
 
     def test_tos_sitewide_message_exists(self):
-        # Create SitewideMessage object and check that it exsists
+        # Create SitewideMessage object and check that it exists
         SitewideMessage.objects.create(
             slug='terms_of_service',
             body='tos agreement',
@@ -323,8 +323,8 @@ class EnvironmentTests(BaseTestCase):
             exists,
         )
 
-    def test_tos_sitewide_message_does_not_exsist(self):
-        # Delete SitewideMessage object and check that it doesn't exsist
+    def test_tos_sitewide_message_does_not_exist(self):
+        # Delete SitewideMessage object and check that it doesn't exist
         SitewideMessage.objects.filter(slug='terms_of_service').delete()
         exists = SitewideMessage.objects.filter(
             slug='terms_of_service'
