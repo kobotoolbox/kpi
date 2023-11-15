@@ -30,7 +30,6 @@ import permConfig from 'js/components/permissions/permConfig';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
-// TODO: replace with new endpoint
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
   PERMISSIONS_CODENAMES.add_submissions
 ).url;
@@ -61,17 +60,18 @@ class FormLanding extends React.Component {
 
     actions.permissions.getAssetPermissions(this.props.params.uid);
   }
+
   onAssetPermissionsUpdated(response) {
     const publicPerms = response.filter(
       (assignment) => assignment.user === buildUserUrl(ANON_USERNAME)
     );
-    const anonCanView = publicPerms.filter(
+    const anonCanAdd = publicPerms.filter(
       (perm) => perm.permission === ANON_CAN_ADD_PERM_URL
     )[0];
 
     this.setState({
       anonymousPermissions: publicPerms,
-      anonymousSubmissions: anonCanView ? true : false,
+      anonymousSubmissions: anonCanAdd ? true : false,
     });
   }
   updateAssetAnonymousSubmissions() {
@@ -425,7 +425,8 @@ class FormLanding extends React.Component {
               onChange={() => this.updateAssetAnonymousSubmissions()}
               label={t('Allow anonymous submissions to this form')}
             />
-            <a href={'#'} data-tip={t('Tooltip?')}>
+            {/*TODO: Change url here to the support article and tooltip to the proper copy after they're done*/}
+            <a href={'#'} data-tip={t('Tooltip copy')}>
               <Icon size='s' name='help' color='storm' />
             </a>
           </bem.FormView__cell>

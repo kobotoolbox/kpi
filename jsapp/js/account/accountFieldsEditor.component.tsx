@@ -88,23 +88,6 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   return (
     <div>
       <div className={styles.row}>
-        {/* Privacy */}
-        {props.isRequireAuthDisplayed !== false && (
-          <div className={styles.field}>
-            <label>{t('Privacy')}</label>
-
-            <Checkbox
-              checked={props.values.require_auth}
-              onChange={(isChecked: boolean) =>
-                onAnyFieldChange('require_auth', isChecked)
-              }
-              label={t('Require authentication to see forms and submit data')}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className={styles.row}>
         {/* Full name */}
         {isFieldToBeDisplayed('name') && (
           <div className={styles.field}>

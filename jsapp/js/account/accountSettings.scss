@@ -55,15 +55,15 @@
 
     .form-modal__item--anonymous-submission-notice {
       display: flex;
-      line-height: 24px;
+      line-height: sizes.$x24;
       background-color: colors.$kobo-light-amber;
-      margin-top: 12px;
-      padding: 18px;
-      border-radius: 8px;
+      margin-top: sizes.$x12;
+      padding: sizes.$x18;
+      border-radius: sizes.$x8;
 
       .anonymous-submission-notice-copy {
-        padding-left: 16px;
-        padding-right: 8px;
+        padding-left: sizes.$x16;
+        padding-right: sizes.$x8;
         > * {
           display: inline;
         }

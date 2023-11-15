@@ -167,6 +167,7 @@ const AccountSettings = observer(() => {
                   )}
                 </div>
                 &nbsp;
+                {/*TODO: Change url here to the support article after it's done*/}
                 <a href='#'>{t('Learn more about these changes here.')}</a>
               </div>
             </bem.AccountSettings__item>
