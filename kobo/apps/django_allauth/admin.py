@@ -14,7 +14,10 @@ class RequireProviderIdSocialAppForm(SocialAppForm):
     def clean_provider_id(self):
         reserved_keywords = ['kobo']
         provider_id = self.cleaned_data.get('provider_id')
-        # we check this already for the ID in kobo/apps/accounts/apps.py
+        """
+        Don't allow `kobo` to be set as the `provider_id` value in `SOCIALACCOUNT_PROVIDERS`
+        settings because it breaks the login page redirect when language is changed.
+        """
         if provider_id in reserved_keywords:
             raise ValidationError(
                 f'`{provider_id}` is not a valid value for the `provider_id` setting.'
