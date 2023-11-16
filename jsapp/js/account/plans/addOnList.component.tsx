@@ -104,16 +104,11 @@ const AddOnList = (props: {
           )}
         </p>
       </caption>
-      <colgroup>
-        <col className={styles.product} />
-        <col className={styles.price} />
-        <col className={styles.buy} />
-      </colgroup>
       <tbody>
         {addOnProducts.map((product) =>
           product.prices.map((price) => (
-            <tr key={price.id}>
-              <td>{product.name}</td>
+            <tr className={styles.row} key={price.id}>
+              <td className={styles.product}>{product.name}</td>
               <td className={styles.price}>{price.human_readable_price}</td>
               <td>
                 {isSubscribedAddOnPrice(price) && (

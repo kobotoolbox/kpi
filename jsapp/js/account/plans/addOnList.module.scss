@@ -24,18 +24,13 @@
   }
 }
 
-.border {
+.row:first-child > td:not(:last-child) {
   border-top: 1px solid colors.$kobo-cloud;
 }
 
-.product {
-  width: 40%;
-  @extend .border;
-}
-
+.product,
 .price {
   width: 40%;
-  @extend .border;
 }
 
 .buy {
