@@ -71,7 +71,7 @@ export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
  * these constants in a detail to not cause confusion by a future reader.
  */
 
-/** Checkboxes for non-partial permissions. */
+/** Names of checkboxes for non-partial permissions. */
 type CheckboxNameRegular =
   | 'formView'
   | 'formEdit'
@@ -81,15 +81,15 @@ type CheckboxNameRegular =
   | 'submissionsEdit'
   | 'submissionsValidate'
   | 'submissionsDelete';
-/** Checkboxes for partial permissions (the counterparts). */
+/** Names of checkboxes for partial permissions (the counterparts). */
 export type CheckboxNamePartial =
   | 'submissionsViewPartial'
   | 'submissionsEditPartial'
   | 'submissionsValidatePartial'
   | 'submissionsDeletePartial';
-/** All checkboxes combined. */
+/** All checkboxes names combined. */
 export type CheckboxNameAll = CheckboxNameRegular | CheckboxNamePartial;
-/** List of usernames for a partial permission checkbox. */
+/** Name of lists of usernames for a partial permissions checkboxes. */
 export type CheckboxNameListPartial =
   | 'submissionsViewPartialUsers'
   | 'submissionsEditPartialUsers'
@@ -121,7 +121,11 @@ Object.freeze(CHECKBOX_NAMES);
  * This is a map of pairs that connects a partial checkbox to a permission.
  *
  * NOTE: a partial checkbox is using a "partial_submissions" permission, but
- * in the array of de facto permissions it is using these ones.
+ * in the array of de facto permissions it is using these ones. So for example
+ * imagine it being something like this: we give a partial_submissions
+ * permission to Joe, and inside of this permission we define a list of users,
+ * and a view_submissions permission - meaning that "Joe can view submissions,
+ * but only for this limited list of users".
  */
 export const PARTIAL_PERM_PAIRS: {
   [key in CheckboxNamePartial]: PermissionCodename;
@@ -134,7 +138,7 @@ export const PARTIAL_PERM_PAIRS: {
 Object.freeze(PARTIAL_PERM_PAIRS);
 
 /**
- * This is a map of pairs that connect a checkbox to a permission.
+ * This is a map of pairs that connect a checkbox name to a permission name.
  */
 export const CHECKBOX_PERM_PAIRS: {
   [key in CheckboxNameAll]: PermissionCodename;
