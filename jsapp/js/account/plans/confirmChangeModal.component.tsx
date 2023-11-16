@@ -121,7 +121,7 @@ const ConfirmChangeModal = ({
       <KoboModalHeader>{t('Changes to your Plan')}</KoboModalHeader>
       <KoboModalContent>
         <section className={cx(styles.loading, {hidden: !isLoading})}>
-          <LoadingSpinner message={t('Processing your transaction...')} />
+          <LoadingSpinner message={t('Processing your transaction…')} />
         </section>
         <section hidden={isLoading}>
           {price?.recurring &&
