@@ -17,6 +17,10 @@ import {postCustomerPortal} from 'js/account/stripe.api';
 import styles from './addOnList.module.scss';
 import BillingButton from 'js/account/plans/billingButton.component';
 
+/**
+ * A table of add-on products along with buttons to purchase/manage them.
+ * @TODO Until one-time add-ons are complete, this only displays recurring add-ons.
+ */
 const AddOnList = (props: {
   products: Product[] | null;
   organization: Organization | null;

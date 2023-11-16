@@ -23,6 +23,10 @@ interface PlanButtonProps {
   organization?: Organization | null;
 }
 
+/**
+ * A button that's used to start checkout for a Plan at Stripe.
+ * Plans need extra logic that add-ons don't, mostly to display the correct label text.
+ */
 export const PlanButton = ({
   price,
   organization,

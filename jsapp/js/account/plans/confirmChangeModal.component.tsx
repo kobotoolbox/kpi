@@ -31,6 +31,11 @@ interface ConfirmChangeModalProps extends ConfirmChangeProps {
   onRequestClose: () => void;
 }
 
+/**
+ * Confirmation step for downgrading a subscription to a lower price.
+ * This modal is responsible for displaying the details of the change,
+ * then making the API request.
+ */
 const ConfirmChangeModal = ({
   price,
   products,
