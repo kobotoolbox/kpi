@@ -82,7 +82,7 @@ const AddOnList = (props: {
     props.setIsBusy(false);
   };
 
-  const manageAddOn = (price?: BasePrice) => {
+  const onClickManage = (price?: BasePrice) => {
     if (!props.organization || props.isBusy) {
       return;
     }
@@ -120,7 +120,7 @@ const AddOnList = (props: {
                     size={'m'}
                     label={t('manage')}
                     isDisabled={props.isBusy}
-                    onClick={manageAddOn}
+                    onClick={onClickManage}
                     isFullWidth
                   />
                 )}
