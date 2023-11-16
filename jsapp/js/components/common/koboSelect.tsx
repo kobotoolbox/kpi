@@ -62,6 +62,10 @@ interface KoboSelectProps {
   /** This option displays a text box filtering options when opened. */
   isSearchable?: boolean;
   isDisabled?: boolean;
+  /**
+   * Adds required mark ("*") to the label (if label is provided).
+   */
+  isRequired?: boolean;
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
   options: KoboSelectOption[];
@@ -337,7 +341,9 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       <bem.KoboSelect m={modifiers}>
         {this.props.label &&
           <bem.KoboSelect__label htmlFor={this.props.name}>
-            {this.props.label}
+            {this.props.label}{' '}
+            {this.props.isRequired && <span className={'k-select__required-mark'}>*</span>}
+            {/* TODO: Make screenreader text "##label## (required)" */}
           </bem.KoboSelect__label>
         }
 
