@@ -1,6 +1,5 @@
 import BillingButton from 'js/account/plans/billingButton.component';
 import React, {useCallback} from 'react';
-import styles from 'js/account/plans/plan.module.scss';
 import {
   BasePrice,
   Organization,
@@ -48,7 +47,7 @@ export const PlanButton = ({
     [hasManageableStatus]
   );
 
-  if (!price || !organization) {
+  if (!price || !organization || price.prices.unit_amount === 0) {
     return null;
   }
 
@@ -58,10 +57,6 @@ export const PlanButton = ({
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false));
   };
-
-  if (price.prices.unit_amount === 0) {
-    return <div className={styles.btnSpacePlaceholder} />;
-  }
 
   if (!isSubscribedProduct(price) && !shouldShowManage(price)) {
     return (
