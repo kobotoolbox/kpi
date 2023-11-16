@@ -340,7 +340,7 @@ export default function Plan() {
     setIsBusy(true);
     if (activeSubscriptions.length) {
       if (
-        activeSubscriptions[0].items[0].price.unit_amount < price.unit_amount
+        activeSubscriptions[0].items?.[0].price.unit_amount < price.unit_amount
       ) {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
