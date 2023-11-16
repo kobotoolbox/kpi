@@ -129,7 +129,7 @@ const ConfirmChangeModal = ({
               <>
                 <p>
                   {t('You are switching to the ##new_product_type##.').replace(
-                    /##new_product_type##/g,
+                    '##new_product_type##',
                     getPriceDescription(price)
                   )}{' '}
                   {price.metadata['product_type'] === 'plan' &&
