@@ -16,7 +16,7 @@ import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute
 import AssetRoute from 'js/components/library/assetRoute';
 import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
-import {PERMISSIONS_CODENAMES} from '../constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {injectRouter} from './legacy';
 
 const Reports = React.lazy(
