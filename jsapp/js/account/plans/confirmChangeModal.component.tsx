@@ -27,14 +27,16 @@ export interface ConfirmChangeProps {
   subscription: SubscriptionInfo | null;
 }
 
+interface ConfirmChangeModalProps extends ConfirmChangeProps {
+  onRequestClose: () => void;
+}
+
 const ConfirmChangeModal = ({
   price,
   products,
   subscription,
   onRequestClose,
-}: ConfirmChangeProps & {
-  onRequestClose: () => void;
-}) => {
+}: ConfirmChangeModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const shouldShow = useMemo(
