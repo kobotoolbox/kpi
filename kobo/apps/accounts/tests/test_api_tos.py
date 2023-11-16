@@ -22,5 +22,10 @@ class TOSTestCase(BaseTestCase):
 
         # Check the db to make sure the expected changes were made
         self.user.refresh_from_db()
-        assert self.user.extra_details.private_data['current_time'] is not None
-        assert self.user.extra_details.private_data['current_time'] >= time
+        assert (
+            self.user.extra_details.private_data['last_tos_accept_time']
+            is not None
+        )
+        assert (
+            self.user.extra_details.private_data['last_tos_accept_time'] >= time
+        )

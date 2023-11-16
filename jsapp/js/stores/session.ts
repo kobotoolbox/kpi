@@ -36,13 +36,6 @@ class SessionStore {
       action(
         'verifyLoginSuccess',
         (account: AccountResponse | {message: string}) => {
-          // TEMP
-          // Override the response to cause TOS Screen to appear
-          if ('email' in account) {
-            account.tos_accepted_date = null;
-          }
-          // END TEMP
-
           this.isPending = false;
           this.isInitialLoadComplete = true;
           if ('email' in account) {
@@ -86,6 +79,20 @@ class SessionStore {
           this.currentAccount = account;
         }
       })
+    );
+  }
+
+  public logOut() {
+    dataInterface.logout().then(
+      action('logOutSuccess', () => {
+        // Reload so a new CSRF token is issued
+        window.setTimeout(() => {
+          window.location.replace('');
+        }, 1);
+      }),
+      action('logOutFailed', () => {
+        console.error('logout failed for some reason. what should happen now?');
+      }),
     );
   }
 

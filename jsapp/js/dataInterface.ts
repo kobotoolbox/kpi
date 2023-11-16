@@ -681,10 +681,10 @@ export interface AccountResponse {
    */
   validated_password: boolean;
   /**
-   * The date when TOS was accepted by user. Will be `null` if given user has
-   * not accepted latest TOS.
+   * This will be `true` for user who accepted the latest TOS. If it's missing
+   * or `false`, it means that the latest TOS was not accepted.
    */
-  tos_accepted_date: string | null;
+  accepted_tos?: boolean;
   extra_details: {
     name: string;
     gender: string;

@@ -9,7 +9,7 @@ class TOSView(APIView):
     def post(self, request, *args, **kwargs):
         # Save current time in private_data
         user_details = request.user.extra_details
-        user_details.private_data['current_time'] = now().strftime(
+        user_details.private_data['last_tos_accept_time'] = now().strftime(
             '%Y-%m-%dT%H:%M:%SZ'
         )
         user_details.save()

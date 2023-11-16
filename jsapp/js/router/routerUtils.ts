@@ -11,6 +11,7 @@
 import {ROUTES, PATHS} from 'js/router/routerConstants';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
 import sessionStore from 'js/stores/session';
+import envStore from 'js/envStore';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -256,9 +257,11 @@ export function isInvalidatedPasswordRouteBlockerActive() {
 /** TOSAgreement is displayed when user has not accepted latest TOS. */
 export function isTOSAgreementRouteBlockerActive() {
   return (
+    envStore.data.terms_of_service__sitewidemessage__exists &&
     sessionStore.isLoggedIn &&
-    'tos_accepted_date' in sessionStore.currentAccount &&
-    typeof sessionStore.currentAccount.tos_accepted_date !== 'string'
+    // We check for email, because `currentAccount` can be two different things
+    'email' in sessionStore.currentAccount &&
+    sessionStore.currentAccount.accepted_tos !== true
   );
 }
 

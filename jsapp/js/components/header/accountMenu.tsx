@@ -7,7 +7,6 @@ import {currentLang, stringToColor} from 'js/utils';
 import envStore from 'js/envStore';
 import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
-import {actions} from 'js/actions';
 import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
 import {isAnyRouteBlockerActive} from 'js/router/routerUtils';
 
@@ -143,7 +142,7 @@ export default function AccountMenu() {
           </bem.AccountBox__menuLI>
 
           <bem.AccountBox__menuLI m={'logout'} key='4'>
-            <bem.AccountBox__menuLink onClick={actions.auth.logout}>
+            <bem.AccountBox__menuLink onClick={sessionStore.logOut}>
               <i className='k-icon k-icon-logout' />
               {t('Logout')}
             </bem.AccountBox__menuLink>
