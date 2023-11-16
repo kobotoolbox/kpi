@@ -7,7 +7,7 @@ import bem from 'js/bem';
 import assetStore from 'js/assetStore';
 import {NavLink} from 'react-router-dom';
 import mixins from '../mixins';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
 import {userCan} from 'js/components/permissions/utils';

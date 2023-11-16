@@ -21,7 +21,8 @@ import type {
 } from './dataInterface';
 import {router, routerIsActive} from './router/legacy';
 import {ROUTES} from './router/routerConstants';
-import {ASSET_TYPES, MODAL_TYPES, PERMISSIONS_CODENAMES} from './constants';
+import {ASSET_TYPES, MODAL_TYPES} from './constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {notify, renderCheckbox} from './utils';
 import assetUtils from './assetUtils';
 import myLibraryStore from './components/library/myLibraryStore';
