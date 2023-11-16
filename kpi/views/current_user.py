@@ -46,7 +46,8 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "organization": string,
     >               "require_auth": boolean,
     >               "last_ui_language": string,
-    >               "organization_website": sting,
+    >               "organization_website": string,
+    >               "newsletter_subscription": boolean,
     >           },
     >           "git_rev": {
     >               "short": boolean,

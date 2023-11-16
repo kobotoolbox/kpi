@@ -192,3 +192,17 @@ class AccountFormsTestCase(TestCase):
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert 'organization_type' in form.fields
+
+    def test_newsletter_subscription_valid_field(self):
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {
+                        'name': 'newsletter_subscription',
+                        'required': False,
+                    },
+                ]
+            )
+        ):
+            form = SocialSignupForm(sociallogin=self.sociallogin)
+            assert 'newsletter_subscription' in form.fields
