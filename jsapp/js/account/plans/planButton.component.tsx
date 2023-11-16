@@ -68,7 +68,6 @@ export const PlanButton = ({
         label={t('Upgrade')}
         onClick={() => buySubscription(price.prices)}
         aria-label={`upgrade to ${price.name}`}
-        aria-disabled={isBusy}
         isDisabled={isBusy}
       />
     );
@@ -80,7 +79,6 @@ export const PlanButton = ({
         label={t('Manage')}
         onClick={manageSubscription}
         aria-label={`manage your ${price.name} subscription`}
-        aria-disabled={isBusy}
         isDisabled={isBusy}
       />
     );
@@ -91,7 +89,6 @@ export const PlanButton = ({
       label={t('Change plan')}
       onClick={() => buySubscription(price.prices)}
       aria-label={`change your subscription to ${price.name}`}
-      aria-disabled={isBusy}
       isDisabled={isBusy}
     />
   );
