@@ -1,6 +1,6 @@
 import BillingButton from 'js/account/plans/billingButton.component';
 import React, {useCallback} from 'react';
-import {
+import type {
   BasePrice,
   Organization,
   Price,
