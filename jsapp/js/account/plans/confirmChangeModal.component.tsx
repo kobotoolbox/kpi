@@ -126,38 +126,36 @@ const ConfirmChangeModal = ({
         <section hidden={isLoading}>
           {price?.recurring &&
             subscription?.items[0].price.recurring?.interval && (
-              <>
-                <p>
-                  {t('You are switching to the ##new_product_type##.').replace(
-                    '##new_product_type##',
-                    getPriceDescription(price)
-                  )}{' '}
-                  {price.metadata['product_type'] === 'plan' &&
-                    subscription?.items[0].price.product.metadata[
-                      'product_type'
-                    ] === 'addon' &&
-                    t(
-                      'Because this plan includes unlimited storage, your storage add-on will be canceled.'
-                    ) + ' '}
-                  {t(
-                    `Your current ##product_type## will remain in effect until ##billing_end_date##.
+              <p>
+                {t('You are switching to the ##new_product_type##.').replace(
+                  '##new_product_type##',
+                  getPriceDescription(price)
+                )}{' '}
+                {price.metadata['product_type'] === 'plan' &&
+                  subscription?.items[0].price.product.metadata[
+                    'product_type'
+                  ] === 'addon' &&
+                  t(
+                    'Because this plan includes unlimited storage, your storage add-on will be canceled.'
+                  ) + ' '}
+                {t(
+                  `Your current ##product_type## will remain in effect until ##billing_end_date##.
                     Starting on ##billing_end_date## and until you cancel, we will bill you ##new_price## per ##interval##.`
+                )
+                  .replace(
+                    /##product_type##/g,
+                    getPriceType(subscription.items[0].price)
                   )
-                    .replace(
-                      /##product_type##/g,
-                      getPriceType(subscription.items[0].price)
-                    )
-                    .replace(
-                      /##billing_end_date##/g,
-                      formatDate(subscription.current_period_end)
-                    )
-                    .replace(
-                      '##new_price##',
-                      price.human_readable_price.split('/')[0]
-                    )
-                    .replace('##interval##', price.recurring.interval)}
-                </p>
-              </>
+                  .replace(
+                    /##billing_end_date##/g,
+                    formatDate(subscription.current_period_end)
+                  )
+                  .replace(
+                    '##new_price##',
+                    price.human_readable_price.split('/')[0]
+                  )
+                  .replace('##interval##', price.recurring.interval)}
+              </p>
             )}
         </section>
       </KoboModalContent>
