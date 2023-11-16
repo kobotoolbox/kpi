@@ -26,7 +26,7 @@ const AddOnList = (props: {
   organization: Organization | null;
   isBusy: boolean;
   setIsBusy: (value: boolean) => void;
-  buyAddOn: (price: BasePrice) => void;
+  onClickBuy: (price: BasePrice) => void;
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>(
     []
@@ -129,7 +129,7 @@ const AddOnList = (props: {
                     size={'m'}
                     label={t('buy now')}
                     isDisabled={props.isBusy}
-                    onClick={() => props.buyAddOn(price)}
+                    onClick={() => props.onClickBuy(price)}
                     isFullWidth
                   />
                 )}

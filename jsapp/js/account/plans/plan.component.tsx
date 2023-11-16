@@ -652,7 +652,7 @@ export default function Plan() {
             setIsBusy={setIsBusy}
             products={state.products}
             organization={state.organization}
-            buyAddOn={buySubscription}
+            onClickBuy={buySubscription}
           />
           <ConfirmChangeModal
             onRequestClose={dismissConfirmModal}
