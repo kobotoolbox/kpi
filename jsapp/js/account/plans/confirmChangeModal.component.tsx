@@ -31,9 +31,9 @@ const ConfirmChangeModal = ({
   price,
   products,
   subscription,
-  toggleModal,
+  onRequestClose,
 }: ConfirmChangeProps & {
-  toggleModal: () => void;
+  onRequestClose: () => void;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -109,15 +109,19 @@ const ConfirmChangeModal = ({
       .then((data) => {
         processChangePlanResponse(data).then((status) => {
           if (status !== ChangePlanStatus.success) {
-            toggleModal();
+            onRequestClose();
           }
         });
       })
-      .catch(toggleModal);
+      .catch(onRequestClose);
   };
 
   return (
-    <KoboModal isOpen={shouldShow} onRequestClose={toggleModal} size='medium'>
+    <KoboModal
+      isOpen={shouldShow}
+      onRequestClose={onRequestClose}
+      size='medium'
+    >
       <KoboModalHeader>{t('Changes to your Plan')}</KoboModalHeader>
       <KoboModalContent>
         <section className={cx(styles.loading, {hidden: !isLoading})}>
@@ -168,7 +172,7 @@ const ConfirmChangeModal = ({
         <BillingButton
           color='red'
           isDisabled={isLoading}
-          onClick={toggleModal}
+          onClick={onRequestClose}
           label={t('Cancel')}
         />
       </KoboModalFooter>

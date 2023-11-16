@@ -655,7 +655,7 @@ export default function Plan() {
             buyAddOn={buySubscription}
           />
           <ConfirmChangeModal
-            toggleModal={dismissConfirmModal}
+            onRequestClose={dismissConfirmModal}
             {...confirmModal}
           />
         </div>
