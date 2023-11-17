@@ -41,6 +41,8 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
 
     const anonCanViewPermUrl =
       permConfig.getPermissionByCodename('view_asset')?.url;
+    const anonCanAddPermUrl =
+      permConfig.getPermissionByCodename('add_submissions')?.url;
     const anonCanViewDataPermUrl =
       permConfig.getPermissionByCodename('view_submissions')?.url;
 
@@ -54,6 +56,11 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
         (perm) => perm.permission === anonCanViewDataPermUrl
       )[0]
     );
+    const anonCanAddData = Boolean(
+      this.props.publicPerms.filter(
+        (perm) => perm.permission === anonCanAddPermUrl
+      )[0]
+    );
 
     return (
       <bem.FormModal__item m='permissions'>
@@ -62,6 +69,14 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
             checked={anonCanView}
             onChange={this.togglePerms.bind(this, 'view_asset')}
             label={t('Anyone can view this form')}
+          />
+        </bem.FormModal__item>
+
+        <bem.FormModal__item>
+          <Checkbox
+            checked={anonCanAddData}
+            onChange={this.togglePerms.bind(this, 'add_submissions')}
+            label={t('Allow anonymous submissions to this form')}
           />
         </bem.FormModal__item>
 
