@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// `cx()` is just an alias for `classNames()` - see https://github.com/JedWatson/classnames
 import cx from 'classnames';
-
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
