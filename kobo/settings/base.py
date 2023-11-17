@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
+    'kobo.apps.django_allauth',
 )
 
 MIDDLEWARE = [
@@ -135,6 +136,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hub.middleware.LocaleMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -1030,61 +1032,6 @@ SOCIALACCOUNT_FORMS = {
 UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
     "UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE", False
 )
-
-# See https://django-allauth.readthedocs.io/en/latest/configuration.html
-# Map env vars to upstream dict values, include exact case. Underscores for delimiter.
-# Example: SOCIALACCOUNT_PROVIDERS_provider_SETTING
-# Use numbers for arrays such as _1_FOO, _1_BAR, _2_FOO, _2_BAR
-SOCIALACCOUNT_PROVIDERS = {}
-if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
-    SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
-# Parse oidc settings as nested dict in array. Example:
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google" # Must be unique
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_server_url: "https://accounts.google.com"
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_name: "Kobo Google Apps"
-# Only OIDC supports multiple providers. For example, to add two Google Apps sign ins - use
-# OIDC and assign them a different server number. Do not use the allauth google provider.
-oidc_prefix = "SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_"
-oidc_pattern = re.compile(r"{prefix}\w+".format(prefix=oidc_prefix))
-oidc_servers = {}
-oidc_nested_keys = ['APP', 'SCOPE', 'AUTH_PARAMS']
-
-for key, value in {
-    key.replace(oidc_prefix, ""): val
-    for key, val in os.environ.items()
-    if oidc_pattern.match(key)
-}.items():
-    number, setting = key.split("_", 1)
-    parsed_key = None
-    nested_key = filter(lambda setting_key : setting.startswith(setting_key), oidc_nested_keys)
-    nested_key = list(nested_key)
-    if len(nested_key):
-        _, parsed_key = setting.split(nested_key[0] + "_", 1)
-        setting = nested_key[0]
-    if number in oidc_servers:
-        if parsed_key:
-            if setting in oidc_servers[number]:
-                if parsed_key.isdigit():
-                    oidc_servers[number][setting].append(value)
-                else:
-                    oidc_servers[number][setting][parsed_key] = value
-            else:
-                if parsed_key.isdigit():
-                    oidc_servers[number][setting] = [value]
-                else:
-                    oidc_servers[number][setting] = {parsed_key: value}
-        else:
-            oidc_servers[number][setting] = value
-    else:
-        if parsed_key:
-            if parsed_key.isdigit():
-                oidc_servers[number] = {setting: [value]}
-            else:
-                oidc_servers[number] = {setting: {parsed_key: value}}
-        else:
-            oidc_servers[number] = {setting: value}
-oidc_servers = [x for x in oidc_servers.values()]
-SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
 
 WEBPACK_LOADER = {
     'DEFAULT': {
