@@ -22,9 +22,9 @@ import styles from './confirmChangeModal.module.scss';
 import BillingButton from 'js/account/plans/billingButton.component';
 
 export interface ConfirmChangeProps {
-  price: BasePrice | null;
+  newPrice: BasePrice | null;
   products: Product[] | null;
-  subscription: SubscriptionInfo | null;
+  currentSubscription: SubscriptionInfo | null;
 }
 
 interface ConfirmChangeModalProps extends ConfirmChangeProps {
@@ -32,37 +32,37 @@ interface ConfirmChangeModalProps extends ConfirmChangeProps {
 }
 
 /**
- * Confirmation step for downgrading a subscription to a lower price.
+ * Confirmation step for downgrading a currentSubscription to a lower newPrice.
  * This modal is responsible for displaying the details of the change,
  * then making the API request.
  */
 const ConfirmChangeModal = ({
-  price,
+  newPrice,
   products,
-  subscription,
+  currentSubscription,
   onRequestClose,
 }: ConfirmChangeModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const shouldShow = useMemo(
-    () => !!(subscription && price),
-    [price, subscription]
+    () => !!(currentSubscription && newPrice),
+    [newPrice, currentSubscription]
   );
 
-  const getProductForPrice = useCallback(
-    (price) =>
+  const getProductForPriceId = useCallback(
+    (priceId: string) =>
       products?.find((product: Product) => {
         return product.prices.some(
-          (productPrice) => productPrice.id === price.id
+          (productPrice) => productPrice.id === priceId
         );
       }),
     [products]
   );
 
-  // get a translatable description of a price
+  // get a translatable description of a newPrice
   const getPriceDescription = useCallback(
     (price: BasePrice) => {
-      const product = getProductForPrice(price);
+      const product = getProductForPriceId(price.id);
       if (price && product) {
         if (isAddonProduct(product)) {
           return t('##add_on_name## add-on').replace(
@@ -90,7 +90,7 @@ const ConfirmChangeModal = ({
   // get the product type to display as a translatable string
   const getPriceType = useCallback(
     (price: BasePrice) => {
-      const product = getProductForPrice(price);
+      const product = getProductForPriceId(price.id);
       if (price && product) {
         if (isAddonProduct(product)) {
           return t('add-on');
@@ -108,11 +108,11 @@ const ConfirmChangeModal = ({
   }, [shouldShow]);
 
   const submitChange = () => {
-    if (isLoading || !price || !subscription) {
+    if (isLoading || !newPrice || !currentSubscription) {
       return;
     }
     setIsLoading(true);
-    changeSubscription(price.id, subscription.id)
+    changeSubscription(newPrice.id, currentSubscription.id)
       .then((data) => {
         processChangePlanResponse(data).then((status) => {
           if (status !== ChangePlanStatus.success) {
@@ -135,15 +135,15 @@ const ConfirmChangeModal = ({
           <LoadingSpinner message={t('Processing your transaction…')} />
         </section>
         <section hidden={isLoading}>
-          {price?.recurring &&
-            subscription?.items[0].price.recurring?.interval && (
+          {newPrice?.recurring &&
+            currentSubscription?.items[0].price.recurring?.interval && (
               <p>
                 {t('You are switching to the ##new_product_type##.').replace(
                   '##new_product_type##',
-                  getPriceDescription(price)
+                  getPriceDescription(newPrice)
                 )}{' '}
-                {price.metadata['product_type'] === 'plan' &&
-                  subscription?.items[0].price.product.metadata[
+                {newPrice.metadata['product_type'] === 'plan' &&
+                  currentSubscription?.items[0].price.product.metadata[
                     'product_type'
                   ] === 'addon' &&
                   t(
@@ -155,17 +155,17 @@ const ConfirmChangeModal = ({
                 )
                   .replace(
                     /##product_type##/g,
-                    getPriceType(subscription.items[0].price)
+                    getPriceType(currentSubscription.items[0].price)
                   )
                   .replace(
                     /##billing_end_date##/g,
-                    formatDate(subscription.current_period_end)
+                    formatDate(currentSubscription.current_period_end)
                   )
                   .replace(
                     '##new_price##',
-                    price.human_readable_price.split('/')[0]
+                    newPrice.human_readable_price.split('/')[0]
                   )
-                  .replace('##interval##', price.recurring.interval)}
+                  .replace('##interval##', newPrice.recurring.interval)}
               </p>
             )}
         </section>

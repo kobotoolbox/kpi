@@ -123,9 +123,9 @@ export default function Plan() {
     SubscriptionInfo[]
   >([]);
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
-    price: null,
+    newPrice: null,
     products: [],
-    subscription: null,
+    currentSubscription: null,
   });
 
   const [searchParams] = useSearchParams();
@@ -328,7 +328,7 @@ export default function Plan() {
 
   const dismissConfirmModal = () => {
     setConfirmModal((prevState) => {
-      return {...prevState, price: null, subscription: null};
+      return {...prevState, newPrice: null, currentSubscription: null};
     });
     setIsBusy(false);
   };
@@ -352,8 +352,8 @@ export default function Plan() {
         // this will downgrade the subscription at the end of the current billing period
         setConfirmModal({
           products: state.products,
-          price: price,
-          subscription: activeSubscriptions[0],
+          newPrice: price,
+          currentSubscription: activeSubscriptions[0],
         });
       }
     } else {
