@@ -176,10 +176,21 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'country',
         'organization',
         'organization_website',
-        'organization_type'
+        'organization_type',
         'sector',
         'newsletter_subscription',
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If organization_type is enabled, initalize other organization fields
+        # to be optional in the case that `organization_type` is none
+        if (
+            'organization_type' in self.fields
+            and self.fields['organization_type'].required
+        ):
+            self.fields['organization'].required = False
+            self.fields['organization_website'].required = False
 
     def clean(self):
         """
@@ -211,4 +222,20 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
                     'password2',
                     t('You must type the same password each time.'),
                 )
+
+        organization_type = self.cleaned_data.get('organization_type')
+        # if organization_type is enabled and the user is affiliated with an organization,
+        # require both organization and organization_website
+        if organization_type and organization_type != 'none':
+            self.fields['organization_website'].required = True
+            self.fields['organization'].required = True
+
+            for field_name in ['organization_website', 'organization']:
+                field_value = self.cleaned_data.get(field_name)
+                if not field_value:
+                    self.add_error(
+                        field_name,
+                        t('This field is required.'),
+                    )
+
         return self.cleaned_data

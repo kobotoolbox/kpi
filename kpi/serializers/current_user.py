@@ -201,6 +201,22 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             constance.config.USER_METADATA_FIELDS
         )
 
+        # If the user has selected that they are not associated with an organization,
+        # change the required-ness of `organization` and `organization_website` fields to false
+        if (
+            any(
+                field.get('name') == 'organization_type'
+                for field in desired_metadata_fields
+            )
+            and value.get('organization_type') == 'none'
+        ):
+            for field in desired_metadata_fields:
+                if field['name'] in [
+                    'organization',
+                    'organization_website',
+                ]:
+                    field['required'] = False
+
         errors = {}
         for field in desired_metadata_fields:
             if not field['required']:
