@@ -1,7 +1,6 @@
 import sessionStore from 'js/stores/session';
 import permConfig from './permConfig';
 import {buildUserUrl, ANON_USERNAME_URL} from 'js/users/utils';
-import type {PermissionCodename} from './permConstants';
 import type {
   AssetResponse,
   PermissionResponse,
@@ -10,9 +9,10 @@ import type {
 } from 'js/dataInterface';
 import {isSelfOwned} from 'jsapp/js/assetUtils';
 import type {
+  PermissionCodename,
   CheckboxNameAll,
-  CheckboxNamePartial,
-  CheckboxNameListPartial,
+  CheckboxNamePartialByUsers,
+  PartialByUsersListName,
 } from './permConstants';
 import {CHECKBOX_PERM_PAIRS} from './permConstants';
 
@@ -198,16 +198,16 @@ export function isSubmissionWritable(
  */
 export function getPartialCheckboxName(
   checkboxName: CheckboxNameAll
-): CheckboxNamePartial | undefined {
+): CheckboxNamePartialByUsers | undefined {
   switch (checkboxName) {
     case 'submissionsView':
-      return 'submissionsViewPartial';
+      return 'submissionsViewPartialByUsers';
     case 'submissionsEdit':
-      return 'submissionsEditPartial';
+      return 'submissionsEditPartialByUsers';
     case 'submissionsValidate':
-      return 'submissionsValidatePartial';
+      return 'submissionsValidatePartialByUsers';
     case 'submissionsDelete':
-      return 'submissionsDeletePartial';
+      return 'submissionsDeletePartialByUsers';
     default:
       return undefined;
   }
@@ -216,18 +216,18 @@ export function getPartialCheckboxName(
 /**
  * Matches given partial checkbox name with the list name
  */
-export function getPartialCheckboxListName(
-  checkboxName: CheckboxNamePartial
-): CheckboxNameListPartial {
+export function getPartialByUsersListName(
+  checkboxName: CheckboxNamePartialByUsers
+): PartialByUsersListName {
   switch (checkboxName) {
-    case 'submissionsViewPartial':
-      return 'submissionsViewPartialUsers';
-    case 'submissionsEditPartial':
-      return 'submissionsEditPartialUsers';
-    case 'submissionsDeletePartial':
-      return 'submissionsDeletePartialUsers';
-    case 'submissionsValidatePartial':
-      return 'submissionsValidatePartialUsers';
+    case 'submissionsViewPartialByUsers':
+      return 'submissionsViewPartialByUsersList';
+    case 'submissionsEditPartialByUsers':
+      return 'submissionsEditPartialByUsersList';
+    case 'submissionsDeletePartialByUsers':
+      return 'submissionsDeletePartialByUsersList';
+    case 'submissionsValidatePartialByUsers':
+      return 'submissionsValidatePartialByUsersList';
   }
 }
 
