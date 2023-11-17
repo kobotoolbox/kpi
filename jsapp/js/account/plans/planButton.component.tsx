@@ -18,7 +18,7 @@ interface PlanButtonProps {
   plans: SubscriptionInfo[] | null;
   setIsBusy: (value: boolean) => void;
   hasManageableStatus: (subscription: SubscriptionInfo) => boolean;
-  isSubscribedProduct: (product: Price) => boolean;
+  isSubscribedToPlan: boolean;
   buySubscription: (price: BasePrice) => void;
   organization?: Organization | null;
 }
@@ -35,7 +35,7 @@ export const PlanButton = ({
   setIsBusy,
   buySubscription,
   hasManageableStatus,
-  isSubscribedProduct,
+  isSubscribedToPlan,
 }: PlanButtonProps) => {
   const shouldShowManage = useCallback(
     (product: Price) => {
@@ -62,7 +62,7 @@ export const PlanButton = ({
       .catch(() => setIsBusy(false));
   };
 
-  if (!isSubscribedProduct(price) && !shouldShowManage(price)) {
+  if (!isSubscribedToPlan && !shouldShowManage(price)) {
     return (
       <BillingButton
         label={t('Upgrade')}
@@ -73,7 +73,7 @@ export const PlanButton = ({
     );
   }
 
-  if (isSubscribedProduct(price) || shouldShowManage(price)) {
+  if (isSubscribedToPlan || shouldShowManage(price)) {
     return (
       <BillingButton
         label={t('Manage')}

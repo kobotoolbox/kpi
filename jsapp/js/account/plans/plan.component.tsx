@@ -579,7 +579,7 @@ export default function Plan() {
                     <PlanButton
                       price={price}
                       hasManageableStatus={hasManageableStatus}
-                      isSubscribedProduct={isSubscribedProduct}
+                      isSubscribedToPlan={isSubscribedProduct(price)}
                       buySubscription={buySubscription}
                       plans={state.subscribedProduct}
                       isBusy={isBusy}
