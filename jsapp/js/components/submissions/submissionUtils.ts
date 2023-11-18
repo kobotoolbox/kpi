@@ -14,6 +14,7 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
+  ROOT_URL,
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import type {
@@ -53,7 +54,7 @@ export class DisplayGroup {
   /** Unique identifier */
   public name: string | null = null;
   /** List of groups and responses */
-  public children: Array<DisplayResponse|DisplayGroup> = [];
+  public children: Array<DisplayResponse | DisplayGroup> = [];
 
   constructor(
     type: DisplayGroupTypeName,
@@ -69,7 +70,7 @@ export class DisplayGroup {
     }
   }
 
-  addChild(child: DisplayResponse|DisplayGroup) {
+  addChild(child: DisplayResponse | DisplayGroup) {
     this.children.push(child);
   }
 }
@@ -231,7 +232,7 @@ export function getSubmissionDisplayData(
         const matrixGroupObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_matrix,
           rowLabel,
-          rowName,
+          rowName
         );
         parentGroup.addChild(matrixGroupObj);
 
@@ -267,7 +268,7 @@ export function getSubmissionDisplayData(
         const rowObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_regular,
           rowLabel,
-          rowName,
+          rowName
         );
         parentGroup.addChild(rowObj);
         /*
@@ -306,7 +307,8 @@ export function getSubmissionDisplayData(
         const rowqpath = flatPaths[rowName].replace(/\//g, '-');
         supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
           parentGroup.addChild(
-            new DisplayResponse(null,
+            new DisplayResponse(
+              null,
               getColumnLabel(asset, sdKey, false),
               sdKey,
               undefined,
@@ -346,11 +348,15 @@ function populateMatrixData(
   }
 
   // create row display group and add it to matrix group
-  const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex);
+  const matrixRowLabel = getTranslatedRowLabel(
+    matrixRowName,
+    choices,
+    translationIndex
+  );
   const matrixRowGroupObj = new DisplayGroup(
     DISPLAY_GROUP_TYPES.group_matrix_row,
     matrixRowLabel,
-    matrixRowName,
+    matrixRowName
   );
   matrixGroup.addChild(matrixRowGroupObj);
 
@@ -364,8 +370,8 @@ function populateMatrixData(
    */
   Object.keys(flatPaths).forEach((questionName) => {
     if (flatPaths[questionName].startsWith(`${matrixGroupPath}/`)) {
-      const questionSurveyObj = survey.find((row) =>
-        getRowName(row) === questionName
+      const questionSurveyObj = survey.find(
+        (row) => getRowName(row) === questionName
       );
       // We are only interested in going further if object was found.
       if (typeof questionSurveyObj === 'undefined') {
@@ -445,7 +451,7 @@ export function getRowData(
 function isRowFromCurrentGroupLevel(
   rowName: string,
   /** Null for root level rows. */
-  groupPath: string|null,
+  groupPath: string | null,
   survey: SurveyRow[]
 ) {
   const flatPaths = getSurveyFlatPaths(survey, true);
@@ -468,7 +474,10 @@ export function getRepeatGroupAnswers(
 
   // Goes through nested groups from key, looking for answers.
   const lookForAnswers = (data: SubmissionResponse, levelIndex: number) => {
-    const levelKey = targetKey.split('/').slice(0, levelIndex + 1).join('/');
+    const levelKey = targetKey
+      .split('/')
+      .slice(0, levelIndex + 1)
+      .join('/');
     // Each level could be an array of repeat group answers or object with questions.
     if (levelKey === targetKey) {
       if (Object.prototype.hasOwnProperty.call(data, targetKey)) {
@@ -532,17 +541,39 @@ export function getMediaAttachment(
   fileName: string
 ): string | SubmissionAttachment {
   const validFileName = getValidFilename(fileName);
-  let mediaAttachment: string | SubmissionAttachment = t('Could not find ##fileName##').replace(
-    '##fileName##',
-    fileName,
-  );
+  let mediaAttachment: string | SubmissionAttachment = t(
+    'Could not find ##fileName##'
+  ).replace('##fileName##', fileName);
 
   submission._attachments.forEach((attachment) => {
     if (attachment.filename.includes(validFileName)) {
-      mediaAttachment = attachment;
+      // Check if the audio filetype is of type not supported by player and send it to format to mp3
+      if (
+        attachment.mimetype.includes('audio/') &&
+        !attachment.mimetype.includes('/mp3') &&
+        !attachment.mimetype.includes('mpeg') &&
+        !attachment.mimetype.includes('/wav') &&
+        !attachment.mimetype.includes('ogg')
+      ) {
+        const questionPath = Object.keys(submission).find(
+          (key) => submission[key] === fileName
+        );
+
+        const newAudioURL = `${ROOT_URL}/api/v2/assets/${submission._xform_id_string}/data/${attachment.instance}/attachments/?xpath=${questionPath}&format=mp3`;
+        const newAttachment = {
+          ...attachment,
+          download_url: newAudioURL,
+          download_large_url: newAudioURL,
+          download_medium_url: newAudioURL,
+          download_small_url: newAudioURL,
+          mimetype: 'audio/mp3',
+        };
+        mediaAttachment = newAttachment;
+      } else {
+        mediaAttachment = attachment;
+      }
     }
   });
-
   return mediaAttachment;
 }
 
@@ -670,10 +701,10 @@ export function getSupplementalDetailsContent(
  * attachment is saved in storage.
  * See https://github.com/django/django/blob/832adb31f27cfc18ad7542c7eda5a1b6ed5f1669/django/utils/text.py#L224
  */
-export function getValidFilename(
-  fileName: string
-): string {
-  return fileName.normalize('NFD').replace(/\p{Diacritic}/gu, '')
+export function getValidFilename(fileName: string): string {
+  return fileName
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
     .replace(/ /g, '_')
     .replace(/[^\p{L}\p{M}\.\d_-]/gu, '');
 }

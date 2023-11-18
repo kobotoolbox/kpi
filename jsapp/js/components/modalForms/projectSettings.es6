@@ -19,13 +19,13 @@ import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
-  addRequiredToLabel,
   escapeHtml,
   isAValidUrl,
   validFileTypes,
   notify,
   join,
-} from 'utils';
+} from 'js/utils';
+import {addRequiredToLabel} from 'js/textUtils';
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS,

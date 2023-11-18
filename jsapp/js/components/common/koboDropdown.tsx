@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import bem, {makeBem} from 'js/bem';
 import {
   KEY_CODES,
+  KeyNames,
 } from 'js/constants';
 import koboDropdownActions from './koboDropdownActions';
 import './koboDropdown.scss';
@@ -85,6 +86,14 @@ export default class KoboDropdown extends React.Component<
   onTriggerClick(evt: React.KeyboardEvent<Node>) {
     evt.preventDefault();
     this.toggleMenu();
+  }
+
+  /** When trigger is focused, this handles the keyboard navigation */
+  onTriggerKeyDown(evt: React.KeyboardEvent<Node>) {
+    if (evt.key === KeyNames.Enter) {
+      evt.preventDefault();
+      this.toggleMenu();
+    }
   }
 
   onMenuClick() {
@@ -219,7 +228,11 @@ export default class KoboDropdown extends React.Component<
 
     return (
       <bem.KoboDropdown m={this.getWrapperModifiers()} {...additionalWrapperAttributes}>
-        <bem.KoboDropdown__trigger onClick={this.onTriggerClick.bind(this)}>
+        <bem.KoboDropdown__trigger
+          onClick={this.onTriggerClick.bind(this)}
+          tabIndex='0'
+          onKeyDown={this.onTriggerKeyDown.bind(this)}
+        >
           {this.props.triggerContent}
         </bem.KoboDropdown__trigger>
 

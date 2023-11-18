@@ -1,21 +1,26 @@
 import sessionStore from 'js/stores/session';
-import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'js/utils';
-import {ANON_USERNAME, PERMISSIONS_CODENAMES} from 'js/constants';
-import type {PermissionCodename} from 'js/constants';
+import permConfig from './permConfig';
+import {buildUserUrl, ANON_USERNAME_URL} from 'js/users/utils';
+import type {PermissionCodename} from './permConstants';
 import type {
   AssetResponse,
-  Permission,
+  PermissionResponse,
   ProjectViewAsset,
   SubmissionResponse,
 } from 'js/dataInterface';
 import {isSelfOwned} from 'jsapp/js/assetUtils';
+import type {
+  CheckboxNameAll,
+  CheckboxNamePartial,
+  CheckboxNameListPartial,
+} from './permConstants';
+import {CHECKBOX_PERM_PAIRS} from './permConstants';
 
 /** For `.find`-ing the permissions */
 function _doesPermMatch(
-  perm: Permission,
-  permName: string,
-  partialPermName: string | null = null
+  perm: PermissionResponse,
+  permName: PermissionCodename,
+  partialPermName: PermissionCodename | null = null
 ) {
   // Case 1: permissions don't match, stop looking
   if (perm.permission !== permConfig.getPermissionByCodename(permName)?.url) {
@@ -23,7 +28,7 @@ function _doesPermMatch(
   }
 
   // Case 2: permissions match, and we're not looking for partial one
-  if (permName !== PERMISSIONS_CODENAMES.partial_submissions) {
+  if (permName !== 'partial_submissions') {
     return true;
   }
 
@@ -76,7 +81,7 @@ export function userCan(
     // if permission is granted publicly, then grant it to current user
     const anonAccess = asset.permissions.some(
       (perm) =>
-        perm.user === buildUserUrl(ANON_USERNAME) &&
+        perm.user === ANON_USERNAME_URL &&
         perm.permission === permConfig.getPermissionByCodename(permName)?.url
     );
     if (anonAccess) {
@@ -105,7 +110,7 @@ export function userCanPartially(
     return false;
   }
 
-  return userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
+  return userCan('partial_submissions', asset, permName);
 }
 
 /**
@@ -163,7 +168,7 @@ export function isSubmissionWritable(
   const partialPerms = asset.permissions.find(
     (perm) =>
       perm.user === buildUserUrl(currentUsername) &&
-      _doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
+      _doesPermMatch(perm, 'partial_submissions', permName)
   );
 
   const partialPerm = partialPerms?.partial_permissions?.find(
@@ -185,4 +190,63 @@ export function isSubmissionWritable(
     }
   });
   return allowedUsers.includes(submittedBy);
+}
+
+/**
+ * For given checkbox name, it returns its partial counterpart (another checkbox
+ * name) if it has one.
+ */
+export function getPartialCheckboxName(
+  checkboxName: CheckboxNameAll
+): CheckboxNamePartial | undefined {
+  switch (checkboxName) {
+    case 'submissionsView':
+      return 'submissionsViewPartial';
+    case 'submissionsEdit':
+      return 'submissionsEditPartial';
+    case 'submissionsValidate':
+      return 'submissionsValidatePartial';
+    case 'submissionsDelete':
+      return 'submissionsDeletePartial';
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Matches given partial checkbox name with the list name
+ */
+export function getPartialCheckboxListName(
+  checkboxName: CheckboxNamePartial
+): CheckboxNameListPartial {
+  switch (checkboxName) {
+    case 'submissionsViewPartial':
+      return 'submissionsViewPartialUsers';
+    case 'submissionsEditPartial':
+      return 'submissionsEditPartialUsers';
+    case 'submissionsDeletePartial':
+      return 'submissionsDeletePartialUsers';
+    case 'submissionsValidatePartial':
+      return 'submissionsValidatePartialUsers';
+  }
+}
+
+/**
+ * For given permission name it returns a matching checkbox name (non-partial).
+ * It should never return `undefined`, but TypeScript has some limitations.
+ */
+export function getCheckboxNameByPermission(
+  permName: PermissionCodename
+): CheckboxNameAll | undefined {
+  let found: CheckboxNameAll | undefined;
+  for (const [checkboxName, permissionName] of Object.entries(
+    CHECKBOX_PERM_PAIRS
+  )) {
+    // We cast it here because for..of doesn't keep the type of the keys
+    const checkboxNameCast = checkboxName as CheckboxNameAll;
+    if (permName === permissionName) {
+      found = checkboxNameCast;
+    }
+  }
+  return found;
 }
