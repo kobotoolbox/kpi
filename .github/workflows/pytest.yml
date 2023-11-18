@@ -61,3 +61,5 @@ jobs:
       run: pytest --cov=hub --cov=kobo --cov=kpi -ra
     - name: Run coveralls for back-end code
       uses: AndreMiras/coveralls-python-action@develop
+      # Coveralls action will intermittently give 422 errors - until that issue is resolved this step allowed to error.
+      continue-on-error: true

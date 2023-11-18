@@ -22,7 +22,7 @@ import {
 } from '../utils';
 import classnames from 'classnames';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import type {FailResponse} from 'js/dataInterface';
 
 export interface AnalysisQuestionRowProps {

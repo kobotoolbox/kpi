@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
-import {fetchPost} from 'js/api';
-import {handleApiFail, notify} from 'js/utils';
+import {fetchPost, handleApiFail} from 'js/api';
+import {notify} from 'js/utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
 import Checkbox from 'js/components/common/checkbox';
 import styles from './bulkDeletePrompt.module.scss';
