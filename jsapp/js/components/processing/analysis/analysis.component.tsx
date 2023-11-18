@@ -17,12 +17,11 @@ import {
   getQuestionsFromSchema,
 } from './utils';
 import singleProcessingStore from '../singleProcessingStore';
-import {fetchGetUrl} from 'js/api';
+import {fetchGetUrl, handleApiFail} from 'js/api';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
 import type {SubmissionProcessingDataResponse} from './constants';
 import type {FailResponse} from 'js/dataInterface';
-import {handleApiFail} from 'js/utils';
 
 /**
  * Displays content of the "Analysis" tab. This component is handling all of
