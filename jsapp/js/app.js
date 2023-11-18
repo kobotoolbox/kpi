@@ -17,7 +17,6 @@ import MainHeader from 'js/components/header/mainHeader.component';
 import Drawer from 'js/components/drawer';
 import FormViewSideTabs from 'js/components/formViewSideTabs';
 import ProjectTopTabs from 'js/project/projectTopTabs.component';
-import PermValidator from 'js/components/permissions/permValidator';
 import BigModal from 'js/components/bigModal/bigModal';
 import ToasterConfig from './toasterConfig';
 import {withRouter, routerGetAssetId, router} from './router/legacy';
@@ -86,7 +85,6 @@ class App extends React.Component {
         <React.Fragment>
           <Tracking />
           <ToasterConfig />
-          <PermValidator />
           <div className='header-stretch-bg' />
           <bem.PageWrapper
             m={pageWrapperModifiers}
