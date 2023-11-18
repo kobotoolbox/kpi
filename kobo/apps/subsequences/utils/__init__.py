@@ -160,9 +160,10 @@ def stream_with_extras(submission_stream, asset):
                 choices = qual_q.pop('choices', None)
                 if choices:
                     val = qual_response['val']
-                    single_choice = True
-                    if not isinstance(val, list):
+                    if isinstance(val, list):
                         single_choice = False
+                    else:
+                        single_choice = True
                         val = [val]
                     val_expanded = []
                     for v in val:
