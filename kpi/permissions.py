@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from typing import Union
 
-from django.contrib.auth.models import User
 from django.http import Http404
 from rest_framework import exceptions, permissions
 from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
@@ -15,13 +14,13 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import DeploymentNotFound
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
 from kpi.models.asset import Asset
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
 )
-
 
 # FIXME: Move to `object_permissions` module.
 def get_perm_name(perm_name_prefix, model_instance):
@@ -467,9 +466,9 @@ class XMLExternalDataPermission(permissions.BasePermission):
         """
         # Check whether `asset` owner's account requires authentication:
         try:
-            require_auth = obj.asset.owner.extra_details.data['require_auth']
-        except (User.extra_details.RelatedObjectDoesNotExist, KeyError):
-            require_auth = False
+            require_auth = obj.asset.deployment.xform.require_auth
+        except DeploymentNotFound:
+            require_auth = True
 
         # If authentication is required, `request.user` should have
         # 'add_submission' permission on `obj`
