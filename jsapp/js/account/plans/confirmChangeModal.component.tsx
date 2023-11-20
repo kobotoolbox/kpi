@@ -43,6 +43,7 @@ const ConfirmChangeModal = ({
   onRequestClose,
 }: ConfirmChangeModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingChange, setPendingChange] = useState(false);
 
   const shouldShow = useMemo(
     () => !!(currentSubscription && newPrice),
@@ -104,14 +105,17 @@ const ConfirmChangeModal = ({
   );
 
   useEffect(() => {
-    setIsLoading(false);
-  }, [shouldShow]);
+    if (!pendingChange) {
+      setIsLoading(false);
+    }
+  }, [shouldShow && pendingChange]);
 
   const submitChange = () => {
     if (isLoading || !newPrice || !currentSubscription) {
       return;
     }
     setIsLoading(true);
+    setPendingChange(true);
     changeSubscription(newPrice.id, currentSubscription.id)
       .then((data) => {
         processChangePlanResponse(data).then((status) => {
@@ -120,7 +124,8 @@ const ConfirmChangeModal = ({
           }
         });
       })
-      .catch(onRequestClose);
+      .catch(onRequestClose)
+      .finally(() => setPendingChange(false));
   };
 
   return (

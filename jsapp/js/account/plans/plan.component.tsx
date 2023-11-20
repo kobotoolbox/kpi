@@ -353,7 +353,6 @@ export default function Plan() {
     setConfirmModal((prevState) => {
       return {...prevState, newPrice: null, currentSubscription: null};
     });
-    setIsBusy(false);
   };
 
   const buySubscription = (price: BasePrice) => {
