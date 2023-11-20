@@ -15,13 +15,14 @@ import sessionStore from 'js/stores/session';
 import {actions} from './actions';
 import type {
   AssetResponse,
-  Permission,
+  PermissionResponse,
   ProjectViewAsset,
   DeploymentResponse,
 } from './dataInterface';
 import {router, routerIsActive} from './router/legacy';
 import {ROUTES} from './router/routerConstants';
-import {ASSET_TYPES, MODAL_TYPES, PERMISSIONS_CODENAMES} from './constants';
+import {ASSET_TYPES, MODAL_TYPES} from './constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {notify, renderCheckbox} from './utils';
 import assetUtils from './assetUtils';
 import myLibraryStore from './components/library/myLibraryStore';
@@ -399,12 +400,12 @@ export function cloneAssetAsSurvey(sourceUid: string, sourceName: string) {
 
 export function removeAssetSharing(uid: string) {
   /**
-   * Extends `removeAllPermissions` from `userPermissionRow.es6`:
+   * Extends `removeAllPermissions` from `userPermissionRow.component.tsx`:
    * Checks for permissions from current user before finding correct
    * "most basic" permission to remove.
    */
   const asset = stores.allAssets.byUid[uid];
-  const userViewAssetPerm = asset.permissions.find((perm: Permission) => {
+  const userViewAssetPerm = asset.permissions.find((perm: PermissionResponse) => {
     // Get permissions url related to current user
     const permUserUrl = perm.user.split('/');
     return (

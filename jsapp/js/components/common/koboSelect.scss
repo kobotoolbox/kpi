@@ -2,6 +2,7 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use 'js/components/common/button';
+@use 'js/components/common/textBox.module';
 
 $k-select-option-height: sizes.$x36;
 $k-select-menu-padding: sizes.$x6;
@@ -12,6 +13,12 @@ $k-select-menu-padding: sizes.$x6;
   .kobo-dropdown__menu {
     width: 100%;
   }
+}
+
+// Focus styles for the trigger. The element getting actual focus here is the
+// trigger from KoboDropdown, so we need this long selector
+.k-select .kobo-dropdown__trigger:focus-visible .k-select__trigger {
+  @include mixins.default-ui-focus;
 }
 
 .k-select__trigger {
@@ -100,13 +107,44 @@ $k-select-menu-padding: sizes.$x6;
   margin: 0;
 }
 
+.k-select__error {
+  font-size: sizes.$x12;
+  line-height: 1.6;
+  font-weight: 400;
+  font-style: normal;
+  color: colors.$kobo-red;
+  margin: sizes.$x6 auto 0;
+}
+
+.k-select.k-select--has-error {
+  &.k-select--type-outline {
+    .k-select__trigger {
+      border-color: colors.$kobo-red;
+    }
+  }
+
+  &.k-select--type-blue,
+  &.k-select--type-gray {
+    .k-select__trigger {
+      background-color: colors.$kobo-light-red;
+    }
+  }
+}
+
 .k-select__option {
   font-weight: 500;
+  position: relative;
 
-  &:hover ,
+  &:hover,
   &.k-select__option--selected {
     color: colors.$kobo-gray-24;
     background-color: colors.$kobo-gray-96;
+  }
+
+  &:focus-visible {
+    @include mixins.default-ui-focus;
+    // Needed so that option--selected never appears above focus styles
+    z-index: 1;
   }
 }
 
@@ -121,7 +159,7 @@ $k-select-menu-padding: sizes.$x6;
   background-color: transparent;
   border: 0;
   padding: 0;
-  font-size: inherit;
+  font-size: sizes.$x14;
 
   &:focus-visible {
     // wrapper element is handling that
@@ -266,6 +304,14 @@ $k-select-menu-padding: sizes.$x6;
   .k-select__trigger .k-icon {
     color: colors.$kobo-gray-85;
   }
+}
+
+// This needs to have stronger specificity because of `.form-modal__item`
+.k-select label.k-select__label {
+  color: colors.$kobo-gray-24;
+  font-size: sizes.$x12;
+  line-height: textBox.$label-leading;
+  margin-bottom: textBox.$label-margin;
 }
 
 // Sets the different sizes for given size of a trigger button.

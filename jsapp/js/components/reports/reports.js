@@ -437,10 +437,9 @@ export default class Reports extends React.Component {
     });
   }
 
-  triggerQuestionSettings(evt) {
-    let question = evt.target.getAttribute('data-question');
-    if (question) {
-      this.setState({currentQuestionGraph: question});
+  triggerQuestionSettings(questionName) {
+    if (questionName) {
+      this.setState({currentQuestionGraph: questionName});
     }
   }
 
