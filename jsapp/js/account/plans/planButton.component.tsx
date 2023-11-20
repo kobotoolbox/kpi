@@ -13,14 +13,13 @@ import {
 } from 'js/account/stripe.utils';
 
 interface PlanButtonProps {
-  price: Price;
-  isBusy: boolean;
-  plans: SubscriptionInfo[] | null;
-  setIsBusy: (value: boolean) => void;
-  hasManageableStatus: (subscription: SubscriptionInfo) => boolean;
-  isSubscribedToPlan: boolean;
   buySubscription: (price: BasePrice) => void;
+  isBusy: boolean;
+  isSubscribedToPlan: boolean;
+  showManage: boolean;
   organization?: Organization | null;
+  price: Price;
+  setIsBusy: (value: boolean) => void;
 }
 
 /**
@@ -30,39 +29,24 @@ interface PlanButtonProps {
 export const PlanButton = ({
   price,
   organization,
-  plans,
   isBusy,
   setIsBusy,
   buySubscription,
-  hasManageableStatus,
+  showManage,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
-  const shouldShowManage = useCallback(
-    (product: Price) => {
-      const subscriptions = getSubscriptionsForProductId(product.id, plans);
-      if (!subscriptions || !subscriptions.length) {
-        return false;
-      }
-
-      return subscriptions.some((subscription: SubscriptionInfo) =>
-        hasManageableStatus(subscription)
-      );
-    },
-    [hasManageableStatus]
-  );
-
   if (!price || !organization || price.prices.unit_amount === 0) {
     return null;
   }
 
-  const manageSubscription = (price?: BasePrice) => {
+  const manageSubscription = (subscriptionPrice?: BasePrice) => {
     setIsBusy(true);
-    postCustomerPortal(organization.id, price?.id)
+    postCustomerPortal(organization.id, subscriptionPrice?.id)
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false));
   };
 
-  if (!isSubscribedToPlan && !shouldShowManage(price)) {
+  if (!isSubscribedToPlan && !showManage) {
     return (
       <BillingButton
         label={t('Upgrade')}
@@ -73,7 +57,7 @@ export const PlanButton = ({
     );
   }
 
-  if (isSubscribedToPlan || shouldShowManage(price)) {
+  if (isSubscribedToPlan && showManage) {
     return (
       <BillingButton
         label={t('Manage')}

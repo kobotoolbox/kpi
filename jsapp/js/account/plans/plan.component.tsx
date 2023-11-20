@@ -144,6 +144,23 @@ export default function Plan() {
     []
   );
 
+  const shouldShowManage = useCallback(
+    (product: Price) => {
+      const subscriptions = getSubscriptionsForProductId(
+        product.id,
+        state.subscribedProduct
+      );
+      if (!subscriptions || !subscriptions.length) {
+        return false;
+      }
+
+      return subscriptions.some((subscription: SubscriptionInfo) =>
+        hasManageableStatus(subscription)
+      );
+    },
+    [hasManageableStatus]
+  );
+
   const freeTierOverride = useMemo((): FreeTierOverride | null => {
     if (envStore.isReady) {
       const thresholds = envStore.data.free_tier_thresholds;
@@ -578,10 +595,9 @@ export default function Plan() {
                     )}
                     <PlanButton
                       price={price}
-                      hasManageableStatus={hasManageableStatus}
                       isSubscribedToPlan={isSubscribedProduct(price)}
                       buySubscription={buySubscription}
-                      plans={state.subscribedProduct}
+                      showManage={shouldShowManage(price)}
                       isBusy={isBusy}
                       setIsBusy={setIsBusy}
                       organization={state.organization}
