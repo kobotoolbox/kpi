@@ -158,7 +158,7 @@ export default function Plan() {
         hasManageableStatus(subscription)
       );
     },
-    [hasManageableStatus]
+    [hasManageableStatus, state.subscribedProduct]
   );
 
   const freeTierOverride = useMemo((): FreeTierOverride | null => {
