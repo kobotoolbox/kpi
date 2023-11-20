@@ -6,7 +6,7 @@ import {actions} from 'js/actions';
 import {formatTime} from 'js/utils';
 import {getLanguageIndex} from 'js/assetUtils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {
   EXPORT_TYPES,
   EXPORT_FORMATS,
