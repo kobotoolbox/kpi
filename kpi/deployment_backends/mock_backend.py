@@ -684,6 +684,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
 
+    @property
+    def xform(self):
+        """
+        Dummy property, only present to be mocked by unit tests
+        """
+        pass
+
     @classmethod
     def __prepare_bulk_update_data(cls, updates: dict) -> dict:
         """

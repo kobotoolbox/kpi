@@ -22,6 +22,7 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
 )
 
+
 # FIXME: Move to `object_permissions` module.
 def get_perm_name(perm_name_prefix, model_instance):
     """
@@ -467,7 +468,7 @@ class XMLExternalDataPermission(permissions.BasePermission):
         # Check whether `asset` owner's account requires authentication:
         try:
             require_auth = obj.asset.deployment.xform.require_auth
-        except DeploymentNotFound:
+        except (DeploymentNotFound, AttributeError):
             require_auth = True
 
         # If authentication is required, `request.user` should have
