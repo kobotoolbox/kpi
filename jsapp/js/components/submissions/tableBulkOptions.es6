@@ -8,8 +8,8 @@ import alertify from 'alertifyjs';
 import {
   MODAL_TYPES,
   VALIDATION_STATUSES_LIST,
-  PERMISSIONS_CODENAMES,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {renderCheckbox} from 'utils';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
 

@@ -3,7 +3,7 @@ import clonedeep from 'lodash.clonedeep';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import {getRouteAssetUid} from 'js/router/routerUtils';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {
   VALIDATION_STATUS_ID_PROP,
   SUBMISSION_ACTIONS_ID,

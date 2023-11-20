@@ -13,7 +13,6 @@ import ValidationStatusDropdown, {
 } from 'js/components/submissions/validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
 import {
-  PERMISSIONS_CODENAMES,
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
@@ -24,6 +23,7 @@ import {
   ENKETO_ACTIONS,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {formatTimeDateShort} from 'utils';
 import {
   getRowName,

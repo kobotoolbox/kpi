@@ -12,7 +12,6 @@ import permConfig from './permConfig';
 import {notify} from 'js/utils';
 import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
 import {KEY_CODES} from 'js/constants';
-import type {PermissionCodename} from 'js/constants';
 import {
   PARTIAL_PERM_PAIRS,
   CHECKBOX_NAMES,
@@ -23,6 +22,7 @@ import type {
   CheckboxNameAll,
   CheckboxNamePartial,
   CheckboxNameListPartial,
+  PermissionCodename,
 } from './permConstants';
 import type {AssignablePermsMap} from './sharingForm.component';
 import type {
