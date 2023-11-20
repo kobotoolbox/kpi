@@ -69,7 +69,8 @@ export async function processChangePlanResponse(data: ChangePlan) {
   switch (data.status) {
     case ChangePlanStatus.success:
       processCheckoutResponse(data);
-      location.reload();
+      location.hash = '';
+      location.hash = ACCOUNT_ROUTES.PLAN;
       break;
     case ChangePlanStatus.scheduled:
       location.hash = '';

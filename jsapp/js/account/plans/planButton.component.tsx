@@ -14,6 +14,7 @@ import {
 
 interface PlanButtonProps {
   buySubscription: (price: BasePrice) => void;
+  downgrading: boolean;
   isBusy: boolean;
   isSubscribedToPlan: boolean;
   showManage: boolean;
@@ -29,6 +30,7 @@ interface PlanButtonProps {
 export const PlanButton = ({
   price,
   organization,
+  downgrading,
   isBusy,
   setIsBusy,
   buySubscription,
@@ -46,7 +48,7 @@ export const PlanButton = ({
       .catch(() => setIsBusy(false));
   };
 
-  if (!isSubscribedToPlan && !showManage) {
+  if (!isSubscribedToPlan && !showManage && !downgrading) {
     return (
       <BillingButton
         label={t('Upgrade')}
@@ -57,7 +59,7 @@ export const PlanButton = ({
     );
   }
 
-  if (isSubscribedToPlan && showManage) {
+  if (showManage || isSubscribedToPlan) {
     return (
       <BillingButton
         label={t('Manage')}

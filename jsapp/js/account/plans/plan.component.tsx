@@ -29,6 +29,7 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
 import {
   getSubscriptionsForProductId,
+  isChangeScheduled,
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
 import type {
@@ -154,9 +155,14 @@ export default function Plan() {
         return false;
       }
 
-      return subscriptions.some((subscription: SubscriptionInfo) =>
-        hasManageableStatus(subscription)
+      const activeSubscription = subscriptions.find(
+        (subscription: SubscriptionInfo) => hasManageableStatus(subscription)
       );
+      if (!activeSubscription) {
+        return false;
+      }
+
+      return isChangeScheduled(product.prices, [activeSubscription]);
     },
     [hasManageableStatus, state.subscribedProduct]
   );
@@ -595,6 +601,11 @@ export default function Plan() {
                     )}
                     <PlanButton
                       price={price}
+                      downgrading={
+                        activeSubscriptions?.length > 0 &&
+                        activeSubscriptions?.[0].items?.[0].price.unit_amount >
+                          price.prices.unit_amount
+                      }
                       isSubscribedToPlan={isSubscribedProduct(price)}
                       buySubscription={buySubscription}
                       showManage={shouldShowManage(price)}
