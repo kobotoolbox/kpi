@@ -15,6 +15,7 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
+  ROOT_URL,
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import type {
@@ -54,7 +55,7 @@ export class DisplayGroup {
   /** Unique identifier */
   public name: string | null = null;
   /** List of groups and responses */
-  public children: Array<DisplayResponse|DisplayGroup> = [];
+  public children: Array<DisplayResponse | DisplayGroup> = [];
 
   constructor(
     type: DisplayGroupTypeName,
@@ -70,7 +71,7 @@ export class DisplayGroup {
     }
   }
 
-  addChild(child: DisplayResponse|DisplayGroup) {
+  addChild(child: DisplayResponse | DisplayGroup) {
     this.children.push(child);
   }
 }
@@ -112,7 +113,9 @@ export class DisplayResponse {
 /**
  * Returns a sorted object of transcript/translation keys
  */
-export function sortAnalysisFormJsonKeys(additionalFields: {source: string, dtpath: string}[]) {
+export function sortAnalysisFormJsonKeys(
+  additionalFields: {source: string; dtpath: string}[]
+) {
   let sortedBySource: {[key: string]: string[]} = {};
 
   additionalFields?.forEach((afParams) => {
@@ -137,8 +140,8 @@ export function getSubmissionDisplayData(
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root);
 
-  const survey = asset?.content?.survey || []
-  const choices = asset?.content?.choices || []
+  const survey = asset?.content?.survey || [];
+  const choices = asset?.content?.choices || [];
 
   const flatPaths = getSurveyFlatPaths(survey, true);
 
@@ -218,7 +221,7 @@ export function getSubmissionDisplayData(
         let matrixGroupObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_matrix,
           rowLabel,
-          rowName,
+          rowName
         );
         parentGroup.addChild(matrixGroupObj);
 
@@ -254,7 +257,7 @@ export function getSubmissionDisplayData(
         let rowObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_regular,
           rowLabel,
-          rowName,
+          rowName
         );
         parentGroup.addChild(rowObj);
         /*
@@ -275,8 +278,8 @@ export function getSubmissionDisplayData(
         // score and rank don't have list name on them and they need to use
         // the one of their parent
         if (row.type === SCORE_ROW_TYPE || row.type === RANK_LEVEL_TYPE) {
-          const parentGroupRow = survey.find((row) =>
-            getRowName(row) === parentGroup.name
+          const parentGroupRow = survey.find(
+            (row) => getRowName(row) === parentGroup.name
           );
           rowListName = getRowListName(parentGroupRow);
         }
@@ -300,14 +303,15 @@ export function getSubmissionDisplayData(
         let rowqpath = flatPaths[rowName].replace(/\//g, '-');
         supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
           parentGroup.addChild(
-            new DisplayResponse(null,
+            new DisplayResponse(
+              null,
               getColumnLabel(asset, sdKey, false),
               sdKey,
               undefined,
-              getSupplementalDetailsContent(submissionData, sdKey),
+              getSupplementalDetailsContent(submissionData, sdKey)
             )
           );
-        })
+        });
       }
     }
   }
@@ -336,15 +340,19 @@ function populateMatrixData(
   // This should not happen, as the only DisplayGroup with null name will be of
   // the group_root type, but we need this for the types.
   if (matrixGroup.name === null) {
-    return
+    return;
   }
 
   // create row display group and add it to matrix group
-  const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex);
+  const matrixRowLabel = getTranslatedRowLabel(
+    matrixRowName,
+    choices,
+    translationIndex
+  );
   let matrixRowGroupObj = new DisplayGroup(
     DISPLAY_GROUP_TYPES.group_matrix_row,
     matrixRowLabel,
-    matrixRowName,
+    matrixRowName
   );
   matrixGroup.addChild(matrixRowGroupObj);
 
@@ -358,8 +366,8 @@ function populateMatrixData(
    */
   Object.keys(flatPaths).forEach((questionName) => {
     if (flatPaths[questionName].startsWith(`${matrixGroupPath}/`)) {
-      const questionSurveyObj = survey.find((row) =>
-        getRowName(row) === questionName
+      const questionSurveyObj = survey.find(
+        (row) => getRowName(row) === questionName
       );
       // We are only interested in going further if object was found.
       if (typeof questionSurveyObj === 'undefined') {
@@ -439,7 +447,7 @@ export function getRowData(
 function isRowFromCurrentGroupLevel(
   rowName: string,
   /** Null for root level rows. */
-  groupPath: string|null,
+  groupPath: string | null,
   survey: SurveyRow[]
 ) {
   const flatPaths = getSurveyFlatPaths(survey, true);
@@ -462,7 +470,10 @@ export function getRepeatGroupAnswers(
 
   // Goes through nested groups from key, looking for answers.
   const lookForAnswers = (data: SubmissionResponse, levelIndex: number) => {
-    const levelKey = targetKey.split('/').slice(0, levelIndex + 1).join('/');
+    const levelKey = targetKey
+      .split('/')
+      .slice(0, levelIndex + 1)
+      .join('/');
     // Each level could be an array of repeat group answers or object with questions.
     if (levelKey === targetKey) {
       if (Object.prototype.hasOwnProperty.call(data, targetKey)) {
@@ -525,17 +536,39 @@ export function getMediaAttachment(
   fileName: string
 ): string | SubmissionAttachment {
   const validFileName = getValidFilename(fileName);
-  let mediaAttachment: string | SubmissionAttachment = t('Could not find ##fileName##').replace(
-    '##fileName##',
-    fileName,
-  );
+  let mediaAttachment: string | SubmissionAttachment = t(
+    'Could not find ##fileName##'
+  ).replace('##fileName##', fileName);
 
   submission._attachments.forEach((attachment) => {
     if (attachment.filename.includes(validFileName)) {
-      mediaAttachment = attachment;
+      // Check if the audio filetype is of type not supported by player and send it to format to mp3
+      if (
+        attachment.mimetype.includes('audio/') &&
+        !attachment.mimetype.includes('/mp3') &&
+        !attachment.mimetype.includes('mpeg') &&
+        !attachment.mimetype.includes('/wav') &&
+        !attachment.mimetype.includes('ogg')
+      ) {
+        const questionPath = Object.keys(submission).find(
+          (key) => submission[key] === fileName
+        );
+
+        const newAudioURL = `${ROOT_URL}/api/v2/assets/${submission._xform_id_string}/data/${attachment.instance}/attachments/?xpath=${questionPath}&format=mp3`;
+        const newAttachment = {
+          ...attachment,
+          download_url: newAudioURL,
+          download_large_url: newAudioURL,
+          download_medium_url: newAudioURL,
+          download_small_url: newAudioURL,
+          mimetype: 'audio/mp3',
+        };
+        mediaAttachment = newAttachment;
+      } else {
+        mediaAttachment = attachment;
+      }
     }
   });
-
   return mediaAttachment;
 }
 
@@ -598,43 +631,46 @@ export function getSupplementalDetailsContent(
 export function getRowSupplementalResponses(
   asset: AssetResponse,
   submissionData: SubmissionResponse,
-  rowName: string,
+  rowName: string
 ): DisplayResponse[] {
   const output: DisplayResponse[] = [];
   if (isRowProcessingEnabled(asset.uid, rowName)) {
     const advancedFeatures = asset.advanced_features;
 
     if (advancedFeatures?.transcript?.languages !== undefined) {
-      advancedFeatures.transcript.languages.forEach((languageCode: LanguageCode) => {
-        const path = getSupplementalTranscriptPath(rowName, languageCode);
-        output.push(
-          new DisplayResponse(
-            null,
-            getColumnLabel(asset, path, false),
-            path,
-            undefined,
-            getSupplementalDetailsContent(submissionData, path)
-          )
-        );
-      });
+      advancedFeatures.transcript.languages.forEach(
+        (languageCode: LanguageCode) => {
+          const path = getSupplementalTranscriptPath(rowName, languageCode);
+          output.push(
+            new DisplayResponse(
+              null,
+              getColumnLabel(asset, path, false),
+              path,
+              undefined,
+              getSupplementalDetailsContent(submissionData, path)
+            )
+          );
+        }
+      );
     }
 
     if (advancedFeatures?.translation?.languages !== undefined) {
-      advancedFeatures.translation.languages.forEach((languageCode: LanguageCode) => {
-        const path = getSupplementalTranslationPath(rowName, languageCode);
-        output.push(
-          new DisplayResponse(
-            null,
-            getColumnLabel(asset, path, false),
-            path,
-            undefined,
-            getSupplementalDetailsContent(submissionData, path)
-          )
-        );
-      });
+      advancedFeatures.translation.languages.forEach(
+        (languageCode: LanguageCode) => {
+          const path = getSupplementalTranslationPath(rowName, languageCode);
+          output.push(
+            new DisplayResponse(
+              null,
+              getColumnLabel(asset, path, false),
+              path,
+              undefined,
+              getSupplementalDetailsContent(submissionData, path)
+            )
+          );
+        }
+      );
     }
   }
-
   return output;
 }
 
@@ -643,10 +679,10 @@ export function getRowSupplementalResponses(
  * attachment is saved in storage.
  * See https://github.com/django/django/blob/832adb31f27cfc18ad7542c7eda5a1b6ed5f1669/django/utils/text.py#L224
  */
-export function getValidFilename(
-  fileName: string
-): string {
-  return fileName.normalize('NFD').replace(/\p{Diacritic}/gu, '')
+export function getValidFilename(fileName: string): string {
+  return fileName
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
     .replace(/ /g, '_')
     .replace(/[^\p{L}\p{M}\.\d_-]/gu, '');
 }

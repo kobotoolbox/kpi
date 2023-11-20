@@ -18,8 +18,8 @@ import type {
   AssetTypeName,
   ValidationStatus,
   AssetFileType,
-  PermissionCodename,
 } from 'js/constants';
+import type {PermissionCodename} from 'js/components/permissions/permConstants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
 import type {UserResponse} from 'js/users/userExistence.store';
@@ -653,6 +653,7 @@ export type PermissionsConfigResponse = PaginatedResponse<PermissionDefinition>;
 
 interface SocialAccount {
   provider: string;
+  provider_id: string;
   uid: string;
   last_login: string;
   date_joined: string;
