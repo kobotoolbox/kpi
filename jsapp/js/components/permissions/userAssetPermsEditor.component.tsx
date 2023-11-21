@@ -21,6 +21,7 @@ import {
 import type {
   CheckboxNameAll,
   CheckboxNamePartialByUsers,
+  CheckboxNamePartialByResponses,
   PartialByUsersListName,
   PermissionCodename,
 } from './permConstants';
@@ -65,20 +66,24 @@ interface UserAssetPermsEditorState {
   submissionsViewDisabled: boolean;
   submissionsViewPartialByUsers: boolean;
   submissionsViewPartialByUsersList: string[];
+  submissionsViewPartialByResponses: boolean;
   submissionsAdd: boolean;
   submissionsAddDisabled: boolean;
   submissionsEdit: boolean;
   submissionsEditDisabled: boolean;
   submissionsEditPartialByUsers: boolean;
   submissionsEditPartialByUsersList: string[];
+  submissionsEditPartialByResponses: boolean;
   submissionsValidate: boolean;
   submissionsValidateDisabled: boolean;
   submissionsValidatePartialByUsers: boolean;
   submissionsValidatePartialByUsersList: string[];
+  submissionsValidatePartialByResponses: boolean;
   submissionsDelete: boolean;
   submissionsDeleteDisabled: boolean;
   submissionsDeletePartialByUsers: boolean;
   submissionsDeletePartialByUsersList: string[];
+  submissionsDeletePartialByResponses: boolean;
 }
 
 /**
@@ -108,20 +113,24 @@ export default class UserAssetPermsEditor extends React.Component<
       submissionsViewDisabled: false,
       submissionsViewPartialByUsers: false,
       submissionsViewPartialByUsersList: [],
+      submissionsViewPartialByResponses: false,
       submissionsAdd: false,
       submissionsAddDisabled: false,
       submissionsEdit: false,
       submissionsEditDisabled: false,
       submissionsEditPartialByUsers: false,
       submissionsEditPartialByUsersList: [],
+      submissionsEditPartialByResponses: false,
       submissionsValidate: false,
       submissionsValidateDisabled: false,
       submissionsValidatePartialByUsers: false,
       submissionsValidatePartialByUsersList: [],
+      submissionsValidatePartialByResponses: false,
       submissionsDelete: false,
       submissionsDeleteDisabled: false,
       submissionsDeletePartialByUsers: false,
       submissionsDeletePartialByUsersList: [],
+      submissionsDeletePartialByResponses: false,
     };
 
     this.applyPropsData();
@@ -549,31 +558,51 @@ export default class UserAssetPermsEditor extends React.Component<
   }
 
   /**
-   * Displays UI for typing in a list of users for given partial permissions
-   * checkbox. It uses a separator to turn the array into string and vice versa.
+   * Displays UI for enabling and typing in a list of users for given partial
+   * permissions checkbox. It uses a separator to turn the array into string and
+   * vice versa.
    */
-  renderUsersTextbox(checkboxName: CheckboxNamePartialByUsers) {
-    const listName = getPartialByUsersListName(checkboxName);
-    return (
-      <TextBox
-        size='m'
-        placeholder={PARTIAL_PLACEHOLDER}
-        value={this.state[listName].join(USERNAMES_SEPARATOR)}
-        onChange={this.onPartialUsersChange.bind(this, listName)}
-        errors={this.state[checkboxName] && this.state[listName].length === 0}
-        onKeyPress={this.onInputKeyPress.bind(this)}
-      />
-    );
+  renderPartialByUsersRow(checkboxName: CheckboxNamePartialByUsers) {
+    if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
+      const listName = getPartialByUsersListName(checkboxName);
+      return (
+        <div className='user-permissions-editor__sub-row'>
+          {this.renderCheckbox(checkboxName)}
+
+          {this.state[checkboxName] === true && (
+            <TextBox
+              size='m'
+              placeholder={PARTIAL_PLACEHOLDER}
+              value={this.state[listName].join(USERNAMES_SEPARATOR)}
+              onChange={this.onPartialUsersChange.bind(this, listName)}
+              errors={
+                this.state[checkboxName] && this.state[listName].length === 0
+              }
+              onKeyPress={this.onInputKeyPress.bind(this)}
+            />
+          )}
+        </div>
+      );
+    } else {
+      return null;
+    }
   }
 
-  renderPartialRow(checkboxName: CheckboxNamePartialByUsers) {
+  // TODO: get a list of question names to be used here
+  // TODO: display select
+  // TODO: display a checkbox
+  renderPartialByResponsesRow(checkboxName: CheckboxNamePartialByResponses) {
     if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
       return (
         <div className='user-permissions-editor__sub-row'>
           {this.renderCheckbox(checkboxName)}
 
-          {this.state[checkboxName] === true &&
-            this.renderUsersTextbox(checkboxName)}
+          {this.state[checkboxName] === true && (
+            <>
+              <span>select {/*for question name (qpath?)*/}</span>
+              <span>textbox {/*for value*/}</span>
+            </>
+          )}
         </div>
       );
     } else {
@@ -617,22 +646,34 @@ export default class UserAssetPermsEditor extends React.Component<
 
           {this.isAssignable('view_submissions') &&
             this.renderCheckbox('submissionsView')}
-          {this.renderPartialRow('submissionsViewPartialByUsers')}
+          {this.renderPartialByUsersRow('submissionsViewPartialByUsers')}
+          {this.renderPartialByResponsesRow(
+            'submissionsViewPartialByResponses'
+          )}
 
           {this.isAssignable('add_submissions') &&
             this.renderCheckbox('submissionsAdd')}
 
           {this.isAssignable('change_submissions') &&
             this.renderCheckbox('submissionsEdit')}
-          {this.renderPartialRow('submissionsEditPartialByUsers')}
+          {this.renderPartialByUsersRow('submissionsEditPartialByUsers')}
+          {this.renderPartialByResponsesRow(
+            'submissionsEditPartialByResponses'
+          )}
 
           {this.isAssignable('validate_submissions') &&
             this.renderCheckbox('submissionsValidate')}
-          {this.renderPartialRow('submissionsValidatePartialByUsers')}
+          {this.renderPartialByUsersRow('submissionsValidatePartialByUsers')}
+          {this.renderPartialByResponsesRow(
+            'submissionsValidatePartialByResponses'
+          )}
 
           {this.isAssignable('delete_submissions') &&
             this.renderCheckbox('submissionsDelete')}
-          {this.renderPartialRow('submissionsDeletePartialByUsers')}
+          {this.renderPartialByUsersRow('submissionsDeletePartialByUsers')}
+          {this.renderPartialByResponsesRow(
+            'submissionsDeletePartialByResponses'
+          )}
 
           {this.isAssignable('manage_asset') &&
             this.renderCheckbox('formManage')}

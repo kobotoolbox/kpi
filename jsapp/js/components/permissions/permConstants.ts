@@ -81,20 +81,46 @@ type CheckboxNameRegular =
   | 'submissionsEdit'
   | 'submissionsValidate'
   | 'submissionsDelete';
-/** Names of checkboxes for partial permissions (the counterparts). */
+/** Names of checkboxes for "by users" partial permissions. */
 export type CheckboxNamePartialByUsers =
   | 'submissionsViewPartialByUsers'
   | 'submissionsEditPartialByUsers'
   | 'submissionsValidatePartialByUsers'
   | 'submissionsDeletePartialByUsers';
+  /** Names of checkboxes for "by responses" partial permissions. */
+export type CheckboxNamePartialByResponses =
+  | 'submissionsViewPartialByResponses'
+  | 'submissionsEditPartialByResponses'
+  | 'submissionsValidatePartialByResponses'
+  | 'submissionsDeletePartialByResponses';
 /** All checkboxes names combined. */
-export type CheckboxNameAll = CheckboxNameRegular | CheckboxNamePartialByUsers;
-/** Name of lists of usernames for a partial permissions checkboxes. */
+export type CheckboxNameAll = CheckboxNameRegular | CheckboxNamePartialByUsers | CheckboxNamePartialByResponses;
+
+/** Name of lists of usernames for "by users" partial permissions checkboxes. */
 export type PartialByUsersListName =
   | 'submissionsViewPartialByUsersList'
   | 'submissionsEditPartialByUsersList'
   | 'submissionsDeletePartialByUsersList'
   | 'submissionsValidatePartialByUsersList';
+
+/**
+ * Name of select used by user to choose question for "by responses" partial
+ * permissions checkboxes.
+ */
+export type PartialByResponsesQuestionName =
+  | 'submissionsViewPartialByResponsesQuestion'
+  | 'submissionsEditPartialByResponsesQuestion'
+  | 'submissionsDeletePartialByResponsesQuestion'
+  | 'submissionsValidatePartialByResponsesQuestion';
+/**
+ * Name of textbox used by user to type the condition value for "by responses"
+ * partial permissions checkboxes.
+ */
+export type PartialByResponsesValueName =
+  | 'submissionsViewPartialByResponsesValue'
+  | 'submissionsEditPartialByResponsesValue'
+  | 'submissionsDeletePartialByResponsesValue'
+  | 'submissionsValidatePartialByResponsesValue';
 
 /**
  * This list contains the names of all the checkboxes in userAssetPermsEditor.
@@ -108,12 +134,16 @@ export const CHECKBOX_NAMES = createEnum([
   'submissionsAdd',
   'submissionsView',
   'submissionsViewPartialByUsers',
+  'submissionsViewPartialByResponses',
   'submissionsEdit',
   'submissionsEditPartialByUsers',
+  'submissionsEditPartialByResponses',
   'submissionsValidate',
   'submissionsValidatePartialByUsers',
+  'submissionsValidatePartialByResponses',
   'submissionsDelete',
   'submissionsDeletePartialByUsers',
+  'submissionsDeletePartialByResponses',
 ]) as {[P in CheckboxNameAll]: CheckboxNameAll};
 Object.freeze(CHECKBOX_NAMES);
 
@@ -128,12 +158,16 @@ Object.freeze(CHECKBOX_NAMES);
  * but only for this limited list of users".
  */
 export const PARTIAL_PERM_PAIRS: {
-  [key in CheckboxNamePartialByUsers]: PermissionCodename;
+  [key in CheckboxNamePartialByUsers | CheckboxNamePartialByResponses]: PermissionCodename;
 } = {
   submissionsViewPartialByUsers: 'view_submissions',
+  submissionsViewPartialByResponses: 'view_submissions',
   submissionsEditPartialByUsers: 'change_submissions',
+  submissionsEditPartialByResponses: 'change_submissions',
   submissionsValidatePartialByUsers: 'validate_submissions',
+  submissionsValidatePartialByResponses: 'validate_submissions',
   submissionsDeletePartialByUsers: 'delete_submissions',
+  submissionsDeletePartialByResponses: 'delete_submissions',
 };
 Object.freeze(PARTIAL_PERM_PAIRS);
 
@@ -149,12 +183,16 @@ export const CHECKBOX_PERM_PAIRS: {
   submissionsAdd: 'add_submissions',
   submissionsView: 'view_submissions',
   submissionsViewPartialByUsers: 'partial_submissions',
+  submissionsViewPartialByResponses: 'partial_submissions',
   submissionsEdit: 'change_submissions',
   submissionsEditPartialByUsers: 'partial_submissions',
+  submissionsEditPartialByResponses: 'partial_submissions',
   submissionsValidate: 'validate_submissions',
   submissionsValidatePartialByUsers: 'partial_submissions',
+  submissionsValidatePartialByResponses: 'partial_submissions',
   submissionsDelete: 'delete_submissions',
   submissionsDeletePartialByUsers: 'partial_submissions',
+  submissionsDeletePartialByResponses: 'partial_submissions',
 };
 Object.freeze(CHECKBOX_PERM_PAIRS);
 
@@ -164,6 +202,7 @@ Object.freeze(CHECKBOX_PERM_PAIRS);
  */
 export const PARTIAL_IMPLIED_CHECKBOX_PAIRS = {
   [CHECKBOX_NAMES.submissionsEditPartialByUsers]: CHECKBOX_NAMES.submissionsAdd,
+  [CHECKBOX_NAMES.submissionsEditPartialByResponses]: CHECKBOX_NAMES.submissionsAdd,
 };
 Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS);
 
@@ -180,19 +219,23 @@ export const CHECKBOX_LABELS: {[key in CheckboxNameAll]: string} = {
   submissionsAdd: t('Add submissions'),
   submissionsView: t('View submissions'),
   submissionsViewPartialByUsers: t('View submissions only from specific users'),
+  submissionsViewPartialByResponses: t('View submissions based on a condition'),
   submissionsEdit: t('Edit submissions'),
   submissionsEditPartialByUsers: t('Edit submissions only from specific users'),
+  submissionsEditPartialByResponses: t('Edit submissions based on a condition'),
   submissionsValidate: t('Validate submissions'),
-  submissionsValidatePartialByUsers: t(
-    'Validate submissions only from specific users'
-  ),
+  submissionsValidatePartialByUsers: t('Validate submissions only from specific users'),
+  submissionsValidatePartialByResponses: t('Validate submissions based on a condition'),
   submissionsDelete: t('Delete submissions'),
-  submissionsDeletePartialByUsers: t(
-    'Delete submissions only from specific users'
-  ),
+  submissionsDeletePartialByUsers: t('Delete submissions only from specific users'),
+  submissionsDeletePartialByResponses: t('Delete submissions based on a condition'),
 };
 Object.freeze(CHECKBOX_LABELS);
 
 export const PARTIAL_BY_USERS_DEFAULT_LABEL = t(
   'Act on submissions only from specific users'
+);
+
+export const PARTIAL_BY_RESPONSES_DEFAULT_LABEL = t(
+  'Act on submissions based on a condition'
 );

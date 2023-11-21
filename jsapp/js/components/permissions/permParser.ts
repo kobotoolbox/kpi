@@ -35,15 +35,19 @@ export interface PermsFormData {
   submissionsView?: boolean;
   submissionsViewPartialByUsers?: boolean;
   submissionsViewPartialByUsersList?: string[];
+  submissionsViewPartialByResponses?: boolean;
   submissionsEdit?: boolean;
   submissionsEditPartialByUsers?: boolean;
   submissionsEditPartialByUsersList?: string[];
+  submissionsEditPartialByResponses?: boolean;
   submissionsDelete?: boolean;
   submissionsDeletePartialByUsers?: boolean;
   submissionsDeletePartialByUsersList?: string[];
+  submissionsDeletePartialByResponses?: boolean;
   submissionsValidate?: boolean;
   submissionsValidatePartialByUsers?: boolean;
   submissionsValidatePartialByUsersList?: string[];
+  submissionsValidatePartialByResponses?: boolean;
 }
 
 export interface UserWithPerms {
