@@ -27,7 +27,7 @@ import {
   userCanRemoveSharedProject,
 } from 'js/components/permissions/utils';
 import permConfig from 'js/components/permissions/permConfig';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
@@ -75,11 +75,11 @@ class FormLanding extends React.Component {
     });
   }
   updateAssetAnonymousSubmissions() {
-    const permission = this.state.anonymousPermissions.filter(
+    const permission = this.state.anonymousPermissions.find(
       (perm) =>
         perm.permission ===
         permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
-    )[0];
+    );
     if (this.state.anonymousSubmissions) {
       actions.permissions.removeAssetPermission(
         this.props.params.uid,
@@ -426,7 +426,7 @@ class FormLanding extends React.Component {
               label={t('Allow anonymous submissions to this form')}
             />
             {/*TODO: Change url here to the support article and tooltip to the proper copy after they're done*/}
-            <a href={'#'} data-tip={t('Tooltip copy')}>
+            <a /*href={'#'} data-tip={t('Tooltip copy')} */>
               <Icon size='s' name='help' color='storm' />
             </a>
           </bem.FormView__cell>
