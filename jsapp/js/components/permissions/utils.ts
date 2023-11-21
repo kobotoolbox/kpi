@@ -198,10 +198,10 @@ export function isSubmissionWritable(
 }
 
 /**
- * For given checkbox name, it returns its partial counterpart (another checkbox
- * name) if it has one.
+ * For given checkbox name, it returns its partial "by users" counterpart -
+ * another checkbox name (if there is one).
  */
-export function getPartialCheckboxName(
+export function getPartialByUsersCheckboxName(
   checkboxName: CheckboxNameAll
 ): CheckboxNamePartialByUsers | undefined {
   switch (checkboxName) {
@@ -219,7 +219,7 @@ export function getPartialCheckboxName(
 }
 
 /**
- * Matches given partial checkbox name with the list name
+ * Matches given partial "by users" checkbox name with the list name
  */
 export function getPartialByUsersListName(
   checkboxName: CheckboxNamePartialByUsers
