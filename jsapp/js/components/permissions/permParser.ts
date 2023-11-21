@@ -13,7 +13,7 @@ import type {
 } from 'js/dataInterface';
 import {
   getPartialByUsersListName,
-  getPartialCheckboxName,
+  getPartialByUsersCheckboxName,
   getCheckboxNameByPermission,
 } from './utils';
 
@@ -167,7 +167,7 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
     CHECKBOX_NAMES.submissionsValidate,
     CHECKBOX_NAMES.submissionsDelete,
   ].forEach((checkboxName) => {
-    const partialCheckboxName = getPartialCheckboxName(checkboxName);
+    const partialCheckboxName = getPartialByUsersCheckboxName(checkboxName);
 
     if (partialCheckboxName && data[partialCheckboxName]) {
       const permCodename = PARTIAL_PERM_PAIRS[partialCheckboxName];
@@ -234,7 +234,7 @@ export function buildFormData(
         if (!nonPartialCheckboxName) {
           return;
         }
-        const partialCheckboxName = getPartialCheckboxName(
+        const partialCheckboxName = getPartialByUsersCheckboxName(
           nonPartialCheckboxName
         );
         if (!partialCheckboxName) {
