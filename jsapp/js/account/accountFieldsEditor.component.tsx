@@ -34,10 +34,6 @@ interface AccountFieldsEditorProps {
    */
   values: AccountFieldsValues;
   onChange: (fields: AccountFieldsValues) => void;
-  /**
-   * Handles the require authentication checkbox. If not provided, the checkbox
-   * will be displayed.
-   */
 }
 
 /**
