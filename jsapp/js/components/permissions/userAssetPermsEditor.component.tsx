@@ -25,12 +25,9 @@ import type {
   PermissionCodename,
 } from './permConstants';
 import type {AssignablePermsMap} from './sharingForm.component';
-import type {
-  PermissionBase,
-  AssignablePermissionPartialLabel,
-} from 'js/dataInterface';
+import type {PermissionBase} from 'js/dataInterface';
 import userExistence from 'js/users/userExistence.store';
-import {getPartialByUsersListName} from './utils';
+import {getPartialByUsersListName, getCheckboxLabel} from './utils';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
 const USERNAMES_SEPARATOR = ',';
@@ -430,41 +427,6 @@ export default class UserAssetPermsEditor extends React.Component<
     return found;
   }
 
-  getCheckboxLabel(checkboxName: CheckboxNameAll) {
-    // We need both of these pieces of data, and most probably both of them
-    // should be available. But because of types we need to be extra safe. If
-    // anything goes awry, we will return checkbox name as fallback.
-    const permDef = permConfig.getPermissionByCodename(
-      CHECKBOX_PERM_PAIRS[checkboxName]
-    );
-    if (!permDef) {
-      return checkboxName;
-    }
-    const assignablePerm = this.props.assignablePerms.get(permDef.url);
-    if (!assignablePerm) {
-      return checkboxName;
-    }
-
-    // For partial permission we need to dig deeper
-    if (checkboxName in PARTIAL_PERM_PAIRS) {
-      // We need to get regular (non partial) permission name that matches
-      // the partial permission. This is because each partial permissions is
-      // being stored as `partial_submissions` first, and the actual respective
-      // submission second.
-      const permName = PARTIAL_PERM_PAIRS[checkboxName as CheckboxNamePartialByUsers];
-      if (typeof assignablePerm !== 'string' && permName in assignablePerm) {
-        return (
-          assignablePerm[permName as keyof AssignablePermissionPartialLabel] ||
-          checkboxName
-        );
-      }
-      return checkboxName;
-    } else {
-      // We cast it as string, because it is definitely not partial checkbox
-      return assignablePerm as string;
-    }
-  }
-
   isAssignable(permCodename: PermissionCodename) {
     const permDef = permConfig.getPermissionByCodename(permCodename);
     if (!permDef) {
@@ -581,7 +543,7 @@ export default class UserAssetPermsEditor extends React.Component<
         checked={this.state[checkboxName]}
         disabled={isDisabled}
         onChange={this.onCheckboxChange.bind(this, checkboxName)}
-        label={this.getCheckboxLabel(checkboxName)}
+        label={getCheckboxLabel(checkboxName)}
       />
     );
   }
