@@ -34,6 +34,8 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
     message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
   }
 
+  const htmlMessage = message;
+
   if (toastMessage || !message) {
     message = toastMessage || t('An error occurred');
     if (response.status || response.statusText) {
@@ -45,9 +47,11 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
     }
   }
 
+  // show the prettiest version of the error to the user
   notify.error(message);
 
-  window.Raven?.captureMessage(message);
+  // prefer sending the HTML error to Raven, since it should contain more detailed information
+  window.Raven?.captureMessage(htmlMessage || message);
 }
 
 const JSON_HEADER = 'application/json';
