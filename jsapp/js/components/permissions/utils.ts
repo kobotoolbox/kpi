@@ -13,6 +13,9 @@ import type {
   CheckboxNameAll,
   CheckboxNamePartialByUsers,
   PartialByUsersListName,
+  CheckboxNamePartialByResponses,
+  PartialByResponsesQuestionName,
+  PartialByResponsesValueName,
 } from './permConstants';
 import {
   CHECKBOX_PERM_PAIRS,
@@ -219,7 +222,7 @@ export function getPartialByUsersCheckboxName(
 }
 
 /**
- * Matches given partial "by users" checkbox name with the list name
+ * Matches given partial "by users" checkbox name with the list property name
  */
 export function getPartialByUsersListName(
   checkboxName: CheckboxNamePartialByUsers
@@ -233,6 +236,44 @@ export function getPartialByUsersListName(
       return 'submissionsDeletePartialByUsersList';
     case 'submissionsValidatePartialByUsers':
       return 'submissionsValidatePartialByUsersList';
+  }
+}
+
+/**
+ * Matches given partial "by responses" checkbox name with the question property
+ * name
+ */
+export function getPartialByResponsesQuestionName(
+  checkboxName: CheckboxNamePartialByResponses
+): PartialByResponsesQuestionName {
+  switch (checkboxName) {
+    case 'submissionsViewPartialByResponses':
+      return 'submissionsViewPartialByResponsesQuestion';
+    case 'submissionsEditPartialByResponses':
+      return 'submissionsEditPartialByResponsesQuestion';
+    case 'submissionsDeletePartialByResponses':
+      return 'submissionsDeletePartialByResponsesQuestion';
+    case 'submissionsValidatePartialByResponses':
+      return 'submissionsValidatePartialByResponsesQuestion';
+  }
+}
+
+/**
+ * Matches given partial "by responses" checkbox name with the value property
+ * name
+ */
+export function getPartialByResponsesValueName(
+  checkboxName: CheckboxNamePartialByResponses
+): PartialByResponsesValueName {
+  switch (checkboxName) {
+    case 'submissionsViewPartialByResponses':
+      return 'submissionsViewPartialByResponsesValue';
+    case 'submissionsEditPartialByResponses':
+      return 'submissionsEditPartialByResponsesValue';
+    case 'submissionsDeletePartialByResponses':
+      return 'submissionsDeletePartialByResponsesValue';
+    case 'submissionsValidatePartialByResponses':
+      return 'submissionsValidatePartialByResponsesValue';
   }
 }
 

@@ -28,7 +28,16 @@ import type {
 import type {AssignablePermsMap} from './sharingForm.component';
 import type {PermissionBase} from 'js/dataInterface';
 import userExistence from 'js/users/userExistence.store';
-import {getPartialByUsersListName, getCheckboxLabel} from './utils';
+import {
+  getPartialByUsersListName,
+  getCheckboxLabel,
+  getPartialByResponsesQuestionName,
+  getPartialByResponsesValueName,
+} from './utils';
+import {getSurveyFlatPaths} from 'js/assetUtils';
+import assetStore from 'js/assetStore';
+import KoboSelect from 'js/components/common/koboSelect';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
 const USERNAMES_SEPARATOR = ',';
@@ -67,6 +76,8 @@ interface UserAssetPermsEditorState {
   submissionsViewPartialByUsers: boolean;
   submissionsViewPartialByUsersList: string[];
   submissionsViewPartialByResponses: boolean;
+  submissionsViewPartialByResponsesQuestion: string | null;
+  submissionsViewPartialByResponsesValue: string;
   submissionsAdd: boolean;
   submissionsAddDisabled: boolean;
   submissionsEdit: boolean;
@@ -74,16 +85,22 @@ interface UserAssetPermsEditorState {
   submissionsEditPartialByUsers: boolean;
   submissionsEditPartialByUsersList: string[];
   submissionsEditPartialByResponses: boolean;
+  submissionsEditPartialByResponsesQuestion: string | null;
+  submissionsEditPartialByResponsesValue: string;
   submissionsValidate: boolean;
   submissionsValidateDisabled: boolean;
   submissionsValidatePartialByUsers: boolean;
   submissionsValidatePartialByUsersList: string[];
   submissionsValidatePartialByResponses: boolean;
+  submissionsValidatePartialByResponsesQuestion: string | null;
+  submissionsValidatePartialByResponsesValue: string;
   submissionsDelete: boolean;
   submissionsDeleteDisabled: boolean;
   submissionsDeletePartialByUsers: boolean;
   submissionsDeletePartialByUsersList: string[];
   submissionsDeletePartialByResponses: boolean;
+  submissionsDeletePartialByResponsesQuestion: string | null;
+  submissionsDeletePartialByResponsesValue: string;
 }
 
 /**
@@ -114,6 +131,8 @@ export default class UserAssetPermsEditor extends React.Component<
       submissionsViewPartialByUsers: false,
       submissionsViewPartialByUsersList: [],
       submissionsViewPartialByResponses: false,
+      submissionsViewPartialByResponsesQuestion: null,
+      submissionsViewPartialByResponsesValue: '',
       submissionsAdd: false,
       submissionsAddDisabled: false,
       submissionsEdit: false,
@@ -121,16 +140,22 @@ export default class UserAssetPermsEditor extends React.Component<
       submissionsEditPartialByUsers: false,
       submissionsEditPartialByUsersList: [],
       submissionsEditPartialByResponses: false,
+      submissionsEditPartialByResponsesQuestion: null,
+      submissionsEditPartialByResponsesValue: '',
       submissionsValidate: false,
       submissionsValidateDisabled: false,
       submissionsValidatePartialByUsers: false,
       submissionsValidatePartialByUsersList: [],
       submissionsValidatePartialByResponses: false,
+      submissionsValidatePartialByResponsesQuestion: null,
+      submissionsValidatePartialByResponsesValue: '',
       submissionsDelete: false,
       submissionsDeleteDisabled: false,
       submissionsDeletePartialByUsers: false,
       submissionsDeletePartialByUsersList: [],
       submissionsDeletePartialByResponses: false,
+      submissionsDeletePartialByResponsesQuestion: null,
+      submissionsDeletePartialByResponsesValue: '',
     };
 
     this.applyPropsData();
@@ -588,19 +613,60 @@ export default class UserAssetPermsEditor extends React.Component<
     }
   }
 
+  getQuestionNameSelectOptions(): KoboSelectOption[] {
+    const output: KoboSelectOption[] = [];
+    const foundAsset = assetStore.getAsset(this.props.assetUid);
+    if (foundAsset?.content?.survey) {
+      const flatPaths = getSurveyFlatPaths(
+        foundAsset.content?.survey,
+        false,
+        true
+      );
+      for (const [, qPath] of Object.entries(flatPaths)) {
+        output.push({
+          value: qPath,
+          label: qPath,
+        });
+      }
+    }
+    return output;
+  }
+
   // TODO: get a list of question names to be used here
   // TODO: display select
   // TODO: display a checkbox
   renderPartialByResponsesRow(checkboxName: CheckboxNamePartialByResponses) {
     if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
+      const questionProp = getPartialByResponsesQuestionName(checkboxName);
+      const valueProp = getPartialByResponsesValueName(checkboxName);
+
       return (
         <div className='user-permissions-editor__sub-row'>
           {this.renderCheckbox(checkboxName)}
 
           {this.state[checkboxName] === true && (
             <>
-              <span>select {/*for question name (qpath?)*/}</span>
-              <span>textbox {/*for value*/}</span>
+              <KoboSelect
+                name={checkboxName}
+                type='outline'
+                size='m'
+                options={this.getQuestionNameSelectOptions()}
+                selectedOption={this.state[questionProp]}
+                onChange={
+                  (newSelectedOption: string | null) => {
+                    console.log('xxx newSelectedOption', newSelectedOption);
+                  }
+                }
+              />
+
+              {/* Yes, we display an equals character between select and textbox here :) */}
+              <span>=</span>
+
+              <TextBox
+                value={this.state[valueProp]}
+                size='m'
+                onChange={(newVal: string) => {console.log('xxx newVal', newVal)}}
+              />
             </>
           )}
         </div>
