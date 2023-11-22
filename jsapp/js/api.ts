@@ -9,9 +9,10 @@ import {notify} from './utils';
  * a helpful error toast notification and to pass the error message to Raven.
  *
  * It can detect if we got HTML string as response and uses a generic message
- * instead of spitting it out.
+ * instead of spitting it out. The error message displayed to the user can be
+ * customized using the optional `toastMessage` argument.
  */
-export function handleApiFail(response: FailResponse) {
+export function handleApiFail(response: FailResponse, toastMessage?: string) {
   // Avoid displaying toast when purposefuly aborted a request
   if (response.status === 0 && response.statusText === 'abort') {
     return;
@@ -33,14 +34,14 @@ export function handleApiFail(response: FailResponse) {
     message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
   }
 
-  if (!message) {
-    message = t('An error occurred');
+  if (toastMessage || !message) {
+    message = toastMessage || t('An error occurred');
     if (response.status || response.statusText) {
-      message += ` — ${response.status} ${response.statusText}`;
+      message += `\n\n${response.status} ${response.statusText}`;
     } else if (!window.navigator.onLine) {
       // another general case — the original fetch response.message might have
       // something more useful to say.
-      message += ' — ' + t('Your connection is offline');
+      message += '\n\n' + t('Your connection is offline');
     }
   }
 
