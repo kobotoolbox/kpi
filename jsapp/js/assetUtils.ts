@@ -6,7 +6,7 @@
 import React from 'react';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'js/utils';
+import {ANON_USERNAME_URL} from 'js/users/utils';
 import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
 import type {
@@ -24,19 +24,18 @@ import {
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  ANON_USERNAME,
-  PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import type {
   AssetContent,
   AssetResponse,
   ProjectViewAsset,
   SurveyRow,
   SurveyChoice,
-  Permission,
+  PermissionResponse,
 } from 'js/dataInterface';
 import {
   getSupplementalTranscriptPath,
@@ -257,12 +256,12 @@ export function isLibraryAsset(assetType: AssetTypeName) {
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  * Note that `view_asset` is implied when you have `discover_asset`.
  */
-export function isAssetPublic(permissions?: Permission[]) {
+export function isAssetPublic(permissions?: PermissionResponse[]) {
   let isDiscoverableByAnonymous = false;
   permissions?.forEach((perm) => {
     const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
     if (
-      perm.user === buildUserUrl(ANON_USERNAME) &&
+      perm.user === ANON_USERNAME_URL &&
       foundPerm !== undefined &&
       perm.permission === foundPerm.url
     ) {

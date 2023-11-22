@@ -54,6 +54,7 @@ class QueryParseActions:
     def __init__(self, default_field_lookups: list, min_search_characters: int):
         self.default_field_lookups = default_field_lookups
         self.min_search_characters = min_search_characters
+        self.has_term_with_sufficient_length = False
 
     @staticmethod
     def process_value(field, value):
@@ -142,22 +143,24 @@ class QueryParseActions:
         if elements[0].text == '':
             value = _get_value('', elements)
 
-            # As discussed here: https://github.com/kobotoolbox/kpi/pull/2830
-            # there strain on the server for small search queries without a
-            # specified field. The user will receive an empty list in response
-            # until using `self.min_search_characters` or more characters
-            if len(value) < self.min_search_characters:
-                raise SearchQueryTooShortException()
+            if len(value) >= self.min_search_characters:
+                # Note that at least one term meets the minimum length
+                # requirement
+                self.has_term_with_sufficient_length = True
 
-            # A list of `Q` objects where every value is the same
-            # searched value
+            # Since no field was specified, apply the search term to all
+            # default fields
             q_list = [
                 Q(**{field: value}) for field in self.default_field_lookups
             ]
-            # combining all the `Q` objects with an `or` operator and
-            # returning the result
+            # Join all the default field queries together with boolean OR
             return reduce(operator.or_, q_list)
+
         else:
+            # Terms with named fields are exempt from the minimum length
+            # requirement
+            self.has_term_with_sufficient_length = True
+
             # A field+colon, and a value [[field,':'],value]
             field = elements[0].elements[0]
 
@@ -299,7 +302,15 @@ def parse(
     if not min_search_characters:
         min_search_characters = settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS
 
-    return grammar_parse(
-        query,
-        QueryParseActions(default_field_lookups, min_search_characters),
-    )
+    actions = QueryParseActions(default_field_lookups, min_search_characters)
+    q_object = grammar_parse(query, actions)
+
+    if not actions.has_term_with_sufficient_length:
+        # If *no* search term is at least `min_search_characters` long and no
+        # search term specifies a field explicitly, abort the search to avoid
+        # placing an undue strain on the server. See
+        # https://github.com/kobotoolbox/kpi/pull/2830 and
+        # https://github.com/kobotoolbox/kpi/issues/3483
+        raise SearchQueryTooShortException()
+
+    return q_object

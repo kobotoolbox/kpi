@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import classNames from 'classnames';
 import bem, {makeBem} from 'js/bem';
 import KoboDropdown from 'js/components/common/koboDropdown';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {SORT_VALUES} from 'js/components/submissions/tableConstants';
 import './tableColumnSortDropdown.scss';
 import {userCan} from 'js/components/permissions/utils';

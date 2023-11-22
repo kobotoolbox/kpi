@@ -156,16 +156,11 @@ class EnvironmentView(APIView):
     def process_other_configs(request):
         data = {}
 
-        # django-allauth social apps are configured in both settings and the
-        # database. Optimize by avoiding extra DB call when unnecessary
-        social_apps = []
-        if settings.SOCIALACCOUNT_PROVIDERS:
-            social_apps = list(
-                SocialApp.objects.filter(custom_data__isnull=True).values(
-                    'provider', 'name', 'client_id'
-                )
+        data['social_apps'] = list(
+            SocialApp.objects.filter(custom_data__isnull=True).values(
+                'provider', 'name', 'client_id', 'provider_id'
             )
-        data['social_apps'] = social_apps
+        )
 
         data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
             request.user

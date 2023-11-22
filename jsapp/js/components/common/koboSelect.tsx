@@ -14,6 +14,7 @@ import './koboSelect.scss';
 
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
 bem.KoboSelect = makeBem(null, 'k-select');
+bem.KoboSelect__label = makeBem(bem.KoboSelect, 'label', 'label');
 bem.KoboSelect__trigger = makeBem(bem.KoboSelect, 'trigger');
 bem.KoboSelect__triggerSelectedOption = makeBem(bem.KoboSelect, 'trigger-selected-option', 'span');
 bem.KoboSelect__searchBox = makeBem(bem.KoboSelect, 'search-box', 'input');
@@ -21,6 +22,7 @@ bem.KoboSelect__clear = makeBem(bem.KoboSelect, 'clear');
 bem.KoboSelect__menu = makeBem(bem.KoboSelect, 'menu', 'menu');
 bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button');
 bem.KoboSelect__menuMessage = makeBem(bem.KoboSelect, 'menu-message', 'p');
+bem.KoboSelect__error = makeBem(bem.KoboSelect, 'error', 'p');
 
 const SEARCHBOX_NAME = 'kobo-select-search-box';
 
@@ -47,6 +49,8 @@ export interface KoboSelectOption {
 interface KoboSelectProps {
   /** Unique name. */
   name: string;
+  /** Will be displayed above the component. */
+  label?: string;
   type: KoboSelectType;
   /**
    * The size is the height of the trigger, but it also influences its paddings.
@@ -70,6 +74,7 @@ interface KoboSelectProps {
   onChange: (newSelectedOption: string | null) => void;
   'data-cy'?: string;
   placeholder?: string;
+  error?: string;
 }
 
 interface KoboSelectState {
@@ -324,8 +329,18 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       modifiers.push('is-menu-visible');
     }
 
+    if (this.props.error) {
+      modifiers.push('has-error');
+    }
+
     return (
       <bem.KoboSelect m={modifiers}>
+        {this.props.label &&
+          <bem.KoboSelect__label htmlFor={this.props.name}>
+            {this.props.label}
+          </bem.KoboSelect__label>
+        }
+
         <KoboDropdown
           name={this.props.name}
           placement={'down-center'}
@@ -335,6 +350,12 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           menuContent={this.renderMenu()}
           data-cy={this.props['data-cy']}
         />
+
+        {this.props.error &&
+          <bem.KoboSelect__error>
+            {this.props.error}
+          </bem.KoboSelect__error>
+        }
       </bem.KoboSelect>
     );
   }

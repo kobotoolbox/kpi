@@ -4,8 +4,8 @@ import moment from 'moment';
 import Chart from 'chart.js/auto';
 import type {ChartConfiguration} from 'chart.js/auto';
 import type {FailResponse} from 'js/dataInterface';
-import {fetchGet} from 'js/api';
-import {formatDate, handleApiFail} from 'js/utils';
+import {fetchGet, handleApiFail} from 'js/api';
+import {formatDate} from 'js/utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import styles from './submissionsCountGraph.module.scss';
 
@@ -167,7 +167,9 @@ export default function SubmissionsCountGraph(
         let path = ASSET_COUNTS_ENDPOINT.replace('<uid>', props.assetUid);
         const days = StatsPeriods[currentPeriod];
         path += `?days=${days}`;
-        const response = await fetchGet<AssetCountsResponse>(path);
+        const response = await fetchGet<AssetCountsResponse>(path, {
+          notifyAboutError: false,
+        });
         setCounts(response);
       } catch (error) {
         const errorObj = error as FailResponse;
