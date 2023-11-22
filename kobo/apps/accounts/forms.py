@@ -12,8 +12,10 @@ from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as t
 
+from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 
@@ -89,9 +91,24 @@ class KoboSignupMixin(forms.Form):
         label=USER_METADATA_DEFAULT_LABELS['newsletter_subscription'],
         required=False,
     )
+    terms_of_service = forms.BooleanField(
+        label=mark_safe(
+            t('I agree with the ##terms_of_service## and ##privacy_policy##')
+            .replace(
+                "##terms_of_service##",
+                f'<a href="{constance.config.TERMS_OF_SERVICE_URL}" target="_blank">{t("Terms of Service")}</a>',
+            )
+            .replace(
+                "##privacy_policy##",
+                f'<a href="{constance.config.PRIVACY_POLICY_URL}" target="_blank">{t("Privacy Policy")}</a>',
+            )
+        ),
+        required=True,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.label_suffix = ''
         # Remove upstream placeholders
         for field_name in ['username', 'email', 'password1', 'password2']:
             if field_name in self.fields:
@@ -141,6 +158,8 @@ class KoboSignupMixin(forms.Form):
             else:
                 field.required = desired_field.get('required', False)
             self.fields[field_name].label = desired_field['label']
+        if not SitewideMessage.objects.filter(slug='terms_of_service').exists():
+            self.fields.pop('terms_of_service')
 
     def clean_email(self):
         email = self.cleaned_data['email']

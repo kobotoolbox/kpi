@@ -20,7 +20,7 @@
               <div class="field">{{ custom_guidance_text|safe }}</div>
             {% endif %}
           {% endif %}
-          {{ field.label_tag|cut:':' }}
+          {{ field.label_tag }}
           {% if field.field.required %}
             <span class="required">*</span>
           {% endif %}

@@ -397,6 +397,21 @@
   text-align: center;
 }
 
+.registration__bg .registration__first-half {
+  > .newsletter_subscription,
+  > .terms_of_service {
+    display: flex;
+    align-items: center;
+    margin-top: 6px;
+    input[type='checkbox'] {
+      order: -1;
+      margin: 0 12px 0 2px;
+      transform: scale(1.4);
+      height: 18px;
+    }
+  }
+}
+
 @media screen and (min-width: 768px) {
   .registration__bg {
     form.registration {
@@ -463,13 +478,6 @@
       > .password1,
       > .password2 {
         flex: 0; // Let these be shorter to match designs
-      }
-      > .newsletter_subscription {
-        input[type='checkbox'] {
-          float: left;
-          margin-right: 10px;
-          margin-top: -8.5px;
-        }
       }
     }
 
