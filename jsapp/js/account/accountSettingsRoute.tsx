@@ -8,6 +8,7 @@ import {notify, stringToColor} from 'js/utils';
 import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
 import Icon from 'js/components/common/icon';
+import envStore from 'js/envStore';
 import {
   getInitialAccountFieldsValues,
   getProfilePatchData,
@@ -22,6 +23,8 @@ bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
+
+const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 interface Form {
   isPristine: boolean;
@@ -167,11 +170,15 @@ const AccountSettings = observer(() => {
                   )}
                 </div>
                 &nbsp;
-                {/*
-                  TODO: Change url here to the support article after it's done
-
-                  <a href='#'>{t('Learn more about these changes here.')}</a>
-                */}
+                <a
+                  href={
+                    envStore.data.support_url +
+                    HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                  }
+                  target='_blank'
+                >
+                  {t('Learn more about these changes here.')}
+                </a>
               </div>
             </bem.AccountSettings__item>
 

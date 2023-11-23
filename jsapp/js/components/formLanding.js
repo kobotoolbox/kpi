@@ -22,6 +22,7 @@ import {formatTime, notify} from 'utils';
 import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
 import {Link} from 'react-router-dom';
 import {withRouter} from 'js/router/legacy';
+import envStore from 'js/envStore';
 import {
   userCan,
   userCanRemoveSharedProject,
@@ -33,6 +34,7 @@ const DVCOUNT_LIMIT_MINIMUM = 20;
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
   PERMISSIONS_CODENAMES.add_submissions
 ).url;
+const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 class FormLanding extends React.Component {
   constructor(props) {
@@ -417,19 +419,29 @@ class FormLanding extends React.Component {
               </ol>
             )}
           </bem.FormView__cell>
-          <bem.FormView__cell
-            m={['padding', 'anonymous-submissions', 'bordertop']}
-          >
-            <Checkbox
-              checked={this.state.anonymousSubmissions}
-              onChange={() => this.updateAssetAnonymousSubmissions()}
-              label={t('Allow anonymous submissions to this form')}
-            />
-            {/*TODO: Change url here to the support article and tooltip to the proper copy after they're done*/}
-            <a /*href={'#'} data-tip={t('Tooltip copy')} */>
-              <Icon size='s' name='help' color='storm' />
-            </a>
-          </bem.FormView__cell>
+
+          {userCan('change_asset', this.state) && (
+            <bem.FormView__cell
+              m={['padding', 'anonymous-submissions', 'bordertop']}
+            >
+              <Checkbox
+                checked={this.state.anonymousSubmissions}
+                onChange={() => this.updateAssetAnonymousSubmissions()}
+                label={t('Allow anonymous submissions to this form')}
+              />
+              <a
+                href={
+                  envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                }
+                target='_blank'
+                title={t(
+                  'Checking this box will allow anyone to see this blank form and add submissions.\n\nClick the icon to learn more.'
+                )}
+              >
+                <Icon size='s' name='help' color='storm' />
+              </a>
+            </bem.FormView__cell>
+          )}
         </bem.FormView__cell>
       </bem.FormView__row>
     );

@@ -8,6 +8,10 @@ import {ANON_USERNAME_URL} from 'js/users/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PermissionCodename} from './permConstants';
 import type {PermissionResponse} from 'jsapp/js/dataInterface';
+import envStore from 'js/envStore';
+import Icon from 'js/components/common/icon';
+
+const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 interface PublicShareSettingsProps {
   publicPerms: PermissionResponse[];
@@ -72,12 +76,23 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           />
         </bem.FormModal__item>
 
-        <bem.FormModal__item>
+        <bem.FormModal__item m='anonymous-submissions'>
           <Checkbox
             checked={anonCanAddData}
             onChange={this.togglePerms.bind(this, 'add_submissions')}
             label={t('Allow anonymous submissions to this form')}
           />
+          <a
+            href={
+              envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
+            }
+            target='_blank'
+            title={t(
+              'Checking this box will allow anyone to see this blank form and add submissions.\n\nClick the icon to learn more.'
+            )}
+          >
+            <Icon size='s' name='help' color='storm' />
+          </a>
         </bem.FormModal__item>
 
         {this.props.deploymentActive && (
