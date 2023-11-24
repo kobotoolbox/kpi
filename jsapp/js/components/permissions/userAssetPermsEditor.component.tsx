@@ -1,5 +1,6 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
+import cx from 'classnames';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
@@ -38,6 +39,7 @@ import {getSurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import styles from './userAssetPermsEditor.module.scss';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
 const USERNAMES_SEPARATOR = ',';
@@ -591,7 +593,7 @@ export default class UserAssetPermsEditor extends React.Component<
     if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
       const listName = getPartialByUsersListName(checkboxName);
       return (
-        <div className='user-permissions-editor__sub-row'>
+        <div className={styles.subRow}>
           {this.renderCheckbox(checkboxName)}
 
           {this.state[checkboxName] === true && (
@@ -641,33 +643,46 @@ export default class UserAssetPermsEditor extends React.Component<
       const valueProp = getPartialByResponsesValueName(checkboxName);
 
       return (
-        <div className='user-permissions-editor__sub-row'>
+        <div className={styles.subRow}>
           {this.renderCheckbox(checkboxName)}
 
           {this.state[checkboxName] === true && (
-            <>
+            <div className={styles.byResponsesInputs}>
               <KoboSelect
                 name={checkboxName}
                 type='outline'
                 size='m'
+                isClearable
                 options={this.getQuestionNameSelectOptions()}
                 selectedOption={this.state[questionProp]}
                 onChange={
                   (newSelectedOption: string | null) => {
-                    console.log('xxx newSelectedOption', newSelectedOption);
+                    // Update state object in non mutable way
+                    let output = clonedeep(this.state);
+                    output = Object.assign(output, {
+                      [questionProp]: newSelectedOption,
+                    });
+                    this.setState(output);
                   }
                 }
               />
 
-              {/* Yes, we display an equals character between select and textbox here :) */}
+              {/* We display an equals character between elements here :) */}
               <span>=</span>
 
               <TextBox
                 value={this.state[valueProp]}
                 size='m'
-                onChange={(newVal: string) => {console.log('xxx newVal', newVal)}}
+                onChange={(newVal: string) => {
+                  // Update state object in non mutable way
+                  let output = clonedeep(this.state);
+                  output = Object.assign(output, {
+                    [valueProp]: newVal,
+                  });
+                  this.setState(output);
+                }}
               />
-            </>
+            </div>
           )}
         </div>
       );
@@ -692,7 +707,7 @@ export default class UserAssetPermsEditor extends React.Component<
       >
         {isNew && (
           // don't display username editor when editing existing user
-          <div className='user-permissions-editor__row user-permissions-editor__row--username'>
+          <div className={cx([styles.row, styles.rowUsername])}>
             <TextBox
               size='m'
               placeholder={t('username')}
@@ -705,7 +720,7 @@ export default class UserAssetPermsEditor extends React.Component<
           </div>
         )}
 
-        <div className='user-permissions-editor__row'>
+        <div className={styles.row}>
           {this.isAssignable('view_asset') && this.renderCheckbox('formView')}
 
           {this.isAssignable('change_asset') && this.renderCheckbox('formEdit')}
@@ -745,7 +760,7 @@ export default class UserAssetPermsEditor extends React.Component<
             this.renderCheckbox('formManage')}
         </div>
 
-        <div className='user-permissions-editor__row'>
+        <div className={styles.row}>
           <Button
             color='blue'
             type='full'
