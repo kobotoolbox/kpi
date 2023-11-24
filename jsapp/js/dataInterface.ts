@@ -660,6 +660,7 @@ export type PermissionsConfigResponse = PaginatedResponse<PermissionDefinition>;
 
 interface SocialAccount {
   provider: string;
+  provider_id: string;
   uid: string;
   last_login: string;
   date_joined: string;
