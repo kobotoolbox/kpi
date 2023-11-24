@@ -124,55 +124,14 @@ $s-gray-row-spacing: 10px;
   }
 }
 
-// -----------------------------------------------------------------------------
-// UserAssetPermsEditor
-// -----------------------------------------------------------------------------
-
 .form-modal__item--copy-team-permissions {
   position: relative;
 
+  // The closing button is not a part of UserAssetPermsEditor
   .user-permissions-editor-closer {
     position: absolute;
     top: 5px;
     right: 5px;
-  }
-}
-
-.user-permissions-editor {
-  .react-tagsinput-input {
-    background-color: colors.$kobo-white;
-  }
-
-  .user-permissions-editor__row > *:not(:last-child),
-  .user-permissions-editor__sub-row > *:not(:last-child) {
-    margin-bottom: 5px;
-  }
-
-  .user-permissions-editor__row {
-    &:not(:last-child) {
-      margin-bottom: 10px;
-    }
-
-    &.user-permissions-editor__row--username {
-      width: calc(100% - 32px);
-    }
-  }
-
-  .user-permissions-editor__sub-row {
-    padding-left: 30px;
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 10px;
-      width: 15px;
-      height: 15px;
-      border-left: 1px solid colors.$kobo-gray-85;
-      border-bottom: 1px solid colors.$kobo-gray-85;
-      border-radius: 2px;
-    }
   }
 }
 

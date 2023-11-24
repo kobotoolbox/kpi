@@ -1,0 +1,41 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/mixins';
+@use 'scss/sizes';
+
+.row > *:not(:last-child),
+.subRow > *:not(:last-child) {
+  margin-bottom: sizes.$x5;
+}
+
+.row {
+  &:not(:last-child) {
+    margin-bottom: sizes.$x10;
+  }
+
+  &.rowUsername {
+    width: calc(100% - sizes.$x32);
+  }
+}
+
+.subRow {
+  padding-left: sizes.$x30;
+  position: relative;
+
+  // This is the "L" shaped line that marks the indentation
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: sizes.$x10;
+    width: sizes.$x15;
+    height: sizes.$x15;
+    border-left: sizes.$x1 solid colors.$kobo-gray-85;
+    border-bottom: sizes.$x1 solid colors.$kobo-gray-85;
+    border-radius: sizes.$x2;
+  }
+}
+
+.byResponsesInputs {
+  @include mixins.centerRowFlex;
+  gap: sizes.$x8;
+}
