@@ -11,6 +11,7 @@ import type {
   SubmissionResponse,
 } from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
+import {handleApiFail} from 'js/api';
 import {formatTime} from 'js/utils';
 import AssetStatusBadge from './common/assetStatusBadge';
 import Avatar from './common/avatar';
@@ -29,6 +30,12 @@ export default function FormSummaryProjectInfo(
   >();
 
   useEffect(() => {
+    // The call below will fail with 400 if asset doesn't have submissions,
+    // plus there is no point trying to get last submission data in such case
+    if (!props.asset?.deployment__submission_count) {
+      return;
+    }
+
     // Fetches one last submission, and only two fields for it.
     dataInterface
       .getSubmissions(
@@ -42,7 +49,8 @@ export default function FormSummaryProjectInfo(
         if (response.count) {
           setLatestSubmissionDate(response.results[0]['end']);
         }
-      });
+      })
+      .fail(handleApiFail);
   }, []);
 
   const lastDeployedDate =
