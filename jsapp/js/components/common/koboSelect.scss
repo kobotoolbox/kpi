@@ -282,6 +282,7 @@ $k-select-menu-padding: sizes.$x6;
 .k-select.k-select--type-outline {
   .k-select__trigger {
     border-color: colors.$kobo-gray-92;
+    background-color: colors.$kobo-white;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
