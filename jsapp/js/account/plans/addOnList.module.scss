@@ -1,8 +1,9 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/breakpoints';
+@use 'scss/sizes';
 
 .header {
-  font-size: 1.125em;
+  font-size: sizes.$r18;
   font-weight: 700;
   color: colors.$kobo-storm;
   text-transform: uppercase;
