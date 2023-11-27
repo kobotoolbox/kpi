@@ -99,7 +99,6 @@ class ServiceUsageSerializer(serializers.Serializer):
     current_month_start = serializers.SerializerMethodField()
     current_year_start = serializers.SerializerMethodField()
     billing_period_end = serializers.SerializerMethodField()
-    _now = timezone.now().date()
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
@@ -113,6 +112,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._period_start = None
         self._period_end = None
         self._subscription_interval = None
+        self._now = timezone.now().date()
         self._get_per_asset_usage(instance)
 
     def get_total_nlp_usage(self, user):
