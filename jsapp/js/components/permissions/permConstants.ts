@@ -87,14 +87,17 @@ export type CheckboxNamePartialByUsers =
   | 'submissionsEditPartialByUsers'
   | 'submissionsValidatePartialByUsers'
   | 'submissionsDeletePartialByUsers';
-  /** Names of checkboxes for "by responses" partial permissions. */
+/** Names of checkboxes for "by responses" partial permissions. */
 export type CheckboxNamePartialByResponses =
   | 'submissionsViewPartialByResponses'
   | 'submissionsEditPartialByResponses'
   | 'submissionsValidatePartialByResponses'
   | 'submissionsDeletePartialByResponses';
 /** All checkboxes names combined. */
-export type CheckboxNameAll = CheckboxNameRegular | CheckboxNamePartialByUsers | CheckboxNamePartialByResponses;
+export type CheckboxNameAll =
+  | CheckboxNameRegular
+  | CheckboxNamePartialByUsers
+  | CheckboxNamePartialByResponses;
 
 /** Name of lists of usernames for "by users" partial permissions checkboxes. */
 export type PartialByUsersListName =
@@ -148,7 +151,8 @@ export const CHECKBOX_NAMES = createEnum([
 Object.freeze(CHECKBOX_NAMES);
 
 /**
- * This is a map of pairs that connects a partial checkbox to a permission.
+ * This is a map of pairs that connects a partial "by users" checkbox to
+ * a matching permission.
  *
  * NOTE: a partial checkbox is using a "partial_submissions" permission, but
  * in the array of de facto permissions it is using these ones. So for example
@@ -157,19 +161,29 @@ Object.freeze(CHECKBOX_NAMES);
  * and a view_submissions permission - meaning that "Joe can view submissions,
  * but only for this limited list of users".
  */
-export const PARTIAL_PERM_PAIRS: {
-  [key in CheckboxNamePartialByUsers | CheckboxNamePartialByResponses]: PermissionCodename;
+export const PARTIAL_BY_USERS_PERM_PAIRS: {
+  [key in CheckboxNamePartialByUsers]: PermissionCodename;
 } = {
   submissionsViewPartialByUsers: 'view_submissions',
-  submissionsViewPartialByResponses: 'view_submissions',
   submissionsEditPartialByUsers: 'change_submissions',
-  submissionsEditPartialByResponses: 'change_submissions',
   submissionsValidatePartialByUsers: 'validate_submissions',
-  submissionsValidatePartialByResponses: 'validate_submissions',
   submissionsDeletePartialByUsers: 'delete_submissions',
+};
+Object.freeze(PARTIAL_BY_USERS_PERM_PAIRS);
+
+/**
+ * This is a map of pairs that connects a partial "by responses" checkbox to
+ * a matching permission.
+ */
+export const PARTIAL_BY_RESPONSES_PERM_PAIRS: {
+  [key in CheckboxNamePartialByResponses]: PermissionCodename;
+} = {
+  submissionsViewPartialByResponses: 'view_submissions',
+  submissionsEditPartialByResponses: 'change_submissions',
+  submissionsValidatePartialByResponses: 'validate_submissions',
   submissionsDeletePartialByResponses: 'delete_submissions',
 };
-Object.freeze(PARTIAL_PERM_PAIRS);
+Object.freeze(PARTIAL_BY_RESPONSES_PERM_PAIRS);
 
 /**
  * This is a map of pairs that connect a checkbox name to a permission name.
@@ -202,7 +216,8 @@ Object.freeze(CHECKBOX_PERM_PAIRS);
  */
 export const PARTIAL_IMPLIED_CHECKBOX_PAIRS = {
   [CHECKBOX_NAMES.submissionsEditPartialByUsers]: CHECKBOX_NAMES.submissionsAdd,
-  [CHECKBOX_NAMES.submissionsEditPartialByResponses]: CHECKBOX_NAMES.submissionsAdd,
+  [CHECKBOX_NAMES.submissionsEditPartialByResponses]:
+    CHECKBOX_NAMES.submissionsAdd,
 };
 Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS);
 
@@ -224,11 +239,19 @@ export const CHECKBOX_LABELS: {[key in CheckboxNameAll]: string} = {
   submissionsEditPartialByUsers: t('Edit submissions only from specific users'),
   submissionsEditPartialByResponses: t('Edit submissions based on a condition'),
   submissionsValidate: t('Validate submissions'),
-  submissionsValidatePartialByUsers: t('Validate submissions only from specific users'),
-  submissionsValidatePartialByResponses: t('Validate submissions based on a condition'),
+  submissionsValidatePartialByUsers: t(
+    'Validate submissions only from specific users'
+  ),
+  submissionsValidatePartialByResponses: t(
+    'Validate submissions based on a condition'
+  ),
   submissionsDelete: t('Delete submissions'),
-  submissionsDeletePartialByUsers: t('Delete submissions only from specific users'),
-  submissionsDeletePartialByResponses: t('Delete submissions based on a condition'),
+  submissionsDeletePartialByUsers: t(
+    'Delete submissions only from specific users'
+  ),
+  submissionsDeletePartialByResponses: t(
+    'Delete submissions based on a condition'
+  ),
 };
 Object.freeze(CHECKBOX_LABELS);
 

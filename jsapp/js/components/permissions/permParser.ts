@@ -1,8 +1,13 @@
 import permConfig from './permConfig';
-import type {PermissionCodename} from './permConstants';
+import type {
+  PermissionCodename,
+  CheckboxNameAll,
+  CheckboxNamePartialByUsers,
+  CheckboxNamePartialByResponses,
+} from './permConstants';
 import {
-  PARTIAL_PERM_PAIRS,
-  CHECKBOX_NAMES,
+  PARTIAL_BY_USERS_PERM_PAIRS,
+  PARTIAL_BY_RESPONSES_PERM_PAIRS,
   CHECKBOX_PERM_PAIRS,
 } from './permConstants';
 import {buildUserUrl, getUsernameFromUrl, ANON_USERNAME} from 'js/users/utils';
@@ -15,6 +20,8 @@ import {
   getPartialByUsersListName,
   getPartialByUsersCheckboxName,
   getCheckboxNameByPermission,
+  getPartialByResponsesQuestionName,
+  getPartialByResponsesValueName,
 } from './utils';
 
 export interface UserPerm {
@@ -36,26 +43,26 @@ export interface PermsFormData {
   submissionsViewPartialByUsers?: boolean;
   submissionsViewPartialByUsersList?: string[];
   submissionsViewPartialByResponses?: boolean;
-  submissionsViewPartialByResponsesQuestion?: boolean;
-  submissionsViewPartialByResponsesValue?: boolean;
+  submissionsViewPartialByResponsesQuestion?: string;
+  submissionsViewPartialByResponsesValue?: string;
   submissionsEdit?: boolean;
   submissionsEditPartialByUsers?: boolean;
   submissionsEditPartialByUsersList?: string[];
   submissionsEditPartialByResponses?: boolean;
-  submissionsEditPartialByResponsesQuestion?: boolean;
-  submissionsEditPartialByResponsesValue?: boolean;
+  submissionsEditPartialByResponsesQuestion?: string;
+  submissionsEditPartialByResponsesValue?: string;
   submissionsDelete?: boolean;
   submissionsDeletePartialByUsers?: boolean;
   submissionsDeletePartialByUsersList?: string[];
   submissionsDeletePartialByResponses?: boolean;
-  submissionsDeletePartialByResponsesQuestion?: boolean;
-  submissionsDeletePartialByResponsesValue?: boolean;
+  submissionsDeletePartialByResponsesQuestion?: string;
+  submissionsDeletePartialByResponsesValue?: string;
   submissionsValidate?: boolean;
   submissionsValidatePartialByUsers?: boolean;
   submissionsValidatePartialByUsersList?: string[];
   submissionsValidatePartialByResponses?: boolean;
-  submissionsValidatePartialByResponsesQuestion?: boolean;
-  submissionsValidatePartialByResponsesValue?: boolean;
+  submissionsValidatePartialByResponsesQuestion?: string;
+  submissionsValidatePartialByResponsesValue?: string;
 }
 
 export interface UserWithPerms {
@@ -165,39 +172,52 @@ function removeImpliedPerms(parsed: PermissionBase[]): PermissionBase[] {
  */
 export function parseFormData(data: PermsFormData): PermissionBase[] {
   let parsed = [];
-  // Gather all partial permissions first, and then build a partial_submissions
-  // grouped permission to add it to final data.
+
+  // We need to gather all partial permissions first, because they end up as
+  // single `partial_submissions` permission with all partial permissions
+  // grouped inside of it.
   const partialPerms: PartialPermission[] = [];
 
-  [
-    CHECKBOX_NAMES.formView,
-    CHECKBOX_NAMES.formEdit,
-    CHECKBOX_NAMES.formManage,
-    CHECKBOX_NAMES.submissionsAdd,
-    CHECKBOX_NAMES.submissionsView,
-    CHECKBOX_NAMES.submissionsEdit,
-    CHECKBOX_NAMES.submissionsValidate,
-    CHECKBOX_NAMES.submissionsDelete,
-  ].forEach((checkboxName) => {
-    const partialCheckboxName = getPartialByUsersCheckboxName(checkboxName);
-
-    if (partialCheckboxName && data[partialCheckboxName]) {
-      const permCodename = PARTIAL_PERM_PAIRS[partialCheckboxName];
-
-      const listName = getPartialByUsersListName(partialCheckboxName);
+  // Step 1: Gather all partial "by users" permissions
+  for (const [checkboxName, permCodename] of Object.entries(
+    PARTIAL_BY_USERS_PERM_PAIRS
+  )) {
+    const byUsersCheckboxName = checkboxName as CheckboxNamePartialByUsers;
+    if (data[byUsersCheckboxName]) {
+      const listName = getPartialByUsersListName(byUsersCheckboxName);
       const partialUsers = data[listName] || [];
 
       partialPerms.push({
         url: getPermUrl(permCodename),
         filters: [{_submitted_by: {$in: partialUsers}}],
       });
-    } else if (data[checkboxName]) {
-      parsed.push(
-        buildBackendPerm(data.username, CHECKBOX_PERM_PAIRS[checkboxName])
-      );
     }
-  });
+  }
 
+  // Step 2: Gather all partial "by responses" permissions
+  for (const [checkboxName, permCodename] of Object.entries(
+    PARTIAL_BY_RESPONSES_PERM_PAIRS
+  )) {
+    const byResponsesCheckboxName =
+      checkboxName as CheckboxNamePartialByResponses;
+    if (data[byResponsesCheckboxName]) {
+      const questionProp = getPartialByResponsesQuestionName(
+        byResponsesCheckboxName
+      );
+      const question = data[questionProp];
+      const valueProp = getPartialByResponsesValueName(byResponsesCheckboxName);
+      const value = data[valueProp];
+
+      if (question && value) {
+        partialPerms.push({
+          url: getPermUrl(permCodename),
+          filters: [{[question]: {$eq: value}}],
+        });
+      }
+    }
+  }
+
+  // Step 3: Build final partial permission
   if (partialPerms.length >= 1) {
     const permObj = buildBackendPerm(
       data.username,
@@ -207,6 +227,22 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
     parsed.push(permObj);
   }
 
+  // Step 4: Gather all non-partial permissions
+  for (const [checkboxNameString, permCodename] of Object.entries(
+    CHECKBOX_PERM_PAIRS
+  )) {
+    const checkboxName = checkboxNameString as CheckboxNameAll;
+    if (
+      data[checkboxName] &&
+      // Filter out partial checkboxes
+      checkboxName in PARTIAL_BY_USERS_PERM_PAIRS === false &&
+      checkboxName in PARTIAL_BY_RESPONSES_PERM_PAIRS === false
+    ) {
+      parsed.push(buildBackendPerm(data.username, permCodename));
+    }
+  }
+
+  // Step 5. Remove contradictory and implied permissions
   parsed = removeContradictoryPerms(parsed);
   parsed = removeImpliedPerms(parsed);
 
@@ -256,7 +292,7 @@ export function buildFormData(
         formData[partialCheckboxName] = true;
 
         partial.filters.forEach((filter) => {
-          if (filter._submitted_by) {
+          if (Array.isArray(filter._submitted_by.$in)) {
             const listName = getPartialByUsersListName(partialCheckboxName);
             formData[listName] = filter._submitted_by.$in;
           }

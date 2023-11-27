@@ -14,7 +14,8 @@ import {notify} from 'js/utils';
 import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
 import {KEY_CODES} from 'js/constants';
 import {
-  PARTIAL_PERM_PAIRS,
+  PARTIAL_BY_USERS_PERM_PAIRS,
+  PARTIAL_BY_RESPONSES_PERM_PAIRS,
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
   PARTIAL_IMPLIED_CHECKBOX_PAIRS,
@@ -251,17 +252,33 @@ export default class UserAssetPermsEditor extends React.Component<
       output = this.applyValidityRulesForCheckbox(checkboxName, output);
     }
 
-    // Step 5: For each unchecked partial checkbox, clean up the list of users
+    // Step 5: For each unchecked partial checkbox, clean up the data of related
+    // properties
     for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
       if (
-        checkboxName in PARTIAL_PERM_PAIRS &&
+        checkboxName in PARTIAL_BY_USERS_PERM_PAIRS &&
         output[checkboxName] === false
       ) {
-        // We cast it here, because it is definitely a partial checkbox
-        const listName = getPartialByUsersListName(
-          checkboxName as CheckboxNamePartialByUsers
-        );
+        const byUsersCheckboxName = checkboxName as CheckboxNamePartialByUsers;
+        const listName = getPartialByUsersListName(byUsersCheckboxName);
+        // Cleanup the list of users
         output = Object.assign(output, {[listName]: []});
+      }
+
+      if (
+        checkboxName in PARTIAL_BY_RESPONSES_PERM_PAIRS &&
+        output[checkboxName] === false
+      ) {
+        const byResponsesCheckboxName =
+          checkboxName as CheckboxNamePartialByResponses;
+        const questionName = getPartialByResponsesQuestionName(
+          byResponsesCheckboxName
+        );
+        const valueName = getPartialByResponsesValueName(
+          byResponsesCheckboxName
+        );
+        // Cleanup the question and value
+        output = Object.assign(output, {[questionName]: null, [valueName]: ''});
       }
     }
 
@@ -437,6 +454,10 @@ export default class UserAssetPermsEditor extends React.Component<
     notify(`${t('User not found:')} ${username}`, 'warning');
   }
 
+  /**
+   * A generic callback for text inputs that blur out of the element when ENTER
+   * key is pressed - ensuring that the form is not submitted.
+   */
   onInputKeyPress(key: string, evt: React.KeyboardEvent<HTMLInputElement>) {
     if (key === String(KEY_CODES.ENTER)) {
       evt.currentTarget.blur();
@@ -499,6 +520,10 @@ export default class UserAssetPermsEditor extends React.Component<
       this.isPartialByUsersValid('submissionsEditPartialByUsers') &&
       this.isPartialByUsersValid('submissionsDeletePartialByUsers') &&
       this.isPartialByUsersValid('submissionsValidatePartialByUsers') &&
+      this.isPartialByResponsesValid('submissionsViewPartialByResponses') &&
+      this.isPartialByResponsesValid('submissionsEditPartialByResponses') &&
+      this.isPartialByResponsesValid('submissionsDeletePartialByResponses') &&
+      this.isPartialByResponsesValid('submissionsValidatePartialByResponses') &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       !this.state.isCheckingUsername &&
@@ -522,23 +547,56 @@ export default class UserAssetPermsEditor extends React.Component<
     return true;
   }
 
+  isPartialByResponsesValid(
+    partialCheckboxName: CheckboxNamePartialByResponses
+  ) {
+    // If partial checkbox is checked, we require the question and value to be
+    // present
+    if (this.state[partialCheckboxName] === true) {
+      return (
+        this.state[getPartialByResponsesQuestionName(partialCheckboxName)] &&
+        this.state[getPartialByResponsesValueName(partialCheckboxName)]
+      );
+    }
+    return true;
+  }
+
   /**
    * Returns only the properties for assignable permissions
    */
   getFormData() {
     const output: PermsFormData = {
+      // We always include username
       username: this.state.username,
     };
 
+    // We loop through all of the checkboxes to see if the permission paired to
+    // it is assignable
     for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
       if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
+        // Add current form data to output
         output[checkboxName] = this.state[checkboxName];
-        if (checkboxName in PARTIAL_PERM_PAIRS) {
-          // We cast it here, because it is definitely a partial checkbox
+
+        if (checkboxName in PARTIAL_BY_USERS_PERM_PAIRS) {
+          // We cast it here, because we ensure it's partial "by users" with
+          // the above function
           const listName = getPartialByUsersListName(
             checkboxName as CheckboxNamePartialByUsers
           );
           output[listName] = this.state[listName];
+        }
+
+        if (checkboxName in PARTIAL_BY_RESPONSES_PERM_PAIRS) {
+          // We cast it here, because we ensure it's partial "by responses" with
+          // the above function
+          const questionName = getPartialByResponsesQuestionName(
+            checkboxName as CheckboxNamePartialByResponses
+          );
+          const valueName = getPartialByResponsesValueName(
+            checkboxName as CheckboxNamePartialByResponses
+          );
+          output[questionName] = this.state[questionName] || '';
+          output[valueName] = this.state[valueName];
         }
       }
     }
@@ -668,16 +726,14 @@ export default class UserAssetPermsEditor extends React.Component<
                   isClearable
                   options={this.getQuestionNameSelectOptions()}
                   selectedOption={this.state[questionProp]}
-                  onChange={
-                    (newSelectedOption: string | null) => {
-                      // Update state object in non mutable way
-                      let output = clonedeep(this.state);
-                      output = Object.assign(output, {
-                        [questionProp]: newSelectedOption,
-                      });
-                      this.setState(output);
-                    }
-                  }
+                  onChange={(newSelectedOption: string | null) => {
+                    // Update state object in non mutable way
+                    let output = clonedeep(this.state);
+                    output = Object.assign(output, {
+                      [questionProp]: newSelectedOption,
+                    });
+                    this.setState(output);
+                  }}
                 />
               </span>
 

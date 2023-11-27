@@ -248,11 +248,19 @@ export interface LabelValuePair {
   value: string;
 }
 
-export interface PartialPermission {
-  url: string;
-  filters: Array<{_submitted_by: {$in: string[]}}>;
+interface PartialPermissionFilter {
+  [questionName: string]: {
+    // For the `mongoOperator` the only supported ones now are $in and $eq.
+    // There are more to be found at
+    // https://www.mongodb.com/docs/manual/reference/operator/query
+    [mongoOperator: string]: string | string[];
+  };
 }
 
+export interface PartialPermission {
+  url: string;
+  filters: PartialPermissionFilter[];
+}
 
 /** Permission object to be used when making API requests. */
 export interface PermissionBase {
