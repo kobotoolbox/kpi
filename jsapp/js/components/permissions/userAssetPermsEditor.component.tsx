@@ -172,6 +172,8 @@ export default class UserAssetPermsEditor extends React.Component<
    */
   checkedUsernames: Map<string, boolean> = new Map();
 
+  private unlisteners: Function[] = [];
+
   /**
    * Fills up form with provided user name and permissions (if applicable)
    */
@@ -186,12 +188,20 @@ export default class UserAssetPermsEditor extends React.Component<
   }
 
   componentDidMount() {
-    actions.permissions.bulkSetAssetPermissions.completed.listen(
-      this.onBulkSetAssetPermissionCompleted.bind(this)
+    this.unlisteners.push(
+      actions.permissions.bulkSetAssetPermissions.completed.listen(
+        this.onBulkSetAssetPermissionCompleted.bind(this)
+      ),
+      actions.permissions.bulkSetAssetPermissions.failed.listen(
+        this.onBulkSetAssetPermissionFailed.bind(this)
+      )
     );
-    actions.permissions.bulkSetAssetPermissions.failed.listen(
-      this.onBulkSetAssetPermissionFailed.bind(this)
-    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   onBulkSetAssetPermissionCompleted() {
