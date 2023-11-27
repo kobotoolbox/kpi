@@ -634,9 +634,11 @@ export default class UserAssetPermsEditor extends React.Component<
     return output;
   }
 
-  // TODO: get a list of question names to be used here
-  // TODO: display select
-  // TODO: display a checkbox
+  /**
+   * Displays a checkbox for enabling partial "by responses" permission editor
+   * that includes a question (name) selector and a text input for typing
+   * the value to filter by.
+   */
   renderPartialByResponsesRow(checkboxName: CheckboxNamePartialByResponses) {
     if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
       const questionProp = getPartialByResponsesQuestionName(checkboxName);
@@ -648,36 +650,56 @@ export default class UserAssetPermsEditor extends React.Component<
 
           {this.state[checkboxName] === true && (
             <div className={styles.byResponsesInputs}>
-              <KoboSelect
-                name={checkboxName}
-                type='outline'
-                size='m'
-                isClearable
-                options={this.getQuestionNameSelectOptions()}
-                selectedOption={this.state[questionProp]}
-                onChange={
-                  (newSelectedOption: string | null) => {
-                    // Update state object in non mutable way
-                    let output = clonedeep(this.state);
-                    output = Object.assign(output, {
-                      [questionProp]: newSelectedOption,
-                    });
-                    this.setState(output);
+              <span className={styles.questionSelectWrapper}>
+                <KoboSelect
+                  name={checkboxName}
+                  type='outline'
+                  size='m'
+                  isClearable
+                  options={this.getQuestionNameSelectOptions()}
+                  selectedOption={this.state[questionProp]}
+                  onChange={
+                    (newSelectedOption: string | null) => {
+                      // Update state object in non mutable way
+                      let output = clonedeep(this.state);
+                      output = Object.assign(output, {
+                        [questionProp]: newSelectedOption,
+                      });
+                      this.setState(output);
+                    }
                   }
-                }
-              />
+                />
+              </span>
 
               {/* We display an equals character between elements here :) */}
               <span>=</span>
 
-              <TextBox
-                value={this.state[valueProp]}
+              <span className={styles.valueInputWrapper}>
+                <TextBox
+                  value={this.state[valueProp]}
+                  size='m'
+                  onChange={(newVal: string) => {
+                    // Update state object in non mutable way
+                    let output = clonedeep(this.state);
+                    output = Object.assign(output, {
+                      [valueProp]: newVal,
+                    });
+                    this.setState(output);
+                  }}
+                />
+              </span>
+
+              <Button
+                type='bare'
+                color='blue'
                 size='m'
-                onChange={(newVal: string) => {
+                label={t('Reset changes')}
+                onClick={() => {
                   // Update state object in non mutable way
                   let output = clonedeep(this.state);
                   output = Object.assign(output, {
-                    [valueProp]: newVal,
+                    [questionProp]: null,
+                    [valueProp]: '',
                   });
                   this.setState(output);
                 }}
