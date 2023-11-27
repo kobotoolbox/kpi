@@ -28,7 +28,6 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
     submission_count_current_month = serializers.SerializerMethodField()
     submission_count_current_year = serializers.SerializerMethodField()
     submission_count_all_time = serializers.SerializerMethodField()
-    _now = timezone.now().date()
 
     class Meta:
         model = Asset
@@ -44,6 +43,11 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
             'submission_count_current_year',
             'submission_count_all_time',
         )
+
+    def __init__(self, instance=None, data=empty, **kwargs):
+        super().__init__(instance=instance, data=data, **kwargs)
+
+        self._now = timezone.now().date()
 
     def get_nlp_usage_current_month(self, asset):
         start_date = self._now.replace(day=1)
