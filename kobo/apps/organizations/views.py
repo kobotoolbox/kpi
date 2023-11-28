@@ -2,7 +2,6 @@ from django.conf import settings
 from django.db.models import QuerySet
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -16,7 +15,6 @@ from .serializers import OrganizationSerializer
 
 
 @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='service_usage')
-@method_decorator(vary_on_cookie, name='service_usage')
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
     Organizations are groups of users with assigned permissions and configurations
