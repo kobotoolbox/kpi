@@ -3,6 +3,7 @@ import type {IconName} from 'jsapp/fonts/k-icons';
 import type {IconSize} from 'js/components/common/icon';
 import Icon from 'js/components/common/icon';
 import './button.scss';
+import Tooltip from './tooltip';
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't
@@ -61,6 +62,8 @@ export interface ButtonProps {
    * for icon-only buttons.
    */
   tooltip?: string;
+  /** Sets the alignment of the tooltip */
+  position?: string;
   isDisabled?: boolean;
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
@@ -154,27 +157,33 @@ const Button = (props: ButtonProps) => {
   };
 
   return (
-    <button
-      className={classNames.join(' ')}
-      type={props.isSubmit ? 'submit' : 'button'}
-      aria-disabled={props.isDisabled}
-      onClick={handleClick}
-      onKeyUp={onKeyUp}
-      {...additionalButtonAttributes}
+    <Tooltip
+      text={props.tooltip}
+      ariaLabel={props.tooltip}
+      className={props.position}
     >
-      {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
+      <button
+        className={classNames.join(' ')}
+        type={props.isSubmit ? 'submit' : 'button'}
+        aria-disabled={props.isDisabled}
+        onClick={handleClick}
+        onKeyUp={onKeyUp}
+        {...additionalButtonAttributes}
+      >
+        {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
 
-      {props.label && <span className='k-button__label'>{props.label}</span>}
+        {props.label && <span className='k-button__label'>{props.label}</span>}
 
-      {/* Ensures only one icon is being displayed.*/}
-      {!props.startIcon && props.endIcon && (
-        <Icon name={props.endIcon} size={iconSize} />
-      )}
+        {/* Ensures only one icon is being displayed.*/}
+        {!props.startIcon && props.endIcon && (
+          <Icon name={props.endIcon} size={iconSize} />
+        )}
 
-      {props.isPending && (
-        <Icon name='spinner' size={iconSize} classNames={['k-spin']} />
-      )}
-    </button>
+        {props.isPending && (
+          <Icon name='spinner' size={iconSize} classNames={['k-spin']} />
+        )}
+      </button>
+    </Tooltip>
   );
 };
 
