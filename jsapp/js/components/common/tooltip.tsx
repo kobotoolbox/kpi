@@ -2,23 +2,18 @@ import React from 'react';
 
 interface TooltipProps {
   text?: string;
-  position?: string;
+  ariaLabel?: string;
   className?: string;
 }
 
 const Tooltip: React.FC<TooltipProps> = ({
   text,
-  position,
+  ariaLabel,
   className,
   children,
-}) => {
-  const tooltipClass = `tooltip ${position || ''} ${className || ''}`;
-
-  return (
-    <div data-tip={text} className={tooltipClass}>
-      {children}
-    </div>
-  );
-};
-
+}) => (
+  <span data-tip={text} className={className} aria-label={ariaLabel}>
+    {children}
+  </span>
+);
 export default Tooltip;

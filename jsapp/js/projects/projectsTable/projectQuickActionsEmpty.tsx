@@ -15,6 +15,7 @@ export default function ProjectQuickActionsEmpty() {
       {/* Archive / Unarchive */}
       <Tooltip
         text={t('Archive/Unarchive') + ' – ' + NO_PROJECT_SELECTED}
+        ariaLabel={t('Archive/Unarchive') + ' – ' + NO_PROJECT_SELECTED}
         className='right-tooltip'
       >
         <Button
@@ -29,6 +30,7 @@ export default function ProjectQuickActionsEmpty() {
       {/* Share */}
       <Tooltip
         text={t('Share project') + ' – ' + NO_PROJECT_SELECTED}
+        ariaLabel={t('Share project') + ' – ' + NO_PROJECT_SELECTED}
         className='right-tooltip'
       >
         <Button
@@ -43,6 +45,7 @@ export default function ProjectQuickActionsEmpty() {
       {/* Delete */}
       <Tooltip
         text={t('Delete') + ' – ' + NO_PROJECT_SELECTED}
+        ariaLabel={t('Delete') + ' – ' + NO_PROJECT_SELECTED}
         className='right-tooltip'
       >
         <Button
