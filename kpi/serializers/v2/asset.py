@@ -587,21 +587,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         try:
             request = self.context['request']
-            user = request.user
-            if obj.owner_id == user.id:
-                return obj.deployment.submission_count
-
-            # `has_perm` benefits from internal calls which use
-            # `django_cache_request`. It won't hit DB multiple times
-            if obj.has_perm(user, PERM_VIEW_SUBMISSIONS):
-                return obj.deployment.submission_count
-
-            if obj.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
-                return obj.deployment.calculated_submission_count(user=user)
         except KeyError:
-            pass
+            return None
 
-        return 0
+        user = request.user
+        if obj.owner_id == user.id:
+            return obj.deployment.submission_count
+
+        # `has_perm` benefits from internal calls which use
+        # `django_cache_request`. It won't hit DB multiple times
+        if obj.has_perm(user, PERM_VIEW_SUBMISSIONS):
+            return obj.deployment.submission_count
+
+        return None
 
     def get_assignable_permissions(self, asset):
         return [
