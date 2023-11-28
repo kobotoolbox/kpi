@@ -40,7 +40,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
         size='s'
         startIcon='archived'
         tooltip={t('Archive/Unarchive')}
-        position='right-tooltip'
+        tooltipPosition='right'
       />
 
       {/* Share - Bulk action not supported yet */}
@@ -51,7 +51,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
         size='s'
         startIcon='user-share'
         tooltip={t('Share projects')}
-        position='right-tooltip'
+        tooltipPosition='right'
       />
 
       {/* Delete */}
@@ -63,7 +63,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}
         tooltip={tooltipForDelete}
-        position='right-tooltip'
+        tooltipPosition='right'
       />
 
       {isDeletePromptOpen && (

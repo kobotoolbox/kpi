@@ -1,7 +1,7 @@
 import React from 'react';
 import type {Story, Meta} from '@storybook/react';
 
-import type {TooltipProps} from './tooltip';
+import type TooltipProps from './tooltip';
 import Tooltip from './tooltip';
 
 export default {
@@ -25,13 +25,13 @@ Default.args = {
 export const Right = Template.bind({});
 Right.args = {
   text: 'Right Aligned Tooltip Text',
-  className: 'right-tooltip',
-  ariaLabel: 'Right Tooltip Text',
+  className: 'right',
+  ariaLabel: 'Right Aligned Tooltip Text',
 };
 
 export const Left = Template.bind({});
 Left.args = {
   text: 'Left Aligned Tooltip Text',
-  className: 'left-tooltip',
-  ariaLabel: 'Left Tooltip Text',
+  className: 'left',
+  ariaLabel: 'Left Aligned Tooltip Text',
 };

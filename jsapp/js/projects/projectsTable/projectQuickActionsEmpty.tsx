@@ -19,7 +19,7 @@ export default function ProjectQuickActionsEmpty() {
         size='s'
         startIcon='archived'
         tooltip={t('Archive/Unarchive') + ' – ' + NO_PROJECT_SELECTED}
-        position='right-tooltip'
+        tooltipPosition='right'
       />
 
       {/* Share */}
@@ -30,7 +30,7 @@ export default function ProjectQuickActionsEmpty() {
         size='s'
         startIcon='user-share'
         tooltip={t('Share project') + ' – ' + NO_PROJECT_SELECTED}
-        position='right-tooltip'
+        tooltipPosition='right'
       />
 
       {/* Delete */}
@@ -41,7 +41,7 @@ export default function ProjectQuickActionsEmpty() {
         size='s'
         startIcon='trash'
         tooltip={t('Delete') + ' – ' + NO_PROJECT_SELECTED}
-        position='right-tooltip'
+        tooltipPosition='right'
       />
     </div>
   );

@@ -63,7 +63,7 @@ export interface ButtonProps {
    */
   tooltip?: string;
   /** Sets the alignment of the tooltip */
-  position?: string;
+  tooltipPosition?: string;
   isDisabled?: boolean;
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
@@ -160,7 +160,7 @@ const Button = (props: ButtonProps) => {
     <Tooltip
       text={props.tooltip}
       ariaLabel={props.tooltip}
-      className={props.position}
+      className={props.tooltipPosition + '-tooltip'}
     >
       <button
         className={classNames.join(' ')}

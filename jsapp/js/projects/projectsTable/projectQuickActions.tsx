@@ -54,7 +54,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
             })
           }
           tooltip={t('Archive project')}
-          position='right-tooltip'
+          tooltipPosition='right'
         />
       )}
       {/* Un-archive a deployed project */}
@@ -75,7 +75,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
             })
           }
           tooltip={t('Unarchive project')}
-          position='right-tooltip'
+          tooltipPosition='right'
         />
       )}
       {/* Show tooltip, since drafts can't be archived/unarchived */}
@@ -87,7 +87,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
           size='s'
           startIcon='archived'
           tooltip={t('Draft project selected')}
-          position='right-tooltip'
+          tooltipPosition='right'
         />
       )}
 
@@ -100,7 +100,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
         startIcon='user-share'
         onClick={() => manageAssetSharing(props.asset.uid)}
         tooltip={t('Share project')}
-        position='right-tooltip'
+        tooltipPosition='right'
       />
 
       {/* Delete */}
@@ -122,7 +122,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
         tooltip={
           isChangingPossible ? t('Delete 1 project') : t('Delete project')
         }
-        position='right-tooltip'
+        tooltipPosition='right'
       />
     </div>
   );

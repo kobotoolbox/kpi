@@ -12,7 +12,11 @@ const Tooltip: React.FC<TooltipProps> = ({
   className,
   children,
 }) => (
-  <span data-tip={text} className={className} aria-label={ariaLabel}>
+  <span
+    data-tip={text}
+    className={className + '-tooltip'}
+    aria-label={ariaLabel}
+  >
     {children}
   </span>
 );
