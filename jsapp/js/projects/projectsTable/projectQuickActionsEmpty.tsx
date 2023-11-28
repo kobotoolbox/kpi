@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from 'js/components/common/button';
 import styles from './projectActions.module.scss';
+import Tooltip from 'jsapp/js/components/common/tooltip';
 
 const NO_PROJECT_SELECTED = t('No project selected');
 
@@ -12,8 +13,8 @@ export default function ProjectQuickActionsEmpty() {
   return (
     <div className={styles.root}>
       {/* Archive / Unarchive */}
-      <span
-        data-tip={t('Archive/Unarchive') + ' – ' + NO_PROJECT_SELECTED}
+      <Tooltip
+        text={t('Archive/Unarchive') + ' – ' + NO_PROJECT_SELECTED}
         className='right-tooltip'
       >
         <Button
@@ -23,11 +24,11 @@ export default function ProjectQuickActionsEmpty() {
           size='s'
           startIcon='archived'
         />
-      </span>
+      </Tooltip>
 
       {/* Share */}
-      <span
-        data-tip={t('Share project') + ' – ' + NO_PROJECT_SELECTED}
+      <Tooltip
+        text={t('Share project') + ' – ' + NO_PROJECT_SELECTED}
         className='right-tooltip'
       >
         <Button
@@ -37,11 +38,11 @@ export default function ProjectQuickActionsEmpty() {
           size='s'
           startIcon='user-share'
         />
-      </span>
+      </Tooltip>
 
       {/* Delete */}
-      <span
-        data-tip={t('Delete') + ' – ' + NO_PROJECT_SELECTED}
+      <Tooltip
+        text={t('Delete') + ' – ' + NO_PROJECT_SELECTED}
         className='right-tooltip'
       >
         <Button
@@ -51,7 +52,7 @@ export default function ProjectQuickActionsEmpty() {
           size='s'
           startIcon='trash'
         />
-      </span>
+      </Tooltip>
     </div>
   );
 }
