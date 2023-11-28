@@ -9,7 +9,6 @@ export default {
   component: Tooltip,
 } as Meta;
 
-// Correctly importing TooltipProps as a type
 const Template: Story<TooltipProps> = (args) => (
   <Tooltip {...args}>
     <button>Your Button</button>
