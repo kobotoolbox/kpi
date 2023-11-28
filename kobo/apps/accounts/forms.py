@@ -42,6 +42,11 @@ class LoginForm(BaseLoginForm):
 
 
 class KoboSignupMixin(forms.Form):
+    # NOTE: Fields that are not part of django's contrib.auth.User model
+    #       are saved to ExtraUserDetail, via django-allauth internals
+    # SEE:
+    #     - AccountAdapter (save_user) in kobo/apps/accounts/adapter.py
+    #     - https://docs.allauth.org/en/latest/account/advanced.html#creating-and-populating-user-instances
     name = forms.CharField(
         label=USER_METADATA_DEFAULT_LABELS['name'],
         required=False,

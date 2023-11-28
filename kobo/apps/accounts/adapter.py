@@ -71,6 +71,9 @@ class AccountAdapter(DefaultAccountAdapter):
         with transaction.atomic():
             user = super().save_user(request, user, form, commit)
             extra_data = {k: form.cleaned_data[k] for k in extra_fields}
+            if (extra_data.get('terms_of_service')):
+                user.extra_details.private_data['last_tos_accept_time'] = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+                del extra_data['terms_of_service']
             user.extra_details.data.update(extra_data)
             if commit:
                 user.extra_details.save()
