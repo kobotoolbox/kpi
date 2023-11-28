@@ -1,15 +1,16 @@
 import React from 'react';
-import type {Story, Meta} from '@storybook/react';
+import type {Meta, Story} from '@storybook/react';
 
-import type TooltipProps from './tooltip';
+import type {TooltipProps} from './tooltip';
 import Tooltip from './tooltip';
 
 export default {
-  title: 'Components/Tooltip',
+  title: 'Common/Tooltip',
   component: Tooltip,
 } as Meta;
 
-const Template: Story<typeof TooltipProps> = (args: typeof TooltipProps) => (
+// Correctly importing TooltipProps as a type
+const Template: Story<TooltipProps> = (args) => (
   <Tooltip {...args}>
     <button>Your Button</button>
   </Tooltip>

@@ -21,3 +21,4 @@ const Tooltip: React.FC<TooltipProps> = ({
   </span>
 );
 export default Tooltip;
+export type {TooltipProps};
