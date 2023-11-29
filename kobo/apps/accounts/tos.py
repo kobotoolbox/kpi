@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 class TOSView(APIView):
     def post(self, request, *args, **kwargs):
         # Save current time in private_data
+        # See also: AccountAdapter.save_user() in accounts/adapter.py, which
+        # does the same thing if the ToS checkbox is checked during signup
         user_details = request.user.extra_details
         user_details.private_data['last_tos_accept_time'] = now().strftime(
             '%Y-%m-%dT%H:%M:%SZ'
