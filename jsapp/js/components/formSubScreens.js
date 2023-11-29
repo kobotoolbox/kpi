@@ -17,6 +17,8 @@ import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
+import Button from './common/button';
+import TransferProjects from './transferProjects.component';
 
 const ConnectProjects = React.lazy(() =>
   import(
@@ -144,6 +146,8 @@ export class FormSubScreens extends React.Component {
     return (
       <bem.FormView m='form-settings-sharing'>
         <SharingForm assetUid={uid} />
+
+        <TransferProjects />
       </bem.FormView>
     );
   }

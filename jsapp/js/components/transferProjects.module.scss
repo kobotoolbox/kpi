@@ -1,0 +1,19 @@
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+.root {
+  background: colors.$kobo-white;  
+  padding: sizes.$x20;
+  margin: sizes.$x20;
+
+  display: flex;
+  justify-content: space-between;
+
+  .description {
+    flex: 4;
+  }
+
+  .button {
+    flex: 1;
+  }
+}
