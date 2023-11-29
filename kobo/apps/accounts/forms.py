@@ -99,14 +99,15 @@ class KoboSignupMixin(forms.Form):
     terms_of_service = forms.BooleanField(
         label=mark_safe(
             t('I agree with the ##terms_of_service## and ##privacy_policy##')
-            .replace(
-                "##terms_of_service##",
-                f'<a href="{constance.config.TERMS_OF_SERVICE_URL}" target="_blank">{t("Terms of Service")}</a>',
-            )
-            .replace(
-                "##privacy_policy##",
-                f'<a href="{constance.config.PRIVACY_POLICY_URL}" target="_blank">{t("Privacy Policy")}</a>',
-            )
+            # NOTE: maybe we need to do this templating in a template
+            # .replace(
+            #     "##terms_of_service##",
+            #     f'<a href="{constance.config.TERMS_OF_SERVICE_URL}" target="_blank">{t("Terms of Service")}</a>',
+            # )
+            # .replace(
+            #     "##privacy_policy##",
+            #     f'<a href="{constance.config.PRIVACY_POLICY_URL}" target="_blank">{t("Privacy Policy")}</a>',
+            # )
         ),
         required=True,
     )
@@ -226,7 +227,11 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         dummy_user = User()
         user_username(dummy_user, self.cleaned_data.get('username'))
         user_email(dummy_user, self.cleaned_data.get('email'))
-        setattr(dummy_user, 'organization', self.cleaned_data.get('organization', ''))
+        setattr(
+            dummy_user,
+            'organization',
+            self.cleaned_data.get('organization', ''),
+        )
         setattr(dummy_user, 'full_name', self.cleaned_data.get('name', ''))
 
         password = self.cleaned_data.get('password1')

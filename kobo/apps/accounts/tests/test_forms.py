@@ -1,6 +1,10 @@
+import statistics
+
+from django.urls import reverse
 from constance.test import override_config
-from django.test import TestCase, override_settings
+from django.test import TestCase, override_settings, Client
 from django.utils import translation
+from hub.models.sitewide_message import SitewideMessage
 from model_bakery import baker
 from pyquery import PyQuery
 
@@ -15,6 +19,10 @@ class AccountFormsTestCase(TestCase):
         cls.sociallogin = baker.make(
             "socialaccount.SocialAccount", user=cls.user
         )
+
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse('account_signup')
 
     @override_settings(UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE=True)
     def test_social_signup_form_not_email_disabled(self):
@@ -111,7 +119,9 @@ class AccountFormsTestCase(TestCase):
             with translation.override('fr'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
                 assert form.fields['organization'].required
-                assert form.fields['organization'].label == 'Organisation secrète'
+                assert (
+                    form.fields['organization'].label == 'Organisation secrète'
+                )
 
     def test_field_without_custom_label_can_be_optional(self):
         with override_config(
@@ -277,3 +287,17 @@ class AccountFormsTestCase(TestCase):
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert 'newsletter_subscription' in form.fields
+
+    def test_tos_checkbox(self):
+        # WIP
+        SitewideMessage.objects.create(
+            slug='terms_of_service',
+            body='tos agreement',
+        )
+
+        form = SocialSignupForm(sociallogin=self.sociallogin)
+        assert 'terms_of_service' in form.fields
+
+        response = self.client.post(self.url)
+        breakpoint()
+        assert response.status_code == 200
