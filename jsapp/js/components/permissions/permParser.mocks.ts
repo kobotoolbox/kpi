@@ -288,6 +288,10 @@ const assetWithPartial = {
           url: '/api/v2/permissions/view_submissions/',
           filters: [{_submitted_by: {$in: ['john', 'olivier']}}],
         },
+        {
+          url: '/api/v2/permissions/view_submissions/',
+          filters: [{Where_are_you_from: {$eq: 'Poland'}}],
+        },
       ],
     },
   ],

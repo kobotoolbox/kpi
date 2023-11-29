@@ -200,6 +200,9 @@ describe('permParser', () => {
         formView: true,
         submissionsViewPartialByUsers: true,
         submissionsViewPartialByUsersList: ['john', 'olivier'],
+        submissionsViewPartialByResponses: true,
+        submissionsViewPartialByResponsesQuestion: 'Where_are_you_from',
+        submissionsViewPartialByResponsesValue: 'Poland',
       });
     });
 
@@ -261,9 +264,12 @@ describe('permParser', () => {
         username: 'leszek',
         formView: true,
         formEdit: false,
-        submissionsView: true,
+        submissionsView: false,
         submissionsViewPartialByUsers: true,
         submissionsViewPartialByUsersList: ['john', 'olivier', 'eric'],
+        submissionsViewPartialByResponses: true,
+        submissionsViewPartialByResponsesQuestion: 'Where_are_you_from',
+        submissionsViewPartialByResponsesValue: 'Poland',
         submissionsAdd: false,
         submissionsEdit: false,
         submissionsValidate: false,
@@ -277,6 +283,10 @@ describe('permParser', () => {
             {
               url: '/api/v2/permissions/view_submissions/',
               filters: [{_submitted_by: {$in: ['john', 'olivier', 'eric']}}],
+            },
+            {
+              url: '/api/v2/permissions/view_submissions/',
+              filters: [{Where_are_you_from: {$eq: 'Poland'}}],
             },
           ],
         },
@@ -379,6 +389,10 @@ describe('permParser', () => {
             {
               url: '/api/v2/permissions/view_submissions/',
               filters: [{_submitted_by: {$in: ['john', 'olivier']}}],
+            },
+            {
+              url: '/api/v2/permissions/view_submissions/',
+              filters: [{Where_are_you_from: {$eq: 'Poland'}}],
             },
           ],
         },

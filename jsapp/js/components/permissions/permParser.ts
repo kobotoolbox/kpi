@@ -17,9 +17,10 @@ import type {
   PartialPermission,
 } from 'js/dataInterface';
 import {
-  getPartialByUsersListName,
-  getPartialByUsersCheckboxName,
   getCheckboxNameByPermission,
+  getPartialByUsersCheckboxName,
+  getPartialByUsersListName,
+  getPartialByResponsesCheckboxName,
   getPartialByResponsesQuestionName,
   getPartialByResponsesValueName,
 } from './utils';
@@ -272,31 +273,68 @@ export function buildFormData(
     }
     if (perm.permission === getPermUrl('partial_submissions')) {
       perm.partial_permissions?.forEach((partial) => {
+        // Step 1. For each partial permission we start off getting the nested
+        // definition, so we can get the codename from it
         const permDef = permConfig.getPermission(partial.url);
         if (!permDef) {
           return;
         }
+
+        // Step 2. Using the codename, we get the matching non-partial checkbox
+        // name - we will need it later
         const nonPartialCheckboxName = getCheckboxNameByPermission(
           permDef.codename
         );
         if (!nonPartialCheckboxName) {
           return;
         }
-        const partialCheckboxName = getPartialByUsersCheckboxName(
-          nonPartialCheckboxName
-        );
-        if (!partialCheckboxName) {
-          return;
-        }
 
-        formData[partialCheckboxName] = true;
+        // We assume here that we will always be handling a case with a single
+        // filter
+        const partialFilter = partial.filters[0];
 
-        partial.filters.forEach((filter) => {
-          if (Array.isArray(filter._submitted_by.$in)) {
-            const listName = getPartialByUsersListName(partialCheckboxName);
-            formData[listName] = filter._submitted_by.$in;
+        // Step 3. Detect what kind of partial permission this is
+        if ('_submitted_by' in partialFilter) {
+          const byUsersCheckboxName = getPartialByUsersCheckboxName(
+            nonPartialCheckboxName
+          );
+          if (byUsersCheckboxName) {
+            // Step A4. Enable "by users" checkbox
+            formData[byUsersCheckboxName] = true;
+
+            const byUsersListName = getPartialByUsersListName(
+              byUsersCheckboxName
+            );
+
+            if (Array.isArray(partialFilter._submitted_by.$in)) {
+              // Step A5. Set the list of usernames
+              formData[byUsersListName] = partialFilter._submitted_by.$in;
+            }
           }
-        });
+        } else {
+          const byResponsesCheckboxName = getPartialByResponsesCheckboxName(
+            nonPartialCheckboxName
+          );
+          if (byResponsesCheckboxName) {
+            // Step B4. Enable "by responses" checkbox
+            formData[byResponsesCheckboxName] = true;
+
+            const byResponsesQuestionName = getPartialByResponsesQuestionName(
+              byResponsesCheckboxName
+            );
+            const byResponsesValueName = getPartialByResponsesValueName(
+              byResponsesCheckboxName
+            );
+
+            // Step B5. Set question name
+            formData[byResponsesQuestionName] = Object.keys(partialFilter)[0];
+            const value = Object.values(partialFilter)[0].$eq;
+            if (typeof value === 'string') {
+              // Step B6. Set valie
+              formData[byResponsesValueName] = value;
+            }
+          }
+        }
       });
     }
     if (perm.permission === getPermUrl('add_submissions')) {

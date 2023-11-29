@@ -183,6 +183,7 @@ export default class UserAssetPermsEditor extends React.Component<
       this.props.permissions || [],
       this.props.username
     );
+
     this.state = this.applyValidityRules(Object.assign(this.state, formData));
 
     this.state = this.applySubmissionsAddRules(this.state);

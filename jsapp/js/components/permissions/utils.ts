@@ -21,6 +21,7 @@ import {
   CHECKBOX_PERM_PAIRS,
   CHECKBOX_LABELS,
   PARTIAL_BY_USERS_DEFAULT_LABEL,
+  PARTIAL_BY_RESPONSES_DEFAULT_LABEL,
 } from './permConstants';
 import type {UserPerm} from './permParser';
 
@@ -240,6 +241,27 @@ export function getPartialByUsersListName(
 }
 
 /**
+ * For given checkbox name, it returns its partial "by responses" counterpart -
+ * another checkbox name (if there is one).
+ */
+export function getPartialByResponsesCheckboxName(
+  checkboxName: CheckboxNameAll
+): CheckboxNamePartialByResponses | undefined {
+  switch (checkboxName) {
+    case 'submissionsView':
+      return 'submissionsViewPartialByResponses';
+    case 'submissionsEdit':
+      return 'submissionsEditPartialByResponses';
+    case 'submissionsValidate':
+      return 'submissionsValidatePartialByResponses';
+    case 'submissionsDelete':
+      return 'submissionsDeletePartialByResponses';
+    default:
+      return undefined;
+  }
+}
+
+/**
  * Matches given partial "by responses" checkbox name with the question property
  * name
  */
@@ -308,15 +330,38 @@ export function getCheckboxLabel(checkboxName: CheckboxNameAll) {
   return checkboxName;
 }
 
-/** Detects if partial permissions is of "by users" kind */
+/** Detect if permission is partial and of "by users" kind. */
 export function isPartialByUsers(perm: UserPerm) {
-  // TODO for now this only checks if this is partial permission, as there is
-  // only one type (more to come). In future this would need some smart way
-  // to recognize what Django filter is being used in the `partial_permissions`
-  // object.
-  return (
-    'partial_permissions' in perm && perm.partial_permissions !== undefined
-  );
+  if (
+    'partial_permissions' in perm &&
+    Array.isArray(perm.partial_permissions) &&
+    perm.partial_permissions[0]?.filters[0]
+  ) {
+    // We are looking for a filter with `$in` inside that points to an array of
+    // strings. This assumes that we currently have only two kinds of partial
+    // permissions and might require upgrading
+    const filtersValues = Object.values(perm.partial_permissions[0].filters[0]);
+    return filtersValues.some((filter) => '$in' in filter && Array.isArray(filter.$in));
+  }
+
+  return false;
+}
+
+/** Detect if permission is partial and of "by responses" kind. */
+export function isPartialByResponses(perm: UserPerm) {
+  if (
+    'partial_permissions' in perm &&
+    Array.isArray(perm.partial_permissions) &&
+    perm.partial_permissions[0]?.filters[0]
+  ) {
+    // We are looking for a filter with `$eq` inside that points to a string.
+    // This assumes that we currently have only two kinds of partial permissions
+    // and might require upgrading
+    const filtersValues = Object.values(perm.partial_permissions[0].filters[0]);
+    return filtersValues.some((filter) => '$eq' in filter && typeof filter.$eq === 'string');
+  }
+
+  return false;
 }
 
 /**
@@ -329,6 +374,8 @@ export function getPermLabel(perm: UserPerm) {
   // specific users" and "Edit submissions only from specific users" etc.)
   if (isPartialByUsers(perm)) {
     return PARTIAL_BY_USERS_DEFAULT_LABEL;
+  } else if (isPartialByResponses(perm)) {
+    return PARTIAL_BY_RESPONSES_DEFAULT_LABEL;
   }
 
   // Get permission definition
@@ -359,48 +406,65 @@ export function getFriendlyPermName(
 ) {
   const permLabel = getPermLabel(perm);
 
-  let permUsers: string[] = [];
+  if (isPartialByUsers(perm)) {
+    let permUsers: string[] = [];
 
-  if (perm.partial_permissions) {
-    perm.partial_permissions.forEach((partial) => {
-      partial.filters.forEach((filter) => {
-        if (filter._submitted_by) {
-          permUsers = permUsers.concat(filter._submitted_by.$in);
-        }
+    if (perm.partial_permissions) {
+      perm.partial_permissions.forEach((partial) => {
+        partial.filters.forEach((filter) => {
+          if (filter._submitted_by) {
+            permUsers = permUsers.concat(filter._submitted_by.$in);
+          }
+        });
       });
-    });
+    }
+
+    // Keep only unique values
+    permUsers = [...new Set(permUsers)];
+
+    // Hopefully this is friendly to translators of RTL languages
+    let permNameTemplate;
+    if (permUsers.length === 0) {
+      permNameTemplate = '##permission_label##';
+    } else if (permUsers.length <= maxParentheticalUsernames) {
+      permNameTemplate = t('##permission_label## (##username_list##)');
+    } else if (permUsers.length === maxParentheticalUsernames + 1) {
+      permNameTemplate = t(
+        '##permission_label## (##username_list## and 1 other)'
+      );
+    } else {
+      permNameTemplate = t(
+        '##permission_label## (##username_list## and ' +
+          '##hidden_username_count## others)'
+      );
+    }
+
+    return permNameTemplate
+      .replace('##permission_label##', permLabel)
+      .replace(
+        '##username_list##',
+        permUsers.slice(0, maxParentheticalUsernames).join(', ')
+      )
+      .replace(
+        '##hidden_username_count##',
+        String(permUsers.length - maxParentheticalUsernames)
+      );
   }
 
-  // Keep only unique values
-  permUsers = [...new Set(permUsers)];
+  if (isPartialByResponses(perm)) {
+    const firstFilter = perm.partial_permissions?.[0].filters[0];
+    if (firstFilter) {
+      const permQuestion = Object.keys(firstFilter)[0];
+      const permValue = Object.values(firstFilter)[0]?.$eq;
 
-  // Hopefully this is friendly to translators of RTL languages
-  let permNameTemplate;
-  if (permUsers.length === 0) {
-    permNameTemplate = '##permission_label##';
-  } else if (permUsers.length <= maxParentheticalUsernames) {
-    permNameTemplate = t('##permission_label## (##username_list##)');
-  } else if (permUsers.length === maxParentheticalUsernames + 1) {
-    permNameTemplate = t(
-      '##permission_label## (##username_list## and 1 other)'
-    );
-  } else {
-    permNameTemplate = t(
-      '##permission_label## (##username_list## and ' +
-        '##hidden_username_count## others)'
-    );
+      if (typeof permQuestion === 'string' && typeof permValue === 'string') {
+        return t('##permission_label## ("##question_name##" equals "##value##")')
+          .replace('##permission_label##', permLabel)
+          .replace('##question_name##', permQuestion)
+          .replace('##value##', permValue);
+      }
+    }
   }
 
-  const friendlyPermName = permNameTemplate
-    .replace('##permission_label##', permLabel)
-    .replace(
-      '##username_list##',
-      permUsers.slice(0, maxParentheticalUsernames).join(', ')
-    )
-    .replace(
-      '##hidden_username_count##',
-      String(permUsers.length - maxParentheticalUsernames)
-    );
-
-  return friendlyPermName;
+  return permLabel;
 }
