@@ -102,7 +102,8 @@ class Transfer(models.Model):
         if redeploy:
             self.asset.deployment.xform.user_id = new_owner.pk
             self.asset.deployment.xform.save(update_fields=['user_id'])
-            self.asset.deployment.redeploy()
+            backend_response = self.asset.deployment.backend_response
+            backend_response['owner'] = new_owner.username
 
         self.asset.save(
             update_fields=['owner', '_deployment_data'],

@@ -238,47 +238,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
-    def connect(self, identifier=None, active=False):
+    def connect(self, active=False):
         """
         `POST` initial survey content to KoBoCAT and create a new project.
         Store results in deployment data.
         CAUTION: Does not save deployment data to the database!
         """
-        # If no identifier was provided, construct one using
-        # `settings.KOBOCAT_URL` and the uid of the asset
-        if not identifier:
-            # Use the external URL here; the internal URL will be substituted
-            # in when appropriate
-            if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
-                raise ImproperlyConfigured(
-                    'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
-                    'configured before using KobocatDeploymentBackend'
-                )
-            kc_server = settings.KOBOCAT_URL
-            username = self.asset.owner.username
-            id_string = self.asset.uid
-            identifier = '{server}/{username}/forms/{id_string}'.format(
-                server=kc_server,
-                username=username,
-                id_string=id_string,
+        # Use the external URL here; the internal URL will be substituted
+        # in when appropriate
+        if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
+            raise ImproperlyConfigured(
+                'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
+                'configured before using KobocatDeploymentBackend'
             )
-        else:
-            # Parse the provided identifier, which is expected to follow the
-            # format http://kobocat_server/username/forms/id_string
-            kc_server, kc_path = self.__parse_identifier(identifier)
-            path_head, path_tail = posixpath.split(kc_path)
-            id_string = path_tail
-            path_head, path_tail = posixpath.split(path_head)
-            if path_tail != 'forms':
-                raise Exception('The identifier is not properly formatted.')
-            path_head, path_tail = posixpath.split(path_head)
-            if path_tail != self.asset.owner.username:
-                raise Exception(
-                    'The username in the identifier does not match the owner '
-                    'of this asset.'
-                )
-            if path_head != '/':
-                raise Exception('The identifier is not properly formatted.')
+        kc_server = settings.KOBOCAT_URL
+        id_string = self.asset.uid
 
         url = self.external_to_internal_url('{}/api/v1/forms'.format(kc_server))
         xlsx_io = self.asset.to_xlsx_io(
@@ -306,7 +280,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'POST', url, data=payload, files=files)
         self.store_data({
             'backend': 'kobocat',
-            'identifier': self.internal_to_external_url(identifier),
             'active': json_response['downloadable'],
             'backend_response': json_response,
             'version': self.asset.version_id,
@@ -956,21 +929,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
-    @staticmethod
-    def make_identifier(username, id_string):
-        """
-        Uses `settings.KOBOCAT_URL` to construct an identifier from a
-        username and id string, without the caller having to specify a server
-        or know the full format of KC identifiers
-        """
-        # No need to use the internal URL here; it will be substituted in when
-        # appropriate
-        return '{}/{}/forms/{}'.format(
-            settings.KOBOCAT_URL,
-            username,
-            id_string
-        )
-
     @property
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
@@ -999,22 +957,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'has_kpi_hook': self.asset.has_active_hooks
         }
         files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
-        try:
-            json_response = self._kobocat_request(
-                'PATCH', url, data=payload, files=files
-            )
-            self.store_data({
-                'active': json_response['downloadable'],
-                'backend_response': json_response,
-                'version': self.asset.version_id,
-            })
-        except KobocatDeploymentException as e:
-            if hasattr(e, 'response') and e.response.status_code == 404:
-                # Whoops, the KC project we thought we were going to overwrite
-                # is gone! Try a standard deployment instead
-                return self.connect(self.identifier, active)
-            raise
-
+        json_response = self._kobocat_request(
+            'PATCH', url, data=payload, files=files
+        )
+        self.store_data({
+            'active': json_response['downloadable'],
+            'backend_response': json_response,
+            'version': self.asset.version_id,
+        })
         self.set_asset_uid()
 
     def remove_from_kc_only_flag(self,
@@ -1610,16 +1560,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return session.send(kc_request.prepare())
 
     @staticmethod
-    def __parse_identifier(identifier: str) -> tuple:
-        """
-        Return a tuple of the KoBoCAT server and its path
-        """
-        parsed_identifier = urlparse(identifier)
-        server = '{}://{}'.format(
-            parsed_identifier.scheme, parsed_identifier.netloc)
-        return server, parsed_identifier.path
-
-    @staticmethod
     def __prepare_as_drf_response_signature(
         requests_response, expected_response_format='json'
     ):
@@ -1761,9 +1701,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Prepares request and data corresponding to the kind of media file
         (i.e. FileStorage or remote URL) to `POST` to KC through proxy.
         """
-        identifier = self.identifier
-        server, path_ = self.__parse_identifier(identifier)
-        metadata_url = self.external_to_internal_url(f'{server}/api/v1/metadata')
+        server = settings.KOBOCAT_INTERNAL_URL
+        metadata_url = f'{server}/api/v1/metadata'
 
         kwargs = {
             'data': {
@@ -1800,11 +1739,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Update metadata hash in KC
         """
-        identifier = self.identifier
-        server, path_ = self.__parse_identifier(identifier)
-        metadata_detail_url = self.external_to_internal_url(
-            f'{server}/api/v1/metadata/{kc_metadata_id}'
-        )
+        server = settings.KOBOCAT_INTERNAL_URL
+        metadata_detail_url = f'{server}/api/v1/metadata/{kc_metadata_id}'
 
         data = {'file_hash': file_.md5_hash}
         self._kobocat_request('PATCH',

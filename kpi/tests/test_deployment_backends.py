@@ -63,10 +63,6 @@ class MockDeployment(TestCase):
         self.asset.deploy(backend='mock', active=False)
         self.asset.save()
 
-    def test_deployment_creates_identifier(self):
-        _uid = self.asset.uid
-        self.assertEqual(self.asset.deployment.identifier, 'mock://%s' % _uid)
-
     def test_deployment_starts_out_inactive(self):
         self.assertEqual(self.asset.deployment.active, False)
 
