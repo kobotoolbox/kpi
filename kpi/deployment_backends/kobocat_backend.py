@@ -1001,10 +1001,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         try:
             json_response = self._kobocat_request(
-                'PATCH', url, data=payload, files=files)
-
-            print('JSON RESPONSE', json_response, flush=True)
-
+                'PATCH', url, data=payload, files=files
+            )
             self.store_data({
                 'active': json_response['downloadable'],
                 'backend_response': json_response,
@@ -1089,7 +1087,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return False
 
         url = self.external_to_internal_url(self.backend_response['url'])
-        print('URL set asset uid', url, flush=True)
         payload = {
             'kpi_asset_uid': self.asset.uid
         }
@@ -1324,13 +1321,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 .first()
             )
 
-            print('###############', flush=True)
-            print('XFORM', xform, flush=True)
-            print('XFORM username', xform.user.username, flush=True)
-            print('self.asset.owner.username', self.asset.owner.username, flush=True)
-            print('XFORM.id_string', xform.id_string, flush=True)
-            print('self.XFORM.id_string', self.xform_id_string, flush=True)
-
             if not (
                 xform
                 and xform.user.username == self.asset.owner.username
@@ -1369,10 +1359,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             ),
         )
         try:
-            print('ON YIELD', flush=True)
             yield
         finally:
-            print('FINALLY', flush=True)
             KobocatUserProfile.objects.filter(
                 user_id__in=user_ids
             ).update(
@@ -1413,9 +1401,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
             },
         )
-
-        print('results.matched_count', results.matched_count)
-        print('results.modified_count', results.modified_count)
 
         return (
             results.matched_count == 0 or
