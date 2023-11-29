@@ -1228,17 +1228,31 @@ export class DataTable extends React.Component {
    * @param {boolean} isChecked
    */
   bulkUpdateChange(sid, isChecked) {
-    const selectedRows = this.state.selectedRows;
-    if (isChecked) {
-      selectedRows[sid] = true;
-    } else {
-      delete selectedRows[sid];
-    }
+    const {selectedRows, lastChecked} = this.state;
 
-    this.setState({
-      selectedRows: selectedRows,
-      selectAll: false,
-    });
+    if (isChecked) {
+      const updatedSelectedRows = {...selectedRows, [sid]: true};
+
+      // Handles range selection of checkboxes if the shift key is pressed
+      if (window.event?.shiftKey && lastChecked) {
+        const [start, end] = [lastChecked, sid].map(Number);
+        for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
+          updatedSelectedRows[i] = true;
+        }
+      }
+      this.setState({
+        selectedRows: updatedSelectedRows,
+        lastChecked: isChecked ? sid : null,
+        selectAll: false,
+      });
+    } else {
+      const {[sid]: _, ...updatedSelectedRows} = selectedRows;
+      this.setState({
+        selectedRows: updatedSelectedRows,
+        lastChecked: null,
+        selectAll: false,
+      });
+    }
   }
 
   /**
