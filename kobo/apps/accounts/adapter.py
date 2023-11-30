@@ -77,7 +77,9 @@ class AccountAdapter(DefaultAccountAdapter):
                 # Save 'now' as the last ToS acceptance time in private data.
                 # See also: TOSView.post() in apps/accounts/tos.py, which
                 # lets the frontend accept ToS on behalf of existing users.
-                user.extra_details.private_data['last_tos_accept_time'] = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+                user.extra_details.private_data[
+                    'last_tos_accept_time'
+                ] = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
                 # We won't copy 'terms_of_service':True to extra_details
                 del extra_data['terms_of_service']
 

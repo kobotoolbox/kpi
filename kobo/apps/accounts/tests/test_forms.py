@@ -1,11 +1,12 @@
-from django.urls import reverse
-from django.contrib.auth import get_user_model
+import dateutil
+from allauth.account.models import EmailAddress
 from constance.test import override_config
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings, Client
+from django.urls import reverse
 from django.utils import translation
 from django.utils.timezone import now
 from hub.models.sitewide_message import SitewideMessage
-from allauth.account.models import EmailAddress
 from model_bakery import baker
 from pyquery import PyQuery
 from rest_framework import status
@@ -288,18 +289,28 @@ class AccountFormsTestCase(TestCase):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert 'newsletter_subscription' in form.fields
 
-    def test_tos_checkbox_valid_and_functional_field(self):
-        # Create SitewideMessage object and verify that the checkbox for ToS consent is present
+    def test_tos_checkbox_appears_when_needed(self):
+        assert not SitewideMessage.objects.filter(
+            slug='terms_of_service'
+        ).exists()
+        form = SocialSignupForm(sociallogin=self.sociallogin)
+        assert 'terms_of_service' not in form.fields
+
+        # Create SitewideMessage object and verify that the checkbox for ToS
+        # consent is present
         SitewideMessage.objects.create(
             slug='terms_of_service',
             body='tos agreement',
         )
         form = SocialSignupForm(sociallogin=self.sociallogin)
         assert 'terms_of_service' in form.fields
-        timeBeforeSignup = now().strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        # Create a user who has accepted ToS
-        username = 'user003'
+    def test_possible_to_register_when_no_tos(self):
+        assert not SitewideMessage.objects.filter(
+            slug='terms_of_service'
+        ).exists()
+
+        username = 'no_tos_for_me'
         email = username + '@example.com'
         data = {
             'name': username,
@@ -307,31 +318,47 @@ class AccountFormsTestCase(TestCase):
             'password1': username,
             'password2': username,
             'username': username,
-            'terms_of_service': True,
         }
-        request = self.client.post(self.url, data)
-        self.userTos = get_user_model().objects.get(email=email)
-        assert request.status_code == status.HTTP_302_FOUND
+        response = self.client.post(self.url, data)
+        assert response.status_code == status.HTTP_302_FOUND
+        # raise DoesNotExist if registration failed
+        get_user_model().objects.get(username=username)
 
-        # Set user's e-mail addresses as primary and verified and login user
-        email_address, _ = EmailAddress.objects.get_or_create(user=self.userTos)
-        email_address.primary = True
-        email_address.verified = True
-        email_address.save()
-        self.client.force_login(self.userTos)
-
-        # Check that the `/me` endpoint and database have the correct values
-        response = self.client.get(reverse('currentuser-detail'))
-        assert response.data['accepted_tos'] == True
-
-        currentTime = now().strftime('%Y-%m-%dT%H:%M:%SZ')
-        self.userTos.refresh_from_db()
-        assert (
-            self.userTos.extra_details.private_data['last_tos_accept_time']
-            is not None
+    def test_registration_when_tos_required(self):
+        SitewideMessage.objects.create(
+            slug='terms_of_service',
+            body='tos agreement',
         )
-        assert (
-            timeBeforeSignup
-            <= self.userTos.extra_details.private_data['last_tos_accept_time']
-            <= currentTime
-        )
+
+        # Make sure it's impossible to register without agreeing to the terms
+        # of service
+        username = 'tos_reluctant'
+        email = username + '@example.com'
+        data = {
+            'name': username,
+            'email': email,
+            'password1': username,
+            'password2': username,
+            'username': username,
+        }
+        response = self.client.post(self.url, data)
+        # Django returns a 200 even when there are field errors
+        assert response.status_code == status.HTTP_200_OK
+        assert not get_user_model().objects.filter(username=username).exists()
+
+        def now_without_microseconds():
+            return now().replace(microsecond=0)
+
+        data['terms_of_service'] = True
+        time_before_signup = now_without_microseconds()
+        response = self.client.post(self.url, data)
+        assert response.status_code == status.HTTP_302_FOUND
+        # raise DoesNotExist if registration failed
+        new_user = get_user_model().objects.get(username=username)
+
+        # Check if the time of TOS agreement was stored properly
+        accept_time_str = new_user.extra_details.private_data[
+            'last_tos_accept_time'
+        ]
+        accept_time = dateutil.parser.isoparse(accept_time_str)
+        assert time_before_signup <= accept_time <= now_without_microseconds()
