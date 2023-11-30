@@ -33,8 +33,8 @@ import type {
   ProjectViewAsset,
   SurveyRow,
   SurveyChoice,
-  AnalysisFormJsonField,
   PermissionResponse,
+  AnalysisFormJsonField,
 } from 'js/dataInterface';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import {QUAL_NOTE_TYPE} from 'js/components/processing/analysis/constants';

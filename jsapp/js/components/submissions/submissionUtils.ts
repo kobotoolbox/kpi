@@ -114,9 +114,7 @@ export class DisplayResponse {
  *
  * Note: we omit returning `qual_note` questions.
  */
-export function sortAnalysisFormJsonKeys(
-  additionalFields: AnalysisFormJsonField[]
-) {
+function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
   const sortedBySource: {[key: string]: string[]} = {};
 
   additionalFields.forEach((field: AnalysisFormJsonField) => {
@@ -291,8 +289,8 @@ export function getSubmissionDisplayData(
         // score and rank don't have list name on them and they need to use
         // the one of their parent
         if (row.type === SCORE_ROW_TYPE || row.type === RANK_LEVEL_TYPE) {
-          const parentGroupRow = survey.find(
-            (rowItem) => getRowName(rowItem) === parentGroup.name
+          const parentGroupRow = survey.find((rowItem) =>
+            getRowName(rowItem) === parentGroup.name
           );
           rowListName = getRowListName(parentGroupRow);
         }

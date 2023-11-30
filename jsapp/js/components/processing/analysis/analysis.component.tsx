@@ -17,7 +17,7 @@ import {
   getQuestionsFromSchema,
 } from './utils';
 import singleProcessingStore from '../singleProcessingStore';
-import {handleApiFail, fetchGetUrl} from 'js/api';
+import {fetchGetUrl, handleApiFail} from 'js/api';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
 import type {SubmissionProcessingDataResponse} from './constants';
