@@ -5,15 +5,35 @@
   background: colors.$kobo-white;  
   padding: sizes.$x20;
   margin: sizes.$x20;
+  border: 1px solid colors.$kobo-gray-96;
+  border-radius: sizes.$x5;
 
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+}
 
-  .description {
-    flex: 4;
-  }
+.description {
+  flex: 12;
+  margin-right: sizes.$x8;
+}
 
-  .button {
-    flex: 1;
+.copy {
+  width: 80%;
+  margin-top: sizes.$x8;
+}
+
+button {
+  flex: 1;
+}
+
+@media screen and (max-width: 768px) {
+  .root {
+    display: block;
+
+    .description {
+      margin-bottom: 12px;
+    }
   }
 }

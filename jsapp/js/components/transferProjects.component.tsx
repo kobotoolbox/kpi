@@ -3,8 +3,7 @@ import classNames from 'classnames';
 import Button from 'js/components/common/button';
 import styles from './transferProjects.module.scss';
 
-export default class TransferProjects extends React.Component {
-  render() {
+export default function TransferProjects() {
     return (
       <div className={styles.root}>
         <div className={styles.description}>
@@ -21,8 +20,7 @@ export default class TransferProjects extends React.Component {
           </div>
         </div>
 
-        <Button label={t('Transfer')} isFullWidth color='storm' type='frame' size='l' />
+        <Button label={t('Transfer')} isFullWidth onClick={() => console.log('yes')} color='storm' type='frame' size='l' />
       </div>
     );
-  }
 }
