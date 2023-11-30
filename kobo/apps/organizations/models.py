@@ -42,6 +42,7 @@ class Organization(AbstractOrganization):
                 ).values(
                     billing_cycle_anchor=F('djstripe_customers__subscriptions__billing_cycle_anchor'),
                     current_period_start=F('djstripe_customers__subscriptions__current_period_start'),
+                    current_period_end=F('djstripe_customers__subscriptions__current_period_end'),
                     recurring_interval=F('djstripe_customers__subscriptions__items__price__recurring__interval'),
                 ).first()
 

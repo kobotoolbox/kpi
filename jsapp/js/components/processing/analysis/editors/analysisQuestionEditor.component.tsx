@@ -16,7 +16,7 @@ import type {AdditionalFields, AnalysisQuestionInternal} from '../constants';
 import SelectXFieldsEditor from './selectXFieldsEditor.component';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import clonedeep from 'lodash.clonedeep';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 import type {FailResponse} from 'js/dataInterface';
 
 interface AnalysisQuestionEditorProps {

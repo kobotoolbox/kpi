@@ -14,7 +14,7 @@ import KoboPrompt from 'js/components/modals/koboPrompt';
 import type {AnalysisQuestionInternal} from '../constants';
 import singleProcessingStore from '../../singleProcessingStore';
 import type {FailResponse} from 'js/dataInterface';
-import {handleApiFail} from 'js/utils';
+import {handleApiFail} from 'js/api';
 
 interface ResponseFormHeaderProps {
   uuid: string;

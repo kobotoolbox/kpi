@@ -8,12 +8,12 @@ import type {
   SubmissionProcessingDataResponse,
 } from './constants';
 import {ANALYSIS_QUESTION_TYPES} from './constants';
-import {fetchPatch, fetchPostUrl} from 'js/api';
+import {fetchPatch, fetchPostUrl, handleApiFail} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
 import {getAssetAdvancedFeatures, getAssetProcessingUrl} from 'js/assetUtils';
 import clonedeep from 'lodash.clonedeep';
 import {NO_FEATURE_ERROR} from '../processingActions';
-import {handleApiFail, notify} from 'js/utils';
+import {notify} from 'js/utils';
 import type {
   AssetAdvancedFeatures,
   AssetResponse,
