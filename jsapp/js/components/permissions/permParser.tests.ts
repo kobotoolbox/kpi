@@ -64,6 +64,26 @@ describe('permParser', () => {
       chai.expect(parsed[2].user.name).to.equal('olivier');
       chai.expect(parsed[2].permissions.length).to.equal(1);
     });
+
+    it('should build proper form data for multiple partial permissions', () => {
+      const parsed = parseBackendData(
+        endpoints.assetWithMultiplePartial.results,
+        endpoints.assetWithMultiplePartial.results[0].user,
+      );
+
+      chai.expect(parsed).to.deep.equal({
+        formView: true,
+        submissionsAdd: true,
+        submissionsEditPartialByResponses: true,
+        submissionsEditPartialByResponsesQuestion: 'Where_are_you_from',
+        submissionsEditPartialByResponsesValue: 'Poland',
+        submissionsDeletePartialByUsers: true,
+        submissionsDeletePartialByUsersList: ['dave', 'krzysztof'],
+        submissionsValidatePartialByResponses: true,
+        submissionsValidatePartialByResponsesQuestion: 'What_is_your_fav_animal',
+        submissionsValidatePartialByResponsesValue: 'Racoon',
+      });
+    });
   });
 
   describe('sortParseBackendOutput', () => {

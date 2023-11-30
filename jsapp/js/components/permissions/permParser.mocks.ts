@@ -1,4 +1,8 @@
-import type {PermissionsConfigResponse} from 'js/dataInterface';
+import type {
+  PermissionsConfigResponse,
+  PaginatedResponse,
+  PermissionResponse,
+} from 'js/dataInterface';
 
 /**
  * Mock permissions endpoints responses for tests.
@@ -111,7 +115,7 @@ const permissions: PermissionsConfigResponse = {
 };
 
 // /api/v2/assets/<uid>/permission-assignments/
-const assetWithAnonymousUser = {
+const assetWithAnonymousUser: PaginatedResponse<PermissionResponse> = {
   count: 7,
   next: null,
   previous: null,
@@ -162,7 +166,7 @@ const assetWithAnonymousUser = {
 };
 
 // /api/v2/assets/<uid>/permission-assignments/
-const assetWithMultipleUsers = {
+const assetWithMultipleUsers: PaginatedResponse<PermissionResponse> = {
   count: 9,
   next: null,
   previous: null,
@@ -231,7 +235,7 @@ const assetWithMultipleUsers = {
 };
 
 // /api/v2/assets/<uid>/permission-assignments/
-const assetWithPartial = {
+const assetWithPartial: PaginatedResponse<PermissionResponse> = {
   count: 8,
   next: null,
   previous: null,
@@ -297,9 +301,69 @@ const assetWithPartial = {
   ],
 };
 
+// /api/v2/assets/<uid>/permission-assignments/
+const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
+  count: 3,
+  next: null,
+  previous: null,
+  results: [
+    {
+      url: '/api/v2/assets/abc123/permission-assignments/asd123/',
+      user: '/api/v2/users/gwyneth/',
+      permission: '/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: '/api/v2/assets/abc123/permission-assignments/vbn123/',
+      user: '/api/v2/users/gwyneth/',
+      permission: '/api/v2/permissions/partial_submissions/',
+      partial_permissions: [
+        {
+          url: '/api/v2/permissions/add_submissions/',
+          filters: [{Where_are_you_from: {$eq: 'Poland'}}],
+        },
+        {
+          url: '/api/v2/permissions/view_submissions/',
+          filters: [
+            {Where_are_you_from: {$eq: 'Poland'}},
+            {_submitted_by: {$in: ['dave', 'krzysztof']}},
+            {What_is_your_fav_animal: {$eq: 'Racoon'}},
+          ],
+        },
+        {
+          url: '/api/v2/permissions/change_submissions/',
+          filters: [{Where_are_you_from: {$eq: 'Poland'}}],
+        },
+        {
+          url: '/api/v2/permissions/delete_submissions/',
+          filters: [{_submitted_by: {$in: ['dave', 'krzysztof']}}],
+        },
+        {
+          url: '/api/v2/permissions/validate_submissions/',
+          filters: [{What_is_your_fav_animal: {$eq: 'Racoon'}}],
+        },
+      ],
+      label: {
+        default: 'Act on submissions only from specific users',
+        view_submissions: 'View submissions only from specific users',
+        change_submissions: 'Edit submissions only from specific users',
+        delete_submissions: 'Delete submissions only from specific users',
+        validate_submissions: 'Validate submissions only from specific users',
+      },
+    },
+    {
+      url: '/api/v2/assets/abc123/permission-assignments/zxc123/',
+      user: '/api/v2/users/gwyneth/',
+      permission: '/api/v2/permissions/view_asset/',
+      label: 'View form',
+    },
+  ],
+};
+
 export const endpoints = {
   permissions,
   assetWithAnonymousUser,
   assetWithMultipleUsers,
   assetWithPartial,
+  assetWithMultiplePartial,
 };

@@ -47,7 +47,7 @@ export default class UserPermissionRow extends React.Component<
     this.setState({isBeingDeleted: false});
   }
 
-  removePermissions() {
+  showRemovePermissionsPrompt() {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Remove permissions?'),
@@ -155,7 +155,7 @@ export default class UserPermissionRow extends React.Component<
                 )}
               </bem.Button>
 
-              <bem.Button m='icon' onClick={this.removePermissions.bind(this)}>
+              <bem.Button m='icon' onClick={this.showRemovePermissionsPrompt.bind(this)}>
                 <i className='k-icon k-icon-trash' />
               </bem.Button>
             </React.Fragment>

@@ -60,6 +60,7 @@ interface UserAssetPermsEditorProps {
   onSubmitEnd: (isSuccess: boolean) => void;
 }
 
+/** Note that this bares a lot of similarities with `PermsFormData` interface */
 interface UserAssetPermsEditorState {
   isSubmitPending: boolean;
   // We need both `isEditingUsername` and `isCheckingUsername` to block sending

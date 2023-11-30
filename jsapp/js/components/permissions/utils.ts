@@ -451,20 +451,7 @@ export function getFriendlyPermName(
       );
   }
 
-  if (isPartialByResponses(perm)) {
-    const firstFilter = perm.partial_permissions?.[0].filters[0];
-    if (firstFilter) {
-      const permQuestion = Object.keys(firstFilter)[0];
-      const permValue = Object.values(firstFilter)[0]?.$eq;
-
-      if (typeof permQuestion === 'string' && typeof permValue === 'string') {
-        return t('##permission_label## ("##question_name##" equals "##value##")')
-          .replace('##permission_label##', permLabel)
-          .replace('##question_name##', permQuestion)
-          .replace('##value##', permValue);
-      }
-    }
-  }
+  // NOTE: for partial "by responses" permission we go with generic label
 
   return permLabel;
 }

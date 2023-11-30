@@ -271,12 +271,20 @@ export interface PermissionBase {
   partial_permissions?: PartialPermission[];
 }
 
+interface PartialPermissionLabel {
+  default: string;
+  view_submissions: string;
+  change_submissions: string;
+  delete_submissions: string;
+  validate_submissions: string;
+}
+
 /** A single permission instance for a given user coming from API endpoint. */
 export interface PermissionResponse extends PermissionBase {
   url: string;
   user: string;
   permission: string;
-  label: string;
+  label: string | PartialPermissionLabel;
   partial_permissions?: PartialPermission[];
 }
 
