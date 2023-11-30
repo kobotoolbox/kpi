@@ -1,12 +1,13 @@
-import statistics
-
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 from constance.test import override_config
 from django.test import TestCase, override_settings, Client
 from django.utils import translation
 from hub.models.sitewide_message import SitewideMessage
+from allauth.account.models import EmailAddress
 from model_bakery import baker
 from pyquery import PyQuery
+from rest_framework import status
 
 from kobo.apps.accounts.forms import SignupForm, SocialSignupForm
 from kpi.utils.json import LazyJSONSerializable
@@ -288,16 +289,43 @@ class AccountFormsTestCase(TestCase):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert 'newsletter_subscription' in form.fields
 
-    def test_tos_checkbox(self):
-        # WIP
+    def test_tos_checkbox_valid_and_functional_field(self):
+        # Create SitewideMessage object and verify that the checkbox for ToS consent is present
         SitewideMessage.objects.create(
             slug='terms_of_service',
             body='tos agreement',
         )
-
         form = SocialSignupForm(sociallogin=self.sociallogin)
         assert 'terms_of_service' in form.fields
 
-        response = self.client.post(self.url)
-        breakpoint()
-        assert response.status_code == 200
+        # Create a user who has accepted ToS
+        username = 'user003'
+        email = username + '@example.com'
+        data = {
+            'name': username,
+            'email': email,
+            'password1': username,
+            'password2': username,
+            'username': username,
+            'terms_of_service': True,
+        }
+        request = self.client.post(self.url, data)
+        self.userTos = get_user_model().objects.get(email=email)
+        assert request.status_code == status.HTTP_302_FOUND
+
+        # Set user's e-mail addresses as primary and verified and login user
+        email_address, _ = EmailAddress.objects.get_or_create(user=self.userTos)
+        email_address.primary = True
+        email_address.verified = True
+        email_address.save()
+        self.client.force_login(self.userTos)
+
+        # Check that the `/me` endpoint and database have the correct values
+        response = self.client.get(reverse('currentuser-detail'))
+        assert response.data['accepted_tos'] == True
+
+        self.userTos.refresh_from_db()
+        assert (
+            self.userTos.extra_details.private_data['last_tos_accept_time']
+            is not None
+        )
