@@ -120,9 +120,7 @@ class AccountFormsTestCase(TestCase):
             with translation.override('fr'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
                 assert form.fields['organization'].required
-                assert (
-                    form.fields['organization'].label == 'Organisation secrète'
-                )
+                assert form.fields['organization'].label == 'Organisation secrète'
 
     def test_field_without_custom_label_can_be_optional(self):
         with override_config(
