@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from constance.test import override_config
 from django.test import TestCase, override_settings, Client
 from django.utils import translation
+from django.utils.timezone import now
 from hub.models.sitewide_message import SitewideMessage
 from allauth.account.models import EmailAddress
 from model_bakery import baker
@@ -295,6 +296,7 @@ class AccountFormsTestCase(TestCase):
         )
         form = SocialSignupForm(sociallogin=self.sociallogin)
         assert 'terms_of_service' in form.fields
+        timeBeforeSignup = now().strftime('%Y-%m-%dT%H:%M:%SZ')
 
         # Create a user who has accepted ToS
         username = 'user003'
@@ -322,8 +324,14 @@ class AccountFormsTestCase(TestCase):
         response = self.client.get(reverse('currentuser-detail'))
         assert response.data['accepted_tos'] == True
 
+        currentTime = now().strftime('%Y-%m-%dT%H:%M:%SZ')
         self.userTos.refresh_from_db()
         assert (
             self.userTos.extra_details.private_data['last_tos_accept_time']
             is not None
+        )
+        assert (
+            timeBeforeSignup
+            <= self.userTos.extra_details.private_data['last_tos_accept_time']
+            <= currentTime
         )
