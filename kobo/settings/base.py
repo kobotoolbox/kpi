@@ -1085,7 +1085,7 @@ if env.str('AWS_ACCESS_KEY_ID', False):
 
 
 ''' Storage configuration '''
-if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
+if 'KPI_DEFAULT_FILE_STORAGE' not in os.environ:
     # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
     DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
     if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
@@ -1112,7 +1112,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
 
 
-if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
+if 'KOBOCAT_DEFAULT_FILE_STORAGE' not in os.environ:
     # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
     KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
     if 'KOBOCAT_AWS_STORAGE_BUCKET_NAME' in os.environ:

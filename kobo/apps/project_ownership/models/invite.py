@@ -1,19 +1,11 @@
 from __future__ import annotations
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
-
-
-class InviteStatus(models.TextChoices):
-
-    COMPLETE = 'complete', 'COMPLETE'
-    DECLINED = 'declined', 'DECLINED'
-    FAILED = 'failed', 'FAILED'
-    IN_PROGRESS = 'in_progress', 'IN PROGRESS'
-    PENDING = 'pending', 'PENDING'
+from .choices import InviteStatus, TransferStatus
 
 
 class Invite(models.Model):
@@ -56,3 +48,28 @@ class Invite(models.Model):
             self.date_modified = timezone.now()
 
         super().save(*args, **kwargs)
+
+    def update_status(self):
+        with transaction.atomic():
+            invite = self.__class__.objects.select_for_update().get(
+                pk=self.pk
+            )
+            previous_status = invite.status
+            is_complete = True
+
+            for transfer in self.transfers.all():
+                if transfer.status == TransferStatus.FAILED.value:
+                    invite.status = InviteStatus.FAILED.value
+                    is_complete = False
+                    break
+                elif transfer.status != TransferStatus.SUCCESS.value:
+                    is_complete = False
+
+            if is_complete:
+                invite.status = InviteStatus.COMPLETE.value
+
+            if previous_status != invite.status:
+                invite.save(update_fields=['status', 'date_modified'])
+
+        if previous_status != invite.status:
+            self.refresh_from_db()

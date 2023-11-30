@@ -5,13 +5,11 @@ from contextlib import contextmanager
 import copy
 import io
 import json
-import posixpath
 import re
 import uuid
 from collections import defaultdict
 from datetime import date, datetime
 from typing import Generator, Optional, Union
-from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 try:
     from zoneinfo import ZoneInfo

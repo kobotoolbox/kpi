@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Optional
 
 from django.conf import settings
@@ -24,6 +23,7 @@ from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
     BadContentTypeException,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
 from .storage import (
@@ -575,8 +575,9 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
         related_name='attachments',
         on_delete=models.CASCADE,
     )
-    media_file = models.FileField(storage=get_kobocat_storage(), max_length=380,
-                                  db_index=True)
+    media_file = ExtendedFileField(
+        storage=get_kobocat_storage(), max_length=380, db_index=True
+    )
     media_file_basename = models.CharField(
         max_length=260, null=True, blank=True, db_index=True)
     # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider

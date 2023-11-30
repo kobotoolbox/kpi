@@ -1,23 +1,25 @@
 from __future__ import annotations
 
+import os
+
 from django.db import models, transaction
 from django.utils import timezone
 
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
-from kpi.exceptions import DeploymentNotFound
 from kpi.fields import KpiUidField
+from kpi.utils.django_orm_helper import ReplaceValues
+from kpi.utils.log import logging
+from .choices import TransferAsyncTask, TransferStatus
 from .invite import Invite
-from ..exceptions import MongoUserFormIdRewriteException
+from ..tasks import async_task
 
 
-class TransferStatus(models.TextChoices):
-
-    CANCELLED = 'cancelled', 'CANCELLED'
-    FAILED = 'failed', 'FAILED'
-    IN_PROGRESS = 'in_progress', 'IN PROGRESS'
-    PENDING = 'pending', 'PENDING'
-    SUCCESS = 'success', 'SUCCESS'
+def default_errors_dict():
+    _default_dict = {'global': ''}
+    for choice in TransferAsyncTask.choices:
+        _default_dict[choice.value] = ''
+    return _default_dict
 
 
 class Transfer(models.Model):
@@ -39,71 +41,140 @@ class Transfer(models.Model):
     )
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
+    errors = models.JSONField(default=default_errors_dict)
+    async_task_statuses = models.JSONField(default=TransferAsyncTask.default_statuses_dict)
 
     class Meta:
         verbose_name = 'project ownership transfer'
 
     def __str__(self) -> str:
-        return f'{self.asset}'
+        return (
+            f'{self.asset}: '
+            f'{self.invite.source_user.username} -> '
+            f'{self.invite.destination_user.username}'
+        )
 
     def save(self, *args, **kwargs):
 
         update_fields = kwargs.get('update_fields', [])
+        update_invite_status = False
 
         if not update_fields or 'date_modified' in update_fields:
             self.date_modified = timezone.now()
 
+        if not update_fields or 'async_task_statuses' in update_fields:
+            update_invite_status = True
+            self._update_status()
+
         super().save(*args, **kwargs)
+
+        if (
+            not update_fields
+            or 'status' in update_fields
+            or update_invite_status
+        ):
+            self.invite.update_status()
 
     def process(self):
         if self.status != TransferStatus.PENDING:
             return
 
-        self.status = TransferStatus.IN_PROGRESS
-        self.save(update_fields=['status', 'date_modified'])
+        with transaction.atomic():
+            transfer = self.__class__.objects.select_for_update().get(
+                pk=self.pk
+            )
+            transfer.status = TransferStatus.IN_PROGRESS.value
+            transfer.save(
+                update_fields=['status', 'date_modified']
+            )
+
+            self.refresh_from_db()
+
+        success = False
         new_owner = self.invite.destination_user
 
         try:
-            if not self.asset.deployment.transfer_submissions_ownership(
-                new_owner.username
-            ):
-                raise MongoUserFormIdRewriteException
-        except DeploymentNotFound:
-            pass
-
-        with transaction.atomic():
             if not self.asset.has_deployment:
-                self._reassign_project_permissions(redeploy=False)
+                with transaction.atomic():
+                    self._reassign_project_permissions(update_deployment=False)
             else:
-                with kc_transaction_atomic():
-                    with self.asset.deployment.suspend_submissions(
-                        [self.asset.owner_id, new_owner.pk]
-                    ):
-                        # Update counters
-                        self.asset.deployment.transfer_counters_ownership(new_owner)
-                        self._reassign_project_permissions(redeploy=True)
+                with transaction.atomic():
+                    with kc_transaction_atomic():
+                        with self.asset.deployment.suspend_submissions(
+                            [self.asset.owner_id, new_owner.pk]
+                        ):
+                            # Update counters
+                            self.asset.deployment.transfer_counters_ownership(
+                                new_owner
+                            )
+                            self._reassign_project_permissions(
+                                update_deployment=True
+                            )
 
-                        # move XLS form
-                        # change EE form
+                # Run background tasks.
+                # 1) Rewrite `_userform_id` in MongoDB
+                async_task.delay(
+                    transfer.pk, TransferAsyncTask.SUBMISSIONS.value
+                )
 
-                        # Create In-App Message
-                        # - `kobocat.main_userprofile`
+                # 2) Move media files to new owner's home directory
+                async_task.delay(
+                    transfer.pk, TransferAsyncTask.MEDIA_FILES.value
+                )
 
-                        self.status = TransferStatus.SUCCESS
-                        self.save(update_fields=['status', 'date_modified'])
+                # 2) Move attachments to new owner's home directory
+                async_task.delay(
+                    transfer.pk, TransferAsyncTask.ATTACHMENTS.value
+                )
 
-    def _reassign_project_permissions(self, redeploy: bool = False):
+            success = True
+        finally:
+            if not success:
+                # We do not know which error has been raised, so no logs are
+                # saved. Sentry is our friend to find out what's going on.
+                Transfer.objects.filter(pk=self.pk).update(
+                    date_modified=timezone.now(),
+                    status=TransferStatus.FAILED.value,
+                    errors=ReplaceValues(
+                        'errors',
+                        updates={
+                            'global': 'Error occurred while processing transfer'
+                        }
+                    )
+                )
+                self.refresh_from_db()
+
+    def _reassign_project_permissions(self, update_deployment: bool = False):
         new_owner = self.invite.destination_user
 
         # Delete existing new owner's permissions on project if any
         self.asset.permissions.filter(user=new_owner).delete()
+        old_owner = self.asset.owner
         self.asset.owner = new_owner
 
-        if redeploy:
-            self.asset.deployment.xform.user_id = new_owner.pk
-            self.asset.deployment.xform.save(update_fields=['user_id'])
+        if update_deployment:
+            xform = self.asset.deployment.xform
+            xform.user_id = new_owner.pk
+            try:
+                target_folder = os.path.dirname(
+                    xform.xls.name.replace(
+                        old_owner.username, new_owner.username
+                    )
+                )
+            except FileNotFoundError:
+                logging.error(
+                    'File not found: Could not move Kobocat XLSForm',
+                    exc_info=True,
+                )
+            else:
+                xform.xls.move(target_folder)
+
+            xform.save(update_fields=['user_id', 'xls'])
             backend_response = self.asset.deployment.backend_response
             backend_response['owner'] = new_owner.username
+            self.asset.deployment.store_data(
+               {'backend_response': backend_response}
+            )
 
         self.asset.save(
             update_fields=['owner', '_deployment_data'],
