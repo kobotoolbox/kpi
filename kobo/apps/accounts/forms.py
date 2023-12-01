@@ -101,7 +101,6 @@ class KoboSignupMixin(forms.Form):
         if 'email' in self.fields:
             self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
 
-
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
         # Strip "\r" for legacy data created prior to django-constance 2.7.
@@ -180,10 +179,18 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'sector',
         'newsletter_subscription',
     ]
+    skip_logic_flag = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # If organization_type is enabled, initalize other organization fields
+        # If all organization fields are required, implement skip logic
+        if (
+            self.fields['organization_type'].required
+            and self.fields['organization'].required
+            and self.fields['organization_website'].required
+        ):
+            self.skip_logic_flag = True
+        # If `organization_type` is enabled, initalize other organization fields
         # to be optional in the case that `organization_type` is none
         if (
             'organization_type' in self.fields
@@ -224,13 +231,12 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
                 )
 
         organization_type = self.cleaned_data.get('organization_type')
-        # if organization_type is enabled and the user is affiliated with an organization,
-        # require both organization and organization_website
+        # if `organization_type` is enabled and the user is affiliated with an organization
+        # and skip logic is enabled, require both `organization` and `organization_website`
         if (
             self.fields['organization_type'].required
-            and self.fields['organization'].required
-            and self.fields['organization_website'].required
             and organization_type != 'none'
+            and self.skip_logic_flag
         ):
             self.fields['organization_website'].required = True
             self.fields['organization'].required = True
