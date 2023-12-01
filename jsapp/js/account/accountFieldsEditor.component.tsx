@@ -11,6 +11,14 @@ import type {
   AccountFieldsErrors,
 } from './account.constants';
 
+// See: kobo/apps/accounts/forms.py (KoboSignupMixin)
+const ORGANIZATION_TYPE_SELECT_OPTIONS = [
+  {value: 'non-profit', label: t('Non-profit organization')},
+  {value: 'government', label: t('Government institution')},
+  {value: 'educational', label: t('Educational organization')},
+  {value: 'commercial', label: t('A commercial/for-profit')},
+  {value: 'none', label: t('I am not associated with any organization')},
+];
 const GENDER_SELECT_OPTIONS = [
   {value: 'male', label: t('Male')},
   {value: 'female', label: t('Female')},
@@ -176,6 +184,26 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       </div>
 
       <div className={styles.row}>
+        {/* Organization Type */}
+        {isFieldToBeDisplayed('organization_type') && (
+          <KoboSelect
+            label={getLabel('organization_type')}
+            name='organization_type'
+            type='outline'
+            size='l'
+            isClearable
+            // isSearchable
+            selectedOption={props.values.organization_type}
+            onChange={(value: string | null) =>
+              onAnyFieldChange('organization_type', value || '')
+            }
+            options={ORGANIZATION_TYPE_SELECT_OPTIONS}
+            error={props.errors?.organization_type}
+          />
+        )}
+      </div>
+
+      <div className={styles.row}>
         {/* Organization */}
         {isFieldToBeDisplayed('organization') && (
           <div className={styles.field}>
@@ -290,6 +318,21 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               </div>
             )}
           </>
+        )}
+      </div>
+
+      <div className={styles.row}>
+        {/* Newsletter subscription opt-in */}
+        {isFieldToBeDisplayed('newsletter_subscription') && (
+          <div className={styles.field}>
+            <Checkbox
+              checked={props.values.newsletter_subscription}
+              onChange={(isChecked: boolean) =>
+                onAnyFieldChange('newsletter_subscription', isChecked)
+              }
+              label={getLabel('newsletter_subscription')}
+            />
+          </div>
         )}
       </div>
     </div>

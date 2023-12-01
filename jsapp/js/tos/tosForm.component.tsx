@@ -105,6 +105,7 @@ export default function TOSForm() {
         name: data.extra_details.name,
         organization: data.extra_details.organization,
         organization_website: data.extra_details.organization_website,
+        organization_type: data.extra_details.organization_type,
         sector: data.extra_details.sector,
         gender: data.extra_details.gender,
         bio: data.extra_details.bio,
@@ -114,6 +115,7 @@ export default function TOSForm() {
         twitter: data.extra_details.twitter,
         linkedin: data.extra_details.linkedin,
         instagram: data.extra_details.instagram,
+        newsletter_subscription: data.extra_details.newsletter_subscription,
       });
     }
   }, [sessionStore.isAuthStateKnown]);

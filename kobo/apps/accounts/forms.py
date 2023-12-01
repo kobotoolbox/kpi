@@ -222,6 +222,7 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'organization_type',
         'organization',
         'organization_website',
+        'gender',
         'newsletter_subscription',
     ]
 
