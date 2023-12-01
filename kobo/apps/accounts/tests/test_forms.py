@@ -349,6 +349,7 @@ class AccountFormsTestCase(TestCase):
         def now_without_microseconds():
             return now().replace(microsecond=0)
 
+        # Attempt registration again, this time agreeing to the terms
         data['terms_of_service'] = True
         time_before_signup = now_without_microseconds()
         response = self.client.post(self.url, data)
