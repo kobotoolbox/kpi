@@ -167,7 +167,9 @@ export default function SubmissionsCountGraph(
         let path = ASSET_COUNTS_ENDPOINT.replace('<uid>', props.assetUid);
         const days = StatsPeriods[currentPeriod];
         path += `?days=${days}`;
-        const response = await fetchGet<AssetCountsResponse>(path);
+        const response = await fetchGet<AssetCountsResponse>(path, {
+          notifyAboutError: false,
+        });
         setCounts(response);
       } catch (error) {
         const errorObj = error as FailResponse;

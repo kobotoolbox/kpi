@@ -20,6 +20,10 @@ $k-select-menu-padding: sizes.$x6;
 .k-select .kobo-dropdown__trigger:focus-visible .k-select__trigger {
   @include mixins.default-ui-focus;
 }
+// And we need to remove the default styles from the de facto trigger
+.k-select .kobo-dropdown__trigger:focus-visible {
+  outline: none;
+}
 
 .k-select__trigger {
   @include mixins.centerRowFlex;
@@ -278,6 +282,7 @@ $k-select-menu-padding: sizes.$x6;
 .k-select.k-select--type-outline {
   .k-select__trigger {
     border-color: colors.$kobo-gray-92;
+    background-color: colors.$kobo-white;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,

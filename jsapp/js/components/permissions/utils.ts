@@ -1,7 +1,7 @@
 import sessionStore from 'js/stores/session';
-import permConfig from 'js/components/permissions/permConfig';
+import permConfig from './permConfig';
 import {buildUserUrl, ANON_USERNAME_URL} from 'js/users/utils';
-import type {PermissionCodename} from 'js/constants';
+import type {PermissionCodename} from './permConstants';
 import type {
   AssetResponse,
   PermissionResponse,

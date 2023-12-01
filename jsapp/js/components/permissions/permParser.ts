@@ -1,5 +1,5 @@
 import permConfig from './permConfig';
-import type {PermissionCodename} from 'js/constants';
+import type {PermissionCodename} from './permConstants';
 import {
   PARTIAL_PERM_PAIRS,
   CHECKBOX_NAMES,
