@@ -4,7 +4,7 @@ from django.utils import translation
 from model_bakery import baker
 from pyquery import PyQuery
 
-from kobo.apps.accounts.forms import SocialSignupForm
+from kobo.apps.accounts.forms import SignupForm, SocialSignupForm
 from kpi.utils.json import LazyJSONSerializable
 
 
@@ -201,9 +201,10 @@ class AccountFormsTestCase(TestCase):
 
             data = basic_data.copy()
             data['organization_type'] = 'government'
-            form = SignupForm(basic_data)
-            # No other organization fields should be required
-            assert form.is_valid()
+            form = SignupForm(data)
+            # Since the `organization_type` is not `none`, the other fields will
+            # become required
+            assert not form.is_valid()
 
         with override_config(
             USER_METADATA_FIELDS=LazyJSONSerializable(
@@ -220,9 +221,10 @@ class AccountFormsTestCase(TestCase):
 
             data = basic_data.copy()
             data['organization_type'] = 'government'
-            form = SignupForm(basic_data)
-            # No other organization fields should be required
-            assert form.is_valid()
+            form = SignupForm(data)
+            # Since the `organization_type` is not `none`, the other fields will
+            # become required
+            assert not form.is_valid()
 
         with override_config(
             USER_METADATA_FIELDS=LazyJSONSerializable(
@@ -240,14 +242,14 @@ class AccountFormsTestCase(TestCase):
             data['organization_type'] = 'government'
             data['organization'] = 'ministry of love'
             data['organization_website'] = 'https://minilove.test'
-            form = SignupForm(basic_data)
+            form = SignupForm(data)
             assert form.is_valid()
 
             data = basic_data.copy()
             data['organization_type'] = 'none'
             # The special string 'none' should cause the required-ness of other
             # organization fields to be ignored
-            form = SignupForm(basic_data)
+            form = SignupForm(data)
             assert form.is_valid()
 
     def test_organization_type_valid_field(self):
