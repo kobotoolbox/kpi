@@ -202,9 +202,8 @@ class AccountFormsTestCase(TestCase):
             data = basic_data.copy()
             data['organization_type'] = 'government'
             form = SignupForm(data)
-            # Since the `organization_type` is not `none`, the other fields will
-            # become required
-            assert not form.is_valid()
+            # No other organization fields should be required
+            assert form.is_valid()
 
         with override_config(
             USER_METADATA_FIELDS=LazyJSONSerializable(
@@ -222,9 +221,8 @@ class AccountFormsTestCase(TestCase):
             data = basic_data.copy()
             data['organization_type'] = 'government'
             form = SignupForm(data)
-            # Since the `organization_type` is not `none`, the other fields will
-            # become required
-            assert not form.is_valid()
+            # No other organization fields should be required
+            assert form.is_valid()
 
         with override_config(
             USER_METADATA_FIELDS=LazyJSONSerializable(

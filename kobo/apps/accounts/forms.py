@@ -226,7 +226,12 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         organization_type = self.cleaned_data.get('organization_type')
         # if organization_type is enabled and the user is affiliated with an organization,
         # require both organization and organization_website
-        if organization_type and organization_type != 'none':
+        if (
+            self.fields['organization_type'].required
+            and self.fields['organization'].required
+            and self.fields['organization_website'].required
+            and organization_type != 'none'
+        ):
             self.fields['organization_website'].required = True
             self.fields['organization'].required = True
 
