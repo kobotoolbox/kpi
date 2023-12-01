@@ -191,7 +191,7 @@
 }
 
 .registration select,
-.registration input {
+.registration input:not([type=radio]) {
    // unify heights and margin
   height: 38px;
   margin-top: 2px;
