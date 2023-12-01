@@ -101,6 +101,7 @@ class KoboSignupMixin(forms.Form):
         if 'email' in self.fields:
             self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
 
+
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
         # Strip "\r" for legacy data created prior to django-constance 2.7.
