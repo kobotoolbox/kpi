@@ -13,7 +13,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as t
+from django.utils.translation import gettext, gettext_lazy as t
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
@@ -97,24 +97,35 @@ class KoboSignupMixin(forms.Form):
         required=False,
     )
     terms_of_service = forms.BooleanField(
-        label=mark_safe(
-            t('I agree with the ##terms_of_service## and ##privacy_policy##')
-            # NOTE: maybe we need to do this templating in a template
-            # .replace(
-            #     "##terms_of_service##",
-            #     f'<a href="{constance.config.TERMS_OF_SERVICE_URL}" target="_blank">{t("Terms of Service")}</a>',
-            # )
-            # .replace(
-            #     "##privacy_policy##",
-            #     f'<a href="{constance.config.PRIVACY_POLICY_URL}" target="_blank">{t("Privacy Policy")}</a>',
-            # )
-        ),
+        # Label is dynamic; see constructor
         required=True,
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
+
+        # Set dynamic label for terms of service checkbox
+        if constance.config.TERMS_OF_SERVICE_URL:
+            terms_of_service_link = (
+                f'<a href="{constance.config.TERMS_OF_SERVICE_URL}"'
+                f' target="_blank">{t("Terms of Service")}</a>'
+            )
+        else:
+            terms_of_service_link = gettext('Terms of Service')
+        if constance.config.PRIVACY_POLICY_URL:
+            privacy_policy_link = (
+                f'<a href="{constance.config.PRIVACY_POLICY_URL}"'
+                f' target="_blank">{t("Privacy Policy")}</a>'
+            )
+        else:
+            privacy_policy_link = gettext('Privacy Policy')
+        self.fields['terms_of_service'].label = mark_safe(
+            t('I agree with the ##terms_of_service## and ##privacy_policy##')
+            .replace("##terms_of_service##", terms_of_service_link)
+            .replace("##privacy_policy##", privacy_policy_link)
+        )
+
         # Remove upstream placeholders
         for field_name in ['username', 'email', 'password1', 'password2']:
             if field_name in self.fields:
