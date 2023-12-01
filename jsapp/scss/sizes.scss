@@ -4,6 +4,7 @@
  * nice palette and start merging similar ones. This will also help us find
  * how many of each of them we use.
  */
+@use 'sass:math';
 
 // absolute sizes
 $x1: 1px;
@@ -47,7 +48,7 @@ $x800: 800px;
 
 // takes a pixel dimension and returns it in rem
 @function pxToRem($size) {
-  $remSize: $size / 16px;
+  $remSize: math.div($size, 16px);
   @return #{$remSize}rem;
 }
 
