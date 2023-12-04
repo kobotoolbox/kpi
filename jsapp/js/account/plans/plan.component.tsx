@@ -128,6 +128,7 @@ export default function Plan() {
     products: [],
     currentSubscription: null,
   });
+  const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default']);
 
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
@@ -195,6 +196,7 @@ export default function Plan() {
     return false;
   }, [state.subscribedProduct]);
 
+  // if the user is currently subscribed to a plan, toggle the Monthly/Annual switch to match their plan
   useMemo(() => {
     if (state.subscribedProduct && state.subscribedProduct.length > 0) {
       const subscribedFilter =
@@ -264,8 +266,8 @@ export default function Plan() {
     };
   }, []);
 
+  // display a success message if we're returning from Stripe checkout
   useEffect(() => {
-    // display a success message if we're returning from Stripe checkout
     // only run *after* first render
     if (!didMount.current) {
       didMount.current = true;
@@ -301,15 +303,38 @@ export default function Plan() {
     }
   }, [state.subscribedProduct]);
 
-  // Filter prices based on plan interval and filter out recurring addons
+  // get any plan types passed in the query string and make them visible
+  // by default, only products without a `plan_type` metadata value will be shown
+  useEffect(() => {
+    const plansToShow = searchParams.get('type');
+    if (plansToShow) {
+      setVisiblePlanTypes(plansToShow.split(','));
+    } else {
+      setVisiblePlanTypes(['default']);
+    }
+  }, [searchParams]);
+
+  // should we show the 'Contact us' sidebar and storage add-ons?
+  const shouldShowExtras = useMemo(
+    () => visiblePlanTypes.includes('default') && visiblePlanTypes.length === 1,
+    [visiblePlanTypes]
+  );
+
+  // An array of all the prices that should be displayed in the UI
   const filterPrices = useMemo((): Price[] => {
     if (state.products !== null) {
       const filterAmount = state.products.map((product: Product): Price => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.recurring?.interval;
           return (
+            // only show monthly/annual plans based on toggle value
             interval === state.intervalFilter &&
-            product.metadata.product_type === 'plan'
+            // don't show recurring add-ons
+            product.metadata.product_type === 'plan' &&
+            // only show products that don't have a `plan_type` or those that match the `?type=` query param
+            (visiblePlanTypes.includes(product.metadata?.plan_type) ||
+              (!product.metadata?.plan_type &&
+                visiblePlanTypes.includes('default')))
           );
         });
 
@@ -573,9 +598,7 @@ export default function Plan() {
                                   name='check'
                                   size='m'
                                   color={
-                                    price.name === 'Professional'
-                                      ? 'teal'
-                                      : 'storm'
+                                    price.prices.unit_amount ? 'teal' : 'storm'
                                   }
                                 />
                               </div>
@@ -615,40 +638,44 @@ export default function Plan() {
                   </div>
                 </div>
               ))}
-
-              <div className={styles.enterprisePlanContainer}>
-                <div className={styles.enterprisePlan}>
-                  <h1 className={styles.enterpriseTitle}> {t('Want more?')}</h1>
-                  <div className={styles.priceTitle}>{t('Contact us')}</div>
-                  <p className={styles.enterpriseDetails}>
-                    {t(
-                      'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
-                    )}
-                    <a
-                      href='https://www.kobotoolbox.org/contact/'
-                      target='_blanks'
-                      className={styles.enterpriseLink}
-                    >
-                      {t('Enterprise Plan')}
-                    </a>
-                    .
-                  </p>
-                  <p className={styles.enterpriseDetails}>
-                    {t(
-                      'We also offer custom solutions and private servers for large organizations. '
-                    )}
-                    <br />
-                    <a
-                      href='https://www.kobotoolbox.org/contact/'
-                      target='_blanks'
-                      className={styles.enterpriseLink}
-                    >
-                      {t('Contact our team')}
-                    </a>
-                    {t(' for more information.')}
-                  </p>
+              {shouldShowExtras && (
+                <div className={styles.enterprisePlanContainer}>
+                  <div className={styles.enterprisePlan}>
+                    <h1 className={styles.enterpriseTitle}>
+                      {' '}
+                      {t('Want more?')}
+                    </h1>
+                    <div className={styles.priceTitle}>{t('Contact us')}</div>
+                    <p className={styles.enterpriseDetails}>
+                      {t(
+                        'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
+                      )}
+                      <a
+                        href='https://www.kobotoolbox.org/contact/'
+                        target='_blanks'
+                        className={styles.enterpriseLink}
+                      >
+                        {t('Enterprise Plan')}
+                      </a>
+                      .
+                    </p>
+                    <p className={styles.enterpriseDetails}>
+                      {t(
+                        'We also offer custom solutions and private servers for large organizations. '
+                      )}
+                      <br />
+                      <a
+                        href='https://www.kobotoolbox.org/contact/'
+                        target='_blanks'
+                        className={styles.enterpriseLink}
+                      >
+                        {t('Contact our team')}
+                      </a>
+                      {t(' for more information.')}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -673,13 +700,15 @@ export default function Plan() {
               />
             </div>
           )}
-          <AddOnList
-            isBusy={isBusy}
-            setIsBusy={setIsBusy}
-            products={state.products}
-            organization={state.organization}
-            onClickBuy={buySubscription}
-          />
+          {shouldShowExtras && (
+            <AddOnList
+              isBusy={isBusy}
+              setIsBusy={setIsBusy}
+              products={state.products}
+              organization={state.organization}
+              onClickBuy={buySubscription}
+            />
+          )}
           <ConfirmChangeModal
             onRequestClose={dismissConfirmModal}
             {...confirmModal}
