@@ -307,7 +307,7 @@ class CustomerPortalView(APIView):
             So if the customer has a subscription schedule, release it, keeping the subscription intact
             """
             schedule_id = customer['subscriptions__schedule__id']
-            if schedule_id:
+            if schedule_id and SubscriptionSchedule.objects.filter(id=schedule_id).exclude(status='released').exists():
                 stripe.SubscriptionSchedule.release(
                     schedule_id,
                     api_key=djstripe_settings.STRIPE_SECRET_KEY,
