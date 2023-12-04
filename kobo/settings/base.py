@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
+    'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
     'kobo.apps.django_allauth',
 )
 

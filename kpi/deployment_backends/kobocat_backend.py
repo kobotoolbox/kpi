@@ -1,5 +1,6 @@
-# coding: utf-8
 from __future__ import annotations
+
+from contextlib import contextmanager
 
 import copy
 import io
@@ -12,27 +13,27 @@ from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
-
-from django.db.models.functions import Coalesce
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import requests
+from django.db.models.functions import Coalesce
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from lxml import etree
 from django.core.files import File
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from kobo_service_account.utils import get_request_headers
+from lxml import etree
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -56,6 +57,7 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
+from kpi.utils.django_orm_helper import ReplaceValues
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
@@ -63,10 +65,12 @@ from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
+    KobocatDailyXFormSubmissionCounter,
+    KobocatMonthlyXFormSubmissionCounter,
+    KobocatUserProfile,
     KobocatXForm,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
-    ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -79,9 +83,6 @@ from ..exceptions import (
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,
 )
-
-from kobo.apps.subsequences.utils import stream_with_extras
-from kobo.apps.trackers.models import NLPUsageCounter
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -354,10 +355,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             # Note: this is replicating the functionality that was formerly in `current_month_submission_count`
             # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
-            total_submissions = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
+            total_submissions = KobocatDailyXFormSubmissionCounter.objects.only(
                 'date', 'counter'
             ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
-        except ReadOnlyKobocatDailyXFormSubmissionCounter.DoesNotExist:
+        except KobocatDailyXFormSubmissionCounter.DoesNotExist:
             return 0
         else:
             return total_submissions['count_sum']
@@ -787,7 +788,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Trivial case, user has 'view_permissions'
         daily_counts = (
-            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+            KobocatDailyXFormSubmissionCounter.objects.values(
                 'date', 'counter'
             ).filter(
                 xform_id=self.xform_id,
@@ -1000,7 +1001,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         try:
             json_response = self._kobocat_request(
-                'PATCH', url, data=payload, files=files)
+                'PATCH', url, data=payload, files=files
+            )
             self.store_data({
                 'active': json_response['downloadable'],
                 'backend_response': json_response,
@@ -1318,6 +1320,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )  # Avoid extra query to validate username below
                 .first()
             )
+
             if not (
                 xform
                 and xform.user.username == self.asset.owner.username
@@ -1343,6 +1346,69 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return self.backend_response['date_modified']
         except KeyError:
             return None
+
+    @staticmethod
+    @contextmanager
+    def suspend_submissions(user_ids: list[int]):
+        KobocatUserProfile.objects.filter(
+            user_id__in=user_ids
+        ).update(
+            metadata=ReplaceValues(
+                'metadata',
+                updates={'submissions_suspended': True},
+            ),
+        )
+        try:
+            yield
+        finally:
+            KobocatUserProfile.objects.filter(
+                user_id__in=user_ids
+            ).update(
+                metadata=ReplaceValues(
+                    'metadata',
+                    updates={'submissions_suspended': False},
+                ),
+            )
+
+    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+
+        NLPUsageCounter.objects.filter(
+            asset=self.asset, user=self.asset.owner
+        ).update(user=new_owner)
+        KobocatDailyXFormSubmissionCounter.objects.filter(
+            xform=self.xform, user_id=self.asset.owner.pk
+        ).update(user=new_owner)
+        KobocatMonthlyXFormSubmissionCounter.objects.filter(
+            xform=self.xform, user_id=self.asset.owner.pk
+        ).update(user=new_owner)
+
+        KobocatUserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+            attachment_storage_bytes=F('attachment_storage_bytes')
+            - self.xform.attachment_storage_bytes
+        )
+        KobocatUserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+            attachment_storage_bytes=F('attachment_storage_bytes')
+            + self.xform.attachment_storage_bytes
+        )
+
+    def transfer_submissions_ownership(self, new_owner_username: str) -> bool:
+
+        results = settings.MONGO_DB.instances.update_many(
+            {'_userform_id': self.mongo_userform_id},
+            {
+                '$set': {
+                    '_userform_id': f'{new_owner_username}_{self.xform_id_string}'
+                }
+            },
+        )
+
+        return (
+            results.matched_count == 0 or
+            (
+                results.matched_count > 0
+                and results.matched_count == results.modified_count
+            )
+        )
 
     def _kobocat_request(self, method, url, expect_formid=True, **kwargs):
         """
