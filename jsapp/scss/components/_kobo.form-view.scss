@@ -669,12 +669,8 @@ $side-tabs-width-mobile: 70px;
 .form-view__cell--anonymous-submissions {
   display: flex;
 
-  .checkbox {
+  .toggle-switch {
     padding-right: sizes.$x8;
-  }
-
-  .checkbox__label {
-    max-width: 100% !important;
   }
 }
 

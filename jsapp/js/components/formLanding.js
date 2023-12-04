@@ -29,6 +29,7 @@ import {
 } from 'js/components/permissions/utils';
 import permConfig from 'js/components/permissions/permConfig';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
@@ -424,18 +425,20 @@ class FormLanding extends React.Component {
             <bem.FormView__cell
               m={['padding', 'anonymous-submissions', 'bordertop']}
             >
-              <Checkbox
+              <ToggleSwitch
                 checked={this.state.anonymousSubmissions}
                 onChange={() => this.updateAssetAnonymousSubmissions()}
-                label={t('Allow anonymous submissions to this form')}
+                label={t(
+                  'Allow submissions to this form without a username and password'
+                )}
               />
               <a
                 href={
                   envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
                 }
                 target='_blank'
-                title={t(
-                  'Checking this box will allow anyone to see this blank form and add submissions.\n\nClick the icon to learn more.'
+                data-tip={t(
+                  'Allow anyone to see this form and add submissions. Click the icon to learn more.'
                 )}
               >
                 <Icon size='s' name='help' color='storm' />

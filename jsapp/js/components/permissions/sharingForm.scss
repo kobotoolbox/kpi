@@ -139,10 +139,17 @@ $s-gray-row-spacing: 10px;
   }
 }
 
+.form-modal__item--permissions-header {
+  font-weight: bold;
+}
+
 .form-modal__item--anonymous-submissions {
   display: flex;
+  padding-bottom: sizes.$x12;
+  padding-top: sizes.$x8;
+  border-bottom: 1px solid colors.$kobo-gray-96;
 
-  .checkbox {
+  .toggle-switch {
     padding-right: sizes.$x8;
   }
 

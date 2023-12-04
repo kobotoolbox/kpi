@@ -10,6 +10,7 @@ import type {PermissionCodename} from './permConstants';
 import type {PermissionResponse} from 'jsapp/js/dataInterface';
 import envStore from 'js/envStore';
 import Icon from 'js/components/common/icon';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
 
 const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
@@ -68,31 +69,35 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
 
     return (
       <bem.FormModal__item m='permissions'>
+        <bem.FormModal__item m='anonymous-submissions'>
+          <ToggleSwitch
+            checked={anonCanAddData}
+            onChange={this.togglePerms.bind(this, 'add_submissions')}
+            label={t(
+              'Allow submissions to this form without a username and password'
+            )}
+          />
+          <a
+            href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+            target='_blank'
+            data-tip={t(
+              'Allow anyone to see this form and add submissions. Click the icon to learn more.'
+            )}
+          >
+            <Icon size='s' name='help' color='storm' />
+          </a>
+        </bem.FormModal__item>
+
+        <bem.FormModal__item m='permissions-header'>
+          {t('Share publicly by link')}
+        </bem.FormModal__item>
+
         <bem.FormModal__item>
           <Checkbox
             checked={anonCanView}
             onChange={this.togglePerms.bind(this, 'view_asset')}
             label={t('Anyone can view this form')}
           />
-        </bem.FormModal__item>
-
-        <bem.FormModal__item m='anonymous-submissions'>
-          <Checkbox
-            checked={anonCanAddData}
-            onChange={this.togglePerms.bind(this, 'add_submissions')}
-            label={t('Allow anonymous submissions to this form')}
-          />
-          <a
-            href={
-              envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
-            }
-            target='_blank'
-            title={t(
-              'Checking this box will allow anyone to see this blank form and add submissions.\n\nClick the icon to learn more.'
-            )}
-          >
-            <Icon size='s' name='help' color='storm' />
-          </a>
         </bem.FormModal__item>
 
         {this.props.deploymentActive && (
