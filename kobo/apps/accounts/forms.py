@@ -60,7 +60,7 @@ class KoboSignupMixin(forms.Form):
             ('non-profit', t('Non-profit organization')),
             ('government', t('Government institution')),
             ('educational', t('Educational organization')),
-            ('commercial', t('A commercial/for-profit')),
+            ('commercial', t('A commercial/for-profit company')),
             ('none', t('I am not associated with any organization')),
         ),
     )
@@ -99,8 +99,9 @@ class KoboSignupMixin(forms.Form):
         if 'password2' in self.fields:
             self.fields['password2'].label = t('Password confirmation')
         if 'email' in self.fields:
-            self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
-
+            self.fields['email'].widget.attrs['placeholder'] = t(
+                'name@organization.org'
+            )
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
@@ -129,7 +130,16 @@ class KoboSignupMixin(forms.Form):
                 continue
 
             field = self.fields[field_name]
-            field.required = desired_field.get('required', False)
+            # Part of 'skip logic' for organization fields
+            if (
+                desired_metadata_fields.get('organization_type')
+                and field_name in ['organization', 'organization_website']
+                and desired_field.get('required', False)
+            ):
+                field.required = False
+                field.widget.attrs.update({'data-required': True})
+            else:
+                field.required = desired_field.get('required', False)
             self.fields[field_name].label = desired_field['label']
 
     def clean_email(self):
@@ -174,31 +184,13 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'username',
         'email',
         'country',
+        'sector',
+        'organization_type',
         'organization',
         'organization_website',
-        'organization_type',
-        'sector',
         'newsletter_subscription',
     ]
-    skip_logic_flag = False
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # If all organization fields are required, implement skip logic
-        if (
-            self.fields['organization_type'].required
-            and self.fields['organization'].required
-            and self.fields['organization_website'].required
-        ):
-            self.skip_logic_flag = True
-        # If `organization_type` is enabled, initalize other organization fields
-        # to be optional in the case that `organization_type` is none
-        if (
-            'organization_type' in self.fields
-            and self.fields['organization_type'].required
-        ):
-            self.fields['organization'].required = False
-            self.fields['organization_website'].required = False
 
     def clean(self):
         """
@@ -231,23 +223,19 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
                     t('You must type the same password each time.'),
                 )
 
-        organization_type = self.cleaned_data.get('organization_type')
-        # if `organization_type` is enabled and the user is affiliated with an organization
-        # and skip logic is enabled, require both `organization` and `organization_website`
-        if (
-            self.fields['organization_type'].required
-            and organization_type != 'none'
-            and self.skip_logic_flag
-        ):
-            self.fields['organization_website'].required = True
-            self.fields['organization'].required = True
-
-            for field_name in ['organization_website', 'organization']:
-                field_value = self.cleaned_data.get(field_name)
-                if not field_value:
-                    self.add_error(
-                        field_name,
-                        t('This field is required.'),
+        # Part of 'skip logic' for organization fields.
+        # Add 'Field is required' errors for organization and organization_website,
+        # since we un-required them in case 'organization_type' is 'none'.
+        if 'organization_type' in self.fields:
+            for field_name in ['organization', 'organization_website']:
+                if (
+                    field_name in self.fields
+                    and self.fields[field_name].widget.attrs.get(
+                        'data-required'
                     )
+                    and self.cleaned_data.get('organization_type') != 'none'
+                ):
+                    if not self.cleaned_data.get(field_name):
+                        self.add_error(field_name, t('This field is required.'))
 
         return self.cleaned_data
