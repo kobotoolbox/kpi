@@ -1,16 +1,8 @@
 import BillingButton from 'js/account/plans/billingButton.component';
-import React, {useCallback} from 'react';
-import type {
-  BasePrice,
-  Organization,
-  Price,
-  SubscriptionInfo,
-} from 'js/account/stripe.types';
+import React from 'react';
+import type {BasePrice, Organization, Price} from 'js/account/stripe.types';
 import {postCustomerPortal} from 'js/account/stripe.api';
-import {
-  getSubscriptionsForProductId,
-  processCheckoutResponse,
-} from 'js/account/stripe.utils';
+import {processCheckoutResponse} from 'js/account/stripe.utils';
 
 interface PlanButtonProps {
   buySubscription: (price: BasePrice) => void;
