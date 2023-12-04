@@ -63,7 +63,7 @@ export interface ButtonProps {
    */
   tooltip?: string;
   /** Sets the alignment of the tooltip */
-  tooltipPosition?: string;
+  tooltipPosition?: 'right' | 'left' | '';
   isDisabled?: boolean;
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
@@ -137,9 +137,6 @@ const Button = (props: ButtonProps) => {
 
   // For the attributes that don't have a falsy value.
   const additionalButtonAttributes: AdditionalButtonAttributes = {};
-  if (props.tooltip) {
-    additionalButtonAttributes['data-tip'] = props.tooltip;
-  }
   if (props['data-cy']) {
     additionalButtonAttributes['data-cy'] = props['data-cy'];
   }
@@ -157,33 +154,39 @@ const Button = (props: ButtonProps) => {
   };
 
   return (
-    <Tooltip
-      text={props.tooltip}
-      ariaLabel={props.tooltip}
-      className={props.tooltipPosition + '-tooltip'}
-    >
-      <button
-        className={classNames.join(' ')}
-        type={props.isSubmit ? 'submit' : 'button'}
-        aria-disabled={props.isDisabled}
-        onClick={handleClick}
-        onKeyUp={onKeyUp}
-        {...additionalButtonAttributes}
-      >
-        {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
+    <>
+      {props.tooltip !== undefined && (
+        <Tooltip
+          text={props.tooltip}
+          ariaLabel={props.tooltip}
+          alignment={props.tooltipPosition}
+        >
+          <button
+            className={classNames.join(' ')}
+            type={props.isSubmit ? 'submit' : 'button'}
+            aria-disabled={props.isDisabled}
+            onClick={handleClick}
+            onKeyUp={onKeyUp}
+            {...additionalButtonAttributes}
+          >
+            {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
 
-        {props.label && <span className='k-button__label'>{props.label}</span>}
+            {props.label && (
+              <span className='k-button__label'>{props.label}</span>
+            )}
 
-        {/* Ensures only one icon is being displayed.*/}
-        {!props.startIcon && props.endIcon && (
-          <Icon name={props.endIcon} size={iconSize} />
-        )}
+            {/* Ensures only one icon is being displayed.*/}
+            {!props.startIcon && props.endIcon && (
+              <Icon name={props.endIcon} size={iconSize} />
+            )}
 
-        {props.isPending && (
-          <Icon name='spinner' size={iconSize} classNames={['k-spin']} />
-        )}
-      </button>
-    </Tooltip>
+            {props.isPending && (
+              <Icon name='spinner' size={iconSize} classNames={['k-spin']} />
+            )}
+          </button>
+        </Tooltip>
+      )}
+    </>
   );
 };
 

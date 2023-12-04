@@ -7,6 +7,23 @@ import Tooltip from './tooltip';
 export default {
   title: 'Common/Tooltip',
   component: Tooltip,
+  description:
+    'This is a component that displays a tooltip on a button that is hovered over.',
+  argTypes: {
+    text: {
+      description: 'Content of the tooltip shown on hover over button',
+    },
+    alignment: {
+      description:
+        'Position of the tooltip (takes empty string to display the default centered alignment)',
+      options: ['right', 'left', ''],
+      control: 'select',
+      defaultValue: '',
+    },
+    ariaLabel: {
+      description: 'Accessible label for screen readers',
+    },
+  },
 } as Meta;
 
 const Template: Story<TooltipProps> = (args) => (
@@ -18,20 +35,20 @@ const Template: Story<TooltipProps> = (args) => (
 export const Default = Template.bind({});
 Default.args = {
   text: 'Default Tooltip Text',
-  className: '',
+  alignment: '',
   ariaLabel: 'Default Tooltip Text',
 };
 
 export const Right = Template.bind({});
 Right.args = {
   text: 'Right Aligned Tooltip Text',
-  className: 'right',
+  alignment: 'right',
   ariaLabel: 'Right Aligned Tooltip Text',
 };
 
 export const Left = Template.bind({});
 Left.args = {
   text: 'Left Aligned Tooltip Text',
-  className: 'left',
+  alignment: 'left',
   ariaLabel: 'Left Aligned Tooltip Text',
 };
