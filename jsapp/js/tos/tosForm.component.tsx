@@ -56,7 +56,12 @@ export default function TOSForm() {
   );
   const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({});
 
-  const requiredFields = envStore.data.getUserMetadataRequiredFieldNames();
+  const fieldsToShow = envStore.data.getUserMetadataRequiredFieldNames();
+  if (
+    envStore.data.getUserMetadataFieldsAsSimpleDict().newsletter_subscription
+  ) {
+    fieldsToShow.push('newsletter_subscription');
+  }
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -139,7 +144,7 @@ export default function TOSForm() {
 
     // If there are no required fields, there is no point doing a call to update
     // them.
-    if (requiredFields.length > 0) {
+    if (fieldsToShow.length > 0) {
       // Get data for the user endpoint
       const profilePatchData = getProfilePatchData(fields);
 
@@ -201,7 +206,7 @@ export default function TOSForm() {
       />
 
       {/* No point displaying the form and header if there are no required fields */}
-      {requiredFields.length > 0 && (
+      {fieldsToShow.length > 0 && (
         <section className={styles.metaFields}>
           <h2 className={styles.fieldsHeader}>
             {t(
@@ -210,7 +215,7 @@ export default function TOSForm() {
           </h2>
 
           <AccountFieldsEditor
-            displayedFields={requiredFields}
+            displayedFields={fieldsToShow}
             errors={fieldsErrors}
             values={fields}
             onChange={onAccountFieldsEditorChange}
