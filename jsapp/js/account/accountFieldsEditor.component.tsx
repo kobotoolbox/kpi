@@ -78,8 +78,12 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   }
 
   /**
-   * Field will be displayed if it's enabled on Back end and it's not omitted
+   * Field will be displayed if it is enabled on Back end and not omitted
    * in `displayedFields`.
+   *
+   * NOTE: Organization-related fields are treated differently. See:
+   *       - isOrganizationTypeFieldToBeDisplayed()
+   *       - areOrganizationFieldsToBeSkipped()
    */
   function isFieldToBeDisplayed(name: UserFieldName) {
     return (
@@ -90,6 +94,33 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         // Check if parent code is limiting displayed fields to a selection, and
         // that selection includes the field
         props.displayedFields.includes(name))
+    );
+  }
+
+  /**
+   * Always show 'organization_type' if it is enabled on Back end and
+   * and 'organization' or 'organization_website' would be shown.
+   *
+   * Organization Type is used as a toggle for those fields ('skip logic')
+   * so it needs to be reachable regardless of props.displayedFields
+   */
+  function isOrganizationTypeFieldToBeDisplayed() {
+    return (
+      'organization_type' in metadata &&
+      (isFieldToBeDisplayed('organization') ||
+        isFieldToBeDisplayed('organization_website'))
+    );
+  }
+
+  /**
+   * 'Skip logic' for 'organization' and 'organization_website', controlled
+   * by the value of 'organization_type' dropdown.
+   */
+  function areOrganizationFieldsToBeSkipped() {
+    return (
+      isOrganizationTypeFieldToBeDisplayed() &&
+      (props.values.organization_type === '' ||
+        props.values.organization_type === 'none')
     );
   }
 
@@ -185,7 +216,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
       <div className={styles.row}>
         {/* Organization Type */}
-        {isFieldToBeDisplayed('organization_type') && (
+        {isOrganizationTypeFieldToBeDisplayed() && (
           <KoboSelect
             label={getLabel('organization_type')}
             name='organization_type'
@@ -205,31 +236,36 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
       <div className={styles.row}>
         {/* Organization */}
-        {isFieldToBeDisplayed('organization') && (
-          <div className={styles.field}>
-            <TextBox
-              label={getLabel('organization')}
-              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization')}
-              value={props.values.organization}
-              errors={props.errors?.organization}
-            />
-          </div>
-        )}
+        {isFieldToBeDisplayed('organization') &&
+          !areOrganizationFieldsToBeSkipped() && (
+            <div className={styles.field}>
+              <TextBox
+                label={getLabel('organization')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'organization'
+                )}
+                value={props.values.organization}
+                errors={props.errors?.organization}
+              />
+            </div>
+          )}
 
         {/* Organization Website */}
-        {isFieldToBeDisplayed('organization_website') && (
-          <div className={styles.field}>
-            <TextBox
-              label={getLabel('organization_website')}
-              value={props.values.organization_website}
-              onChange={onAnyFieldChange.bind(
-                onAnyFieldChange,
-                'organization_website'
-              )}
-              errors={props.errors?.organization_website}
-            />
-          </div>
-        )}
+        {isFieldToBeDisplayed('organization_website') &&
+          !areOrganizationFieldsToBeSkipped() && (
+            <div className={styles.field}>
+              <TextBox
+                label={getLabel('organization_website')}
+                value={props.values.organization_website}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'organization_website'
+                )}
+                errors={props.errors?.organization_website}
+              />
+            </div>
+          )}
       </div>
 
       <div className={styles.row}>
