@@ -51,6 +51,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
 
     updateResponseAndReducer(
       analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
       question.type,
       response

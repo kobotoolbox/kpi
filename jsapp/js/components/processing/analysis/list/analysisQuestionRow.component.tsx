@@ -150,7 +150,6 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
         try {
           const response = await updateSurveyQuestions(
             singleProcessingStore.currentAssetUid,
-            singleProcessingStore.currentQuestionQpath,
             analysisQuestions.state.questions
           );
 

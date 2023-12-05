@@ -56,6 +56,7 @@ export default function SelectOneResponseForm(
     // Update endpoint and reducer
     updateResponseAndReducer(
       analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
       question.type,
       newResponse

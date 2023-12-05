@@ -57,8 +57,6 @@ export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
  * questions definitions on endpoint.
  */
 export function convertQuestionsFromInternalToSchema(
-  /** The qpath of the asset question to which the analysis questions will refer */
-  qpath: string,
   questions: AnalysisQuestionInternal[]
 ): AnalysisQuestionSchema[] {
   return questions.map((question) => {
@@ -69,7 +67,7 @@ export function convertQuestionsFromInternalToSchema(
       options: question.options,
       choices: question.additionalFields?.choices,
       scope: 'by_question#survey',
-      qpath: qpath,
+      qpath: question.qpath,
     };
   });
 }
@@ -84,6 +82,7 @@ export function convertQuestionsFromSchemaToInternal(
 ): AnalysisQuestionInternal[] {
   return questions.map((question) => {
     const output: AnalysisQuestionInternal = {
+      qpath: question.qpath,
       uuid: question.uuid,
       type: question.type,
       labels: question.labels,
@@ -143,7 +142,6 @@ export function getQuestionsFromSchema(
  */
 export async function updateSurveyQuestions(
   assetUid: string,
-  qpath: string,
   questions: AnalysisQuestionInternal[]
 ) {
   // Step 1: Make sure not to mutate existing object
@@ -161,7 +159,6 @@ export async function updateSurveyQuestions(
 
   // Step 3: prepare the data for the endpoint
   advancedFeatures.qual.qual_survey = convertQuestionsFromInternalToSchema(
-    qpath,
     questions
   );
 
@@ -244,6 +241,7 @@ async function updateResponse(
  */
 export async function updateResponseAndReducer(
   dispatch: React.Dispatch<AnalysisQuestionsAction>,
+  surveyQuestionQpath: string,
   analysisQuestionUUid: string,
   analysisQuestionType: AnalysisQuestionType,
   response: string | string[]
@@ -272,7 +270,7 @@ export async function updateResponseAndReducer(
     const result = await updateResponse(
       processingUrl,
       singleProcessingStore.currentSubmissionEditId,
-      singleProcessingStore.currentQuestionQpath,
+      surveyQuestionQpath,
       analysisQuestionUUid,
       analysisQuestionType,
       actualResponse

@@ -51,6 +51,7 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
 
     updateResponseAndReducer(
       analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
       question.type,
       response

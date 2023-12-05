@@ -71,13 +71,14 @@ export interface AnalysisQuestionBase {
   labels: AnalysisLabels;
   uuid: string;
   options?: AnalysisQuestionOptions;
+  /** The survey question that this analysis questions is for. */
+  qpath: string;
 }
 
 /** Analysis question definition from the asset's schema (i.e. from Back end) */
 export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
   // 'by_question#survey'
   scope: string;
-  qpath: string;
   choices?: AnalysisQuestionChoice[];
 }
 

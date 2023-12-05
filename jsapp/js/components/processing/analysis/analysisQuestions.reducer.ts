@@ -70,6 +70,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       }
 
       const newQuestion: AnalysisQuestionInternal = {
+        qpath: action.payload.qpath,
         type: action.payload.type,
         labels: {_default: ''},
         uuid: newUuid,

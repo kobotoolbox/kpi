@@ -51,7 +51,10 @@ export default function AnalysisHeader() {
         onClick={() => {
           analysisQuestions?.dispatch({
             type: 'addQuestion',
-            payload: {type: definition.type},
+            payload: {
+              qpath: singleProcessingStore.currentQuestionQpath,
+              type: definition.type,
+            },
           });
         }}
         tabIndex={0}
