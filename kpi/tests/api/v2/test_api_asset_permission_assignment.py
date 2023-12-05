@@ -659,3 +659,210 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         # than the one they already had, i.e.: 'view_submissions'.
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_DELETE_SUBMISSIONS))
         self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS))
+
+    def test_partial_permission_no_duplicate_with_simple_filter(self):
+        assignments = [
+            {
+                'user': 'someuser',
+                'permission': PERM_PARTIAL_SUBMISSIONS,
+                'partial_permissions': [
+                    {
+                        'url': PERM_VIEW_SUBMISSIONS,
+                        'filters': [
+                            {'_submitted_by': 'someuser'}
+                        ],
+                    },
+                    {
+                        'url': PERM_VALIDATE_SUBMISSIONS,
+                        'filters': [
+                            {'my_question': 'my_response1'}
+                        ],
+                    },
+                    {
+                        'url': PERM_DELETE_SUBMISSIONS,
+                        'filters': [
+                            {'my_question': 'my_response1'}
+                        ],
+                    }
+                ],
+            }
+        ]
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            assignments
+        )
+
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
+        response = self.client.post(
+            bulk_endpoint, assignments, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        returned_partial_perms = []
+        for perm in response.data:
+            if 'partial_permissions' in perm:
+                returned_partial_perms = perm['partial_permissions']
+
+        # ⚠️ Filters ordering could be different in response.
+        expected = [
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_VIEW_SUBMISSIONS}/',
+                'filters': [
+                    [{'my_question': 'my_response1'}],
+                    [{'_submitted_by': 'someuser'}],
+                ],
+            },
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_DELETE_SUBMISSIONS}/',
+                'filters': [
+                    {'my_question': 'my_response1'}
+                ],
+            },
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_VALIDATE_SUBMISSIONS}/',
+                'filters': [
+                    {'my_question': 'my_response1'}
+                ],
+            },
+        ]
+
+        assert expected == returned_partial_perms
+
+    def test_partial_permission_no_duplicate_with_complex_OR_filters(self):
+        assignments = [
+            {
+                'user': 'someuser',
+                'permission': PERM_PARTIAL_SUBMISSIONS,
+                'partial_permissions': [
+                    {
+                        'url': PERM_VIEW_SUBMISSIONS,
+                        'filters': [
+                            [{'_submitted_by': 'someuser'}]
+                        ],
+                    },
+                    {
+                        'url': PERM_VALIDATE_SUBMISSIONS,
+                        'filters': [
+                            [{'my_question': 'my_response1'}]
+                        ],
+                    },
+                    {
+                        'url': PERM_DELETE_SUBMISSIONS,
+                        'filters': [
+                            [{'my_question': 'my_response1'}]
+                        ],
+                    }
+                ],
+            }
+        ]
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            assignments
+        )
+
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
+        response = self.client.post(
+            bulk_endpoint, assignments, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        returned_partial_perms = []
+        for perm in response.data:
+            if 'partial_permissions' in perm:
+                returned_partial_perms = perm['partial_permissions']
+
+        # ⚠️ Filters ordering could be different in response.
+        expected = [
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_VIEW_SUBMISSIONS}/',
+                'filters': [
+                    [{'_submitted_by': 'someuser'}],
+                    [{'my_question': 'my_response1'}],
+                ],
+            },
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_DELETE_SUBMISSIONS}/',
+                'filters': [
+                    [{'my_question': 'my_response1'}]
+                ],
+            },
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_VALIDATE_SUBMISSIONS}/',
+                'filters': [
+                    [{'my_question': 'my_response1'}]
+                ],
+            },
+        ]
+
+        assert expected == returned_partial_perms
+
+    def test_partial_permission_no_duplicate_with_complex_AND_filters(self):
+        assignments = [
+            {
+                'user': 'someuser',
+                'permission': PERM_PARTIAL_SUBMISSIONS,
+                'partial_permissions': [
+                    {
+                        'url': PERM_VIEW_SUBMISSIONS,
+                        'filters': [
+                            [{'_submitted_by': 'someuser'}]
+                        ],
+                    },
+                    {
+                        'url': PERM_VALIDATE_SUBMISSIONS,
+                        'filters': [
+                            [{'my_question': 'my_response1'}, {'my_question': 'my_response2'}]
+                        ],
+                    },
+                    {
+                        'url': PERM_DELETE_SUBMISSIONS,
+                        'filters': [
+                            [{'my_question': 'my_response1'}, {'my_question': 'my_response2'}]
+                        ],
+                    }
+                ],
+            }
+        ]
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            assignments
+        )
+
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
+        response = self.client.post(
+            bulk_endpoint, assignments, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        returned_partial_perms = []
+        for perm in response.data:
+            if 'partial_permissions' in perm:
+                returned_partial_perms = perm['partial_permissions']
+
+        # ⚠️ Filters ordering could be different in response.
+        expected = [
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_VIEW_SUBMISSIONS}/',
+                'filters': [
+                    [{'_submitted_by': 'someuser'}],
+                    [{'_submitted_by': 'someuser'}, {'my_question': 'my_response1'}],
+                ],
+            },
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_DELETE_SUBMISSIONS}/',
+                'filters': [
+                    [{'_submitted_by': 'someuser'}, {'my_question': 'my_response1'}],
+                ],
+            },
+            {
+                'url': f'http://testserver/api/v2/permissions/{PERM_VALIDATE_SUBMISSIONS}/',
+                'filters': [
+                    [{'_submitted_by': 'someuser'}, {'my_question': 'my_response1'}],
+                ],
+            },
+        ]
+
+        assert expected == returned_partial_perms
