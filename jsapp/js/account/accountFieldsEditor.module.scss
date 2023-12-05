@@ -34,3 +34,8 @@
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;
 }
+
+// Show 5 options without having to scroll for the last one
+.orgTypeDropdown :global .kobo-dropdown__menu > .k-select__menu {
+  max-height: none;
+}

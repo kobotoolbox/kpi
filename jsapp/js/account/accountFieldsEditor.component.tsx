@@ -4,6 +4,7 @@ import TextBox from '../components/common/textBox';
 import {addRequiredToLabel} from 'js/textUtils';
 import envStore from '../envStore';
 import styles from './accountFieldsEditor.module.scss';
+import cx from 'classnames';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {
   UserFieldName,
@@ -67,6 +68,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       (console.error(`No label for fieldname "${fieldName}"`), fieldName);
     const required = metadata[fieldName]?.required || false;
     return addRequiredToLabel(label, required);
+  }
+
+  function isFieldRequired(fieldName: UserFieldName): boolean {
+    return metadata[fieldName]?.required || false;
   }
 
   function onAnyFieldChange(
@@ -166,7 +171,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               name='gender'
               type='outline'
               size='l'
-              isClearable
+              isClearable={!isFieldRequired('gender')}
               isSearchable
               selectedOption={props.values.gender}
               onChange={(value: string | null) =>
@@ -188,7 +193,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               name='country'
               type='outline'
               size='l'
-              isClearable
+              isClearable={!isFieldRequired('country')}
               isSearchable
               selectedOption={props.values.country}
               onChange={(value: string | null) =>
@@ -216,13 +221,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       <div className={styles.row}>
         {/* Organization Type */}
         {isOrganizationTypeFieldToBeDisplayed() && (
-          <div className={styles.field}>
+          <div className={cx(styles.field, styles.orgTypeDropdown)}>
             <KoboSelect
               label={getLabel('organization_type')}
               name='organization_type'
               type='outline'
               size='l'
-              isClearable
+              isClearable={!isFieldRequired('organization_type')}
               selectedOption={props.values.organization_type}
               onChange={(value: string | null) =>
                 onAnyFieldChange('organization_type', value || '')
@@ -277,7 +282,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               name='sector'
               type='outline'
               size='l'
-              isClearable
+              isClearable={!isFieldRequired('sector')}
               isSearchable
               selectedOption={props.values.sector}
               onChange={(value: string | null) =>
