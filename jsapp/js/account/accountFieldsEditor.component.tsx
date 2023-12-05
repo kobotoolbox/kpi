@@ -216,20 +216,21 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       <div className={styles.row}>
         {/* Organization Type */}
         {isOrganizationTypeFieldToBeDisplayed() && (
-          <KoboSelect
-            label={getLabel('organization_type')}
-            name='organization_type'
-            type='outline'
-            size='l'
-            isClearable
-            // isSearchable
-            selectedOption={props.values.organization_type}
-            onChange={(value: string | null) =>
-              onAnyFieldChange('organization_type', value || '')
-            }
-            options={ORGANIZATION_TYPE_SELECT_OPTIONS}
-            error={props.errors?.organization_type}
-          />
+          <div className={styles.field}>
+            <KoboSelect
+              label={getLabel('organization_type')}
+              name='organization_type'
+              type='outline'
+              size='l'
+              isClearable
+              selectedOption={props.values.organization_type}
+              onChange={(value: string | null) =>
+                onAnyFieldChange('organization_type', value || '')
+              }
+              options={ORGANIZATION_TYPE_SELECT_OPTIONS}
+              error={props.errors?.organization_type}
+            />
+          </div>
         )}
       </div>
 
