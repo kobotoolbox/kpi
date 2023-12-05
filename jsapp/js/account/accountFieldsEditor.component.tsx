@@ -119,8 +119,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   function areOrganizationFieldsToBeSkipped() {
     return (
       isOrganizationTypeFieldToBeDisplayed() &&
-      (props.values.organization_type === '' ||
-        props.values.organization_type === 'none')
+      props.values.organization_type === 'none'
     );
   }
 
