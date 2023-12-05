@@ -5,6 +5,8 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from kobo.apps.organizations.models import Organization
+from kobo.apps.project_views.models.assignment import User
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
@@ -219,16 +221,15 @@ class ServiceUsageSerializer(serializers.Serializer):
             # Couldn't find organization, proceed as normal
             return
 
-        """
-        Commented out until the Enterprise plan is implemented
-
-        # If the user is in an organization, get all org users so we can query their total org usage
-        self._user_ids = list(
-            User.objects.values_list('pk', flat=True).filter(
-                organizations_organization__id=organization_id
-            )
+        # if the user is in an organization and has an enterprise plan, get all org users and their total usage
+        enterprise_users = User.objects.values_list('pk', flat=True).filter(
+            organizations_organization__id=organization_id,
+            organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+            organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
+            organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
         )
-        """
+        if enterprise_users.exists():
+            self._user_ids = list(enterprise_users)
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
         billing_details = organization.active_subscription_billing_details
