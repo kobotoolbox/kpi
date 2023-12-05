@@ -175,7 +175,7 @@ class AssetUserPartialPermission(models.Model):
                             filters,
                             new_partial_perms[implied_perm],
                         ]
-                    else:
+                    elif filters not in new_partial_perms[implied_perm]:
                         new_partial_perms[implied_perm].append(filters)
 
         return new_partial_perms

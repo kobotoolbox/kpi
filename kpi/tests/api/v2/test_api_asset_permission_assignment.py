@@ -538,8 +538,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
                 # present in b30644e1c, before any optimization work)
                 [{'_submitted_by': 'simone'}],
                 [{'_submitted_by': {'$in': ['simone', 'zariah']}}],
-                # This extra duplication was *not* present before optimization
-                [{'_submitted_by': 'simone'}],
             ],
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'simone'}],
         }
