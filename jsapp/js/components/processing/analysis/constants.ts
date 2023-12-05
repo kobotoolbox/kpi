@@ -99,11 +99,16 @@ export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
 }
 
 /** Analysis question response (to a question defined as `uuid`) from Back end. */
-export interface AnalysisResponse {
+export interface AnalysisRequest {
   type: AnalysisQuestionType;
   uuid: string;
   val: string | string[] | number;
 }
+
+/** This is basically `AnalysisRequest` but with few more properties. */
+export interface AnalysisResponse
+  extends AnalysisRequest,
+    AnalysisQuestionBase {}
 
 /**
  * This is the payload of a request made to update a question response.
@@ -111,7 +116,7 @@ export interface AnalysisResponse {
 export interface AnalysisResponseUpdateRequest {
   [qpath: string]:
     | {
-        qual: AnalysisResponse[];
+        qual: AnalysisRequest[];
       }
     | string; // this will never be a string, but we need TS to stop complaining
   submission: string;

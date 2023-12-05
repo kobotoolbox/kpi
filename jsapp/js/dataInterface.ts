@@ -161,7 +161,7 @@ export interface SubmissionAttachment {
 interface SubmissionSupplementalDetails {
   [questionName: string]: {
     transcript?: TransxObject;
-    translated?: {
+    translation?: {
       [languageCode: LanguageCode]: TransxObject;
     };
     qual?: AnalysisResponse[];
