@@ -16,7 +16,7 @@ const ORGANIZATION_TYPE_SELECT_OPTIONS = [
   {value: 'non-profit', label: t('Non-profit organization')},
   {value: 'government', label: t('Government institution')},
   {value: 'educational', label: t('Educational organization')},
-  {value: 'commercial', label: t('A commercial/for-profit')},
+  {value: 'commercial', label: t('A commercial/for-profit company')},
   {value: 'none', label: t('I am not associated with any organization')},
 ];
 const GENDER_SELECT_OPTIONS = [
