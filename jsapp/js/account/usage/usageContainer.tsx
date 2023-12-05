@@ -6,6 +6,7 @@ import Icon from 'js/components/common/icon';
 import styles from 'js/account/usage/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 import AriaText from 'js/components/common/ariaText';
+import {Limits} from 'js/account/stripe.types';
 
 interface UsageContainerProps {
   usage: number;
@@ -44,7 +45,7 @@ const UsageContainer = ({
         <strong>
           {isStorage ? prettyBytes(usage) : usage.toLocaleString()}
         </strong>
-        {limit !== 'unlimited' && limit && (
+        {limit !== Limits.unlimited && limit && (
           <>
             {' '}
             <AriaText uiText='/' screenReaderText={t('used out of')} />{' '}

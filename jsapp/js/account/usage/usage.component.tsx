@@ -1,7 +1,7 @@
 import {when} from 'mobx';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useLocation} from 'react-router-dom';
-import type {AccountLimit} from 'js/account/stripe.types';
+import type {AccountLimit, LimitAmount} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -13,12 +13,13 @@ import LimitNotifications from 'js/components/usageLimits/limitNotifications.com
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import moment from 'moment';
+import {Limits} from 'js/account/stripe.types';
 
 interface LimitState {
-  storageByteLimit: number | 'unlimited';
-  nlpCharacterLimit: number | 'unlimited';
-  nlpMinuteLimit: number | 'unlimited';
-  submissionLimit: number | 'unlimited';
+  storageByteLimit: LimitAmount;
+  nlpCharacterLimit: LimitAmount;
+  nlpMinuteLimit: LimitAmount;
+  submissionLimit: LimitAmount;
   isLoaded: boolean;
 }
 
@@ -26,10 +27,10 @@ export default function Usage() {
   const usage = useUsage();
 
   const [limits, setLimits] = useState<LimitState>({
-    storageByteLimit: 'unlimited',
-    nlpCharacterLimit: 'unlimited',
-    nlpMinuteLimit: 'unlimited',
-    submissionLimit: 'unlimited',
+    storageByteLimit: Limits.unlimited,
+    nlpCharacterLimit: Limits.unlimited,
+    nlpMinuteLimit: Limits.unlimited,
+    submissionLimit: Limits.unlimited,
     isLoaded: false,
   });
 
