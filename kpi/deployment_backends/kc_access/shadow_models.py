@@ -520,7 +520,7 @@ class KobocatXForm(ShadowModel):
         verbose_name_plural = 'xforms'
 
     XFORM_TITLE_LENGTH = 255
-    xls = models.FileField(null=True)
+    xls = ExtendedFileField(null=True)
     xml = models.TextField()
     user = models.ForeignKey(KobocatUser, related_name='xforms', null=True,
                              on_delete=models.CASCADE)

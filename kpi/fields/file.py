@@ -22,10 +22,14 @@ class ExtendedFieldFile(FieldFile):
             self.storage.delete(old_path)
             self.name = new_path
         else:
-            with self.storage.open(old_path, 'rb') as f:
-                self.save(new_path, f, save=False)
-            self.storage.delete(old_path)
+            try:
+                with self.storage.open(old_path, 'rb') as f:
+                    self.save(new_path, f, save=False)
+                self.storage.delete(old_path)
+            except FileNotFoundError:
+                return False
 
+        return True
 
 class ExtendedFileField(FileField):
 

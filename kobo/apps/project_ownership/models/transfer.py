@@ -70,19 +70,14 @@ class Transfer(models.Model):
             return
 
         with transaction.atomic():
-            transfer = self.__class__.objects.select_for_update().get(
-                pk=self.pk
-            )
+            transfer = self.__class__.objects.select_for_update().get(pk=self.pk)
             transfer.status = TransferStatus.IN_PROGRESS.value
-            transfer.save(
-                update_fields=['status', 'date_modified']
-            )
+            transfer.save(update_fields=['status', 'date_modified'])
 
-            self.refresh_from_db()
-
-        success = False
+        self.refresh_from_db()
         new_owner = self.invite.destination_user
 
+        success = False
         try:
             if not self.asset.has_deployment:
                 with transaction.atomic():
@@ -104,17 +99,17 @@ class Transfer(models.Model):
                 # Run background tasks.
                 # 1) Rewrite `_userform_id` in MongoDB
                 async_task.delay(
-                    transfer.pk, TransferAsyncTask.SUBMISSIONS.value
+                    self.pk, TransferAsyncTask.SUBMISSIONS.value
                 )
 
                 # 2) Move media files to new owner's home directory
                 async_task.delay(
-                    transfer.pk, TransferAsyncTask.MEDIA_FILES.value
+                    self.pk, TransferAsyncTask.MEDIA_FILES.value
                 )
 
                 # 2) Move attachments to new owner's home directory
                 async_task.delay(
-                    transfer.pk, TransferAsyncTask.ATTACHMENTS.value
+                    self.pk, TransferAsyncTask.ATTACHMENTS.value
                 )
 
             success = True
@@ -161,7 +156,7 @@ class Transfer(models.Model):
         transfer_id: int,
         status: str,
         async_task_type: str,
-        exception: Optional[str],
+        exception: Optional[str] = None,
     ):
 
         with transaction.atomic():

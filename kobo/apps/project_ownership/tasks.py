@@ -13,7 +13,6 @@ from .utils import move_attachments, move_media_files, rewrite_mongo_userform_id
     autoretry_for=(
         SoftTimeLimitExceeded,
         TimeLimitExceeded,
-        AsyncTaskException,
     ),
     max_retry=5,
     retry_backoff=60,
