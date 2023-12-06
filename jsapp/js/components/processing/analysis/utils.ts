@@ -128,6 +128,21 @@ export function applyUpdateResponseToInternalQuestions(
   return newQuestions;
 }
 
+/** Update a question in a list of questions preserving existing response. */
+export function updateSingleQuestionPreservingResponse(
+  questionToUpdate: AnalysisQuestionInternal,
+  questions: AnalysisQuestionInternal[]
+): AnalysisQuestionInternal[] {
+  return clonedeep(questions).map((question) => {
+    if (question.uuid === questionToUpdate.uuid) {
+      // Preserve exsiting response, but update everything else
+      return {...questionToUpdate, response: question.response};
+    } else {
+      return question;
+    }
+  });
+}
+
 export function getQuestionsFromSchema(
   advancedFeatures: AssetAdvancedFeatures | undefined
 ): AnalysisQuestionInternal[] {
