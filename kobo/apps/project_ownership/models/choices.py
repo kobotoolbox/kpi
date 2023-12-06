@@ -19,8 +19,8 @@ class TransferAsyncTask(models.TextChoices):
     @classmethod
     def default_statuses_dict(cls):
         _default_dict = {}
-        for choice in cls.choices:
-            _default_dict[choice.value] = TransferStatus.PENDING
+        for value in cls.values:
+            _default_dict[value] = TransferStatus.PENDING.value
         return _default_dict
 
 

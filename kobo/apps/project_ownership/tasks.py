@@ -2,13 +2,11 @@ from celery.signals import task_failure, task_retry
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.apps import apps
 from django.conf import settings
-from django.db import transaction
-from django.utils import timezone
 
 from kobo.celery import celery_app
-from kpi.utils.django_orm_helper import ReplaceValues
 from .exceptions import AsyncTaskException
 from .models.transfer import TransferAsyncTask, TransferStatus
+from .utils import move_attachments, move_media_files, rewrite_mongo_userform_id
 
 
 @celery_app.task(
@@ -17,8 +15,8 @@ from .models.transfer import TransferAsyncTask, TransferStatus
         TimeLimitExceeded,
         AsyncTaskException,
     ),
+    max_retry=5,
     retry_backoff=60,
-    retry_backoff_max=600,
     retry_jitter=False,
     queue='kpi_low_priority_queue',
     soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
@@ -33,11 +31,11 @@ def async_task(transfer_id: int, async_task_type: str):
         raise AsyncTaskException(f'`{transfer}` is not in progress')
 
     if async_task_type == TransferAsyncTask.ATTACHMENTS.value:
-        pass
+        move_attachments(transfer)
     elif async_task_type == TransferAsyncTask.SUBMISSIONS.value:
-        pass
+        rewrite_mongo_userform_id(transfer)
     elif async_task_type == TransferAsyncTask.MEDIA_FILES.value:
-        pass
+        move_media_files(transfer)
     else:
         raise NotImplementedError(f'`{async_task_type}` is not supported')
 
@@ -47,25 +45,12 @@ def async_task_failure(sender=None, **kwargs):
     # Avoid circular import
     Transfer = apps.get_model('project_ownership', 'Transfer')  # noqa
 
-    exception = kwargs['exception']
+    exception = str(kwargs['exception'])
     transfer_id = kwargs['args'][0]
     async_task_type = kwargs['args'][1]
-    with transaction.atomic():
-        # Lock row to ensure status and errors are logged properly
-        transfer = Transfer.objects.select_for_update().get(pk=transfer_id)
-        Transfer.objects.filter(pk=transfer_id).update(
-            date_modified=timezone.now(),
-            status=TransferStatus.FAILED.value,
-            errors=ReplaceValues(
-                'errors',
-                updates={async_task_type: exception}
-            ),
-            async_task_statuses=ReplaceValues(
-                'async_task_statuses',
-                updates={async_task_type: TransferStatus.FAILED.value}
-            ),
-        )
-        transfer.invite.update_status()
+    Transfer.update_statuses(
+        transfer_id, TransferStatus.FAILED.value, async_task_type, exception
+    )
 
 
 @task_retry.connect(sender=async_task)
@@ -80,15 +65,9 @@ def async_task_retry(sender=None, **kwargs):
     async_task_type = kwargs['request'].get('args')[1]
     exception = str(kwargs['reason'])
 
-    with transaction.atomic():
-        Transfer.objects.select_for_update().get(pk=transfer_id)
-        Transfer.objects.filter(pk=transfer_id).update(
-            date_modified=timezone.now(),
-            errors=ReplaceValues(
-                'errors',
-                updates={async_task_type: exception}
-            ),
-        )
+    Transfer.update_statuses(
+        transfer_id, TransferStatus.IN_PROGRESS.value, async_task_type, exception
+    )
 
 
 @celery_app.task

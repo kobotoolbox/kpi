@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import Optional
 
 from django.db import models, transaction
 from django.utils import timezone
@@ -17,8 +18,8 @@ from ..tasks import async_task
 
 def default_errors_dict():
     _default_dict = {'global': ''}
-    for choice in TransferAsyncTask.choices:
-        _default_dict[choice.value] = ''
+    for value in TransferAsyncTask.values:
+        _default_dict[value] = ''
     return _default_dict
 
 
@@ -54,29 +55,18 @@ class Transfer(models.Model):
             f'{self.invite.destination_user.username}'
         )
 
-    def save(self, *args, **kwargs):
+    def calculate_global_status(self):
+        for value in TransferAsyncTask.values:
+            if self.async_task_statuses[value] == TransferStatus.FAILED.value:
+                self.status = TransferStatus.FAILED.value
+                return
+            elif self.async_task_statuses[value] != TransferStatus.SUCCESS.value:
+                return
 
-        update_fields = kwargs.get('update_fields', [])
-        update_invite_status = False
-
-        if not update_fields or 'date_modified' in update_fields:
-            self.date_modified = timezone.now()
-
-        if not update_fields or 'async_task_statuses' in update_fields:
-            update_invite_status = True
-            self._update_status()
-
-        super().save(*args, **kwargs)
-
-        if (
-            not update_fields
-            or 'status' in update_fields
-            or update_invite_status
-        ):
-            self.invite.update_status()
+        self.status = TransferStatus.SUCCESS.value
 
     def process(self):
-        if self.status != TransferStatus.PENDING:
+        if self.status != TransferStatus.PENDING.value:
             return
 
         with transaction.atomic():
@@ -143,6 +133,61 @@ class Transfer(models.Model):
                     )
                 )
                 self.refresh_from_db()
+
+    def save(self, *args, **kwargs):
+
+        update_fields = kwargs.get('update_fields', [])
+        update_invite_status = False
+
+        if not update_fields or 'date_modified' in update_fields:
+            self.date_modified = timezone.now()
+
+        if not update_fields or 'async_task_statuses' in update_fields:
+            update_invite_status = True
+            self.calculate_global_status()
+
+        super().save(*args, **kwargs)
+
+        if (
+            not update_fields
+            or 'status' in update_fields
+            or update_invite_status
+        ):
+            self.invite.update_status()
+
+    @classmethod
+    def update_statuses(
+        cls,
+        transfer_id: int,
+        status: str,
+        async_task_type: str,
+        exception: Optional[str],
+    ):
+
+        with transaction.atomic():
+            # Lock row to ensure status and errors are logged properly
+            transfer = cls.objects.select_for_update().get(pk=transfer_id)
+            transfer.async_task_statuses[async_task_type] = status
+            transfer.calculate_global_status()
+            errors = {}
+            if exception:
+                errors = {
+                    'errors': ReplaceValues(
+                        'errors',
+                        updates={async_task_type: exception}
+                    ),
+                }
+
+            cls.objects.filter(pk=transfer_id).update(
+                date_modified=timezone.now(),
+                status=transfer.status,
+                async_task_statuses=ReplaceValues(
+                    'async_task_statuses',
+                    updates={async_task_type: status}
+                ),
+                **errors
+            )
+            transfer.invite.update_status()
 
     def _reassign_project_permissions(self, update_deployment: bool = False):
         new_owner = self.invite.destination_user
