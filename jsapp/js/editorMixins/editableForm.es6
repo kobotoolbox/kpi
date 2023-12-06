@@ -96,7 +96,7 @@ export default Object.assign({
         window.setTimeout(() => {
           this.launchAppForSurveyContent(asset.content, {
             name: asset.name,
-            settings__style: asset.settings__style,
+            settings__style: asset.content.settings.style,
             asset_uid: asset.uid,
             asset_type: asset.asset_type,
             asset: asset,
