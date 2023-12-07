@@ -176,6 +176,30 @@ class KoboSignupMixin(forms.Form):
         if not SitewideMessage.objects.filter(slug='terms_of_service').exists():
             self.fields.pop('terms_of_service')
 
+    # def clean(self):
+    #     """
+    #     Override parent form to pass extra user's attributes to validation.
+    #     """
+    #     super(forms.Form, self).clean()
+
+    #     # Part of 'skip logic' for organization fields.
+    #     # Add 'Field is required' errors for organization and organization_website,
+    #     # since we un-required them in case 'organization_type' is 'none'.
+    #     if 'organization_type' in self.fields:
+    #         for field_name in ['organization', 'organization_website']:
+    #             if (
+    #                 field_name in self.fields
+    #                 and self.fields[field_name].widget.attrs.get(
+    #                     'data-required'
+    #                 )
+    #                 and self.cleaned_data.get('organization_type') != 'none'
+    #             ):
+    #                 if not self.cleaned_data.get(field_name):
+    #                     self.add_error(field_name, t('This field is required.'))
+
+    #     return self.cleaned_data
+
+
     def clean_email(self):
         email = self.cleaned_data['email']
         domain = email.split('@')[1].lower()
@@ -213,6 +237,29 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         if settings.UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE:
             self.fields['email'].widget.attrs['readonly'] = True
         self.label_suffix = ''
+
+    def clean(self):
+        """
+        Override parent form to pass extra user's attributes to validation.
+        """
+        super(BaseSocialSignupForm, self).clean()
+
+        # Part of 'skip logic' for organization fields.
+        # Add 'Field is required' errors for organization and organization_website,
+        # since we un-required them in case 'organization_type' is 'none'.
+        if 'organization_type' in self.fields:
+            for field_name in ['organization', 'organization_website']:
+                if (
+                    field_name in self.fields
+                    and self.fields[field_name].widget.attrs.get(
+                        'data-required'
+                    )
+                    and self.cleaned_data.get('organization_type') != 'none'
+                ):
+                    if not self.cleaned_data.get(field_name):
+                        self.add_error(field_name, t('This field is required.'))
+
+        return self.cleaned_data
 
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):

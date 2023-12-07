@@ -122,7 +122,9 @@ class AccountFormsTestCase(TestCase):
             with translation.override('fr'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
                 assert form.fields['organization'].required
-                assert form.fields['organization'].label == 'Organisation secrète'
+                assert (
+                    form.fields['organization'].label == 'Organisation secrète'
+                )
 
     def test_field_without_custom_label_can_be_optional(self):
         with override_config(
@@ -253,6 +255,13 @@ class AccountFormsTestCase(TestCase):
             data['organization_website'] = 'https://minilove.test'
             form = SignupForm(data)
             assert form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            data['organization'] = ''
+            data['organization_website'] = ''
+            form = SignupForm(data)
+            assert not form.is_valid()
 
             data = basic_data.copy()
             data['organization_type'] = 'none'
@@ -401,3 +410,81 @@ class AccountFormsTestCase(TestCase):
         ]
         accept_time = dateutil.parser.isoparse(accept_time_str)
         assert time_before_signup <= accept_time <= now_without_microseconds()
+
+    def test_organization_field_skip_logic_sso(self):
+        basic_data = {
+            'username': 'foo',
+            'email': 'double@foo.bar',
+            'password1': 'tooxox',
+            'password2': 'tooxox',
+        }
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization_type', 'required': False},
+                    {'name': 'organization', 'required': False},
+                    {'name': 'organization_website', 'required': False},
+                ]
+            )
+        ):
+            form = SocialSignupForm(basic_data, sociallogin=self.sociallogin)
+            assert form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            form = SocialSignupForm(data, sociallogin=self.sociallogin)
+            # No other organization fields should be required
+            assert form.is_valid()
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization_type', 'required': True},
+                    {'name': 'organization', 'required': False},
+                    {'name': 'organization_website', 'required': False},
+                ]
+            )
+        ):
+            form = SocialSignupForm(basic_data, sociallogin=self.sociallogin)
+            # Should fail now that `organization_type` is required
+            assert not form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            form = SocialSignupForm(data, sociallogin=self.sociallogin)
+            # No other organization fields should be required
+            assert form.is_valid()
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization_type', 'required': True},
+                    {'name': 'organization', 'required': True},
+                    {'name': 'organization_website', 'required': True},
+                ]
+            )
+        ):
+            form = SocialSignupForm(basic_data, sociallogin=self.sociallogin)
+            assert not form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            data['organization'] = 'ministry of love'
+            data['organization_website'] = 'https://minilove.test'
+            form = SocialSignupForm(data, sociallogin=self.sociallogin)
+            assert form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            data['organization'] = ''
+            data['organization_website'] = ''
+            form = SocialSignupForm(data, sociallogin=self.sociallogin)
+            assert not form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'none'
+            # The special string 'none' should cause the required-ness of other
+            # organization fields to be ignored
+            form = SocialSignupForm(data, sociallogin=self.sociallogin)
+            assert form.is_valid()
