@@ -2,7 +2,7 @@ import os
 
 from django.db.models import FileField
 from django.db.models.fields.files import FieldFile
-from storages.backends.s3boto3 import S3Boto3Storage
+from storages.backends.s3boto3 import ClientError, S3Boto3Storage
 
 
 class ExtendedFieldFile(FieldFile):
@@ -18,8 +18,12 @@ class ExtendedFieldFile(FieldFile):
                 'Bucket': self.storage.bucket.name,
                 'Key': self.name
             }
-            self.storage.bucket.copy(copy_source, new_path)
-            self.storage.delete(old_path)
+            try:
+                self.storage.bucket.copy(copy_source, new_path)
+                self.storage.delete(old_path)
+            except ClientError:
+                return False
+
             self.name = new_path
         else:
             try:
@@ -30,6 +34,7 @@ class ExtendedFieldFile(FieldFile):
                 return False
 
         return True
+
 
 class ExtendedFileField(FileField):
 

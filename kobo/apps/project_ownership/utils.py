@@ -13,7 +13,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
     for attachment in ReadOnlyKobocatAttachment.objects.filter(pk__in=attachment_ids):
         # Pretty slow but it should run in celery task. We want to be the
         # path of the file is saved right away.
-        # attachment.move()
+        attachment.move()
         # TODO validate, it does not re-upload the file to S3
         attachment.save(update_fields=['content'])
 
