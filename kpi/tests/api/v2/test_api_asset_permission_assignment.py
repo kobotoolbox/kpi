@@ -813,13 +813,13 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
                     {
                         'url': PERM_VALIDATE_SUBMISSIONS,
                         'filters': [
-                            [{'my_question': 'my_response1'}, {'my_question': 'my_response2'}]
+                            [{'my_question': 'my_response1'}, {'my_question2': 'my_response2'}]
                         ],
                     },
                     {
                         'url': PERM_DELETE_SUBMISSIONS,
                         'filters': [
-                            [{'my_question': 'my_response1'}, {'my_question': 'my_response2'}]
+                            [{'my_question': 'my_response1'}, {'my_question2': 'my_response2'}]
                         ],
                     }
                 ],
@@ -848,19 +848,19 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
                 'url': f'http://testserver/api/v2/permissions/{PERM_VIEW_SUBMISSIONS}/',
                 'filters': [
                     [{'_submitted_by': 'someuser'}],
-                    [{'_submitted_by': 'someuser'}, {'my_question': 'my_response1'}],
+                    [{'my_question': 'my_response1'}, {'my_question2': 'my_response2'}],
                 ],
             },
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_DELETE_SUBMISSIONS}/',
                 'filters': [
-                    [{'_submitted_by': 'someuser'}, {'my_question': 'my_response1'}],
+                    [{'my_question': 'my_response1'}, {'my_question2': 'my_response2'}],
                 ],
             },
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_VALIDATE_SUBMISSIONS}/',
                 'filters': [
-                    [{'_submitted_by': 'someuser'}, {'my_question': 'my_response1'}],
+                    [{'my_question': 'my_response1'}, {'my_question2': 'my_response2'}],
                 ],
             },
         ]
