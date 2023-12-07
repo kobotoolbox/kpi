@@ -26,7 +26,7 @@ def get_provider_appname(context, provider=None):
     provider = provider or context['provider']
     request = context['request']
     try:
-        appname = provider.get_app(request).name
+        appname = provider.app.name
         if appname:
             return appname
         return SocialApp.objects.get_current(provider, request).name
@@ -36,6 +36,4 @@ def get_provider_appname(context, provider=None):
 
 @register.simple_tag()
 def get_social_apps():
-    if settings.SOCIALACCOUNT_PROVIDERS:
-        return SocialApp.objects.filter(custom_data__isnull=True)
-    return []
+    return SocialApp.objects.filter(custom_data__isnull=True)

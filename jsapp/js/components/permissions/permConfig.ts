@@ -1,6 +1,6 @@
 import Reflux from 'reflux';
 import type {PermissionDefinition} from 'js/dataInterface';
-import type {PermissionCodename} from 'js/constants';
+import type {PermissionCodename} from './permConstants';
 
 class PermConfigStore extends Reflux.Store {
   permissions: PermissionDefinition[] = [];
