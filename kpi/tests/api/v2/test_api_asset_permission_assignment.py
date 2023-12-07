@@ -864,3 +864,34 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         ]
 
         assert expected == returned_partial_perms
+
+    def test_partial_permission_invalid(self):
+        """Poorly formatted json example"""
+        perm_user = User.objects.get(username='someuser')
+        assignments = [
+            {
+                'user': perm_user.username,
+                'permission': PERM_PARTIAL_SUBMISSIONS,
+                'partial_permissions': [
+                    {
+                        'url': PERM_VIEW_SUBMISSIONS,
+                        'filteraaa': [
+                            [{'lol': perm_user.username}]
+                        ],
+                    },
+                ],
+            }
+        ]
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            assignments
+        )
+
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
+        response = self.client.post(
+            bulk_endpoint, assignments, format='json'
+        )
+        # It would be better to 400 here
+        assert response.status_code == status.HTTP_200_OK

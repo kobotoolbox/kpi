@@ -562,7 +562,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                     ].codename
                     assignment_with_objects['partial_permissions'][
                         partial_codename
-                    ] = partial_assignment['filters']
+                    ] = partial_assignment.get('filters')
             assignments_with_objects.append(assignment_with_objects)
 
         attrs['assignments'] = assignments_with_objects
