@@ -289,8 +289,8 @@ export function getSubmissionDisplayData(
         // score and rank don't have list name on them and they need to use
         // the one of their parent
         if (row.type === SCORE_ROW_TYPE || row.type === RANK_LEVEL_TYPE) {
-          const parentGroupRow = survey.find((rowItem) =>
-            getRowName(rowItem) === parentGroup.name
+          const parentGroupRow = survey.find(
+            (rowItem) => getRowName(rowItem) === parentGroup.name
           );
           rowListName = getRowListName(parentGroupRow);
         }
@@ -312,7 +312,11 @@ export function getSubmissionDisplayData(
               getColumnLabel(asset, sdKey, false),
               sdKey,
               undefined,
-              getSupplementalDetailsContent(submissionData, sdKey, asset.advanced_features),
+              getSupplementalDetailsContent(
+                submissionData,
+                sdKey,
+                asset.advanced_features
+              )
             )
           );
         });
@@ -595,7 +599,7 @@ export function getSupplementalDetailsContent(
    * This is not an optional parameter, but it's possible it's not defined in
    * the AssetResponse object.
    */
-  advancedFeatures: AssetAdvancedFeatures | undefined,
+  advancedFeatures: AssetAdvancedFeatures | undefined
 ): string {
   let pathArray;
   const pathParts = getSupplementalPathParts(path);
@@ -639,7 +643,9 @@ export function getSupplementalDetailsContent(
     pathArray.pop();
     pathArray.push('qual');
     const qualResponses: AnalysisResponse[] = get(submission, pathArray, []);
-    const foundResponse = qualResponses.find((item: AnalysisResponse) => item.uuid === pathParts.analysisQuestionUuid);
+    const foundResponse = qualResponses.find(
+      (item: AnalysisResponse) => item.uuid === pathParts.analysisQuestionUuid
+    );
     if (foundResponse) {
       if (foundResponse.type === 'qual_select_one') {
         // We need to pass on a string, and we know that `qual_select_one` will
@@ -683,7 +689,10 @@ export function getSupplementalDetailsContent(
       // property, so we handle it here by the `val` type
       if (Array.isArray(foundResponse.val) && foundResponse.val.length > 0) {
         return foundResponse.val.join(', ');
-      } else if (typeof foundResponse.val === 'string' && foundResponse.val !== '') {
+      } else if (
+        typeof foundResponse.val === 'string' &&
+        foundResponse.val !== ''
+      ) {
         return foundResponse.val;
       } else if (typeof foundResponse.val === 'number') {
         return String(foundResponse.val);
