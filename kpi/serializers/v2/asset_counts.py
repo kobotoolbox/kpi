@@ -28,6 +28,9 @@ class AssetCountsSerializer(serializers.Serializer):
         return daily_counts
 
     def get_total_submission_count(self, asset):
+        # TODO: de-duplicate this logic with
+        # AssetSerializer.get_deployment__submission_count()
+
         request = self.context['request']
         user = get_database_user(request.user)
 
@@ -39,7 +42,10 @@ class AssetCountsSerializer(serializers.Serializer):
         if asset.has_perm(user, PERM_VIEW_SUBMISSIONS):
             return asset.deployment.submission_count
 
-        if asset.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
-            return asset.deployment.calculated_submission_count(user=user)
+        if (
+            asset.has_perm(user, PERM_PARTIAL_SUBMISSIONS)
+            and asset.deployment.submission_count == 0
+        ):
+            return 0
 
-        return 0
+        return None
