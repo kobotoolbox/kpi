@@ -3,10 +3,10 @@ import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
-import permConfig from 'js/components/permissions/permConfig';
+import permConfig from './permConfig';
 import {ANON_USERNAME_URL} from 'js/users/utils';
 import {ROOT_URL} from 'js/constants';
-import type {PermissionCodename} from 'js/constants';
+import type {PermissionCodename} from './permConstants';
 import type {PermissionResponse} from 'jsapp/js/dataInterface';
 
 interface PublicShareSettingsProps {
