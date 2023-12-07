@@ -397,9 +397,12 @@
   text-align: center;
 }
 
-.registration__bg .registration__first-half {
+.registration__bg .registration__first-half,
+.registration__bg .registration--social {
   > .newsletter_subscription,
-  > .terms_of_service {
+  > .terms_of_service,
+  > .field-social--newsletter_subscription,
+  > .field-social--terms_of_service {
     display: flex;
     align-items: center;
     margin-top: 6px;
