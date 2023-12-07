@@ -11,24 +11,25 @@ https://gitlab.com/glitchtip/glitchtip-backend/-/blob/master/users/migrations/00
 """
 def add_OIDC_settings_from_env(apps, schema_editor):
     SocialApp = apps.get_model('socialaccount', 'SocialApp')
+    SocialAppCustomData = apps.get_model('accounts', 'SocialAppCustomData')
 
-    prefix = 'SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_'
-    pattern = re.compile(r'{prefix}\w+'.format(prefix=prefix))
-    social_apps = {}
+    oidc_prefix = 'SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_'
+    oidc_pattern = re.compile(r'{prefix}\w+'.format(prefix=oidc_prefix))
+    oidc_apps = {}
 
     for key, value in {
-        key.replace(prefix, ''): val
+        key.replace(oidc_prefix, ''): val
         for key, val in os.environ.items()
-        if pattern.match(key)
+        if oidc_pattern.match(key)
     }.items():
         number, setting = key.split('_', 1)
-        if number in social_apps:
-            social_apps[number][setting] = value
+        if number in oidc_apps:
+            oidc_apps[number][setting] = value
         else:
-            social_apps[number] = {setting: value}
-    social_apps = [x for x in social_apps.values()]
+            oidc_apps[number] = {setting: value}
+    oidc_apps = [x for x in oidc_apps.values()]
 
-    for index, app in enumerate(social_apps):
+    for index, app in enumerate(oidc_apps):
         app_id = app.get('id')
         # the app needs a name to be editable in the admin - give it a default name if necessary
         app_name = app.get('name', f'OIDC {index}')
@@ -37,9 +38,10 @@ def add_OIDC_settings_from_env(apps, schema_editor):
         if app_tenant := app.get('TENANT', app.get('tenant', None)):
             app_settings['tenant'] = app_tenant
         if app_id and app_settings['server_url'] and not (
+            # if the app already exists, let's assume it's been configured
             SocialApp.objects.filter(provider_id=app_id).exists()
         ):
-            db_social_app, _ = SocialApp.objects.get_or_create(provider_id=app_id)
+            db_social_app, created = SocialApp.objects.get_or_create(provider_id=app_id)
             db_social_app.provider = 'openid_connect'
             db_social_app.name = app_name
             db_social_app.client_id = app.get('APP_client_id', '')
@@ -47,11 +49,26 @@ def add_OIDC_settings_from_env(apps, schema_editor):
             db_social_app.key = app.get('APP_key', '')
             db_social_app.settings = app_settings
             db_social_app.save()
+            # hide the OIDC provider from the login page, since it was already hidden
+            SocialAppCustomData.objects.get_or_create(social_app=db_social_app)
+
+    # copy the SOCIALACCOUNT_PROVIDERS_microsoft_TENANT variable to the `microsoft` provider, if both are present
+    if ms_tenant := os.environ.get('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
+        # only look for MS social apps that *don't* have a lowercase 'tenant' in their per-app settings
+        ms_app_query = SocialApp.objects.filter(
+            provider='microsoft'
+        ).exclude(
+            settings__has_key='tenant'
+        )
+        for ms_app in ms_app_query.iterator():
+            ms_app.settings['tenant'] = ms_tenant
+            ms_app.save()
 
 
 class Migration(migrations.Migration):
     dependencies = [
         ('socialaccount', '0005_socialtoken_nullable_app'),
+        ('accounts', '0005_do_nothing'),
     ]
 
     operations = [
