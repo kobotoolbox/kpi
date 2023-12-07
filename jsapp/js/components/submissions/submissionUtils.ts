@@ -23,13 +23,11 @@ import type {
   SubmissionResponse,
   SubmissionAttachment,
   AssetResponse,
-  AssetAdvancedFeatures,
   AnalysisFormJsonField,
 } from 'js/dataInterface';
 import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
-import type {AnalysisResponse} from 'js/components/processing/analysis/constants';
+import type {SubmissionAnalysisResponse} from 'js/components/processing/analysis/constants';
 import {QUAL_NOTE_TYPE} from 'js/components/processing/analysis/constants';
-import {findQuestionChoiceInSchema} from 'js/components/processing/analysis/utils';
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -312,11 +310,7 @@ export function getSubmissionDisplayData(
               getColumnLabel(asset, sdKey, false),
               sdKey,
               undefined,
-              getSupplementalDetailsContent(
-                submissionData,
-                sdKey,
-                asset.advanced_features
-              )
+              getSupplementalDetailsContent(submissionData, sdKey)
             )
           );
         });
@@ -594,12 +588,7 @@ export function getMediaAttachment(
  */
 export function getSupplementalDetailsContent(
   submission: SubmissionResponse,
-  path: string,
-  /**
-   * This is not an optional parameter, but it's possible it's not defined in
-   * the AssetResponse object.
-   */
-  advancedFeatures: AssetAdvancedFeatures | undefined
+  path: string
 ): string {
   let pathArray;
   const pathParts = getSupplementalPathParts(path);
@@ -642,61 +631,50 @@ export function getSupplementalDetailsContent(
     // The last element is some random uuid, but we look for `qual`.
     pathArray.pop();
     pathArray.push('qual');
-    const qualResponses: AnalysisResponse[] = get(submission, pathArray, []);
+    const qualResponses: SubmissionAnalysisResponse[] = get(submission, pathArray, []);
     const foundResponse = qualResponses.find(
-      (item: AnalysisResponse) => item.uuid === pathParts.analysisQuestionUuid
+      (item: SubmissionAnalysisResponse) => item.uuid === pathParts.analysisQuestionUuid
     );
     if (foundResponse) {
-      if (foundResponse.type === 'qual_select_one') {
-        // We need to pass on a string, and we know that `qual_select_one` will
-        // have a string response, but TypeScript doesn't, so:
-        let choiceUuid = '';
-        if (typeof foundResponse.val === 'string') {
-          choiceUuid = foundResponse.val;
-        }
-
-        const choice = findQuestionChoiceInSchema(
-          foundResponse.uuid,
-          choiceUuid,
-          advancedFeatures
-        );
-
-        return choice?.labels._default || t('N/A');
+      // For `qual_select_one` we get object
+      if (
+        typeof foundResponse.val === 'object' &&
+        'labels' in foundResponse.val
+      ) {
+        return foundResponse.val.labels._default;
       }
 
-      if (foundResponse.type === 'qual_select_multiple') {
-        // We need to iterate over the list of uuids, and we know that
-        // `qual_select_multiple` will have a string[] response, but TypeScript
-        // doesn't, so:
-        let choiceUuids: string[] = [];
-        if (Array.isArray(foundResponse.val)) {
-          choiceUuids = foundResponse.val;
-        }
-
-        const choiceLabels = choiceUuids.map((itemUuid) => {
-          const itemDefinition = findQuestionChoiceInSchema(
-            foundResponse.uuid,
-            itemUuid,
-            advancedFeatures
-          );
-          return itemDefinition?.labels._default;
+      // Here we handle both `qual_select_multiple` and `qual_tags`, as both are
+      // arrays of items
+      if (
+        Array.isArray(foundResponse.val) &&
+        foundResponse.val.length > 0
+      ) {
+        const choiceLabels = foundResponse.val.map((item) => {
+          // For `qual_select_multiple` we get an array of objects
+          if (typeof item === 'object') {
+            return item.labels._default;
+          // For `qual_tags` we get an array of strings
+          } else {
+            return item;
+          }
         });
 
-        return choiceLabels.join(', ') || t('N/A');
+        return choiceLabels.join(', ');
       }
 
-      // All the other analysis question types have literal values in the `val`
-      // property, so we handle it here by the `val` type
-      if (Array.isArray(foundResponse.val) && foundResponse.val.length > 0) {
-        return foundResponse.val.join(', ');
-      } else if (
+      if (
         typeof foundResponse.val === 'string' &&
         foundResponse.val !== ''
       ) {
         return foundResponse.val;
-      } else if (typeof foundResponse.val === 'number') {
+      }
+
+      if (typeof foundResponse.val === 'number') {
         return String(foundResponse.val);
       }
+
+      return t('N/A');
     }
   }
 
