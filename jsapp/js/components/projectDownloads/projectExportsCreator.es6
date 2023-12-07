@@ -11,9 +11,9 @@ import {actions} from 'js/actions';
 import {formatTimeDate} from 'js/utils';
 import {
   ADDITIONAL_SUBMISSION_PROPS,
-  PERMISSIONS_CODENAMES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {
   EXPORT_TYPES,
   DEFAULT_EXPORT_SETTINGS,
