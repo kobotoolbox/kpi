@@ -199,10 +199,13 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         'username',
         'email',
         'name',
-        'gender',
-        'sector',
         'country',
+        'sector',
+        'organization_type',
         'organization',
+        'organization_website',
+        'gender',
+        'newsletter_subscription',
     ]
 
     def __init__(self, *args, **kwargs):
