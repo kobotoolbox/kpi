@@ -770,6 +770,7 @@ REST_FRAMEWORK = {
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',

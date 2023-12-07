@@ -6,12 +6,6 @@
  */
 
 import {ROOT_URL, COMMON_QUERIES} from './constants';
-import type {
-  EnvStoreFieldItem,
-  FreeTierDisplay,
-  FreeTierThresholds,
-  SocialApp
-} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AnyRowTypeName,
@@ -22,7 +16,10 @@ import type {
 import type {PermissionCodename} from 'js/components/permissions/permConstants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
-import type {AnalysisQuestionSchema, AnalysisResponse} from './components/processing/analysis/constants';
+import type {
+  AnalysisQuestionSchema,
+  AnalysisResponse
+} from './components/processing/analysis/constants';
 import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
 import type {ReportsResponse} from 'js/components/reports/reportsConstants';
