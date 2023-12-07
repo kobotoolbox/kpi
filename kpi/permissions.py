@@ -5,6 +5,7 @@ from typing import Union
 
 from django.contrib.auth.models import User
 from django.http import Http404
+from kobo_service_account.utils import get_real_user
 from rest_framework import exceptions, permissions
 from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
 
@@ -462,8 +463,10 @@ class XMLExternalDataPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         """
         The responsibility for securing data behove to the owner of the
-        asset `obj` by requiring authentication on their form.
-        Otherwise, the paired source data may be exposed to anyone
+        asset `obj` (the child project) by requiring authentication on
+        their form.
+        Otherwise, the paired source (the parent project) data may be exposed
+        to anyone.
         """
         # Check whether `asset` owner's account requires authentication:
         try:
@@ -471,11 +474,13 @@ class XMLExternalDataPermission(permissions.BasePermission):
         except (User.extra_details.RelatedObjectDoesNotExist, KeyError):
             require_auth = False
 
+        real_user = get_real_user(request)
+
         # If authentication is required, `request.user` should have
         # 'add_submission' permission on `obj`
         if (
             require_auth
-            and not obj.asset.has_perm(request.user, PERM_ADD_SUBMISSIONS)
+            and not obj.asset.has_perm(real_user, PERM_ADD_SUBMISSIONS)
         ):
             raise Http404
 
