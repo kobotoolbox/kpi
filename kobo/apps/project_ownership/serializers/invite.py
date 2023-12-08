@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from ..models import Invite, InviteStatus
+from ..models import Invite, InviteStatusChoices
 
 
 class InviteSerializer(serializers.ModelSerializer):
@@ -35,4 +35,4 @@ class InviteSerializer(serializers.ModelSerializer):
         return invite.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def get_status(self, invite):
-        return InviteStatus(invite.status).value
+        return InviteStatusChoices(invite.status).value

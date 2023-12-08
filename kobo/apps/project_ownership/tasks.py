@@ -1,15 +1,19 @@
+from datetime import timedelta
+
 from celery.signals import task_failure, task_retry
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.apps import apps
 from django.conf import settings
+from django.utils import timezone
 
 from kobo.celery import celery_app
 from .exceptions import AsyncTaskException
-from .models.transfer import TransferAsyncTask, TransferStatus
+from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 from .utils import move_attachments, move_media_files, rewrite_mongo_userform_id
 
 
 @celery_app.task(
+    acks_late=True,
     autoretry_for=(
         SoftTimeLimitExceeded,
         TimeLimitExceeded,
@@ -24,17 +28,28 @@ from .utils import move_attachments, move_media_files, rewrite_mongo_userform_id
 def async_task(transfer_id: int, async_task_type: str):
     # Avoid circular import
     Transfer = apps.get_model('project_ownership', 'Transfer')  # noqa
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
+
     transfer = Transfer.objects.get(pk=transfer_id)
 
-    if transfer.status != TransferStatus.IN_PROGRESS.value:
+    if transfer.status != TransferStatusChoices.IN_PROGRESS.value:
         raise AsyncTaskException(f'`{transfer}` is not in progress')
 
-    if async_task_type == TransferAsyncTask.ATTACHMENTS.value:
+    TransferStatus.update_status(
+        transfer_id=transfer_id,
+        status=TransferStatusChoices.IN_PROGRESS.value,
+        status_type=async_task_type,
+    )
+
+    if async_task_type == TransferStatusTypeChoices.ATTACHMENTS.value:
         move_attachments(transfer)
-    elif async_task_type == TransferAsyncTask.SUBMISSIONS.value:
-        rewrite_mongo_userform_id(transfer)
-    elif async_task_type == TransferAsyncTask.MEDIA_FILES.value:
+    elif async_task_type == TransferStatusTypeChoices.MEDIA_FILES.value:
         move_media_files(transfer)
+    elif async_task_type == TransferStatusTypeChoices.SUBMISSIONS.value:
+        rewrite_mongo_userform_id(transfer)
+        # Attachments cannot be moved before `_userform_id` is updated for
+        # each submission
+        async_task.delay(transfer_id, TransferStatusTypeChoices.ATTACHMENTS.value)
     else:
         raise NotImplementedError(f'`{async_task_type}` is not supported')
 
@@ -42,14 +57,27 @@ def async_task(transfer_id: int, async_task_type: str):
 @task_failure.connect(sender=async_task)
 def async_task_failure(sender=None, **kwargs):
     # Avoid circular import
-    Transfer = apps.get_model('project_ownership', 'Transfer')  # noqa
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
 
-    exception = str(kwargs['exception'])
-    transfer_id = kwargs['args'][0]
     async_task_type = kwargs['args'][1]
-    Transfer.update_statuses(
-        transfer_id, TransferStatus.FAILED.value, async_task_type, exception
-    )
+    error = str(kwargs['exception'])
+    transfer_id = kwargs['args'][0]
+
+    if 'SIGKILL' in error:
+        # We want the process to recover if it is killed
+        TransferStatus.update_status(
+            transfer_id=transfer_id,
+            status=TransferStatusChoices.IN_PROGRESS.value,
+            status_type=async_task_type,
+            error=error,
+        )
+    else:
+        TransferStatus.update_status(
+            transfer_id=transfer_id,
+            status=TransferStatusChoices.FAILED.value,
+            status_type=async_task_type,
+            error=error,
+        )
 
 
 @task_retry.connect(sender=async_task)
@@ -58,17 +86,42 @@ def async_task_retry(sender=None, **kwargs):
     # it could help to debug if something breaks before retry
 
     # Avoid circular import
-    Transfer = apps.get_model('project_ownership', 'Transfer')  # noqa
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
 
-    transfer_id = kwargs['request'].get('args')[0]
     async_task_type = kwargs['request'].get('args')[1]
-    exception = str(kwargs['reason'])
+    error = str(kwargs['reason'])
+    transfer_id = kwargs['request'].get('args')[0]
 
-    Transfer.update_statuses(
-        transfer_id, TransferStatus.IN_PROGRESS.value, async_task_type, exception
+    TransferStatus.update_status(
+       transfer_id, TransferStatusChoices.FAILED.value, async_task_type, error
     )
 
 
 @celery_app.task
 def garbage_collector():
-    pass
+
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
+    resume_threshold = timezone.now() - timedelta(minutes=10)
+    stuck_threshold = timezone.now() - timedelta(minutes=20)
+
+    # Resume stopped involuntarily tasks
+    for transfer_status in TransferStatus.objects.filter(
+        date_modified__lte=resume_threshold,
+        date_modified__gt=stuck_threshold,
+        status_type=TransferStatusChoices.IN_PROGRESS.value,
+    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL.value):
+        async_task.delay(
+            transfer_status.transfer.pk, transfer_status.status_type
+        )
+
+    # Stop hung tasks
+    for transfer_status in TransferStatus.objects.filter(
+        date_modified__lte=resume_threshold,
+        status_type=TransferStatusChoices.IN_PROGRESS.value,
+    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL.value):
+        TransferStatus.update_status(
+            transfer_id=transfer_status.transfer.pk,
+            status=TransferStatusChoices.FAILED.value,
+            status_type=transfer_status.status_type,
+            error='Task has been stuck for 20 minutes',
+        )

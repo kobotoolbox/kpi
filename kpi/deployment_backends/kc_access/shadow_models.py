@@ -94,6 +94,104 @@ class ShadowModel(models.Model):
             app_label=app_label, model=model_name)
 
 
+class KobocatAttachmentManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(deleted_at__isnull=False)
+
+
+class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_attachment'
+
+    instance = models.ForeignKey(
+        'superuser_stats.ReadOnlyKobocatInstance',
+        related_name='attachments',
+        on_delete=models.CASCADE,
+    )
+    media_file = ExtendedFileField(
+        storage=get_kobocat_storage(), max_length=380, db_index=True
+    )
+    media_file_basename = models.CharField(
+        max_length=260, null=True, blank=True, db_index=True)
+    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
+    # `PositiveBigIntegerField` after upgrading to Django 3.1+
+    media_file_size = models.PositiveIntegerField(blank=True, null=True)
+    mimetype = models.CharField(
+        max_length=100, null=False, blank=True, default=''
+    )
+    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    objects = KobocatAttachmentManager()
+
+    @property
+    def absolute_mp3_path(self):
+        """
+        Return the absolute path on local file system of the converted version of
+        attachment. Otherwise, return the AWS url (e.g. https://...)
+        """
+
+        kobocat_storage = get_kobocat_storage()
+
+        if not kobocat_storage.exists(self.mp3_storage_path):
+            content = self.get_transcoded_audio('mp3')
+            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
+
+        if isinstance(kobocat_storage, KobocatFileSystemStorage):
+            return f'{self.media_file.path}.mp3'
+
+        return kobocat_storage.url(self.mp3_storage_path)
+
+    @property
+    def absolute_path(self):
+        """
+        Return the absolute path on local file system of the attachment.
+        Otherwise, return the AWS url (e.g. https://...)
+        """
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
+            return self.media_file.path
+
+        return self.media_file.url
+
+    @property
+    def mp3_storage_path(self):
+        """
+        Return the path of file after conversion. It is the exact same name, plus
+        the conversion audio format extension concatenated.
+        E.g: file.mp4 and file.mp4.mp3
+        """
+        return f'{self.storage_path}.mp3'
+
+    def protected_path(self, format_: Optional[str] = None):
+        """
+        Return path to be served as protected file served by NGINX
+        """
+
+        if format_ == 'mp3':
+            attachment_file_path = self.absolute_mp3_path
+        else:
+            attachment_file_path = self.absolute_path
+
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
+            # Django normally sanitizes accented characters in file names during
+            # save on disk but some languages have extra letters
+            # (out of ASCII character set) and must be encoded to let NGINX serve
+            # them
+            protected_url = urlquote(attachment_file_path.replace(
+                settings.KOBOCAT_MEDIA_PATH, '/protected')
+            )
+        else:
+            # Double-encode the S3 URL to take advantage of NGINX's
+            # otherwise troublesome automatic decoding
+            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
+
+        return protected_url
+
+    @property
+    def storage_path(self):
+        return str(self.media_file)
+
+
 class KobocatContentType(ShadowModel):
     """
     Minimal representation of Django 1.8's
@@ -557,104 +655,6 @@ class ReadOnlyModel(ShadowModel):
 
     class Meta(ShadowModel.Meta):
         abstract = True
-
-
-class ReadOnlyKobocatAttachmentManager(models.Manager):
-
-    def get_queryset(self):
-        return super().get_queryset().exclude(deleted_at__isnull=False)
-
-
-class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_attachment'
-
-    instance = models.ForeignKey(
-        'superuser_stats.ReadOnlyKobocatInstance',
-        related_name='attachments',
-        on_delete=models.CASCADE,
-    )
-    media_file = ExtendedFileField(
-        storage=get_kobocat_storage(), max_length=380, db_index=True
-    )
-    media_file_basename = models.CharField(
-        max_length=260, null=True, blank=True, db_index=True)
-    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
-    # `PositiveBigIntegerField` after upgrading to Django 3.1+
-    media_file_size = models.PositiveIntegerField(blank=True, null=True)
-    mimetype = models.CharField(
-        max_length=100, null=False, blank=True, default=''
-    )
-    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
-    objects = ReadOnlyKobocatAttachmentManager()
-
-    @property
-    def absolute_mp3_path(self):
-        """
-        Return the absolute path on local file system of the converted version of
-        attachment. Otherwise, return the AWS url (e.g. https://...)
-        """
-
-        kobocat_storage = get_kobocat_storage()
-
-        if not kobocat_storage.exists(self.mp3_storage_path):
-            content = self.get_transcoded_audio('mp3')
-            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
-
-        if isinstance(kobocat_storage, KobocatFileSystemStorage):
-            return f'{self.media_file.path}.mp3'
-
-        return kobocat_storage.url(self.mp3_storage_path)
-
-    @property
-    def absolute_path(self):
-        """
-        Return the absolute path on local file system of the attachment.
-        Otherwise, return the AWS url (e.g. https://...)
-        """
-        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
-            return self.media_file.path
-
-        return self.media_file.url
-
-    @property
-    def mp3_storage_path(self):
-        """
-        Return the path of file after conversion. It is the exact same name, plus
-        the conversion audio format extension concatenated.
-        E.g: file.mp4 and file.mp4.mp3
-        """
-        return f'{self.storage_path}.mp3'
-
-    def protected_path(self, format_: Optional[str] = None):
-        """
-        Return path to be served as protected file served by NGINX
-        """
-
-        if format_ == 'mp3':
-            attachment_file_path = self.absolute_mp3_path
-        else:
-            attachment_file_path = self.absolute_path
-
-        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
-            # Django normally sanitizes accented characters in file names during
-            # save on disk but some languages have extra letters
-            # (out of ASCII character set) and must be encoded to let NGINX serve
-            # them
-            protected_url = urlquote(attachment_file_path.replace(
-                settings.KOBOCAT_MEDIA_PATH, '/protected')
-            )
-        else:
-            # Double-encode the S3 URL to take advantage of NGINX's
-            # otherwise troublesome automatic decoding
-            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
-
-        return protected_url
-
-    @property
-    def storage_path(self):
-        return str(self.media_file)
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):

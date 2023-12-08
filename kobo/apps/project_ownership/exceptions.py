@@ -2,5 +2,5 @@ class AsyncTaskException(Exception):
     pass
 
 
-class MongoUserFormIdRewriteException(Exception):
+class TransferAlreadyProcessedException(Exception):
     pass

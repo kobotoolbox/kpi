@@ -1,2 +1,2 @@
-from .invite import Invite, InviteStatus
+from .invite import Invite
 from .transfer import Transfer, TransferStatus

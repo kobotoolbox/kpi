@@ -63,11 +63,11 @@ from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
+    KobocatAttachment,
     KobocatDailyXFormSubmissionCounter,
     KobocatMonthlyXFormSubmissionCounter,
     KobocatUserProfile,
     KobocatXForm,
-    ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
 )
 from .kc_access.utils import (
@@ -458,7 +458,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # Get attachments for the duplicated submission if there are any
-        attachment_objects = ReadOnlyKobocatAttachment.objects.filter(
+        attachment_objects = KobocatAttachment.objects.filter(
             instance_id=submission_id
         )
         attachments = (
@@ -601,7 +601,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         user: 'auth.User',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
-    ) -> ReadOnlyKobocatAttachment:
+    ) -> KobocatAttachment:
         """
         Return an object which can be retrieved by its primary key or by XPath.
         An exception is raised when the submission or the attachment is not found.
@@ -676,8 +676,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         filters['instance__xform_id'] = self.xform_id
 
         try:
-            attachment = ReadOnlyKobocatAttachment.objects.get(**filters)
-        except ReadOnlyKobocatAttachment.DoesNotExist:
+            attachment = KobocatAttachment.objects.get(**filters)
+        except KobocatAttachment.DoesNotExist:
             raise AttachmentNotFoundException
 
         return attachment
@@ -699,7 +699,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # ToDo What about adding the original basename and the question
         #  name in Mongo to avoid another DB query?
-        return ReadOnlyKobocatAttachment.objects.filter(
+        return KobocatAttachment.objects.filter(
             instance_id=submission['_id']
         )
 
