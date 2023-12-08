@@ -131,14 +131,27 @@ class KoboSignupMixin(forms.Form):
 
             field = self.fields[field_name]
             # Part of 'skip logic' for organization fields
+            #     The 'Organization Type' dropdown hides 'Organization' and
+            # 'Organization Website' inputs if the user has selected
+            # 'I am not associated with an organization'. In that case the
+            # back end accepts omitted or blank values for organization and
+            # organization_website, even if they're 'required'.
+            #     Adding errors is easier than removing errors we don't want.
+            # So make these fields 'not required', remember we did, and add
+            # 'required' errors in the clean() function.
             if (
                 desired_metadata_fields.get('organization_type')
+                and desired_field.get('required')
                 and field_name in ['organization', 'organization_website']
-                and desired_field.get('required', False)
             ):
+                # Potentially 'skippable' organization-related field
                 field.required = False
+                # Add a [data-required] attribute, used by
+                #   1. JS to replicate the 'required' appearance, and
+                #   2. clean() to remember these are conditionally required
                 field.widget.attrs.update({'data-required': True})
             else:
+                # Any other field, require based on metadata
                 field.required = desired_field.get('required', False)
             self.fields[field_name].label = desired_field['label']
 
