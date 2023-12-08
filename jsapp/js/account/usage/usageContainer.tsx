@@ -1,9 +1,9 @@
 import classnames from 'classnames';
 import prettyBytes from 'pretty-bytes';
 import React from 'react';
-import {RecurringInterval} from 'js/account/stripe.api';
+import type {RecurringInterval} from 'js/account/stripe.types';
 import Icon from 'js/components/common/icon';
-import styles from 'js/components/usageContainer.module.scss';
+import styles from 'js/account/usage/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 import AriaText from 'js/components/common/ariaText';
 

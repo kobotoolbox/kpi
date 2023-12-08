@@ -1,17 +1,18 @@
 import {when} from 'mobx';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useLocation} from 'react-router-dom';
-import type {AccountLimit} from 'js/account/stripe.api';
+import type {AccountLimit} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import UsageContainer from 'js/components/usageContainer';
+import UsageContainer from 'js/account/usage/usageContainer';
 import envStore from 'js/envStore';
 import {formatDate} from 'js/utils';
 import styles from './usage.module.scss';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {UsageContext, useUsage} from 'js/account/useUsage.hook';
+import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
+import moment from 'moment';
 
 interface LimitState {
   storageByteLimit: number | 'unlimited';
@@ -39,25 +40,11 @@ export default function Usage() {
     [usage.isLoaded, limits.isLoaded]
   );
 
-  const shortDate = useMemo(() => {
-    let format: string;
-    let date: string;
-    switch (usage.trackingPeriod) {
-      case 'year':
-        format = 'YYYY';
-        date = usage.currentYearStart;
-        break;
-      default:
-        format = 'MMM YYYY';
-        date = usage.currentMonthStart;
-        break;
-    }
-    return formatDate(date, false, format);
-  }, [usage.currentYearStart, usage.currentMonthStart, usage.trackingPeriod]);
-
   const dateRange = useMemo(() => {
     let startDate: string;
-    const endDate = formatDate(new Date().toUTCString());
+    const endDate = usage.billingPeriodEnd
+      ? formatDate(usage.billingPeriodEnd, false)
+      : formatDate(moment().endOf('month').toISOString());
     switch (usage.trackingPeriod) {
       case 'year':
         startDate = formatDate(usage.currentYearStart, false);
@@ -160,7 +147,7 @@ export default function Usage() {
             <strong className={styles.title}>
               {t('Transcription minutes')}
             </strong>
-            <time className={styles.date}>{shortDate}</time>
+            <time className={styles.date}>{dateRange}</time>
           </span>
           <UsageContainer
             usage={usage.transcriptionMinutes}
@@ -173,7 +160,7 @@ export default function Usage() {
             <strong className={styles.title}>
               {t('Translation characters')}
             </strong>
-            <time className={styles.date}>{shortDate}</time>
+            <time className={styles.date}>{dateRange}</time>
           </span>
           <UsageContainer
             usage={usage.translationChars}
