@@ -286,10 +286,8 @@ class CustomerPortalView(APIView):
             subscriber__owner__organization_user__user_id=user,
             subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
             livemode=settings.STRIPE_LIVE_MODE,
-        ).select_related(
-            'subscriptions__schedule'
         ).values(
-            'id', 'subscriptions__id', 'subscriptions__items__id', 'subscriptions__schedule__id'
+            'id', 'subscriptions__id', 'subscriptions__items__id',
         ).first()
 
         if not customer:
@@ -304,12 +302,14 @@ class CustomerPortalView(APIView):
         if price:
             """
             Customers with subscription schedules can't upgrade from the portal
-            So if the customer has a subscription schedule, release it, keeping the subscription intact
+            So if the customer has any active subscription schedules, release them, keeping the subscription intact
             """
-            schedule_id = customer['subscriptions__schedule__id']
-            if schedule_id and not SubscriptionSchedule.objects.filter(id=schedule_id).exclude(status='released').exists():
+            schedules = SubscriptionSchedule.objects.filter(
+                customer__id=customer['id'],
+            ).exclude(status__in=['released', 'canceled']).values('status', 'id')
+            for schedule in schedules:
                 stripe.SubscriptionSchedule.release(
-                    schedule_id,
+                    schedule['id'],
                     api_key=djstripe_settings.STRIPE_SECRET_KEY,
                     preserve_cancel_date=False
                 )
