@@ -673,7 +673,7 @@ export default Object.assign({
               m={['group', {groupable: groupable}]}
               onClick={this.groupQuestions}
               disabled={!groupable}
-              className={this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+              className={'left-tooltip ' + (this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : '')}
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
               <i className='k-icon k-icon-group' />
