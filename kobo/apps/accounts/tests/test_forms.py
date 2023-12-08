@@ -256,6 +256,7 @@ class AccountFormsTestCase(TestCase):
             form = SignupForm(data)
             assert form.is_valid()
 
+            # Should fail since we have a required `organization_type`
             data = basic_data.copy()
             data['organization_type'] = 'government'
             data['organization'] = ''
@@ -475,6 +476,7 @@ class AccountFormsTestCase(TestCase):
             form = SocialSignupForm(data, sociallogin=self.sociallogin)
             assert form.is_valid()
 
+            # Should fail since we have a required `organization_type`
             data = basic_data.copy()
             data['organization_type'] = 'government'
             data['organization'] = ''
@@ -486,5 +488,43 @@ class AccountFormsTestCase(TestCase):
             data['organization_type'] = 'none'
             # The special string 'none' should cause the required-ness of other
             # organization fields to be ignored
+            form = SocialSignupForm(data, sociallogin=self.sociallogin)
+            assert form.is_valid()
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization', 'required': True},
+                    {'name': 'organization_website', 'required': True},
+                ]
+            )
+        ):
+            # Support excluding 'organization_type' from metadata fields
+            form = SocialSignupForm(basic_data, sociallogin=self.sociallogin)
+            data = basic_data.copy()
+            data['organization'] = 'ministry of love'
+            data['organization_type'] = 'none'
+            # If organization_type is not in the metadata, setting
+            # organization_type to 'none' shouldn't bypass a required field
+            assert not form.is_valid()
+            data['organization_website'] = 'https://minilove.test'
+            form = SocialSignupForm(data, sociallogin=self.sociallogin)
+            assert form.is_valid()
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization_type', 'required': True},
+                ]
+            )
+        ):
+            # Support 'organization_type' by itself
+            form = SocialSignupForm(basic_data, sociallogin=self.sociallogin)
+            data = basic_data.copy()
+            assert not form.is_valid()
+            data['organization_type'] = 'government'
+            form = SocialSignupForm(data, sociallogin=self.sociallogin)
+            assert form.is_valid()
+            data['organization_type'] = 'none'
             form = SocialSignupForm(data, sociallogin=self.sociallogin)
             assert form.is_valid()

@@ -176,28 +176,28 @@ class KoboSignupMixin(forms.Form):
         if not SitewideMessage.objects.filter(slug='terms_of_service').exists():
             self.fields.pop('terms_of_service')
 
-    # def clean(self):
-    #     """
-    #     Override parent form to pass extra user's attributes to validation.
-    #     """
-    #     super(forms.Form, self).clean()
+    def clean(self):
+        """
+        Override parent form to pass extra user's attributes to validation.
+        """
+        super(forms.Form, self).clean()
 
-    #     # Part of 'skip logic' for organization fields.
-    #     # Add 'Field is required' errors for organization and organization_website,
-    #     # since we un-required them in case 'organization_type' is 'none'.
-    #     if 'organization_type' in self.fields:
-    #         for field_name in ['organization', 'organization_website']:
-    #             if (
-    #                 field_name in self.fields
-    #                 and self.fields[field_name].widget.attrs.get(
-    #                     'data-required'
-    #                 )
-    #                 and self.cleaned_data.get('organization_type') != 'none'
-    #             ):
-    #                 if not self.cleaned_data.get(field_name):
-    #                     self.add_error(field_name, t('This field is required.'))
+        # Part of 'skip logic' for organization fields.
+        # Add 'Field is required' errors for organization and organization_website,
+        # since we un-required them in case 'organization_type' is 'none'.
+        if 'organization_type' in self.fields:
+            for field_name in ['organization', 'organization_website']:
+                if (
+                    field_name in self.fields
+                    and self.fields[field_name].widget.attrs.get(
+                        'data-required'
+                    )
+                    and self.cleaned_data.get('organization_type') != 'none'
+                ):
+                    if not self.cleaned_data.get(field_name):
+                        self.add_error(field_name, t('This field is required.'))
 
-    #     return self.cleaned_data
+        return self.cleaned_data
 
 
     def clean_email(self):
@@ -238,29 +238,6 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
             self.fields['email'].widget.attrs['readonly'] = True
         self.label_suffix = ''
 
-    def clean(self):
-        """
-        Override parent form to pass extra user's attributes to validation.
-        """
-        super(BaseSocialSignupForm, self).clean()
-
-        # Part of 'skip logic' for organization fields.
-        # Add 'Field is required' errors for organization and organization_website,
-        # since we un-required them in case 'organization_type' is 'none'.
-        if 'organization_type' in self.fields:
-            for field_name in ['organization', 'organization_website']:
-                if (
-                    field_name in self.fields
-                    and self.fields[field_name].widget.attrs.get(
-                        'data-required'
-                    )
-                    and self.cleaned_data.get('organization_type') != 'none'
-                ):
-                    if not self.cleaned_data.get(field_name):
-                        self.add_error(field_name, t('This field is required.'))
-
-        return self.cleaned_data
-
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):
     field_order = [
@@ -281,7 +258,7 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         """
         Override parent form to pass extra user's attributes to validation.
         """
-        super(BaseSignupForm, self).clean()
+        super(SignupForm, self).clean()
 
         User = get_user_model()  # noqa
         dummy_user = User()
@@ -307,20 +284,5 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
                     'password2',
                     t('You must type the same password each time.'),
                 )
-
-        # Part of 'skip logic' for organization fields.
-        # Add 'Field is required' errors for organization and organization_website,
-        # since we un-required them in case 'organization_type' is 'none'.
-        if 'organization_type' in self.fields:
-            for field_name in ['organization', 'organization_website']:
-                if (
-                    field_name in self.fields
-                    and self.fields[field_name].widget.attrs.get(
-                        'data-required'
-                    )
-                    and self.cleaned_data.get('organization_type') != 'none'
-                ):
-                    if not self.cleaned_data.get(field_name):
-                        self.add_error(field_name, t('This field is required.'))
 
         return self.cleaned_data
