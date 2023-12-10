@@ -60,7 +60,7 @@ class KoboSignupMixin(forms.Form):
             ('non-profit', t('Non-profit organization')),
             ('government', t('Government institution')),
             ('educational', t('Educational organization')),
-            ('commercial', t('A commercial/for-profit')),
+            ('commercial', t('A commercial/for-profit company')),
             ('none', t('I am not associated with any organization')),
         ),
     )
@@ -99,8 +99,9 @@ class KoboSignupMixin(forms.Form):
         if 'password2' in self.fields:
             self.fields['password2'].label = t('Password confirmation')
         if 'email' in self.fields:
-            self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
-
+            self.fields['email'].widget.attrs['placeholder'] = t(
+                'name@organization.org'
+            )
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
@@ -129,7 +130,29 @@ class KoboSignupMixin(forms.Form):
                 continue
 
             field = self.fields[field_name]
-            field.required = desired_field.get('required', False)
+            # Part of 'skip logic' for organization fields
+            #     The 'Organization Type' dropdown hides 'Organization' and
+            # 'Organization Website' inputs if the user has selected
+            # 'I am not associated with an organization'. In that case the
+            # back end accepts omitted or blank values for organization and
+            # organization_website, even if they're 'required'.
+            #     Adding errors is easier than removing errors we don't want.
+            # So make these fields 'not required', remember we did, and add
+            # 'required' errors in the clean() function.
+            if (
+                desired_metadata_fields.get('organization_type')
+                and desired_field.get('required')
+                and field_name in ['organization', 'organization_website']
+            ):
+                # Potentially 'skippable' organization-related field
+                field.required = False
+                # Add a [data-required] attribute, used by
+                #   1. JS to replicate the 'required' appearance, and
+                #   2. clean() to remember these are conditionally required
+                field.widget.attrs.update({'data-required': True})
+            else:
+                # Any other field, require based on metadata
+                field.required = desired_field.get('required', False)
             self.fields[field_name].label = desired_field['label']
 
     def clean_email(self):
@@ -174,12 +197,13 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'username',
         'email',
         'country',
+        'sector',
+        'organization_type',
         'organization',
         'organization_website',
-        'organization_type'
-        'sector',
         'newsletter_subscription',
     ]
+
 
     def clean(self):
         """
@@ -211,4 +235,20 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
                     'password2',
                     t('You must type the same password each time.'),
                 )
+
+        # Part of 'skip logic' for organization fields.
+        # Add 'Field is required' errors for organization and organization_website,
+        # since we un-required them in case 'organization_type' is 'none'.
+        if 'organization_type' in self.fields:
+            for field_name in ['organization', 'organization_website']:
+                if (
+                    field_name in self.fields
+                    and self.fields[field_name].widget.attrs.get(
+                        'data-required'
+                    )
+                    and self.cleaned_data.get('organization_type') != 'none'
+                ):
+                    if not self.cleaned_data.get(field_name):
+                        self.add_error(field_name, t('This field is required.'))
+
         return self.cleaned_data

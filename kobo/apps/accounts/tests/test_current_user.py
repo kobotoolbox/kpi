@@ -142,3 +142,68 @@ class CurrentUserAPITestCase(APITestCase):
         # Ensure accepted_tos is now True after accepting ToS
         response = self.client.get(self.url)
         assert response.data['accepted_tos'] == True
+
+    def test_validate_extra_detail_organization_type(self):
+        constance.config.USER_METADATA_FIELDS = json.dumps(
+            [
+                {'name': 'organization', 'required': True},
+                {'name': 'organization_type', 'required': True},
+                {'name': 'organization_website', 'required': True},
+            ]
+        )
+
+        # Validate that a user can submit empty strings for `organization`
+        # and `organization_website` if `organization_type` is none
+        patch_data = {
+            'extra_details': {
+                'organization': '',
+                'organization_type': 'none',
+                'organization_website': '',
+            }
+        }
+        response = self.client.patch(self.url, data=patch_data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        response_extra_details = response.json()['extra_details']
+        assert response_extra_details['organization'] == ''
+        assert response_extra_details['organization_type'] == 'none'
+        assert response_extra_details['organization_website'] == ''
+
+        # Validate that a user cannot submit empty strings for `organization`
+        # and `organization_website` if `organization_type` is not none
+        patch_data = {
+            'extra_details': {
+                'organization': '',
+                'organization_type': 'government',
+                'organization_website': '',
+            }
+        }
+        response = self.client.patch(self.url, data=patch_data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            'extra_details': {
+                'organization': 'This field may not be blank.',
+                'organization_website': 'This field may not be blank.',
+            }
+        }
+
+    def test_validate_extra_detail_no_organization_type(self):
+        constance.config.USER_METADATA_FIELDS = json.dumps(
+            [
+                {'name': 'organization', 'required': True},
+                {'name': 'organization_website', 'required': True},
+            ]
+        )
+
+        # Ensure `organization` and `organization_website` fields behave normally
+        # if `organization_type` is not enabled
+        patch_data = {
+            'extra_details': {
+                'organization': 'sample',
+                'organization_website': 'sample.org',
+            }
+        }
+        response = self.client.patch(self.url, data=patch_data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        response_extra_details = response.json()['extra_details']
+        assert response_extra_details['organization'] == 'sample'
+        assert response_extra_details['organization_website'] == 'sample.org'

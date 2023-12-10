@@ -201,6 +201,19 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             constance.config.USER_METADATA_FIELDS
         )
 
+        # If the organization type is the special string 'none', then ignore
+        # the required-ness of other organization-related fields
+        desired_metadata_dict = {r['name']: r for r in desired_metadata_fields}
+        if (
+            'organization_type' in desired_metadata_dict
+            and value.get('organization_type') == 'none'
+        ):
+            for field in 'organization', 'organization_website':
+                metadata_field = desired_metadata_dict.get(field)
+                if not metadata_field:
+                    continue
+                metadata_field['required'] = False
+
         errors = {}
         for field in desired_metadata_fields:
             if not field['required']:
