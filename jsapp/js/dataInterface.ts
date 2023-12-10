@@ -691,6 +691,7 @@ export interface AccountResponse {
     gender: string;
     sector: string;
     country: string;
+    organization_type: string;
     organization: string;
     organization_website: string;
     bio: string;
@@ -699,6 +700,7 @@ export interface AccountResponse {
     twitter: string;
     linkedin: string;
     instagram: string;
+    newsletter_subscription: boolean;
     project_views_settings: ProjectViewsSettings;
     /** We store this for usage statistics only. */
     last_ui_language?: string;
