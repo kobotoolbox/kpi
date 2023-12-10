@@ -190,115 +190,6 @@ class AccountFormsTestCase(TestCase):
                 assert form.fields['organization'].required is False
                 assert form.fields['organization'].label == 'Organization'
 
-    def test_organization_field_skip_logic(self):
-        basic_data = {
-            'username': 'foo',
-            'email': 'double@foo.bar',
-            'password1': 'tooxox',
-            'password2': 'tooxox',
-        }
-
-        with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization_type', 'required': False},
-                    {'name': 'organization', 'required': False},
-                    {'name': 'organization_website', 'required': False},
-                ]
-            )
-        ):
-            form = SignupForm(basic_data)
-            assert form.is_valid()
-
-            data = basic_data.copy()
-            data['organization_type'] = 'government'
-            form = SignupForm(data)
-            # No other organization fields should be required
-            assert form.is_valid()
-
-        with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization_type', 'required': True},
-                    {'name': 'organization', 'required': False},
-                    {'name': 'organization_website', 'required': False},
-                ]
-            )
-        ):
-            form = SignupForm(basic_data)
-            # Should fail now that `organization_type` is required
-            assert not form.is_valid()
-
-            data = basic_data.copy()
-            data['organization_type'] = 'government'
-            form = SignupForm(data)
-            # No other organization fields should be required
-            assert form.is_valid()
-
-        with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization_type', 'required': True},
-                    {'name': 'organization', 'required': True},
-                    {'name': 'organization_website', 'required': True},
-                ]
-            )
-        ):
-            form = SignupForm(basic_data)
-            assert not form.is_valid()
-
-            data = basic_data.copy()
-            data['organization_type'] = 'government'
-            data['organization'] = 'ministry of love'
-            data['organization_website'] = 'https://minilove.test'
-            form = SignupForm(data)
-            assert form.is_valid()
-
-            data = basic_data.copy()
-            data['organization_type'] = 'none'
-            # The special string 'none' should cause the required-ness of other
-            # organization fields to be ignored
-            form = SignupForm(data)
-            assert form.is_valid()
-
-        with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization', 'required': True},
-                    {'name': 'organization_website', 'required': True},
-                ]
-            )
-        ):
-            # Support excluding 'organization_type' from metadata fields
-            form = SignupForm(basic_data)
-            data = basic_data.copy()
-            data['organization'] = 'ministry of love'
-            data['organization_type'] = 'none'
-            # If organization_type is not in the metadata, setting
-            # organization_type to 'none' shouldn't bypass a required field
-            assert not form.is_valid()
-            data['organization_website'] = 'https://minilove.test'
-            form = SignupForm(data)
-            assert form.is_valid()
-
-        with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization_type', 'required': True},
-                ]
-            )
-        ):
-            # Support 'organization_type' by itself
-            form = SignupForm(basic_data)
-            data = basic_data.copy()
-            assert not form.is_valid()
-            data['organization_type'] = 'government'
-            form = SignupForm(data)
-            assert form.is_valid()
-            data['organization_type'] = 'none'
-            form = SignupForm(data)
-            assert form.is_valid()
-
     def test_organization_type_valid_field(self):
         with override_config(
             USER_METADATA_FIELDS=LazyJSONSerializable(
@@ -401,3 +292,132 @@ class AccountFormsTestCase(TestCase):
         ]
         accept_time = dateutil.parser.isoparse(accept_time_str)
         assert time_before_signup <= accept_time <= now_without_microseconds()
+
+    def _organization_field_skip_logic(self, form_type, **kwargs):
+        """
+        This function tests the skip logic of different types of forms based on
+        the `form_type` argument
+        """
+        basic_data = {
+            'username': 'foo',
+            'email': 'double@foo.bar',
+            'password1': 'tooxox',
+            'password2': 'tooxox',
+        }
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization_type', 'required': False},
+                    {'name': 'organization', 'required': False},
+                    {'name': 'organization_website', 'required': False},
+                ]
+            )
+        ):
+            form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
+            assert form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            form = form_type(data, **kwargs.get('form_kwargs', {}))
+            # No other organization fields should be required
+            assert form.is_valid()
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization_type', 'required': True},
+                    {'name': 'organization', 'required': False},
+                    {'name': 'organization_website', 'required': False},
+                ]
+            )
+        ):
+            form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
+            # Should fail now that `organization_type` is required
+            assert not form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            form = form_type(data, **kwargs.get('form_kwargs', {}))
+            # No other organization fields should be required
+            assert form.is_valid()
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization_type', 'required': True},
+                    {'name': 'organization', 'required': True},
+                    {'name': 'organization_website', 'required': True},
+                ]
+            )
+        ):
+            form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
+            assert not form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            data['organization'] = 'ministry of love'
+            data['organization_website'] = 'https://minilove.test'
+            form = form_type(data, **kwargs.get('form_kwargs', {}))
+            assert form.is_valid()
+
+            # Should fail since we have a required `organization_type`
+            data = basic_data.copy()
+            data['organization_type'] = 'government'
+            data['organization'] = ''
+            data['organization_website'] = ''
+            form = form_type(data, **kwargs.get('form_kwargs', {}))
+            assert not form.is_valid()
+
+            data = basic_data.copy()
+            data['organization_type'] = 'none'
+            # The special string 'none' should cause the required-ness of other
+            # organization fields to be ignored
+            form = form_type(data, **kwargs.get('form_kwargs', {}))
+            assert form.is_valid()
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization', 'required': True},
+                    {'name': 'organization_website', 'required': True},
+                ]
+            )
+        ):
+            # Support excluding 'organization_type' from metadata fields
+            form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
+            data = basic_data.copy()
+            data['organization'] = 'ministry of love'
+            data['organization_type'] = 'none'
+            # If organization_type is not in the metadata, setting
+            # organization_type to 'none' shouldn't bypass a required field
+            assert not form.is_valid()
+            data['organization_website'] = 'https://minilove.test'
+            form = form_type(data, **kwargs.get('form_kwargs', {}))
+            assert form.is_valid()
+
+        with override_config(
+            USER_METADATA_FIELDS=LazyJSONSerializable(
+                [
+                    {'name': 'organization_type', 'required': True},
+                ]
+            )
+        ):
+            # Support 'organization_type' by itself
+            form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
+            data = basic_data.copy()
+            assert not form.is_valid()
+            data['organization_type'] = 'government'
+            form = form_type(data, **kwargs.get('form_kwargs', {}))
+            assert form.is_valid()
+            data['organization_type'] = 'none'
+            form = form_type(data, **kwargs.get('form_kwargs', {}))
+            assert form.is_valid()
+
+    def test_organization_field_skip_logic_signup_form(self):
+        self._organization_field_skip_logic(SignupForm)
+
+    def test_organization_field_skip_logic_sso_form(self):
+        self._organization_field_skip_logic(
+            SocialSignupForm, form_kwargs={'sociallogin': self.sociallogin}
+        )
