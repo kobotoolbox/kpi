@@ -12,8 +12,10 @@ from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.contrib.auth import get_user_model
 from django.conf import settings
-from django.utils.translation import gettext_lazy as t
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext, gettext_lazy as t
 
+from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 
@@ -40,6 +42,11 @@ class LoginForm(BaseLoginForm):
 
 
 class KoboSignupMixin(forms.Form):
+    # NOTE: Fields that are not part of django's contrib.auth.User model
+    #       are saved to ExtraUserDetail, via django-allauth internals
+    # SEE:
+    #     - AccountAdapter (save_user) in kobo/apps/accounts/adapter.py
+    #     - https://docs.allauth.org/en/latest/account/advanced.html#creating-and-populating-user-instances
     name = forms.CharField(
         label=USER_METADATA_DEFAULT_LABELS['name'],
         required=False,
@@ -89,9 +96,36 @@ class KoboSignupMixin(forms.Form):
         label=USER_METADATA_DEFAULT_LABELS['newsletter_subscription'],
         required=False,
     )
+    terms_of_service = forms.BooleanField(
+        # Label is dynamic; see constructor
+        required=True,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+
+        # Set dynamic label for terms of service checkbox
+        if constance.config.TERMS_OF_SERVICE_URL:
+            terms_of_service_link = (
+                f'<a href="{constance.config.TERMS_OF_SERVICE_URL}"'
+                f' target="_blank">{t("Terms of Service")}</a>'
+            )
+        else:
+            terms_of_service_link = gettext('Terms of Service')
+        if constance.config.PRIVACY_POLICY_URL:
+            privacy_policy_link = (
+                f'<a href="{constance.config.PRIVACY_POLICY_URL}"'
+                f' target="_blank">{t("Privacy Policy")}</a>'
+            )
+        else:
+            privacy_policy_link = gettext('Privacy Policy')
+        self.fields['terms_of_service'].label = mark_safe(
+            t('I agree with the ##terms_of_service## and ##privacy_policy##')
+            .replace("##terms_of_service##", terms_of_service_link)
+            .replace("##privacy_policy##", privacy_policy_link)
+        )
+
         # Remove upstream placeholders
         for field_name in ['username', 'email', 'password1', 'password2']:
             if field_name in self.fields:
@@ -99,9 +133,7 @@ class KoboSignupMixin(forms.Form):
         if 'password2' in self.fields:
             self.fields['password2'].label = t('Password confirmation')
         if 'email' in self.fields:
-            self.fields['email'].widget.attrs['placeholder'] = t(
-                'name@organization.org'
-            )
+            self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
@@ -154,6 +186,8 @@ class KoboSignupMixin(forms.Form):
                 # Any other field, require based on metadata
                 field.required = desired_field.get('required', False)
             self.fields[field_name].label = desired_field['label']
+        if not SitewideMessage.objects.filter(slug='terms_of_service').exists():
+            self.fields.pop('terms_of_service')
 
     def clean_email(self):
         email = self.cleaned_data['email']

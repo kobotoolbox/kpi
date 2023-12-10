@@ -2,6 +2,7 @@ import json
 import re
 
 import constance
+import dateutil
 from constance.test import override_config
 from django.core import mail
 from django.urls import reverse
@@ -129,15 +130,23 @@ class CurrentUserAPITestCase(APITestCase):
         # Ensure accepted_tos is initially False
         response = self.client.get(self.url)
         assert response.data['accepted_tos'] == False
+        assert (
+            'last_tos_accept_time' not in self.user.extra_details.private_data
+        )
+
+        def now_without_microseconds():
+            return timezone.now().replace(microsecond=0)
 
         # Submit a ToS acceptance request and save the current time
+        time_before_signup = now_without_microseconds()
         response = self.client.post(reverse('tos'))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         self.user.refresh_from_db()
-        assert (
+        accept_time_str = (
             self.user.extra_details.private_data['last_tos_accept_time']
-            is not None
         )
+        accept_time = dateutil.parser.isoparse(accept_time_str)
+        assert time_before_signup <= accept_time <= now_without_microseconds()
 
         # Ensure accepted_tos is now True after accepting ToS
         response = self.client.get(self.url)
