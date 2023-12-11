@@ -5,15 +5,54 @@
   background: colors.$kobo-white;  
   padding: sizes.$x20;
   margin: sizes.$x20;
+  border: 1px solid colors.$kobo-gray-96;
+  border-radius: sizes.$x5;
+}
 
+.description {
+  flex: 12;
+  margin-right: sizes.$x8;
+}
+
+.copy {
+  width: 80%;
+  margin-top: sizes.$x8;
+}
+
+.bar {
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
 
-  .description {
-    flex: 4;
-  }
-
-  .button {
+  button {
     flex: 1;
+  }
+}
+
+.modalBody {
+  line-height: sizes.$x24;
+  padding: 0 sizes.$x24;
+}
+
+.warning {
+  display: flex;
+  padding: sizes.$x12;
+  margin-bottom: sizes.$x12;
+  background-color: lighten(colors.$kobo-red, 20%);
+  border-radius: sizes.$x5;
+}
+
+.warningIcon {
+  margin-right: sizes.$x8;
+}
+
+@media screen and (max-width: 768px) {
+  .root {
+    display: block;
+
+    .description {
+      margin-bottom: 12px;
+    }
   }
 }
