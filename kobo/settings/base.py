@@ -1002,12 +1002,12 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Schedule every 30 minutes
     'project-ownership-task-scheduler': {
-        'task': 'kobo.apps.trash_bin.tasks.task_scheduler',
+        'task': 'kobo.apps.project_ownership.tasks.task_scheduler',
         'schedule': crontab(minute=10),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     'project-ownership-garbage-collector': {
-        'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
+        'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
         'schedule': crontab(minute=30),
         'options': {'queue': 'kpi_low_priority_queue'}
     },

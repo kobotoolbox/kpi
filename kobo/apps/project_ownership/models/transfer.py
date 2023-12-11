@@ -26,7 +26,9 @@ class Transfer(TimeStampedModel):
         on_delete=models.CASCADE,
     )
     invite = models.ForeignKey(
-        Invite, related_name='transfers', on_delete=models.CASCADE
+        Invite,
+        related_name='transfers',
+        on_delete=models.CASCADE,
     )
 
     class Meta:
