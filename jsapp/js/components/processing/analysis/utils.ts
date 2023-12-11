@@ -219,7 +219,9 @@ async function updateResponse(
 
     const apiResponse = await fetchPostUrl<SubmissionProcessingDataResponse>(
       processingUrl,
-      payload as Json
+      payload as Json,
+      // We handle the errors in the `updateResponseAndReducer` function.
+      {notifyAboutError: false}
     );
 
     return {
