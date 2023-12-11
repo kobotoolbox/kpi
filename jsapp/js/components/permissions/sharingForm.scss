@@ -143,21 +143,6 @@ $s-gray-row-spacing: 10px;
   font-weight: bold;
 }
 
-.form-modal__item--anonymous-submissions {
-  display: flex;
-  padding-bottom: sizes.$x12;
-  padding-top: sizes.$x8;
-  border-bottom: 1px solid colors.$kobo-gray-96;
-
-  .toggle-switch {
-    padding-right: sizes.$x8;
-  }
-
-  .checkbox__label {
-    max-width: 100% !important;
-  }
-}
-
 .user-permissions-editor {
   .react-tagsinput-input {
     background-color: colors.$kobo-white;

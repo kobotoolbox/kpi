@@ -10,7 +10,6 @@ import sessionStore from 'js/stores/session';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
-import Checkbox from 'js/components/common/checkbox';
 import Icon from 'js/components/common/icon';
 import mixins from '../mixins';
 import {actions} from '../actions';
@@ -30,12 +29,13 @@ import {
 import permConfig from 'js/components/permissions/permConfig';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
+import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
+import AnonymousSubmission from './anonymousSubmission.component';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
   PERMISSIONS_CODENAMES.add_submissions
 ).url;
-const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 class FormLanding extends React.Component {
   constructor(props) {
@@ -425,24 +425,10 @@ class FormLanding extends React.Component {
             <bem.FormView__cell
               m={['padding', 'anonymous-submissions', 'bordertop']}
             >
-              <ToggleSwitch
+              <AnonymousSubmission
                 checked={this.state.anonymousSubmissions}
                 onChange={() => this.updateAssetAnonymousSubmissions()}
-                label={t(
-                  'Allow submissions to this form without a username and password'
-                )}
               />
-              <a
-                href={
-                  envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
-                }
-                target='_blank'
-                data-tip={t(
-                  'Allow anyone to see this form and add submissions. Click the icon to learn more.'
-                )}
-              >
-                <Icon size='s' name='help' color='storm' />
-              </a>
             </bem.FormView__cell>
           )}
         </bem.FormView__cell>

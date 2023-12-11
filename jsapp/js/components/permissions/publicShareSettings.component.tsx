@@ -11,6 +11,7 @@ import type {PermissionResponse} from 'jsapp/js/dataInterface';
 import envStore from 'js/envStore';
 import Icon from 'js/components/common/icon';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
+import AnonymousSubmission from '../anonymousSubmission.component';
 
 const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
@@ -70,22 +71,10 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
     return (
       <bem.FormModal__item m='permissions'>
         <bem.FormModal__item m='anonymous-submissions'>
-          <ToggleSwitch
+          <AnonymousSubmission
             checked={anonCanAddData}
             onChange={this.togglePerms.bind(this, 'add_submissions')}
-            label={t(
-              'Allow submissions to this form without a username and password'
-            )}
           />
-          <a
-            href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
-            target='_blank'
-            data-tip={t(
-              'Allow anyone to see this form and add submissions. Click the icon to learn more.'
-            )}
-          >
-            <Icon size='s' name='help' color='storm' />
-          </a>
         </bem.FormModal__item>
 
         <bem.FormModal__item m='permissions-header'>

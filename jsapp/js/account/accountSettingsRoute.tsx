@@ -17,14 +17,13 @@ import type {
   AccountFieldsValues,
   AccountFieldsErrors,
 } from './account.constants';
+import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
-
-const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 interface Form {
   isPristine: boolean;
