@@ -54,4 +54,19 @@
 
   organization_type.addEventListener('change', applySkipLogic)
   applySkipLogic()
+
+  /*
+    Improve DOM source order of Django checkbox form elements
+  */
+  document.querySelectorAll('form.registration input[type="checkbox"]').forEach(
+    (checkbox) => {
+      // Move checkbox before label
+      checkbox.parentElement.prepend(checkbox)
+      // Move 'required' asterisk into label
+      asterisk = checkbox.parentElement.querySelector('span.required')
+      if (asterisk) {
+        asterisk.parentElement.querySelector('label').append(asterisk)
+      }
+    }
+  )
 })()
