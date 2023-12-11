@@ -12,6 +12,7 @@ import commonStyles from './common.module.scss';
 
 interface IntegerResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
 /**
@@ -80,6 +81,7 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
           onChange={onInputChange}
           placeholder={t('Type your answer')}
           onBlur={saveResponse}
+          disabled={!props.canEdit}
         />
       </section>
     </>

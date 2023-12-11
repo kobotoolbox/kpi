@@ -14,6 +14,7 @@ import styles from './selectOneResponseForm.module.scss';
 
 interface SelectOneResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
 /**
@@ -87,6 +88,7 @@ export default function SelectOneResponseForm(
           onChange={onRadioChange}
           selected={response}
           isClearable
+          isDisabled={!props.canEdit}
         />
       </section>
     </>

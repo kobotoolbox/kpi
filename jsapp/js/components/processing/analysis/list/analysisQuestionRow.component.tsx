@@ -63,6 +63,12 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     return userCan('manage_asset', asset);
   })();
 
+  // Responding to analysis question requires `edit_submissions` permission.
+  const hasEditSubmissionsPermissions = (() => {
+    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+    return userCan('edit_submissions', asset);
+  })();
+
   const isDragDisabled =
     analysisQuestions.state.isPending || !hasManagePermissions;
 
@@ -197,19 +203,44 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
             return <CommonHeader uuid={item.uuid} />;
           }
           case 'qual_select_multiple': {
-            return <SelectMultipleResponseForm uuid={item.uuid} />;
+            return (
+              <SelectMultipleResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           case 'qual_select_one': {
-            return <SelectOneResponseForm uuid={item.uuid} />;
+            return (
+              <SelectOneResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           case 'qual_tags': {
-            return <TagsResponseForm uuid={item.uuid} />;
+            return (
+              <TagsResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           case 'qual_integer': {
-            return <IntegerResponseForm uuid={item.uuid} />;
+            return (
+              <IntegerResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           case 'qual_text': {
-            return <TextResponseForm uuid={item.uuid} />;
+            return (
+              <TextResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           default: {
             return (
