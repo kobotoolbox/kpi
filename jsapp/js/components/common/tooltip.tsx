@@ -1,9 +1,14 @@
 import React from 'react';
 
+export type TooltipAlignment = 'right' | 'left' | 'center';
+
 export interface TooltipProps {
+  /** Content of the tooltip */
   text: string;
+  /** Accessible label for screen readers */
   ariaLabel: string;
-  alignment?: 'right' | 'left' | '';
+  /** Position of the tooltip (centered as default) */
+  alignment?: TooltipAlignment;
 }
 
 /**
@@ -11,13 +16,6 @@ export interface TooltipProps {
  * accessibility features, such as readability. While we have the tooltip.scss
  * component, that provides styling but not other functionaltiy such as
  * allowing tooltips to work on disabled buttons.
- *
- * @param {string} text - Content of the tooltip.
- * @param {string} ariaLabel - Accessible label for screen readers.
- * @param {'right' | 'left' | ''} alignment - Position of the tooltip (centered
- * if undefined or set to an empty string).
- * @param {React.ReactNode} children - Button that triggers the tooltip when
- * hovered.
  */
 const Tooltip: React.FC<TooltipProps> = ({
   text,
@@ -27,7 +25,7 @@ const Tooltip: React.FC<TooltipProps> = ({
 }) => (
   <span
     data-tip={text}
-    className={`${alignment}-tooltip`}
+    className={`${alignment || 'center'}-tooltip`}
     aria-label={ariaLabel}
   >
     {children}

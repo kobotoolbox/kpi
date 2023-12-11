@@ -15,10 +15,10 @@ export default {
     },
     alignment: {
       description:
-        'Position of the tooltip (takes empty string to display the default centered alignment)',
-      options: ['right', 'left', ''],
+        'Position of the tooltip (centered as default)',
+      options: ['right', 'left', 'center'],
       control: 'select',
-      defaultValue: '',
+      defaultValue: 'center',
     },
     ariaLabel: {
       description: 'Accessible label for screen readers',
@@ -35,7 +35,7 @@ const Template: Story<TooltipProps> = (args) => (
 export const Default = Template.bind({});
 Default.args = {
   text: 'Default Tooltip Text',
-  alignment: '',
+  alignment: 'center',
   ariaLabel: 'Default Tooltip Text',
 };
 

@@ -3,7 +3,7 @@ import type {IconName} from 'jsapp/fonts/k-icons';
 import type {IconSize} from 'js/components/common/icon';
 import Icon from 'js/components/common/icon';
 import './button.scss';
-import Tooltip from './tooltip';
+import Tooltip, { TooltipAlignment } from './tooltip';
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't
@@ -63,7 +63,7 @@ export interface ButtonProps {
    */
   tooltip?: string;
   /** Sets the alignment of the tooltip */
-  tooltipPosition?: 'right' | 'left' | '';
+  tooltipPosition?: TooltipAlignment;
   isDisabled?: boolean;
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
