@@ -543,7 +543,10 @@ export default Object.assign({
     if (this.state.backRoute === ROUTES.FORMS) {
       targetRoute = ROUTES.FORM.replace(':uid', this.state.asset_uid);
     } else if (this.state.backRoute === ROUTES.LIBRARY) {
-      targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
+      // Check if the the uid is undefined to prevent getting an Access Denied screen
+      if (this.state.asset_uid !== undefined) {
+        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
+      }
     }
     this.safeNavigateToRoute(targetRoute);
   },
