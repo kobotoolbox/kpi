@@ -66,7 +66,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   // Responding to analysis question requires `edit_submissions` permission.
   const hasEditSubmissionsPermissions = (() => {
     const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
-    return userCan('edit_submissions', asset);
+    return userCan('change_submission', asset);
   })();
 
   const isDragDisabled =
