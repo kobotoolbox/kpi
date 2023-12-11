@@ -15,6 +15,8 @@ import type {AnalysisQuestionInternal} from '../constants';
 import singleProcessingStore from '../../singleProcessingStore';
 import type {FailResponse} from 'js/dataInterface';
 import {handleApiFail} from 'js/api';
+import assetStore from 'js/assetStore';
+import {userCan} from 'js/components/permissions/utils';
 
 interface ResponseFormHeaderProps {
   uuid: string;
@@ -41,6 +43,12 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   if (!qaDefinition) {
     return null;
   }
+
+  // Editing and deleting question definition requires `manage_asset` permission.
+  const hasManagePermissions = (() => {
+    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+    return userCan('manage_asset', asset);
+  })();
 
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
 
@@ -143,6 +151,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         // We only allow editing one question at a time, so adding new is not
         // possible until user stops editing
         isDisabled={
+          !hasManagePermissions ||
           analysisQuestions.state.questionsBeingEdited.length !== 0 ||
           analysisQuestions.state.isPending
         }
@@ -154,7 +163,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}
-        isDisabled={analysisQuestions.state.isPending}
+        isDisabled={!hasManagePermissions || analysisQuestions.state.isPending}
       />
     </header>
   );

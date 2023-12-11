@@ -24,6 +24,8 @@ import classnames from 'classnames';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import {handleApiFail} from 'js/api';
 import type {FailResponse} from 'js/dataInterface';
+import assetStore from 'js/assetStore';
+import {userCan} from 'js/components/permissions/utils';
 
 export interface AnalysisQuestionRowProps {
   uuid: string;
@@ -55,7 +57,14 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     return null;
   }
 
-  const isDragDisabled = analysisQuestions.state.isPending;
+  // Reordering analysis questions requires `manage_asset` permission.
+  const hasManagePermissions = (() => {
+    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+    return userCan('manage_asset', asset);
+  })();
+
+  const isDragDisabled =
+    analysisQuestions.state.isPending || !hasManagePermissions;
 
   const previewRef = useRef<HTMLLIElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);

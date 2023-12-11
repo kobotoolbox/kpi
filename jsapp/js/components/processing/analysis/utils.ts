@@ -169,7 +169,11 @@ export async function updateSurveyQuestions(
   try {
     const response = await fetchPatch<AssetResponse>(
       endpoints.ASSET_URL.replace(':uid', assetUid),
-      {advanced_features: advancedFeatures as Json}
+      {advanced_features: advancedFeatures as Json},
+      // The `updateSurveyQuestions` function can fail for other reasons too, so
+      // we rely on the error displaying to be handled elsewhere - to avoid
+      // duplicated notifications
+      {notifyAboutError: false}
     );
 
     // TODO think of better way to handle this
