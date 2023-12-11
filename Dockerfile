@@ -116,7 +116,7 @@ WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
     npm install -g npm@8.5.5 && \
-    npm install -g check-dependencies@1 && \
+    npm install -g check-dependencies && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
     npm install --quiet && \
