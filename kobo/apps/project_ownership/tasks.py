@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from celery.signals import task_failure, task_retry
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
+from constance import config
 from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
@@ -98,30 +99,56 @@ def async_task_retry(sender=None, **kwargs):
 
 
 @celery_app.task
-def garbage_collector():
+def task_scheduler():
+    """
+    This task restarts previous tasks which have been stopped accidentally,
+    e.g.: docker container/k8s pod restart or OOM killed.
 
+    FIXME `ack_late=True` would have been a better (more reliable) option, i.e.:
+        delegate to celery internal mechanism to restart tasks itself.
+        Unfortunately, it does not seem to work as a parameter of @celery_app.task
+        decorator (it is ignored), but as a global setting - which would have
+        affect all celery tasks across the app.
+    """
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
-    resume_threshold = timezone.now() - timedelta(minutes=10)
-    stuck_threshold = timezone.now() - timedelta(minutes=20)
+    resume_threshold = timezone.now() - timedelta(
+        minutes=config.PROJECT_OWNERSHIP_RESUME_THRESHOLD
+    )
+    stuck_threshold = timezone.now() - timedelta(
+        minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
+    )
 
     # Resume stopped involuntarily tasks
     for transfer_status in TransferStatus.objects.filter(
         date_modified__lte=resume_threshold,
-        date_modified__gt=stuck_threshold,
-        status_type=TransferStatusChoices.IN_PROGRESS.value,
+        date_created__gt=stuck_threshold,
+        status=TransferStatusChoices.IN_PROGRESS.value,
     ).exclude(status_type=TransferStatusTypeChoices.GLOBAL.value):
         async_task.delay(
             transfer_status.transfer.pk, transfer_status.status_type
         )
 
+
+@celery_app.task
+def garbage_collector():
+    """
+    Flag tasks as failed if they have been created for a long time
+    """
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
+    stuck_threshold = timezone.now() - timedelta(
+        minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
+    )
+
     # Stop hung tasks
     for transfer_status in TransferStatus.objects.filter(
-        date_modified__lte=resume_threshold,
-        status_type=TransferStatusChoices.IN_PROGRESS.value,
+        date_created__lte=stuck_threshold,
+        status=TransferStatusChoices.IN_PROGRESS.value,
     ).exclude(status_type=TransferStatusTypeChoices.GLOBAL.value):
         TransferStatus.update_status(
             transfer_id=transfer_status.transfer.pk,
             status=TransferStatusChoices.FAILED.value,
             status_type=transfer_status.status_type,
-            error='Task has been stuck for 20 minutes',
+            error=(
+                f'Task has been stuck for more than {stuck_threshold} minutes',
+            )
         )

@@ -1,5 +1,4 @@
 import os
-import time
 from typing import Optional
 
 from django.apps import apps
@@ -54,8 +53,6 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
         pk__in=attachment_ids
     ).exclude(media_file__startswith=f'{transfer.asset.owner.username}/')
 
-    print('ATTACHMENT COUNTS', attachments.count())
-
     for attachment in attachments.iterator():
         # Pretty slow but it should run in celery task. We want to be the
         # path of the file is saved right away. It lets us resume when it stopped
@@ -65,10 +62,8 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                 transfer, attachment.media_file.name
             )
         ):
-            print(f'Could not find target_folder', flush=True)
             continue
         else:
-            print(f'MOVE TO {target_folder}', flush=True)
             attachment.media_file.move(target_folder)
             # TODO validate, it does not re-upload the file to S3
             attachment.save(update_fields=['media_file'])
@@ -79,8 +74,6 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             transfer.statuses.filter(status_type=async_task_type).update(
                 date_modified=timezone.now()
             )
-            print('WAITING... ')
-            time.sleep(60)
 
     _mark_task_as_successful(transfer, async_task_type)
 
@@ -114,13 +107,13 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
 
 
 def rewrite_mongo_userform_id(transfer: 'project_ownership.Transfer'):
-    new_owner = transfer.invite.destination_user
+    old_owner = transfer.invite.source_user
 
     if not transfer.asset.has_deployment:
         return
 
     if not transfer.asset.deployment.transfer_submissions_ownership(
-        new_owner.username
+        old_owner.username
     ):
         raise AsyncTaskException(
             'Could not rewrite MongoDB `_userform_id` successfully'

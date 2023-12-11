@@ -469,6 +469,20 @@ CONSTANCE_CONFIG = {
         ),
         'i18n_text_jsonfield_schema',
     ),
+    'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
+        10,
+        'Number of minutes asynchronous tasks can be idle before being '
+        'restarted.\n'
+        'It is recommended to keep greater than 10 minutes.',
+        'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_STUCK_THRESHOLD': (
+        12 * 60,
+        'Number of minutes asynchronous tasks can run before being '
+        'flagged as failed.\n'
+        'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`',
+        'positive_int',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -511,6 +525,9 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     }],
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {
         'min_value': -1
+    }],
+    'positive_int': ['django.forms.fields.IntegerField', {
+        'min_value': 0
     }],
 }
 
@@ -564,6 +581,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PASSWORD_CUSTOM_CHARACTER_RULES',
         'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
         'CUSTOM_PASSWORD_GUIDANCE_TEXT',
+    ),
+    'Transfer project ownership': (
+        'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
+        'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -977,6 +998,17 @@ CELERY_BEAT_SCHEDULE = {
     'markdown-images-garbage-collector': {
         'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
         'schedule': crontab(hour=0, minute=30, day_of_week=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 30 minutes
+    'project-ownership-task-scheduler': {
+        'task': 'kobo.apps.trash_bin.tasks.task_scheduler',
+        'schedule': crontab(minute=10),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    'project-ownership-garbage-collector': {
+        'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
+        'schedule': crontab(minute=30),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }
