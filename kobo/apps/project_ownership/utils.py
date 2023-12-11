@@ -4,7 +4,10 @@ from typing import Optional
 from django.apps import apps
 from django.utils import timezone
 
-from kpi.deployment_backends.kc_access.shadow_models import KobocatAttachment
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatAttachment,
+    KobocatMetadata,
+)
 from kpi.models.asset import AssetFile
 from kpi.utils.log import logging
 from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
@@ -12,14 +15,12 @@ from .exceptions import AsyncTaskException
 
 
 def get_target_folder(
-    transfer: 'project_ownership.Transfer', filename: str
+    previous_owner_username: str, new_owner_username: str, filename: str
 ) -> Optional[str]:
-    old_owner = transfer.invite.source_user
-    new_owner = transfer.invite.destination_user
 
     try:
         target_folder = os.path.dirname(
-            filename.replace(old_owner.username, new_owner.username)
+            filename.replace(previous_owner_username, new_owner_username)
         )
     except FileNotFoundError:
         logging.error(
@@ -59,13 +60,14 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
         # in case of failure.
         if not (
             target_folder := get_target_folder(
-                transfer, attachment.media_file.name
+                transfer.invite.source_user.username,
+                transfer.invite.destination_user.username,
+                attachment.media_file.name,
             )
         ):
             continue
         else:
             attachment.media_file.move(target_folder)
-            # TODO validate, it does not re-upload the file to S3
             attachment.save(update_fields=['media_file'])
 
             # We only need to update `date_modified` to update task heart beat.
@@ -85,13 +87,42 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
         file_type=AssetFile.FORM_MEDIA
     ).exclude(content__startswith=f'{transfer.asset.owner.username}/')
 
+    if transfer.asset.has_deployment:
+        kc_files = {
+            kc_file.file_hash: kc_file
+            for kc_file in KobocatMetadata.objects.filter(
+                xform_id=transfer.asset.deployment.xform.pk
+            )
+        }
+
     for media_file in media_files:
-        # Pretty slow but it should run in celery task. We want to be sure the
-        # path of the file is saved right away. It lets us resume when it stopped
-        # in case of failure.
-        media_file.move()
-        # TODO validate, it does not re-upload the file to S3
-        media_file.save(update_fields=['content'])
+        if not (
+            target_folder := get_target_folder(
+                transfer.invite.source_user.username,
+                transfer.invite.destination_user.username,
+                media_file.content.name,
+            )
+        ):
+            continue
+        else:
+            # Pretty slow but it should run in celery task. We want to be sure the
+            # path of the file is saved right away. It lets us resume when it stopped
+            # in case of failure.
+            media_file.content.move(target_folder)
+            old_md5 = media_file.metadata.pop('hash', None)
+            media_file.set_md5_hash()
+            if old_md5 in kc_files.keys():
+                kc_obj = kc_files[old_md5]
+                if kc_target_folder := get_target_folder(
+                    transfer.invite.source_user.username,
+                    transfer.invite.destination_user.username,
+                    kc_obj.data_file.name,
+                ):
+                    kc_obj.data_file.move(kc_target_folder)
+                    kc_obj.file_hash = media_file.md5_hash
+                    kc_obj.save(update_fields=['data_file', 'file_hash'])
+
+            media_file.save(update_fields=['content', 'metadata'])
 
         # We only need to update `date_modified` to update task heart beat.
         # No need to use `TransferStatus.update_status()` and
@@ -99,9 +130,6 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
         transfer.statuses.filter(status_type=async_task_type).update(
             date_modified=timezone.now()
         )
-
-    # Do not sync undeployed thing.
-    # transfer.asset.deployment.sync_media_files()
 
     _mark_task_as_successful(transfer, async_task_type)
 

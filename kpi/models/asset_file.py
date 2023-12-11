@@ -234,7 +234,7 @@ class AssetFile(models.Model, AbstractFormMedia):
                                           prefix=True)
             else:
                 try:
-                    md5_hash = calculate_hash(self.content.file.read(), prefix=True)
+                    md5_hash = calculate_hash(self.content.read(), prefix=True)
                 except ValueError:
                     md5_hash = None
 

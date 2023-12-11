@@ -370,6 +370,28 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 return []
 
 
+class KobocatMetadata(ShadowModel):
+
+    MEDIA_FILES_TYPE = [
+        'media',
+        'paired_data',
+    ]
+
+    xform = models.ForeignKey('shadow_model.KobocatXForm', on_delete=models.CASCADE)
+    data_type = models.CharField(max_length=255)
+    data_value = models.CharField(max_length=255)
+    data_file = ExtendedFileField(storage=get_kobocat_storage(), blank=True, null=True)
+    data_file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_hash = models.CharField(max_length=50, blank=True, null=True)
+    from_kpi = models.BooleanField(default=False)
+    data_filename = models.CharField(max_length=255, blank=True, null=True)
+    date_created = models.DateTimeField(default=timezone.now)
+    date_modified = models.DateTimeField(default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'main_metadata'
+
+
 class KobocatMonthlyXFormSubmissionCounter(ShadowModel):
     year = models.IntegerField()
     month = models.IntegerField()
