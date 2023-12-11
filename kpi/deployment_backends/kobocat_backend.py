@@ -1339,13 +1339,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             + self.xform.attachment_storage_bytes
         )
 
-    def transfer_submissions_ownership(self, new_owner_username: str) -> bool:
+    def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 
         results = settings.MONGO_DB.instances.update_many(
-            {'_userform_id': self.mongo_userform_id},
+            {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
             {
                 '$set': {
-                    '_userform_id': f'{new_owner_username}_{self.xform_id_string}'
+                    '_userform_id': self.mongo_userform_id
                 }
             },
         )
