@@ -144,7 +144,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
 
             <HeaderTitleEditor asset={asset} isEditable={userCanEditAsset} />
 
-            {asset.has_deployment && (
+            {asset.has_deployment && asset.deployment__submission_count !== null && (
               <bem.MainHeader__counter>
                 {asset.deployment__submission_count} {t('submissions')}
               </bem.MainHeader__counter>

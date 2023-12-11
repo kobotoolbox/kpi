@@ -14,6 +14,7 @@ interface AssetUsage {
 export interface UsageResponse {
   current_month_start: string;
   current_year_start: string;
+  billing_period_end: string | null;
   per_asset_usage: AssetUsage[];
   total_submission_count: {
     current_month: number;
@@ -39,17 +40,26 @@ export async function getUsage(organization_id: string | null = null) {
   if (organization_id) {
     return fetchGet<UsageResponse>(
       ORGANIZATION_USAGE_URL.replace('##ORGANIZATION_ID##', organization_id),
-      {includeHeaders: true}
+      {
+        includeHeaders: true,
+        errorMessageDisplay: t('There was an error fetching usage data.'),
+      }
     );
   }
-  return fetchGet<UsageResponse>(USAGE_URL, {includeHeaders: true});
+  return fetchGet<UsageResponse>(USAGE_URL, {
+    includeHeaders: true,
+    errorMessageDisplay: t('There was an error fetching usage data.'),
+  });
 }
 
 export async function getUsageForOrganization() {
+  let organizations;
   try {
-    const organizations = await getOrganization();
-    return await getUsage(organizations.results?.[0].id);
+    organizations = await getOrganization();
   } catch (error) {
-    return null;
+    // if we can't get the organizations, just get usage for the current user
+    return await getUsage();
   }
+
+  return await getUsage(organizations.results?.[0].id);
 }
