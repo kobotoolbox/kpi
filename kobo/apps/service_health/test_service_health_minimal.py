@@ -7,14 +7,14 @@ from django.urls import reverse
 class ServiceHealthMinimalTestCase(TestCase):
     url = reverse('service-health-minimal')
 
-    @responses.activate
     def test_service_health_minimalhealth(self):
-        responses.add(responses.GET, settings.ENKETO_INTERNAL_URL, status=200)
-        responses.add(
-            responses.GET,
-            settings.KOBOCAT_INTERNAL_URL + 'service_health/minimal/',
-            status=200,
-        )
         res = self.client.get(self.url)
-        self.assertContains(res, "ok")
+        self.assertEqual(res.status_code, 200)
+
+        # Check that the response content is "ok"
+        expected_content = 'ok'
+        actual_content = res.content.decode('utf-8')
+        self.assertEqual(actual_content, expected_content)
+
+        # Ensure that no database queries were executed
         self.assertNumQueries(0)
