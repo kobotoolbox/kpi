@@ -54,6 +54,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
     // Update endpoint and reducer
     updateResponseAndReducer(
       analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
       question.type,
       newTags

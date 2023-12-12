@@ -3,6 +3,7 @@ import AnalysisQuestionsContext from './analysisQuestions.context';
 import AnalysisContentEmpty from './analysisContentEmpty.component';
 import AnalysisQuestionsList from './list/analysisQuestionsList.component';
 import styles from './analysisContent.module.scss';
+import singleProcessingStore from '../singleProcessingStore';
 
 /** Displays either a special message for no content, or the list of questions. */
 export default function AnalysisContent() {
@@ -11,15 +12,16 @@ export default function AnalysisContent() {
     return null;
   }
 
+  // We only want to display analysis questions for this survey question
+  const filteredQuestions = analysisQuestions.state.questions.filter(
+    (question) => question.qpath === singleProcessingStore.currentQuestionQpath
+  );
+
   return (
     <section className={styles.root}>
-      {analysisQuestions.state.questions.length === 0 && (
-        <AnalysisContentEmpty />
-      )}
+      {filteredQuestions.length === 0 && <AnalysisContentEmpty />}
 
-      {analysisQuestions.state.questions.length > 0 && (
-        <AnalysisQuestionsList />
-      )}
+      {filteredQuestions.length > 0 && <AnalysisQuestionsList />}
     </section>
   );
 }

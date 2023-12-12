@@ -131,7 +131,6 @@ export default function AnalysisQuestionEditor(
       try {
         const response = await updateSurveyQuestions(
           singleProcessingStore.currentAssetUid,
-          singleProcessingStore.currentQuestionQpath,
           updatedQuestions
         );
 

@@ -81,7 +81,6 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
       // Step 3: update asset endpoint with new questions
       const response = await updateSurveyQuestions(
         singleProcessingStore.currentAssetUid,
-        singleProcessingStore.currentQuestionQpath,
         newQuestions
       );
 
