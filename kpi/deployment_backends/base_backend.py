@@ -239,10 +239,6 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @property
-    def identifier(self):
-        return self.get_data('identifier')
-
-    @property
     def last_submission_time(self):
         return self._last_submission_time()
 

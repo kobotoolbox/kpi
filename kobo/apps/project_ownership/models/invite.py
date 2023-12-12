@@ -1,22 +1,15 @@
 from __future__ import annotations
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
+from .base import TimeStampedModel
+from .choices import InviteStatusChoices, TransferStatusChoices
 
 
-class InviteStatus(models.TextChoices):
-
-    COMPLETE = 'complete', 'COMPLETE'
-    DECLINED = 'declined', 'DECLINED'
-    FAILED = 'failed', 'FAILED'
-    IN_PROGRESS = 'in_progress', 'IN PROGRESS'
-    PENDING = 'pending', 'PENDING'
-
-
-class Invite(models.Model):
+class Invite(TimeStampedModel):
 
     uid = KpiUidField(uid_prefix='poi')
     source_user = models.ForeignKey(
@@ -31,12 +24,10 @@ class Invite(models.Model):
     )
     status = models.CharField(
         max_length=11,
-        choices=InviteStatus.choices,
-        default=InviteStatus.PENDING,
+        choices=InviteStatusChoices.choices,
+        default=InviteStatusChoices.PENDING,
         db_index=True
     )
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = 'project ownership transfer invite'
@@ -45,14 +36,31 @@ class Invite(models.Model):
         return (
             f'from {self.source_user.username} to '
             f'{self.destination_user.username} '
-            f'({InviteStatus(self.status).value})'
+            f'({InviteStatusChoices(self.status).value})'
         )
 
-    def save(self, *args, **kwargs):
+    def update_status(self):
+        with transaction.atomic():
+            invite = self.__class__.objects.select_for_update().get(
+                pk=self.pk
+            )
+            previous_status = invite.status
+            is_complete = True
 
-        update_fields = kwargs.get('update_fields', [])
+            for transfer in self.transfers.all():
+                if transfer.status == TransferStatusChoices.FAILED.value:
+                    invite.status = InviteStatusChoices.FAILED.value
+                    is_complete = False
+                    break
+                elif transfer.status != TransferStatusChoices.SUCCESS.value:
+                    is_complete = False
 
-        if not update_fields or 'date_modified' in update_fields:
-            self.date_modified = timezone.now()
+            if is_complete:
+                invite.status = InviteStatusChoices.COMPLETE.value
 
-        super().save(*args, **kwargs)
+            if previous_status != invite.status:
+                invite.date_modified = timezone.now()
+                invite.save(update_fields=['status', 'date_modified'])
+
+        if previous_status != invite.status:
+            self.refresh_from_db()
