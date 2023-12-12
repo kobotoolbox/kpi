@@ -28,10 +28,14 @@ import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import {UsageContext, useUsage} from 'js/account/useUsage.hook';
+import {useSearchParams} from 'react-router-dom';
+import TransferProjectsInvite from '../components/transferProjectsInvite.component';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [searchParams] = useSearchParams();
+  const invite = searchParams.get('invite');
   const usage = useUsage();
 
   useEffect(() => {
@@ -130,6 +134,7 @@ function MyProjectsRoute() {
           selectedRows={selectedRows}
           onRowsSelected={setSelectedRows}
         />
+        {invite && <TransferProjectsInvite />}
       </section>
     </Dropzone>
   );
