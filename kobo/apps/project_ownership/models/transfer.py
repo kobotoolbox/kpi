@@ -118,7 +118,7 @@ class Transfer(TimeStampedModel):
             global_status.save()
             self.date_modified = timezone.now()
             self.save(update_fields=['date_modified'])
-            self.invite.update_status()
+            self.invite.update_status_from_transfers()
 
     def _init_statuses(self):
         TransferStatus.objects.bulk_create(

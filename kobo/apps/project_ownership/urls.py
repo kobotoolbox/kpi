@@ -5,12 +5,12 @@ from .views import InviteViewSet, TransferViewSet
 
 router = DefaultRouter()
 router.register(
-    r'invites', InviteViewSet, basename='project-ownership-transfer-invites'
+    r'invites', InviteViewSet, basename='project-ownership-invites'
 )
 router.register(
     r'transfers', TransferViewSet, basename='project-ownership-transfers'
 )
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('project-ownership/', include(router.urls)),
 ]

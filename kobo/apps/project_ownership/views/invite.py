@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import viewsets
 
 from kpi.permissions import IsAuthenticated
@@ -16,6 +17,7 @@ class InviteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
 
         queryset = self.model.objects.filter(
-            source_user=get_database_user(self.request.user)
-        )
+            Q(source_user=get_database_user(self.request.user))
+            | Q(destination_user=get_database_user(self.request.user))
+        ).select_related('destination_user')
         return queryset

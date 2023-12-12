@@ -39,7 +39,7 @@ class Invite(TimeStampedModel):
             f'({InviteStatusChoices(self.status).value})'
         )
 
-    def update_status(self):
+    def update_status_from_transfers(self):
         with transaction.atomic():
             invite = self.__class__.objects.select_for_update().get(
                 pk=self.pk
