@@ -325,7 +325,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # request more than the first page
         default_limit=100
     )
-    deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
@@ -362,7 +361,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'has_deployment',
                   'deployed_version_id',
                   'deployed_versions',
-                  'deployment__identifier',
                   'deployment__links',
                   'deployment__active',
                   'deployment__data_download_links',
@@ -561,10 +559,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     return None
         else:
             return obj.deployment.version_id
-
-    def get_deployment__identifier(self, obj):
-        if obj.has_deployment:
-            return obj.deployment.identifier
 
     def get_deployment__active(self, obj):
         return obj.has_deployment and obj.deployment.active
@@ -914,7 +908,6 @@ class AssetListSerializer(AssetSerializer):
                   'version_id',
                   'has_deployment',
                   'deployed_version_id',
-                  'deployment__identifier',
                   'deployment__active',
                   'deployment__submission_count',
                   'deployment_status',

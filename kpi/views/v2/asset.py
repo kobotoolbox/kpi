@@ -452,18 +452,8 @@ class AssetViewSet(
         serializer_context = self.get_serializer_context()
         serializer_context['asset'] = asset
 
-        # TODO: Require the client to provide a fully-qualified identifier,
-        # otherwise provide less kludgy solution
         if 'identifier' not in request.data and 'id_string' in request.data:
-            id_string = request.data.pop('id_string')[0]
-            backend_name = request.data['backend']
-            try:
-                backend = DEPLOYMENT_BACKENDS[backend_name]
-            except KeyError:
-                raise KeyError(
-                    'cannot retrieve asset backend: "{}"'.format(backend_name))
-            request.data['identifier'] = backend.make_identifier(
-                request.user.username, id_string)
+            raise NotImplementedError
 
         if request.method == 'GET':
             if not asset.has_deployment:

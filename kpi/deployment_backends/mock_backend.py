@@ -142,7 +142,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def connect(self, active=False):
         self.store_data({
             'backend': 'mock',
-            'identifier': 'mock://%s' % self.asset.uid,
             'active': active,
             'backend_response': {
                 'downloadable': active,
@@ -501,7 +500,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def redeploy(self, active: bool = None):
         """
-        Replace (overwrite) the deployment, keeping the same identifier, and
+        Replace (overwrite) the deployment, and
         optionally changing whether the deployment is active
         """
         if active is None:

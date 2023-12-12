@@ -3,13 +3,12 @@ import posixpath
 from mimetypes import guess_type
 from typing import Optional
 
-from django.core.files.storage import get_storage_class
 from django.db import models
 from django.utils import timezone
-from private_storage.fields import PrivateFileField
 from rest_framework.reverse import reverse
 
 from kpi.fields import KpiUidField
+from kpi.fields.file import PrivateExtendedFileField
 from kpi.interfaces import (
     OpenRosaManifestInterface,
     SyncBackendMediaInterface,
@@ -101,7 +100,9 @@ class AssetFile(models.Model, AbstractFormMedia):
     file_type = models.CharField(choices=TYPE_CHOICES, max_length=32)
     description = models.CharField(max_length=255)
     date_created = models.DateTimeField(default=timezone.now)
-    content = PrivateFileField(upload_to=upload_to, max_length=380, null=True)
+    content = PrivateExtendedFileField(
+        upload_to=upload_to, max_length=380, null=True
+    )
     metadata = models.JSONField(default=dict)
     date_deleted = models.DateTimeField(null=True, default=None)
     date_modified = models.DateTimeField(default=timezone.now)
@@ -233,7 +234,7 @@ class AssetFile(models.Model, AbstractFormMedia):
                                           prefix=True)
             else:
                 try:
-                    md5_hash = calculate_hash(self.content.file.read(), prefix=True)
+                    md5_hash = calculate_hash(self.content.read(), prefix=True)
                 except ValueError:
                     md5_hash = None
 
