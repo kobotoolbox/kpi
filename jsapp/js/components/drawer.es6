@@ -13,11 +13,10 @@ import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
 import HelpBubble from 'js/components/support/helpBubble';
 import {COMMON_QUERIES, MODAL_TYPES} from '../constants';
-import {ROUTES} from 'js/router/routerConstants';
+import {ROUTES, PROJECTS_ROUTES} from 'js/router/routerConstants';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {router, routerIsActive, withRouter} from '../router/legacy';
-import {PROJECTS_ROUTES} from 'js/projects/routes';
 
 const AccountSidebar = lazy(() => import('js/account/accountSidebar'));
 

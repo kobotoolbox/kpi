@@ -8,11 +8,7 @@
  * of defined ROUTES.
  */
 
-import {
-  ROUTES,
-  PATHS,
-} from 'js/router/routerConstants';
-import {PROJECTS_ROUTES} from 'js/projects/routes';
+import {ROUTES, PATHS, PROJECTS_ROUTES} from 'js/router/routerConstants';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
