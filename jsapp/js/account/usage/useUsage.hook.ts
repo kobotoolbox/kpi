@@ -41,7 +41,7 @@ export function useUsage() {
       setUsage((prevState) => {
         return {
           ...prevState,
-          trackingPeriod: subscriptionInterval,
+          trackingPeriod: subscriptionInterval || 'month',
           isPeriodLoaded: true,
         };
       });
