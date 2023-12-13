@@ -1,7 +1,7 @@
 import classnames from 'classnames';
 import prettyBytes from 'pretty-bytes';
 import React from 'react';
-import type {RecurringInterval} from 'js/account/stripe.types';
+import type {LimitAmount, RecurringInterval} from 'js/account/stripe.types';
 import Icon from 'js/components/common/icon';
 import styles from 'js/account/usage/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
@@ -10,7 +10,7 @@ import {Limits} from 'js/account/stripe.types';
 
 interface UsageContainerProps {
   usage: number;
-  limit: number | 'unlimited';
+  limit: LimitAmount;
   period: RecurringInterval;
   label?: string;
   isStorage?: boolean;
@@ -24,7 +24,7 @@ const UsageContainer = ({
   isStorage = false,
 }: UsageContainerProps) => {
   let limitRatio = 0;
-  if (limit !== 'unlimited' && limit) {
+  if (limit !== Limits.unlimited && limit) {
     limitRatio = usage / limit;
   }
   const isOverLimit = limitRatio >= 1;
