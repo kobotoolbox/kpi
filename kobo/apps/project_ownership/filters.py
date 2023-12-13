@@ -14,11 +14,8 @@ class InviteFilter(filters.BaseFilterBackend):
         user = get_database_user(request.user)
 
         if mode == self.SENDER_MODE:
-            return queryset.filter(source_user=user)
+            return queryset.filter(sender=user)
         elif mode == self.RECIPIENT_MODE:
-            return queryset.filter(destination_user=user)
+            return queryset.filter(recipient=user)
         else:
-            return queryset.filter(
-                Q(source_user=user)
-                | Q(destination_user=user)
-            )
+            return queryset.filter(Q(sender=user) | Q(recipient=user))

@@ -26,7 +26,7 @@ class InviteSerializer(serializers.ModelSerializer):
         view_name='project-ownership-invites-detail',
     )
 
-    destination_user = RelativePrefixHyperlinkedRelatedField(
+    recipient = RelativePrefixHyperlinkedRelatedField(
         view_name=f'{URL_NAMESPACE}:user-detail',
         lookup_field='username',
         queryset=get_user_model().objects.filter(is_active=True),
@@ -43,7 +43,7 @@ class InviteSerializer(serializers.ModelSerializer):
         model = Invite
         fields = (
             'url',
-            'destination_user',
+            'recipient',
             'status',
             'date_created',
             'date_modified',
@@ -56,8 +56,8 @@ class InviteSerializer(serializers.ModelSerializer):
 
         with transaction.atomic():
             instance = Invite.objects.create(
-                source_user=request.user,
-                destination_user=validated_data['destination_user']
+                sender=request.user,
+                recipient=validated_data['recipient']
             )
             transfers = Transfer.objects.bulk_create(
                 [
@@ -129,7 +129,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
         if (
             Transfer.objects.filter(
-                pk__in=max_tranfer_ids_per_asset, invite__source_user=request.user
+                pk__in=max_tranfer_ids_per_asset, invite__sender=request.user
             ).exclude(
                 invite__status=InviteStatusChoices.DECLINED.value
             ).exists()
@@ -140,7 +140,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
         return assets
 
-    def validate_destination_user(self, user: 'auth.User') -> 'auth.User':
+    def validate_recipient(self, user: 'auth.User') -> 'auth.User':
         if self.instance is None:
             return user
 
@@ -160,14 +160,14 @@ class InviteSerializer(serializers.ModelSerializer):
         request = self.context['request']
 
         if not (
-            request.user == self.instance.destination_user
+            request.user == self.instance.recipient
             and status
             in [
                 InviteStatusChoices.DECLINED.value,
                 InviteStatusChoices.ACCEPTED.value,
             ]
             or (
-                request.user == self.instance.source_user
+                request.user == self.instance.sender
                 and status == InviteStatusChoices.CANCELLED.value
             )
         ):

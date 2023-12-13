@@ -60,8 +60,8 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
         # in case of failure.
         if not (
             target_folder := get_target_folder(
-                transfer.invite.source_user.username,
-                transfer.invite.destination_user.username,
+                transfer.invite.sender.username,
+                transfer.invite.recipient.username,
                 attachment.media_file.name,
             )
         ):
@@ -98,8 +98,8 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
     for media_file in media_files:
         if not (
             target_folder := get_target_folder(
-                transfer.invite.source_user.username,
-                transfer.invite.destination_user.username,
+                transfer.invite.sender.username,
+                transfer.invite.recipient.username,
                 media_file.content.name,
             )
         ):
@@ -114,8 +114,8 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
             if old_md5 in kc_files.keys():
                 kc_obj = kc_files[old_md5]
                 if kc_target_folder := get_target_folder(
-                    transfer.invite.source_user.username,
-                    transfer.invite.destination_user.username,
+                    transfer.invite.sender.username,
+                    transfer.invite.recipient.username,
                     kc_obj.data_file.name,
                 ):
                     kc_obj.data_file.move(kc_target_folder)
@@ -135,7 +135,7 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
 
 
 def rewrite_mongo_userform_id(transfer: 'project_ownership.Transfer'):
-    old_owner = transfer.invite.source_user
+    old_owner = transfer.invite.sender
 
     if not transfer.asset.has_deployment:
         return

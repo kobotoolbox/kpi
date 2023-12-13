@@ -37,8 +37,8 @@ class Transfer(TimeStampedModel):
     def __str__(self) -> str:
         return (
             f'{self.asset}: '
-            f'{self.invite.source_user.username} -> '
-            f'{self.invite.destination_user.username}'
+            f'{self.invite.sender.username} -> '
+            f'{self.invite.recipient.username}'
         )
 
     def process(self):
@@ -46,7 +46,7 @@ class Transfer(TimeStampedModel):
             raise TransferAlreadyProcessedException()
 
         self.status = TransferStatusChoices.IN_PROGRESS.value
-        new_owner = self.invite.destination_user
+        new_owner = self.invite.recipient
 
         success = False
         try:
@@ -130,7 +130,7 @@ class Transfer(TimeStampedModel):
         )
 
     def _reassign_project_permissions(self, update_deployment: bool = False):
-        new_owner = self.invite.destination_user
+        new_owner = self.invite.recipient
 
         # Delete existing new owner's permissions on project if any
         self.asset.permissions.filter(user=new_owner).delete()
@@ -167,7 +167,7 @@ class Transfer(TimeStampedModel):
             adjust_content=False,
         )
         self.asset.assign_perm(
-            self.invite.source_user, PERM_MANAGE_ASSET
+            self.invite.sender, PERM_MANAGE_ASSET
         )
 
 

@@ -12,12 +12,12 @@ from .choices import InviteStatusChoices, TransferStatusChoices
 class Invite(TimeStampedModel):
 
     uid = KpiUidField(uid_prefix='poi')
-    source_user = models.ForeignKey(
+    sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='transfer_ownership_requests',
         on_delete=models.CASCADE,
     )
-    destination_user = models.ForeignKey(
+    recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='transfer_ownership_responses',
         on_delete=models.CASCADE,
@@ -34,8 +34,8 @@ class Invite(TimeStampedModel):
 
     def __str__(self):
         return (
-            f'from {self.source_user.username} to '
-            f'{self.destination_user.username} '
+            f'from {self.sender.username} to '
+            f'{self.recipient.username} '
             f'({InviteStatusChoices(self.status).value})'
         )
 
