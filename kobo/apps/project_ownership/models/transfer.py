@@ -6,8 +6,13 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from kpi.constants import PERM_MANAGE_ASSET
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.deployment_backends.kc_access.utils import (
+    assign_applicable_kc_permissions,
+    kc_transaction_atomic,
+    reset_kc_permissions,
+)
 from kpi.fields import KpiUidField
+from kpi.models import Asset
 from .base import TimeStampedModel
 from .choices import TransferStatusChoices, TransferStatusTypeChoices
 from .invite import Invite
@@ -137,6 +142,13 @@ class Transfer(TimeStampedModel):
         self.asset.owner = new_owner
 
         if update_deployment:
+            owner_perms = [
+                p.permission.codename
+                for p in self.asset.permissions.filter(user=old_owner)
+            ]
+            # Add calculated permissions in case some of them match KC owner's
+            # permissions
+            owner_perms += list(Asset.CALCULATED_PERMISSIONS)
             xform = self.asset.deployment.xform
             xform.user_id = new_owner.pk
             if (
@@ -147,6 +159,16 @@ class Transfer(TimeStampedModel):
                 xform.xls.move(target_folder)
 
             xform.save(update_fields=['user_id', 'xls'])
+            # TODO (or not)
+            # KC usually adds 3 more permissions that are ignored by KPI:
+            # - add_xform
+            # - transfer_xform
+            # - move_xform
+            # It does not seem to be a problem, but would be worth it to make
+            # permission assignments consistent.
+            assign_applicable_kc_permissions(self.asset, new_owner, owner_perms)
+            reset_kc_permissions(self.asset, old_owner)
+
             backend_response = self.asset.deployment.backend_response
             backend_response['owner'] = new_owner.username
             self.asset.deployment.store_data(
