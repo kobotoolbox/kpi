@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from ..models import Transfer, TransferStatusTypeChoices
+from ..models import Transfer, TransferStatus, TransferStatusTypeChoices
 
 
-class TransferSerializer(serializers.ModelSerializer):
+class TransferListSerializer(serializers.ModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
@@ -14,7 +14,6 @@ class TransferSerializer(serializers.ModelSerializer):
         view_name='asset-detail',
     )
     error = serializers.SerializerMethodField()
-    date_created = serializers.SerializerMethodField()
     date_modified = serializers.SerializerMethodField()
 
     class Meta:
@@ -24,17 +23,43 @@ class TransferSerializer(serializers.ModelSerializer):
             'asset',
             'status',
             'error',
-            'date_created',
             'date_modified',
         )
 
-    def get_date_created(self, invite):
-        return invite.date_created.strftime('%Y-%m-%dT%H:%M:%SZ')
+    def get_date_modified(self, transfer: Transfer) -> str:
+        return transfer.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    def get_date_modified(self, invite):
-        return invite.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-    def get_error(self, transfer):
+    def get_error(self, transfer: Transfer) -> str:
         return transfer.statuses.get(
             status_type=TransferStatusTypeChoices.GLOBAL.value
         ).error
+
+
+class TransferDetailSerializer(TransferListSerializer):
+
+    statuses = serializers.SerializerMethodField()
+
+    class Meta(TransferListSerializer.Meta):
+        fields = (
+            'url',
+            'asset',
+            'status',
+            'date_modified',
+            'statuses',
+        )
+
+    def get_statuses(self,  transfer: Transfer) -> list[dict]:
+        return TransferStatusSerializer(
+            transfer.statuses.all(), many=True, context=self.context
+        ).data
+
+
+class TransferStatusSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TransferStatus
+        fields = (
+            'status',
+            'status_type',
+            'error',
+        )

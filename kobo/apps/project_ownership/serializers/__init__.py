@@ -1,2 +1,2 @@
 from .invite import InviteSerializer
-from .transfer import TransferSerializer
+from .transfer import TransferListSerializer, TransferDetailSerializer

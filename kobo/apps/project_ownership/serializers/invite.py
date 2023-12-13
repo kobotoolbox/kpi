@@ -8,7 +8,7 @@ from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 
-from .transfer import TransferSerializer
+from .transfer import TransferListSerializer
 from ..models import (
     Invite,
     InviteStatusChoices,
@@ -51,7 +51,7 @@ class InviteSerializer(serializers.ModelSerializer):
             'assets',
         )
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> Invite:
         request = self.context['request']
 
         with transaction.atomic():
@@ -77,25 +77,24 @@ class InviteSerializer(serializers.ModelSerializer):
             TransferStatus.objects.bulk_create(statuses)
         return instance
 
-    def get_transfers(self, invite):
-        context = {'request': self.context['request']}
+    def get_transfers(self, invite: Invite) -> list:
         tranfers_queryset = (
             invite.transfers.select_related('asset')
             .defer('asset__content')
-            .prefetch_related('statuses')
             .all()
         )
-        return TransferSerializer(
-            tranfers_queryset, many=True, context=context
+
+        return TransferListSerializer(
+            tranfers_queryset, many=True, context=self.context
         ).data
 
-    def get_date_created(self, invite):
+    def get_date_created(self, invite: Invite) -> str:
         return invite.date_created.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    def get_date_modified(self, invite):
+    def get_date_modified(self, invite: Invite) -> str:
         return invite.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    def validate_assets(self, asset_uids: list[str]):
+    def validate_assets(self, asset_uids: list[str]) -> list[Asset]:
         if self.instance is not None:
             raise serializers.ValidationError(_(
                 'This field cannot be modified'
@@ -141,7 +140,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
         return assets
 
-    def validate_destination_user(self, user: 'auth.User'):
+    def validate_destination_user(self, user: 'auth.User') -> 'auth.User':
         if self.instance is None:
             return user
 
@@ -149,7 +148,7 @@ class InviteSerializer(serializers.ModelSerializer):
             'This field cannot be modified'
         ))
 
-    def validate_status(self, status):
+    def validate_status(self, status: str) -> str:
         if (
             self.instance is None and status
             or self.instance.status != InviteStatusChoices.PENDING.value
@@ -176,7 +175,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
         return status
 
-    def update(self, instance, validated_data):
+    def update(self, instance: Invite, validated_data: dict) -> Invite:
 
         status = validated_data['status']
 
