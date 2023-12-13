@@ -14,6 +14,7 @@ import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import moment from 'moment';
 import {Limits} from 'js/account/stripe.types';
+import {YourPlan} from 'js/account/usage/yourPlan.component';
 
 interface LimitState {
   storageByteLimit: LimitAmount;
@@ -21,6 +22,7 @@ interface LimitState {
   nlpMinuteLimit: LimitAmount;
   submissionLimit: LimitAmount;
   isLoaded: boolean;
+  stripeEnabled: boolean;
 }
 
 export default function Usage() {
@@ -32,6 +34,7 @@ export default function Usage() {
     nlpMinuteLimit: Limits.unlimited,
     submissionLimit: Limits.unlimited,
     isLoaded: false,
+    stripeEnabled: false,
   });
 
   const location = useLocation();
@@ -44,14 +47,14 @@ export default function Usage() {
   const dateRange = useMemo(() => {
     let startDate: string;
     const endDate = usage.billingPeriodEnd
-      ? formatDate(usage.billingPeriodEnd, false)
+      ? formatDate(usage.billingPeriodEnd)
       : formatDate(moment().endOf('month').toISOString());
     switch (usage.trackingPeriod) {
       case 'year':
-        startDate = formatDate(usage.currentYearStart, false);
+        startDate = formatDate(usage.currentYearStart);
         break;
       default:
-        startDate = formatDate(usage.currentMonthStart, false);
+        startDate = formatDate(usage.currentMonthStart);
         break;
     }
     return t('##start_date## to ##end_date##')
@@ -59,6 +62,7 @@ export default function Usage() {
       .replace('##end_date##', endDate);
   }, [usage.currentYearStart, usage.currentMonthStart, usage.trackingPeriod]);
 
+  // check if stripe is enabled - if so, get limit data
   useEffect(() => {
     const getLimits = async () => {
       await when(() => envStore.isReady);
@@ -86,6 +90,7 @@ export default function Usage() {
               : limits.nlp_seconds_limit,
           submissionLimit: limits.submission_limit,
           isLoaded: true,
+          stripeEnabled: true,
         };
       });
     };
@@ -104,8 +109,11 @@ export default function Usage() {
 
   return (
     <div className={styles.root}>
+      {limits.stripeEnabled && (
+        <YourPlan renewalDate={usage.billingPeriodEnd} />
+      )}
       <header className={styles.header}>
-        <h2>{t('Your account total use')}</h2>
+        <h2 className={styles.headerText}>{t('Your usage')}</h2>
         {typeof usage.lastUpdated === 'string' && (
           <p className={styles.updated}>
             {t('Last update: ##LAST_UPDATE_TIME##').replace(
