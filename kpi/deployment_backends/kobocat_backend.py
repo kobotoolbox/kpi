@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
-
 import copy
 import io
 import json
+import os
 import re
 import uuid
 from collections import defaultdict
+from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Generator, Optional, Union
 from xml.etree import ElementTree as ET
@@ -1691,6 +1691,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     attachment[key] = kpi_url
                 except KeyError:
                     continue
+            filename = attachment['filename']
+            attachment['filename'] = os.path.join(
+                self.asset.owner.username,
+                'attachments',
+                submission['formhub/uuid'],
+                submission['_uuid'],
+                os.path.basename(filename)
+            )
 
         return submission
 

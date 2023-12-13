@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import Optional, Union
 
 from django.db import models, transaction
@@ -9,12 +8,12 @@ from django.utils import timezone
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
-from kpi.utils.log import logging
 from .base import TimeStampedModel
 from .choices import TransferStatusChoices, TransferStatusTypeChoices
 from .invite import Invite
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task
+from ..utils import get_target_folder
 
 
 class Transfer(TimeStampedModel):
@@ -140,18 +139,11 @@ class Transfer(TimeStampedModel):
         if update_deployment:
             xform = self.asset.deployment.xform
             xform.user_id = new_owner.pk
-            try:
-                target_folder = os.path.dirname(
-                    xform.xls.name.replace(
-                        old_owner.username, new_owner.username
-                    )
+            if (
+                target_folder := get_target_folder(
+                    old_owner.username, new_owner.username, xform.xls.name
                 )
-            except FileNotFoundError:
-                logging.error(
-                    'File not found: Could not move Kobocat XLSForm',
-                    exc_info=True,
-                )
-            else:
+            ):
                 xform.xls.move(target_folder)
 
             xform.save(update_fields=['user_id', 'xls'])
