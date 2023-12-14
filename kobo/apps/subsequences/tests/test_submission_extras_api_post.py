@@ -14,6 +14,13 @@ from kobo.apps.languages.models.language import Language, LanguageRegion
 from kobo.apps.languages.models.transcription import (
     TranscriptionService, TranscriptionServiceLanguageM2M)
 from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 from ..constants import GOOGLETS, make_async_cache_key
 from ..models import SubmissionExtras
 from .test_submission_extras_content import sample_asset
@@ -87,6 +94,115 @@ class ValidateSubmissionTest(APITestCase):
                 }
             }
         }
+
+    def test_transx_requires_change_asset_permission(self):
+        """
+        Submit a transcript and translation as the owning user; then, switch to
+        another user and attempt editing with various permissions assigned
+        """
+
+        # Enable transcripts and translations for the example question
+        self.set_asset_advanced_features(
+            {
+                'transcript': {'values': ['q1']},
+                'translation': {
+                    'values': ['q1'],
+                    'languages': ['tx1', 'tx2'],
+                },
+            }
+        )
+        resp = self.client.get(self.asset_url)
+        assert resp.status_code == 200
+        schema = resp.json()['advanced_submission_schema']
+
+        # Submit transcript and translation as the owner
+        original_transcript = 'they said hello'
+        original_translation = 'T H E Y   S A I D   H E L L O'
+        package = {
+            'submission': 'abc123-def456',
+            'q1': {
+                'transcript': {
+                    'value': original_transcript,
+                    'languageCode': 'en',
+                },
+                'translation': {
+                    'tx1': {
+                        'value': original_translation,
+                        'languageCode': 'xx',
+                    }
+                },
+            },
+        }
+        resp = self.client.post(schema['url'], package, format='json')
+        assert resp.status_code == 200
+        q1_transx = resp.json()['q1']
+        assert q1_transx['transcript']['value'] == original_transcript
+        assert q1_transx['translation']['tx1']['value'] == original_translation
+
+        # Become a user with no access to the project
+        other_user = User.objects.create(username='ethan')
+        self.client.force_login(other_user)
+        modified = deepcopy(package)
+        modified_transcript = 'they said goodbye'
+        modified_translation = 'T H E Y   S A I D   G O O D B Y E'
+        modified['q1']['transcript']['value'] = modified_transcript
+        modified['q1']['translation']['tx1']['value'] = modified_translation
+
+        # Attempt to change transcript should be rejected with no permissions
+        # assigned
+        resp = self.client.post(schema['url'], modified, format='json')
+        assert resp.status_code == 404
+
+        # …and should be rejected with any of these insufficient permissions
+        # assigned
+        self.asset.assign_perm(other_user, PERM_ADD_SUBMISSIONS)
+        resp = self.client.post(schema['url'], modified, format='json')
+        assert resp.status_code == 404
+
+        self.asset.assign_perm(other_user, PERM_VIEW_ASSET)
+        resp = self.client.post(schema['url'], modified, format='json')
+        assert resp.status_code == 404
+
+        self.asset.assign_perm(other_user, PERM_CHANGE_ASSET)
+        resp = self.client.post(schema['url'], modified, format='json')
+        assert resp.status_code == 404
+
+        self.asset.assign_perm(other_user, PERM_VIEW_SUBMISSIONS)
+        resp = self.client.post(schema['url'], modified, format='json')
+        assert resp.status_code == 403
+
+        # Original content should be intact after rejections
+        extras = list(self.asset.submission_extras.all())
+        assert len(extras) == 1
+        extras = extras[0]
+        assert extras.submission_uuid == 'abc123-def456'
+        assert (
+            extras.content['q1']['transcript']['value'] == original_transcript
+        )
+        assert (
+            extras.content['q1']['translation']['tx1']['value']
+            == original_translation
+        )
+
+        # Transcript modification should succeed after granting
+        # 'change_submissions' permission
+        self.asset.assign_perm(other_user, PERM_CHANGE_SUBMISSIONS)
+        resp = self.client.post(schema['url'], modified, format='json')
+        assert resp.status_code == 200
+        q1_transx = resp.json()['q1']
+        assert q1_transx['transcript']['value'] == modified_transcript
+        assert q1_transx['translation']['tx1']['value'] == modified_translation
+        extras = list(self.asset.submission_extras.all())
+        assert len(extras) == 1
+        extras = extras[0]
+        assert extras.submission_uuid == 'abc123-def456'
+        assert (
+            extras.content['q1']['transcript']['value'] == modified_transcript
+        )
+        assert (
+            extras.content['q1']['translation']['tx1']['value']
+            == modified_translation
+        )
 
 
 class TranscriptFieldRevisionsOnlyTests(ValidateSubmissionTest):
