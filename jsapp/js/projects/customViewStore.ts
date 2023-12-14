@@ -151,7 +151,8 @@ class CustomViewStore {
       return null;
     }
 
-    const fieldDefinition = PROJECT_FIELDS[this.order.fieldName as ProjectFieldName];
+    const fieldDefinition =
+      PROJECT_FIELDS[this.order.fieldName as ProjectFieldName];
 
     if (this.order.direction === 'descending') {
       return `-${fieldDefinition.apiOrderingName}`;

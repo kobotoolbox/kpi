@@ -27,7 +27,7 @@ import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
-import {UsageContext, useUsage} from 'js/account/useUsage.hook';
+import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import {useSearchParams} from 'react-router-dom';
 import TransferProjectsInvite from '../components/transferProjectsInvite.component';
 
