@@ -230,7 +230,7 @@ function SearchContext(opts={}) {
         if (searchParams.tags && searchParams.tags.length > 0) {
           paramGroups.push(
               searchParams.tags.map(function(t){
-                return `tag:"${t.value}"`;
+                return `tags__name__iexact:"${t.value}"`;
               }).join(' AND ')
             );
         }
