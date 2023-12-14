@@ -160,6 +160,15 @@ export interface Organization {
   slug: string;
 }
 
+export enum PlanNames {
+  'FREE' = 'Community',
+  'COMMUNITY' = 'Community',
+  'PRO' = 'Professional',
+  'ENTERPRISE' = 'Enterprise',
+  'ENTERPRISE_GOLD' = 'Enterprise Gold',
+  'ENTERPRISE_PLATINUM' = 'Enterprise Platinum',
+}
+
 export enum Limits {
   'unlimited' = 'unlimited',
 }

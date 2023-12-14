@@ -1,9 +1,18 @@
+@use '~kobo-common/src/styles/colors';
 @use 'scss/sizes';
 
-.renewal {
-  font-weight: bold;
-  font-size: sizes.$r12;
-  padding-inline: 0.25em;
+.section {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: 1.5em;
+  border-block: 1px solid colors.$kobo-gray-85
+}
+
+.plan {
+  font-size: sizes.$r18;
+  margin-block-start: 0;
 }
 
 .addOn {
@@ -11,7 +20,16 @@
   margin-left: 0.5em;
 }
 
-.plan {
-  font-size: sizes.$r18;
+.planInfo {
+  margin-block: 1.5em;
+}
+
+.renewal {
   font-weight: bold;
+  font-size: sizes.$r12;
+  padding-inline: 0.25em;
+}
+
+.start {
+  padding-inline-end: 1em;
 }
