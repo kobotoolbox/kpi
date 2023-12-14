@@ -2,7 +2,7 @@ import React from 'react';
 import {Navigate, Route, redirect} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
 import {ROUTES} from 'js/router/routerConstants';
-import ProtectedRoute from '../router/protectedRoute';
+import { authLoader } from '../router/routerUtils';
 
 const ChangePasswordRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './changePasswordRoute.component')
@@ -45,7 +45,9 @@ export default function routes() {
       />
       <Route
         path={ACCOUNT_ROUTES.PLAN}
-        element={<ProtectedRoute protectedComponent={PlanRoute} />}
+        element={ <PlanRoute />
+        }
+        loader={authLoader}
       />
       <Route
         path={ACCOUNT_ROUTES.USAGE}

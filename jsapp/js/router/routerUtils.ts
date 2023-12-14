@@ -12,7 +12,9 @@ import {
   ROUTES,
   PATHS,
 } from 'js/router/routerConstants';
-import {PROJECTS_ROUTES} from 'js/projects/routes';
+import { PROJECTS_ROUTES } from 'js/projects/routes';
+import { redirect } from 'react-router-dom';
+import session from '../stores/session';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -37,6 +39,13 @@ export function getCurrentPath(): string {
   const route = location.hash.split('#');
   return route.length > 1 ? route[1] : '';
 }
+
+export const authLoader = () => {
+  if (!session.isLoggedIn) {
+    return redirect(getLoginUrl());
+  }
+  return null;
+};
 
 /*
  * A list of functions that match routes defined in constants
