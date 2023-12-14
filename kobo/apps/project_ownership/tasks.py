@@ -153,3 +153,5 @@ def garbage_collector():
                 f'Task has been stuck for more than {stuck_threshold} minutes',
             )
         )
+
+    # TODO remove old completed transfers

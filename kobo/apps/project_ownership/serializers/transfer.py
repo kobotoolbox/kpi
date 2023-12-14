@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from kpi.fields import RelativePrefixHyperlinkedRelatedField
+from kpi.models.asset import Asset
 from ..models import Transfer, TransferStatus, TransferStatusTypeChoices
 
 
@@ -9,9 +11,11 @@ class TransferListSerializer(serializers.ModelSerializer):
         lookup_field='uid',
         view_name='project-ownership-transfers-detail',
     )
-    asset = serializers.HyperlinkedIdentityField(
-        lookup_field='uid',
+    asset = RelativePrefixHyperlinkedRelatedField(
         view_name='asset-detail',
+        lookup_field='uid',
+        queryset=Asset.objects.all(),
+        style={'base_template': 'input.html'}  # Render as a simple text box
     )
     error = serializers.SerializerMethodField()
     date_modified = serializers.SerializerMethodField()

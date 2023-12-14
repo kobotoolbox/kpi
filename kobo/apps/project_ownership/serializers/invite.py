@@ -1,3 +1,4 @@
+from constance import config
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Max
@@ -6,7 +7,6 @@ from rest_framework import exceptions, serializers
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset
-from kpi.urls.router_api_v2 import URL_NAMESPACE
 
 from .transfer import TransferListSerializer
 from ..models import (
@@ -27,7 +27,7 @@ class InviteSerializer(serializers.ModelSerializer):
     )
 
     recipient = RelativePrefixHyperlinkedRelatedField(
-        view_name=f'{URL_NAMESPACE}:user-detail',
+        view_name='user-detail',
         lookup_field='username',
         queryset=get_user_model().objects.filter(is_active=True),
         style={'base_template': 'input.html'}  # Render as a simple text box
@@ -75,17 +75,24 @@ class InviteSerializer(serializers.ModelSerializer):
                         )
                     )
             TransferStatus.objects.bulk_create(statuses)
+
+        if config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
+            instance = self.update(
+                instance, {'status': InviteStatusChoices.ACCEPTED.value}
+            )
+
         return instance
 
     def get_transfers(self, invite: Invite) -> list:
-        tranfers_queryset = (
+        transfers_queryset = (
             invite.transfers.select_related('asset')
             .defer('asset__content')
+            .prefetch_related('statuses')
             .all()
         )
 
         return TransferListSerializer(
-            tranfers_queryset, many=True, context=self.context
+            transfers_queryset, many=True, context=self.context
         ).data
 
     def get_date_created(self, invite: Invite) -> str:
