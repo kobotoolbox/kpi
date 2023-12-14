@@ -120,6 +120,8 @@ RUN rm -rf ${KPI_NODE_PATH} && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
     npm install --quiet && \
+    mkdir -p "${TMP_DIR}/.npm" && \
+    npm config set cache "${TMP_DIR}/.npm" --global && \
     npm cache clean --force
 
 ENV PATH $PATH:${KPI_NODE_PATH}/.bin
