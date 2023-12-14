@@ -281,7 +281,6 @@ class FormLanding extends React.Component {
      property provided in `/environment` endpoint
     */
 
-
     return (
       <bem.FormView__row>
         <bem.FormView__cell m={['label', 'first']}>
