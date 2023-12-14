@@ -2,10 +2,13 @@ import {when} from 'mobx';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useLocation} from 'react-router-dom';
 import type {AccountLimit, LimitAmount} from 'js/account/stripe.types';
+import {Limits} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import UsageContainer from 'js/account/usage/usageContainer';
+import UsageContainer, {
+  USAGE_CONTAINER_TYPE,
+} from 'js/account/usage/usageContainer';
 import envStore from 'js/envStore';
 import {formatDate} from 'js/utils';
 import styles from './usage.module.scss';
@@ -13,7 +16,6 @@ import LimitNotifications from 'js/components/usageLimits/limitNotifications.com
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import moment from 'moment';
-import {Limits} from 'js/account/stripe.types';
 import {YourPlan} from 'js/account/usage/yourPlan.component';
 
 interface LimitState {
@@ -60,7 +62,12 @@ export default function Usage() {
     return t('##start_date## to ##end_date##')
       .replace('##start_date##', startDate)
       .replace('##end_date##', endDate);
-  }, [usage.currentYearStart, usage.currentMonthStart, usage.trackingPeriod]);
+  }, [
+    usage.currentYearStart,
+    usage.currentMonthStart,
+    usage.billingPeriodEnd,
+    usage.trackingPeriod,
+  ]);
 
   // check if stripe is enabled - if so, get limit data
   useEffect(() => {
@@ -108,76 +115,79 @@ export default function Usage() {
   }
 
   return (
-    <div className={styles.root}>
-      {limits.stripeEnabled && (
-        <YourPlan renewalDate={usage.billingPeriodEnd} />
-      )}
-      <header className={styles.header}>
-        <h2 className={styles.headerText}>{t('Your usage')}</h2>
-        {typeof usage.lastUpdated === 'string' && (
-          <p className={styles.updated}>
-            {t('Last update: ##LAST_UPDATE_TIME##').replace(
-              '##LAST_UPDATE_TIME##',
-              usage.lastUpdated
-            )}
-          </p>
-        )}
-      </header>
-      <UsageContext.Provider value={usage}>
+    <UsageContext.Provider value={usage}>
+      <div className={styles.root}>
+        {limits.stripeEnabled && <YourPlan />}
+        <header className={styles.header}>
+          <h2 className={styles.headerText}>{t('Your usage')}</h2>
+          {typeof usage.lastUpdated === 'string' && (
+            <p className={styles.updated}>
+              {t('Last update: ##LAST_UPDATE_TIME##').replace(
+                '##LAST_UPDATE_TIME##',
+                usage.lastUpdated
+              )}
+            </p>
+          )}
+        </header>
         <LimitNotifications usagePage />
-      </UsageContext.Provider>
-      <div className={styles.row}>
-        <div className={styles.box}>
-          <span>
-            <strong className={styles.title}>{t('Submissions')}</strong>
-            <time className={styles.date}>{dateRange}</time>
-          </span>
-          <UsageContainer
-            usage={usage.submissions}
-            limit={limits.submissionLimit}
-            period={usage.trackingPeriod}
-          />
-        </div>
-        <div className={styles.box}>
-          <span>
-            <strong className={styles.title}>{t('Storage')}</strong>
-            <div className={styles.date}>{t('per account')}</div>
-          </span>
-          <UsageContainer
-            usage={usage.storage}
-            limit={limits.storageByteLimit}
-            period={usage.trackingPeriod}
-            label={t('Total')}
-            isStorage
-          />
-        </div>
-        <div className={styles.box}>
-          <span>
-            <strong className={styles.title}>
-              {t('Transcription minutes')}
-            </strong>
-            <time className={styles.date}>{dateRange}</time>
-          </span>
-          <UsageContainer
-            usage={usage.transcriptionMinutes}
-            limit={limits.nlpMinuteLimit}
-            period={usage.trackingPeriod}
-          />
-        </div>
-        <div className={styles.box}>
-          <span>
-            <strong className={styles.title}>
-              {t('Translation characters')}
-            </strong>
-            <time className={styles.date}>{dateRange}</time>
-          </span>
-          <UsageContainer
-            usage={usage.translationChars}
-            limit={limits.nlpCharacterLimit}
-            period={usage.trackingPeriod}
-          />
+        <div className={styles.row}>
+          <div className={styles.row}>
+            <div className={styles.box}>
+              <span>
+                <strong className={styles.title}>{t('Submissions')}</strong>
+                <time className={styles.date}>{dateRange}</time>
+              </span>
+              <UsageContainer
+                usage={usage.submissions}
+                limit={limits.submissionLimit}
+                period={usage.trackingPeriod}
+              />
+            </div>
+            <div className={styles.box}>
+              <span>
+                <strong className={styles.title}>{t('Storage')}</strong>
+                <div className={styles.date}>{t('per account')}</div>
+              </span>
+              <UsageContainer
+                usage={usage.storage}
+                limit={limits.storageByteLimit}
+                period={usage.trackingPeriod}
+                label={t('Total')}
+                type={USAGE_CONTAINER_TYPE.STORAGE}
+              />
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.box}>
+              <span>
+                <strong className={styles.title}>
+                  {t('Transcription minutes')}
+                </strong>
+                <time className={styles.date}>{dateRange}</time>
+              </span>
+              <UsageContainer
+                usage={usage.transcriptionMinutes}
+                limit={limits.nlpMinuteLimit}
+                period={usage.trackingPeriod}
+                type={USAGE_CONTAINER_TYPE.TRANSCRIPTION}
+              />
+            </div>
+            <div className={styles.box}>
+              <span>
+                <strong className={styles.title}>
+                  {t('Translation characters')}
+                </strong>
+                <time className={styles.date}>{dateRange}</time>
+              </span>
+              <UsageContainer
+                usage={usage.translationChars}
+                limit={limits.nlpCharacterLimit}
+                period={usage.trackingPeriod}
+              />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </UsageContext.Provider>
   );
 }

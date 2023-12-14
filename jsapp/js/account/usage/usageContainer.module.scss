@@ -3,11 +3,16 @@
 
 .usage {
   display: grid;
-  grid: 1fr / auto auto;
+  grid: 1fr / 100%;
   width: 100%;
   margin-top: sizes.$x18;
   align-items: center;
   justify-content: space-between;
+
+  & > li {
+    display: flex;
+    justify-content: space-between;
+  }
 }
 
 .usageRow {

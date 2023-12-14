@@ -1,19 +1,23 @@
-import classnames from 'classnames';
 import prettyBytes from 'pretty-bytes';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {LimitAmount, RecurringInterval} from 'js/account/stripe.types';
 import Icon from 'js/components/common/icon';
 import styles from 'js/account/usage/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
-import AriaText from 'js/components/common/ariaText';
 import {Limits} from 'js/account/stripe.types';
+import cx from 'classnames';
+
+export enum USAGE_CONTAINER_TYPE {
+  'TRANSCRIPTION',
+  'STORAGE',
+}
 
 interface UsageContainerProps {
   usage: number;
   limit: LimitAmount;
   period: RecurringInterval;
   label?: string;
-  isStorage?: boolean;
+  type?: USAGE_CONTAINER_TYPE;
 }
 
 const UsageContainer = ({
@@ -21,7 +25,7 @@ const UsageContainer = ({
   limit,
   period,
   label = undefined,
-  isStorage = false,
+  type = undefined,
 }: UsageContainerProps) => {
   let limitRatio = 0;
   if (limit !== Limits.unlimited && limit) {
@@ -29,33 +33,63 @@ const UsageContainer = ({
   }
   const isOverLimit = limitRatio >= 1;
   const isNearingLimit = !isOverLimit && limitRatio > USAGE_WARNING_RATIO;
+
+  /**
+   * Render a limit amount, usage amount, or total balance as readable text
+   * @param {number|'unlimited'} amount - The limit/usage amount
+   * @param {number|'unlimited'|null} [available=null] - If we're showing a balance,
+   * `amount` takes the usage amount and this takes the limit amount
+   */
+  const limitDisplay = useCallback(
+    (amount, available = null) => {
+      if (amount === Limits.unlimited || available === Limits.unlimited) {
+        return t('Unlimited');
+      }
+      const total = available ? available - amount : amount;
+      switch (type) {
+        case USAGE_CONTAINER_TYPE.STORAGE:
+          return prettyBytes(total);
+        case USAGE_CONTAINER_TYPE.TRANSCRIPTION:
+          return t('##minutes## mins').replace(
+            '##minutes##',
+            total.toLocaleString()
+          );
+        default:
+          return total.toLocaleString();
+      }
+    },
+    [limit, type, usage]
+  );
+
   return (
-    <div className={styles.usage}>
-      <strong className={styles.description}>
-        {label || (period === 'month' ? t('Monthly') : t('Yearly'))}
-      </strong>
-      <div
-        className={classnames(styles.usageRow, {
-          [styles.warning]: isNearingLimit,
-          [styles.overlimit]: isOverLimit,
-        })}
-      >
-        {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
-        {isOverLimit && <Icon name='warning' color='red' size='m' />}
-        <strong>
-          {isStorage ? prettyBytes(usage) : usage.toLocaleString()}
+    <ul className={styles.usage}>
+      {limit && (
+        <li>
+          <label>{t('Available')}</label>
+          <data value={limit}>{limitDisplay(limit)}</data>
+        </li>
+      )}
+      <li>
+        <label className={styles.description}>
+          {label ||
+            (period === 'month' ? t('Used this month') : t('Used this year'))}
+        </label>
+        <strong>{limitDisplay(usage)}</strong>
+      </li>
+      <li>
+        <strong>{t('Balance')}</strong>
+        <strong
+          className={cx({
+            [styles.warning]: isNearingLimit,
+            [styles.overlimit]: isOverLimit,
+          })}
+        >
+          {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
+          {isOverLimit && <Icon name='warning' color='red' size='m' />}
+          {limitDisplay(usage, limit)}
         </strong>
-        {limit !== Limits.unlimited && limit && (
-          <>
-            {' '}
-            <AriaText uiText='/' screenReaderText={t('used out of')} />{' '}
-            <span>
-              {isStorage ? prettyBytes(limit) : limit.toLocaleString()}
-            </span>
-          </>
-        )}
-      </div>
-    </div>
+      </li>
+    </ul>
   );
 };
 
