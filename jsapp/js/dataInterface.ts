@@ -18,7 +18,7 @@ import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
 import type {
   AnalysisQuestionSchema,
-  AnalysisResponse
+  SubmissionAnalysisResponse,
 } from './components/processing/analysis/constants';
 import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
@@ -161,7 +161,7 @@ interface SubmissionSupplementalDetails {
     translation?: {
       [languageCode: LanguageCode]: TransxObject;
     };
-    qual?: AnalysisResponse[];
+    qual?: SubmissionAnalysisResponse[];
   };
 }
 
