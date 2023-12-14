@@ -109,6 +109,7 @@ def task_scheduler():
         Unfortunately, it does not seem to work as a parameter of @celery_app.task
         decorator (it is ignored), but as a global setting - which would have
         affect all celery tasks across the app.
+    TODO Use username to detect uncompleted tasks
     """
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
     resume_threshold = timezone.now() - timedelta(
@@ -152,3 +153,5 @@ def garbage_collector():
                 f'Task has been stuck for more than {stuck_threshold} minutes',
             )
         )
+
+    # TODO remove old completed transfers

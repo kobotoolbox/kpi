@@ -1,20 +1,24 @@
 from __future__ import annotations
 
-import os
 from typing import Optional, Union
 
 from django.db import models, transaction
 from django.utils import timezone
 
 from kpi.constants import PERM_MANAGE_ASSET
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.deployment_backends.kc_access.utils import (
+    assign_applicable_kc_permissions,
+    kc_transaction_atomic,
+    reset_kc_permissions,
+)
 from kpi.fields import KpiUidField
-from kpi.utils.log import logging
+from kpi.models import Asset
 from .base import TimeStampedModel
 from .choices import TransferStatusChoices, TransferStatusTypeChoices
 from .invite import Invite
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task
+from ..utils import get_target_folder
 
 
 class Transfer(TimeStampedModel):
@@ -37,8 +41,8 @@ class Transfer(TimeStampedModel):
     def __str__(self) -> str:
         return (
             f'{self.asset}: '
-            f'{self.invite.source_user.username} -> '
-            f'{self.invite.destination_user.username}'
+            f'{self.invite.sender.username} -> '
+            f'{self.invite.recipient.username}'
         )
 
     def process(self):
@@ -46,7 +50,7 @@ class Transfer(TimeStampedModel):
             raise TransferAlreadyProcessedException()
 
         self.status = TransferStatusChoices.IN_PROGRESS.value
-        new_owner = self.invite.destination_user
+        new_owner = self.invite.recipient
 
         success = False
         try:
@@ -118,7 +122,7 @@ class Transfer(TimeStampedModel):
             global_status.save()
             self.date_modified = timezone.now()
             self.save(update_fields=['date_modified'])
-            self.invite.update_status()
+            self.invite.update_status_from_transfers()
 
     def _init_statuses(self):
         TransferStatus.objects.bulk_create(
@@ -130,7 +134,7 @@ class Transfer(TimeStampedModel):
         )
 
     def _reassign_project_permissions(self, update_deployment: bool = False):
-        new_owner = self.invite.destination_user
+        new_owner = self.invite.recipient
 
         # Delete existing new owner's permissions on project if any
         self.asset.permissions.filter(user=new_owner).delete()
@@ -138,23 +142,33 @@ class Transfer(TimeStampedModel):
         self.asset.owner = new_owner
 
         if update_deployment:
+            owner_perms = [
+                p.permission.codename
+                for p in self.asset.permissions.filter(user=old_owner)
+            ]
+            # Add calculated permissions in case some of them match KC owner's
+            # permissions
+            owner_perms += list(Asset.CALCULATED_PERMISSIONS)
             xform = self.asset.deployment.xform
             xform.user_id = new_owner.pk
-            try:
-                target_folder = os.path.dirname(
-                    xform.xls.name.replace(
-                        old_owner.username, new_owner.username
-                    )
+            if (
+                target_folder := get_target_folder(
+                    old_owner.username, new_owner.username, xform.xls.name
                 )
-            except FileNotFoundError:
-                logging.error(
-                    'File not found: Could not move Kobocat XLSForm',
-                    exc_info=True,
-                )
-            else:
+            ):
                 xform.xls.move(target_folder)
 
             xform.save(update_fields=['user_id', 'xls'])
+            # TODO (or not)
+            # KC usually adds 3 more permissions that are ignored by KPI:
+            # - add_xform
+            # - transfer_xform
+            # - move_xform
+            # It does not seem to be a problem, but would be worth it to make
+            # permission assignments consistent.
+            assign_applicable_kc_permissions(self.asset, new_owner, owner_perms)
+            reset_kc_permissions(self.asset, old_owner)
+
             backend_response = self.asset.deployment.backend_response
             backend_response['owner'] = new_owner.username
             self.asset.deployment.store_data(
@@ -167,7 +181,7 @@ class Transfer(TimeStampedModel):
             adjust_content=False,
         )
         self.asset.assign_perm(
-            self.invite.source_user, PERM_MANAGE_ASSET
+            self.invite.sender, PERM_MANAGE_ASSET
         )
 
 

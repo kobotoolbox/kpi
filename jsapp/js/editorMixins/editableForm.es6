@@ -543,7 +543,10 @@ export default Object.assign({
     if (this.state.backRoute === ROUTES.FORMS) {
       targetRoute = ROUTES.FORM.replace(':uid', this.state.asset_uid);
     } else if (this.state.backRoute === ROUTES.LIBRARY) {
-      targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
+      // Check if the the uid is undefined to prevent getting an Access Denied screen
+      if (this.state.asset_uid !== undefined) {
+        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
+      }
     }
     this.safeNavigateToRoute(targetRoute);
   },
@@ -655,25 +658,26 @@ export default Object.assign({
               onClick={this.previewForm}
               disabled={previewDisabled}
               data-tip={t('Preview form')}
+              className='left-tooltip'
             >
               <i className='k-icon k-icon-view' />
             </bem.FormBuilderHeader__button>
 
-            { showAllAvailable &&
-              <bem.FormBuilderHeader__button m={['show-all', {
-                    open: showAllOpen,
-                  }]}
-                  onClick={this.showAll}
-                  data-tip={t('Expand / collapse questions')}>
-                <i className='k-icon k-icon-view-all' />
-              </bem.FormBuilderHeader__button>
-            }
+            <bem.FormBuilderHeader__button m={['show-all', {
+                  open: showAllOpen,
+            }]}
+              onClick={this.showAll}
+              disabled={!showAllAvailable}
+              className = 'left-tooltip'
+              data-tip={t('Expand / collapse questions')}>
+              <i className='k-icon k-icon-view-all' />
+            </bem.FormBuilderHeader__button>
 
             <bem.FormBuilderHeader__button
               m={['group', {groupable: groupable}]}
               onClick={this.groupQuestions}
               disabled={!groupable}
-              className={this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+              className={'left-tooltip ' + (this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : '')}
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
               <i className='k-icon k-icon-group' />
@@ -684,7 +688,7 @@ export default Object.assign({
                 m={['cascading']}
                 onClick={this.toggleCascade}
                 data-tip={t('Insert cascading select')}
-                className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+                className={'left-tooltip ' + (this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : '')}
               >
                 <i className='k-icon k-icon-cascading' />
               </bem.FormBuilderHeader__button>

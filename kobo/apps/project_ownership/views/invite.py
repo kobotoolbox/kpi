@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
 from kpi.permissions import IsAuthenticated
-from kpi.utils.object_permission import get_database_user
+from ..filters import InviteFilter
 from ..models import Invite
 from ..serializers import InviteSerializer
 
@@ -12,10 +12,9 @@ class InviteViewSet(viewsets.ModelViewSet):
     lookup_field = 'uid'
     serializer_class = InviteSerializer
     permission_classes = (IsAuthenticated,)
+    filter_backends = (InviteFilter, )
 
     def get_queryset(self):
 
-        queryset = self.model.objects.filter(
-            source_user=get_database_user(self.request.user)
-        )
+        queryset = self.model.objects.select_related('recipient')
         return queryset

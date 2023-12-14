@@ -1043,7 +1043,9 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(self.asset_url, format='json')
-        self.assertEqual(response.data['deployment__submission_count'], 1)
+        # No submission count is provided any longer to users with only
+        # row-level permissions
+        self.assertEqual(response.data['deployment__submission_count'], None)
 
     def test_assignable_permissions(self):
         self.assertEqual(self.asset.asset_type, 'survey')

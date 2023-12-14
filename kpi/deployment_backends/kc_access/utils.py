@@ -333,14 +333,14 @@ def assign_applicable_kc_permissions(
         **obj.KC_CONTENT_TYPE_KWARGS)
 
     kc_permissions_already_assigned = KobocatUserObjectPermission.objects.filter(
-        user_id=user.pk, permission__in=permissions, object_pk=xform_id,
+        user_id=user_id, permission__in=permissions, object_pk=xform_id,
     ).values_list('permission__codename', flat=True)
     permissions_to_create = []
     for permission in permissions:
         if permission.codename in kc_permissions_already_assigned:
             continue
         permissions_to_create.append(KobocatUserObjectPermission(
-            user_id=user.pk, permission=permission, object_pk=xform_id,
+            user_id=user_id, permission=permission, object_pk=xform_id,
             content_type=xform_content_type
         ))
     KobocatUserObjectPermission.objects.bulk_create(permissions_to_create)
@@ -384,6 +384,44 @@ def remove_applicable_kc_permissions(
     content_type_kwargs = _get_content_type_kwargs_for_related(obj)
     KobocatUserObjectPermission.objects.filter(
         user_id=user_id, permission__in=permissions, object_pk=xform_id,
+        # `permission` has a FK to `ContentType`, but I'm paranoid
+        **content_type_kwargs
+    ).delete()
+
+
+def reset_kc_permissions(
+    obj: Model,
+    user: Union[AnonymousUser, User, int],
+):
+    """
+    Remove the `user` all KC permissions from `obj`, if any
+    exists.
+    This should not called without a subsequent call of
+    `assign_applicable_kc_permissions()`
+    """
+
+    if not obj._meta.model_name == 'asset':
+        return
+    xform_id = _get_xform_id_for_asset(obj)
+    if not xform_id:
+        return
+
+    # Retrieve primary key from user object and use it on subsequent queryset.
+    # It avoids loading the object when `user` is passed as an integer.
+    if not isinstance(user, int):
+        if is_user_anonymous(user):
+            user_id = settings.ANONYMOUS_USER_ID
+        else:
+            user_id = user.pk
+    else:
+        user_id = user
+
+    if user_id == settings.ANONYMOUS_USER_ID:
+        raise NotImplementedError
+
+    content_type_kwargs = _get_content_type_kwargs_for_related(obj)
+    KobocatUserObjectPermission.objects.filter(
+        user_id=user_id, object_pk=xform_id,
         # `permission` has a FK to `ContentType`, but I'm paranoid
         **content_type_kwargs
     ).delete()

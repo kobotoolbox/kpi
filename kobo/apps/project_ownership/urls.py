@@ -3,12 +3,13 @@ from rest_framework.routers import DefaultRouter
 
 from .views import InviteViewSet, TransferViewSet
 
+
 router = DefaultRouter()
 router.register(
-    r'invites', InviteViewSet, basename='project-ownership-transfer-invites'
+    r'project-ownership/invites', InviteViewSet, basename='project-ownership-invites'
 )
 router.register(
-    r'transfers', TransferViewSet, basename='project-ownership-transfers'
+    r'project-ownership/transfers', TransferViewSet, basename='project-ownership-transfers'
 )
 
 urlpatterns = [

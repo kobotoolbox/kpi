@@ -480,8 +480,12 @@ CONSTANCE_CONFIG = {
         12 * 60,
         'Number of minutes asynchronous tasks can run before being '
         'flagged as failed.\n'
-        'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`',
+        'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`.',
         'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES': (
+        False,
+        'Auto-accept invites by default and do not sent them by e-mail.'
     ),
 }
 
@@ -585,6 +589,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Transfer project ownership': (
         'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
         'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
+        'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -792,6 +797,7 @@ REST_FRAMEWORK = {
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',

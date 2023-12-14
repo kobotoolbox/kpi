@@ -2,6 +2,8 @@
 from django.urls import path
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
+from kobo.apps.project_ownership.urls import router as project_ownership_router
+
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
@@ -149,6 +151,9 @@ router_api_v2.register(r'project-views', ProjectViewViewSet)
 router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet)
+
+router_api_v2.registry.extend(project_ownership_router.registry)
+
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)

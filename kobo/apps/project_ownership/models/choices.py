@@ -3,6 +3,8 @@ from django.db import models
 
 class InviteStatusChoices(models.TextChoices):
 
+    ACCEPTED = 'accepted', 'ACCEPTED'
+    CANCELLED = 'cancelled', 'CANCELLED'
     COMPLETE = 'complete', 'COMPLETE'
     DECLINED = 'declined', 'DECLINED'
     FAILED = 'failed', 'FAILED'
