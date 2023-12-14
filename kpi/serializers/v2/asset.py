@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Optional
 
 from constance import config
 from django.conf import settings
@@ -15,14 +16,14 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
+from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.trash_bin.exceptions import (
     TrashIntegrityError,
     TrashTaskInProgressError,
 )
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
-from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
-from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
@@ -35,7 +36,6 @@ from kpi.constants import (
     PERM_CHANGE_METADATA_ASSET,
     PERM_MANAGE_ASSET,
     PERM_DISCOVER_ASSET,
-    PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -341,6 +341,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     access_types = serializers.SerializerMethodField()
     data_sharing = WritableJSONField(required=False)
     paired_data = serializers.SerializerMethodField()
+    project_ownership = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -396,6 +397,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'access_types',
                   'data_sharing',
                   'paired_data',
+                  'project_ownership',
                   )
         extra_kwargs = {
             'parent': {
@@ -660,6 +662,34 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return AssetPermissionAssignmentSerializer(queryset.all(),
                                                    many=True, read_only=True,
                                                    context=context).data
+
+    def get_project_ownership(self, asset) -> Optional[dict]:
+        pass
+
+    def get_project_ownership(self, asset) -> Optional[dict]:
+        if not (transfer := asset.transfers.order_by('-date_created').first()):
+            return
+
+        request = self.context.get('request')
+        user = get_database_user(request.user)
+
+        # Do not provide info if user is not concerned by last invite
+        if not (
+            transfer.invite.sender_id == user.pk
+            or transfer.invite.recipient_id == user.pk
+        ):
+            return
+
+        return {
+            'invite': reverse(
+                'project-ownership-invites-detail',
+                args=(transfer.invite.uid,),
+                request=self.context.get('request', None),
+            ),
+            'sender': transfer.invite.sender.username,
+            'recipient': transfer.invite.recipient.username,
+            'status': transfer.status
+        }
 
     def get_exports(self, obj: Asset) -> str:
         return reverse(
