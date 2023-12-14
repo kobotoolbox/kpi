@@ -8,20 +8,12 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import type {
-  BaseSubscription,
-  Product,
-  Organization,
-  BasePrice,
-  Price,
-} from './stripe.api';
 import {
   getOrganization,
   getProducts,
-  getSubscription,
   postCheckout,
   postCustomerPortal,
-} from './stripe.api';
+} from '../stripe.api';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
@@ -32,9 +24,27 @@ import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import useWhen from 'js/hooks/useWhen.hook';
+import AddOnList from 'js/account/plans/addOnList.component';
+import subscriptionStore from 'js/account/subscriptionStore';
+import {when} from 'mobx';
+import {
+  getSubscriptionsForProductId,
+  isChangeScheduled,
+  processCheckoutResponse,
+} from 'js/account/stripe.utils';
+import type {
+  BasePrice,
+  Organization,
+  Price,
+  Product,
+  SubscriptionInfo,
+} from 'js/account/stripe.types';
+import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
+import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
+import {PlanButton} from 'js/account/plans/planButton.component';
 
 interface PlanState {
-  subscribedProduct: null | BaseSubscription;
+  subscribedProduct: null | SubscriptionInfo[];
   intervalFilter: string;
   filterToggle: boolean;
   products: null | Product[];
@@ -43,17 +53,29 @@ interface PlanState {
 }
 
 // An interface for our action
-interface DataUpdates {
-  type: string;
-  prodData?: any;
-}
+type DataUpdates =
+  | {
+      type: 'initialProd';
+      prodData: Product[];
+    }
+  | {
+      type: 'initialSub';
+      prodData: SubscriptionInfo[];
+    }
+  | {
+      type: 'initialOrg';
+      prodData: Organization;
+    }
+  | {
+      type: 'month' | 'year';
+    };
 
 interface FreeTierOverride extends FreeTierThresholds {
   name: string | null;
   [key: `feature_list_${number}`]: string | null;
 }
 
-const initialState = {
+const initialState: PlanState = {
   subscribedProduct: null,
   intervalFilter: 'month',
   filterToggle: true,
@@ -64,7 +86,7 @@ const initialState = {
 
 const subscriptionUpgradeMessageDuration = 8000;
 
-function planReducer(state: PlanState, action: DataUpdates) {
+function planReducer(state: PlanState, action: DataUpdates): PlanState {
   switch (action.type) {
     case 'initialProd':
       return {...state, products: action.prodData};
@@ -90,10 +112,23 @@ function planReducer(state: PlanState, action: DataUpdates) {
 }
 
 export default function Plan() {
-  const [state, dispatch] = useReducer(planReducer, initialState);
+  // useReducer type defs incorrectly require an initializer arg - see https://github.com/facebook/react/issues/27052
+  const [state, dispatch]: [PlanState, (arg: DataUpdates) => void] = useReducer(
+    planReducer,
+    initialState
+  );
   const [expandComparison, setExpandComparison] = useState(false);
-  const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
+  const [isBusy, setIsBusy] = useState(true);
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
+  const [activeSubscriptions, setActiveSubscriptions] = useState<
+    SubscriptionInfo[]
+  >([]);
+  const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
+    newPrice: null,
+    products: [],
+    currentSubscription: null,
+  });
+
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const navigate = useNavigate();
@@ -105,9 +140,31 @@ export default function Plan() {
   );
 
   const hasManageableStatus = useCallback(
-    (subscription: BaseSubscription) =>
+    (subscription: SubscriptionInfo) =>
       ACTIVE_STRIPE_STATUSES.includes(subscription.status),
     []
+  );
+
+  const shouldShowManage = useCallback(
+    (product: Price) => {
+      const subscriptions = getSubscriptionsForProductId(
+        product.id,
+        state.subscribedProduct
+      );
+      if (!subscriptions || !subscriptions.length) {
+        return false;
+      }
+
+      const activeSubscription = subscriptions.find(
+        (subscription: SubscriptionInfo) => hasManageableStatus(subscription)
+      );
+      if (!activeSubscription) {
+        return false;
+      }
+
+      return isChangeScheduled(product.prices, [activeSubscription]);
+    },
+    [hasManageableStatus, state.subscribedProduct]
   );
 
   const freeTierOverride = useMemo((): FreeTierOverride | null => {
@@ -131,7 +188,7 @@ export default function Plan() {
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
-      return state.subscribedProduct.some((subscription: BaseSubscription) =>
+      return state.subscribedProduct.some((subscription: SubscriptionInfo) =>
         hasManageableStatus(subscription)
       );
     }
@@ -139,10 +196,10 @@ export default function Plan() {
   }, [state.subscribedProduct]);
 
   useMemo(() => {
-    if (state.subscribedProduct?.length > 0) {
+    if (state.subscribedProduct && state.subscribedProduct.length > 0) {
       const subscribedFilter =
-        state.subscribedProduct?.[0].items[0].price.recurring?.interval;
-      if (hasManageableStatus(state.subscribedProduct?.[0])) {
+        state.subscribedProduct[0].items[0].price.recurring?.interval;
+      if (subscribedFilter && hasManageableStatus(state.subscribedProduct[0])) {
         dispatch({type: subscribedFilter});
       }
     }
@@ -151,12 +208,16 @@ export default function Plan() {
   useWhen(
     () => envStore.isReady,
     () => {
-      // If Stripe isn't loaded, just redirect to the account page
+      // If Stripe isn't active, just redirect to the account page
       if (!envStore.data.stripe_public_key) {
         navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
         return;
       }
       const fetchPromises = [];
+
+      if (!subscriptionStore.isInitialised || !subscriptionStore.isPending) {
+        subscriptionStore.fetchSubscriptionInfo();
+      }
 
       fetchPromises[0] = getProducts().then((data) => {
         // If we have no products, redirect
@@ -174,14 +235,17 @@ export default function Plan() {
           prodData: data.results[0],
         });
       });
-      fetchPromises[2] = getSubscription().then((data) => {
-        dispatch({
-          type: 'initialSub',
-          prodData: data.results,
-        });
-      });
+      fetchPromises[2] = when(() => subscriptionStore.isInitialised).then(
+        () => {
+          dispatch({
+            type: 'initialSub',
+            prodData: subscriptionStore.planResponse,
+          });
+          setActiveSubscriptions(subscriptionStore.activeSubscriptions);
+        }
+      );
       Promise.all(fetchPromises).then(() => {
-        setAreButtonsDisabled(false);
+        setIsBusy(false);
       });
     },
     [searchParams, shouldRevalidate]
@@ -191,7 +255,7 @@ export default function Plan() {
   useEffect(() => {
     const handlePersisted = (event: PageTransitionEvent) => {
       if (event.persisted) {
-        setShouldRevalidate(!shouldRevalidate);
+        setShouldRevalidate((prevState) => !prevState);
       }
     };
     window.addEventListener('pageshow', handlePersisted);
@@ -209,10 +273,12 @@ export default function Plan() {
     }
     const priceId = searchParams.get('checkout');
     if (priceId) {
-      const isSubscriptionUpdated = state.subscribedProduct.find(
-        (subscription: BaseSubscription) =>
+      const isSubscriptionUpdated = false;
+      if (state.subscribedProduct) {
+        state.subscribedProduct.find((subscription: SubscriptionInfo) =>
           subscription.items.find((item) => item.price.id === priceId)
-      );
+        );
+      }
       if (isSubscriptionUpdated) {
         notify.success(
           t(
@@ -238,7 +304,7 @@ export default function Plan() {
   // Filter prices based on plan interval and filter out recurring addons
   const filterPrices = useMemo((): Price[] => {
     if (state.products !== null) {
-      const filterAmount = state.products.map((product: Product) => {
+      const filterAmount = state.products.map((product: Product): Price => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.recurring?.interval;
           return (
@@ -249,93 +315,75 @@ export default function Plan() {
 
         return {
           ...product,
-          prices: filteredPrices?.[0],
+          prices: filteredPrices[0],
         };
       });
 
-      return filterAmount
-        .filter((product: Product) => product.prices)
-        .sort(
-          (priceA: Price, priceB: Price) =>
-            priceA.prices.unit_amount > priceB.prices.unit_amount
-        );
+      return filterAmount.filter((price) => price.prices);
     }
     return [];
   }, [state.products, state.intervalFilter]);
 
-  const getSubscriptionsForProductId = useCallback(
-    (productId: String) =>
-      state.subscribedProduct.filter(
-        (subscription: BaseSubscription) =>
-          subscription.items[0].price.product.id === productId
-      ),
-    [state.subscribedProduct]
-  );
+  const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (!product.prices.unit_amount && !hasActiveSubscription) {
+      if (!product.prices?.unit_amount && !hasActiveSubscription) {
         return true;
       }
 
-      const subscriptions = getSubscriptionsForProductId(product.id);
+      const subscriptions = getSubscribedProduct(
+        product.id,
+        state.subscribedProduct
+      );
 
-      if (subscriptions.length > 0) {
+      if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
-          (subscription: BaseSubscription) =>
+          (subscription: SubscriptionInfo) =>
             subscription.items[0].price.id === product.prices.id &&
             hasManageableStatus(subscription)
         );
       }
       return false;
     },
-    [state.subscribedProduct, state.intervalFilter]
+    [state.subscribedProduct, state.intervalFilter, state.products]
   );
 
-  const shouldShowManage = useCallback(
-    (product: Price) => {
-      const subscriptions = getSubscriptionsForProductId(product.id);
-      if (!subscriptions.length || !state.organization?.id) {
-        return false;
-      }
-
-      return subscriptions.some((subscription: BaseSubscription) =>
-        hasManageableStatus(subscription)
-      );
-    },
-    [state.subscribedProduct]
-  );
-
-  const upgradePlan = (priceId: string) => {
-    if (!priceId || areButtonsDisabled) {
-      return;
-    }
-    setAreButtonsDisabled(true);
-    postCheckout(priceId, state.organization?.id)
-      .then((data) => {
-        if (!data.url) {
-          notify.error(t('There has been an issue, please try again later.'));
-        } else {
-          window.location.assign(data.url);
-        }
-      })
-      .catch(() => setAreButtonsDisabled(false));
+  const dismissConfirmModal = () => {
+    setConfirmModal((prevState) => {
+      return {...prevState, newPrice: null, currentSubscription: null};
+    });
   };
 
-  const managePlan = () => {
-    if (!state.organization?.id || areButtonsDisabled) {
+  const buySubscription = (price: BasePrice) => {
+    if (!price.id || isBusy || !state.organization?.id) {
       return;
     }
-    setAreButtonsDisabled(true);
-    postCustomerPortal(state.organization.id)
-      .then((data) => {
-        if (!data.url) {
-          notify.error(t('There has been an issue, please try again later.'));
-        } else {
-          window.location.assign(data.url);
-        }
-      })
-      .catch(() => setAreButtonsDisabled(false));
+    setIsBusy(true);
+    if (activeSubscriptions.length) {
+      if (
+        activeSubscriptions[0].items?.[0].price.unit_amount < price.unit_amount
+      ) {
+        // if the user is upgrading prices, send them to the customer portal
+        // this will immediately change their subscription
+        postCustomerPortal(state.organization.id, price.id)
+          .then(processCheckoutResponse)
+          .catch(() => setIsBusy(false));
+      } else {
+        // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
+        // this will downgrade the subscription at the end of the current billing period
+        setConfirmModal({
+          products: state.products,
+          newPrice: price,
+          currentSubscription: activeSubscriptions[0],
+        });
+      }
+    } else {
+      // just send the user to the checkout page
+      postCheckout(price.id, state.organization.id)
+        .then(processCheckoutResponse)
+        .catch(() => setIsBusy(false));
+    }
   };
 
   // Get feature items and matching icon boolean
@@ -407,7 +455,7 @@ export default function Plan() {
     }>,
     title?: string
   ) => (
-    <div className={styles.expandedFeature} key={title}>
+    <div key={title}>
       <h2 className={styles.listTitle}>{title} </h2>
       <ul>
         {items.map((item) => (
@@ -446,10 +494,9 @@ export default function Plan() {
     });
     return renderFeaturesList(items, featureTitle);
   };
-  if (state.products) {
-    if (!state.products.length) {
-      return null;
-    }
+
+  if (!state.products?.length || !state.organization) {
+    return null;
   }
 
   return (
@@ -459,7 +506,7 @@ export default function Plan() {
       ) : (
         <div
           className={classnames(styles.accountPlan, {
-            [styles.wait]: areButtonsDisabled,
+            [styles.wait]: isBusy,
           })}
         >
           <div className={styles.plansSection}>
@@ -469,7 +516,7 @@ export default function Plan() {
                 id='switch_left'
                 name='switchToggle'
                 value='month'
-                aria-label={'Toggle to month options'}
+                aria-label={t('show monthly plans')}
                 onChange={() => dispatch({type: 'month'})}
                 checked={state.filterToggle}
               />
@@ -482,7 +529,7 @@ export default function Plan() {
                 value='year'
                 onChange={() => dispatch({type: 'year'})}
                 checked={!state.filterToggle}
-                aria-label={'Toggle to annual options'}
+                aria-label={t('show annual plans')}
               />
               <label htmlFor='switch_right'>{t('Annual')}</label>
             </form>
@@ -493,7 +540,7 @@ export default function Plan() {
                   {isSubscribedProduct(price) ? (
                     <div className={styles.currentPlan}>{t('Your plan')}</div>
                   ) : (
-                    <div className={styles.otherPlanSpacing} />
+                    <div />
                   )}
                   <div
                     className={classnames({
@@ -551,57 +598,25 @@ export default function Plan() {
                         )}
                       </div>
                     )}
-                    {!isSubscribedProduct(price) &&
-                      !shouldShowManage(price) &&
-                      price.prices.unit_amount > 0 && (
-                        <Button
-                          type='full'
-                          color='blue'
-                          size='m'
-                          label={t('Upgrade')}
-                          onClick={() => upgradePlan(price.prices.id)}
-                          aria-label={`upgrade to ${price.name}`}
-                          aria-disabled={areButtonsDisabled}
-                          isDisabled={areButtonsDisabled}
-                        />
-                      )}
-                    {isSubscribedProduct(price) &&
-                      shouldShowManage(price) &&
-                      price.prices.unit_amount > 0 && (
-                        <Button
-                          type='full'
-                          color='blue'
-                          size='l'
-                          label={t('Manage')}
-                          onClick={managePlan}
-                          aria-label={`manage your ${price.name} subscription`}
-                          aria-disabled={areButtonsDisabled}
-                          isDisabled={areButtonsDisabled}
-                        />
-                      )}
-                    {!isSubscribedProduct(price) &&
-                      shouldShowManage(price) &&
-                      price.prices.unit_amount > 0 && (
-                        <Button
-                          type='full'
-                          color='blue'
-                          size='m'
-                          label={t('Change plan')}
-                          onClick={managePlan}
-                          aria-label={`change your subscription to ${price.name}`}
-                          aria-disabled={areButtonsDisabled}
-                          isDisabled={areButtonsDisabled}
-                        />
-                      )}
-                    {price.prices.unit_amount === 0 && (
-                      <div className={styles.btnSpacePlaceholder} />
-                    )}
+                    <PlanButton
+                      price={price}
+                      downgrading={
+                        activeSubscriptions?.length > 0 &&
+                        activeSubscriptions?.[0].items?.[0].price.unit_amount >
+                          price.prices.unit_amount
+                      }
+                      isSubscribedToPlan={isSubscribedProduct(price)}
+                      buySubscription={buySubscription}
+                      showManage={shouldShowManage(price)}
+                      isBusy={isBusy}
+                      setIsBusy={setIsBusy}
+                      organization={state.organization}
+                    />
                   </div>
                 </div>
               ))}
 
               <div className={styles.enterprisePlanContainer}>
-                <div className={styles.otherPlanSpacing} />
                 <div className={styles.enterprisePlan}>
                   <h1 className={styles.enterpriseTitle}> {t('Want more?')}</h1>
                   <div className={styles.priceTitle}>{t('Contact us')}</div>
@@ -638,7 +653,7 @@ export default function Plan() {
           </div>
 
           {hasMetaFeatures() && (
-            <div className={styles.expandBtn}>
+            <div>
               <Button
                 type='full'
                 color='cloud'
@@ -658,6 +673,17 @@ export default function Plan() {
               />
             </div>
           )}
+          <AddOnList
+            isBusy={isBusy}
+            setIsBusy={setIsBusy}
+            products={state.products}
+            organization={state.organization}
+            onClickBuy={buySubscription}
+          />
+          <ConfirmChangeModal
+            onRequestClose={dismissConfirmModal}
+            {...confirmModal}
+          />
         </div>
       )}
     </>

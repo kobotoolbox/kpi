@@ -32,7 +32,7 @@ class RequireProviderIdSocialAppForm(SocialAppForm):
         if SocialApp.objects.filter(
             Q(provider_id=provider_id) |
             Q(provider=provider_id)
-        ).exists():
+        ).exclude(pk=self.instance.pk).exists():
             raise ValidationError(
                 """The Provider ID value must be unique and cannot match an existing Provider name.
                 Please use a different value."""
