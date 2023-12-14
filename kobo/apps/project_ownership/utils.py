@@ -9,7 +9,6 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatMetadata,
 )
 from kpi.models.asset import AssetFile
-from kpi.utils.log import logging
 from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 from .exceptions import AsyncTaskException
 
@@ -18,17 +17,14 @@ def get_target_folder(
     previous_owner_username: str, new_owner_username: str, filename: str
 ) -> Optional[str]:
 
-    try:
-        target_folder = os.path.dirname(
-            filename.replace(previous_owner_username, new_owner_username)
-        )
-    except FileNotFoundError:
-        logging.error(
-            f'File not found: {filename}',
-            exc_info=True,
-        )
-    else:
-        return target_folder
+    if not filename:
+        return
+
+    target_folder = os.path.dirname(
+        filename.replace(previous_owner_username, new_owner_username)
+    )
+
+    return target_folder
 
 
 def move_attachments(transfer: 'project_ownership.Transfer'):
