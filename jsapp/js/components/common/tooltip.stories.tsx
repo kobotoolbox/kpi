@@ -1,8 +1,10 @@
 import React from 'react';
 import type {Meta, Story} from '@storybook/react';
 
-import type {TooltipProps} from './tooltip';
+import type {TooltipProps, TooltipAlignment} from './tooltip';
 import Tooltip from './tooltip';
+
+const tooltipPositions: TooltipAlignment[] = ['right', 'left', 'center'];
 
 export default {
   title: 'Common/Tooltip',
@@ -12,13 +14,13 @@ export default {
   argTypes: {
     text: {
       description: 'Content of the tooltip shown on hover over button',
+      control: 'text',
     },
     alignment: {
       description:
         'Position of the tooltip (centered as default)',
-      options: ['right', 'left', 'center'],
-      control: 'select',
-      defaultValue: 'center',
+      options: tooltipPositions,
+      control: 'radio',
     },
     ariaLabel: {
       description: 'Accessible label for screen readers',
