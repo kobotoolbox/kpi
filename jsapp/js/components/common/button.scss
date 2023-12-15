@@ -1,5 +1,6 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/sizes';
+@use 'scss/mixins';
 @use 'js/components/common/icon';
 @use 'sass:color';
 
@@ -153,6 +154,7 @@ $button-border-radius: sizes.$x6;
   border-color: transparent;
   border-radius: $button-border-radius;
   background-color: transparent;
+  transition: background-color 0.2s, opacity 0.2s, color 0.2s;
 }
 
 .long-button-padding {
@@ -162,6 +164,14 @@ $button-border-radius: sizes.$x6;
 .k-button:active {
   // Make it appear pressed down.
   transform: translateY(sizes.$x1);
+}
+
+.k-button:focus {
+  outline: none;
+}
+
+.k-button:focus-visible {
+  @include mixins.default-ui-focus;
 }
 
 .k-button__label {
@@ -174,7 +184,7 @@ $button-border-radius: sizes.$x6;
   justify-content: center;
 }
 
-.k-button[disabled] {
+.k-button[aria-disabled=true] {
   pointer-events: none;
   opacity: 0.5;
 }

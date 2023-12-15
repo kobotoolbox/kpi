@@ -1,7 +1,8 @@
 # coding: utf-8
 # 😇
+import datetime
+
 import constance
-import mock
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -9,6 +10,7 @@ from django.http import HttpRequest
 from django.template import RequestContext, Template
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from markdown import markdown
 from model_bakery import baker
 from rest_framework import status
@@ -17,12 +19,29 @@ from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_database_user
 
 
 class EnvironmentTests(BaseTestCase):
     fixtures = ['test_data']
+
+    today = timezone.now()
+    free_tier_thresholds = {
+        'storage': 11111111111111,
+        'data': 2222222222222,
+        'transcription_minutes': 333333,
+        'translation_chars': 4444444,
+    }
+    free_tier_display = {
+      'name': 'Test',
+      'features': [
+          'Feature 1',
+          'Feature 2',
+      ]
+    }
 
     def setUp(self):
         self.url = reverse('environment')
@@ -88,6 +107,15 @@ class EnvironmentTests(BaseTestCase):
                 constance.config.FREE_TIER_DISPLAY
             ),
             'social_apps': [],
+            'enable_password_entropy_meter': (
+                constance.config.ENABLE_PASSWORD_ENTROPY_METER
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
         }
 
     def _check_response_dict(self, response_dict):
@@ -185,16 +213,95 @@ class EnvironmentTests(BaseTestCase):
         self.assertFalse(response.data['mfa_per_user_availability'])
         self.assertTrue(response.data['mfa_has_availability_list'])
 
+    @override_config(
+        FREE_TIER_CUTOFF_DATE=today.date(),
+        FREE_TIER_THRESHOLDS=free_tier_thresholds,
+        FREE_TIER_DISPLAY=free_tier_display,
+    )
+    def test_free_tier_override_respects_cutoff_date(
+        self,
+    ):
+        user = baker.make(
+            'User',
+            username='thresholds_test',
+            date_joined=self.today
+        )
+        self.client.force_login(user)
+
+        # A user who joined today should see the custom free tier
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['free_tier_thresholds'], self.free_tier_thresholds)
+        self.assertEqual(response.data['free_tier_display'], self.free_tier_display)
+
+        # A user who joined yesterday should see the custom free tier
+        user.date_joined = self.today - datetime.timedelta(days=1)
+        user.save()
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['free_tier_thresholds'], self.free_tier_thresholds)
+        self.assertEqual(response.data['free_tier_display'], self.free_tier_display)
+
+        # A user who joined tomorrow should *not* see the custom free tier
+        user.date_joined = self.today + datetime.timedelta(days=1)
+        user.save()
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['free_tier_thresholds'], FREE_TIER_NO_THRESHOLDS)
+        self.assertEqual(response.data['free_tier_display'], FREE_TIER_EMPTY_DISPLAY)
+
+    @override_config(
+        FREE_TIER_CUTOFF_DATE=today.date(),
+        FREE_TIER_THRESHOLDS=free_tier_thresholds,
+        FREE_TIER_DISPLAY=free_tier_display,
+    )
+    def test_free_tier_override_uses_organization_owner_join_date(
+        self,
+    ):
+        """ If the user is in an organization, the custom free tier should only
+        be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE """
+        org_user = baker.make(
+            'User',
+            username='org_user',
+            date_joined=self.today + datetime.timedelta(days=1),
+        )
+        org_owner = baker.make(
+            'User',
+            username='org_owner',
+            date_joined=self.today,
+        )
+
+        organization = baker.make('Organization')
+        # The first user added to the organization automatically becomes the owner
+        organization.add_user(org_owner)
+        organization.add_user(org_user)
+        organization.save()
+        self.client.force_login(org_user)
+
+        # a user whose organization owner registered today should see the custom free tier
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['free_tier_thresholds'], self.free_tier_thresholds)
+        self.assertEqual(response.data['free_tier_display'], self.free_tier_display)
+
+        # a user whose organization owner registered tomorrow should *not* see the custom free tier
+        org_owner.date_joined = self.today + datetime.timedelta(days=1)
+        org_owner.save()
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['free_tier_thresholds'], FREE_TIER_NO_THRESHOLDS)
+        self.assertEqual(response.data['free_tier_display'], FREE_TIER_EMPTY_DISPLAY)
+
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = 20
+        queries = FuzzyInt(18, 25)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
-            with self.assertNumQueries(queries + 1):
+            with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)

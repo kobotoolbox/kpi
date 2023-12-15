@@ -1,6 +1,6 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/_variables";
-@use "scss/libs/_mdl";
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
 
 $s-flexed-row-button-width: 100px;
 $s-flexed-row-select-width: 200px;
@@ -28,7 +28,9 @@ $s-gray-row-spacing: 10px;
 .copy-team-permissions {
   margin-bottom: 30px;
 
-  &.copy-team-permissions--opened .copy-team-permissions-opener .k-icon::before {
+  &.copy-team-permissions--opened
+    .copy-team-permissions-opener
+    .k-icon::before {
     transform: rotate(-90deg);
   }
 
@@ -141,6 +143,11 @@ $s-gray-row-spacing: 10px;
     background-color: colors.$kobo-white;
   }
 
+  .user-permissions-editor__row > *:not(:last-child),
+  .user-permissions-editor__sub-row > *:not(:last-child) {
+    margin-bottom: 5px;
+  }
+
   .user-permissions-editor__row {
     &:not(:last-child) {
       margin-bottom: 10px;
@@ -162,8 +169,8 @@ $s-gray-row-spacing: 10px;
       left: 10px;
       width: 15px;
       height: 15px;
-      border-left: 1px solid colors.$kobo-gray-92;
-      border-bottom: 1px solid colors.$kobo-gray-92;
+      border-left: 1px solid colors.$kobo-gray-85;
+      border-bottom: 1px solid colors.$kobo-gray-85;
       border-radius: 2px;
     }
   }
@@ -197,7 +204,7 @@ $s-gray-row-spacing: 10px;
     }
   }
 
-  > input[type="text"] {
+  > input[type='text'] {
     flex: 1;
     padding: $s-gray-row-spacing;
     height: 40px;

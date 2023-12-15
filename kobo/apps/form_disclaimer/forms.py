@@ -19,10 +19,13 @@ class FormDisclaimerForm(ModelForm):
         default = self.cleaned_data['default']
         if (
             not default
-            and not FormDisclaimer.objects.filter(default=True).exists()
+            and not FormDisclaimer.objects.filter(default=True)
+            .exclude(pk=self.instance.pk)
+            .exists()
         ):
             raise ValidationError(
-                'You need to use at least one language as default', 'no_default_error'
+                'You need to use at least one language as default',
+                'no_default_error',
             )
 
         return default
@@ -34,7 +37,9 @@ class FormDisclaimerForm(ModelForm):
 
         if (
             default
-            and FormDisclaimer.objects.exclude(pk=self.instance.pk).exists()
+            and FormDisclaimer.objects.filter(default=True)
+            .exclude(pk=self.instance.pk)
+            .exists()
         ):
             FormDisclaimer.objects.filter(default=True).update(default=False)
             KobocatFormDisclaimer.objects.filter(default=True).update(default=False)
@@ -75,6 +80,14 @@ class OverriddenFormDisclaimerForm(ModelForm):
         hidden = self.cleaned_data.get('hidden', False)
         message = self.cleaned_data.get('message', '')
         asset = self.cleaned_data.get('asset', None)
+
+        if not FormDisclaimer.objects.filter(
+            asset__isnull=True
+        ).exists():
+            raise ValidationError(
+                'You must set a global disclaimer first.',
+                'no_global_disclaimer',
+            )
 
         if not hidden and (not language or not message):
             raise ValidationError(

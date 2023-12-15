@@ -14,7 +14,6 @@ import {stores} from './stores';
 import sessionStore from './stores/session';
 import {actions} from './actions';
 import {dataInterface} from './dataInterface';
-import {assign} from 'utils';
 import {parsed} from './assetParserUtils';
 
 const emptySearchState = {
@@ -31,7 +30,7 @@ const emptySearchState = {
   parentName: false,
   allPublic: false,
 };
-const initialState = assign({
+const initialState = Object.assign({
   cleared: false,
 
   defaultQueryState: 'none',
@@ -190,7 +189,7 @@ function SearchContext(opts={}) {
       if (!items.cleared) {
         items.cleared = false;
       }
-      assign(this.state, items);
+      Object.assign(this.state, items);
     },
     filterTagQueryData () {
       if (this.filterTags) {
@@ -219,11 +218,11 @@ function SearchContext(opts={}) {
       if (this.state.allPublic === true) {
         params.allPublic = true;
       }
-      return assign({}, this.filterParams, params);
+      return Object.assign({}, this.filterParams, params);
     },
     toQueryData (dataObject) {
       var searchParams = dataObject || this.toDataObject(),
-          // _searchParamsClone = assign({}, searchParams),
+          // _searchParamsClone = Object.assign({}, searchParams),
           paramGroups = [],
           queryData = {};
 
@@ -231,7 +230,7 @@ function SearchContext(opts={}) {
         if (searchParams.tags && searchParams.tags.length > 0) {
           paramGroups.push(
               searchParams.tags.map(function(t){
-                return `tag:"${t.value}"`;
+                return `tags__name__iexact:"${t.value}"`;
               }).join(' AND ')
             );
         }
@@ -305,7 +304,7 @@ function SearchContext(opts={}) {
     in the components' states.
     */
     var dataObject = searchStore.toDataObject();
-    var _dataObjectClone = assign({}, dataObject);
+    var _dataObjectClone = Object.assign({}, dataObject);
     var qData = searchStore.toQueryData(dataObject);
     var isSearch = !_opts.cacheAsDefaultSearch;
 
@@ -422,7 +421,7 @@ function SearchContext(opts={}) {
     if (jqxhrs.search) {
       jqxhrs.search.abort();
     }
-    searchStore.update(assign({
+    searchStore.update(Object.assign({
       cleared: true
     }, emptySearchState));
   });
@@ -461,7 +460,7 @@ function SearchContext(opts={}) {
       }
     },
     searchDefault: function () {
-      searchStore.quietUpdate(assign({
+      searchStore.quietUpdate(Object.assign({
         cleared: true,
         searchString: false,
       }, emptySearchState));
@@ -493,7 +492,7 @@ var commonMethods = {
     } else {
       ctx = getSearchContext(passedCtx);
     }
-    assign(this, ctx.mixin);
+    Object.assign(this, ctx.mixin);
   },
   searchTagsChange (tags) {
     this.quietUpdateStore({

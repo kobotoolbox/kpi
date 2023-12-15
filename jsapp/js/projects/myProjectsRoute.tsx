@@ -18,59 +18,29 @@ import customViewStore from './customViewStore';
 import styles from './projectViews.module.scss';
 import routeStyles from './myProjectsRoute.module.scss';
 import {toJS} from 'mobx';
-import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
+import {ROOT_URL} from 'js/constants';
+import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 import Dropzone from 'react-dropzone';
 import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
-import LimitModal from '../components/usageLimits/overLimitModal.component';
-import LimitBanner from '../components/usageLimits/overLimitBanner.component';
-import {Cookies} from 'react-cookie';
-import envStore from 'js/envStore';
-import {
-  getAllExceedingLimits,
-  getPlanInterval,
-} from 'js/components/usageLimits/usageCalculations';
-
-const cookies = new Cookies();
+import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  const limits = getAllExceedingLimits();
-  const interval = getPlanInterval();
+  const usage = useUsage();
 
   useEffect(() => {
     customView.setUp(
       HOME_VIEW.uid,
-      `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.s}`,
+      `${ROOT_URL}/api/v2/assets/`,
       HOME_DEFAULT_VISIBLE_FIELDS
     );
   }, []);
-
-  useEffect(() => {
-    const limitsCookie = cookies.get('kpiOverLimitsCookie');
-    if (limitsCookie === undefined && limits.exceedList.length > 0) {
-      setShowModal(true);
-      const dateNow = new Date();
-      const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
-      cookies.set('kpiOverLimitsCookie', {
-        expires: expireDate,
-      });
-    }
-    if (limitsCookie && limits.exceedList.length) {
-      setDismissed(true);
-    }
-  }, [limits]);
-
-  const modalDismissed = (dismiss: boolean) => {
-    setDismissed(dismiss);
-  };
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -125,6 +95,12 @@ function MyProjectsRoute() {
             excludedFields={HOME_EXCLUDED_FIELDS}
           />
 
+          {selectedAssets.length === 0 && (
+            <div className={styles.actions}>
+              <ProjectQuickActionsEmpty />
+            </div>
+          )}
+
           {selectedAssets.length === 1 && (
             <div className={styles.actions}>
               <ProjectQuickActions asset={selectedAssets[0]} />
@@ -137,18 +113,9 @@ function MyProjectsRoute() {
             </div>
           )}
         </header>
-        {dismissed && (
-          <LimitBanner interval={interval} limits={limits.exceedList} />
-        )}
-        <LimitBanner warning interval={interval} limits={limits.warningList} />
-        {envStore.data.stripe_public_key !== null && (
-          <LimitModal
-            show={showModal}
-            limits={limits.exceedList}
-            interval={interval}
-            dismissed={(dismiss) => modalDismissed(dismiss)}
-          />
-        )}
+        <UsageContext.Provider value={usage}>
+          <LimitNotifications useModal />
+        </UsageContext.Provider>
         <ProjectsTable
           assets={customView.assets}
           isLoading={!customView.isFirstLoadComplete}

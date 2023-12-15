@@ -10,6 +10,7 @@ interface OverLimitBannerProps {
   warning?: boolean;
   limits: string[];
   interval: string;
+  usagePage: boolean;
 }
 
 const OverLimitBanner = (props: OverLimitBannerProps) => {
@@ -19,26 +20,18 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   }
 
   return (
-    <div
-      className={cx(styles.limitBannerContainer, {
-        [styles.warningBanner]: props.warning,
-      })}
-    >
-      <Icon
-        name={props.warning ? 'alert' : 'warning'}
-        size='m'
-        color={props.warning ? 'amber' : 'red'}
-      />
+    <div className={cx(styles.limitBannerContainer, styles.warningBanner)}>
+      <Icon name={'alert'} size='m' color={'amber'} />
       <div className={styles.bannerContent}>
         {props.warning
-          ? t('You are close to surpassing your')
-          : t('You have surpassed your')}{' '}
+          ? t('You are approaching your')
+          : t('You have reached your')}{' '}
         <strong>
-          {`${props.interval}ly`}{' '}
+          {props.interval === 'month' ? t('monthly') : t('yearly')}{' '}
           {props.limits.map((item, i) => (
             <span key={i}>
-              {i > 0 && ', '}
-              {i === props.limits.length - 1 && i > 0 && 'and '}
+              {i > 0 && props.limits.length > 2 && ', '}
+              {i === props.limits.length - 1 && i > 0 && t(' and ')}
               {item}
             </span>
           ))}{' '}
@@ -46,29 +39,56 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           {props.limits.length > 1 && 's'}
         </strong>
         {'. '}
+        {t('Please')}{' '}
         {props.warning && (
           <>
-            {t(
-              'Please review you current usage and consider upgrading to a plan with larger capacity if necessary. You can'
-            )}{' '}
+            {!props.usagePage && (
+              <>
+                <a
+                  href={`#${ACCOUNT_ROUTES.USAGE}`}
+                  className={styles.bannerLink}
+                >
+                  {t('review your usage')}
+                </a>{' '}
+                {t('and')}{' '}
+              </>
+            )}
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
-              {t('upgrade in the plans section')}
-            </a>
+              {t('upgrade your plan')}
+            </a>{' '}
+            {props.usagePage ? t('as soon as possible') : t('if needed')}
           </>
         )}
         {!props.warning && (
           <>
-            {t(
-              'Please upgrade to a plan with a larger capacity to continue collecting data this ##PERIOD##. You can'
-            ).replace(/##PERIOD##/g, props.interval)}{' '}
-            <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.bannerLink}>
-              {t('review your usage here')}
+            <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
+              {t('upgrade your plan')}
             </a>
+            {' as soon as possible or ' /* tone down the language for now */}
+            <a
+              href='https://www.kobotoolbox.org/contact/'
+              target='_blank'
+              className={styles.bannerLink}
+            >
+              {'contact us'}
+            </a>
+            {' to speak with our team'}
+            {!props.usagePage && (
+              <>
+                {'. '}
+                <a
+                  href={`#${ACCOUNT_ROUTES.USAGE}`}
+                  className={styles.bannerLink}
+                >
+                  {t('Review your usage in account settings')}
+                </a>
+              </>
+            )}
           </>
         )}
         {'.'}
       </div>
-      {props.warning && (
+      {props.warning && !props.usagePage && (
         <Button
           type={'frame'}
           color={'dark-blue'}
@@ -80,10 +100,10 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           classNames={[styles.bannerBtn]}
         />
       )}
-      {!props.warning && (
+      {(!props.warning || props.usagePage) && (
         <Button
-          type={'full'}
-          color={'dark-red'}
+          type={'frame'}
+          color={'dark-blue'}
           endIcon='arrow-right'
           size='s'
           label={t('Upgrade now')}

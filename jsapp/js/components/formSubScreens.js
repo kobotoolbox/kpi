@@ -8,7 +8,7 @@ import bem from 'js/bem';
 import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
-import SharingForm from './permissions/sharingForm';
+import SharingForm from './permissions/sharingForm.component';
 import ProjectSettings from './modalForms/projectSettings';
 import FormMedia from './modalForms/formMedia';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -143,7 +143,7 @@ export class FormSubScreens extends React.Component {
     const uid = this.props.params.assetid || this.props.params.uid;
     return (
       <bem.FormView m='form-settings-sharing'>
-        <SharingForm uid={uid} />
+        <SharingForm assetUid={uid} />
       </bem.FormView>
     );
   }

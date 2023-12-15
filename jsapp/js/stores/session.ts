@@ -1,11 +1,10 @@
 import {action, makeAutoObservable} from 'mobx';
-import {ANON_USERNAME} from 'js/constants';
+import {ANON_USERNAME} from 'js/users/utils';
 import {dataInterface} from 'js/dataInterface';
 import type {AccountResponse, FailResponse} from 'js/dataInterface';
 import {log, currentLang} from 'js/utils';
 import type {Json} from 'js/components/common/common.interfaces';
 import type {ProjectViewsSettings} from 'js/projects/customViewStore';
-import cloneDeep from 'lodash.clonedeep';
 
 class SessionStore {
   currentAccount: AccountResponse | {username: string} = {

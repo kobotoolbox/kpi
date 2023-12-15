@@ -197,6 +197,6 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
             asset_type='survey',
         )
         self.client.login(username='anotheruser', password='anotheruser')
-        url = reverse(self._get_endpoint('service-usage-list'))
+        url = reverse(self._get_endpoint('asset-usage-list'))
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK

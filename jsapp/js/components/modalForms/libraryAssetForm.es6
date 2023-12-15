@@ -216,7 +216,6 @@ export class LibraryAssetFormComponent extends React.Component {
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               value={this.state.fields.name}
               onChange={this.onNameChange.bind(this)}
               label={t('Name')}
@@ -226,7 +225,6 @@ export class LibraryAssetFormComponent extends React.Component {
 
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               type='text-multiline'
               value={this.state.fields.description}
               onChange={this.onDescriptionChange.bind(this)}
@@ -237,7 +235,6 @@ export class LibraryAssetFormComponent extends React.Component {
 
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               value={this.state.fields.organization}
               onChange={this.onAnyFieldChange.bind(this, 'organization')}
               label={t('Organization')}

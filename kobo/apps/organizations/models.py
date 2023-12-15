@@ -35,15 +35,17 @@ class Organization(AbstractOrganization):
         # Only check for subscriptions if Stripe is enabled
         if settings.STRIPE_ENABLED:
             return Organization.objects.prefetch_related('djstripe_customers').filter(
-                djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-                djstripe_customers__subscriber=self.id,
-            ).order_by(
-                '-djstripe_customers__subscriptions__start_date'
-            ).values(
-                billing_cycle_anchor=F('djstripe_customers__subscriptions__billing_cycle_anchor'),
-                current_period_start=F('djstripe_customers__subscriptions__current_period_start'),
-                recurring_interval=F('djstripe_customers__subscriptions__items__price__recurring__interval'),
-            )[0]
+                    djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                    djstripe_customers__subscriber=self.id,
+                ).order_by(
+                    '-djstripe_customers__subscriptions__start_date'
+                ).values(
+                    billing_cycle_anchor=F('djstripe_customers__subscriptions__billing_cycle_anchor'),
+                    current_period_start=F('djstripe_customers__subscriptions__current_period_start'),
+                    current_period_end=F('djstripe_customers__subscriptions__current_period_end'),
+                    recurring_interval=F('djstripe_customers__subscriptions__items__price__recurring__interval'),
+                ).first()
+
         return None
 
 

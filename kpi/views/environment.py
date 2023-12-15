@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from hub.utils.i18n import I18nUtils
+from kobo.apps.organizations.models import OrganizationOwner
+from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from kobo.static_lists import COUNTRIES
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
@@ -123,6 +125,20 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
+    def process_password_configs(request):
+        return {
+            'enable_password_entropy_meter': (
+                constance.config.ENABLE_PASSWORD_ENTROPY_METER
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
+        }
+
+    @staticmethod
     def process_project_metadata_configs(request):
         data = {
             'project_metadata_fields': I18nUtils.get_metadata_fields('project')
@@ -140,16 +156,11 @@ class EnvironmentView(APIView):
     def process_other_configs(request):
         data = {}
 
-        # django-allauth social apps are configured in both settings and the
-        # database. Optimize by avoiding extra DB call when unnecessary
-        social_apps = []
-        if settings.SOCIALACCOUNT_PROVIDERS:
-            social_apps = list(
-                SocialApp.objects.filter(custom_data__isnull=True).values(
-                    'provider', 'name', 'client_id'
-                )
+        data['social_apps'] = list(
+            SocialApp.objects.filter(custom_data__isnull=True).values(
+                'provider', 'name', 'client_id', 'provider_id'
             )
-        data['social_apps'] = social_apps
+        )
 
         data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
             request.user
@@ -160,17 +171,20 @@ class EnvironmentView(APIView):
         )
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
-        if request.user.id and request.user.date_joined.date() > constance.config.FREE_TIER_CUTOFF_DATE:
-            data['free_tier_thresholds'] = {
-                'storage': None,
-                'data': None,
-                'transcription_minutes': None,
-                'translation_chars': None,
-            }
-            data['free_tier_display'] = {
-                'name': None,
-                'feature_list': [],
-            }
+        if request.user.id:
+            # if the user is in an organization, use the organization owner's join date
+            owner_join_date = OrganizationOwner.objects.filter(
+                organization__organization_users__user=request.user
+            ).values_list('organization_user__user__date_joined', flat=True).first()
+            if owner_join_date:
+                date_joined = owner_join_date.date()
+            else:
+                # default to checking the user's join date
+                date_joined = request.user.date_joined.date()
+            # if they didn't register on/before FREE_TIER_CUTOFF_DATE, don't display the custom free tier
+            if date_joined > constance.config.FREE_TIER_CUTOFF_DATE:
+                data['free_tier_thresholds'] = FREE_TIER_NO_THRESHOLDS
+                data['free_tier_display'] = FREE_TIER_EMPTY_DISPLAY
 
         return data
 
@@ -180,6 +194,7 @@ class EnvironmentView(APIView):
         data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
+        data.update(self.process_password_configs(request))
         data.update(self.process_project_metadata_configs(request))
         data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))

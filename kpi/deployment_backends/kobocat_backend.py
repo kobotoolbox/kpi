@@ -158,14 +158,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
+        # Otherwise, they have full access.
         if submission_ids:
-            partial_perms = True
             # Reset query, because all the submission ids have been already
             # retrieve
             data['query'] = {}
         else:
-            partial_perms = False
             submission_ids = data['submission_ids']
 
         submissions = self.get_submissions(
@@ -604,8 +602,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
         `url`
         """
+        kobocat_url = settings.KOBOCAT_URL
+        # If old domain name is detected, use it for search&replace below
+        if settings.KOBOCAT_OLD_URL and settings.KOBOCAT_OLD_URL in url:
+            kobocat_url = settings.KOBOCAT_OLD_URL
+
         return re.sub(
-            pattern='^{}'.format(re.escape(settings.KOBOCAT_URL)),
+            pattern='^{}'.format(re.escape(kobocat_url)),
             repl=settings.KOBOCAT_INTERNAL_URL,
             string=url
         )
@@ -689,14 +692,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise XPathNotFoundException
 
             filters = {
-                # TODO: hide attachments that were deleted or replaced; see
-                # kobotoolbox/kobocat#792
-                # 'replaced_at': None,
                 'media_file_basename': attachment_filename,
             }
         else:
             filters = {
-                # 'replaced_at': None,
                 'pk': attachment_id,
             }
 

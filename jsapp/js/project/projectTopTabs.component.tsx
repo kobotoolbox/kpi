@@ -34,7 +34,8 @@ export default function ProjectTopTabs() {
   const isDataTabEnabled =
     asset?.deployment__identifier != undefined &&
     asset?.has_deployment &&
-    asset?.deployment__submission_count > 0 &&
+    (asset?.deployment__submission_count === null ||
+      asset?.deployment__submission_count > 0) &&
     (userCan('view_submissions', asset) ||
       userCanPartially('view_submissions', asset));
 
@@ -43,6 +44,8 @@ export default function ProjectTopTabs() {
     (userCan('change_asset', asset) || userCan('change_metadata_asset', asset));
 
   return (
+    // TODO: this list needs to be keyboard-navigable. To make it so, we need
+    // real `<button>`s here, not `<li>`s.
     <nav className={styles.root}>
       <ul className={styles.tabs}>
         <li

@@ -19,13 +19,13 @@ import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
-  addRequiredToLabel,
   escapeHtml,
   isAValidUrl,
   validFileTypes,
   notify,
   join,
-} from 'utils';
+} from 'js/utils';
+import {addRequiredToLabel} from 'js/textUtils';
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS,
@@ -838,7 +838,6 @@ class ProjectSettings extends React.Component {
 
         <bem.FormModal__item>
           <TextBox
-            customModifiers='on-white'
             type='url'
             label={t('URL')}
             placeholder='https://'
@@ -903,7 +902,6 @@ class ProjectSettings extends React.Component {
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
             <bem.FormModal__item>
               <TextBox
-                customModifiers='on-white'
                 value={this.state.fields.name}
                 onChange={this.onNameChange.bind(this)}
                 errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
@@ -918,7 +916,6 @@ class ProjectSettings extends React.Component {
           {descriptionField &&
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               type='text-multiline'
               value={this.state.fields.description}
               onChange={this.onDescriptionChange.bind(this)}
