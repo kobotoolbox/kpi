@@ -12,7 +12,7 @@ import {ROUTES, PATHS} from 'js/router/routerConstants';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
 import session from '../stores/session';
 import {redirectDocument} from 'react-router';
-import {when} from 'jquery';
+import {when} from 'mobx';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
