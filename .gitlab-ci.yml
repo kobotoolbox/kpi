@@ -7,9 +7,11 @@ include:
   - template: SAST.gitlab-ci.yml
 
 build:
-  image: docker
+  # Please un-pin the version (24.0.6) once the following GitLab issue is resolved:
+  # https://gitlab.com/gitlab-com/gl-infra/production/-/issues/17283
+  image: docker:24.0.6
   services:
-    - docker:dind
+    - docker:24.0.6-dind
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
