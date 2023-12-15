@@ -1,15 +1,18 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from .views import InviteViewSet, TransferViewSet
 
 
-router = DefaultRouter()
-router.register(
-    r'project-ownership/invites', InviteViewSet, basename='project-ownership-invites'
+router = ExtendedDefaultRouter()
+invite_router = router.register(
+    r'project-ownership/invites', InviteViewSet, basename='project-ownership-invite'
 )
-router.register(
-    r'project-ownership/transfers', TransferViewSet, basename='project-ownership-transfers'
+invite_router.register(
+    r'transfers',
+    TransferViewSet,
+    basename='project-ownership-transfer',
+    parents_query_lookups=['invite_uid'],
 )
 
 urlpatterns = [

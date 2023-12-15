@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models.asset import Asset
@@ -7,10 +8,7 @@ from ..models import Transfer, TransferStatus, TransferStatusTypeChoices
 
 class TransferListSerializer(serializers.ModelSerializer):
 
-    url = serializers.HyperlinkedIdentityField(
-        lookup_field='uid',
-        view_name='project-ownership-transfers-detail',
-    )
+    url = serializers.SerializerMethodField()
     asset = RelativePrefixHyperlinkedRelatedField(
         view_name='asset-detail',
         lookup_field='uid',
@@ -28,6 +26,16 @@ class TransferListSerializer(serializers.ModelSerializer):
             'status',
             'error',
             'date_modified',
+        )
+
+    def get_url(self, transfer: Transfer) -> str:
+        return reverse(
+            'project-ownership-transfer-detail',
+            kwargs={
+                'parent_lookup_invite_uid': transfer.invite.uid,
+                'uid': transfer.uid,
+            },
+            request=self.context.get('request', None),
         )
 
     def get_date_modified(self, transfer: Transfer) -> str:

@@ -23,7 +23,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
-        view_name='project-ownership-invites-detail',
+        view_name='project-ownership-invite-detail',
     )
 
     recipient = RelativePrefixHyperlinkedRelatedField(

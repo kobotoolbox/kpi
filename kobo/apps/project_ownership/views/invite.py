@@ -35,7 +35,7 @@ class InviteViewSet(viewsets.ModelViewSet):
                "date_modified": "2023-12-14T21:17:29Z",
                "transfers": [
                    {
-                       "url": "https://[kpi]/api/v2/project-ownership/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
+                       "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
                        "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
                        "status": "success",
                        "error": null,
@@ -85,7 +85,7 @@ class InviteViewSet(viewsets.ModelViewSet):
         "date_modified": "2023-12-14T21:17:29Z",
         "transfers": [
            {
-               "url": "https://[kpi]/api/v2/project-ownership/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
+               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
                "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
                "status": "pending",
                "error": null,
@@ -100,7 +100,7 @@ class InviteViewSet(viewsets.ModelViewSet):
     <span class='label label-warning'>Only the sender can cancel an invite, and **if only if** the invite is still pending.</span>
 
     <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/project-ownership/invites/<invite_uid>/
+    <b>PATCH</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/
     </pre>
 
     > Example
@@ -124,7 +124,7 @@ class InviteViewSet(viewsets.ModelViewSet):
         "date_modified": "2023-12-14T21:17:29Z",
         "transfers": [
            {
-               "url": "https://[kpi]/api/v2/project-ownership/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
+               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
                "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
                "status": "cancelled",
                "error": null,
@@ -139,7 +139,7 @@ class InviteViewSet(viewsets.ModelViewSet):
     <span class='label label-warning'>Only the recipient can accept or decline, **if and only if** the invite is still pending.</span>
 
     <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/project-ownership/invites/<invite_uid>/
+    <b>PATCH</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/
     </pre>
 
     > Example
@@ -157,7 +157,7 @@ class InviteViewSet(viewsets.ModelViewSet):
         "date_modified": "2023-12-14T21:17:29Z",
         "transfers": [
            {
-               "url": "https://[kpi]/api/v2/project-ownership/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
+               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
                "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
                "status": "in_progress|cancelled",
                "error": null,
@@ -173,12 +173,12 @@ class InviteViewSet(viewsets.ModelViewSet):
     process
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/project-ownership/invites/<invite_uid>/
+    <b>GET</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/
     </pre>
 
     > Example
     >
-    >       curl -X PATCH https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
+    >       curl -X GET https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
 
     <pre class="prettyprint">
     <b>HTTP 200 OK</b>
@@ -190,7 +190,7 @@ class InviteViewSet(viewsets.ModelViewSet):
         "date_modified": "2023-12-14T21:17:29Z",
         "transfers": [
            {
-               "url": "https://[kpi]/api/v2/project-ownership/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
+               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
                "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
                "status": "in_progress",
                "error": null,
@@ -198,7 +198,7 @@ class InviteViewSet(viewsets.ModelViewSet):
            },
            ...
           {
-               "url": "https://[kpi]/api/v2/project-ownership/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
+               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/potKpv6rc9xGoPwSHft2prWs/",
                "asset": "https://[kpi]/api/v2/assets/a8jyVbhvaPSBRtYqoshiLE/",
                "status": "success",
                "error": null,
