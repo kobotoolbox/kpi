@@ -154,7 +154,7 @@ export function isFormMapRoute(uid: string): boolean {
 }
 
 export function isFormMapByRoute(uid: string, viewby: string): boolean {
- return getCurrentPath() === ROUTES.FORM_MAP_BY.replace(':uid', uid).replace(':viewby', viewby);
+  return getCurrentPath() === ROUTES.FORM_MAP_BY.replace(':uid', uid).replace(':viewby', viewby);
 }
 
 /** Note that this is `false` for sub-routes of `FORM_SETTINGS`. */

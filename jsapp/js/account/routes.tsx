@@ -1,5 +1,5 @@
 import React from 'react';
-import {Navigate, Route, redirect} from 'react-router-dom';
+import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
 import {ROUTES} from 'js/router/routerConstants';
 import {authLoader} from '../router/routerUtils';
