@@ -1,7 +1,7 @@
 from constance import config
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Prefetch
 from django.utils.translation import gettext as _
 from rest_framework import exceptions, serializers
 
@@ -84,15 +84,22 @@ class InviteSerializer(serializers.ModelSerializer):
         return instance
 
     def get_transfers(self, invite: Invite) -> list:
-        transfers_queryset = (
+        transfers = (
             invite.transfers.select_related('asset')
-            .defer('asset__content')
-            .prefetch_related('statuses')
-            .all()
+            .only('asset__uid')
+            .prefetch_related(
+                Prefetch(
+                    'statuses',
+                    queryset=TransferStatus.objects.filter(
+                        status_type=TransferStatusTypeChoices.GLOBAL.value
+                    ),
+                    to_attr='prefetched_status',
+                ),
+            )
         )
 
         return TransferListSerializer(
-            transfers_queryset, many=True, context=self.context
+            transfers, many=True, context=self.context
         ).data
 
     def get_date_created(self, invite: Invite) -> str:

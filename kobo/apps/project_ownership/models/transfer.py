@@ -103,6 +103,14 @@ class Transfer(TimeStampedModel):
 
     @property
     def status(self):
+        if hasattr(self, 'prefetched_status'):
+            return self.prefetched_status[0].status
+
+        if hasattr(self, 'prefetched_statuses'):
+            for status in self.prefetched_statuses:
+                if status.status_type == TransferStatusTypeChoices.GLOBAL.value:
+                    return status.status
+
         return self.statuses.get(
             status_type=TransferStatusTypeChoices.GLOBAL.value
         ).status

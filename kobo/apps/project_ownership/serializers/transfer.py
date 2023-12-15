@@ -62,7 +62,7 @@ class TransferDetailSerializer(TransferListSerializer):
 
     def get_statuses(self,  transfer: Transfer) -> list[dict]:
         return TransferStatusSerializer(
-            transfer.statuses.all(), many=True, context=self.context
+            transfer.prefetched_statuses, many=True, context=self.context
         ).data
 
 
