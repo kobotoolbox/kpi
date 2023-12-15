@@ -682,7 +682,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return {
             'invite': reverse(
-                'project-ownership-invites-detail',
+                'project-ownership-invite-detail',
                 args=(transfer.invite.uid,),
                 request=self.context.get('request', None),
             ),
