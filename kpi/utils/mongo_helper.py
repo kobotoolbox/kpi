@@ -300,14 +300,20 @@ class MongoHelper:
 
     @classmethod
     def get_permission_filters_query(
-        cls, query: dict, permission_filters: Union[dict, list]
+        cls, query: dict, permission_filters: Union[dict, list[Union[dict, list]]]
     ) -> dict:
         if permission_filters is None:
             return query
+        
+        if isinstance(permission_filters, dict) and len(permission_filters) == 1:
+            raise Exception("MongoHelper.get_permission_filters_query does not support dict of length 1")
 
-        if len(permission_filters) == 1:
+        # Optimization, avoid using OR for just one filter
+        if len(permission_filters) == 1 and isinstance(permission_filters[0], dict):
             permission_filters_query = permission_filters[0]
-        else:
+        elif len(permission_filters) == 1 and len(permission_filters[0]) == 1:
+            permission_filters_query = permission_filters[0][0]
+        else:  # Apply OR operator
             permission_filters_query = {cls.OR_OPERATOR: []}
             for permission_filter in permission_filters:
                 if isinstance(permission_filter, list):
@@ -320,18 +326,6 @@ class MongoHelper:
                     )
 
         return {cls.AND_OPERATOR: [query, permission_filters_query]}
-
-    @classmethod
-    def is_attribute_invalid(cls, key):
-        """
-        Checks if an attribute can't be passed to Mongo as is.
-        :param key:
-        :return:
-        """
-        return (
-            key not in cls.KEY_WHITELIST
-            and (key.startswith('$') or key.count('.') > 0)
-        )
 
     @classmethod
     def _get_cursor_and_count(

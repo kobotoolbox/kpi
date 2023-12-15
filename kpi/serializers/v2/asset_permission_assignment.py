@@ -10,6 +10,7 @@ from django.contrib.auth.models import Permission, User
 from django.urls import Resolver404
 from django.utils.translation import gettext as t
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 
 from kpi.constants import (
@@ -503,6 +504,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             username = self._get_arg_from_url('username', user_url)
             username_to_url[username] = user_url
             for partial_assignment in assignment.get('partial_permissions', []):
+                if "filters" not in partial_assignment:
+                    # Instead of this, we should validate using DRF 
+                    raise ValidationError("Permission assignment must contain filters")
                 partial_codename = self._get_arg_from_url(
                     'codename', partial_assignment['url']
                 )

@@ -35,6 +35,8 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     """
     ## Permission assignments of an asset
 
+    **Important**: partial_permissions section of API is not stable and may change without notice.
+
     This endpoint shows assignments on an asset. An assignment implies:
 
     - a `Permission` object
