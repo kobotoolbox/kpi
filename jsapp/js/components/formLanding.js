@@ -353,7 +353,7 @@ class FormLanding extends React.Component {
     kc_server.href = this.state.deployment__identifier;
     var kobocollect_url = kc_server.origin;
     if (this.state.anonymousSubmissions) {
-      kobocollect_url.concat(`/${this.state.owner__username}`);
+      kobocollect_url = kobocollect_url.concat(`/${this.state.owner__username}`);
     }
 
     return (
