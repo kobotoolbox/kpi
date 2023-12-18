@@ -216,10 +216,6 @@ $s-form-builder-content-width: 1024px;
         overflow: visible;
         padding: 0;
 
-        &[data-tip]::after {
-          margin-left: 30px;
-        }
-
         &:hover,
         &:focus,
         &:focus:not(:active) {
