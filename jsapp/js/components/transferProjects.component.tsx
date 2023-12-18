@@ -7,18 +7,51 @@ import KoboModalHeader from './modals/koboModalHeader';
 import KoboModalFooter from './modals/koboModalFooter';
 import Icon from './common/icon';
 import TextBox from './common/textBox';
+import {ProjectTransfer, sendInvite, TransferStatuses} from './transferProjects.api';
+import {use} from 'chai';
+import {ROOT_URL} from '../constants';
 
-export default function TransferProjects() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [username, setUsername] = useState('');
+interface TransferProjectsProps {
+  assetUid: string;
+}
+
+interface TransferProjectsState {
+  isModalOpen: boolean;
+  username: string;
+  inviteDetail: ProjectTransfer | null;
+  usernameError: boolean | string;
+}
+
+const USERNAME_ERROR_MESSAGE = 'User not found. Please try again.';
+
+export default function TransferProjects(props: TransferProjectsProps) {
+  const [transfer, setTransfer] = useState<TransferProjectsState>({
+    isModalOpen: false,
+    username: '',
+    inviteDetail: null,
+    usernameError: false,
+  });
 
   const updateUsername = (newUsername: string) => {
-    setUsername(newUsername);
+    setTransfer({...transfer, username: newUsername});
   };
 
   const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
+    setTransfer({...transfer, isModalOpen: !transfer.isModalOpen});
   };
+
+  if (!props.assetUid) {
+    return;
+  }
+
+  function checkUsername(username: string) {
+    if (username !== '') {
+      setTransfer({...transfer, usernameError: false});
+      sendInvite(username, props.assetUid);
+    } else {
+      setTransfer({...transfer, usernameError: USERNAME_ERROR_MESSAGE});
+    }
+  }
 
   return (
     <div className={styles.root}>
@@ -48,7 +81,7 @@ export default function TransferProjects() {
       </div>
 
       <KoboModal
-        isOpen={isModalOpen}
+        isOpen={transfer.isModalOpen}
         onRequestClose={toggleModal}
         size='medium'
       >
@@ -100,9 +133,10 @@ export default function TransferProjects() {
               label={t(
                 'To complete the transfer, enter the username of the new project owner'
               )}
-              value={username}
+              value={transfer.username}
               placeholder={t('Enter username here')}
               required
+              errors={transfer.usernameError}
               onChange={updateUsername}
             />
           </div>
@@ -118,9 +152,7 @@ export default function TransferProjects() {
           />
           <Button
             label={t('Transfer project')}
-            onClick={() => {
-              console.log('TODO', username);
-            }}
+            onClick={() => checkUsername(transfer.username)}
             color='blue'
             type='full'
             size='m'
