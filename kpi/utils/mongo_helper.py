@@ -273,32 +273,6 @@ class MongoHelper:
         return d
 
     @classmethod
-    def encode(cls, key):
-        """
-        Replace characters not allowed in Mongo keys with their base64-encoded
-        representations
-
-        :param key: string
-        :return: string
-        """
-        for pattern, repl in cls.ENCODING_SUBSTITUTIONS:
-            key = re.sub(pattern, repl, key)
-        return key
-
-    @classmethod
-    def decode(cls, key):
-        """
-        Replace base64-encoded characters not allowed in Mongo keys with their
-        original representations
-
-        :param key: string
-        :return: string
-        """
-        for pattern, repl in cls.DECODING_SUBSTITUTIONS:
-            key = re.sub(pattern, repl, key)
-        return key
-
-    @classmethod
     def get_permission_filters_query(
         cls, query: dict, permission_filters: Union[dict, list[Union[dict, list]]]
     ) -> dict:

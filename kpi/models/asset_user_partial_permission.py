@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import annotations
 from collections import defaultdict
-from typing import Literal, Union
+from typing import Dict, List, Literal, Union
 
 from django.db import models
 from django.utils import timezone
@@ -9,11 +9,11 @@ from django.utils import timezone
 from kpi.constants import SUFFIX_SUBMISSIONS_PERMS
 
 
-SimplePartialPermFilter = dict[str, str]
+SimplePartialPermFilter = Dict[str, str]
 """Basic filter such as my_question: my_response"""
 
-SubmittedByPartialPermissionFilter = dict[
-    Literal["_submitted_by"], dict[Literal["_submitted_by"], list[str]]
+SubmittedByPartialPermissionFilter = Dict[
+    Literal["_submitted_by"], Dict[Literal["_submitted_by"], List[str]]
 ]
 """
 Inner mongo filter for _submitted_by that accepts a subset of mongo operations
@@ -25,7 +25,7 @@ PartialPermissionFilter = Union[
 ]
 """Any valid type of partial permission filter"""
 
-PartialPermissions = dict[str, list[list[PartialPermissionFilter]]]
+PartialPermissions = Dict[str, List[List[PartialPermissionFilter]]]
 """
 A partial permission is a permission string and it's set of filters
 {
@@ -33,8 +33,8 @@ A partial permission is a permission string and it's set of filters
 }
 """
 
-LegacyPartialPermissions = dict[
-    str, list[Union[list[PartialPermissionFilter], SubmittedByPartialPermissionFilter]]
+LegacyPartialPermissions = Dict[
+    str, List[Union[List[PartialPermissionFilter], SubmittedByPartialPermissionFilter]]
 ]
 """Older partial permissions use format like 'some_permission': [{'_submitted_by': {'$in': ['a']}}]"""
 
