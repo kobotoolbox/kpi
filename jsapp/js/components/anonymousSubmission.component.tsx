@@ -22,6 +22,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
       />
       <a
         href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+        className='right-tooltip wrapped-tooltip'
         target='_blank'
         data-tip={t(
           'Allow anyone to see this form and add submissions. Click the icon to learn more.'
