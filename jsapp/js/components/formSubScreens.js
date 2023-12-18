@@ -147,7 +147,7 @@ export class FormSubScreens extends React.Component {
       <bem.FormView m='form-settings-sharing'>
         <SharingForm assetUid={uid} />
 
-        <TransferProjects assetUid={uid} />
+        <TransferProjects asset={this.state} />
       </bem.FormView>
     );
   }

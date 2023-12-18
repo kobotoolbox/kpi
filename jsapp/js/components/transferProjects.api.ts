@@ -4,7 +4,6 @@ import {ROOT_URL} from '../constants';
 
 const INVITE_URL = '/api/v2/project-ownership/invites/';
 const USERNAME_URL = ROOT_URL + '/api/v2/users/';
-const ASSET_URL = ROOT_URL + '/api/v2/assets/';
 
 /**
  * The status of a project transfer.
@@ -26,18 +25,27 @@ export enum TransferStatuses {
   Pending = 'pending',
 }
 
+/**Detail about a single asset's transfer. This is listed in the invite detail.*/
 export interface ProjectTransfer {
   url: string;
   asset: string;
-  status: string;
+  status: TransferStatuses;
   error: any;
   date_modified: string;
+}
+
+/**Detail about current asset's transfer. This is listed in the asset detail.*/
+export interface ProjectTransferAssetDetail {
+  invite: string,
+  sender: string,
+  recipient: string,
+  status: TransferStatuses,
 }
 
 export interface InvitesResponse {
   url: string;
   recipient: string;
-  status: string;
+  status: TransferStatuses;
   date_created: string;
   date_modified: string;
   /**
@@ -54,10 +62,14 @@ export async function sendInvite(username: string, assetUid: string) {
   });
 }
 
-export async function cancelInvite(inviteUid: string) {
-  return fetchPatch<InvitesResponse>(INVITE_URL + inviteUid, {
-    status: TransferStatuses.Cancelled,
-  });
+export async function cancelInvite(inviteUrl: string) {
+  return fetchPatch<InvitesResponse>(
+    inviteUrl,
+    {
+      status: TransferStatuses.Cancelled,
+    },
+    {prependRootUrl: false}
+  );
 }
 
 /**Returns *all invites* the current user sent or recieved.*/

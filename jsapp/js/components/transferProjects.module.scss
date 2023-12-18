@@ -14,20 +14,19 @@
   margin-right: sizes.$x8;
 }
 
+.descriptionBottom {
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    max-width: sizes.$x150;
+    height: sizes.$x38;
+  }
+}
+
 .copy {
   width: 80%;
   margin-top: sizes.$x8;
-}
-
-.bar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  align-content: center;
-
-  button {
-    flex: 1;
-  }
 }
 
 .modalBody {
@@ -53,6 +52,18 @@
 
     .description {
       margin-bottom: 12px;
+    }
+  }
+
+  .descriptionBottom {
+    display: block;
+
+    .copy {
+      width: 100%;
+    }
+
+    button {
+      margin-top: sizes.$x12;
     }
   }
 }

@@ -1,25 +1,28 @@
 import React, {useState} from 'react';
-import classNames from 'classnames';
 import Button from 'js/components/common/button';
-import styles from './transferProjects.module.scss';
-import KoboModal from './modals/koboModal';
-import KoboModalHeader from './modals/koboModalHeader';
-import KoboModalFooter from './modals/koboModalFooter';
-import Icon from './common/icon';
-import TextBox from './common/textBox';
-import {ProjectTransfer, sendInvite, TransferStatuses} from './transferProjects.api';
-import {use} from 'chai';
-import {ROOT_URL} from '../constants';
+import styles from 'js/components/transferProjects.module.scss';
+import KoboModal from 'js/components/modals/koboModal';
+import KoboModalHeader from 'js/components/modals/koboModalHeader';
+import KoboModalFooter from 'js/components/modals/koboModalFooter';
+import Icon from 'js/components/common/icon';
+import TextBox from 'js/components/common/textBox';
+import {
+  cancelInvite,
+  sendInvite,
+  TransferStatuses,
+} from './transferProjects.api';
+import type {AssetResponse} from 'js/dataInterface';
 
 interface TransferProjectsProps {
-  assetUid: string;
+  asset: AssetResponse;
 }
 
 interface TransferProjectsState {
   isModalOpen: boolean;
   username: string;
-  inviteDetail: ProjectTransfer | null;
   usernameError: boolean | string;
+  inviteStatus: TransferStatuses | null;
+  inviteUrl: string | null;
 }
 
 const USERNAME_ERROR_MESSAGE = 'User not found. Please try again.';
@@ -28,8 +31,13 @@ export default function TransferProjects(props: TransferProjectsProps) {
   const [transfer, setTransfer] = useState<TransferProjectsState>({
     isModalOpen: false,
     username: '',
-    inviteDetail: null,
     usernameError: false,
+    inviteStatus: props.asset.project_ownership
+      ? props.asset.project_ownership.status
+      : null,
+    inviteUrl: props.asset.project_ownership
+      ? props.asset.project_ownership.invite
+      : null,
   });
 
   const updateUsername = (newUsername: string) => {
@@ -40,16 +48,29 @@ export default function TransferProjects(props: TransferProjectsProps) {
     setTransfer({...transfer, isModalOpen: !transfer.isModalOpen});
   };
 
-  if (!props.assetUid) {
-    return;
-  }
-
   function checkUsername(username: string) {
     if (username !== '') {
       setTransfer({...transfer, usernameError: false});
-      sendInvite(username, props.assetUid);
+      sendInvite(username, props.asset.uid).then((data) => {
+        setTransfer({
+          ...transfer,
+          inviteStatus: data.status,
+          inviteUrl: data.url,
+          isModalOpen: !transfer.isModalOpen,
+        });
+      });
     } else {
       setTransfer({...transfer, usernameError: USERNAME_ERROR_MESSAGE});
+    }
+  }
+
+  function cancelCurrentInvite() {
+    if (transfer.inviteUrl) {
+      cancelInvite(transfer.inviteUrl).then((data) => {
+        setTransfer({...transfer, inviteStatus: data.status});
+      });
+    } else {
+      throw Error;
     }
   }
 
@@ -59,25 +80,53 @@ export default function TransferProjects(props: TransferProjectsProps) {
         <div className={styles.description}>
           <strong>{t('Transfer project ownership')}</strong>
 
-          <div className={styles.copy}>
-            {t(
-              'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
-            )}
-            &nbsp;
-            <a>{t('Learn more')}</a>
-            &nbsp;
-            {t('→')}
-          </div>
-        </div>
+          {(!transfer.inviteStatus ||
+            transfer.inviteStatus !== TransferStatuses.Pending) && (
+            <div className={styles.descriptionBottom}>
+              <div className={styles.copy}>
+                {t(
+                  'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
+                )}
+                &nbsp;
+                <a>{t('Learn more')}</a>
+                &nbsp;
+                {t('→')}
+              </div>
 
-        <Button
-          label={t('Transfer')}
-          isFullWidth
-          onClick={toggleModal}
-          color='storm'
-          type='frame'
-          size='l'
-        />
+              <Button
+                label={t('Transfer')}
+                isFullWidth
+                onClick={toggleModal}
+                color='storm'
+                type='frame'
+                size='l'
+              />
+            </div>
+          )}
+
+          {transfer.inviteStatus &&
+            transfer.inviteStatus === TransferStatuses.Pending && (
+              <div className={styles.descriptionBottom}>
+                <div className={styles.copy}>
+                  {t(
+                    'Your transfer request is pending until jnm has accepted or declined it.'
+                  )}
+                  &nbsp;
+                  <a>{t('Learn more')}</a>
+                  &nbsp;
+                  {t('→')}
+                </div>
+                <Button
+                  label={t('Cancel transfer')}
+                  isFullWidth
+                  onClick={cancelCurrentInvite}
+                  color='storm'
+                  type='frame'
+                  size='l'
+                />
+              </div>
+            )}
+        </div>
       </div>
 
       <KoboModal
