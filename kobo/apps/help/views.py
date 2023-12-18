@@ -1,11 +1,10 @@
-# coding: utf-8
-import datetime
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 from django.db.models import Q
+from django.utils import timezone
 from private_storage.views import PrivateStorageView
 from rest_framework import viewsets
 
@@ -46,11 +45,10 @@ class InAppMessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = get_database_user(self.request.user)
-        now = datetime.datetime.now(tz=ZoneInfo('UTC'))
 
-        return self.queryset.filter(
+        return self.queryset.distinct().filter(
             Q(published=True) | Q(last_editor=user),
             Q(inappmessageusers__isnull=True) | Q(inappmessageusers__user=user),
-            valid_from__lte=now,
-            valid_until__gte=now,
+            valid_from__lte=timezone.now(),
+            valid_until__gte=timezone.now(),
         ).select_related('project_ownership_transfer').order_by('-pk')

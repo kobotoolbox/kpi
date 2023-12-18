@@ -55,7 +55,6 @@ class Transfer(TimeStampedModel):
 
         self.status = TransferStatusChoices.IN_PROGRESS.value
         new_owner = self.invite.recipient
-
         success = False
         try:
             if not self.asset.has_deployment:

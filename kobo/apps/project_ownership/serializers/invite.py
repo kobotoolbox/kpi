@@ -131,7 +131,7 @@ class InviteSerializer(serializers.ModelSerializer):
         #   - UserA transfers project to UserC
         # We do want to block UserA to transfer again this project to UserC.
 
-        max_tranfer_ids_per_asset = [
+        max_transfer_ids_per_asset = [
             r['pk__max']
             for r in (
                 Transfer.objects.values('asset')
@@ -141,19 +141,30 @@ class InviteSerializer(serializers.ModelSerializer):
             )
         ]
 
-        if (
-            Transfer.objects.filter(
-                pk__in=max_tranfer_ids_per_asset, invite__sender=request.user
-            ).exclude(
-                invite__status__in=[
-                    InviteStatusChoices.DECLINED.value,
-                    InviteStatusChoices.CANCELLED.value,
-                ],
-            ).exists()
-        ):
-            raise serializers.ValidationError(_(
-                'Some projects cannot be transferred'
-            ))
+        queryset = Transfer.objects.filter(
+            pk__in=max_transfer_ids_per_asset, invite__sender=request.user
+        )
+
+        errors = []
+        # Validate whether the asset does not belong to an invite that has been
+        # already processed. We only accept re-invitations on projects for which
+        # the invitation was declined or cancelled.
+        for transfer in queryset:
+            if transfer.invite.status not in [
+                InviteStatusChoices.DECLINED.value,
+                InviteStatusChoices.CANCELLED.value,
+            ]:
+                errors.append(
+                    _(
+                        'Project `##asset_uid##` cannot be transferred. '
+                        'Current status: ##status##'
+                    )
+                    .replace('##asset_uid##', transfer.asset.uid)
+                    .replace('##status##', transfer.invite.status)
+                )
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return assets
 
