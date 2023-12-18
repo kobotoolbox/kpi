@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import annotations
 from collections import defaultdict
 from typing import Literal, Union
 
@@ -12,7 +13,7 @@ SimplePartialPermFilter = dict[str, str]
 """Basic filter such as my_question: my_response"""
 
 SubmittedByPartialPermissionFilter = dict[
-    Literal["_submitted_by"], dict[Literal['_submitted_by'], list[str]]
+    Literal["_submitted_by"], dict[Literal["_submitted_by"], list[str]]
 ]
 """
 Inner mongo filter for _submitted_by that accepts a subset of mongo operations
