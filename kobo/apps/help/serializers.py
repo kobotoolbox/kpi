@@ -1,6 +1,9 @@
-# coding: utf-8
+from __future__ import annotations
+
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 
+from kpi.utils.object_permission import get_database_user
 from .models import InAppMessage, InAppMessageUserInteractions
 
 
@@ -54,6 +57,10 @@ class InAppMessageSerializer(serializers.ModelSerializer):
         lookup_field='uid', view_name='inappmessage-detail')
     interactions = InteractionsField()
     always_display_as_new = serializers.ReadOnlyField()
+    title = serializers.SerializerMethodField()
+    snippet = serializers.SerializerMethodField()
+    body = serializers.SerializerMethodField()
+    html = serializers.SerializerMethodField()
 
     class Meta:
         model = InAppMessage
@@ -68,3 +75,45 @@ class InAppMessageSerializer(serializers.ModelSerializer):
             'always_display_as_new',
         )
         read_only_fields = ('uid',)
+
+    def get_title(self, in_app_message: InAppMessage) -> str:
+        if not in_app_message.project_ownership_transfer:
+            return in_app_message.title
+        return self._replace_placeholders(in_app_message, in_app_message.title)
+
+    def get_snippet(self, in_app_message: InAppMessage) -> str:
+        if not in_app_message.project_ownership_transfer:
+            return in_app_message.snippet
+        return self._replace_placeholders(in_app_message, in_app_message.snippet)
+
+    def get_body(self, in_app_message: InAppMessage) -> str:
+        if not in_app_message.project_ownership_transfer:
+            return in_app_message.body
+        return self._replace_placeholders(in_app_message, in_app_message.body)
+
+    def get_html(self, in_app_message: InAppMessage) -> dict:
+        if not in_app_message.project_ownership_transfer:
+            return in_app_message.html
+
+        return {
+            'snippet': self._replace_placeholders(
+                in_app_message, in_app_message.html['snippet']
+            ),
+            'body': self._replace_placeholders(
+                in_app_message, in_app_message.html['body']
+            ),
+        }
+
+    def _replace_placeholders(
+        self, in_app_message: InAppMessage, value: str
+    ) -> str:
+        request = self.context['request']
+        user = get_database_user(request.user)
+        transfer = in_app_message.project_ownership_transfer
+        value = t(value)
+        value = value.replace('##username##', user.username)
+        value = value.replace('##project_name##', transfer.asset.name)
+        value = value.replace('##previous_owner##', transfer.invite.sender.username)
+        value = value.replace('##new_owner##', transfer.invite.recipient.username)
+
+        return value

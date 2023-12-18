@@ -728,7 +728,7 @@ class ObjectPermissionMixin:
         are needed several times in a row (within the same request).
 
         It will hit the DB once for this object. If object permissions are needed
-        for an another user, in subsequent calls, they can be easily retrieved
+        for another user, in subsequent calls, they can be easily retrieved
         by the returned dict keys.
 
         Args:

@@ -487,6 +487,11 @@ CONSTANCE_CONFIG = {
         False,
         'Auto-accept invites by default and do not sent them by e-mail.'
     ),
+    'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY': (
+        7,
+        'The number of days after which in-app messages expire',
+        'positive_int',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -590,6 +595,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
         'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
         'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
+        'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',

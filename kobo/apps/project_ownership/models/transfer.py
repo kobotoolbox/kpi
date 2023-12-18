@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Optional, Union
 
+from constance import config
 from django.db import models, transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as t
 
+from kobo.apps.help.models import InAppMessage, InAppMessageUsers
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -12,7 +16,7 @@ from kpi.deployment_backends.kc_access.utils import (
     reset_kc_permissions,
 )
 from kpi.fields import KpiUidField
-from kpi.models import Asset
+from kpi.models import Asset, ObjectPermission
 from .base import TimeStampedModel
 from .choices import TransferStatusChoices, TransferStatusTypeChoices
 from .invite import Invite
@@ -71,6 +75,8 @@ class Transfer(TimeStampedModel):
                                 update_deployment=True
                             )
 
+                        self._sent_app_in_messages()
+
                 # Run background tasks.
                 # 1) Rewrite `_userform_id` in MongoDB
                 async_task.delay(
@@ -88,7 +94,7 @@ class Transfer(TimeStampedModel):
                 # We do not know which error has been raised, so no logs are
                 # saved. Sentry is our friend to find out what's going on.
                 self.status = (
-                    TransferStatus.FAILED.value,
+                    TransferStatusChoices.FAILED.value,
                     'Error occurred while processing transfer',
                 )
 
@@ -190,6 +196,49 @@ class Transfer(TimeStampedModel):
         )
         self.asset.assign_perm(
             self.invite.sender, PERM_MANAGE_ASSET
+        )
+
+    def _sent_app_in_messages(self):
+
+        # Use translatable strings here to let Transifex detect them but …
+        title = t('Project ownership transferred')
+        snippet = t(
+            'Please note that the ownership of the project **##project_name##** '
+            'has been transferred from **##previous_owner##** to **##new_owner##**.'
+        )
+        body = t(
+            'Dear ##username##,\n\n'
+            'Please note that the ownership of the project **##project_name##** '
+            'has been transferred from **##previous_owner##** to **##new_owner##**.\n\n'
+            'Note: You will continue to have the same project permissions until '
+            'they are changed.\n\n'
+            ' — Kobotoolbox'
+        )
+
+        in_app_message = InAppMessage.objects.create(
+            #  … save raw strings into DB to let them be translated in
+            # the users' language in the API response, i.e. when front end expose
+            # the message in the UI.
+            title=title._proxy____args[0],  # noqa
+            snippet=snippet._proxy____args[0],  # noqa
+            body=body._proxy____args[0],  # noqa
+            published=True,
+            valid_from=timezone.now(),
+            valid_until=timezone.now()
+            + timedelta(days=config.PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY),
+            last_editor=self.invite.sender,
+            project_ownership_transfer=self,
+        )
+
+        InAppMessageUsers.objects.bulk_create(
+            [
+                InAppMessageUsers(
+                    user_id=user_id, in_app_message=in_app_message
+                )
+                for user_id in ObjectPermission.objects.filter(
+                    asset_id=self.asset_id
+                ).values_list('user_id', flat=True)
+            ]
         )
 
 

@@ -43,6 +43,12 @@ class InAppMessage(AbstractMarkdownxModel):
     valid_from = models.DateTimeField(default=EPOCH_BEGINNING)
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
     last_editor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    project_ownership_transfer = models.ForeignKey(
+        'project_ownership.Transfer',
+        null=True,
+        default=None,
+        on_delete=models.CASCADE,
+    )
 
     markdown_fields = ['snippet', 'body']
 
@@ -57,6 +63,12 @@ class InAppMessage(AbstractMarkdownxModel):
         for field in self.markdown_fields:
             result[field] = markdownify(getattr(self, field))
         return result
+
+
+class InAppMessageUsers(models.Model):
+
+    in_app_message = models.ForeignKey(InAppMessage, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 
 class InAppMessageFile(MarkdownxUploaderFile):
