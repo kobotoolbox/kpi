@@ -24,6 +24,7 @@ import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
 import type {UserResponse} from 'js/users/userExistence.store';
 import type {ReportsResponse} from 'js/components/reports/reportsConstants';
+import type {ProjectTransferAssetDetail} from 'js/components/transferProjects.api';
 
 interface AssetsRequestData {
   q?: string;
@@ -591,6 +592,7 @@ export interface AssetResponse extends AssetRequestObject {
   settings__style?: string;
   settings__form_id?: string;
   settings__title?: string;
+  project_ownership: ProjectTransferAssetDetail;
 }
 
 /** This is the asset object returned by project-views endpoint. */
