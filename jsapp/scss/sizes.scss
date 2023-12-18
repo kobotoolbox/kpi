@@ -4,7 +4,9 @@
  * nice palette and start merging similar ones. This will also help us find
  * how many of each of them we use.
  */
+@use 'sass:math';
 
+// absolute sizes
 $x1: 1px;
 $x2: 2px;
 $x3: 3px;
@@ -43,3 +45,14 @@ $x350: 350px;
 $x400: 400px;
 $x600: 600px;
 $x800: 800px;
+
+// takes a pixel dimension and returns it in rem
+@function pxToRem($size) {
+  $remSize: math.div($size, 16px);
+  @return #{$remSize}rem;
+}
+
+// relative sizes (rem units - scales with root document font size)
+$r16: pxToRem($x16); // 1em at default font size of 16px
+$r18: pxToRem($x18);
+
