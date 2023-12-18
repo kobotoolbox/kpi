@@ -145,7 +145,10 @@ class InviteSerializer(serializers.ModelSerializer):
             Transfer.objects.filter(
                 pk__in=max_tranfer_ids_per_asset, invite__sender=request.user
             ).exclude(
-                invite__status=InviteStatusChoices.DECLINED.value
+                invite__status__in=[
+                    InviteStatusChoices.DECLINED.value,
+                    InviteStatusChoices.CANCELLED.value,
+                ],
             ).exists()
         ):
             raise serializers.ValidationError(_(
