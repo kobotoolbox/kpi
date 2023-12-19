@@ -74,16 +74,24 @@ export default function TransferProjects(props: TransferProjectsProps) {
     }
   }
 
+  function isStatusPending() {
+    return transfer.inviteStatus === TransferStatuses.Pending;
+  }
+
   return (
     <div className={styles.root}>
       <div className={styles.bar}>
         <div className={styles.description}>
           <strong>{t('Transfer project ownership')}</strong>
-
-          {(!transfer.inviteStatus ||
-            transfer.inviteStatus !== TransferStatuses.Pending) && (
-            <div className={styles.descriptionBottom}>
-              <div className={styles.copy}>
+          <div className={styles.copy}>
+            {isStatusPending() ? (
+              <span>
+                {t(
+                  'Your transfer request is pending until jnm has accepted or declined it.'
+                )}
+              </span>
+            ) : (
+              <span>
                 {t(
                   'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
                 )}
@@ -91,42 +99,19 @@ export default function TransferProjects(props: TransferProjectsProps) {
                 <a>{t('Learn more')}</a>
                 &nbsp;
                 {t('→')}
-              </div>
-
-              <Button
-                label={t('Transfer')}
-                isFullWidth
-                onClick={toggleModal}
-                color='storm'
-                type='frame'
-                size='l'
-              />
-            </div>
-          )}
-
-          {transfer.inviteStatus &&
-            transfer.inviteStatus === TransferStatuses.Pending && (
-              <div className={styles.descriptionBottom}>
-                <div className={styles.copy}>
-                  {t(
-                    'Your transfer request is pending until jnm has accepted or declined it.'
-                  )}
-                  &nbsp;
-                  <a>{t('Learn more')}</a>
-                  &nbsp;
-                  {t('→')}
-                </div>
-                <Button
-                  label={t('Cancel transfer')}
-                  isFullWidth
-                  onClick={cancelCurrentInvite}
-                  color='storm'
-                  type='frame'
-                  size='l'
-                />
-              </div>
+              </span>
             )}
+          </div>
         </div>
+
+        <Button
+          label={isStatusPending() ? t('Cancel transfer') : t('Transfer')}
+          isFullWidth
+          onClick={isStatusPending() ? cancelCurrentInvite : toggleModal}
+          color='storm'
+          type='frame'
+          size='l'
+        />        
       </div>
 
       <KoboModal
