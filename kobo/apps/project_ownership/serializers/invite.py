@@ -211,29 +211,57 @@ class InviteSerializer(serializers.ModelSerializer):
 
         status = validated_data['status']
 
-        if status == InviteStatusChoices.ACCEPTED.value:
-            status = InviteStatusChoices.IN_PROGRESS.value
-
-        instance.status = status
+        # Keep `status` value to email condition below
+        instance.status = (
+            InviteStatusChoices.IN_PROGRESS.value
+            if status == InviteStatusChoices.ACCEPTED.value
+            else status
+        )
         instance.save(update_fields=['status', 'date_modified'])
 
         for transfer in instance.transfers.all():
-            if status != InviteStatusChoices.IN_PROGRESS.value:
+            if instance.status != InviteStatusChoices.IN_PROGRESS.value:
                 transfer.statuses.update(
                     status=TransferStatusChoices.CANCELLED.value
                 )
             else:
                 transfer.process()
 
-        if status == InviteStatusChoices.DECLINED.value:
-            self._send_refusal_email(instance)
-        elif status == InviteStatusChoices.ACCEPTED.value:
-            self._send_acceptance_email(instance)
+        if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
+            if status == InviteStatusChoices.DECLINED.value:
+                self._send_refusal_email(instance)
+            elif status == InviteStatusChoices.ACCEPTED.value:
+                self._send_acceptance_email(instance)
 
         return instance
 
     def _send_acceptance_email(self, invite: Invite):
-        pass
+
+        template_variables = {
+            'username': invite.sender.username,
+            'recipient': invite.recipient.username,
+            'transfers': [
+                {
+                    'asset_uid': transfer.asset.uid,
+                    'asset_name': transfer.asset.name,
+                }
+                for transfer in invite.transfers.all()
+            ],
+            'base_url': settings.KOBOFORM_URL,
+        }
+
+        email_message = EmailMessage(
+            to=invite.recipient.email,
+            subject=t('KoboToolbox project ownership transfer accepted'),
+            plain_text_template='emails/accepted_invite.txt',
+            template_variables=template_variables,
+            html_template='emails/accepted_invite.html',
+            language=invite.recipient.extra_details.data.get('last_ui_language')
+        )
+
+        # TODO Should we return a failure notification in API response if
+        #  something failed?
+        Mailer.send(email_message)
 
     def _send_invite_email(self, invite: Invite):
 
