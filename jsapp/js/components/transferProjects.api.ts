@@ -1,6 +1,8 @@
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet, fetchPost, fetchPatch} from 'jsapp/js/api';
 import {ROOT_URL} from '../constants';
+import sessionStore from 'js/stores/session';
+import {getUsernameFromUrl} from 'js/users/utils';
 
 const INVITE_URL = '/api/v2/project-ownership/invites/';
 const USERNAME_URL = ROOT_URL + '/api/v2/users/';
@@ -85,4 +87,16 @@ export async function getAllInvites() {
  */
 export async function getInviteDetail(inviteUid: string) {
   return fetchGet<InvitesResponse>(INVITE_URL + inviteUid);
+}
+
+/** Check if the invite is meant for the currently logged in user. */
+export async function checkInviteUid(inviteUid: string) {
+  let inviteIsCorrect = false;
+  getInviteDetail(inviteUid).then((data) => {
+    inviteIsCorrect =
+      sessionStore.currentAccount.username ===
+      getUsernameFromUrl(data.recipient);
+  });
+
+  return inviteIsCorrect;
 }
