@@ -101,10 +101,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         AssetFile.PAIRED_DATA: 'paired_data',
     }
 
-    SUBMISSION_UUID_PATTERN = re.compile(
-        r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}'
-    )
-
     @property
     def attachment_storage_bytes(self):
         try:
@@ -641,10 +637,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError:
             submission_uuid = submission_id_or_uuid
         if submission_uuid:
-            if not re.match(self.SUBMISSION_UUID_PATTERN, submission_uuid):
-                # not sure how necessary such a sanitization step is,
-                # but it's not hurting anything
-                raise SubmissionNotFoundException
             # `_uuid` is the legacy identifier that changes (per OpenRosa spec)
             # after every edit; `meta/rootUuid` remains consistent across
             # edits. prefer the latter when fetching by UUID.
