@@ -227,11 +227,11 @@ class InviteSerializer(serializers.ModelSerializer):
             else:
                 transfer.process()
 
-        if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
-            if status == InviteStatusChoices.DECLINED.value:
-                self._send_refusal_email(instance)
-            elif status == InviteStatusChoices.ACCEPTED.value:
-                self._send_acceptance_email(instance)
+        #if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
+        if status == InviteStatusChoices.DECLINED.value:
+            self._send_refusal_email(instance)
+        elif status == InviteStatusChoices.ACCEPTED.value:
+            self._send_acceptance_email(instance)
 
         return instance
 
