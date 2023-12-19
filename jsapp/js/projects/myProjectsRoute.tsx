@@ -47,12 +47,12 @@ function MyProjectsRoute() {
     );
 
     const invite = searchParams.get('invite');
-
     if (invite) {
       checkInviteUid(invite).then((data) => {
-        console.log('data', data)
         setInviteOK(data);
       });
+    } else {
+      setInviteOK(false);
     }
   }, [searchParams]);
 

@@ -92,11 +92,20 @@ export async function getInviteDetail(inviteUid: string) {
 /** Check if the invite is meant for the currently logged in user. */
 export async function checkInviteUid(inviteUid: string) {
   let inviteIsCorrect = false;
-  getInviteDetail(inviteUid).then((data) => {
-    inviteIsCorrect =
-      sessionStore.currentAccount.username ===
-      getUsernameFromUrl(data.recipient);
-  });
+  try {
+    await getInviteDetail(inviteUid).then((data) => {
+      // Only bother with the check if it's in the `pending` state.
+      if (data.status !== TransferStatuses.Pending) {
+        return;
+      }
+
+      inviteIsCorrect =
+        sessionStore.currentAccount.username ===
+        getUsernameFromUrl(data.recipient);
+    });
+  } catch (error) {
+    console.error(error);
+  }
 
   return inviteIsCorrect;
 }
