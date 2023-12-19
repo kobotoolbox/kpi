@@ -237,6 +237,8 @@ class Transfer(TimeStampedModel):
                 for user_id in ObjectPermission.objects.filter(
                     asset_id=self.asset_id
                 ).values_list('user_id', flat=True)
+                if user_id
+                not in [self.invite.sender.pk, self.invite.recipient.pk]
             ]
         )
 
