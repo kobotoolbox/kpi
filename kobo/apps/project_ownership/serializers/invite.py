@@ -156,6 +156,7 @@ class InviteSerializer(serializers.ModelSerializer):
             if transfer.invite.status not in [
                 InviteStatusChoices.DECLINED.value,
                 InviteStatusChoices.CANCELLED.value,
+                InviteStatusChoices.EXPIRED.value,
             ]:
                 errors.append(
                     t(
