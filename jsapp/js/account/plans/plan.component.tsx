@@ -587,15 +587,20 @@ export default function Plan() {
                     {expandComparison && (
                       <div className={styles.expandedContainer}>
                         <hr />
-                        {state.featureTypes.map(
-                          (type) =>
-                            getListItem(type, price.name).length > 0 &&
-                            returnListItem(
-                              type,
-                              price.name,
-                              price.metadata[`feature_${type}_title`]
-                            )
-                        )}
+                        {state.featureTypes.map((type, index, array) => {
+                          const featureItem = getListItem(type, price.name);
+                            return (
+                              featureItem.length > 0 && [
+                                returnListItem(
+                                  type,
+                                  price.name,
+                                  price.metadata[`feature_${type}_title`]
+                                ),
+                                index !== array.length - 1 && <hr key={`hr-${type}`} />,
+                              ]
+                            );
+                          })
+                        }
                       </div>
                     )}
                     <PlanButton
