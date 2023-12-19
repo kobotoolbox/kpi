@@ -111,7 +111,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
           color='storm'
           type='frame'
           size='l'
-        />        
+        />
       </div>
 
       <KoboModal
@@ -119,21 +119,21 @@ export default function TransferProjects(props: TransferProjectsProps) {
         onRequestClose={toggleModal}
         size='medium'
       >
-        <KoboModalHeader onRequestCloseByX={toggleModal}>
+        <KoboModalHeader onRequestCloseByX={toggleModal} headerColor='white'>
           {t('Transfer ownership')}
         </KoboModalHeader>
         <section className={styles.modalBody}>
-          <p className={styles.modalCopy}>
+          <p>
             {t(
               'This action will transfer ownership of {project name} to another user.'
             )}
-            <br />
-            <br />
+          </p>
+          <p>
             {t(
               'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.'
             )}
-            <br />
-            <br />
+          </p>
+          <p>
             {t(
               'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.'
             )}

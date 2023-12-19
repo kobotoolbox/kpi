@@ -31,12 +31,16 @@
 .modalBody {
   line-height: sizes.$x24;
   padding: 0 sizes.$x24;
+
+  p:first-of-type {
+    margin-top: 0;
+  }
 }
 
 .warning {
   display: flex;
   padding: sizes.$x12;
-  margin-bottom: sizes.$x12;
+  margin: sizes.$x24 0 sizes.$x24 0;
   background-color: lighten(colors.$kobo-red, 20%);
   border-radius: sizes.$x5;
 }
