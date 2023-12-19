@@ -140,6 +140,9 @@ def mark_as_expired():
         invite.status = InviteStatusChoices.EXPIRED.value
         invites_to_update.append(invite)
 
+    if not invites_to_update:
+        return
+
     # Notify senders
     Invite.objects.bulk_update(invites_to_update, fields=['status'])
     email_messages = []
