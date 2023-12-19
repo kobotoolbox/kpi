@@ -74,17 +74,13 @@ export default function TransferProjects(props: TransferProjectsProps) {
     }
   }
 
-  function isStatusPending() {
-    return transfer.inviteStatus === TransferStatuses.Pending;
-  }
-
   return (
     <div className={styles.root}>
       <div className={styles.bar}>
         <div className={styles.description}>
           <strong>{t('Transfer project ownership')}</strong>
           <div className={styles.copy}>
-            {isStatusPending() ? (
+            {transfer.inviteStatus === TransferStatuses.Pending ? (
               <span>
                 {t(
                   'Your transfer request is pending until jnm has accepted or declined it.'
@@ -105,9 +101,17 @@ export default function TransferProjects(props: TransferProjectsProps) {
         </div>
 
         <Button
-          label={isStatusPending() ? t('Cancel transfer') : t('Transfer')}
+          label={
+            transfer.inviteStatus === TransferStatuses.Pending
+              ? t('Cancel transfer')
+              : t('Transfer')
+          }
           isFullWidth
-          onClick={isStatusPending() ? cancelCurrentInvite : toggleModal}
+          onClick={
+            transfer.inviteStatus === TransferStatuses.Pending
+              ? cancelCurrentInvite
+              : toggleModal
+          }
           color='storm'
           type='frame'
           size='l'
