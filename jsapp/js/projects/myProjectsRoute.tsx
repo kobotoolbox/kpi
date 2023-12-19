@@ -30,12 +30,13 @@ import LimitNotifications from 'js/components/usageLimits/limitNotifications.com
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import {useSearchParams} from 'react-router-dom';
 import TransferProjectsInvite from '../components/transferProjectsInvite.component';
+import {checkInviteUid} from '../components/transferProjects.api';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [inviteOK, setInviteOK] = useState(false);
   const [searchParams] = useSearchParams();
-  const invite = searchParams.get('invite');
   const usage = useUsage();
 
   useEffect(() => {
@@ -44,7 +45,16 @@ function MyProjectsRoute() {
       `${ROOT_URL}/api/v2/assets/`,
       HOME_DEFAULT_VISIBLE_FIELDS
     );
-  }, []);
+
+    const invite = searchParams.get('invite');
+    if (invite) {
+      checkInviteUid(invite).then((data) => {
+        setInviteOK(data);
+      });
+    } else {
+      setInviteOK(false);
+    }
+  }, [searchParams]);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -134,7 +144,7 @@ function MyProjectsRoute() {
           selectedRows={selectedRows}
           onRowsSelected={setSelectedRows}
         />
-        {invite && <TransferProjectsInvite />}
+        {inviteOK && <TransferProjectsInvite />}
       </section>
     </Dropzone>
   );
