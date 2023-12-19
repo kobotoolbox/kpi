@@ -7,6 +7,7 @@ class InviteStatusChoices(models.TextChoices):
     CANCELLED = 'cancelled', 'CANCELLED'
     COMPLETE = 'complete', 'COMPLETE'
     DECLINED = 'declined', 'DECLINED'
+    EXPIRED = 'expired', 'EXPIRED'
     FAILED = 'failed', 'FAILED'
     IN_PROGRESS = 'in_progress', 'IN PROGRESS'
     PENDING = 'pending', 'PENDING'

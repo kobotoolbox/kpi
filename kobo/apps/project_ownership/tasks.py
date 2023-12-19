@@ -6,11 +6,22 @@ from constance import config
 from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext as t
 
 from kobo.celery import celery_app
+from kpi.utils.mailer import EmailMessage, Mailer
 from .exceptions import AsyncTaskException
-from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
-from .utils import move_attachments, move_media_files, rewrite_mongo_userform_id
+from .models import Invite
+from .models.choices import (
+    InviteStatusChoices,
+    TransferStatusChoices,
+    TransferStatusTypeChoices,
+)
+from .utils import (
+    move_attachments,
+    move_media_files,
+    rewrite_mongo_userform_id,
+)
 
 
 @celery_app.task(
@@ -99,7 +110,93 @@ def async_task_retry(sender=None, **kwargs):
 
 
 @celery_app.task
-def task_scheduler():
+def garbage_collector():
+    """
+    Delete not needed anymore invites
+    """
+    # Keep failed invites forever for debugging purpose.
+    deletion_threshold = timezone.now() - timedelta(
+        days=config.PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION
+    )
+    Invite.objects.filter(date_created__lte=deletion_threshold).exclude(
+        status=InviteStatusChoices.FAILED.value
+    ).delete()
+
+
+@celery_app.task
+def mark_as_expired():
+    """
+    Flag as expired not accepted (or declined) invites after
+    """
+    expiry_threshold = timezone.now() - timedelta(
+        minutes=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
+    )
+
+    invites_to_update = []
+    for invite in Invite.objects.filter(
+        date_created__lte=expiry_threshold,
+        status=InviteStatusChoices.PENDING.value,
+    ):
+        invite.status = InviteStatusChoices.EXPIRED.value
+        invites_to_update.append(invite)
+
+    # Notify senders
+    Invite.objects.bulk_update(invites_to_update, fields=['status'])
+    email_messages = []
+
+    for invite in invites_to_update:
+        template_variables = {
+            'username': invite.sender.username,
+            'recipient': invite.recipient.username,
+            'transfers': [
+                {
+                    'asset_uid': transfer.asset.uid,
+                    'asset_name': transfer.asset.name,
+                }
+                for transfer in invite.transfers.all()
+            ],
+            'base_url': settings.KOBOFORM_URL,
+        }
+        email_messages.append(
+            EmailMessage(
+                to=invite.sender.email,
+                subject=t('Invite has expired'),
+                plain_text_template='emails/expired_invite.txt',
+                template_variables=template_variables,
+                html_template='emails/expired_invite.html',
+                language=invite.sender.extra_details.data.get('last_ui_language')
+            )
+        )
+
+    Mailer.send(email_messages)
+
+
+@celery_app.task
+def mark_stuck_tasks_as_failed():
+    """
+    Flag tasks as failed if they have been created for a long time.
+    """
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
+    stuck_threshold = timezone.now() - timedelta(
+        minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
+    )
+
+    for transfer_status in TransferStatus.objects.filter(
+        date_created__lte=stuck_threshold,
+        status=TransferStatusChoices.IN_PROGRESS.value,
+    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL.value):
+        TransferStatus.update_status(
+            transfer_id=transfer_status.transfer.pk,
+            status=TransferStatusChoices.FAILED.value,
+            status_type=transfer_status.status_type,
+            error=(
+                f'Task has been stuck for more than {stuck_threshold} minutes',
+            )
+        )
+
+
+@celery_app.task
+def task_rescheduler():
     """
     This task restarts previous tasks which have been stopped accidentally,
     e.g.: docker container/k8s pod restart or OOM killed.
@@ -128,30 +225,3 @@ def task_scheduler():
         async_task.delay(
             transfer_status.transfer.pk, transfer_status.status_type
         )
-
-
-@celery_app.task
-def garbage_collector():
-    """
-    Flag tasks as failed if they have been created for a long time
-    """
-    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
-    stuck_threshold = timezone.now() - timedelta(
-        minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
-    )
-
-    # Stop hung tasks
-    for transfer_status in TransferStatus.objects.filter(
-        date_created__lte=stuck_threshold,
-        status=TransferStatusChoices.IN_PROGRESS.value,
-    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL.value):
-        TransferStatus.update_status(
-            transfer_id=transfer_status.transfer.pk,
-            status=TransferStatusChoices.FAILED.value,
-            status_type=transfer_status.status_type,
-            error=(
-                f'Task has been stuck for more than {stuck_threshold} minutes',
-            )
-        )
-
-    # TODO remove old completed transfers

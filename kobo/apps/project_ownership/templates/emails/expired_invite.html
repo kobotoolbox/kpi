@@ -1,0 +1,17 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Project name" as project_name_label %}
+
+<p>{% trans "Dear" %} {{ username }},</p>
+<p>{% blocktrans %}The invite you have sent to <b>{{ recipient }}</b> has expired.{% endblocktrans %}</p>
+
+<ul>
+{% for transfer in transfers %}
+  {% url 'api_v2:asset-detail' uid=transfer.asset_uid as asset_url %}
+  <li>{{ project_name_label }}: <b><a href="{{ base_url }}/#/forms/{{asset_uid}}/landing">{{ transfer.asset_name }}</a></b></li>
+{% endfor %}
+</ul>
+
+<p>
+&nbsp;-&nbsp;KoboToolbox
+</p>

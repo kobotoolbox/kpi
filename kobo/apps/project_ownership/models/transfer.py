@@ -299,6 +299,8 @@ class TransferStatus(TimeStampedModel):
             if status != TransferStatusChoices.IN_PROGRESS.value:
                 transfer_status.update_transfer_status()
 
+            # TODO let sysadmin know something went south.
+
     def update_transfer_status(self):
         success = True
         for status_ in self.transfer.statuses.exclude(
