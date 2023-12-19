@@ -1,0 +1,20 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Projects:" as projects_label %}
+
+<p>{% trans "Dear" %} {{ username }},</p>
+
+<p>{% blocktrans %}{{ recipient }} has declined your request to transfer ownership of these projects:{% endblocktrans %}
+  <ul>
+  {% for transfer in transfers %}
+    {% url 'api_v2:asset-detail' uid=transfer.asset_uid as asset_url %}
+    <li><a href="{{ base_url }}/#/forms/{{asset_uid}}/landing">{{ transfer.asset_name }}</a></li>
+  {% endfor %}
+  </ul>
+</p>
+
+{% trans "You will remain the owner of this project. The submissions, data storage, and transcription and translation usage for the project have not been transferred." %}
+
+<p>
+&nbsp;-&nbsp;KoboToolbox
+</p>

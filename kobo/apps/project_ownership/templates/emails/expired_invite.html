@@ -1,14 +1,15 @@
 {% load i18n %}
 {% load strings %}
-{% trans "Project name" as project_name_label %}
+{% trans "Projects:" as projects_label %}
 
 <p>{% trans "Dear" %} {{ username }},</p>
-<p>{% blocktrans %}The invite you have sent to <b>{{ recipient }}</b> has expired.{% endblocktrans %}</p>
+<p>{% blocktrans %}The request you have sent to <b>{{ recipient }}</b> has expired.{% endblocktrans %}</p>
 
+<b>{{ projects_label }}</b>
 <ul>
 {% for transfer in transfers %}
   {% url 'api_v2:asset-detail' uid=transfer.asset_uid as asset_url %}
-  <li>{{ project_name_label }}: <b><a href="{{ base_url }}/#/forms/{{asset_uid}}/landing">{{ transfer.asset_name }}</a></b></li>
+  <li><a href="{{ base_url }}/#/forms/{{asset_uid}}/landing">{{ transfer.asset_name }}</a></li>
 {% endfor %}
 </ul>
 

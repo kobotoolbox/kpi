@@ -158,10 +158,6 @@ def rewrite_mongo_userform_id(transfer: 'project_ownership.Transfer'):
     )
 
 
-def send_email(invite: 'project_ownership.Invite'):
-    pass
-
-
 def _mark_task_as_successful(
     transfer: 'project_ownership.Transfer', async_task_type: str
 ):
