@@ -1,7 +1,6 @@
 # coding: utf-8
 import logging
 import os
-import re
 import string
 import subprocess
 from datetime import datetime
@@ -158,6 +157,7 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
+
 CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (
         True,
@@ -423,8 +423,7 @@ CONSTANCE_CONFIG = {
         ),
         'List all custom character rules as regular expressions supported '
         'by `regex` python library.\n'
-        'One per line.'
-        ,
+        'One per line.',
     ),
     'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS': (
         3,
@@ -503,6 +502,25 @@ CONSTANCE_CONFIG = {
     'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES': (
         False,
         'Auto-accept invites by default and do not sent them by e-mail.'
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL': (
+        '',
+        (
+            'Email addresses to which error reports are sent, one per line.\n'
+            'Leave empty to not send emails.'
+        ),
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT': (
+        'KoboToolbox Notifications: Project ownership transfer failure',
+        'Email subject to sent to admins on failure.',
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY': (
+        (
+            'Dear admins,\n\n'
+            'A transfer of project ownership has failed:\n'
+            '##invite_url##'
+        ),
+        'Email message to sent to admins on failure.',
     ),
 }
 
@@ -609,6 +627,9 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
         'PROJECT_OWNERSHIP_INVITE_EXPIRY',
         'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
         'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
