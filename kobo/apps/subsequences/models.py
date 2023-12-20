@@ -19,6 +19,7 @@ class SubmissionExtras(models.Model):
 
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+    # FIXME: uuid on the KoboCAT logger.Instance model has max_length 249
     submission_uuid = models.CharField(max_length=40)
     content = models.JSONField(default=dict)
     asset = models.ForeignKey(
