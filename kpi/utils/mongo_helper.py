@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union
+from typing import Union, Optional
 
 from django.conf import settings
 
@@ -17,11 +17,12 @@ def drop_mock_only(func):
     in a testing environment. It ensures that MockMongo is used and no prodction
     data is deleted
     """
+
     def _inner(*args, **kwargs):
         # Ensure we are using MockMongo before deleting data
         mongo_db_driver__repr = repr(settings.MONGO_DB)
-        if 'mongomock' not in mongo_db_driver__repr:
-            raise Exception('Cannot run tests on a production database')
+        if "mongomock" not in mongo_db_driver__repr:
+            raise Exception("Cannot run tests on a production database")
         return func(*args, **kwargs)
 
     return _inner
@@ -35,37 +36,37 @@ class MongoHelper:
     and KoBoCAT's ParseInstance class to query mongo.
     """
 
-    OR_OPERATOR = '$or'
-    AND_OPERATOR = '$and'
-    IN_OPERATOR = '$in'
+    OR_OPERATOR = "$or"
+    AND_OPERATOR = "$and"
+    IN_OPERATOR = "$in"
 
     KEY_WHITELIST = [
         OR_OPERATOR,
         AND_OPERATOR,
         IN_OPERATOR,
-        '$exists',
-        '$gt',
-        '$gte',
-        '$lt',
-        '$lte',
-        '$regex',
-        '$options',
-        '$all',
-        '$elemMatch',
+        "$exists",
+        "$gt",
+        "$gte",
+        "$lt",
+        "$lte",
+        "$regex",
+        "$options",
+        "$all",
+        "$elemMatch",
     ]
 
     ENCODING_SUBSTITUTIONS = [
-        (re.compile(r'^\$'), base64_encodestring('$').strip()),
-        (re.compile(r'\.'), base64_encodestring('.').strip()),
+        (re.compile(r"^\$"), base64_encodestring("$").strip()),
+        (re.compile(r"\."), base64_encodestring(".").strip()),
     ]
 
     DECODING_SUBSTITUTIONS = [
-        (re.compile(r'^' + base64_encodestring('$').strip()), '$'),
-        (re.compile(base64_encodestring('.').strip()), '.'),
+        (re.compile(r"^" + base64_encodestring("$").strip()), "$"),
+        (re.compile(base64_encodestring(".").strip()), "."),
     ]
 
     # Match KoBoCAT's variables of ParsedInstance class
-    USERFORM_ID = '_userform_id'
+    USERFORM_ID = "_userform_id"
     DEFAULT_BATCHSIZE = 1000
 
     @classmethod
@@ -84,8 +85,8 @@ class MongoHelper:
     @classmethod
     def delete(cls, mongo_userform_id: str, submission_ids: list):
         query = {
-            '_id': {cls.IN_OPERATOR: submission_ids},
-            cls.USERFORM_ID: mongo_userform_id
+            "_id": {cls.IN_OPERATOR: submission_ids},
+            cls.USERFORM_ID: mongo_userform_id,
         }
         delete_counts = settings.MONGO_DB.instances.delete_many(query)
 
@@ -111,10 +112,11 @@ class MongoHelper:
     ):
         _, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
-            fields={'_id': 1},
+            fields={"_id": 1},
             query=query,
             submission_ids=submission_ids,
-            permission_filters=permission_filters)
+            permission_filters=permission_filters,
+        )
 
         return total_count
 
@@ -124,11 +126,11 @@ class MongoHelper:
         mongo_userform_id,
         start=None,
         limit=None,
-        sort=None,
-        fields=None,
-        query=None,
-        submission_ids=None,
-        permission_filters=None,
+        sort: Optional[dict] = None,
+        fields: Optional[dict] = None,
+        query: Optional[dict] = None,
+        submission_ids: Optional[list] = None,
+        permission_filters: Optional[list] = None,
         skip_count=False,
     ):
         cursor, total_count = cls._get_cursor_and_count(
@@ -144,7 +146,7 @@ class MongoHelper:
         if limit is not None:
             cursor.limit(limit)
 
-        if len(sort) == 1:
+        if sort is not None and len(sort) == 1:
             sort = MongoHelper.to_safe_dict(sort, reading=True)
             sort_key = list(sort.keys())[0]
             sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
@@ -172,7 +174,7 @@ class MongoHelper:
         Checks if an attribute can't be passed to Mongo as is.
         """
         return key not in cls.KEY_WHITELIST and (
-            key.startswith('$') or key.count('.') > 0
+            key.startswith("$") or key.count(".") > 0
         )
 
     @classmethod
@@ -185,8 +187,9 @@ class MongoHelper:
 
         for key, value in list(d.items()):
             if type(value) == list:
-                value = [cls.to_readable_dict(e)
-                         if type(e) == dict else e for e in value]
+                value = [
+                    cls.to_readable_dict(e) if type(e) == dict else e for e in value
+                ]
             elif type(value) == dict:
                 value = cls.to_readable_dict(value)
 
@@ -233,11 +236,13 @@ class MongoHelper:
         """
         for key, value in list(d.items()):
             if type(value) == list:
-                value = [cls.to_safe_dict(e, reading=reading)
-                         if type(e) == dict else e for e in value]
+                value = [
+                    cls.to_safe_dict(e, reading=reading) if type(e) == dict else e
+                    for e in value
+                ]
             elif type(value) == dict:
                 value = cls.to_safe_dict(value, reading=reading)
-            elif key == '_id':
+            elif key == "_id":
                 try:
                     d[key] = int(value)
                 except ValueError:
@@ -279,25 +284,19 @@ class MongoHelper:
         if permission_filters is None:
             return query
         
-        if isinstance(permission_filters, dict) and len(permission_filters) == 1:
-            raise Exception("MongoHelper.get_permission_filters_query does not support dict of length 1")
+        if isinstance(permission_filters, dict):
+            permission_filters = [permission_filters]
+        
+        def process_inner_list(inner_list: list[dict[str, str]]) -> Union[str, list[dict[str, Union[str, list[dict[str, str]]]]]]:
+            if len(inner_list) == 1:
+                return inner_list[0]
+            else:
+                return {cls.AND_OPERATOR: inner_list}
 
-        # Optimization, avoid using OR for just one filter
-        if len(permission_filters) == 1 and isinstance(permission_filters[0], dict):
-            permission_filters_query = permission_filters[0]
-        elif len(permission_filters) == 1 and len(permission_filters[0]) == 1:
-            permission_filters_query = permission_filters[0][0]
-        else:  # Apply OR operator
-            permission_filters_query = {cls.OR_OPERATOR: []}
-            for permission_filter in permission_filters:
-                if isinstance(permission_filter, list):
-                    permission_filters_query[cls.OR_OPERATOR].append(
-                        {cls.OR_OPERATOR: permission_filter}
-                    )
-                else:
-                    permission_filters_query[cls.OR_OPERATOR].append(
-                        permission_filter
-                    )
+        if len(permission_filters) == 1:
+            permission_filters_query = process_inner_list(permission_filters[0])
+        else:
+            permission_filters_query = {cls.OR_OPERATOR: [process_inner_list(inner_list) for inner_list in permission_filters]}
 
         return {cls.AND_OPERATOR: [query, permission_filters_query]}
 
@@ -305,17 +304,17 @@ class MongoHelper:
     def _get_cursor_and_count(
         cls,
         mongo_userform_id,
-        fields=None,
-        query=None,
-        submission_ids=None,
+        fields: Optional[dict] = None,
+        query: Optional[dict] = None,
+        submission_ids: Optional[list] = None,
         permission_filters=None,
         skip_count=False,
     ):
+        if query is None:
+            query = {}
 
-        if len(submission_ids) > 0:
-            query.update({
-                '_id': {cls.IN_OPERATOR: submission_ids}
-            })
+        if submission_ids is not None and len(submission_ids) > 0:
+            query.update({"_id": {cls.IN_OPERATOR: submission_ids}})
 
         query.update({cls.USERFORM_ID: mongo_userform_id})
 
@@ -325,13 +324,12 @@ class MongoHelper:
 
         query = cls.to_safe_dict(query, reading=True)
 
-        if len(fields) > 0:
+        if fields is not None and len(fields) > 0:
             # Retrieve only specified fields from Mongo. Remove
             # `cls.USERFORM_ID` from those fields in case users try to add it.
             if cls.USERFORM_ID in fields:
                 fields.remove(cls.USERFORM_ID)
-            fields_to_select = dict(
-                [(cls.encode(field), 1) for field in fields])
+            fields_to_select = dict([(cls.encode(field), 1) for field in fields])
         else:
             # Retrieve all fields except `cls.USERFORM_ID`
             fields_to_select = {cls.USERFORM_ID: 0}
@@ -354,8 +352,9 @@ class MongoHelper:
         :param key: string
         :return: string
         """
-        return key not in cls.KEY_WHITELIST and (key.startswith('JA==') or
-                                                 key.count('Lg==') > 0)
+        return key not in cls.KEY_WHITELIST and (
+            key.startswith("JA==") or key.count("Lg==") > 0
+        )
 
     @staticmethod
     def _is_nested_reserved_attribute(key):
