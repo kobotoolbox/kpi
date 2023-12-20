@@ -22,7 +22,7 @@ export default function TransferProjectsInvite() {
 
   return (
     <KoboModal isOpen={isModalOpen} onRequestClose={toggleModal} size='medium'>
-      <KoboModalHeader onRequestCloseByX={toggleModal}>
+      <KoboModalHeader onRequestCloseByX={toggleModal} headerColor='white'>
         {isDeclined
           ? t('Project transfer declined')
           : 'Accept ownership transfer'}
