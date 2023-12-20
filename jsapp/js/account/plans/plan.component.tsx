@@ -307,12 +307,20 @@ export default function Plan() {
   // by default, only products without a `plan_type` metadata value will be shown
   useEffect(() => {
     const plansToShow = searchParams.get('type');
-    if (plansToShow) {
+    // if the user is already on the enterprise plan, *only* show the enterprise plan(s)
+    if (
+      activeSubscriptions?.find(
+        (sub) =>
+          sub.items?.[0].price.product.metadata?.plan_type === 'enterprise'
+      )
+    ) {
+      setVisiblePlanTypes(['enterprise']);
+    } else if (plansToShow) {
       setVisiblePlanTypes(plansToShow.split(','));
     } else {
       setVisiblePlanTypes(['default']);
     }
-  }, [searchParams]);
+  }, [searchParams, activeSubscriptions]);
 
   // should we show the 'Contact us' sidebar and storage add-ons?
   const shouldShowExtras = useMemo(
@@ -347,7 +355,7 @@ export default function Plan() {
       return filterAmount.filter((price) => price.prices);
     }
     return [];
-  }, [state.products, state.intervalFilter]);
+  }, [state.products, state.intervalFilter, visiblePlanTypes]);
 
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
@@ -612,18 +620,19 @@ export default function Plan() {
                         <hr />
                         {state.featureTypes.map((type, index, array) => {
                           const featureItem = getListItem(type, price.name);
-                            return (
-                              featureItem.length > 0 && [
-                                returnListItem(
-                                  type,
-                                  price.name,
-                                  price.metadata[`feature_${type}_title`]
-                                ),
-                                index !== array.length - 1 && <hr key={`hr-${type}`} />,
-                              ]
-                            );
-                          })
-                        }
+                          return (
+                            featureItem.length > 0 && [
+                              returnListItem(
+                                type,
+                                price.name,
+                                price.metadata[`feature_${type}_title`]
+                              ),
+                              index !== array.length - 1 && (
+                                <hr key={`hr-${type}`} />
+                              ),
+                            ]
+                          );
+                        })}
                       </div>
                     )}
                     <PlanButton
