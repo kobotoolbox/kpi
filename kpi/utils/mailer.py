@@ -19,13 +19,13 @@ class EmailMessage:
         template_variables: dict,
         html_template: str = None,
         language: str = None,
-        from_: str = config.SUPPORT_EMAIL,
+        from_: str = None,
     ):
         self.to = to
         if isinstance(to, str):
             self.to = [to]
 
-        self.from_ = from_
+        self.from_ = config.SUPPORT_EMAIL if not from_ else from_
 
         if language:
             # Localize templates
