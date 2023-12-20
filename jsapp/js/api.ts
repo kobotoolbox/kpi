@@ -13,45 +13,60 @@ import {notify} from 'js/utils';
  * customized using the optional `toastMessage` argument.
  */
 export function handleApiFail(response: FailResponse, toastMessage?: string) {
-  // Avoid displaying toast when purposefuly aborted a request
+  // Don't do anything if we purposefully aborted the request
   if (response.status === 0 && response.statusText === 'abort') {
     return;
   }
 
-  let message = response.responseText;
+  const responseMessage = response.responseText;
+  let htmlMessage = '';
 
   // Detect if response is HTML code string
   if (
-    typeof message === 'string' &&
-    message.includes('</html>') &&
-    message.includes('</body>')
+    typeof responseMessage === 'string' &&
+    responseMessage.includes('</html>') &&
+    responseMessage.includes('</body>')
   ) {
     // Try plucking the useful error message from the HTML string - this works
     // for Werkzeug Debugger only. It is being used on development environment,
     // on production this would most probably result in undefined message (and
     // thus falling back to the generic message below).
-    const htmlDoc = new DOMParser().parseFromString(message, 'text/html');
-    message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
+    const htmlDoc = new DOMParser().parseFromString(
+      responseMessage,
+      'text/html'
+    );
+    htmlMessage = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
   }
 
-  const htmlMessage = message;
+  const message = htmlMessage || responseMessage;
 
-  if (toastMessage || !message) {
-    message = toastMessage || t('An error occurred');
+  /*
+  the message shown to the user, which uses (in descending order of priority)
+  1. the toast message (if provided)
+  2. the html-plucked error
+  3. the raw response
+  4. a generic error
+  */
+  let displayMessage = message;
+
+  if (toastMessage || !displayMessage) {
+    // display toastMessage or, if we don't have *any* message available, use a generic error
+    displayMessage = toastMessage || t('An error occurred');
     if (response.status || response.statusText) {
-      message += `\n\n${response.status} ${response.statusText}`;
+      // if we have a status, add it to the displayed message
+      displayMessage += `\n\n${response.status} ${response.statusText}`;
     } else if (!window.navigator.onLine) {
       // another general case — the original fetch response.message might have
       // something more useful to say.
-      message += '\n\n' + t('Your connection is offline');
+      displayMessage += '\n\n' + t('Your connection is offline');
     }
   }
 
-  // show the prettiest version of the error to the user
-  notify.error(message);
+  // show the error message to the user
+  notify.error(displayMessage);
 
-  // prefer sending the HTML error to Raven, since it should contain more detailed information
-  window.Raven?.captureMessage(htmlMessage || message);
+  // send the message to our error tracker (if Raven is available)
+  window.Raven?.captureMessage(message || displayMessage);
 }
 
 const JSON_HEADER = 'application/json';

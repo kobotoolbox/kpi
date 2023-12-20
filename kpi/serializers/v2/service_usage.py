@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -5,7 +6,6 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.project_views.models.assignment import User
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.deployment_backends.kc_access.shadow_models import (
@@ -29,7 +29,6 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
     submission_count_current_month = serializers.SerializerMethodField()
     submission_count_current_year = serializers.SerializerMethodField()
     submission_count_all_time = serializers.SerializerMethodField()
-    _now = timezone.now().date()
 
     class Meta:
         model = Asset
@@ -45,6 +44,11 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
             'submission_count_current_year',
             'submission_count_all_time',
         )
+
+    def __init__(self, instance=None, data=empty, **kwargs):
+        super().__init__(instance=instance, data=data, **kwargs)
+
+        self._now = timezone.now().date()
 
     def get_nlp_usage_current_month(self, asset):
         start_date = self._now.replace(day=1)
@@ -100,7 +104,6 @@ class ServiceUsageSerializer(serializers.Serializer):
     current_month_start = serializers.SerializerMethodField()
     current_year_start = serializers.SerializerMethodField()
     billing_period_end = serializers.SerializerMethodField()
-    _now = timezone.now().date()
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
@@ -114,6 +117,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._period_start = None
         self._period_end = None
         self._subscription_interval = None
+        self._now = timezone.now().date()
         self._get_per_asset_usage(instance)
 
     def get_total_nlp_usage(self, user):

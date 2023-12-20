@@ -541,7 +541,7 @@ export default function Plan() {
                 id='switch_left'
                 name='switchToggle'
                 value='month'
-                aria-label={'Toggle to month options'}
+                aria-label={t('show monthly plans')}
                 onChange={() => dispatch({type: 'month'})}
                 checked={state.filterToggle}
               />
@@ -554,7 +554,7 @@ export default function Plan() {
                 value='year'
                 onChange={() => dispatch({type: 'year'})}
                 checked={!state.filterToggle}
-                aria-label={'Toggle to annual options'}
+                aria-label={t('show annual plans')}
               />
               <label htmlFor='switch_right'>{t('Annual')}</label>
             </form>
@@ -610,15 +610,20 @@ export default function Plan() {
                     {expandComparison && (
                       <div className={styles.expandedContainer}>
                         <hr />
-                        {state.featureTypes.map(
-                          (type) =>
-                            getListItem(type, price.name).length > 0 &&
-                            returnListItem(
-                              type,
-                              price.name,
-                              price.metadata[`feature_${type}_title`]
-                            )
-                        )}
+                        {state.featureTypes.map((type, index, array) => {
+                          const featureItem = getListItem(type, price.name);
+                            return (
+                              featureItem.length > 0 && [
+                                returnListItem(
+                                  type,
+                                  price.name,
+                                  price.metadata[`feature_${type}_title`]
+                                ),
+                                index !== array.length - 1 && <hr key={`hr-${type}`} />,
+                              ]
+                            );
+                          })
+                        }
                       </div>
                     )}
                     <PlanButton

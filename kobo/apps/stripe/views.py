@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django_dont_vary_on.decorators import only_vary_on
 from djstripe import enums
 from djstripe.models import (
     Customer,
@@ -286,10 +287,8 @@ class CustomerPortalView(APIView):
             subscriber__owner__organization_user__user_id=user,
             subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
             livemode=settings.STRIPE_LIVE_MODE,
-        ).select_related(
-            'subscriptions__schedule'
         ).values(
-            'id', 'subscriptions__id', 'subscriptions__items__id', 'subscriptions__schedule__id'
+            'id', 'subscriptions__id', 'subscriptions__items__id',
         ).first()
 
         if not customer:
@@ -304,12 +303,14 @@ class CustomerPortalView(APIView):
         if price:
             """
             Customers with subscription schedules can't upgrade from the portal
-            So if the customer has a subscription schedule, release it, keeping the subscription intact
+            So if the customer has any active subscription schedules, release them, keeping the subscription intact
             """
-            schedule_id = customer['subscriptions__schedule__id']
-            if schedule_id:
+            schedules = SubscriptionSchedule.objects.filter(
+                customer__id=customer['id'],
+            ).exclude(status__in=['released', 'canceled']).values('status', 'id')
+            for schedule in schedules:
                 stripe.SubscriptionSchedule.release(
-                    schedule_id,
+                    schedule['id'],
                     api_key=djstripe_settings.STRIPE_SECRET_KEY,
                     preserve_cancel_date=False
                 )
@@ -433,6 +434,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
+@method_decorator(only_vary_on('Origin'), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Returns Product and Price Lists, sorted from the product with the lowest price to highest
