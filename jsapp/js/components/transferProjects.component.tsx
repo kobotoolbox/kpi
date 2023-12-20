@@ -19,18 +19,18 @@ interface TransferProjectsProps {
 
 interface TransferProjectsState {
   isModalOpen: boolean;
-  username: string;
+  usernameInput: string;
   usernameError: boolean | string;
   inviteStatus: TransferStatuses | null;
   inviteUrl: string | null;
+  submitPending: boolean;
 }
 
-const USERNAME_ERROR_MESSAGE = 'User not found. Please try again.';
 
 export default function TransferProjects(props: TransferProjectsProps) {
   const [transfer, setTransfer] = useState<TransferProjectsState>({
     isModalOpen: false,
-    username: '',
+    usernameInput: '',
     usernameError: false,
     inviteStatus: props.asset.project_ownership
       ? props.asset.project_ownership.status
@@ -38,29 +38,40 @@ export default function TransferProjects(props: TransferProjectsProps) {
     inviteUrl: props.asset.project_ownership
       ? props.asset.project_ownership.invite
       : null,
+    submitPending: false,
   });
 
   const updateUsername = (newUsername: string) => {
-    setTransfer({...transfer, username: newUsername});
+    setTransfer({...transfer, usernameInput: newUsername, usernameError: false});
   };
 
   const toggleModal = () => {
-    setTransfer({...transfer, isModalOpen: !transfer.isModalOpen});
+    setTransfer({...transfer, isModalOpen: !transfer.isModalOpen, usernameInput: ''});
   };
 
-  function checkUsername(username: string) {
+  function submitInvite(username: string) {
     if (username !== '') {
-      setTransfer({...transfer, usernameError: false});
+      setTransfer({...transfer, usernameError: false, submitPending: true});
       sendInvite(username, props.asset.uid).then((data) => {
         setTransfer({
           ...transfer,
           inviteStatus: data.status,
           inviteUrl: data.url,
-          isModalOpen: !transfer.isModalOpen,
+          isModalOpen: false,
+          usernameInput: '',
+          submitPending: false,
         });
+      }).catch((err) => {
+        if (err.status === 400) {
+          setTransfer({
+            ...transfer,
+            submitPending: false,
+            usernameError: 'User not found. Please try again.'
+          })
+        }
       });
     } else {
-      setTransfer({...transfer, usernameError: USERNAME_ERROR_MESSAGE});
+      setTransfer({...transfer, usernameError: "Please enter a user name."});
     }
   }
 
@@ -126,76 +137,80 @@ export default function TransferProjects(props: TransferProjectsProps) {
         <KoboModalHeader onRequestCloseByX={toggleModal} headerColor='white'>
           {t('Transfer ownership')}
         </KoboModalHeader>
-        <section className={styles.modalBody}>
-          <p>
-            {t(
-              'This action will transfer ownership of {project name} to another user.'
-            )}
-          </p>
-          <p>
-            {t(
-              'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.'
-            )}
-          </p>
-          <p>
-            {t(
-              'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.'
-            )}
-          </p>
-
-          <div className={styles.warning}>
-            <Icon
-              name='warning'
-              size='s'
-              color='red'
-              classNames={[styles.warningIcon]}
-            />
-
-            <div className={styles.warningCopy}>
+        <form>
+          <section className={styles.modalBody}>
+            <p>
               {t(
-                'You will be the owner of the project until the transfer is accepted.'
+                'This action will transfer ownership of {project name} to another user.'
               )}
-              <br />
-              <strong>
+            </p>
+            <p>
+              {t(
+                'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.'
+              )}
+            </p>
+            <p>
+              {t(
+                'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.'
+              )}
+            </p>
+
+            <div className={styles.warning}>
+              <Icon
+                name='warning'
+                size='s'
+                color='red'
+                classNames={[styles.warningIcon]}
+              />
+
+              <div className={styles.warningCopy}>
                 {t(
-                  'Once the transfer is accepted, you will not be able to undo this action.'
+                  'You will be the owner of the project until the transfer is accepted.'
                 )}
-              </strong>
-              &nbsp;
-              <a>{t('Learn more')}</a>
+                <br />
+                <strong>
+                  {t(
+                    'Once the transfer is accepted, you will not be able to undo this action.'
+                  )}
+                </strong>
+                &nbsp;
+                <a>{t('Learn more')}</a>
+              </div>
             </div>
-          </div>
 
-          <div className={styles.input}>
-            <TextBox
-              label={t(
-                'To complete the transfer, enter the username of the new project owner'
-              )}
-              value={transfer.username}
-              placeholder={t('Enter username here')}
-              required
-              errors={transfer.usernameError}
-              onChange={updateUsername}
+            <div className={styles.input}>
+              <TextBox
+                label={t(
+                  'To complete the transfer, enter the username of the new project owner'
+                )}
+                value={transfer.usernameInput}
+                placeholder={t('Enter username here')}
+                required
+                errors={transfer.usernameError}
+                onChange={updateUsername}
+              />
+            </div>
+          </section>
+
+          <KoboModalFooter alignment='end'>
+            <Button
+              label={t('Cancel')}
+              onClick={toggleModal}
+              color='blue'
+              type='frame'
+              size='m'
             />
-          </div>
-        </section>
-
-        <KoboModalFooter alignment='end'>
-          <Button
-            label={t('Cancel')}
-            onClick={toggleModal}
-            color='blue'
-            type='frame'
-            size='m'
-          />
-          <Button
-            label={t('Transfer project')}
-            onClick={() => checkUsername(transfer.username)}
-            color='blue'
-            type='full'
-            size='m'
-          />
-        </KoboModalFooter>
+            <Button
+              label={t('Transfer project')}
+              onClick={() => submitInvite(transfer.usernameInput)}
+              isPending={transfer.submitPending}
+              color='blue'
+              type='full'
+              size='m'
+              isSubmit={true}
+            />
+          </KoboModalFooter>
+        </form>
       </KoboModal>
     </div>
   );
