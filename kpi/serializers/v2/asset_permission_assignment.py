@@ -1,12 +1,13 @@
 # coding: utf-8
 from __future__ import annotations
+
 import json
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Optional
 
-from django.db import transaction
 from django.contrib.auth.models import Permission, User
+from django.db import transaction
 from django.urls import Resolver404
 from django.utils.translation import gettext as t
 from rest_framework import serializers
@@ -27,24 +28,22 @@ from kpi.utils.object_permission import (
 )
 from kpi.utils.urls import absolute_resolve
 
-
 ASSIGN_OWNER_ERROR_MESSAGE = "Owner's permissions cannot be assigned explicitly"
 
 
 class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
-
     url = serializers.SerializerMethodField()
     user = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail',
         lookup_field='username',
         queryset=User.objects.all(),
-        style={'base_template': 'input.html'}  # Render as a simple text box
+        style={'base_template': 'input.html'},  # Render as a simple text box
     )
     permission = RelativePrefixHyperlinkedRelatedField(
         view_name='permission-detail',
         lookup_field='codename',
         queryset=Permission.objects.all(),
-        style={'base_template': 'input.html'}  # Render as a simple text box
+        style={'base_template': 'input.html'},  # Render as a simple text box
     )
     partial_permissions = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
@@ -65,9 +64,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         user = validated_data['user']
         asset = validated_data['asset']
         if asset.owner_id == user.id:
-            raise serializers.ValidationError(
-                {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
-            )
+            raise serializers.ValidationError({'user': t(ASSIGN_OWNER_ERROR_MESSAGE)})
         permission = validated_data['permission']
         partial_permissions = validated_data.get('partial_permissions', None)
 
@@ -85,9 +82,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         except KeyError:
             return object_permission.label
         else:
-            return asset.get_label_for_permission(
-                object_permission.permission.codename
-            )
+            return asset.get_label_for_permission(object_permission.permission.codename)
 
     def get_partial_permissions(self, object_permission):
         codename = object_permission.permission.codename
@@ -99,7 +94,8 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             # TODO: optimize `asset.get_partial_perms()` so it doesn't execute
             # a new query for each assignment
             partial_perms = asset.get_partial_perms(
-                object_permission.user_id, with_filters=True)
+                object_permission.user_id, with_filters=True
+            )
             if not partial_perms:
                 return None
 
@@ -107,18 +103,17 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
                 hyperlinked_partial_perms = []
                 for perm_codename, filters in partial_perms.items():
                     url = self.__get_permission_hyperlink(perm_codename)
-                    hyperlinked_partial_perms.append({
-                        'url': url,
-                        'filters': filters
-                    })
+                    hyperlinked_partial_perms.append({'url': url, 'filters': filters})
                 return hyperlinked_partial_perms
         return None
 
     def get_url(self, object_permission):
         asset_uid = self.context.get('asset_uid')
-        return reverse('asset-permission-assignment-detail',
-                       args=(asset_uid, object_permission.uid),
-                       request=self.context.get('request', None))
+        return reverse(
+            'asset-permission-assignment-detail',
+            args=(asset_uid, object_permission.uid),
+            request=self.context.get('request', None),
+        )
 
     def validate(self, attrs):
         # Because `partial_permissions` is a `SerializerMethodField`,
@@ -145,9 +140,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             return attrs
 
         def _invalid_partial_permissions(message):
-            raise serializers.ValidationError(
-                {'partial_permissions': message}
-            )
+            raise serializers.ValidationError({'partial_permissions': message})
 
         request = self.context['request']
         partial_permissions = None
@@ -166,12 +159,11 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
         partial_permissions_attr = defaultdict(list)
 
-        for partial_permission, filters_ in \
-                self.__get_partial_permissions_generator(partial_permissions):
+        for partial_permission, filters_ in self.__get_partial_permissions_generator(
+            partial_permissions
+        ):
             try:
-                resolver_match = absolute_resolve(
-                    partial_permission.get('url')
-                )
+                resolver_match = absolute_resolve(partial_permission.get('url'))
             except (TypeError, Resolver404):
                 _invalid_partial_permissions(t('Invalid `url`'))
 
@@ -181,8 +173,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
                 _invalid_partial_permissions(t('Invalid `url`'))
 
             # Permission must valid and must be assignable.
-            if not self._validate_permission(codename,
-                                             SUFFIX_SUBMISSIONS_PERMS):
+            if not self._validate_permission(codename, SUFFIX_SUBMISSIONS_PERMS):
                 _invalid_partial_permissions(t('Invalid `url`'))
 
             # No need to validate Mongo syntax, query will fail
@@ -249,11 +240,11 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         """
         return (
             # DONOTMERGE abusive to the database server?
-            codename in Asset.objects.only('asset_type').get(
-                uid=self.context['asset_uid']
-            ).get_assignable_permissions(
-                with_partial=True
-            ) and (suffix is None or codename.endswith(suffix))
+            codename
+            in Asset.objects.only('asset_type')
+            .get(uid=self.context['asset_uid'])
+            .get_assignable_permissions(with_partial=True)
+            and (suffix is None or codename.endswith(suffix))
         )
 
     def __get_partial_permissions_generator(self, partial_permissions):
@@ -275,13 +266,14 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         :param codename: str
         :return: str. url
         """
-        return reverse('permission-detail',
-                       args=(codename,),
-                       request=self.context.get('request', None))
+        return reverse(
+            'permission-detail',
+            args=(codename,),
+            request=self.context.get('request', None),
+        )
 
 
 class PartialPermissionField(serializers.Field):
-
     default_error_messages = {
         'invalid': t('Not a valid list.'),
         'blank': t('This field may not be blank.'),
@@ -301,7 +293,6 @@ class PartialPermissionField(serializers.Field):
 
 
 class PermissionAssignmentSerializer(serializers.Serializer):
-
     user = serializers.CharField()
     permission = serializers.CharField()
     partial_permissions = PartialPermissionField()
@@ -318,11 +309,13 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
     Warning: If less queries are sent to DB, it consumes more CPU and memory.
     The bigger the assignments are, the bigger the resources footprint will be.
     """
+
     assignments = serializers.ListField(child=PermissionAssignmentSerializer())
 
     @dataclass(frozen=True)
     class PermissionAssignment:
-        """ A more-explicit alternative to a simple tuple """
+        """A more-explicit alternative to a simple tuple"""
+
         user_pk: int
         permission_codename: str
         partial_permissions_json: Optional[str] = None
@@ -355,7 +348,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 partial_perms = json.loads(addition.partial_permissions_json)
             else:
                 partial_perms = None
-            perm = asset.assign_perm(
+            asset.assign_perm(
                 user_obj=user_pk_to_obj_cache[addition.user_pk],
                 perm=addition.permission_codename,
                 partial_perms=partial_perms,
@@ -392,9 +385,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         ):
             # Expand the stupid cache to include any users present in the
             # existing assignments but not in the incoming assignments
-            user_pk_to_obj_cache[
-                assignment_in_db.user_id
-            ] = assignment_in_db.user
+            user_pk_to_obj_cache[assignment_in_db.user_id] = assignment_in_db.user
 
             if assignment_in_db.permission.codename == PERM_PARTIAL_SUBMISSIONS:
                 partial_permissions_json = json.dumps(
@@ -430,9 +421,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             # always require a fully-fledged `User` object? Until then, keep a
             # stupid object cache thing because `assign_perm()` and
             # `remove_perm()` REQUIRE user objects
-            user_pk_to_obj_cache[
-                incoming_assignment['user'].pk
-            ] = incoming_assignment['user']
+            user_pk_to_obj_cache[incoming_assignment['user'].pk] = incoming_assignment[
+                'user'
+            ]
 
             # Expand to include implied permissions
             for implied_codename in asset.get_implied_perms(
@@ -448,8 +439,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             # Expand to include implied partial permissions
             if incoming_permission.codename == PERM_PARTIAL_SUBMISSIONS:
                 partial_permissions = json.dumps(
-                    AssetUserPartialPermission\
-                    .update_partial_perms_to_include_implied(
+                    AssetUserPartialPermission.update_partial_perms_to_include_implied(
                         asset, incoming_assignment['partial_permissions']
                     ),
                     sort_keys=True,
@@ -475,22 +465,18 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         # …for looking up by API permission URLs by codename
         codename_to_url = dict()
 
-        assignable_permissions = self.context[
-            'asset'
-        ].get_assignable_permissions(with_partial=True)
+        assignable_permissions = self.context['asset'].get_assignable_permissions(
+            with_partial=True
+        )
 
         # Perhaps not the best error messages, but they're what DRF was already
         # returning
         INVALID_PERMISSION_ERROR = {
             'permission': t('Invalid hyperlink - Object does not exist.')
         }
-        INVALID_USER_ERROR = {
-            'user': t('Invalid hyperlink - Object does not exist.')
-        }
+        INVALID_USER_ERROR = {'user': t('Invalid hyperlink - Object does not exist.')}
         # This matches the behavior of `AssetPermissionAssignmentSerializer`
-        INVALID_PARTIAL_PERMISSION_ERROR = {
-            'partial_permissions': t('Invalid `url`')
-        }
+        INVALID_PARTIAL_PERMISSION_ERROR = {'partial_permissions': t('Invalid `url`')}
 
         # Fill in the dictionaries by parsing the incoming assignments
         for assignment in attrs['assignments']:
@@ -503,6 +489,11 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             username = self._get_arg_from_url('username', user_url)
             username_to_url[username] = user_url
             for partial_assignment in assignment.get('partial_permissions', []):
+                if 'filters' not in partial_assignment:
+                    # Instead of this, we should validate using DRF
+                    raise serializers.ValidationError(
+                        'Permission assignment must contain filters'
+                    )
                 partial_codename = self._get_arg_from_url(
                     'codename', partial_assignment['url']
                 )
@@ -510,9 +501,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                     partial_codename in assignable_permissions
                     and partial_codename.endswith(SUFFIX_SUBMISSIONS_PERMS)
                 ):
-                    raise serializers.ValidationError(
-                        INVALID_PARTIAL_PERMISSION_ERROR
-                    )
+                    raise serializers.ValidationError(INVALID_PARTIAL_PERMISSION_ERROR)
                 codename_to_url[partial_codename] = partial_assignment['url']
 
         # Create a dictionary of API user URLs to `User` objects
@@ -537,9 +526,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         if len(url_to_permission) != len(codename_to_url):
             # This should never happen since all codenames were found within
             # `assignable_permissions`
-            raise RuntimeError(
-                'Unexpected mismatch while processing permissions'
-            )
+            raise RuntimeError('Unexpected mismatch while processing permissions')
 
         # Rewrite the incoming assignments, replacing user and permission URLs
         # with their corresponding model instance objects
@@ -553,16 +540,14 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 assignment_with_objects['permission'].codename
                 == PERM_PARTIAL_SUBMISSIONS
             ):
-                assignment_with_objects['partial_permissions'] = defaultdict(
-                    list
-                )
+                assignment_with_objects['partial_permissions'] = defaultdict(list)
                 for partial_assignment in assignment['partial_permissions']:
                     partial_codename = url_to_permission[
                         partial_assignment['url']
                     ].codename
                     assignment_with_objects['partial_permissions'][
                         partial_codename
-                    ] = partial_assignment['filters']
+                    ] = partial_assignment.get('filters')
             assignments_with_objects.append(assignment_with_objects)
 
         attrs['assignments'] = assignments_with_objects

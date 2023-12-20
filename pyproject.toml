@@ -8,3 +8,19 @@ skip-string-normalization = true
 profile = "black"
 known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
+
+[tool.ruff.format]
+quote-style = "single"
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.mypy]
+# Exclude virtual environment projects that cause mypy to error
+exclude = [
+    "src/django-digest",
+    "src/formpack",
+    "src/kobo-service-account",
+    "src/python-digest"
+]
+[tool.django-stubs]
+django_settings_module = "kobo.settings"

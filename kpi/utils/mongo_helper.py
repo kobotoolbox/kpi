@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union
+from typing import Optional, Union
 
 from django.conf import settings
 
@@ -17,6 +17,7 @@ def drop_mock_only(func):
     in a testing environment. It ensures that MockMongo is used and no prodction
     data is deleted
     """
+
     def _inner(*args, **kwargs):
         # Ensure we are using MockMongo before deleting data
         mongo_db_driver__repr = repr(settings.MONGO_DB)
@@ -85,7 +86,7 @@ class MongoHelper:
     def delete(cls, mongo_userform_id: str, submission_ids: list):
         query = {
             '_id': {cls.IN_OPERATOR: submission_ids},
-            cls.USERFORM_ID: mongo_userform_id
+            cls.USERFORM_ID: mongo_userform_id,
         }
         delete_counts = settings.MONGO_DB.instances.delete_many(query)
 
@@ -114,7 +115,8 @@ class MongoHelper:
             fields={'_id': 1},
             query=query,
             submission_ids=submission_ids,
-            permission_filters=permission_filters)
+            permission_filters=permission_filters,
+        )
 
         return total_count
 
@@ -124,11 +126,11 @@ class MongoHelper:
         mongo_userform_id,
         start=None,
         limit=None,
-        sort=None,
-        fields=None,
-        query=None,
-        submission_ids=None,
-        permission_filters=None,
+        sort: Optional[dict] = None,
+        fields: Optional[dict] = None,
+        query: Optional[dict] = None,
+        submission_ids: Optional[list] = None,
+        permission_filters: Optional[list] = None,
         skip_count=False,
     ):
         cursor, total_count = cls._get_cursor_and_count(
@@ -144,7 +146,7 @@ class MongoHelper:
         if limit is not None:
             cursor.limit(limit)
 
-        if len(sort) == 1:
+        if sort is not None and len(sort) == 1:
             sort = MongoHelper.to_safe_dict(sort, reading=True)
             sort_key = list(sort.keys())[0]
             sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
@@ -184,10 +186,11 @@ class MongoHelper:
         """
 
         for key, value in list(d.items()):
-            if type(value) == list:
-                value = [cls.to_readable_dict(e)
-                         if type(e) == dict else e for e in value]
-            elif type(value) == dict:
+            if isinstance(value, list):
+                value = [
+                    cls.to_readable_dict(e) if isinstance(e, dict) else e for e in value
+                ]
+            elif isinstance(value, dict):
                 value = cls.to_readable_dict(value)
 
             if cls._is_attribute_encoded(key):
@@ -232,10 +235,12 @@ class MongoHelper:
                 }
         """
         for key, value in list(d.items()):
-            if type(value) == list:
-                value = [cls.to_safe_dict(e, reading=reading)
-                         if type(e) == dict else e for e in value]
-            elif type(value) == dict:
+            if isinstance(value, list):
+                value = [
+                    cls.to_safe_dict(e, reading=reading) if isinstance(e, dict) else e
+                    for e in value
+                ]
+            elif isinstance(value, dict):
                 value = cls.to_safe_dict(value, reading=reading)
             elif key == '_id':
                 try:
@@ -248,10 +253,10 @@ class MongoHelper:
                 # If we want to write into Mongo, we need to transform the dot delimited string into a dict
                 # Otherwise, for reading, Mongo query engine reads dot delimited string as a nested object.
                 # Drawback, if a user uses a reserved property with dots, it will be converted as well.
-                if not reading and key.count(".") > 0:
+                if not reading and key.count('.') > 0:
                     tree = {}
                     t = tree
-                    parts = key.split(".")
+                    parts = key.split('.')
                     last_index = len(parts) - 1
                     for index, part in enumerate(parts):
                         v = value if index == last_index else {}
@@ -273,34 +278,8 @@ class MongoHelper:
         return d
 
     @classmethod
-    def encode(cls, key):
-        """
-        Replace characters not allowed in Mongo keys with their base64-encoded
-        representations
-
-        :param key: string
-        :return: string
-        """
-        for pattern, repl in cls.ENCODING_SUBSTITUTIONS:
-            key = re.sub(pattern, repl, key)
-        return key
-
-    @classmethod
-    def decode(cls, key):
-        """
-        Replace base64-encoded characters not allowed in Mongo keys with their
-        original representations
-
-        :param key: string
-        :return: string
-        """
-        for pattern, repl in cls.DECODING_SUBSTITUTIONS:
-            key = re.sub(pattern, repl, key)
-        return key
-
-    @classmethod
     def get_permission_filters_query(
-        cls, query: dict, permission_filters: Union[dict, list]
+        cls, query: dict, permission_filters: Optional[Union[dict, list]]
     ) -> dict:
         if permission_filters is None:
             return query
@@ -315,39 +294,25 @@ class MongoHelper:
                         {cls.OR_OPERATOR: permission_filter}
                     )
                 else:
-                    permission_filters_query[cls.OR_OPERATOR].append(
-                        permission_filter
-                    )
+                    permission_filters_query[cls.OR_OPERATOR].append(permission_filter)
 
         return {cls.AND_OPERATOR: [query, permission_filters_query]}
-
-    @classmethod
-    def is_attribute_invalid(cls, key):
-        """
-        Checks if an attribute can't be passed to Mongo as is.
-        :param key:
-        :return:
-        """
-        return (
-            key not in cls.KEY_WHITELIST
-            and (key.startswith('$') or key.count('.') > 0)
-        )
 
     @classmethod
     def _get_cursor_and_count(
         cls,
         mongo_userform_id,
-        fields=None,
-        query=None,
-        submission_ids=None,
+        fields: Optional[dict] = None,
+        query: Optional[dict] = None,
+        submission_ids: Optional[list] = None,
         permission_filters=None,
         skip_count=False,
     ):
+        if query is None:
+            query = {}
 
-        if len(submission_ids) > 0:
-            query.update({
-                '_id': {cls.IN_OPERATOR: submission_ids}
-            })
+        if submission_ids is not None and len(submission_ids) > 0:
+            query.update({'_id': {cls.IN_OPERATOR: submission_ids}})
 
         query.update({cls.USERFORM_ID: mongo_userform_id})
 
@@ -357,13 +322,12 @@ class MongoHelper:
 
         query = cls.to_safe_dict(query, reading=True)
 
-        if len(fields) > 0:
+        if fields is not None and len(fields) > 0:
             # Retrieve only specified fields from Mongo. Remove
             # `cls.USERFORM_ID` from those fields in case users try to add it.
             if cls.USERFORM_ID in fields:
                 fields.remove(cls.USERFORM_ID)
-            fields_to_select = dict(
-                [(cls.encode(field), 1) for field in fields])
+            fields_to_select = dict([(cls.encode(field), 1) for field in fields])
         else:
             # Retrieve all fields except `cls.USERFORM_ID`
             fields_to_select = {cls.USERFORM_ID: 0}
@@ -386,8 +350,9 @@ class MongoHelper:
         :param key: string
         :return: string
         """
-        return key not in cls.KEY_WHITELIST and (key.startswith('JA==') or
-                                                 key.count('Lg==') > 0)
+        return key not in cls.KEY_WHITELIST and (
+            key.startswith('JA==') or key.count('Lg==') > 0
+        )
 
     @staticmethod
     def _is_nested_reserved_attribute(key):
@@ -398,6 +363,6 @@ class MongoHelper:
         :return: boolean
         """
         for reserved_attribute in NESTED_MONGO_RESERVED_ATTRIBUTES:
-            if key.startswith("{}.".format(reserved_attribute)):
+            if key.startswith('{}.'.format(reserved_attribute)):
                 return True
         return False
