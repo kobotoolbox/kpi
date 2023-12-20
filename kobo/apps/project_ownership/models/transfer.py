@@ -237,6 +237,8 @@ class Transfer(TimeStampedModel):
                 for user_id in ObjectPermission.objects.filter(
                     asset_id=self.asset_id
                 ).values_list('user_id', flat=True)
+                if user_id
+                not in [self.invite.sender.pk, self.invite.recipient.pk]
             ]
         )
 
@@ -298,6 +300,8 @@ class TransferStatus(TimeStampedModel):
             # No need to update parent if `status` is still 'in_progress'
             if status != TransferStatusChoices.IN_PROGRESS.value:
                 transfer_status.update_transfer_status()
+
+            # TODO let sysadmin know something went south.
 
     def update_transfer_status(self):
         success = True

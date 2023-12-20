@@ -1,13 +1,14 @@
 from constance import config
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Max, Prefetch
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as t
 from rest_framework import exceptions, serializers
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset
-
+from kpi.utils.mailer import EmailMessage, Mailer
 from .transfer import TransferListSerializer
 from ..models import (
     Invite,
@@ -80,6 +81,8 @@ class InviteSerializer(serializers.ModelSerializer):
             instance = self.update(
                 instance, {'status': InviteStatusChoices.ACCEPTED.value}
             )
+        else:
+            self._send_invite_email(instance)
 
         return instance
 
@@ -110,7 +113,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
     def validate_assets(self, asset_uids: list[str]) -> list[Asset]:
         if self.instance is not None:
-            raise serializers.ValidationError(_(
+            raise serializers.ValidationError(t(
                 'This field cannot be modified'
             ))
 
@@ -120,7 +123,7 @@ class InviteSerializer(serializers.ModelSerializer):
         )
         count = assets.count()
         if count != len(asset_uids):
-            raise serializers.ValidationError(_(
+            raise serializers.ValidationError(t(
                 'You must be the owner of each project you want to transfer'
             ))
 
@@ -153,9 +156,10 @@ class InviteSerializer(serializers.ModelSerializer):
             if transfer.invite.status not in [
                 InviteStatusChoices.DECLINED.value,
                 InviteStatusChoices.CANCELLED.value,
+                InviteStatusChoices.EXPIRED.value,
             ]:
                 errors.append(
-                    _(
+                    t(
                         'Project `##asset_uid##` cannot be transferred. '
                         'Current status: ##status##'
                     )
@@ -172,7 +176,7 @@ class InviteSerializer(serializers.ModelSerializer):
         if self.instance is None:
             return user
 
-        raise serializers.ValidationError(_(
+        raise serializers.ValidationError(t(
             'This field cannot be modified'
         ))
 
@@ -181,7 +185,7 @@ class InviteSerializer(serializers.ModelSerializer):
             self.instance is None and status
             or self.instance.status != InviteStatusChoices.PENDING.value
         ):
-            raise serializers.ValidationError(_(
+            raise serializers.ValidationError(t(
                 'This field cannot be modified'
             ))
 
@@ -207,18 +211,113 @@ class InviteSerializer(serializers.ModelSerializer):
 
         status = validated_data['status']
 
-        if status == InviteStatusChoices.ACCEPTED.value:
-            status = InviteStatusChoices.IN_PROGRESS.value
-
-        instance.status = status
+        # Keep `status` value to email condition below
+        instance.status = (
+            InviteStatusChoices.IN_PROGRESS.value
+            if status == InviteStatusChoices.ACCEPTED.value
+            else status
+        )
         instance.save(update_fields=['status', 'date_modified'])
 
         for transfer in instance.transfers.all():
-            if status != InviteStatusChoices.IN_PROGRESS.value:
+            if instance.status != InviteStatusChoices.IN_PROGRESS.value:
                 transfer.statuses.update(
                     status=TransferStatusChoices.CANCELLED.value
                 )
             else:
                 transfer.process()
 
+        #if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
+        if status == InviteStatusChoices.DECLINED.value:
+            self._send_refusal_email(instance)
+        elif status == InviteStatusChoices.ACCEPTED.value:
+            self._send_acceptance_email(instance)
+
         return instance
+
+    def _send_acceptance_email(self, invite: Invite):
+
+        template_variables = {
+            'username': invite.sender.username,
+            'recipient': invite.recipient.username,
+            'transfers': [
+                {
+                    'asset_uid': transfer.asset.uid,
+                    'asset_name': transfer.asset.name,
+                }
+                for transfer in invite.transfers.all()
+            ],
+            'base_url': settings.KOBOFORM_URL,
+        }
+
+        email_message = EmailMessage(
+            to=invite.recipient.email,
+            subject=t('KoboToolbox project ownership transfer accepted'),
+            plain_text_template='emails/accepted_invite.txt',
+            template_variables=template_variables,
+            html_template='emails/accepted_invite.html',
+            language=invite.recipient.extra_details.data.get('last_ui_language')
+        )
+
+        # TODO Should we return a failure notification in API response if
+        #  something failed?
+        Mailer.send(email_message)
+
+    def _send_invite_email(self, invite: Invite):
+
+        template_variables = {
+            'username': invite.recipient.username,
+            'sender_username': invite.sender.username,
+            'sender_email': invite.sender.email,
+            'transfers': [
+                {
+                    'asset_uid': transfer.asset.uid,
+                    'asset_name': transfer.asset.name,
+                }
+                for transfer in invite.transfers.all()
+            ],
+            'base_url': settings.KOBOFORM_URL,
+            'invite_expiry': config.PROJECT_OWNERSHIP_INVITE_EXPIRY,
+            'invite_uid': invite.uid,
+        }
+
+        email_message = EmailMessage(
+            to=invite.recipient.email,
+            subject=t('Action required: KoboToolbox project ownership transfer request'),
+            plain_text_template='emails/new_invite.txt',
+            template_variables=template_variables,
+            html_template='emails/new_invite.html',
+            language=invite.recipient.extra_details.data.get('last_ui_language')
+        )
+
+        # TODO Should we return a failure notification in API response if
+        #  something failed?
+        Mailer.send(email_message)
+
+    def _send_refusal_email(self, invite: Invite):
+
+        template_variables = {
+            'username': invite.sender.username,
+            'recipient': invite.recipient.username,
+            'transfers': [
+                {
+                    'asset_uid': transfer.asset.uid,
+                    'asset_name': transfer.asset.name,
+                }
+                for transfer in invite.transfers.all()
+            ],
+            'base_url': settings.KOBOFORM_URL,
+        }
+
+        email_message = EmailMessage(
+            to=invite.recipient.email,
+            subject=t(' KoboToolbox project ownership transfer incomplete'),
+            plain_text_template='emails/declined_invite.txt',
+            template_variables=template_variables,
+            html_template='emails/declined_invite.html',
+            language=invite.recipient.extra_details.data.get('last_ui_language')
+        )
+
+        # TODO Should we return a failure notification in API response if
+        #  something failed?
+        Mailer.send(email_message)

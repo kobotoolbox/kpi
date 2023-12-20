@@ -483,14 +483,25 @@ CONSTANCE_CONFIG = {
         'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`.',
         'positive_int',
     ),
-    'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES': (
-        False,
-        'Auto-accept invites by default and do not sent them by e-mail.'
+    'PROJECT_OWNERSHIP_INVITE_EXPIRY': (
+        14,
+        'Number of days before invites expire.'
+        'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION': (
+        30,
+        'Number of days to keep invites history.\n'
+        'Failed invites are kept forever'
+        'positive_int',
     ),
     'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY': (
         7,
         'The number of days after which in-app messages expire',
         'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES': (
+        False,
+        'Auto-accept invites by default and do not sent them by e-mail.'
     ),
 }
 
@@ -594,8 +605,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Transfer project ownership': (
         'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
         'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
-        'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
+        'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
+        'PROJECT_OWNERSHIP_INVITE_EXPIRY',
         'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY',
+        'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -1014,8 +1027,18 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Schedule every 30 minutes
     'project-ownership-task-scheduler': {
-        'task': 'kobo.apps.project_ownership.tasks.task_scheduler',
+        'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
         'schedule': crontab(minute=10),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    'project-ownership-mark-stuck-tasks-as-failed': {
+        'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
+        'schedule': crontab(minute=30),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    'project-ownership-mark-as-expired': {
+        'task': 'kobo.apps.project_ownership.tasks.mark_as_expired',
+        'schedule': crontab(minute=0, hour=0, day_of_week=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     'project-ownership-garbage-collector': {

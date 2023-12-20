@@ -85,7 +85,7 @@ export default function TransferProjectsInvite() {
             <Button
               label={t('Accept')}
               onClick={() => {
-                console.log('TODO');
+                console.log('someting yet');
               }}
               color='blue'
               type='full'

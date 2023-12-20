@@ -9,5 +9,5 @@ class ProjectOwnershipAppConfig(AppConfig):
     def ready(self):
         # Makes sure all signal handlers are connected
         # Uncomment the lines below if you need signals
-        # from kobo.apps.trash_bin import signals
+        # from kobo.apps.project_ownership import signals
         super().ready()
