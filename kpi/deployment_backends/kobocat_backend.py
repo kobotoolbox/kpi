@@ -81,7 +81,7 @@ from ..exceptions import (
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 
-redis_client = Redis.from_url(settings.ENKETO_REDIS_MAIN_URL)
+enketo_redis_client = Redis.from_url(settings.ENKETO_REDIS_MAIN_URL)
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -1151,7 +1151,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
 
-        redis_client.hset(
+        enketo_redis_client.hset(
             f'id:{enketo_id}',
             'openRosaServer',
             server_url,
