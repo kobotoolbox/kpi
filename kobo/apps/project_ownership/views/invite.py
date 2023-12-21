@@ -146,7 +146,7 @@ class InviteViewSet(viewsets.ModelViewSet):
     >
     >       curl -X GET https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
 
-    > Payload to cancel an invite
+    > Payload to accept (or decline) an invite
     >
     >       {
     >            "status": "accepted|declined"
