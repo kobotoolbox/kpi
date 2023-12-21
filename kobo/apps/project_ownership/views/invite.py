@@ -228,5 +228,9 @@ class InviteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
 
-        queryset = self.model.objects.select_related('recipient')
+        queryset = (
+            self.model.objects
+            .select_related('sender')
+            .select_related('recipient')
+        )
         return queryset

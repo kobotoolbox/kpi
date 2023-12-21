@@ -26,7 +26,12 @@ class InviteSerializer(serializers.ModelSerializer):
         lookup_field='uid',
         view_name='project-ownership-invite-detail',
     )
-
+    sender = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-detail',
+        lookup_field='username',
+        queryset=get_user_model().objects.filter(is_active=True),
+        style={'base_template': 'input.html'}  # Render as a simple text box
+    )
     recipient = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail',
         lookup_field='username',
@@ -44,6 +49,7 @@ class InviteSerializer(serializers.ModelSerializer):
         model = Invite
         fields = (
             'url',
+            'sender',
             'recipient',
             'status',
             'date_created',
