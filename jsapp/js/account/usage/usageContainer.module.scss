@@ -8,20 +8,16 @@
   margin-top: sizes.$x18;
   align-items: center;
   justify-content: space-between;
+  gap: 1em;
 
   & > li {
     display: flex;
     justify-content: space-between;
   }
-}
 
-.usageRow {
-  border-radius: sizes.$x6;
-  padding: sizes.$x6;
-  box-sizing: content-box;
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
+  &.hasAddon {
+      grid: 1.5em 1.5em 1.5em 1.5em / 100%;
+  }
 }
 
 .warning {

@@ -17,6 +17,7 @@ import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import moment from 'moment';
 import {YourPlan} from 'js/account/usage/yourPlan.component';
+import cx from 'classnames';
 
 interface LimitState {
   storageByteLimit: LimitAmount;
@@ -131,7 +132,7 @@ export default function Usage() {
         </header>
         <LimitNotifications usagePage />
         <div className={styles.row}>
-          <div className={styles.row}>
+          <div className={cx(styles.row, styles.subrow)}>
             <div className={styles.box}>
               <span>
                 <strong className={styles.title}>{t('Submissions')}</strong>
@@ -157,7 +158,7 @@ export default function Usage() {
               />
             </div>
           </div>
-          <div className={styles.row}>
+          <div className={cx(styles.row, styles.subrow)}>
             <div className={styles.box}>
               <span>
                 <strong className={styles.title}>

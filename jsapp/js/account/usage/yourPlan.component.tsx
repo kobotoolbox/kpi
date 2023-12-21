@@ -5,7 +5,6 @@ import {formatDate} from 'js/utils';
 import Badge from 'js/components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
 import sessionStore from 'js/stores/session';
-import AriaText from 'js/components/common/ariaText';
 import BillingButton from 'js/account/plans/billingButton.component';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import envStore from 'js/envStore';
@@ -56,12 +55,6 @@ export const YourPlan = () => {
             <strong>
               {t('##plan_name## Plan').replace('##plan_name##', planName)}
             </strong>
-            {subscriptions.addOnsResponse.length > 0 && (
-              <sub className={styles.addOn}>
-                <AriaText uiText={'+'} screenReaderText={'plus'} />{' '}
-                {subscriptions.addOnsResponse[0].items?.[0].price.product.name}
-              </sub>
-            )}
           </p>
           <time dateTime={startDate} className={styles.start}>
             {t('Started on ##start_date##').replace(
@@ -69,7 +62,7 @@ export const YourPlan = () => {
               startDate
             )}
           </time>
-          {usage.billingPeriodEnd && (
+          {usage.billingPeriodEnd && subscriptions.planResponse.length > 0 && (
             <Badge
               color={'light-blue'}
               size={'s'}

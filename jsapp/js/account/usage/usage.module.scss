@@ -72,6 +72,12 @@
   font-size: sizes.$x14;
 }
 
+@media screen and (min-width: breakpoints.$b600) {
+  .subrow {
+    flex-wrap: nowrap;
+  }
+}
+
 @media screen and (min-width: breakpoints.$b1440) {
   .row {
     flex-wrap: nowrap;

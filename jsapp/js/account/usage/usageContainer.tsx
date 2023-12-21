@@ -1,11 +1,13 @@
 import prettyBytes from 'pretty-bytes';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {LimitAmount, RecurringInterval} from 'js/account/stripe.types';
 import Icon from 'js/components/common/icon';
 import styles from 'js/account/usage/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 import {Limits} from 'js/account/stripe.types';
 import cx from 'classnames';
+import subscriptionStore from 'js/account/subscriptionStore';
+import Badge from 'js/components/common/badge';
 
 export enum USAGE_CONTAINER_TYPE {
   'TRANSCRIPTION',
@@ -27,6 +29,11 @@ const UsageContainer = ({
   label = undefined,
   type = undefined,
 }: UsageContainerProps) => {
+  const [subscriptions] = useState(() => subscriptionStore);
+  const hasStorageAddOn = useMemo(
+    () => subscriptions.addOnsResponse.length > 0,
+    [subscriptions.addOnsResponse]
+  );
   let limitRatio = 0;
   if (limit !== Limits.unlimited && limit) {
     limitRatio = usage / limit;
@@ -62,34 +69,52 @@ const UsageContainer = ({
   );
 
   return (
-    <ul className={styles.usage}>
-      {limit && (
+    <>
+      <ul className={cx(styles.usage, {[styles.hasAddon]: hasStorageAddOn})}>
+        {limit && (
+          <li>
+            <label>{t('Available')}</label>
+            <data value={limit}>{limitDisplay(limit)}</data>
+          </li>
+        )}
         <li>
-          <label>{t('Available')}</label>
-          <data value={limit}>{limitDisplay(limit)}</data>
+          <label>
+            {label ||
+              (period === 'month' ? t('Used this month') : t('Used this year'))}
+          </label>
+          <data>{limitDisplay(usage)}</data>
         </li>
-      )}
-      <li>
-        <label className={styles.description}>
-          {label ||
-            (period === 'month' ? t('Used this month') : t('Used this year'))}
-        </label>
-        <strong>{limitDisplay(usage)}</strong>
-      </li>
-      <li>
-        <strong>{t('Balance')}</strong>
-        <strong
-          className={cx({
-            [styles.warning]: isNearingLimit,
-            [styles.overlimit]: isOverLimit,
-          })}
-        >
-          {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
-          {isOverLimit && <Icon name='warning' color='red' size='m' />}
-          {limitDisplay(usage, limit)}
-        </strong>
-      </li>
-    </ul>
+        <li>
+          <strong>{t('Balance')}</strong>
+          <strong
+            className={cx({
+              [styles.warning]: isNearingLimit,
+              [styles.overlimit]: isOverLimit,
+            })}
+          >
+            {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
+            {isOverLimit && <Icon name='warning' color='red' size='m' />}
+            {limitDisplay(usage, limit)}
+          </strong>
+        </li>
+        {hasStorageAddOn && type === USAGE_CONTAINER_TYPE.STORAGE && (
+          <li>
+            <Badge
+              color={'light-blue'}
+              size={'m'}
+              label={
+                <strong>
+                  {
+                    subscriptions.addOnsResponse[0].items?.[0].price.product
+                      .name
+                  }
+                </strong>
+              }
+            />
+          </li>
+        )}
+      </ul>
+    </>
   );
 };
 
