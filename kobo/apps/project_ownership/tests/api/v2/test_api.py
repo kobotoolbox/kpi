@@ -1,5 +1,5 @@
+from constance.test import override_config
 from django.contrib.auth import get_user_model
-from model_bakery import baker
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -81,6 +81,18 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         pass
 
 
+class ProjectOwnershipAccountUsageAPITestCase(KpiTestCase):
+
+    def test_account_usage_transfered_to_new_user(self):
+        # Use /api/v2/service_usage/
+        # Test new_owner usage is 0
+        # Test old_owner usage is X
+        # Transfer project with submissions, attachments and NLP  to new_owner
+        # Test old_owner usage is 0
+        # Test old_owner usage is X
+        pass
+
+
 class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -96,6 +108,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
             username='alice', password='alice', email='alice@example.com'
         )
 
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_shared_users_receive_in_app_message(self):
         self.asset.assign_perm(self.alice, PERM_VIEW_ASSET)
         self.client.login(username='alice', password='alice')

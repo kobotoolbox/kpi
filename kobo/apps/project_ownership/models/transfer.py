@@ -61,6 +61,7 @@ class Transfer(TimeStampedModel):
             if not self.asset.has_deployment:
                 with transaction.atomic():
                     self._reassign_project_permissions(update_deployment=False)
+                    self._sent_app_in_messages()
             else:
                 with transaction.atomic():
                     with kc_transaction_atomic():
