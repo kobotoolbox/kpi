@@ -15,6 +15,7 @@ class TransferListSerializer(serializers.ModelSerializer):
         queryset=Asset.objects.all(),
         style={'base_template': 'input.html'}  # Render as a simple text box
     )
+    asset__name = serializers.SerializerMethodField()
     error = serializers.SerializerMethodField()
     date_modified = serializers.SerializerMethodField()
 
@@ -23,10 +24,22 @@ class TransferListSerializer(serializers.ModelSerializer):
         fields = (
             'url',
             'asset',
+            'asset__name',
             'status',
             'error',
             'date_modified',
         )
+
+    def get_asset__name(self, transfer: Transfer) -> str:
+        return transfer.asset.name
+
+    def get_date_modified(self, transfer: Transfer) -> str:
+        return transfer.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def get_error(self, transfer: Transfer) -> str:
+        return transfer.statuses.get(
+            status_type=TransferStatusTypeChoices.GLOBAL.value
+        ).error
 
     def get_url(self, transfer: Transfer) -> str:
         return reverse(
@@ -37,14 +50,6 @@ class TransferListSerializer(serializers.ModelSerializer):
             },
             request=self.context.get('request', None),
         )
-
-    def get_date_modified(self, transfer: Transfer) -> str:
-        return transfer.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-    def get_error(self, transfer: Transfer) -> str:
-        return transfer.statuses.get(
-            status_type=TransferStatusTypeChoices.GLOBAL.value
-        ).error
 
 
 class TransferDetailSerializer(TransferListSerializer):
