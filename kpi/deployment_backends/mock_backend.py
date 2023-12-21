@@ -532,7 +532,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'backend_response': backend_response
         })
 
-    def set_enketo_open_rosa_server(self, require_auth: bool):
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
         pass
 
     def set_has_kpi_hooks(self):

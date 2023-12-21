@@ -70,7 +70,9 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_enketo_open_rosa_server(self, require_auth: bool):
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
         pass
 
     @property
