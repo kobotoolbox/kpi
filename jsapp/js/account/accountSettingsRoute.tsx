@@ -64,6 +64,7 @@ const AccountSettings = observer(() => {
         isUserDataLoaded: true,
         fields: {
           name: currentAccount.extra_details.name,
+          organization_type: currentAccount.extra_details.organization_type,
           organization: currentAccount.extra_details.organization,
           organization_website:
             currentAccount.extra_details.organization_website,
@@ -76,6 +77,8 @@ const AccountSettings = observer(() => {
           twitter: currentAccount.extra_details.twitter,
           linkedin: currentAccount.extra_details.linkedin,
           instagram: currentAccount.extra_details.instagram,
+          newsletter_subscription:
+            currentAccount.extra_details.newsletter_subscription,
         },
         fieldsWithErrors: {},
       });

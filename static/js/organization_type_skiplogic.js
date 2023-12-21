@@ -10,7 +10,7 @@
   const organization         = document.querySelector('form.registration   input[name=organization]')
   const organization_website = document.querySelector('form.registration   input[name=organization_website]')
 
-  if (!organization_type?.required) {return}
+  if (!organization_type) {return}
 
   document.querySelectorAll('[data-required]').forEach(function(field) {
     // On the frontend, treat these fields like regular required fields.
@@ -28,7 +28,10 @@
 
   const applySkipLogic = function() {
     // Swap fields with placeholders, removing or re-adding them to the form
-    if (organization_type.value === 'none' || organization_type.value === '') {
+    if (
+      organization_type.value === 'none' ||
+      (organization_type.value === '' && organization_type.required)
+    ) {
       if (organization_parent) {
         organization_parent.before(organization_placeholder)
         organization_parent.remove()

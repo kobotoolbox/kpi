@@ -4,6 +4,7 @@ import TextBox from '../components/common/textBox';
 import {addRequiredToLabel} from 'js/textUtils';
 import envStore from '../envStore';
 import styles from './accountFieldsEditor.module.scss';
+import cx from 'classnames';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {
   UserFieldName,
@@ -11,6 +12,14 @@ import type {
   AccountFieldsErrors,
 } from './account.constants';
 
+// See: kobo/apps/accounts/forms.py (KoboSignupMixin)
+const ORGANIZATION_TYPE_SELECT_OPTIONS = [
+  {value: 'non-profit', label: t('Non-profit organization')},
+  {value: 'government', label: t('Government institution')},
+  {value: 'educational', label: t('Educational organization')},
+  {value: 'commercial', label: t('A commercial/for-profit company')},
+  {value: 'none', label: t('I am not associated with any organization')},
+];
 const GENDER_SELECT_OPTIONS = [
   {value: 'male', label: t('Male')},
   {value: 'female', label: t('Female')},
@@ -61,6 +70,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     return addRequiredToLabel(label, required);
   }
 
+  function isFieldRequired(fieldName: UserFieldName): boolean {
+    return metadata[fieldName]?.required || false;
+  }
+
   function onAnyFieldChange(
     fieldName: UserFieldName,
     newValue: UserFieldValue
@@ -70,8 +83,12 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   }
 
   /**
-   * Field will be displayed if it's enabled on Back end and it's not omitted
+   * Field will be displayed if it is enabled on Back end and not omitted
    * in `displayedFields`.
+   *
+   * NOTE: Organization-related fields are treated differently. See:
+   *       - isOrganizationTypeFieldToBeDisplayed()
+   *       - areOrganizationFieldsToBeSkipped()
    */
   function isFieldToBeDisplayed(name: UserFieldName) {
     return (
@@ -82,6 +99,33 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         // Check if parent code is limiting displayed fields to a selection, and
         // that selection includes the field
         props.displayedFields.includes(name))
+    );
+  }
+
+  /**
+   * Always show 'organization_type' if it is enabled on Back end and
+   * 'organization' or 'organization_website' would be shown.
+   *
+   * Organization Type is used as a toggle for those fields ('skip logic')
+   * so it needs to be reachable regardless of props.displayedFields
+   */
+  function isOrganizationTypeFieldToBeDisplayed() {
+    return (
+      'organization_type' in metadata &&
+      (isFieldToBeDisplayed('organization_type') ||
+        isFieldToBeDisplayed('organization') ||
+        isFieldToBeDisplayed('organization_website'))
+    );
+  }
+
+  /**
+   * 'Skip logic' for 'organization' and 'organization_website', controlled
+   * by the value of 'organization_type' dropdown.
+   */
+  function areOrganizationFieldsToBeSkipped() {
+    return (
+      isOrganizationTypeFieldToBeDisplayed() &&
+      props.values.organization_type === 'none'
     );
   }
 
@@ -128,7 +172,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               name='gender'
               type='outline'
               size='l'
-              isClearable
+              isClearable={!isFieldRequired('gender')}
               isSearchable
               selectedOption={props.values.gender}
               onChange={(value: string | null) =>
@@ -150,7 +194,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               name='country'
               type='outline'
               size='l'
-              isClearable
+              isClearable={!isFieldRequired('country')}
               isSearchable
               selectedOption={props.values.country}
               onChange={(value: string | null) =>
@@ -176,32 +220,58 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       </div>
 
       <div className={styles.row}>
-        {/* Organization */}
-        {isFieldToBeDisplayed('organization') && (
-          <div className={styles.field}>
-            <TextBox
-              label={getLabel('organization')}
-              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization')}
-              value={props.values.organization}
-              errors={props.errors?.organization}
+        {/* Organization Type */}
+        {isOrganizationTypeFieldToBeDisplayed() && (
+          <div className={cx(styles.field, styles.orgTypeDropdown)}>
+            <KoboSelect
+              label={getLabel('organization_type')}
+              name='organization_type'
+              type='outline'
+              size='l'
+              isClearable={!isFieldRequired('organization_type')}
+              selectedOption={props.values.organization_type}
+              onChange={(value: string | null) =>
+                onAnyFieldChange('organization_type', value || '')
+              }
+              options={ORGANIZATION_TYPE_SELECT_OPTIONS}
+              error={props.errors?.organization_type}
             />
           </div>
         )}
+      </div>
+
+      <div className={styles.row}>
+        {/* Organization */}
+        {isFieldToBeDisplayed('organization') &&
+          !areOrganizationFieldsToBeSkipped() && (
+            <div className={styles.field}>
+              <TextBox
+                label={getLabel('organization')}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'organization'
+                )}
+                value={props.values.organization}
+                errors={props.errors?.organization}
+              />
+            </div>
+          )}
 
         {/* Organization Website */}
-        {isFieldToBeDisplayed('organization_website') && (
-          <div className={styles.field}>
-            <TextBox
-              label={getLabel('organization_website')}
-              value={props.values.organization_website}
-              onChange={onAnyFieldChange.bind(
-                onAnyFieldChange,
-                'organization_website'
-              )}
-              errors={props.errors?.organization_website}
-            />
-          </div>
-        )}
+        {isFieldToBeDisplayed('organization_website') &&
+          !areOrganizationFieldsToBeSkipped() && (
+            <div className={styles.field}>
+              <TextBox
+                label={getLabel('organization_website')}
+                value={props.values.organization_website}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'organization_website'
+                )}
+                errors={props.errors?.organization_website}
+              />
+            </div>
+          )}
       </div>
 
       <div className={styles.row}>
@@ -213,7 +283,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               name='sector'
               type='outline'
               size='l'
-              isClearable
+              isClearable={!isFieldRequired('sector')}
               isSearchable
               selectedOption={props.values.sector}
               onChange={(value: string | null) =>
@@ -290,6 +360,21 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               </div>
             )}
           </>
+        )}
+      </div>
+
+      <div className={styles.row}>
+        {/* Newsletter subscription opt-in */}
+        {isFieldToBeDisplayed('newsletter_subscription') && (
+          <div className={styles.field}>
+            <Checkbox
+              checked={props.values.newsletter_subscription}
+              onChange={(isChecked: boolean) =>
+                onAnyFieldChange('newsletter_subscription', isChecked)
+              }
+              label={getLabel('newsletter_subscription')}
+            />
+          </div>
         )}
       </div>
     </div>

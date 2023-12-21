@@ -56,7 +56,12 @@ export default function TOSForm() {
   );
   const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({});
 
-  const requiredFields = envStore.data.getUserMetadataRequiredFieldNames();
+  const fieldsToShow = envStore.data.getUserMetadataRequiredFieldNames();
+  if (
+    envStore.data.getUserMetadataFieldsAsSimpleDict().newsletter_subscription
+  ) {
+    fieldsToShow.push('newsletter_subscription');
+  }
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -105,6 +110,7 @@ export default function TOSForm() {
         name: data.extra_details.name,
         organization: data.extra_details.organization,
         organization_website: data.extra_details.organization_website,
+        organization_type: data.extra_details.organization_type,
         sector: data.extra_details.sector,
         gender: data.extra_details.gender,
         bio: data.extra_details.bio,
@@ -114,6 +120,7 @@ export default function TOSForm() {
         twitter: data.extra_details.twitter,
         linkedin: data.extra_details.linkedin,
         instagram: data.extra_details.instagram,
+        newsletter_subscription: data.extra_details.newsletter_subscription,
       });
     }
   }, [sessionStore.isAuthStateKnown]);
@@ -137,7 +144,7 @@ export default function TOSForm() {
 
     // If there are no required fields, there is no point doing a call to update
     // them.
-    if (requiredFields.length > 0) {
+    if (fieldsToShow.length > 0) {
       // Get data for the user endpoint
       const profilePatchData = getProfilePatchData(fields);
 
@@ -199,7 +206,7 @@ export default function TOSForm() {
       />
 
       {/* No point displaying the form and header if there are no required fields */}
-      {requiredFields.length > 0 && (
+      {fieldsToShow.length > 0 && (
         <section className={styles.metaFields}>
           <h2 className={styles.fieldsHeader}>
             {t(
@@ -208,7 +215,7 @@ export default function TOSForm() {
           </h2>
 
           <AccountFieldsEditor
-            displayedFields={requiredFields}
+            displayedFields={fieldsToShow}
             errors={fieldsErrors}
             values={fields}
             onChange={onAccountFieldsEditorChange}
