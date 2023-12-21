@@ -70,15 +70,6 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_enketo_open_rosa_server(self, require_auth: bool):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def submission_count_since_date(self, start_date: Optional[datetime.date] = None):
-        pass
-
-    @abc.abstractmethod
     def connect(self, active=False):
         pass
 
@@ -268,6 +259,10 @@ class BaseDeploymentBackend(abc.ABC):
         # about whether the back end is KoBoCAT or something else
         pass
 
+    @abc.abstractmethod
+    def rename_enketo_id_key(self, previous_owner_username: str):
+        pass
+
     def save_to_db(self, updates: dict):
         """
         Persist values from deployment data into the DB.
@@ -300,6 +295,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def set_asset_uid(self, **kwargs) -> bool:
+        pass
+
+    @abc.abstractmethod
+    def set_enketo_open_rosa_server(self, require_auth: bool):
         pass
 
     @abc.abstractmethod
@@ -339,6 +338,13 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     @abc.abstractmethod
     def submission_count(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def submission_count_since_date(
+        self, start_date: Optional[datetime.date] = None
+    ):
         pass
 
     @property

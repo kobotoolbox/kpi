@@ -63,7 +63,7 @@ class Invite(TimeStampedModel):
                 invite.date_modified = timezone.now()
                 invite.save(update_fields=['status', 'date_modified'])
                 if invite.status == InviteStatusChoices.FAILED.value:
-                    send_email_to_admins.delay(invite)
+                    send_email_to_admins.delay(invite.uid)
 
         if previous_status != invite.status:
             self.refresh_from_db()

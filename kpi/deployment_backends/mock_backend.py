@@ -517,6 +517,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         self.set_asset_uid()
 
+    def rename_enketo_id_key(self, previous_owner_username: str):
+        pass
+
     def set_active(self, active: bool):
         self.save_to_db({
             'active': bool(active),

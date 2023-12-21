@@ -112,7 +112,7 @@ def async_task_retry(sender=None, **kwargs):
 @celery_app.task
 def garbage_collector():
     """
-    Delete not needed anymore invites
+    Delete obsolete invites (except failed one)
     """
     # Avoid circular import
     Invite = apps.get_model('project_ownership', 'Invite')  # noqa
@@ -206,7 +206,7 @@ def mark_stuck_tasks_as_failed():
 
 
 @celery_app.task
-def send_email_to_admins(invite: 'project_ownership.Invite'):
+def send_email_to_admins(invite_uid: str):
     """
     Send failure reports to admins
     """
@@ -215,7 +215,7 @@ def send_email_to_admins(invite: 'project_ownership.Invite'):
         return
 
     invite_url = settings.KOBOFORM_URL + reverse(
-        'api_v2:project-ownership-invite-detail', args=(invite.uid,)
+        'api_v2:project-ownership-invite-detail', args=(invite_uid,)
     )
 
     email_message = EmailMessage(

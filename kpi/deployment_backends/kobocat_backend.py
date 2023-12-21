@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import copy
 import io
 import json
@@ -10,6 +9,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Generator, Optional, Union
+from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 try:
     from zoneinfo import ZoneInfo
@@ -17,6 +17,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import requests
+import redis.exceptions
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
@@ -1037,6 +1038,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             filters['user_id'] = user_id
 
         ObjectPermission.objects.filter(**filters).delete()
+
+    def rename_enketo_id_key(self, previous_owner_username: str):
+        parsed_url = urlparse(settings.KOBOCAT_URL)
+        domain_name = parsed_url.netloc
+        asset_uid = self.asset.uid
+
+        try:
+            enketo_redis_client.rename(
+                src=f'or:{domain_name}/{previous_owner_username},{asset_uid}',
+                dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}'
+            )
+        except redis.exceptions.ResponseError:
+            # original does not exist, weird but don't raise a 500 for that
+            pass
 
     def set_active(self, active):
         """

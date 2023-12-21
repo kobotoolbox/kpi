@@ -4,12 +4,13 @@ from datetime import timedelta
 from typing import Optional, Union
 
 from constance import config
+from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers
-from kpi.constants import PERM_MANAGE_ASSET
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
@@ -63,16 +64,17 @@ class Transfer(TimeStampedModel):
             else:
                 with transaction.atomic():
                     with kc_transaction_atomic():
-                        with self.asset.deployment.suspend_submissions(
+                        deployment = self.asset.deployment
+                        with deployment.suspend_submissions(
                             [self.asset.owner_id, new_owner.pk]
                         ):
                             # Update counters
-                            self.asset.deployment.transfer_counters_ownership(
-                                new_owner
-                            )
+                            deployment.transfer_counters_ownership(new_owner)
+                            previous_owner_username = self.asset.owner.username
                             self._reassign_project_permissions(
                                 update_deployment=True
                             )
+                            deployment.rename_enketo_id_key(previous_owner_username)
 
                         self._sent_app_in_messages()
 
@@ -82,10 +84,10 @@ class Transfer(TimeStampedModel):
                     self.pk, TransferStatusTypeChoices.SUBMISSIONS.value
                 )
 
-                # 2) Move media files to new owner's home directory
-                async_task.delay(
-                    self.pk, TransferStatusTypeChoices.MEDIA_FILES.value
-                )
+            # 2) Move media files to new owner's home directory
+            async_task.delay(
+                self.pk, TransferStatusTypeChoices.MEDIA_FILES.value
+            )
 
             success = True
         finally:
