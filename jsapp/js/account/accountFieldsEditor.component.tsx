@@ -135,7 +135,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Privacy */}
         {props.isRequireAuthDisplayed !== false && (
           <div className={styles.field}>
-            <label>{t('Privacy')}</label>
+            <label className={styles.checkboxLabel}>{t('Privacy')}</label>
 
             <Checkbox
               checked={props.values.require_auth}
@@ -148,10 +148,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
       </div>
 
-      <div className={styles.row}>
+      <div className={styles.flexFields}>
         {/* Full name */}
         {isFieldToBeDisplayed('name') && (
-          <div className={styles.field}>
+          <div className={cx(styles.field, styles.thirds)}>
             <TextBox
               label={getLabel('name')}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
@@ -183,12 +183,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             />
           </div>
         )}
-      </div>
 
-      <div className={styles.row}>
         {/* Country */}
         {isFieldToBeDisplayed('country') && (
-          <div className={styles.field}>
+          <div className={cx(styles.field, styles.thirds)}>
             <KoboSelect
               label={getLabel('country')}
               name='country'
@@ -208,7 +206,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
         {/* City */}
         {isFieldToBeDisplayed('city') && (
-          <div className={styles.field}>
+          <div className={cx(styles.field, styles.thirds)}>
             <TextBox
               label={getLabel('city')}
               value={props.values.city}
@@ -218,8 +216,27 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           </div>
         )}
       </div>
+      <div className={styles.flexFields}>
+        {/* Primary Sector */}
+        {isFieldToBeDisplayed('sector') && (
+          <div className={styles.field}>
+            <KoboSelect
+              label={getLabel('sector')}
+              name='sector'
+              type='outline'
+              size='l'
+              isClearable={!isFieldRequired('sector')}
+              isSearchable
+              selectedOption={props.values.sector}
+              onChange={(value: string | null) =>
+                onAnyFieldChange('sector', value || '')
+              }
+              options={envStore.data.sector_choices}
+              error={props.errors?.sector}
+            />
+          </div>
+        )}
 
-      <div className={styles.row}>
         {/* Organization Type */}
         {isOrganizationTypeFieldToBeDisplayed() && (
           <div className={cx(styles.field, styles.orgTypeDropdown)}>
@@ -238,9 +255,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             />
           </div>
         )}
-      </div>
 
-      <div className={styles.row}>
         {/* Organization */}
         {isFieldToBeDisplayed('organization') &&
           !areOrganizationFieldsToBeSkipped() && (
@@ -275,32 +290,11 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       </div>
 
       <div className={styles.row}>
-        {/* Primary Sector */}
-        {isFieldToBeDisplayed('sector') && (
-          <div className={styles.field}>
-            <KoboSelect
-              label={getLabel('sector')}
-              name='sector'
-              type='outline'
-              size='l'
-              isClearable={!isFieldRequired('sector')}
-              isSearchable
-              selectedOption={props.values.sector}
-              onChange={(value: string | null) =>
-                onAnyFieldChange('sector', value || '')
-              }
-              options={envStore.data.sector_choices}
-              error={props.errors?.sector}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className={styles.row}>
         {/* Bio */}
         {isFieldToBeDisplayed('bio') && (
           <div className={styles.field}>
             <TextBox
+              type='text-multiline'
               label={getLabel('bio')}
               value={props.values.bio}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
@@ -366,15 +360,18 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       <div className={styles.row}>
         {/* Newsletter subscription opt-in */}
         {isFieldToBeDisplayed('newsletter_subscription') && (
-          <div className={styles.field}>
-            <Checkbox
-              checked={props.values.newsletter_subscription}
-              onChange={(isChecked: boolean) =>
-                onAnyFieldChange('newsletter_subscription', isChecked)
-              }
-              label={getLabel('newsletter_subscription')}
-            />
-          </div>
+          <>
+            <div className={styles.field}>
+              <label className={styles.checkboxLabel}>{t('Newsletter')}</label>
+              <Checkbox
+                checked={props.values.newsletter_subscription}
+                onChange={(isChecked: boolean) =>
+                  onAnyFieldChange('newsletter_subscription', isChecked)
+                }
+                label={getLabel('newsletter_subscription')}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

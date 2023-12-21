@@ -20,6 +20,35 @@
   &:empty {
     display: none;
   }
+
+  .checkboxLabel {
+    margin-top: sizes.$x6;
+    margin-bottom: sizes.$x6;
+    color: colors.$kobo-gray-24;
+  }
+}
+
+.flexFields {
+  // Flexbox helps us maintain a layout when some fields may be customized
+  // or removed.
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: sizes.$x15 sizes.$x20;
+  margin-bottom: sizes.$x15;
+
+  .field {
+    flex: 1;
+    min-width: 40%; // These fields can sit next to each other in pairs.
+    &.thirds {
+      min-width: 26%;
+    }
+  }
+
+  &:empty {
+    display: none;
+  }
 }
 
 .field {
@@ -27,7 +56,8 @@
   flex: 1;
 }
 
-.socialLabel {
+.socialLabel,
+.checkboxLabel {
   width: 100%;
   color: colors.$kobo-gray-24;
   font-size: sizes.$x12;
@@ -38,4 +68,9 @@
 // Show 5 options without having to scroll for the last one
 .orgTypeDropdown :global .kobo-dropdown__menu > .k-select__menu {
   max-height: none;
+}
+
+// Heighten bio field
+.row > .field :global textarea {
+  min-height: 2.5em;
 }
