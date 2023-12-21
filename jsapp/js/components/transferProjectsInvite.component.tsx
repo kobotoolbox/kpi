@@ -6,10 +6,26 @@ import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
 
 import styles from './transferProjectsInvite.module.scss';
+import {acceptInvite, declineInvite, getAssetFromInviteUid} from './transferProjects.api';
+import {AssetResponse} from '../dataInterface';
+import {set} from 'alertifyjs';
 
-export default function TransferProjectsInvite() {
+interface TransferProjectsInviteProps {
+  inviteUid: string;
+}
+
+export default function TransferProjectsInvite(props: TransferProjectsInviteProps) {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [isDeclined, setIsDeclined] = useState(false);
+  const [asset, setAsset] = useState<AssetResponse | null>(null);
+
+  useEffect(() => {
+    getAssetFromInviteUid(props.inviteUid).then((data) => {
+      console.log(data);
+      //FIXME: this is still null.
+      setAsset(data);
+    });
+  }, []);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -18,6 +34,18 @@ export default function TransferProjectsInvite() {
   let noteClass = styles.note;
   if (isDeclined) {
     noteClass = [noteClass, styles.declinedNote].join(' ');
+  }
+
+  function decline() {
+    declineInvite(props.inviteUid).then(() => {
+      setIsDeclined(true);
+    });
+  }
+
+  function accept() {
+    acceptInvite(props.inviteUid).then(() => {
+      setIsModalOpen(!isModalOpen);
+    });
   }
 
   return (
@@ -32,14 +60,14 @@ export default function TransferProjectsInvite() {
           {isDeclined ? (
             <p>
               {t(
-                'You have declined the request of transfer ownership for {project name}.'
-              )}
+                'You have declined the request of transfer ownership for ##PROJECT_NAME##.'
+              ).replace('##PROJECT_NAME##', asset ? asset.name : '')}
             </p>
           ) : (
             <p>
               {t(
-                'When you accept the ownership transfer of project {project name}, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits.'
-              )}
+                'When you accept the ownership transfer of project ##PROJECT_NAME##, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits.'
+              ).replace('##PROJECT_NAME##', asset ? asset.name : '')}
             </p>
           )}
 
@@ -60,8 +88,8 @@ export default function TransferProjectsInvite() {
             {isDeclined ? (
               <div>
                 {t(
-                  '{current owner name} will receive a notification that the transfer was incomplete. {current owner name} will remain the project owner.'
-                )}
+                  '##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete. ##CURRENT_OWNER_NAME## will remain the project owner.'
+                ).replace('##CURRENT_OWNER_NAME##', asset ? asset.owner__username : '')}
               </div>
             ) : (
               <div>
@@ -77,16 +105,14 @@ export default function TransferProjectsInvite() {
           <KoboModalFooter alignment='end'>
             <Button
               label={t('Decline')}
-              onClick={() => setIsDeclined(true)}
+              onClick={decline}
               color='blue'
               type='frame'
               size='l'
             />
             <Button
               label={t('Accept')}
-              onClick={() => {
-                console.log('someting yet');
-              }}
+              onClick={accept}
               color='blue'
               type='full'
               size='l'

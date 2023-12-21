@@ -35,7 +35,7 @@ import {checkInviteUid} from '../components/transferProjects.api';
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [inviteOK, setInviteOK] = useState(false);
+  const [invite, setInvite] = useState({valid: false, uid: ''});
   const [searchParams] = useSearchParams();
   const usage = useUsage();
 
@@ -46,13 +46,13 @@ function MyProjectsRoute() {
       HOME_DEFAULT_VISIBLE_FIELDS
     );
 
-    const invite = searchParams.get('invite');
-    if (invite) {
-      checkInviteUid(invite).then((data) => {
-        setInviteOK(data);
+    const inviteParams = searchParams.get('invite');
+    if (inviteParams) {
+      checkInviteUid(inviteParams).then((data) => {
+        setInvite({valid: data, uid: inviteParams});
       });
     } else {
-      setInviteOK(false);
+      setInvite({valid: false, uid: ''});
     }
   }, [searchParams]);
 
@@ -144,7 +144,7 @@ function MyProjectsRoute() {
           selectedRows={selectedRows}
           onRowsSelected={setSelectedRows}
         />
-        {inviteOK && <TransferProjectsInvite />}
+        {(invite.valid && invite.uid !== '') && <TransferProjectsInvite inviteUid={invite.uid}/>}
       </section>
     </Dropzone>
   );
