@@ -32,6 +32,16 @@ class BaseDeploymentBackend(abc.ABC):
     Defines the interface for a deployment backend.
     """
 
+    PROTECTED_XML_FIELDS = [
+        '__version__',
+        'formhub',
+        'meta',
+    ]
+
+    # XPaths are relative to the root node
+    SUBMISSION_UUID_XPATH = './meta/deprecatedID'
+    FORM_UUID_XPATH = './formhub/uuid'
+
     def __init__(self, asset):
         self.asset = asset
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
