@@ -4,13 +4,12 @@ from datetime import timedelta
 from typing import Optional, Union
 
 from constance import config
-from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers
-from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET
+from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
@@ -62,6 +61,8 @@ class Transfer(TimeStampedModel):
                 with transaction.atomic():
                     self._reassign_project_permissions(update_deployment=False)
                     self._sent_app_in_messages()
+                    # FIXME
+                    # Set async tasks to done for submissions and attachments.
             else:
                 with transaction.atomic():
                     with kc_transaction_atomic():

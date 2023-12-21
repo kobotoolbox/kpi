@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Union
 from smtplib import SMTPException
 
@@ -63,7 +65,7 @@ class EmailMessage:
 class Mailer:
 
     @classmethod
-    def send(cls, email_messages: Union[EmailMessage, list[EmailMessage]]) -> bool:
+    def send(cls, email_messages: Union[EmailMessage, List[EmailMessage]]) -> bool:
         if isinstance(email_messages, EmailMessage):
             try:
                 send_mail(

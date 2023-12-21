@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from constance import config
 from django.conf import settings
 from django.contrib.auth import get_user_model
