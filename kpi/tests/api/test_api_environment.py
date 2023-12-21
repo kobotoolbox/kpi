@@ -116,6 +116,7 @@ class EnvironmentTests(BaseTestCase):
             'custom_password_localized_help_text': markdown(
                 I18nUtils.get_custom_password_help_text()
             ),
+            'open_rosa_server': settings.KOBOCAT_URL,
         }
 
     def _check_response_dict(self, response_dict):

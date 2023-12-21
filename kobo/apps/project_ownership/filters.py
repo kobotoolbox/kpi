@@ -13,6 +13,10 @@ class InviteFilter(filters.BaseFilterBackend):
         mode = request.query_params.get('mode')
         user = get_database_user(request.user)
 
+        if view.action == 'retrieve' and user.is_superuser:
+            # superusers can see all invites individually
+            return queryset
+
         if mode == self.SENDER_MODE:
             return queryset.filter(sender=user)
         elif mode == self.RECIPIENT_MODE:

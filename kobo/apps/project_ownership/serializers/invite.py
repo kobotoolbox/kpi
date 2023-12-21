@@ -227,11 +227,11 @@ class InviteSerializer(serializers.ModelSerializer):
             else:
                 transfer.process()
 
-        #if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
-        if status == InviteStatusChoices.DECLINED.value:
-            self._send_refusal_email(instance)
-        elif status == InviteStatusChoices.ACCEPTED.value:
-            self._send_acceptance_email(instance)
+        if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
+            if status == InviteStatusChoices.DECLINED.value:
+                self._send_refusal_email(instance)
+            elif status == InviteStatusChoices.ACCEPTED.value:
+                self._send_acceptance_email(instance)
 
         return instance
 
@@ -253,9 +253,9 @@ class InviteSerializer(serializers.ModelSerializer):
         email_message = EmailMessage(
             to=invite.recipient.email,
             subject=t('KoboToolbox project ownership transfer accepted'),
-            plain_text_template='emails/accepted_invite.txt',
+            plain_text_content_or_template='emails/accepted_invite.txt',
             template_variables=template_variables,
-            html_template='emails/accepted_invite.html',
+            html_content_or_template='emails/accepted_invite.html',
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 
@@ -284,9 +284,9 @@ class InviteSerializer(serializers.ModelSerializer):
         email_message = EmailMessage(
             to=invite.recipient.email,
             subject=t('Action required: KoboToolbox project ownership transfer request'),
-            plain_text_template='emails/new_invite.txt',
+            plain_text_content_or_template='emails/new_invite.txt',
             template_variables=template_variables,
-            html_template='emails/new_invite.html',
+            html_content_or_template='emails/new_invite.html',
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 
@@ -312,9 +312,9 @@ class InviteSerializer(serializers.ModelSerializer):
         email_message = EmailMessage(
             to=invite.recipient.email,
             subject=t(' KoboToolbox project ownership transfer incomplete'),
-            plain_text_template='emails/declined_invite.txt',
+            plain_text_content_or_template='emails/declined_invite.txt',
             template_variables=template_variables,
-            html_template='emails/declined_invite.html',
+            html_content_or_template='emails/declined_invite.html',
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 

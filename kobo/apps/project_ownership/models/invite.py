@@ -7,6 +7,7 @@ from django.utils import timezone
 from kpi.fields import KpiUidField
 from .base import TimeStampedModel
 from .choices import InviteStatusChoices, TransferStatusChoices
+from ..tasks import send_email_to_admins
 
 
 class Invite(TimeStampedModel):
@@ -61,6 +62,8 @@ class Invite(TimeStampedModel):
             if previous_status != invite.status:
                 invite.date_modified = timezone.now()
                 invite.save(update_fields=['status', 'date_modified'])
+                if invite.status == InviteStatusChoices.FAILED.value:
+                    send_email_to_admins.delay(invite)
 
         if previous_status != invite.status:
             self.refresh_from_db()
