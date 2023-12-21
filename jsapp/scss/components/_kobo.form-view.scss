@@ -1,5 +1,6 @@
 @use 'scss/sizes';
 @use "scss/_variables";
+@use 'scss/sizes';
 @use 'scss/z-indexes';
 @use '~kobo-common/src/styles/colors';
 
@@ -292,6 +293,10 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__cell--padding {
     padding: 20px;
+  }
+
+  &.form-view__cell--small-padding {
+    padding: sizes.$x10 sizes.$x20 sizes.$x20 sizes.$x20;
   }
 
   &.form-view__cell--padding-small {

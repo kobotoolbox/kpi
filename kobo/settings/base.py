@@ -679,6 +679,7 @@ ANONYMOUS_USER_ID = -1
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_asset',
     'kpi.discover_asset',
+    'kpi.add_submissions',
     'kpi.view_submissions',
 )
 
@@ -955,6 +956,7 @@ ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
 # How long to wait before flushing an individual preview from Enketo's cache
 ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
+ENKETO_REDIS_MAIN_URL = os.environ.get('ENKETO_REDIS_MAIN_URL', 'redis://localhost:6379/')
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
