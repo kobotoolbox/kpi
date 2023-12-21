@@ -9,6 +9,7 @@ import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import myLibraryStore from './myLibraryStore';
 import { routerIsActive } from '../../router/legacy';
+import {ROUTES} from '../../router/routerConstants';
 import {NavLink} from 'react-router-dom';
 
 class LibrarySidebar extends Reflux.Component {
@@ -44,11 +45,11 @@ class LibrarySidebar extends Reflux.Component {
   }
 
   isMyLibrarySelected() {
-    return routerIsActive('library/my-library');
+    return routerIsActive(ROUTES.MY_LIBRARY);
   }
 
   isPublicCollectionsSelected() {
-    return routerIsActive('library/public-collections');
+    return routerIsActive(ROUTES.PUBLIC_COLLECTIONS);
   }
 
   render() {
