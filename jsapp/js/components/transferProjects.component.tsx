@@ -79,11 +79,15 @@ export default function TransferProjects(props: TransferProjectsProps) {
       <div className={styles.bar}>
         <div className={styles.description}>
           <strong>{t('Transfer project ownership')}</strong>
-
-          {(!transfer.inviteStatus ||
-            transfer.inviteStatus !== TransferStatuses.Pending) && (
-            <div className={styles.descriptionBottom}>
-              <div className={styles.copy}>
+          <div className={styles.copy}>
+            {transfer.inviteStatus === TransferStatuses.Pending ? (
+              <span>
+                {t(
+                  'Your transfer request is pending until jnm has accepted or declined it.'
+                )}
+              </span>
+            ) : (
+              <span>
                 {t(
                   'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
                 )}
@@ -91,42 +95,27 @@ export default function TransferProjects(props: TransferProjectsProps) {
                 <a>{t('Learn more')}</a>
                 &nbsp;
                 {t('→')}
-              </div>
-
-              <Button
-                label={t('Transfer')}
-                isFullWidth
-                onClick={toggleModal}
-                color='storm'
-                type='frame'
-                size='l'
-              />
-            </div>
-          )}
-
-          {transfer.inviteStatus &&
-            transfer.inviteStatus === TransferStatuses.Pending && (
-              <div className={styles.descriptionBottom}>
-                <div className={styles.copy}>
-                  {t(
-                    'Your transfer request is pending until jnm has accepted or declined it.'
-                  )}
-                  &nbsp;
-                  <a>{t('Learn more')}</a>
-                  &nbsp;
-                  {t('→')}
-                </div>
-                <Button
-                  label={t('Cancel transfer')}
-                  isFullWidth
-                  onClick={cancelCurrentInvite}
-                  color='storm'
-                  type='frame'
-                  size='l'
-                />
-              </div>
+              </span>
             )}
+          </div>
         </div>
+
+        <Button
+          label={
+            transfer.inviteStatus === TransferStatuses.Pending
+              ? t('Cancel transfer')
+              : t('Transfer')
+          }
+          isFullWidth
+          onClick={
+            transfer.inviteStatus === TransferStatuses.Pending
+              ? cancelCurrentInvite
+              : toggleModal
+          }
+          color='storm'
+          type='frame'
+          size='l'
+        />
       </div>
 
       <KoboModal
@@ -134,21 +123,21 @@ export default function TransferProjects(props: TransferProjectsProps) {
         onRequestClose={toggleModal}
         size='medium'
       >
-        <KoboModalHeader onRequestCloseByX={toggleModal}>
+        <KoboModalHeader onRequestCloseByX={toggleModal} headerColor='white'>
           {t('Transfer ownership')}
         </KoboModalHeader>
         <section className={styles.modalBody}>
-          <p className={styles.modalCopy}>
+          <p>
             {t(
               'This action will transfer ownership of {project name} to another user.'
             )}
-            <br />
-            <br />
+          </p>
+          <p>
             {t(
               'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.'
             )}
-            <br />
-            <br />
+          </p>
+          <p>
             {t(
               'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.'
             )}
