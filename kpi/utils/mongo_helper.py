@@ -290,10 +290,17 @@ class MongoHelper:
             Union[PermissionFilter, list[PermissionFilter]]
         ],
     ) -> dict[str, list[dict]]:
-        if permission_filters is None:
+        if permission_filters is None or len(permission_filters) == 0:
             return query
-
-        permission_filters_query = cls._convert_permissions(permission_filters)
+        if (
+            isinstance(permission_filters, list)
+            and len(permission_filters) == 1
+        ):
+            permission_filters_query = permission_filters[0]
+        else:
+            permission_filters_query = cls._convert_permissions(
+                permission_filters
+            )
 
         return {cls.AND_OPERATOR: [query, permission_filters_query]}
 
@@ -315,11 +322,8 @@ class MongoHelper:
         will not receive AND
         """
         if isinstance(input_data, list):
-            operator = (
-                cls.OR_OPERATOR if len(input_data) > 1 else cls.AND_OPERATOR
-            )
             return {
-                operator: [
+                cls.OR_OPERATOR: [
                     cls._convert_permissions(item) for item in input_data
                 ]
             }
