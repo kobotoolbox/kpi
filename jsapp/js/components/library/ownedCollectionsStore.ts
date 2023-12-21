@@ -68,8 +68,21 @@ class OwnedCollectionsStore extends Reflux.Store {
 
   // methods for handling actions
 
+  currentUserHasManageAssetPermission(asset: AssetResponse) {
+    return asset.permissions.filter(
+      (a) => (
+        a.user.endsWith(`/${sessionStore.currentAccount.username}/`) && a.permission.endsWith('/manage_asset/')
+      )
+    ).length > 0;
+  }
+
   onGetCollectionsCompleted(response: AssetsResponse) {
-    this.data.collections = response.results;
+    this.data.collections = response.results.filter(
+      (asset) => (
+        asset.owner__username === sessionStore.currentAccount.username ||
+        this.currentUserHasManageAssetPermission(asset)
+      )
+    );
     this.data.isFetchingData = false;
     this.isInitialised = true;
     this.trigger(this.data);
@@ -83,7 +96,10 @@ class OwnedCollectionsStore extends Reflux.Store {
   onAssetChangedOrCreated(asset: AssetResponse) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&
-      asset.owner__username === sessionStore.currentAccount.username
+      (
+        asset.owner__username === sessionStore.currentAccount.username ||
+        this.currentUserHasManageAssetPermission(asset)
+      )
     ) {
       let wasUpdated = false;
       for (let i = 0; i < this.data.collections.length; i++) {
@@ -117,7 +133,7 @@ class OwnedCollectionsStore extends Reflux.Store {
     this.trigger(this.data);
 
     actions.library.getCollections({
-      owner: sessionStore.currentAccount.username,
+      //owner: sessionStore.currentAccount.username,
       pageSize: 0 // zero gives all results with no limit
     });
   }
