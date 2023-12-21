@@ -104,7 +104,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
   /**
    * Always show 'organization_type' if it is enabled on Back end and
-   * and 'organization' or 'organization_website' would be shown.
+   * 'organization' or 'organization_website' would be shown.
    *
    * Organization Type is used as a toggle for those fields ('skip logic')
    * so it needs to be reachable regardless of props.displayedFields
@@ -112,7 +112,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   function isOrganizationTypeFieldToBeDisplayed() {
     return (
       'organization_type' in metadata &&
-      (isFieldToBeDisplayed('organization') ||
+      (isFieldToBeDisplayed('organization_type') ||
+        isFieldToBeDisplayed('organization') ||
         isFieldToBeDisplayed('organization_website'))
     );
   }
