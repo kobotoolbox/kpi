@@ -48,6 +48,6 @@ def rename_xlsx_sheet(
         raise NoFromSheetError(from_sheet)
     book[from_sheet].title = to_sheet
     stream = BytesIO()
-    writable.save(stream)
+    book.save(stream)
     stream.seek(0)
     return stream
