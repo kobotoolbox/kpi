@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import Max, Prefetch
 from django.utils.translation import gettext as t
 from rest_framework import exceptions, serializers
+from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset
@@ -26,12 +27,7 @@ class InviteSerializer(serializers.ModelSerializer):
         lookup_field='uid',
         view_name='project-ownership-invite-detail',
     )
-    sender = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail',
-        lookup_field='username',
-        queryset=get_user_model().objects.filter(is_active=True),
-        style={'base_template': 'input.html'}  # Render as a simple text box
-    )
+    sender = serializers.SerializerMethodField()
     recipient = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail',
         lookup_field='username',
@@ -116,6 +112,12 @@ class InviteSerializer(serializers.ModelSerializer):
 
     def get_date_modified(self, invite: Invite) -> str:
         return invite.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def get_sender(self, invite: Invite) -> str:
+        request = self.context['request']
+        return reverse(
+            'user-detail', args=[invite.sender.username], request=request
+        )
 
     def validate_assets(self, asset_uids: list[str]) -> list[Asset]:
         if self.instance is not None:

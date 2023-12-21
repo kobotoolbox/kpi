@@ -93,6 +93,8 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
         file_type=AssetFile.FORM_MEDIA
     ).exclude(content__startswith=f'{transfer.asset.owner.username}/')
 
+    kc_files = {}
+
     if transfer.asset.has_deployment:
         kc_files = {
             kc_file.file_hash: kc_file
