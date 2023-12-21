@@ -17,7 +17,9 @@ class MongoHelperTestCase(TestCase):
     def add_submissions(self, asset, submissions: list[dict]):
         for submission in submissions:
             submission['__version__'] = asset.latest_deployed_version.uid
-        asset.deployment.mock_submissions(copy.deepcopy(submissions), flush_db=False)
+        asset.deployment.mock_submissions(
+            copy.deepcopy(submissions), flush_db=False
+        )
 
     def assert_instances_count(self, instances: tuple, expected_count: int):
         assert instances[1] == expected_count
@@ -53,5 +55,8 @@ class MongoHelperTestCase(TestCase):
             MongoHelper.get_instances(userform_id1, query={'q1': 'a1'}), 1
         )
         self.assert_instances_count(
-            MongoHelper.get_instances(userform_id1, query={'expect': 'nothing'}), 0
+            MongoHelper.get_instances(
+                userform_id1, query={'expect': 'nothing'}
+            ),
+            0,
         )

@@ -184,13 +184,18 @@ class AssetPermissionAssignmentViewSet(
         :return: JSON
         """
         serializer = AssetBulkInsertPermissionSerializer(
-            data={'assignments': request.data}, context=self.get_serializer_context()
+            data={'assignments': request.data},
+            context=self.get_serializer_context(),
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return self.list(request, *args, **kwargs)
 
-    @action(detail=False, methods=['PATCH'], renderer_classes=[renderers.JSONRenderer])
+    @action(
+        detail=False,
+        methods=['PATCH'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def clone(self, request, *args, **kwargs):
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
@@ -257,7 +262,9 @@ class AssetPermissionAssignmentViewSet(
         return context_
 
     def get_queryset(self):
-        return get_user_permission_assignments_queryset(self.asset, self.request.user)
+        return get_user_permission_assignments_queryset(
+            self.asset, self.request.user
+        )
 
     def perform_create(self, serializer):
         serializer.save(asset=self.asset)

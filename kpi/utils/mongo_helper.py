@@ -188,7 +188,8 @@ class MongoHelper:
         for key, value in list(d.items()):
             if isinstance(value, list):
                 value = [
-                    cls.to_readable_dict(e) if isinstance(e, dict) else e for e in value
+                    cls.to_readable_dict(e) if isinstance(e, dict) else e
+                    for e in value
                 ]
             elif isinstance(value, dict):
                 value = cls.to_readable_dict(value)
@@ -237,7 +238,9 @@ class MongoHelper:
         for key, value in list(d.items()):
             if isinstance(value, list):
                 value = [
-                    cls.to_safe_dict(e, reading=reading) if isinstance(e, dict) else e
+                    cls.to_safe_dict(e, reading=reading)
+                    if isinstance(e, dict)
+                    else e
                     for e in value
                 ]
             elif isinstance(value, dict):
@@ -294,7 +297,9 @@ class MongoHelper:
                         {cls.OR_OPERATOR: permission_filter}
                     )
                 else:
-                    permission_filters_query[cls.OR_OPERATOR].append(permission_filter)
+                    permission_filters_query[cls.OR_OPERATOR].append(
+                        permission_filter
+                    )
 
         return {cls.AND_OPERATOR: [query, permission_filters_query]}
 
@@ -327,7 +332,9 @@ class MongoHelper:
             # `cls.USERFORM_ID` from those fields in case users try to add it.
             if cls.USERFORM_ID in fields:
                 fields.remove(cls.USERFORM_ID)
-            fields_to_select = dict([(cls.encode(field), 1) for field in fields])
+            fields_to_select = dict(
+                [(cls.encode(field), 1) for field in fields]
+            )
         else:
             # Retrieve all fields except `cls.USERFORM_ID`
             fields_to_select = {cls.USERFORM_ID: 0}

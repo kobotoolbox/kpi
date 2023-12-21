@@ -36,10 +36,14 @@ class AssetUserPartialPermission(models.Model):
         unique_together = [['asset', 'user']]
 
     asset = models.ForeignKey(
-        'Asset', related_name='asset_partial_permissions', on_delete=models.CASCADE
+        'Asset',
+        related_name='asset_partial_permissions',
+        on_delete=models.CASCADE,
     )
     user = models.ForeignKey(
-        'auth.User', related_name='user_partial_permissions', on_delete=models.CASCADE
+        'auth.User',
+        related_name='user_partial_permissions',
+        on_delete=models.CASCADE,
     )
     permissions = models.JSONField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
@@ -77,7 +81,9 @@ class AssetUserPartialPermission(models.Model):
                     implied_perm not in new_partial_perms
                     and implied_perm in partial_perms
                 ):
-                    new_partial_perms[implied_perm] = partial_perms[implied_perm]
+                    new_partial_perms[implied_perm] = partial_perms[
+                        implied_perm
+                    ]
 
                 new_partial_perm = new_partial_perms[implied_perm]
                 # Trivial case, i.e.: permissions are built with front end.
