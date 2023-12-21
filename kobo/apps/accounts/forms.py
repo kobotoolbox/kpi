@@ -58,7 +58,9 @@ class KoboSignupMixin(forms.Form):
     organization_website = forms.CharField(
         label=USER_METADATA_DEFAULT_LABELS['organization_website'],
         required=False,
+        widget=forms.URLInput,
     )
+    organization_website.widget.attrs['placeholder']=t('https://www.example.org')
     organization_type = forms.ChoiceField(
         label=USER_METADATA_DEFAULT_LABELS['organization_type'],
         required=False,

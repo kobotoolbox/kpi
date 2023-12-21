@@ -9,6 +9,8 @@
   const organization_type    = document.querySelector('form.registration  select[name=organization_type]')
   const organization         = document.querySelector('form.registration   input[name=organization]')
   const organization_website = document.querySelector('form.registration   input[name=organization_website]')
+  // TODO: Make type="url" validation friendlier by auto-inserting http://
+  //       Use a custom validator to ensure the domain has at least one `.`
 
   if (!organization_type) {return}
 
