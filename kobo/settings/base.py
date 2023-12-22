@@ -478,25 +478,29 @@ CONSTANCE_CONFIG = {
     ),
     'PROJECT_OWNERSHIP_STUCK_THRESHOLD': (
         12 * 60,
-        'Number of minutes asynchronous tasks can run before being '
-        'flagged as failed.\n'
-        'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`.',
+        (
+            'Number of minutes asynchronous tasks can run before being '
+            'flagged as failed.\n'
+            'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`.'
+        ),
         'positive_int',
     ),
     'PROJECT_OWNERSHIP_INVITE_EXPIRY': (
         14,
-        'Number of days before invites expire.'
+        'Number of days before invites expire.',
         'positive_int',
     ),
     'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION': (
         30,
-        'Number of days to keep invites history.\n'
-        'Failed invites are kept forever'
+        (
+            'Number of days to keep invites history.\n'
+            'Failed invites are kept forever.'
+        ),
         'positive_int',
     ),
-    'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY': (
+    'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY': (
         7,
-        'The number of days after which in-app messages expire',
+        'The number of days after which in-app messages expire.',
         'positive_int',
     ),
     'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES': (
@@ -626,7 +630,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
         'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
         'PROJECT_OWNERSHIP_INVITE_EXPIRY',
-        'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY',
+        'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
         'PROJECT_OWNERSHIP_ADMIN_EMAIL',
         'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
         'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',

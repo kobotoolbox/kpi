@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import Optional, Union
 
 from constance import config
+from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -61,7 +62,7 @@ class Transfer(TimeStampedModel):
                 with transaction.atomic():
                     self._reassign_project_permissions(update_deployment=False)
                     self._sent_app_in_messages()
-                    # FIXME
+                    # FIXME - Draft stay in queue forever
                     # Set async tasks to done for submissions and attachments.
             else:
                 with transaction.atomic():
@@ -203,6 +204,9 @@ class Transfer(TimeStampedModel):
 
     def _sent_app_in_messages(self):
 
+        # FIXME Do not create in-app messages if the project is not shared with
+        # anyone else except the new owner.
+
         # Use translatable strings here to let Transifex detect them but …
         title = t('Project ownership transferred')
         snippet = t(
@@ -228,7 +232,7 @@ class Transfer(TimeStampedModel):
             published=True,
             valid_from=timezone.now(),
             valid_until=timezone.now()
-            + timedelta(days=config.PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY),
+            + timedelta(days=config.PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY),
             last_editor=self.invite.sender,
             project_ownership_transfer=self,
         )
@@ -242,7 +246,11 @@ class Transfer(TimeStampedModel):
                     asset_id=self.asset_id
                 ).values_list('user_id', flat=True)
                 if user_id
-                not in [self.invite.sender.pk, self.invite.recipient.pk]
+                not in [
+                    settings.ANONYMOUS_USER_ID,
+                    self.invite.sender.pk,
+                    self.invite.recipient.pk
+                ]
             ]
         )
 
