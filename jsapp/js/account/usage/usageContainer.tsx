@@ -8,6 +8,7 @@ import {Limits} from 'js/account/stripe.types';
 import cx from 'classnames';
 import subscriptionStore from 'js/account/subscriptionStore';
 import Badge from 'js/components/common/badge';
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 
 export enum USAGE_CONTAINER_TYPE {
   'TRANSCRIPTION',
@@ -29,11 +30,13 @@ const UsageContainer = ({
   label = undefined,
   type = undefined,
 }: UsageContainerProps) => {
+  const [isStripeEnabled, setIsStripeEnabled] = useState(false);
   const [subscriptions] = useState(() => subscriptionStore);
   const hasStorageAddOn = useMemo(
     () => subscriptions.addOnsResponse.length > 0,
     [subscriptions.addOnsResponse]
   );
+  useWhenStripeIsEnabled(() => setIsStripeEnabled(true), []);
   let limitRatio = 0;
   if (limit !== Limits.unlimited && limit) {
     limitRatio = usage / limit;
@@ -71,7 +74,7 @@ const UsageContainer = ({
   return (
     <>
       <ul className={cx(styles.usage, {[styles.hasAddon]: hasStorageAddOn})}>
-        {limit && (
+        {isStripeEnabled && (
           <li>
             <label>{t('Available')}</label>
             <data value={limit}>{limitDisplay(limit)}</data>
@@ -84,19 +87,21 @@ const UsageContainer = ({
           </label>
           <data>{limitDisplay(usage)}</data>
         </li>
-        <li>
-          <strong>{t('Balance')}</strong>
-          <strong
-            className={cx({
-              [styles.warning]: isNearingLimit,
-              [styles.overlimit]: isOverLimit,
-            })}
-          >
-            {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
-            {isOverLimit && <Icon name='warning' color='red' size='m' />}
-            {limitDisplay(usage, limit)}
-          </strong>
-        </li>
+        {isStripeEnabled && (
+          <li>
+            <strong>{t('Balance')}</strong>
+            <strong
+              className={cx({
+                [styles.warning]: isNearingLimit,
+                [styles.overlimit]: isOverLimit,
+              })}
+            >
+              {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
+              {isOverLimit && <Icon name='warning' color='red' size='m' />}
+              {limitDisplay(usage, limit)}
+            </strong>
+          </li>
+        )}
         {hasStorageAddOn && type === USAGE_CONTAINER_TYPE.STORAGE && (
           <li>
             <Badge
