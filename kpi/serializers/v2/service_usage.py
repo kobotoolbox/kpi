@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -221,15 +222,16 @@ class ServiceUsageSerializer(serializers.Serializer):
             # Couldn't find organization, proceed as normal
             return
 
-        # if the user is in an organization and has an enterprise plan, get all org users and their total usage
-        enterprise_users = User.objects.values_list('pk', flat=True).filter(
-            organizations_organization__id=organization_id,
-            organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
-            organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
-        )
-        if enterprise_users.exists():
-            self._user_ids = list(enterprise_users)
+        if settings.STRIPE_ENABLED:
+            # if the user is in an organization and has an enterprise plan, get all org users and their total usage
+            enterprise_users = User.objects.values_list('pk', flat=True).filter(
+                organizations_organization__id=organization_id,
+                organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
+                organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
+            )
+            if enterprise_users.exists():
+                self._user_ids = list(enterprise_users)
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
         billing_details = organization.active_subscription_billing_details
