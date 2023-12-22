@@ -1,17 +1,18 @@
+from django.test import TestCase
 
-class Mail:
+class Mail(TestCase):
 
     def test_recipient_receives_invite(self):
-        pass
+        raise NotImplementedError('To be implemented')
 
     def test_sender_receives_new_owner_acceptance(self):
-        pass
+        raise NotImplementedError('To be implemented')
 
     def test_sender_receives_new_owner_refusal(self):
-        pass
+        raise NotImplementedError('To be implemented')
 
     def test_sender_receives_expired_notification(self):
-        pass
+        raise NotImplementedError('To be implemented')
 
     def test_admins_receive_failure_report(self):
-        pass
+        raise NotImplementedError('To be implemented')

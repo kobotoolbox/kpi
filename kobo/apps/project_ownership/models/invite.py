@@ -48,6 +48,10 @@ class Invite(TimeStampedModel):
             previous_status = invite.status
             is_complete = True
 
+            # One of the transfers has begun, mark the invite as `in_progress`
+            if invite.status == InviteStatusChoices.PENDING.value:
+                invite.status = InviteStatusChoices.IN_PROGRESS.value
+
             for transfer in self.transfers.all():
                 if transfer.status == TransferStatusChoices.FAILED.value:
                     invite.status = InviteStatusChoices.FAILED.value

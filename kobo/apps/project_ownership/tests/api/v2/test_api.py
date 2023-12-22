@@ -14,6 +14,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self) -> None:
+
         super().setUp()
         User = get_user_model()  # noqa
         self.anotheruser = User.objects.get(username='anotheruser')
@@ -21,6 +22,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         self.asset = Asset.objects.get(pk=1)
 
     def test_can_create_invite_as_asset_owner(self):
+
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
@@ -33,6 +35,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         assert response.status_code == status.HTTP_201_CREATED
 
     def test_cannot_create_bulk_invite_with_not_all_own_assets(self):
+
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
@@ -84,6 +87,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
 class ProjectOwnershipAccountUsageAPITestCase(KpiTestCase):
 
     def test_account_usage_transfered_to_new_user(self):
+
         # Use /api/v2/service_usage/
         # Test new_owner usage is 0
         # Test old_owner usage is X
@@ -98,6 +102,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self) -> None:
+
         super().setUp()
         User = get_user_model()  # noqa
         self.someuser = User.objects.get(username='someuser')
@@ -110,6 +115,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
 
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_shared_users_receive_in_app_message(self):
+
         self.asset.assign_perm(self.alice, PERM_VIEW_ASSET)
         self.client.login(username='alice', password='alice')
         # in-app message has not migrated to API `v2`.
@@ -140,7 +146,9 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         pass
 
     def test_previous_owner_do_not_receive_in_app_message(self):
+
         pass
 
     def test_new_owner_do_not_receive_in_app_message(self):
+
         pass
