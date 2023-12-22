@@ -118,7 +118,7 @@ const AddOnList = (props: {
                 {isSubscribedAddOnPrice(price) && (
                   <BillingButton
                     size={'m'}
-                    label={t('manage')}
+                    label={t('Manage')}
                     isDisabled={props.isBusy}
                     onClick={onClickManage}
                     isFullWidth
@@ -127,7 +127,7 @@ const AddOnList = (props: {
                 {!isSubscribedAddOnPrice(price) && (
                   <BillingButton
                     size={'m'}
-                    label={t('buy now')}
+                    label={t('Buy now')}
                     isDisabled={props.isBusy}
                     onClick={() => props.onClickBuy(price)}
                     isFullWidth

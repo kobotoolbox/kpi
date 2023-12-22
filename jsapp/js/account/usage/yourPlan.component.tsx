@@ -82,7 +82,7 @@ export const YourPlan = () => {
         </div>
         <nav>
           <BillingButton
-            label={'see plans'}
+            label={'See plans'}
             type={'frame'}
             color={'blue'}
             onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
