@@ -135,7 +135,7 @@ def mark_as_expired():
     Invite = apps.get_model('project_ownership', 'Invite')  # noqa
 
     expiry_threshold = timezone.now() - timedelta(
-        minutes=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
+        days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
     )
 
     invites_to_update = []
