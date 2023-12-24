@@ -1,16 +1,44 @@
 /*
   Location: /accounts/signup (and SSO equivalent)
-  DOM location: After signup fields (organization type, name, ...)
+  DOM location: After signup fields (organization type, name, website, ...)
 
-  - Show/hide organization and organization_website based on organization_type
-  - Apply 'required' appearance if needed.
+  - Skip-logic for Organization Type dropdown
+    - Show/hide organization and organization_website based on organization_type
+    - Apply 'required' appearance if needed.
+  - Some DOM layout improvements
+  - URL validation helper for organization website field
 */
 (function() {
   const organization_type    = document.querySelector('form.registration  select[name=organization_type]')
   const organization         = document.querySelector('form.registration   input[name=organization]')
   const organization_website = document.querySelector('form.registration   input[name=organization_website]')
-  // TODO: Make type="url" validation friendlier by auto-inserting http://
-  //       Use a custom validator to ensure the domain has at least one `.`
+
+  // ------------- URL VALIDATION HELP ----------------------------------
+  // Make type="url" validation friendlier by auto-inserting http://
+  if (organization_website) {
+    // Helper to trim, and add http:// if http:// or https:// is missing
+    // (1) user may paste a selected URL with leading/trailing space(s)
+    // (2) user probably didn't type http://, and type="url" wants it
+    const cleaned_url = (value) => {
+      if (!value) {return ''}
+      value = ('' + value).trim()
+      if (!value.match(/^https?:\/\/.*/)) {
+        value = 'http://' + value
+      }
+      return value
+    }
+    // on tabout
+    organization_website.addEventListener('blur', function(e) {
+      e.target.value = cleaned_url(e.target.value)
+    })
+    // on "enter" key
+    organization_website.addEventListener('keydown', function(e) {
+      if (e.keyCode === 13) {
+        e.target.value = cleaned_url(e.target.value)
+      }
+    })
+  }
+  // --------------------------------------------------------------------
 
   if (!organization_type) {return}
 
