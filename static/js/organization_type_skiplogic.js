@@ -7,11 +7,30 @@
     - Apply 'required' appearance if needed.
   - Some DOM layout improvements
   - URL validation helper for organization website field
+
+  TODO: rename this file "signup_form_helpers.js"
+  TODO: lint this file, make variable names clearer
 */
 (function() {
-  const organization_type    = document.querySelector('form.registration  select[name=organization_type]')
-  const organization         = document.querySelector('form.registration   input[name=organization]')
-  const organization_website = document.querySelector('form.registration   input[name=organization_website]')
+
+  // ------------- DOM ARRANGEMENT --------------------------------------
+  // Improve DOM source order of Django checkbox form elements
+  document.querySelectorAll('form.registration input[type="checkbox"]').forEach(
+    (checkbox) => {
+      // Move checkbox before label; improves appearance and tabbing behavior
+      checkbox.parentElement.prepend(checkbox)
+      // Move 'required' asterisk into label; improves line wrapping
+      const asterisk = checkbox.parentElement.querySelector('span.required')
+      if (asterisk) {
+        asterisk.parentElement.querySelector('label').append(asterisk)
+      }
+    }
+  )
+  // --------------------------------------------------------------------
+
+  const organization_type = document.querySelector('    form.registration  select[name=organization_type]    ')
+  const organization = document.querySelector('         form.registration   input[name=organization]         ')
+  const organization_website = document.querySelector(' form.registration   input[name=organization_website] ')
 
   // ------------- URL VALIDATION HELP ----------------------------------
   // Make type="url" validation friendlier by auto-inserting http://
@@ -40,10 +59,13 @@
   }
   // --------------------------------------------------------------------
 
+
+  // ------------- ORGANIZATION TYPE SKIP LOGIC -------------------------
   if (!organization_type) {return}
 
+  // The back end uses custom validation for these fields, but on the frontend
+  // they should have the same look-and-feel as regular required fields.
   document.querySelectorAll('[data-required]').forEach(function(field) {
-    // On the frontend, treat these fields like regular required fields.
     const redAsterisk = document.createElement('span')
     redAsterisk.classList.add('required')
     redAsterisk.textContent = '*'
@@ -84,19 +106,5 @@
 
   organization_type.addEventListener('change', applySkipLogic)
   applySkipLogic()
-
-  /*
-    Improve DOM source order of Django checkbox form elements
-  */
-  document.querySelectorAll('form.registration input[type="checkbox"]').forEach(
-    (checkbox) => {
-      // Move checkbox before label
-      checkbox.parentElement.prepend(checkbox)
-      // Move 'required' asterisk into label
-      asterisk = checkbox.parentElement.querySelector('span.required')
-      if (asterisk) {
-        asterisk.parentElement.querySelector('label').append(asterisk)
-      }
-    }
-  )
+  // --------------------------------------------------------------------
 })()
