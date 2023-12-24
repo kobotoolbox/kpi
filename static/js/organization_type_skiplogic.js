@@ -41,8 +41,9 @@
     const cleaned_url = (value) => {
       if (!value) {return ''}
       value = ('' + value).trim()
+      if (!value.match(/.\../)) {return value} // "dotless". don't change it
       if (!value.match(/^https?:\/\/.*/)) {
-        value = 'http://' + value
+        value = 'http://' + value // add missing protocol
       }
       return value
     }
