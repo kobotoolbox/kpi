@@ -1,8 +1,13 @@
-import {AssetResponse, dataInterface, PaginatedResponse} from 'js/dataInterface';
+import {
+  AssetResponse,
+  dataInterface,
+  PaginatedResponse,
+} from 'js/dataInterface';
 import {fetchGet, fetchPost, fetchPatch} from 'jsapp/js/api';
 import {ROOT_URL} from '../constants';
 import sessionStore from 'js/stores/session';
 import {getUsernameFromUrl} from 'js/users/utils';
+import {notify} from 'js/utils';
 
 const INVITE_URL = '/api/v2/project-ownership/invites/';
 const USERNAME_URL = ROOT_URL + '/api/v2/users/';
@@ -31,6 +36,7 @@ export enum TransferStatuses {
 export interface ProjectTransfer {
   url: string;
   asset: string;
+  asset__name: string;
   status: TransferStatuses;
   error: any;
   date_modified: string;
@@ -38,14 +44,15 @@ export interface ProjectTransfer {
 
 /**Detail about current asset's transfer. This is listed in the asset detail.*/
 export interface ProjectTransferAssetDetail {
-  invite: string,
-  sender: string,
-  recipient: string,
-  status: TransferStatuses,
+  invite: string;
+  sender: string;
+  recipient: string;
+  status: TransferStatuses;
 }
 
 export interface InvitesResponse {
   url: string;
+  sender: string;
   recipient: string;
   status: TransferStatuses;
   date_created: string;
@@ -68,38 +75,72 @@ export async function sendInvite(username: string, assetUid: string) {
 // the JSX code.
 
 export async function cancelInvite(inviteUrl: string) {
-  return fetchPatch<InvitesResponse>(
-    inviteUrl,
-    {
-      status: TransferStatuses.Cancelled,
-    },
-    {prependRootUrl: false}
-  );
+  let response;
+  try {
+    response = await fetchPatch<InvitesResponse>(
+      inviteUrl,
+      {
+        status: TransferStatuses.Cancelled,
+      },
+      {prependRootUrl: false}
+    );
+  } catch (error) {
+    console.error(error);
+    notify.error(
+      t(
+        'Failed to cancel transfer. The transfer may be declined or accpeted already. Please check your email.'
+      )
+    );
+  }
+
+  return response;
 }
 
 export async function acceptInvite(inviteUid: string) {
-  return fetchPatch<InvitesResponse>(
-    INVITE_URL + inviteUid + '/',
-    {
-      status: TransferStatuses.Accepted,
-    },
-    {prependRootUrl: false}
-  );
+  let response;
+  try {
+    response = await fetchPatch<InvitesResponse>(
+      INVITE_URL + inviteUid + '/',
+      {
+        status: TransferStatuses.Accepted,
+      },
+      {prependRootUrl: false}
+    );
+  } catch (error) {
+    console.error(error);
+    notify.error(t('Failed to accept invite.'));
+  }
+
+  return response;
 }
 
 export async function declineInvite(inviteUid: string) {
-  return fetchPatch<InvitesResponse>(
-    INVITE_URL + inviteUid + '/',
-    {
-      status: TransferStatuses.Declined,
-    },
-    {prependRootUrl: false}
-  );
+  let response;
+  try {
+    response = await fetchPatch<InvitesResponse>(
+      INVITE_URL + inviteUid + '/',
+      {
+        status: TransferStatuses.Declined,
+      },
+      {prependRootUrl: false}
+    );
+  } catch (error) {
+    console.error(error);
+    notify.error(t('Failed to decline invite'));
+  }
+  return response;
 }
 
 /**Returns *all invites* the current user sent or recieved.*/
 export async function getAllInvites() {
-  return fetchGet<PaginatedResponse<InvitesResponse>>(INVITE_URL);
+  let invites;
+  try {
+    invites = await fetchGet<PaginatedResponse<InvitesResponse>>(INVITE_URL);
+  } catch (error) {
+    console.error(error);
+  }
+
+  return invites;
 }
 
 /**
@@ -119,6 +160,7 @@ export async function checkInviteUid(inviteUid: string) {
     await getInviteDetail(inviteUid).then((data) => {
       // Only bother with the check if it's in the `pending` state.
       if (data.status !== TransferStatuses.Pending) {
+        notify.error(t('Invite has been expired or cancelled'));
         return;
       }
 
@@ -128,20 +170,23 @@ export async function checkInviteUid(inviteUid: string) {
     });
   } catch (error) {
     console.error(error);
+    notify.error(t('Invite is invalid'));
   }
 
   return inviteIsCorrect;
 }
 
 export async function getAssetFromInviteUid(inviteUid: string) {
-  let assetResponse = null;
-  await getInviteDetail(inviteUid).then((data) => {
-    fetchGet<AssetResponse>(data.transfers[0].asset, {
-      prependRootUrl: false,
-    }).then((asset) => {
-      assetResponse = asset;
-      console.log('asset is now', assetResponse);
+  let displayDetails = null;
+  try {
+    await getInviteDetail(inviteUid).then((data) => {
+      displayDetails = {
+        assetName: data.transfers[0].asset__name,
+        assetOwner: getUsernameFromUrl(data.sender),
+      };
     });
-  });
-  return assetResponse;
+  } catch (error) {
+    console.error(error);
+  }
+  return displayDetails;
 }

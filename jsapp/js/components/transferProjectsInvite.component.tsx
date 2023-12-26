@@ -10,6 +10,11 @@ import {acceptInvite, declineInvite, getAssetFromInviteUid} from './transferProj
 import {AssetResponse} from '../dataInterface';
 import {set} from 'alertifyjs';
 
+interface DisplayDetails {
+  assetName: string;
+  assetOwner: string;
+}
+
 interface TransferProjectsInviteProps {
   inviteUid: string;
 }
@@ -17,13 +22,13 @@ interface TransferProjectsInviteProps {
 export default function TransferProjectsInvite(props: TransferProjectsInviteProps) {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [isDeclined, setIsDeclined] = useState(false);
-  const [asset, setAsset] = useState<AssetResponse | null>(null);
+  const [asset, setAsset] = useState<DisplayDetails | null>(null);
 
   useEffect(() => {
     getAssetFromInviteUid(props.inviteUid).then((data) => {
-      console.log(data);
-      //FIXME: this is still null.
-      setAsset(data);
+      if (data) {
+        setAsset(data);
+      }
     });
   }, []);
 
@@ -61,13 +66,13 @@ export default function TransferProjectsInvite(props: TransferProjectsInviteProp
             <p>
               {t(
                 'You have declined the request of transfer ownership for ##PROJECT_NAME##.'
-              ).replace('##PROJECT_NAME##', asset ? asset.name : '')}
+              ).replace('##PROJECT_NAME##', asset ? asset.assetName : '')}
             </p>
           ) : (
             <p>
               {t(
                 'When you accept the ownership transfer of project ##PROJECT_NAME##, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits.'
-              ).replace('##PROJECT_NAME##', asset ? asset.name : '')}
+              ).replace('##PROJECT_NAME##', asset ? asset.assetName : '')}
             </p>
           )}
 
@@ -85,11 +90,17 @@ export default function TransferProjectsInvite(props: TransferProjectsInviteProp
               color='blue'
               classNames={[styles.noteIcon]}
             />
-            {isDeclined ? (
+            {isDeclined && asset ? (
               <div>
-                {t(
-                  '##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete. ##CURRENT_OWNER_NAME## will remain the project owner.'
-                ).replace('##CURRENT_OWNER_NAME##', asset ? asset.owner__username : '')}
+                {'##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'.replace(
+                  '##CURRENT_OWNER_NAME##',
+                  asset ? asset.assetOwner : ''
+                )}
+                &nbsp;
+                {'##CURRENT_OWNER_NAME## will remain the project owner.'.replace(
+                  '##CURRENT_OWNER_NAME##',
+                  asset ? asset.assetOwner : ''
+                )}
               </div>
             ) : (
               <div>

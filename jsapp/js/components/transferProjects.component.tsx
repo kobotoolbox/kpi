@@ -65,15 +65,17 @@ export default function TransferProjects(props: TransferProjectsProps) {
       setTransfer({...transfer, usernameError: false, submitPending: true});
       sendInvite(username, props.asset.uid)
         .then((data) => {
-          setTransfer({
-            ...transfer,
-            invitedUserName: username,
-            inviteStatus: data.status,
-            inviteUrl: data.url,
-            isModalOpen: false,
-            usernameInput: '',
-            submitPending: false,
-          });
+          if (data) {
+            setTransfer({
+              ...transfer,
+              invitedUserName: username,
+              inviteStatus: data?.status,
+              inviteUrl: data?.url,
+              isModalOpen: false,
+              usernameInput: '',
+              submitPending: false,
+            });
+          }
         })
         .catch((err) => {
           if (err.status === 400) {
@@ -92,11 +94,13 @@ export default function TransferProjects(props: TransferProjectsProps) {
   function cancelCurrentInvite() {
     if (transfer.inviteUrl) {
       cancelInvite(transfer.inviteUrl).then((data) => {
-        setTransfer({
-          ...transfer,
-          inviteStatus: data.status,
-          invitedUserName: null,
-        });
+        if (data) {
+          setTransfer({
+            ...transfer,
+            inviteStatus: data.status,
+            invitedUserName: null,
+          });
+        }
       });
     } else {
       throw Error;
@@ -162,15 +166,11 @@ export default function TransferProjects(props: TransferProjectsProps) {
         <form>
           <section className={styles.modalBody}>
             <p>
-              {t(
-                'This action will transfer ownership of'
-              )}
+              {t('This action will transfer ownership of')}
               &nbsp;
               {props.asset.name}
               &nbsp;
-              {t(
-                'to another user.'
-              )}
+              {t('to another user.')}
             </p>
             <p>
               {t(
@@ -230,7 +230,10 @@ export default function TransferProjects(props: TransferProjectsProps) {
             />
             <Button
               label={t('Transfer project')}
-              onClick={() => submitInvite(transfer.usernameInput)}
+              onClick={(evt: React.FormEvent<HTMLFormElement>) => {
+                evt.preventDefault();
+                submitInvite(transfer.usernameInput);
+              }}
               isPending={transfer.submitPending}
               color='blue'
               type='full'
