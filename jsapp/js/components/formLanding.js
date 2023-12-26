@@ -348,13 +348,9 @@ class FormLanding extends React.Component {
     const chosenMethod = this.state.selectedCollectMethod;
     const chosenMethodLink = this.state.deployment__links[chosenMethod] || null;
 
-    // We need to append `/{owner__username}` if anonymous submissions are enabled
     var kc_server = document.createElement('a');
     kc_server.href = this.state.deployment__identifier;
     var kobocollect_url = kc_server.origin;
-    if (this.state.anonymousSubmissions) {
-      kobocollect_url = kobocollect_url.concat(`/${this.state.owner__username}`);
-    }
 
     return (
       <bem.FormView__row>
