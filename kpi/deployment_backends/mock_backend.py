@@ -304,6 +304,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.asset.deployment.mock_submissions([duplicated_submission])
         return duplicated_submission
 
+    @property
+    def enketo_id(self):
+        return 'self'
+
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
@@ -382,11 +386,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # `self` is a demo Enketo form, but there's no guarantee it'll be
         # around forever.
         return {
-            'offline_url': 'https://enke.to/_/#self',
-            'url': 'https://enke.to/::self',
-            'iframe_url': 'https://enke.to/i/::self',
-            'preview_url': 'https://enke.to/preview/::self',
-            # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
+            'offline_url': f'https://enke.to/_/#{self.enketo_id}',
+            'url': f'https://enke.to/::#{self.enketo_id}',
+            'iframe_url': f'https://enke.to/i/::#{self.enketo_id}',
+            'preview_url': f'https://enke.to/preview/::#{self.enketo_id}',
+            # f'preview_iframe_url': 'https://enke.to/preview/i/::#{self.enketo_id}',
         }
 
     def get_submission_detail_url(self, submission_id: int) -> str:
@@ -513,6 +517,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         self.set_asset_uid()
 
+    def rename_enketo_id_key(self, previous_owner_username: str):
+        pass
+
     def set_active(self, active: bool):
         self.save_to_db({
             'active': bool(active),
@@ -526,6 +533,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
             'backend_response': backend_response
         })
+
+    def set_enketo_open_rosa_server(self, require_auth: bool):
+        pass
 
     def set_has_kpi_hooks(self):
         """
@@ -675,6 +685,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         queryset = self._get_metadata_queryset(file_type=file_type)
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
+
+    @property
+    def xform(self):
+        """
+        Dummy property, only present to be mocked by unit tests
+        """
+        pass
 
     @classmethod
     def __prepare_bulk_update_data(cls, updates: dict) -> dict:

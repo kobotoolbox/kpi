@@ -1,7 +1,6 @@
 # coding: utf-8
 import logging
 import os
-import re
 import string
 import subprocess
 from datetime import datetime
@@ -133,6 +132,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
+    'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -157,6 +157,7 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
+
 CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (
         True,
@@ -422,8 +423,7 @@ CONSTANCE_CONFIG = {
         ),
         'List all custom character rules as regular expressions supported '
         'by `regex` python library.\n'
-        'One per line.'
-        ,
+        'One per line.',
     ),
     'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS': (
         3,
@@ -478,30 +478,53 @@ CONSTANCE_CONFIG = {
     ),
     'PROJECT_OWNERSHIP_STUCK_THRESHOLD': (
         12 * 60,
-        'Number of minutes asynchronous tasks can run before being '
-        'flagged as failed.\n'
-        'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`.',
+        (
+            'Number of minutes asynchronous tasks can run before being '
+            'flagged as failed.\n'
+            'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`.'
+        ),
         'positive_int',
     ),
     'PROJECT_OWNERSHIP_INVITE_EXPIRY': (
         14,
-        'Number of days before invites expire.'
+        'Number of days before invites expire.',
         'positive_int',
     ),
     'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION': (
         30,
-        'Number of days to keep invites history.\n'
-        'Failed invites are kept forever'
+        (
+            'Number of days to keep invites history.\n'
+            'Failed invites are kept forever.'
+        ),
         'positive_int',
     ),
-    'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY': (
+    'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY': (
         7,
-        'The number of days after which in-app messages expire',
+        'The number of days after which in-app messages expire.',
         'positive_int',
     ),
     'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES': (
         False,
         'Auto-accept invites by default and do not sent them by e-mail.'
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL': (
+        '',
+        (
+            'Email addresses to which error reports are sent, one per line.\n'
+            'Leave empty to not send emails.'
+        ),
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT': (
+        'KoboToolbox Notifications: Project ownership transfer failure',
+        'Email subject to sent to admins on failure.',
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY': (
+        (
+            'Dear admins,\n\n'
+            'A transfer of project ownership has failed:\n'
+            '##invite_url##'
+        ),
+        'Email message to sent to admins on failure.',
     ),
 }
 
@@ -607,7 +630,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
         'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
         'PROJECT_OWNERSHIP_INVITE_EXPIRY',
-        'PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY',
+        'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
         'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
@@ -657,6 +683,7 @@ ANONYMOUS_USER_ID = -1
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_asset',
     'kpi.discover_asset',
+    'kpi.add_submissions',
     'kpi.view_submissions',
 )
 
@@ -933,6 +960,7 @@ ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
 # How long to wait before flushing an individual preview from Enketo's cache
 ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
+ENKETO_REDIS_MAIN_URL = os.environ.get('ENKETO_REDIS_MAIN_URL', 'redis://localhost:6379/')
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -1025,25 +1053,28 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=30, day_of_week=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every 30 minutes
+    # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
         'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
         'schedule': crontab(minute=10),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 30 minutes
     'project-ownership-mark-stuck-tasks-as-failed': {
         'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
         'schedule': crontab(minute=30),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 30 minutes
     'project-ownership-mark-as-expired': {
         'task': 'kobo.apps.project_ownership.tasks.mark_as_expired',
-        'schedule': crontab(minute=0, hour=0, day_of_week=0),
+        'schedule': crontab(minute=30),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }

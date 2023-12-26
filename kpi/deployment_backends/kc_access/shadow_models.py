@@ -551,7 +551,6 @@ class KobocatUserPermission(ShadowModel):
 class KobocatUserProfile(ShadowModel):
     """
     From onadata/apps/main/models/user_profile.py
-    Not read-only because we need write access to `require_auth`
     """
     class Meta(ShadowModel.Meta):
         db_table = 'main_userprofile'
@@ -571,10 +570,7 @@ class KobocatUserProfile(ShadowModel):
     home_page = models.CharField(max_length=255, blank=True)
     twitter = models.CharField(max_length=255, blank=True)
     description = models.CharField(max_length=255, blank=True)
-    require_auth = models.BooleanField(
-        default=False,
-        verbose_name="Require authentication to see forms and submit data"
-    )
+    require_auth = models.BooleanField(default=True)
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
     num_of_submissions = models.IntegerField(default=0)
@@ -642,8 +638,9 @@ class KobocatXForm(ShadowModel):
     XFORM_TITLE_LENGTH = 255
     xls = ExtendedFileField(null=True)
     xml = models.TextField()
-    user = models.ForeignKey(KobocatUser, related_name='xforms', null=True,
-                             on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        KobocatUser, related_name='xforms', null=True, on_delete=models.CASCADE
+    )
     shared = models.BooleanField(default=False)
     shared_data = models.BooleanField(default=False)
     downloadable = models.BooleanField(default=True)
@@ -657,6 +654,7 @@ class KobocatXForm(ShadowModel):
     attachment_storage_bytes = models.BigIntegerField(default=0)
     kpi_asset_uid = models.CharField(max_length=32, null=True)
     pending_delete = models.BooleanField(default=False)
+    require_auth = models.BooleanField(default=True)
 
     @property
     def md5_hash(self):

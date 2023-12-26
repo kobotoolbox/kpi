@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Union
 from smtplib import SMTPException
 
@@ -15,27 +17,41 @@ class EmailMessage:
         self,
         to: Union[str, list],
         subject: str,
-        plain_text_template: str,
-        template_variables: dict,
-        html_template: str = None,
+        plain_text_content_or_template: str,
+        template_variables: dict = None,
+        html_content_or_template: str = None,
         language: str = None,
-        from_: str = config.SUPPORT_EMAIL,
+        from_: str = None,
     ):
         self.to = to
         if isinstance(to, str):
             self.to = [to]
 
-        self.from_ = from_
+        self.from_ = config.SUPPORT_EMAIL if not from_ else from_
 
         if language:
             # Localize templates
             activate(language)
 
         self.subject = t(subject)
-        self.text_message = get_template(plain_text_template).render(template_variables)
+
+        if template_variables is None:
+            self.text_message = plain_text_content_or_template
+        else:
+            self.text_message = get_template(
+                plain_text_content_or_template
+            ).render(template_variables)
+
         self.html_message = None
-        if html_template:
-            self.html_message = get_template(html_template).render(template_variables)
+
+        if html_content_or_template:
+            self.html_message = (
+                html_content_or_template
+                if not template_variables
+                else get_template(html_content_or_template).render(
+                    template_variables
+                )
+            )
 
     def to_multi_alternative(self):
         message = EmailMultiAlternatives(
@@ -49,7 +65,7 @@ class EmailMessage:
 class Mailer:
 
     @classmethod
-    def send(cls, email_messages: Union[EmailMessage, list[EmailMessage]]) -> bool:
+    def send(cls, email_messages: Union[EmailMessage, List[EmailMessage]]) -> bool:
         if isinstance(email_messages, EmailMessage):
             try:
                 send_mail(

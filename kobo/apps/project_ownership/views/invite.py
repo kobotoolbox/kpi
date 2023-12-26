@@ -146,6 +146,11 @@ class InviteViewSet(viewsets.ModelViewSet):
     >
     >       curl -X GET https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
 
+    > Payload to accept (or decline) an invite
+    >
+    >       {
+    >            "status": "accepted|declined"
+    >       }
 
     <pre class="prettyprint">
     <b>HTTP 200 OK</b>
@@ -166,6 +171,9 @@ class InviteViewSet(viewsets.ModelViewSet):
         ]
     }
     </pre>
+
+    _**Notes**: When submitting `accepted` the invite status becomes automatically `in_progress`_
+
 
     ## Invite detail
 
@@ -220,5 +228,9 @@ class InviteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
 
-        queryset = self.model.objects.select_related('recipient')
+        queryset = (
+            self.model.objects
+            .select_related('sender')
+            .select_related('recipient')
+        )
         return queryset

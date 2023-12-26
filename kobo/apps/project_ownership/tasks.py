@@ -5,13 +5,13 @@ from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from constance import config
 from django.apps import apps
 from django.conf import settings
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
 
 from kobo.celery import celery_app
 from kpi.utils.mailer import EmailMessage, Mailer
 from .exceptions import AsyncTaskException
-from .models import Invite
 from .models.choices import (
     InviteStatusChoices,
     TransferStatusChoices,
@@ -112,8 +112,11 @@ def async_task_retry(sender=None, **kwargs):
 @celery_app.task
 def garbage_collector():
     """
-    Delete not needed anymore invites
+    Delete obsolete invites (except failed one)
     """
+    # Avoid circular import
+    Invite = apps.get_model('project_ownership', 'Invite')  # noqa
+
     # Keep failed invites forever for debugging purpose.
     deletion_threshold = timezone.now() - timedelta(
         days=config.PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION
@@ -128,8 +131,11 @@ def mark_as_expired():
     """
     Flag as expired not accepted (or declined) invites after
     """
+    # Avoid circular import
+    Invite = apps.get_model('project_ownership', 'Invite')  # noqa
+
     expiry_threshold = timezone.now() - timedelta(
-        minutes=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
+        days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
     )
 
     invites_to_update = []
@@ -164,9 +170,9 @@ def mark_as_expired():
             EmailMessage(
                 to=invite.sender.email,
                 subject=t('Invite has expired'),
-                plain_text_template='emails/expired_invite.txt',
+                plain_text_content_or_template='emails/expired_invite.txt',
                 template_variables=template_variables,
-                html_template='emails/expired_invite.html',
+                html_content_or_template='emails/expired_invite.html',
                 language=invite.sender.extra_details.data.get('last_ui_language')
             )
         )
@@ -179,6 +185,7 @@ def mark_stuck_tasks_as_failed():
     """
     Flag tasks as failed if they have been created for a long time.
     """
+    # Avoid circular import
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
     stuck_threshold = timezone.now() - timedelta(
         minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
@@ -199,6 +206,32 @@ def mark_stuck_tasks_as_failed():
 
 
 @celery_app.task
+def send_email_to_admins(invite_uid: str):
+    """
+    Send failure reports to admins
+    """
+    admin_emails = config.PROJECT_OWNERSHIP_ADMIN_EMAIL.strip()
+    if not admin_emails:
+        return
+
+    invite_url = settings.KOBOFORM_URL + reverse(
+        'api_v2:project-ownership-invite-detail', args=(invite_uid,)
+    )
+
+    email_message = EmailMessage(
+        to=admin_emails.split('\n'),
+        subject=config.PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT.strip(),
+        plain_text_content_or_template=(
+            config.PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY.replace(
+                '##invite_url##', invite_url
+            )
+        ),
+    )
+
+    Mailer.send(email_message)
+
+
+@celery_app.task
 def task_rescheduler():
     """
     This task restarts previous tasks which have been stopped accidentally,
@@ -211,6 +244,7 @@ def task_rescheduler():
         affect all celery tasks across the app.
     TODO Use username to detect uncompleted tasks
     """
+    # Avoid circular import
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
     resume_threshold = timezone.now() - timedelta(
         minutes=config.PROJECT_OWNERSHIP_RESUME_THRESHOLD

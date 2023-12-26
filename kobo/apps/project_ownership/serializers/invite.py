@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from constance import config
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -5,6 +7,7 @@ from django.db import transaction
 from django.db.models import Max, Prefetch
 from django.utils.translation import gettext as t
 from rest_framework import exceptions, serializers
+from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset
@@ -26,7 +29,7 @@ class InviteSerializer(serializers.ModelSerializer):
         lookup_field='uid',
         view_name='project-ownership-invite-detail',
     )
-
+    sender = serializers.SerializerMethodField()
     recipient = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail',
         lookup_field='username',
@@ -44,6 +47,7 @@ class InviteSerializer(serializers.ModelSerializer):
         model = Invite
         fields = (
             'url',
+            'sender',
             'recipient',
             'status',
             'date_created',
@@ -110,6 +114,12 @@ class InviteSerializer(serializers.ModelSerializer):
 
     def get_date_modified(self, invite: Invite) -> str:
         return invite.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def get_sender(self, invite: Invite) -> str:
+        request = self.context['request']
+        return reverse(
+            'user-detail', args=[invite.sender.username], request=request
+        )
 
     def validate_assets(self, asset_uids: list[str]) -> list[Asset]:
         if self.instance is not None:
@@ -227,11 +237,11 @@ class InviteSerializer(serializers.ModelSerializer):
             else:
                 transfer.process()
 
-        #if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
-        if status == InviteStatusChoices.DECLINED.value:
-            self._send_refusal_email(instance)
-        elif status == InviteStatusChoices.ACCEPTED.value:
-            self._send_acceptance_email(instance)
+        if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
+            if status == InviteStatusChoices.DECLINED.value:
+                self._send_refusal_email(instance)
+            elif status == InviteStatusChoices.ACCEPTED.value:
+                self._send_acceptance_email(instance)
 
         return instance
 
@@ -253,9 +263,9 @@ class InviteSerializer(serializers.ModelSerializer):
         email_message = EmailMessage(
             to=invite.recipient.email,
             subject=t('KoboToolbox project ownership transfer accepted'),
-            plain_text_template='emails/accepted_invite.txt',
+            plain_text_content_or_template='emails/accepted_invite.txt',
             template_variables=template_variables,
-            html_template='emails/accepted_invite.html',
+            html_content_or_template='emails/accepted_invite.html',
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 
@@ -284,9 +294,9 @@ class InviteSerializer(serializers.ModelSerializer):
         email_message = EmailMessage(
             to=invite.recipient.email,
             subject=t('Action required: KoboToolbox project ownership transfer request'),
-            plain_text_template='emails/new_invite.txt',
+            plain_text_content_or_template='emails/new_invite.txt',
             template_variables=template_variables,
-            html_template='emails/new_invite.html',
+            html_content_or_template='emails/new_invite.html',
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 
@@ -312,9 +322,9 @@ class InviteSerializer(serializers.ModelSerializer):
         email_message = EmailMessage(
             to=invite.recipient.email,
             subject=t(' KoboToolbox project ownership transfer incomplete'),
-            plain_text_template='emails/declined_invite.txt',
+            plain_text_content_or_template='emails/declined_invite.txt',
             template_variables=template_variables,
-            html_template='emails/declined_invite.html',
+            html_content_or_template='emails/declined_invite.html',
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 

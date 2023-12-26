@@ -7,6 +7,7 @@ from django.utils import timezone
 from kpi.fields import KpiUidField
 from .base import TimeStampedModel
 from .choices import InviteStatusChoices, TransferStatusChoices
+from ..tasks import send_email_to_admins
 
 
 class Invite(TimeStampedModel):
@@ -47,6 +48,10 @@ class Invite(TimeStampedModel):
             previous_status = invite.status
             is_complete = True
 
+            # One of the transfers has begun, mark the invite as `in_progress`
+            if invite.status == InviteStatusChoices.PENDING.value:
+                invite.status = InviteStatusChoices.IN_PROGRESS.value
+
             for transfer in self.transfers.all():
                 if transfer.status == TransferStatusChoices.FAILED.value:
                     invite.status = InviteStatusChoices.FAILED.value
@@ -61,6 +66,8 @@ class Invite(TimeStampedModel):
             if previous_status != invite.status:
                 invite.date_modified = timezone.now()
                 invite.save(update_fields=['status', 'date_modified'])
+                if invite.status == InviteStatusChoices.FAILED.value:
+                    send_email_to_admins.delay(invite.uid)
 
         if previous_status != invite.status:
             self.refresh_from_db()

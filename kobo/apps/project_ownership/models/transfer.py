@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import Optional, Union
 
 from constance import config
+from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -60,19 +61,23 @@ class Transfer(TimeStampedModel):
             if not self.asset.has_deployment:
                 with transaction.atomic():
                     self._reassign_project_permissions(update_deployment=False)
+                    self._sent_app_in_messages()
+                    # FIXME - Draft stay in queue forever
+                    # Set async tasks to done for submissions and attachments.
             else:
                 with transaction.atomic():
                     with kc_transaction_atomic():
-                        with self.asset.deployment.suspend_submissions(
+                        deployment = self.asset.deployment
+                        with deployment.suspend_submissions(
                             [self.asset.owner_id, new_owner.pk]
                         ):
                             # Update counters
-                            self.asset.deployment.transfer_counters_ownership(
-                                new_owner
-                            )
+                            deployment.transfer_counters_ownership(new_owner)
+                            previous_owner_username = self.asset.owner.username
                             self._reassign_project_permissions(
                                 update_deployment=True
                             )
+                            deployment.rename_enketo_id_key(previous_owner_username)
 
                         self._sent_app_in_messages()
 
@@ -82,10 +87,10 @@ class Transfer(TimeStampedModel):
                     self.pk, TransferStatusTypeChoices.SUBMISSIONS.value
                 )
 
-                # 2) Move media files to new owner's home directory
-                async_task.delay(
-                    self.pk, TransferStatusTypeChoices.MEDIA_FILES.value
-                )
+            # 2) Move media files to new owner's home directory
+            async_task.delay(
+                self.pk, TransferStatusTypeChoices.MEDIA_FILES.value
+            )
 
             success = True
         finally:
@@ -199,6 +204,9 @@ class Transfer(TimeStampedModel):
 
     def _sent_app_in_messages(self):
 
+        # FIXME Do not create in-app messages if the project is not shared with
+        # anyone else except the new owner.
+
         # Use translatable strings here to let Transifex detect them but …
         title = t('Project ownership transferred')
         snippet = t(
@@ -224,7 +232,7 @@ class Transfer(TimeStampedModel):
             published=True,
             valid_from=timezone.now(),
             valid_until=timezone.now()
-            + timedelta(days=config.PROJECT_OWNERSHIP_APP_IN_MESSAGES_EXPIRY),
+            + timedelta(days=config.PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY),
             last_editor=self.invite.sender,
             project_ownership_transfer=self,
         )
@@ -238,7 +246,11 @@ class Transfer(TimeStampedModel):
                     asset_id=self.asset_id
                 ).values_list('user_id', flat=True)
                 if user_id
-                not in [self.invite.sender.pk, self.invite.recipient.pk]
+                not in [
+                    settings.ANONYMOUS_USER_ID,
+                    self.invite.sender.pk,
+                    self.invite.recipient.pk
+                ]
             ]
         )
 
@@ -300,8 +312,6 @@ class TransferStatus(TimeStampedModel):
             # No need to update parent if `status` is still 'in_progress'
             if status != TransferStatusChoices.IN_PROGRESS.value:
                 transfer_status.update_transfer_status()
-
-            # TODO let sysadmin know something went south.
 
     def update_transfer_status(self):
         success = True

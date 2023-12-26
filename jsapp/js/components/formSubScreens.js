@@ -18,6 +18,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
 import Button from './common/button';
+import sessionStore from 'js/stores/session';
 import TransferProjects from './transferProjects.component';
 
 const ConnectProjects = React.lazy(() =>
@@ -143,11 +144,14 @@ export class FormSubScreens extends React.Component {
   }
   renderSharing() {
     const uid = this.props.params.assetid || this.props.params.uid;
+
     return (
       <bem.FormView m='form-settings-sharing'>
         <SharingForm assetUid={uid} />
 
-        <TransferProjects asset={this.state} />
+        {this.state.owner__username === sessionStore.currentAccount.username && (
+          <TransferProjects asset={this.state} />
+        )}
       </bem.FormView>
     );
   }
