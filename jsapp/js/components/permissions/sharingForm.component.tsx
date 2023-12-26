@@ -19,6 +19,7 @@ import CopyTeamPermissions from './copyTeamPermissions.component';
 import UserAssetPermsEditor from './userAssetPermsEditor.component';
 import PublicShareSettings from './publicShareSettings.component';
 import UserPermissionRow from './userPermissionRow.component';
+import PendingOwnerRow from './PendingOwnerRow.component';
 import {parseBackendData, parseUserWithPermsList} from './permParser';
 import type {UserWithPerms} from './permParser';
 import type {
@@ -170,6 +171,26 @@ export default class SharingForm extends React.Component<
       : false;
   }
 
+  // Display pending owner if not already included in list of user permissions
+  renderPendingOwner() {
+    if (
+      this.state.asset?.project_ownership?.status ===
+        TransferStatuses.Pending &&
+      !this.state.permissions?.find(
+        (perm) =>
+          perm.user.name === this.state.asset?.project_ownership?.recipient
+      )
+    ) {
+      return (
+        <PendingOwnerRow
+          username={this.state.asset.project_ownership.recipient}
+        />
+      );
+    } else {
+      return null;
+    }
+  }
+
   render() {
     if (!this.state.asset || !this.state.permissions) {
       return <LoadingSpinner />;
@@ -230,6 +251,7 @@ export default class SharingForm extends React.Component<
               />
             );
           })}
+          {this.renderPendingOwner()}
 
           {!this.state.isAddUserEditorVisible && (
             <Button
