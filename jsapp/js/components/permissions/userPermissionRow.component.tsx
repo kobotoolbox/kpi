@@ -16,6 +16,7 @@ interface UserPermissionRowProps {
   assignablePerms: AssignablePermsMap;
   permissions: UserPerm[];
   isUserOwner: boolean;
+  isPendingOwner: boolean;
   username: string;
 }
 
@@ -198,7 +199,11 @@ export default class UserPermissionRow extends React.Component<
           )}
           {!this.props.isUserOwner && (
             <React.Fragment>
-              {this.renderPermissions(this.props.permissions)}
+              {this.props.isPendingOwner ? (
+                <bem.UserRow__perms>{t('Pending owner')}</bem.UserRow__perms>
+              ) : (
+                this.renderPermissions(this.props.permissions)
+              )}
 
               <bem.Button m='icon' onClick={this.toggleEditForm.bind(this)}>
                 {this.state.isEditFormVisible && (
