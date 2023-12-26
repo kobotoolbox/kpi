@@ -19,6 +19,7 @@ interface TransferProjectsProps {
 
 interface TransferProjectsState {
   isModalOpen: boolean;
+  invitedUserName: string | null;
   usernameInput: string;
   usernameError: boolean | string;
   inviteStatus: TransferStatuses | null;
@@ -26,10 +27,12 @@ interface TransferProjectsState {
   submitPending: boolean;
 }
 
-
 export default function TransferProjects(props: TransferProjectsProps) {
   const [transfer, setTransfer] = useState<TransferProjectsState>({
     isModalOpen: false,
+    invitedUserName: props.asset.project_ownership
+      ? props.asset.project_ownership.recipient
+      : null,
     usernameInput: '',
     usernameError: false,
     inviteStatus: props.asset.project_ownership
@@ -42,43 +45,58 @@ export default function TransferProjects(props: TransferProjectsProps) {
   });
 
   const updateUsername = (newUsername: string) => {
-    setTransfer({...transfer, usernameInput: newUsername, usernameError: false});
+    setTransfer({
+      ...transfer,
+      usernameInput: newUsername,
+      usernameError: false,
+    });
   };
 
   const toggleModal = () => {
-    setTransfer({...transfer, isModalOpen: !transfer.isModalOpen, usernameInput: ''});
+    setTransfer({
+      ...transfer,
+      isModalOpen: !transfer.isModalOpen,
+      usernameInput: '',
+    });
   };
 
   function submitInvite(username: string) {
     if (username !== '') {
       setTransfer({...transfer, usernameError: false, submitPending: true});
-      sendInvite(username, props.asset.uid).then((data) => {
-        setTransfer({
-          ...transfer,
-          inviteStatus: data.status,
-          inviteUrl: data.url,
-          isModalOpen: false,
-          usernameInput: '',
-          submitPending: false,
-        });
-      }).catch((err) => {
-        if (err.status === 400) {
+      sendInvite(username, props.asset.uid)
+        .then((data) => {
           setTransfer({
             ...transfer,
+            invitedUserName: username,
+            inviteStatus: data.status,
+            inviteUrl: data.url,
+            isModalOpen: false,
+            usernameInput: '',
             submitPending: false,
-            usernameError: 'User not found. Please try again.'
-          })
-        }
-      });
+          });
+        })
+        .catch((err) => {
+          if (err.status === 400) {
+            setTransfer({
+              ...transfer,
+              submitPending: false,
+              usernameError: 'User not found. Please try again.',
+            });
+          }
+        });
     } else {
-      setTransfer({...transfer, usernameError: "Please enter a user name."});
+      setTransfer({...transfer, usernameError: 'Please enter a user name.'});
     }
   }
 
   function cancelCurrentInvite() {
     if (transfer.inviteUrl) {
       cancelInvite(transfer.inviteUrl).then((data) => {
-        setTransfer({...transfer, inviteStatus: data.status});
+        setTransfer({
+          ...transfer,
+          inviteStatus: data.status,
+          invitedUserName: null,
+        });
       });
     } else {
       throw Error;
@@ -93,9 +111,13 @@ export default function TransferProjects(props: TransferProjectsProps) {
           <div className={styles.copy}>
             {transfer.inviteStatus === TransferStatuses.Pending ? (
               <span>
-                {t(
-                  'Your transfer request is pending until jnm has accepted or declined it.'
-                )}
+                {t('Your transfer request is pending until')}
+                <b>
+                  &nbsp;
+                  {transfer.invitedUserName}
+                  &nbsp;
+                </b>
+                {t('has accepted or declined it.')}
               </span>
             ) : (
               <span>
@@ -141,7 +163,13 @@ export default function TransferProjects(props: TransferProjectsProps) {
           <section className={styles.modalBody}>
             <p>
               {t(
-                'This action will transfer ownership of {project name} to another user.'
+                'This action will transfer ownership of'
+              )}
+              &nbsp;
+              {props.asset.name}
+              &nbsp;
+              {t(
+                'to another user.'
               )}
             </p>
             <p>
