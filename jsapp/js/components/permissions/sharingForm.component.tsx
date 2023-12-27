@@ -19,7 +19,6 @@ import CopyTeamPermissions from './copyTeamPermissions.component';
 import UserAssetPermsEditor from './userAssetPermsEditor.component';
 import PublicShareSettings from './publicShareSettings.component';
 import UserPermissionRow from './userPermissionRow.component';
-import PendingOwnerRow from './PendingOwnerRow.component';
 import {parseBackendData, parseUserWithPermsList} from './permParser';
 import type {UserWithPerms} from './permParser';
 import type {
@@ -182,7 +181,13 @@ export default class SharingForm extends React.Component<
       )
     ) {
       return (
-        <PendingOwnerRow
+        <UserPermissionRow
+          assetUid={this.props.assetUid}
+          nonOwnerPerms={this.state.nonOwnerPerms}
+          assignablePerms={this.state.assignablePerms}
+          permissions={[]}
+          isUserOwner={false}
+          isPendingOwner={true}
           username={this.state.asset.project_ownership.recipient}
         />
       );
