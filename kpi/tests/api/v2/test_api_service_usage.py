@@ -22,7 +22,7 @@ from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class ServiceUsageAPITestCase(BaseAssetTestCase):
+class ServiceUsageAPIBase(BaseAssetTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -43,7 +43,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             for unmanaged_model in self.unmanaged_models:
                 schema_editor.create_model(unmanaged_model)
 
-    def __create_asset(self, user=None):
+    def _create_asset(self, user=None):
         owner = user or self.anotheruser
         content_source_asset = {
             'survey': [
@@ -74,7 +74,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         self.submission_list_url = self.asset.deployment.submission_list_url
         self._deployment = self.asset.deployment
 
-    def __add_submission(self):
+    def add_submission(self):
         """
         Adds ONE submission to an asset
         """
@@ -104,9 +104,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         }
         submissions.append(submission)
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
-        self.__update_xform_counters(self.asset, submissions=1)
+        self.update_xform_counters(self.asset, submissions=1)
 
-    def __add_nlp_trackers(self):
+    def add_nlp_trackers(self):
         """
         Add nlp data to an asset
         """
@@ -140,7 +140,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             total_mt_characters=counter_2['google_mt_characters'],
         )
 
-    def __add_submissions(self):
+    def add_submissions(self):
         """
         Adds TWO submissions to an asset
         """
@@ -194,22 +194,22 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         submissions.append(submission2)
 
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
-        self.__update_xform_counters(self.asset, submissions=2)
+        self.update_xform_counters(self.asset, submissions=2)
 
-    def __update_xform_counters(self, asset: Asset, submissions: int = 0):
+    def update_xform_counters(self, asset: Asset, submissions: int = 0):
         """
         Create/update the daily submission counter and the shadow xform we use to query it
         """
         today = timezone.now()
         if self.xform:
             self.xform.attachment_storage_bytes += (
-                self.__expected_file_size() * submissions
+                self.expected_file_size() * submissions
             )
             self.xform.save()
         else:
             self.xform = KobocatXForm.objects.create(
                 attachment_storage_bytes=(
-                    self.__expected_file_size() * submissions
+                    self.expected_file_size() * submissions
                 ),
                 kpi_asset_uid=asset.uid,
                 date_created=today,
@@ -233,7 +233,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             print(vars(self.counter))
             self.counter.save()
 
-    def __expected_file_size(self):
+    def expected_file_size(self):
         """
         Calculate the expected combined file size for the test audio clip and image
         """
@@ -243,6 +243,8 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
         )
 
+
+class ServiceUsageAPITestCase(ServiceUsageAPIBase):
     def test_anonymous_user(self):
         """
         Test that the endpoint is forbidden to anonymous user
@@ -257,9 +259,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         """
         Test the endpoint aggregates all data correctly
         """
-        self.__create_asset()
-        self.__add_nlp_trackers()
-        self.__add_submission()
+        self._create_asset()
+        self.add_nlp_trackers()
+        self.add_submission()
 
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
@@ -280,7 +282,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
         )
         assert (
-            response.data['total_storage_bytes'] == self.__expected_file_size()
+            response.data['total_storage_bytes'] == self.expected_file_size()
         )
 
     def test_multiple_forms(self):
@@ -288,53 +290,19 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         Test that the endpoint functions with multiple assets and the data is
         aggregated properly with
         """
-        self.__create_asset()
-        self.__add_submission()
+        self._create_asset()
+        self.add_submission()
 
-        self.__create_asset()
-        self.__add_submissions()
+        self._create_asset()
+        self.add_submissions()
 
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
         assert response.data['total_submission_count']['current_month'] == 3
         assert response.data['total_submission_count']['all_time'] == 3
         assert response.data['total_storage_bytes'] == (
-            self.__expected_file_size() * 3
+            self.expected_file_size() * 3
         )
-
-    def test_usage_for_organization(self):
-        """
-        Test that the endpoint aggregates usage for each user in the organization
-        when viewing /service_usage/{organization_id}/
-        """
-        self.client.login(username='anotheruser', password='anotheruser')
-        organization = baker.make(Organization, id='orgAKWMFskafsngf', name='test organization')
-        organization.add_user(self.anotheruser, is_admin=True)
-        self.__create_asset()
-        self.__add_submission()
-
-        url = reverse(self._get_endpoint('organizations-list'))
-        detail_url = f'{url}{organization.id}/service_usage/'
-        response = self.client.get(detail_url)
-        assert response.data['total_submission_count']['current_month'] == 1
-        assert response.data['total_submission_count']['all_time'] == 1
-        assert response.data['total_storage_bytes'] == (
-            self.__expected_file_size()
-        )
-
-        """
-        Commented out until the Enterprise plan is implemented
-
-        organization.add_user(self.someuser, is_admin=False)
-        self.__create_asset(self.someuser)
-        self.__add_submission()
-        response = self.client.get(detail_url)
-        assert response.data['total_submission_count']['current_month'] == 2
-        assert response.data['total_submission_count']['all_time'] == 2
-        assert response.data['total_storage_bytes'] == (
-            self.__expected_file_size() * 2
-        )
-        """
 
     def test_service_usages_with_projects_in_trash_bin(self):
         self.test_multiple_forms()
