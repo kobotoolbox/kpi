@@ -16,6 +16,7 @@ interface UserPermissionRowProps {
   assignablePerms: AssignablePermsMap;
   permissions: UserPerm[];
   isUserOwner: boolean;
+  isPendingOwner: boolean;
   username: string;
 }
 
@@ -175,7 +176,7 @@ export default class UserPermissionRow extends React.Component<
     };
 
     const modifiers = [];
-    if (this.props.permissions.length === 0) {
+    if (!this.props.isPendingOwner && this.props.permissions.length === 0) {
       modifiers.push('deleted');
     }
     if (this.state.isBeingDeleted) {
@@ -198,20 +199,29 @@ export default class UserPermissionRow extends React.Component<
           )}
           {!this.props.isUserOwner && (
             <React.Fragment>
-              {this.renderPermissions(this.props.permissions)}
-
-              <bem.Button m='icon' onClick={this.toggleEditForm.bind(this)}>
-                {this.state.isEditFormVisible && (
-                  <i className='k-icon k-icon-close' />
-                )}
-                {!this.state.isEditFormVisible && (
-                  <i className='k-icon k-icon-edit' />
-                )}
-              </bem.Button>
-
-              <bem.Button m='icon' onClick={this.removePermissions.bind(this)}>
-                <i className='k-icon k-icon-trash' />
-              </bem.Button>
+              {this.props.isPendingOwner ? (
+                <bem.UserRow__perms>{t('Pending owner')}</bem.UserRow__perms>
+              ) : (
+                this.renderPermissions(this.props.permissions)
+              )}
+              {!this.props.isPendingOwner && (
+                <React.Fragment>
+                  <bem.Button m='icon' onClick={this.toggleEditForm.bind(this)}>
+                    {this.state.isEditFormVisible && (
+                      <i className='k-icon k-icon-close' />
+                    )}
+                    {!this.state.isEditFormVisible && (
+                      <i className='k-icon k-icon-edit' />
+                    )}
+                  </bem.Button>
+                  <bem.Button
+                    m='icon'
+                    onClick={this.removePermissions.bind(this)}
+                  >
+                    <i className='k-icon k-icon-trash' />
+                  </bem.Button>
+                </React.Fragment>
+              )}
             </React.Fragment>
           )}
         </bem.UserRow__info>
