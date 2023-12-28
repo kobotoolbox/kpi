@@ -255,14 +255,3 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         assert response.data['results'][0]['storage_bytes'] == 21514156
         assert response.data['results'][0]['submission_count_current_month'] == 2
         assert response.data['results'][0]['submission_count_all_time'] == 2
-
-        
-
-
-        # Use /api/v2/service_usage/
-        # Test new_owner usage is 0
-        # Test old_owner usage is X
-        # Transfer project with submissions, attachments and NLP  to new_owner
-        # Test old_owner usage is 0
-        # Test old_owner usage is X
-        

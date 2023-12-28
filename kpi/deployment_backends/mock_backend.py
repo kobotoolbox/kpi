@@ -709,7 +709,25 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             pass
 
     def transfer_counters_ownership(self, new_owner: 'auth.User'):
-        pass
+
+        NLPUsageCounter.objects.filter(
+            asset=self.asset, user=self.asset.owner
+        ).update(user=new_owner)
+        KobocatDailyXFormSubmissionCounter.objects.filter(
+            xform=self.xform, user_id=self.asset.owner.pk
+        ).update(user=new_owner)
+        KobocatMonthlyXFormSubmissionCounter.objects.filter(
+            xform=self.xform, user_id=self.asset.owner.pk
+        ).update(user=new_owner)
+
+        KobocatUserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+            attachment_storage_bytes=F('attachment_storage_bytes')
+            - self.xform.attachment_storage_bytes
+        )
+        KobocatUserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+            attachment_storage_bytes=F('attachment_storage_bytes')
+            + self.xform.attachment_storage_bytes
+        )
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 
