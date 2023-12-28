@@ -204,9 +204,6 @@ class Transfer(TimeStampedModel):
 
     def _sent_app_in_messages(self):
 
-        # FIXME Do not create in-app messages if the project is not shared with
-        # anyone else except the new owner.
-
         # Use translatable strings here to let Transifex detect them but …
         title = t('Project ownership transferred')
         snippet = t(
@@ -222,37 +219,40 @@ class Transfer(TimeStampedModel):
             ' — Kobotoolbox'
         )
 
-        in_app_message = InAppMessage.objects.create(
-            #  … save raw strings into DB to let them be translated in
-            # the users' language in the API response, i.e. when front end expose
-            # the message in the UI.
-            title=title._proxy____args[0],  # noqa
-            snippet=snippet._proxy____args[0],  # noqa
-            body=body._proxy____args[0],  # noqa
-            published=True,
-            valid_from=timezone.now(),
-            valid_until=timezone.now()
-            + timedelta(days=config.PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY),
-            last_editor=self.invite.sender,
-            project_ownership_transfer=self,
+        exclusions = [
+            settings.ANONYMOUS_USER_ID,
+            self.invite.sender.pk,
+            self.invite.recipient.pk,
+        ]
+
+        message_recipient_ids = (
+            ObjectPermission.objects.filter(asset_id=self.asset_id)
+            .exclude(user_id__in=exclusions)
+            .values_list("user_id", flat=True)
         )
 
-        InAppMessageUsers.objects.bulk_create(
-            [
-                InAppMessageUsers(
-                    user_id=user_id, in_app_message=in_app_message
-                )
-                for user_id in ObjectPermission.objects.filter(
-                    asset_id=self.asset_id
-                ).values_list('user_id', flat=True)
-                if user_id
-                not in [
-                    settings.ANONYMOUS_USER_ID,
-                    self.invite.sender.pk,
-                    self.invite.recipient.pk
+        if len(message_recipient_ids):
+            in_app_message = InAppMessage.objects.create(
+                #  … save raw strings into DB to let them be translated in
+                # the users' language in the API response, i.e. when front end expose
+                # the message in the UI.
+                title=title._proxy____args[0],  # noqa
+                snippet=snippet._proxy____args[0],  # noqa
+                body=body._proxy____args[0],  # noqa
+                published=True,
+                valid_from=timezone.now(),
+                valid_until=timezone.now()
+                + timedelta(days=config.PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY),
+                last_editor=self.invite.sender,
+                project_ownership_transfer=self,
+            )
+
+            InAppMessageUsers.objects.bulk_create(
+                [
+                    InAppMessageUsers(user_id=user_id, in_app_message=in_app_message)
+                    for user_id in message_recipient_ids
                 ]
-            ]
-        )
+            )
 
 
 class TransferStatus(TimeStampedModel):
