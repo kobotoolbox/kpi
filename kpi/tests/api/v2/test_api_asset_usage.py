@@ -6,10 +6,16 @@ from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import connection
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.trackers.models import NLPUsageCounter
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatXForm,
+    KobocatDailyXFormSubmissionCounter,
+    KobocatMonthlyXFormSubmissionCounter,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -19,9 +25,18 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
     fixtures = ['test_data']
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
+    unmanaged_models = [
+        KobocatDailyXFormSubmissionCounter,
+        KobocatMonthlyXFormSubmissionCounter,
+        KobocatXForm,
+    ]
+
     def setUp(self):
         self.client.login(username='anotheruser', password='anotheruser')
         self.anotheruser = User.objects.get(username='anotheruser')
+        with connection.schema_editor() as schema_editor:
+            for unmanaged_model in self.unmanaged_models:
+                schema_editor.create_model(unmanaged_model)
 
     def __add_nlp_trackers(self):
         """
