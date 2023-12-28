@@ -12,6 +12,7 @@ import {
   TransferStatuses,
 } from './transferProjects.api';
 import type {AssetResponse} from 'js/dataInterface';
+import sessionStore from 'js/stores/session';
 
 interface TransferProjectsProps {
   asset: AssetResponse;
@@ -61,6 +62,15 @@ export default function TransferProjects(props: TransferProjectsProps) {
   };
 
   function submitInvite(username: string) {
+    if (username === sessionStore.currentAccount.username) {
+      setTransfer({
+        ...transfer,
+        usernameError: t('Cannot transfer a project to the same account.'),
+      });
+
+      return;
+    }
+
     if (username !== '') {
       setTransfer({...transfer, usernameError: false, submitPending: true});
       sendInvite(username, props.asset.uid)

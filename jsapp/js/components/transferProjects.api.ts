@@ -160,7 +160,7 @@ export async function checkInviteUid(inviteUid: string) {
     await getInviteDetail(inviteUid).then((data) => {
       // Only bother with the check if it's in the `pending` state.
       if (data.status !== TransferStatuses.Pending) {
-        notify.error(t('Invite has been expired or cancelled'));
+        notify.warning(t('Invite has been cancelled or expired'));
         return;
       }
 
