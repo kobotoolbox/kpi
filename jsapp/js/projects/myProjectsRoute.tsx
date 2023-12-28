@@ -30,12 +30,28 @@ import LimitNotifications from 'js/components/usageLimits/limitNotifications.com
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import {useSearchParams} from 'react-router-dom';
 import TransferProjectsInvite from '../components/transferProjectsInvite.component';
-import {checkInviteUid} from '../components/transferProjects.api';
+import {checkInviteUid, TransferStatuses} from 'js/components/transferProjects.api';
+import Button from '../components/common/button';
+
+interface InviteState {
+  valid: boolean;
+  uid: string;
+  status: TransferStatuses.Accepted | TransferStatuses.Declined | null;
+  name: string;
+  currentOwner: string;
+}
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [invite, setInvite] = useState({valid: false, uid: ''});
+  const [invite, setInvite] = useState<InviteState>({
+    valid: false,
+    uid: '',
+    status: null,
+    name: '',
+    currentOwner: '',
+  });
+  const [banner, setBanner] = useState(true);
   const [searchParams] = useSearchParams();
   const usage = useUsage();
 
@@ -49,10 +65,10 @@ function MyProjectsRoute() {
     const inviteParams = searchParams.get('invite');
     if (inviteParams) {
       checkInviteUid(inviteParams).then((data) => {
-        setInvite({valid: data, uid: inviteParams});
+        setInvite({...invite, valid: data, uid: inviteParams});
       });
     } else {
-      setInvite({valid: false, uid: ''});
+      setInvite({...invite, valid: false, uid: ''});
     }
   }, [searchParams]);
 
@@ -79,6 +95,19 @@ function MyProjectsRoute() {
     );
   };
 
+  const setInviteDetail = (
+    newStatus: TransferStatuses.Accepted | TransferStatuses.Declined,
+    name: string,
+    currentOwner: string
+  ) => {
+    setInvite({
+      ...invite,
+      status: newStatus,
+      name: name,
+      currentOwner: currentOwner,
+    });
+  };
+
   return (
     <Dropzone
       onDrop={dropImportXLSForms}
@@ -94,6 +123,50 @@ function MyProjectsRoute() {
       </div>
 
       <section className={styles.root}>
+        {invite.status && (
+          <div className={banner ? styles.banner : styles.noBanner}>
+            <Icon
+              name='information'
+              color='blue'
+              classNames={[styles.bannerIcon]}
+            />
+
+            {invite.status === TransferStatuses.Declined && (
+              <>
+                {t(
+                  'You have declined the request of transfer ownership for ##PROJECT_NAME##. ##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'
+                )
+                  .replace('##PROJECT_NAME##', invite.name)
+                  .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+                &nbsp;
+                {t(
+                  '##CURRENT_OWNER_NAME## will remain the project owner.'
+                ).replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+              </>
+            )}
+            {invite.status === TransferStatuses.Accepted && (
+              <>
+                {t(
+                  'You have accepted project ownership from ##CURRENT_OWNER_NAME## for ##PROJECT_NAME##. This process can take up to a few minutes to complete.'
+                )
+                  .replace('##PROJECT_NAME##', invite.name)
+                  .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+              </>
+            )}
+
+            <Button
+              type='bare'
+              color='storm'
+              size='s'
+              startIcon='close'
+              onClick={() => {
+                setBanner(false);
+              }}
+              classNames={[styles.bannerButton]}
+            />
+          </div>
+        )}
+
         <header className={styles.header}>
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
 
@@ -144,7 +217,12 @@ function MyProjectsRoute() {
           selectedRows={selectedRows}
           onRowsSelected={setSelectedRows}
         />
-        {(invite.valid && invite.uid !== '') && <TransferProjectsInvite inviteUid={invite.uid}/>}
+        {invite.valid && invite.uid !== '' && (
+          <TransferProjectsInvite
+            setInvite={setInviteDetail}
+            inviteUid={invite.uid}
+          />
+        )}
       </section>
     </Dropzone>
   );

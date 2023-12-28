@@ -6,9 +6,7 @@ import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
 
 import styles from './transferProjectsInvite.module.scss';
-import {acceptInvite, declineInvite, getAssetFromInviteUid} from './transferProjects.api';
-import {AssetResponse} from '../dataInterface';
-import {set} from 'alertifyjs';
+import {acceptInvite, declineInvite, getAssetFromInviteUid, TransferStatuses} from './transferProjects.api';
 
 interface DisplayDetails {
   assetName: string;
@@ -17,6 +15,7 @@ interface DisplayDetails {
 
 interface TransferProjectsInviteProps {
   inviteUid: string;
+  setInvite: Function;
 }
 
 export default function TransferProjectsInvite(props: TransferProjectsInviteProps) {
@@ -44,12 +43,22 @@ export default function TransferProjectsInvite(props: TransferProjectsInviteProp
   function decline() {
     declineInvite(props.inviteUid).then(() => {
       setIsDeclined(true);
+      props.setInvite(
+        TransferStatuses.Declined,
+        asset?.assetName,
+        asset?.assetOwner
+      );
     });
   }
 
   function accept() {
     acceptInvite(props.inviteUid).then(() => {
       setIsModalOpen(!isModalOpen);
+      props.setInvite(
+        TransferStatuses.Accepted,
+        asset?.assetName,
+        asset?.assetOwner
+      );
     });
   }
 
