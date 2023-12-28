@@ -261,7 +261,7 @@ class InviteSerializer(serializers.ModelSerializer):
         }
 
         email_message = EmailMessage(
-            to=invite.recipient.email,
+            to=invite.sender.email,
             subject=t('KoboToolbox project ownership transfer accepted'),
             plain_text_content_or_template='emails/accepted_invite.txt',
             template_variables=template_variables,
