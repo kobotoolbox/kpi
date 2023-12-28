@@ -6,11 +6,12 @@ import re
 import time
 import uuid
 from collections import defaultdict
+from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
 
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -44,9 +45,15 @@ from kpi.exceptions import (
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.tests.utils.mock import MockAttachment
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
+from .kc_access.shadow_models import (
+    KobocatDailyXFormSubmissionCounter,
+    KobocatMonthlyXFormSubmissionCounter,
+    KobocatUserProfile,
+)
 from ..exceptions import KobocatBulkUpdateSubmissionsClientException
 
 
@@ -692,6 +699,36 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         Dummy property, only present to be mocked by unit tests
         """
         pass
+
+    @staticmethod
+    @contextmanager
+    def suspend_submissions(user_ids: list[int]):
+        try:
+            yield
+        finally:
+            pass
+
+    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+        pass
+
+    def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
+
+        results = settings.MONGO_DB.instances.update_many(
+            {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
+            {
+                '$set': {
+                    '_userform_id': self.mongo_userform_id
+                }
+            },
+        )
+
+        return (
+            results.matched_count == 0 or
+            (
+                results.matched_count > 0
+                and results.matched_count == results.modified_count
+            )
+        )
 
     @classmethod
     def __prepare_bulk_update_data(cls, updates: dict) -> dict:

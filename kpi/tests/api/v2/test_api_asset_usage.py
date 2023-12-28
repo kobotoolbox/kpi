@@ -1,5 +1,6 @@
 import os
 import uuid
+from constance.test import override_config
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -200,3 +201,68 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         url = reverse(self._get_endpoint('asset-usage-list'))
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
+
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_account_usage_transfered_to_new_user(self):
+        self.robert =  User.objects.create_user(
+            username='robert', password='robert', email='robert@example.com'
+        )
+
+        self.__create_asset()
+        self.__add_nlp_trackers()
+        self.__add_submissions()
+
+        url = reverse(self._get_endpoint('asset-usage-list'))
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['asset__name'] == ''
+        assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_asr_seconds'] == 4586
+        assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_mt_characters'] == 5473
+        assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_asr_seconds'] == 4728
+        assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_mt_characters'] == 6726
+        assert response.data['results'][0]['storage_bytes'] == 21514156
+        assert response.data['results'][0]['submission_count_current_month'] == 2
+        assert response.data['results'][0]['submission_count_all_time'] == 2
+
+        self.client.login(username='robert', password='robert')
+        url = reverse(self._get_endpoint('asset-usage-list'))
+        response = self.client.get(url)
+        assert response.data["count"] == 0
+
+        self.client.login(username='anotheruser', password='anotheruser')
+        invite_url = reverse(self._get_endpoint('project-ownership-invite-list'))
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-detail'),
+                args=[self.robert.username]
+            ),
+            'assets': [self.asset.uid]
+        }
+        response = self.client.post(invite_url, data=payload, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
+        self.client.login(username='robert', password='robert')
+        url = reverse(self._get_endpoint('asset-usage-list'))
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['asset__name'] == ''
+        assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_asr_seconds'] == 4586
+        assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_mt_characters'] == 5473
+        assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_asr_seconds'] == 4728
+        assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_mt_characters'] == 6726
+        assert response.data['results'][0]['storage_bytes'] == 21514156
+        assert response.data['results'][0]['submission_count_current_month'] == 2
+        assert response.data['results'][0]['submission_count_all_time'] == 2
+
+        
+
+
+        # Use /api/v2/service_usage/
+        # Test new_owner usage is 0
+        # Test old_owner usage is X
+        # Transfer project with submissions, attachments and NLP  to new_owner
+        # Test old_owner usage is 0
+        # Test old_owner usage is X
+        
