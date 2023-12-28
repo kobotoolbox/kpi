@@ -62,7 +62,7 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
 
         self.assertEqual(mail.outbox[0].to[0], self.someuser.email)
         self.assertEqual(
-            mail.outbox[0].subject, 'KoboToolbox project ownership transfer accepted'
+            mail.outbox[0].subject, 'KoboToolbox project ownership transfer incomplete'
         )
 
     def test_sender_receives_expired_notification(self):
