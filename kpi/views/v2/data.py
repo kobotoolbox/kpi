@@ -694,14 +694,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
         if (
             not (
-                e := submission_xml_root.find(deployment.SUBMISSION_UUID_XPATH)
+                e := submission_xml_root.find(
+                    deployment.SUBMISSION_CURRENT_UUID_XPATH
+                )
             )
             or not e.text.strip()
         ):
             edit_submission_xml(
                 submission_xml_root,
-                deployment.SUBMISSION_UUID_XPATH,
-                'uuid:' + submission_json['_uuid']
+                deployment.SUBMISSION_CURRENT_UUID_XPATH,
+                'uuid:' + submission_json['_uuid'],
             )
 
         # Do not use version_uid from the submission until UI gives users the
