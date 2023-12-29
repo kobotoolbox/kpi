@@ -11,7 +11,6 @@ from django.conf import settings
 from django.core.files import File
 from rest_framework import status
 
-from kpi.deployment_backends.base_backend import BaseDeploymentBackend
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
@@ -70,10 +69,10 @@ def enketo_edit_instance_response_with_uuid_validation(request):
     submission = body['instance']
     submission_xml_root = lxml.etree.fromstring(submission)
     assert submission_xml_root.find(
-        BaseDeploymentBackend.FORM_UUID_XPATH
+        './formhub/uuid'
     ).text.strip()
     assert submission_xml_root.find(
-        BaseDeploymentBackend.SUBMISSION_UUID_XPATH
+        './meta/instanceID'
     ).text.strip()
 
     resp_body = {
