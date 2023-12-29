@@ -655,6 +655,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission_xml = deployment.get_submission(
             submission_id, user, SUBMISSION_FORMAT_TYPE_XML
         )
+        if isinstance(submission_xml, str):
+            # Workaround for "Unicode strings with encoding declaration are not
+            # supported. Please use bytes input or XML fragments without
+            # declaration."
+            # TODO: handle this in a unified way instead of haphazardly. See,
+            # e.g., `kpi.utils.xml.strip_nodes()`
+            submission_xml = submission_xml.encode()
         submission_xml_root = etree.fromstring(submission_xml)
         # The JSON version is needed to detect its version
         submission_json = deployment.get_submission(
