@@ -201,7 +201,7 @@ class TableBulkOptions extends React.Component {
           </PopoverMenu>
         }
 
-        {Object.keys(this.props.selectedRows).length > 0 && (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
+        {Object.keys(this.props.selectedRows).length > 0 && this.props.asset.deployment__active && (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
           <bem.KoboLightButton
             m='blue'
             onClick={this.onEdit}
