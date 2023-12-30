@@ -20,7 +20,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 from deepmerge import always_merger
-from dict2xml import dict2xml
+from dict2xml import dict2xml as dict2xml_real
 from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import gettext as t
@@ -48,6 +48,11 @@ from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from ..exceptions import KobocatBulkUpdateSubmissionsClientException
+
+
+def dict2xml(*args, **kwargs):
+    """ To facilitate mocking in unit tests """
+    return dict2xml_real(*args, **kwargs)
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):

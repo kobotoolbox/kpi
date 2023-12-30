@@ -539,7 +539,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 t('Your submission XML is malformed.')
             )
         try:
-            deprecated_uuid = xml_root.find(self.SUBMISSION_UUID_XPATH).text
+            deprecated_uuid = xml_root.find(
+                self.SUBMISSION_DEPRECATED_UUID_XPATH
+            ).text
             xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
