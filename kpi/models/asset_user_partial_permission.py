@@ -45,7 +45,7 @@ def add_implied_permission(
 
     input_perm = {
         'view_submissions': [
-            {'_submitted_by': {'$in': ['a']}}
+            {'_submitted_by': 'someuser'},
         ],
         'validate_submissions': [
             {
