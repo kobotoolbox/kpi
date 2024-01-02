@@ -173,7 +173,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
         <KoboModalHeader onRequestCloseByX={toggleModal} headerColor='white'>
           {t('Transfer ownership')}
         </KoboModalHeader>
-        <form>
+        <form autoComplete='off'>
           <section className={styles.modalBody}>
             <p>
               {t('This action will transfer ownership of')}
@@ -215,12 +215,15 @@ export default function TransferProjects(props: TransferProjectsProps) {
                 <a>{t('Learn more')}</a>
               </div>
             </div>
-
+            {/* Unused element to prevent firefox autocomplete 
+            suggestions on username field */}
+            <input type='text' style={{display: 'none'}}></input>
             <div className={styles.input}>
               <TextBox
                 label={t(
                   'To complete the transfer, enter the username of the new project owner'
                 )}
+                type='text'
                 value={transfer.usernameInput}
                 placeholder={t('Enter username here')}
                 required
