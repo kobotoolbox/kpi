@@ -831,16 +831,16 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 {'_submitted_by': self.someuser.username},
             ],
             PERM_DELETE_SUBMISSIONS: [
-                {'_submission_date': {"$and": [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ]
         }
         expected_partial_perms = {
             PERM_VIEW_SUBMISSIONS: [
                 {'_submitted_by': self.someuser.username},
-                {'_submission_date': {"$and": [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ],
             PERM_DELETE_SUBMISSIONS: [
-                {'_submission_date': {"$and": [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ]
         }
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
