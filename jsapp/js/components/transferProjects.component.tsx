@@ -217,7 +217,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
             </div>
             {/* Unused element to prevent firefox autocomplete 
             suggestions on username field */}
-            <input type='text' style={{display: 'none'}}></input>
+            <input type='text' style={{display: 'none'}} />
             <div className={styles.input}>
               <TextBox
                 label={t(
