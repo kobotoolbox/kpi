@@ -1,6 +1,7 @@
 import os
 import re
 from django.db import migrations
+from django.db.models import Q
 
 
 def add_OIDC_settings_from_env(apps, schema_editor):
@@ -41,15 +42,19 @@ def add_OIDC_settings_from_env(apps, schema_editor):
         if app_tenant := app.get('TENANT', app.get('tenant', None)):
             app_settings['tenant'] = app_tenant
 
-        if app_id and app_settings['server_url'] and not(
-            # if there's already a social app with this provider ID, skip it -
-            # we've most likely migrated it already
-            SocialApp.objects.filter(provider_id=app_id).exists()
-        ):
-            db_social_app, created = SocialApp.objects.get_or_create(provider=app_id)
+        if app_id and app_settings['server_url']:
+            db_social_app = SocialApp.objects.filter(
+                Q(provider=app_id) |
+                Q(provider__iexact='openid_connect', provider_id=app_id) |
+                Q(provider='', name__iexact=app_name)
+            ).first()
+            if not db_social_app:
+                db_social_app = SocialApp.objects.create()
+            db_social_app.settings = app_settings
+            if not db_social_app.settings.get('previous_provider'):
+                db_social_app.settings['previous_provider'] = app_id
             db_social_app.provider = 'openid_connect'
             db_social_app.provider_id = app_id
-            db_social_app.settings = app_settings
             # we don't want to overwrite the following settings if they're already defined
             # on the social app we grabbed
             db_social_app.name = db_social_app.name or app_name
@@ -74,6 +79,16 @@ def add_OIDC_settings_from_env(apps, schema_editor):
             ms_app.save()
 
 
+def revert_OIDC_provider_id(apps, schema_editor):
+    SocialApp = apps.get_model('socialaccount', 'SocialApp')
+    SocialAppCustomData = apps.get_model('accounts', 'SocialAppCustomData')
+
+    changed_apps = SocialApp.objects.filter(settings__has_key='previous_provider')
+    for app in list(changed_apps):
+        app.provider = app.settings['previous_provider']
+        app.save()
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ('socialaccount', '0005_socialtoken_nullable_app'),
@@ -83,6 +98,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             code=add_OIDC_settings_from_env,
-            reverse_code=migrations.RunPython.noop,
+            reverse_code=revert_OIDC_provider_id,
         )
     ]
