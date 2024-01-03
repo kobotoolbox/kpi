@@ -81,7 +81,6 @@ def add_OIDC_settings_from_env(apps, schema_editor):
 
 def revert_OIDC_provider_id(apps, schema_editor):
     SocialApp = apps.get_model('socialaccount', 'SocialApp')
-    SocialAppCustomData = apps.get_model('accounts', 'SocialAppCustomData')
 
     changed_apps = SocialApp.objects.filter(settings__has_key='previous_provider')
     for app in list(changed_apps):
