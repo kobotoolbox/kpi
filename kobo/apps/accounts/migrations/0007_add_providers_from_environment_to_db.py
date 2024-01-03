@@ -41,17 +41,21 @@ def add_OIDC_settings_from_env(apps, schema_editor):
         if app_tenant := app.get('TENANT', app.get('tenant', None)):
             app_settings['tenant'] = app_tenant
 
-        if app_id and app_settings['server_url'] and not (
-            # if the app already exists, let's assume it's been configured
+        if app_id and app_settings['server_url'] and not(
+            # if there's already a social app with this provider ID, skip it -
+            # we've most likely migrated it already
             SocialApp.objects.filter(provider_id=app_id).exists()
         ):
-            db_social_app, created = SocialApp.objects.get_or_create(provider_id=app_id)
+            db_social_app, created = SocialApp.objects.get_or_create(provider=app_id)
             db_social_app.provider = 'openid_connect'
-            db_social_app.name = app_name
-            db_social_app.client_id = app.get('APP_client_id', '')
-            db_social_app.secret = app.get('APP_secret', '')
-            db_social_app.key = app.get('APP_key', '')
+            db_social_app.provider_id = app_id
             db_social_app.settings = app_settings
+            # we don't want to overwrite the following settings if they're already defined
+            # on the social app we grabbed
+            db_social_app.name = db_social_app.name or app_name
+            db_social_app.client_id = db_social_app.client_id or app.get('APP_client_id', '')
+            db_social_app.secret = db_social_app.secret or app.get('APP_secret', '')
+            db_social_app.key = db_social_app.key or app.get('APP_key', '')
             db_social_app.save()
 
             # hide the OIDC provider from the login page, since it was already hidden
@@ -78,6 +82,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            code=add_OIDC_settings_from_env, reverse_code=migrations.RunPython.noop
+            code=add_OIDC_settings_from_env,
+            reverse_code=migrations.RunPython.noop,
         )
     ]
