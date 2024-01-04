@@ -9,6 +9,7 @@ from kobo.apps.organizations.models import (
 
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = OrganizationUser
         fields = ['user', 'organization']
@@ -23,7 +24,7 @@ class OrganizationOwnerSerializer(serializers.ModelSerializer):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-    owner = OrganizationOwnerSerializer()
+    owner = serializers.CharField(source='owner.organization_user.user.username', read_only=True)
 
     class Meta:
         model = Organization
