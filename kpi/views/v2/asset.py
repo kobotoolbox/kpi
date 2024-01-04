@@ -4,7 +4,7 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
@@ -20,8 +20,6 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
-    PERM_CHANGE_METADATA_ASSET,
-    PERM_VIEW_ASSET,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import (
@@ -51,8 +49,9 @@ from kpi.renderers import (
     XFormRenderer,
     XlsRenderer,
 )
-from kpi.serializers import DeploymentSerializer
+from kpi.serializers.v2.deployment import DeploymentSerializer
 from kpi.serializers.v2.asset import (
+    AssetBulkActionsSerializer,
     AssetListSerializer,
     AssetSerializer,
 )
@@ -64,7 +63,6 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
 )
-from kpi.utils.project_views import user_has_project_view_asset_perm
 
 
 class AssetViewSet(
@@ -126,6 +124,44 @@ class AssetViewSet(
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
+
+    <hr>
+
+    Perform bulk actions on assets
+
+    Actions available:
+
+    - `archive`
+    - `delete`
+    - `unarchive`
+    - `undelete` (superusers only)
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/assets/bulk/
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/assets/bulk/
+
+    > **Payload to preform bulk actions on one or more assets**
+    >
+    >        {
+    >           "payload": {
+    >               "asset_uids": [{string}, ...],
+    >               "action": {string},
+    >           }
+    >        }
+
+    > **Payload to preform bulk actions on ALL assets for authenticated user**
+    >
+    >       {
+    >           "payload": {
+    >               "confirm": true,
+    >               "action": {string}
+    >           }
+    >       }
+
 
     <hr>
 
@@ -197,6 +233,28 @@ class AssetViewSet(
     In that case, `share-metadata` is not preserved.
 
     When creating a new `block` or `question` asset, settings are not saved either.
+
+    ### Counts
+
+    Retrieves total and daily counts of submissions
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/{uid}/counts/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/
+
+    uses the `days` query to get the daily counts from the last x amount of days.
+    Default amount is 30 days
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/{uid}/counts/?days=7
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7
+
 
     ### Data
 
@@ -311,11 +369,7 @@ class AssetViewSet(
     lookup_field = 'uid'
     pagination_class = AssetPagination
     permission_classes = (AssetPermission,)
-    ordering_fields = [
-        'asset_type',
-        'date_modified',
-        'name',
-        'owner__username',
+    ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS + [
         'subscribers_count',
     ]
     filter_backends = [
@@ -352,6 +406,14 @@ class AssetViewSet(
             return asset
 
         return super().get_object()
+
+    @action(
+        detail=False,
+        methods=['POST'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def bulk(self, request, *args, **kwargs):
+        return Response(self._bulk_asset_actions(request.data))
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
@@ -722,9 +784,9 @@ class AssetViewSet(
         serializer.save(owner=user)
 
     def perform_destroy(self, instance):
-        if hasattr(instance, 'has_deployment') and instance.has_deployment:
-            instance.deployment.delete()
-        return super().perform_destroy(instance)
+        self._bulk_asset_actions(
+            {'payload': {'asset_uids': [instance.uid], 'action': 'delete'}}
+        )
 
     @action(
         detail=True,
@@ -773,6 +835,18 @@ class AssetViewSet(
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)
+
+    def _bulk_asset_actions(self, data: dict) -> dict:
+        params = {
+            'data': data,
+            'context': self.get_serializer_context(),
+        }
+
+        bulk_actions_validator = AssetBulkActionsSerializer(**params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+        bulk_actions_validator.save()
+
+        return bulk_actions_validator.data
 
     def _get_clone_serializer(self, current_asset=None):
         """

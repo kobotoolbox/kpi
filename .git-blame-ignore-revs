@@ -1,0 +1,17 @@
+# .git-blame-ignore-revs
+
+# Applied automated eslint autofixes and prettier to map.es6
+be3a9b6041e451b02c671220be50b5ca33cae1a8
+# Prettier/ESLint autofixes to reduce merge noise between diverging branches
+# (beta after react router 6.14 upgrade; feature/my-projects)
+af65c7c161a3e044ec7a5910716edbb09f326462
+
+# kpi#4487 - NLP formatting fix
+# ran prettier on jsapp/js/components/submissions/tables.es6
+7eb392a63f063437fce689564df1b9a3c4293b79
+# more formatting & eslint fixes
+5d0be59e51c524e5c8dc0d06064e29ae9f2732b4
+f82d494ab36f502aa35a7880b726c6df89738754
+
+# Run prettier on miniAudioPlayer
+2e65d24e8595f7732670ab7c378782fceeda27b3

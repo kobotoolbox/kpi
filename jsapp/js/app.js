@@ -5,35 +5,35 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
-import { Outlet } from "react-router-dom";
+import {Outlet} from 'react-router-dom';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import {stores} from 'js/stores';
-import {surveyCompanionStore} from 'js/surveyCompanionStore'; // importing it so it exists
+import 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
-import MainHeader from 'js/components/header';
+import MainHeader from 'js/components/header/mainHeader.component';
 import Drawer from 'js/components/drawer';
-import FormViewTabs from 'js/components/formViewTabs';
-import PermValidator from 'js/components/permissions/permValidator';
-import {assign} from 'utils';
+import FormViewSideTabs from 'js/components/formViewSideTabs';
+import ProjectTopTabs from 'js/project/projectTopTabs.component';
 import BigModal from 'js/components/bigModal/bigModal';
-import {Toaster} from 'react-hot-toast';
-import { withRouter, routerGetAssetId } from './router/legacy';
-import { history } from "./router/historyRouter";
-
+import ToasterConfig from './toasterConfig';
+import {withRouter, routerGetAssetId, router} from './router/legacy';
+import {Tracking} from './router/useTracking';
+import sessionStore from 'js/stores/session';
+import InvalidatedPassword from 'js/router/invalidatedPassword.component';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = assign({
+    this.state = Object.assign({
       pageState: stores.pageState.state,
     });
   }
 
   componentDidMount() {
-    history.listen(this.onRouteChange.bind(this));
+    router.subscribe(this.onRouteChange.bind(this));
   }
 
   onRouteChange() {
@@ -49,6 +49,15 @@ class App extends React.Component {
   }
 
   render() {
+    // When user is marked as having invalidated password, we block all the UI
+    // and display a special component.
+    if (
+      sessionStore.isLoggedIn &&
+      sessionStore.currentAccount.validated_password === false
+    ) {
+      return <InvalidatedPassword />;
+    }
+
     const assetid = routerGetAssetId();
 
     const pageWrapperContentModifiers = [];
@@ -66,70 +75,45 @@ class App extends React.Component {
     };
 
     if (typeof this.state.pageState.modal === 'object') {
-      pageWrapperModifiers[`is-modal-${this.state.pageState.modal.type}`] = true;
+      pageWrapperModifiers[
+        `is-modal-${this.state.pageState.modal.type}`
+      ] = true;
     }
 
     return (
       <DocumentTitle title='KoboToolbox'>
         <React.Fragment>
-          <PermValidator/>
-          <div className='header-stretch-bg'/>
-          <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
-            { this.state.pageState.modal &&
+          <Tracking />
+          <ToasterConfig />
+          <div className='header-stretch-bg' />
+          <bem.PageWrapper
+            m={pageWrapperModifiers}
+            className='mdl-layout mdl-layout--fixed-header'
+          >
+            {this.state.pageState.modal && (
               <BigModal params={this.state.pageState.modal} />
-            }
+            )}
 
-            { !this.isFormBuilder() &&
+            {!this.isFormBuilder() && (
               <React.Fragment>
-                <MainHeader assetid={assetid}/>
-                <Drawer/>
+                <MainHeader assetUid={assetid} />
+                <Drawer />
               </React.Fragment>
-            }
+            )}
 
-            <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
-              { !this.isFormBuilder() &&
+            <bem.PageWrapper__content
+              className='mdl-layout__content'
+              m={pageWrapperContentModifiers}
+            >
+              {!this.isFormBuilder() && (
                 <React.Fragment>
-                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
-                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
+                  {this.isFormSingle() && <ProjectTopTabs />}
+                  <FormViewSideTabs show={this.isFormSingle()} />
                 </React.Fragment>
-              }
+              )}
               <Outlet />
             </bem.PageWrapper__content>
           </bem.PageWrapper>
-
-          {/* Default position of all notifications, page specific ones can be overwritten */}
-          <Toaster
-            toastOptions={{
-              // TODO: get colours from a single file: https://github.com/kobotoolbox/kobo-common/issues/1
-              style: {
-                borderRadius: '6px',
-                padding: '16px',
-                background: '#1e2129', // $kobo-gray-14
-                color: '#fff', // $kobo-white
-                maxHeight: '90vh',
-                overflow: 'hidden',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#96eb9e', // $kobo-green
-                  secondary: '#1e2129', // $kobo-gray-14
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#fe6b7d', // $kobo-red
-                  secondary: '#1e2129', // $kobo-gray-14
-                },
-              },
-              loading: {
-                iconTheme: {
-                  primary: '#979fb4', // $kobo-gray-65
-                  secondary: '#1e2129', // $kobo-gray-14
-                },
-              },
-              duration: 5000, // 5 seconds
-            }}
-          />
         </React.Fragment>
       </DocumentTitle>
     );

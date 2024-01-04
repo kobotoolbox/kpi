@@ -1,7 +1,12 @@
+/**
+ * This file contains different methods for filtering and understanding asset's
+ * data. Most of these are helpers for rendering information in UI.
+ */
+
 import React from 'react';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'js/utils';
+import {ANON_USERNAME_URL} from 'js/users/utils';
 import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
 import type {
@@ -19,25 +24,25 @@ import {
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  ANON_USERNAME,
-  PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import type {
   AssetContent,
   AssetResponse,
   ProjectViewAsset,
   SurveyRow,
   SurveyChoice,
-  Permission,
+  PermissionResponse,
 } from 'js/dataInterface';
 import {
   getSupplementalTranscriptPath,
   getSupplementalTranslationPath,
 } from 'js/components/processing/processingUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {IconName} from 'jsapp/fonts/k-icons';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -63,7 +68,7 @@ export function getAssetOwnerDisplayName(username: string) {
   }
 }
 
-export function getOrganizationDisplayString(asset: AssetResponse) {
+export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewAsset) {
   if (asset.settings.organization) {
     return asset.settings.organization;
   } else {
@@ -150,6 +155,11 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
     } else {
       countries.push(envStore.getCountryLabel(asset.settings.country.value));
     }
+
+    if (countries.length === 0) {
+      return '-';
+    }
+
     // TODO: improve for RTL?
     // See: https://github.com/kobotoolbox/kpi/issues/3903
     return countries.join(', ');
@@ -212,6 +222,12 @@ export function getQuestionOrChoiceDisplayName(
   questionOrChoice: SurveyChoice | SurveyRow,
   translationIndex = 0
 ): string {
+  // The `translationIndex` is set to `-1` when user chooses to display xml
+  // values instead of labels
+  if (translationIndex === -1) {
+    return getRowName(questionOrChoice);
+  }
+
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
@@ -240,12 +256,12 @@ export function isLibraryAsset(assetType: AssetTypeName) {
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  * Note that `view_asset` is implied when you have `discover_asset`.
  */
-export function isAssetPublic(permissions: Permission[]) {
+export function isAssetPublic(permissions?: PermissionResponse[]) {
   let isDiscoverableByAnonymous = false;
-  permissions.forEach((perm) => {
+  permissions?.forEach((perm) => {
     const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
     if (
-      perm.user === buildUserUrl(ANON_USERNAME) &&
+      perm.user === ANON_USERNAME_URL &&
       foundPerm !== undefined &&
       perm.permission === foundPerm.url
     ) {
@@ -256,104 +272,44 @@ export function isAssetPublic(permissions: Permission[]) {
 }
 
 /**
- * For getting the icon class name for given asset type. Returned string always
- * contains two class names: base `k-icon` and respective CSS class name.
+ * For getting the icon name for given asset type. Recommended to be used with
+ * the `<Icon>` component.
  */
-export function getAssetIcon(asset: AssetResponse) {
+export function getAssetIcon(asset: AssetResponse): IconName {
   switch (asset.asset_type) {
     case ASSET_TYPES.template.id:
-      if (asset.summary?.lock_any) {
-        return 'k-icon k-icon-template-locked';
+      if ('summary' in asset && asset.summary?.lock_any) {
+        return 'template-locked';
       } else {
-        return 'k-icon k-icon-template';
+        return 'template';
       }
     case ASSET_TYPES.question.id:
-      return 'k-icon k-icon-question';
+      return 'question';
     case ASSET_TYPES.block.id:
-      return 'k-icon k-icon-block';
+      return 'block';
     case ASSET_TYPES.survey.id:
-      if (asset.summary?.lock_any) {
-        return 'k-icon k-icon-project-locked';
-      } else if (asset.has_deployment && !asset.deployment__active) {
-        return 'k-icon k-icon-project-archived';
-      } else if (asset.has_deployment) {
-        return 'k-icon k-icon-project-deployed';
+      if ('summary' in asset && asset.summary?.lock_any) {
+        return 'project-locked';
+      } else if (asset.deployment_status === 'archived') {
+        return 'project-archived';
+      } else if (asset.deployment_status === 'deployed') {
+        return 'project-deployed';
       } else {
-        return 'k-icon k-icon-project-draft';
+        return 'project-draft';
       }
     case ASSET_TYPES.collection.id:
-      if (asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
-        return 'k-icon k-icon-folder-subscribed';
+      if ('access_types' in asset && asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
+        return 'folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
-        return 'k-icon k-icon-folder-public';
+        return 'folder-public';
       } else if (asset?.access_types?.includes(ACCESS_TYPES.shared)) {
-        return 'k-icon k-icon-folder-shared';
+        return 'folder-shared';
       } else {
-        return 'k-icon k-icon-folder';
+        return 'folder';
       }
     default:
-      return 'k-icon k-icon-project';
+      return 'project';
   }
-}
-
-/**
- * Opens a modal for editing asset details.
- */
-export function modifyDetails(asset: AssetResponse) {
-  let modalType;
-  if (asset.asset_type === ASSET_TYPES.template.id) {
-    modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
-  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    modalType = MODAL_TYPES.LIBRARY_COLLECTION;
-  }
-  if (modalType) {
-    stores.pageState.showModal({
-      type: modalType,
-      asset: asset,
-    });
-  } else {
-    throw new Error(`Unsupported asset type: ${asset.asset_type}.`);
-  }
-}
-
-/**
- * Opens a modal for sharing asset.
- */
-export function share(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.SHARING,
-    assetid: asset.uid,
-  });
-}
-
-/**
- * Opens a modal for modifying asset languages and translation strings.
- */
-export function editLanguages(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.FORM_LANGUAGES,
-    asset: asset,
-  });
-}
-
-/**
- * Opens a modal for modifying asset tags (also editable in Details Modal).
- */
-export function editTags(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.ASSET_TAGS,
-    asset: asset,
-  });
-}
-
-/**
- * Opens a modal for replacing an asset using a file.
- */
-export function replaceForm(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.REPLACE_PROJECT,
-    asset: asset,
-  });
 }
 
 export type SurveyFlatPaths = {
@@ -807,8 +763,6 @@ export function isAssetProcessingActivated(assetUid: string) {
 export default {
   buildAssetUrl,
   cleanupTags,
-  editLanguages,
-  editTags,
   getAssetDisplayName,
   getAssetIcon,
   getAssetOwnerDisplayName,
@@ -827,10 +781,7 @@ export default {
   isLibraryAsset,
   isRowSpecialLabelHolder,
   isSelfOwned,
-  modifyDetails,
   renderQuestionTypeIcon,
-  replaceForm,
-  share,
   removeInvalidChars,
   getAssetAdvancedFeatures,
   getAssetProcessingUrl,

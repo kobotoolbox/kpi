@@ -5,7 +5,7 @@ from rest_framework import exceptions, serializers, status
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kpi.models import ExportTask
+from kpi.models import Asset, ExportTask
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
 from kpi.utils.models import remove_string_prefix, resolve_url_to_asset
@@ -193,8 +193,11 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             raise serializers.ValidationError(
                 {'source': 'This field is required.'})
         # Get the source object
-        source = resolve_url_to_asset(
-            task_data['source'])
+        try:
+            source = resolve_url_to_asset(task_data['source'])
+        except Asset.DoesNotExist:
+            raise serializers.ValidationError(
+                {'source': 'The specified asset does not exist.'})
         # Complain if it's not deployed
         if not source.has_deployment:
             raise serializers.ValidationError(

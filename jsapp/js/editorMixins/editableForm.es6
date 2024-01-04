@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import clonedeep from 'lodash.clonedeep';
 import Select from 'react-select';
-import _ from 'underscore';
+import debounce from 'lodash.debounce';
 import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
@@ -10,7 +10,7 @@ import AssetNavigator from './assetNavigator';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {assign, escapeHtml} from '../utils';
+import {escapeHtml} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -46,7 +46,8 @@ import {
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
 import envStore from 'js/envStore';
-import { usePrompt } from 'js/router/promptBlocker';
+import {unstable_usePrompt as usePrompt} from 'react-router-dom';
+import Icon from 'js/components/common/icon';
 
 const ErrorMessage = makeBem(null, 'error-message');
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
@@ -56,7 +57,7 @@ const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
 /** Use usePrompt directly instead for functional components */
 const Prompt = () => {
-  usePrompt(UNSAVED_CHANGES_WARNING);
+  usePrompt({when: true, message: UNSAVED_CHANGES_WARNING});
   return <></>;
 };
 
@@ -72,7 +73,7 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html';
  * the `launchAppForSurveyContent` method below for all the magic.
  */
 
-export default assign({
+export default Object.assign({
   componentDidMount() {
     this.loadAsideSettings();
 
@@ -95,7 +96,7 @@ export default assign({
         window.setTimeout(() => {
           this.launchAppForSurveyContent(asset.content, {
             name: asset.name,
-            settings__style: asset.settings__style,
+            settings__style: asset.content.settings.style,
             asset_uid: asset.uid,
             files: asset.files,
             asset_type: asset.asset_type,
@@ -166,12 +167,10 @@ export default assign({
   },
 
   getStyleSelectVal(optionVal) {
-    return _.find(AVAILABLE_FORM_STYLES, (option) => {
-      return option.value === optionVal;
-    });
+    return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal);
   },
 
-  onSurveyChange: _.debounce(function () {
+  onSurveyChange: debounce(function () {
     if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
       this.preventClosingTab();
     }
@@ -548,7 +547,10 @@ export default assign({
     if (this.state.backRoute === ROUTES.FORMS) {
       targetRoute = ROUTES.FORM.replace(':uid', this.state.asset_uid);
     } else if (this.state.backRoute === ROUTES.LIBRARY) {
-      targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
+      // Check if the the uid is undefined to prevent getting an Access Denied screen
+      if (this.state.asset_uid !== undefined) {
+        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
+      }
     }
     this.safeNavigateToRoute(targetRoute);
   },
@@ -660,25 +662,26 @@ export default assign({
               onClick={this.previewForm}
               disabled={previewDisabled}
               data-tip={t('Preview form')}
+              className='left-tooltip'
             >
               <i className='k-icon k-icon-view' />
             </bem.FormBuilderHeader__button>
 
-            { showAllAvailable &&
-              <bem.FormBuilderHeader__button m={['show-all', {
-                    open: showAllOpen,
-                  }]}
-                  onClick={this.showAll}
-                  data-tip={t('Expand / collapse questions')}>
-                <i className='k-icon k-icon-view-all' />
-              </bem.FormBuilderHeader__button>
-            }
+            <bem.FormBuilderHeader__button m={['show-all', {
+                  open: showAllOpen,
+            }]}
+              onClick={this.showAll}
+              disabled={!showAllAvailable}
+              className = 'left-tooltip'
+              data-tip={t('Expand / collapse questions')}>
+              <i className='k-icon k-icon-view-all' />
+            </bem.FormBuilderHeader__button>
 
             <bem.FormBuilderHeader__button
               m={['group', {groupable: groupable}]}
               onClick={this.groupQuestions}
               disabled={!groupable}
-              className={this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+              className={'left-tooltip ' + (this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : '')}
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
               <i className='k-icon k-icon-group' />
@@ -689,7 +692,7 @@ export default assign({
                 m={['cascading']}
                 onClick={this.toggleCascade}
                 data-tip={t('Insert cascading select')}
-                className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+                className={'left-tooltip ' + (this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : '')}
               >
                 <i className='k-icon k-icon-cascading' />
               </bem.FormBuilderHeader__button>
@@ -755,13 +758,13 @@ export default assign({
 
         { envStore.isReady &&
           envStore.data.support_url &&
-          <bem.TextBox__labelLink
+          <a
             href={envStore.data.support_url + RECORDING_SUPPORT_URL}
             target='_blank'
             data-tip={t('help')}
           >
-            <i className='k-icon k-icon-help' />
-          </bem.TextBox__labelLink>
+            <Icon name='help' size='s' />
+          </a>
         }
       </bem.FormBuilderMessageBox>
     );
@@ -841,6 +844,7 @@ export default assign({
             }
 
             {this.hasMetadataAndDetails() &&
+             envStore.data.project_metadata_fields.length > 0 &&
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>
                   {t('Details')}

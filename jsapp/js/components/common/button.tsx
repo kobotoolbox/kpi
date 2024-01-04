@@ -16,7 +16,15 @@ import './button.scss';
  * 3. full - no border, background, hover dims background
  */
 export type ButtonType = 'bare' | 'frame' | 'full';
-export type ButtonColor = 'blue' | 'light-blue' | 'red' | 'storm';
+export type ButtonColor =
+  | 'blue'
+  | 'light-blue'
+  | 'red'
+  | 'storm'
+  | 'cloud'
+  | 'dark-red'
+  | 'dark-blue';
+
 /**
  * The size is the height of the button, but it also influences the paddings.
  * Check out `button.scss` file for exact pixel values.
@@ -35,7 +43,7 @@ ButtonToIconAloneMap.set('s', 'm');
 ButtonToIconAloneMap.set('m', 'l');
 ButtonToIconAloneMap.set('l', 'l');
 
-interface ButtonProps {
+export interface ButtonProps {
   type: ButtonType;
   color: ButtonColor;
   /** Note: this size will also be carried over to the icon. */
@@ -62,7 +70,8 @@ interface ButtonProps {
   isFullWidth?: boolean;
   /** Additional class names. */
   classNames?: string[];
-  onClick: (event: any) => void;
+  /** You don't need to pass the callback for `isSubmit` option. */
+  onClick?: (event: any) => void;
   'data-cy'?: string;
 }
 
@@ -132,12 +141,25 @@ const Button = (props: ButtonProps) => {
     additionalButtonAttributes['data-cy'] = props['data-cy'];
   }
 
+  const handleClick = (event: React.BaseSyntheticEvent) => {
+    if (!props.isDisabled && props.onClick) {
+      props.onClick(event);
+    }
+  };
+
+  const onKeyUp = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event?.key === 'space' || event?.key === 'enter') {
+      handleClick(event);
+    }
+  };
+
   return (
     <button
       className={classNames.join(' ')}
       type={props.isSubmit ? 'submit' : 'button'}
-      disabled={props.isDisabled}
-      onClick={props.onClick}
+      aria-disabled={props.isDisabled}
+      onClick={handleClick}
+      onKeyUp={onKeyUp}
       {...additionalButtonAttributes}
     >
       {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}

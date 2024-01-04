@@ -8,7 +8,7 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import _ from 'lodash';
+import debounce from 'lodash.debounce';
 import PopoverMenu from 'js/popoverMenu';
 import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
@@ -25,7 +25,22 @@ import {
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
 import './assetActionButtons.scss';
-import {withRouter, WithRouterProps} from 'jsapp/js/router/legacy';
+import {withRouter} from 'jsapp/js/router/legacy';
+import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import {
+  archiveAsset,
+  deleteAsset,
+  unarchiveAsset,
+  cloneAsset,
+  cloneAssetAsSurvey,
+  cloneAssetAsTemplate,
+  manageAssetSharing,
+  replaceAssetForm,
+  modifyAssetTags,
+  manageAssetLanguages,
+  manageAssetSettings
+} from 'jsapp/js/assetQuickActions';
+import {userCan} from 'js/components/permissions/utils';
 
 bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
 bem.AssetActionButtons__button = makeBem(bem.AssetActionButtons, 'button', 'a');
@@ -34,8 +49,6 @@ bem.AssetActionButtons__iconButton = makeBem(
   'icon-button',
   'a'
 );
-
-const assetActions = mixins.clickAssets.click.asset;
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse;
@@ -55,7 +68,7 @@ class AssetActionButtons extends React.Component<
   AssetActionButtonsState
 > {
   private unlisteners: Function[] = [];
-  hidePopoverDebounced = _.debounce(() => {
+  hidePopoverDebounced = debounce(() => {
     if (this.state.isPopoverVisible) {
       this.setState({shouldHidePopover: true});
     }
@@ -123,27 +136,27 @@ class AssetActionButtons extends React.Component<
   // Methods for managing the asset
 
   modifyDetails() {
-    assetUtils.modifyDetails(this.props.asset);
+    manageAssetSettings(this.props.asset);
   }
 
   editLanguages() {
-    assetUtils.editLanguages(this.props.asset);
+    manageAssetLanguages(this.props.asset.uid);
   }
 
   share() {
-    assetUtils.share(this.props.asset);
+    manageAssetSharing(this.props.asset.uid);
   }
 
   showTagsModal() {
-    assetUtils.editTags(this.props.asset);
+    modifyAssetTags(this.props.asset);
   }
 
   replace() {
-    assetUtils.replaceForm(this.props.asset);
+    replaceAssetForm(this.props.asset);
   }
 
   delete() {
-    assetActions.delete(
+    deleteAsset(
       this.props.asset,
       assetUtils.getAssetDisplayName(this.props.asset).final,
       this.onDeleteComplete.bind(this, this.props.asset.uid)
@@ -151,7 +164,7 @@ class AssetActionButtons extends React.Component<
   }
 
   /**
-   * Navigates out of nonexistent paths after asset was successfuly deleted
+   * Navigates out of nonexistent paths after asset was successfully deleted
    */
   onDeleteComplete(assetUid: string) {
     if (isAnyLibraryItemRoute() && getRouteAssetUid() === assetUid) {
@@ -167,26 +180,26 @@ class AssetActionButtons extends React.Component<
   }
 
   archive() {
-    assetActions.archive(this.props.asset);
+    archiveAsset(this.props.asset);
   }
 
   unarchive() {
-    assetActions.unarchive(this.props.asset);
+    unarchiveAsset(this.props.asset);
   }
 
   clone() {
-    assetActions.clone(this.props.asset);
+    cloneAsset(this.props.asset);
   }
 
   cloneAsSurvey() {
-    assetActions.cloneAsSurvey(
+    cloneAssetAsSurvey(
       this.props.asset.uid,
       assetUtils.getAssetDisplayName(this.props.asset).final
     );
   }
 
   cloneAsTemplate() {
-    assetActions.cloneAsTemplate(
+    cloneAssetAsTemplate(
       this.props.asset.uid,
       assetUtils.getAssetDisplayName(this.props.asset).final
     );
@@ -252,10 +265,7 @@ class AssetActionButtons extends React.Component<
     if (assetType !== ASSET_TYPES.collection.id) {
       downloads = this.props.asset.downloads;
     }
-    const userCanEdit = mixins.permissions.userCan(
-      'change_asset',
-      this.props.asset
-    );
+    const userCanEdit = userCan('change_asset', this.props.asset);
     const isDeployable =
       assetType === ASSET_TYPES.survey.id &&
       this.props.asset.deployed_version_id === null;
@@ -435,10 +445,7 @@ class AssetActionButtons extends React.Component<
     }
 
     const assetType = this.props.asset.asset_type;
-    const userCanEdit = mixins.permissions.userCan(
-      'change_asset',
-      this.props.asset
-    );
+    const userCanEdit = userCan('change_asset', this.props.asset);
     const hasDetailsEditable =
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id;

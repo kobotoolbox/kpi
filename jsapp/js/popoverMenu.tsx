@@ -7,15 +7,21 @@ import autoBind from 'react-autobind';
 import bem from 'js/bem';
 
 interface PopoverMenuProps {
-  popoverSetVisible: () => void;
-  clearPopover: boolean;
+  /** A callback run whenever popover is opened (made visible). */
+  popoverSetVisible?: () => void;
+  /**
+   * This is some weird mechanism for closing the popover from outside. You have
+   * to pass a `true` value here, and the code observes property changes, and
+   * would close popover :ironically_impressed_nod:.
+   */
+  clearPopover?: boolean;
   blurEventDisabled?: boolean;
   type?: string;
   additionalModifiers?: string[];
   /** the element that will be opening the menu, menu will be placed in relation to it */
-  triggerLabel: JSX.Element;
+  triggerLabel: React.ReactNode;
   /** content of the menu, can be anything really */
-  children: JSX.Element[];
+  children?: React.ReactNode;
 }
 
 interface PopoverMenuState {
@@ -110,26 +116,6 @@ export default class PopoverMenu extends React.Component<
       this.setState({
         popoverVisible: true,
       });
-    }
-
-    if (this.props.type === 'assetrow-menu' && !this.state.popoverVisible) {
-      // if popover doesn't fit above, place it below
-      // 20px is a nice safety margin
-      const $assetRow = $(evt.target).parents('.asset-row');
-      const $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
-      const rowOffsetTop = $assetRow?.offset()?.top;
-      const rowHeight = $assetRow?.outerHeight();
-      const menuHeight = $popoverMenu?.outerHeight();
-      if (
-        rowOffsetTop &&
-        rowHeight &&
-        menuHeight &&
-        rowOffsetTop > menuHeight + rowHeight + 20
-      ) {
-        this.setState({placement: 'above'});
-      } else {
-        this.setState({placement: 'below'});
-      }
     }
 
     if (typeof this.props.popoverSetVisible === 'function' && !this.state.popoverVisible) {

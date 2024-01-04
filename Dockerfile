@@ -1,12 +1,13 @@
 FROM python:3.10 as build-python
 
-ENV VIRTUAL_ENV=/opt/venv
+ENV VIRTUAL_ENV=/opt/venv \
+    TMP_DIR=/srv/tmp
 
 RUN python -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip install --quiet pip-tools==6.\*
-COPY ./dependencies/pip/requirements.txt "/tmp/pip_dependencies.txt"
-RUN pip-sync "/tmp/pip_dependencies.txt" 1>/dev/null
+RUN pip install --quiet pip-tools==7.\*
+COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
+RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
 
 from python:3.10-slim
@@ -55,8 +56,13 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 # jnm (or the current on-call sysadmin). Thanks.
 
 RUN apt-get -qq update && \
-    apt-get -qq -y install curl && \
-    curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get -qq -y install ca-certificates curl gnupg && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+        | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" \
+        | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get -qq update && \
     apt-get -qq -y install --no-install-recommends \
         ffmpeg \
         gdal-bin \
@@ -66,7 +72,7 @@ RUN apt-get -qq update && \
         less \
         libproj-dev \
         locales \
-        nodejs \
+        nodejs=$(apt-cache show nodejs | grep -F 'Version: 16.15.0' | cut -f 2 -d ' ') \
         postgresql-client \
         procps \
         rsync \
@@ -95,10 +101,11 @@ RUN adduser --disabled-password --gecos '' "$UWSGI_USER"
 COPY . "${KPI_SRC_DIR}"
 
 ###########################
-# Install `pip` packages. #
+# Copy virtualenv         #
 ###########################
 
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 COPY --from=build-python "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 
 ###########################
@@ -108,8 +115,12 @@ COPY --from=build-python "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
+    mkdir -p "${TMP_DIR}/.npm" && \
+    npm config set cache "${TMP_DIR}/.npm" --global && \
     npm install -g npm@8.5.5 && \
-    npm install -g check-dependencies && \
+    npm install -g check-dependencies@1 && \
+    rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
+    rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
     npm install --quiet && \
     npm cache clean --force
 
@@ -119,9 +130,7 @@ ENV PATH $PATH:${KPI_NODE_PATH}/.bin
 # Build client code. #
 ######################
 
-RUN rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
-    rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
-    npm run copy-fonts && npm run build
+RUN npm run build
 
 ###########################
 # Organize static assets. #

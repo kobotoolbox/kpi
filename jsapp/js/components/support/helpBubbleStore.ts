@@ -1,11 +1,9 @@
 import throttle from 'lodash.throttle';
-import {makeAutoObservable} from 'mobx';
-import type {
-  PaginatedResponse,
-  FailResponse,
-} from 'js/dataInterface';
-import {notify} from 'js/utils';
+import {makeAutoObservable, when} from 'mobx';
+import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
+import {handleApiFail} from 'js/api';
 import {ROOT_URL} from 'js/constants';
+import sessionStore from 'js/stores/session';
 
 const FETCH_MESSAGES_LOOP_TIME = 1 * 60 * 1000; // 1 minute
 
@@ -37,12 +35,15 @@ class HelpBubbleStore {
   /** This public function is throttled to not hit the backend to often. */
   public fetchMessages = throttle(
     this.fetchMessagesInternal.bind(this, true),
-    FETCH_MESSAGES_LOOP_TIME,
+    FETCH_MESSAGES_LOOP_TIME
   );
 
   constructor() {
     makeAutoObservable(this);
-    this.fetchMessages();
+    when(
+      () => sessionStore.isLoggedIn,
+      () => this.fetchMessages()
+    );
   }
 
   get unreadCount() {
@@ -84,7 +85,7 @@ class HelpBubbleStore {
 
   private onFetchMessagesFail(response: FailResponse) {
     this.isLoading = false;
-    notify(response.responseText, 'error');
+    handleApiFail(response);
   }
 
   public selectMessage(messageUid: string) {
@@ -120,10 +121,7 @@ class HelpBubbleStore {
     this.locallyAcknowledgedMessageUids.add(messageUid);
   }
 
-  private patchMessage(
-    messageUid: string,
-    readTime?: string
-  ) {
+  private patchMessage(messageUid: string, readTime?: string) {
     $.ajax({
       dataType: 'json',
       contentType: 'application/json',
@@ -152,9 +150,8 @@ class HelpBubbleStore {
   }
 
   private onPatchMessageFail(response: FailResponse) {
-    notify(response.responseText, 'error');
+    handleApiFail(response);
   }
 }
 
 export default new HelpBubbleStore();
-

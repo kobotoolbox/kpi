@@ -250,20 +250,6 @@
     margin-left: 3px;
   }
 
-  .sector,
-  .name {
-    width: 48%;
-    float: left;
-    margin-top: 0px;
-  }
-
-  .country,
-  .organization {
-    width: 52%;
-    float: left;
-    padding-left: 4%;
-    margin-top: 0px;
-  }
 
   .password1 {
     margin-top: 10px;
@@ -349,7 +335,10 @@
 .registration__create-or-forgot {
   margin: 20px 0;
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .registration__footer {
@@ -366,8 +355,13 @@
     }
   }
 
-  .registration__legal a {
-    margin: 0px 8px;
+  .registration__legal {
+    margin: 0 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
   }
 }
 
@@ -410,10 +404,17 @@
     }
 
     form.registration--register,
-    form.registration--complete,
-    form.language-switcher {
+    form.registration--complete {
       width: 80%;
       max-width: 860px;
+    }
+
+    form.language-switcher {
+      max-width: 400px;
+
+      &[data-path="/accounts/signup/"] {
+        max-width: 860px;
+      }
     }
 
     form.registration--register {
@@ -432,6 +433,24 @@
     .registration__first-half {
       width: 52%;
       float: left;
+
+      // Flexbox helps us maintain a layout when some fields may be customized
+      // or removed.
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      column-gap: 4%;
+      > * {
+        min-width: 75%; // Most rows are wide enough to get their own row,
+        flex: 1; // and when they do, they grow to occupy full available width.
+      }
+      > .name,
+      > .organization,
+      > .sector,
+      > .country {
+        min-width: 40%; // These fields can sit next to each other in pairs.
+      }
     }
 
     .registration__second-half {

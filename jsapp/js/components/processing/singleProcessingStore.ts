@@ -1,12 +1,12 @@
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import type {Location, Update} from 'history';
+import type {RouterState} from '@remix-run/router';
 import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
 import {
   isFormSingleProcessingRoute,
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
@@ -20,10 +20,7 @@ import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
-import type {
-  ProcessingDataResponse,
-  AutoTranscriptionEvent,
-} from 'js/components/processing/processingActions';
+import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
 import type {
   FailResponse,
   SubmissionResponse,
@@ -79,6 +76,11 @@ interface SubmissionsEditIds {
     editId: string;
     hasResponse: boolean;
   }>;
+}
+
+interface AutoTranscriptionEvent {
+  response: ProcessingDataResponse;
+  submissionEditId: string;
 }
 
 interface SingleProcessingStoreData {
@@ -155,7 +157,10 @@ class SingleProcessingStore extends Reflux.Store {
   public get currentQuestionType(): AnyRowTypeName | undefined {
     const asset = assetStore.getAsset(this.currentAssetUid);
     if (asset?.content && this.currentQuestionQpath) {
-      const foundRow = findRowByQpath(asset?.content, this.currentQuestionQpath);
+      const foundRow = findRowByQpath(
+        asset?.content,
+        this.currentQuestionQpath
+      );
       return foundRow?.type;
     }
     return undefined;
@@ -164,31 +169,74 @@ class SingleProcessingStore extends Reflux.Store {
   init() {
     this.resetProcessingData();
 
-    history.listen(this.onRouteChange.bind(this));
+    // HACK: We add this ugly `setTimeout` to ensure router exists.
+    setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
 
-    actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this));
-    actions.submissions.getSubmissionByUuid.failed.listen(this.onGetSubmissionByUuidFailed.bind(this));
-    actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this));
-    actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this));
+    actions.submissions.getSubmissionByUuid.completed.listen(
+      this.onGetSubmissionByUuidCompleted.bind(this)
+    );
+    actions.submissions.getSubmissionByUuid.failed.listen(
+      this.onGetSubmissionByUuidFailed.bind(this)
+    );
+    actions.submissions.getProcessingSubmissions.completed.listen(
+      this.onGetProcessingSubmissionsCompleted.bind(this)
+    );
+    actions.submissions.getProcessingSubmissions.failed.listen(
+      this.onGetProcessingSubmissionsFailed.bind(this)
+    );
 
-    processingActions.getProcessingData.started.listen(this.onFetchProcessingDataStarted.bind(this));
-    processingActions.getProcessingData.completed.listen(this.onFetchProcessingDataCompleted.bind(this));
-    processingActions.getProcessingData.failed.listen(this.onAnyCallFailed.bind(this));
-    processingActions.setTranscript.completed.listen(this.onSetTranscriptCompleted.bind(this));
-    processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this));
-    processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
-    processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
-    processingActions.requestAutoTranscription.completed.listen(this.onRequestAutoTranscriptionCompleted.bind(this));
-    processingActions.requestAutoTranscription.in_progress.listen(this.onRequestAutoTranscriptionInProgress.bind(this));
-    processingActions.requestAutoTranscription.failed.listen(this.onAnyCallFailed.bind(this));
-    processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this));
-    processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.getProcessingData.started.listen(
+      this.onFetchProcessingDataStarted.bind(this)
+    );
+    processingActions.getProcessingData.completed.listen(
+      this.onFetchProcessingDataCompleted.bind(this)
+    );
+    processingActions.getProcessingData.failed.listen(
+      this.onAnyCallFailed.bind(this)
+    );
+    processingActions.setTranscript.completed.listen(
+      this.onSetTranscriptCompleted.bind(this)
+    );
+    processingActions.setTranscript.failed.listen(
+      this.onAnyCallFailed.bind(this)
+    );
+    processingActions.deleteTranscript.completed.listen(
+      this.onDeleteTranscriptCompleted.bind(this)
+    );
+    processingActions.deleteTranscript.failed.listen(
+      this.onAnyCallFailed.bind(this)
+    );
+    processingActions.requestAutoTranscription.completed.listen(
+      this.onRequestAutoTranscriptionCompleted.bind(this)
+    );
+    processingActions.requestAutoTranscription.in_progress.listen(
+      this.onRequestAutoTranscriptionInProgress.bind(this)
+    );
+    processingActions.requestAutoTranscription.failed.listen(
+      this.onAnyCallFailed.bind(this)
+    );
+    processingActions.setTranslation.completed.listen(
+      this.onSetTranslationCompleted.bind(this)
+    );
+    processingActions.setTranslation.failed.listen(
+      this.onAnyCallFailed.bind(this)
+    );
     // NOTE: deleteTranslation endpoint is sending whole processing data in response.
-    processingActions.deleteTranslation.completed.listen(this.onFetchProcessingDataCompleted.bind(this));
-    processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this));
-    processingActions.requestAutoTranslation.completed.listen(this.onRequestAutoTranslationCompleted.bind(this));
-    processingActions.requestAutoTranslation.failed.listen(this.onAnyCallFailed.bind(this));
-    processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this));
+    processingActions.deleteTranslation.completed.listen(
+      this.onFetchProcessingDataCompleted.bind(this)
+    );
+    processingActions.deleteTranslation.failed.listen(
+      this.onAnyCallFailed.bind(this)
+    );
+    processingActions.requestAutoTranslation.completed.listen(
+      this.onRequestAutoTranslationCompleted.bind(this)
+    );
+    processingActions.requestAutoTranslation.failed.listen(
+      this.onAnyCallFailed.bind(this)
+    );
+    processingActions.activateAsset.completed.listen(
+      this.onActivateAssetCompleted.bind(this)
+    );
 
     // We need the asset to be loaded for the store to work (we get the
     // processing endpoint url from asset JSON). We try to startup store
@@ -203,7 +251,7 @@ class SingleProcessingStore extends Reflux.Store {
       isFormSingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
-        this.currentSubmissionEditId,
+        this.currentSubmissionEditId
       ) &&
       this.currentAssetUid === asset.uid
     ) {
@@ -233,7 +281,7 @@ class SingleProcessingStore extends Reflux.Store {
       isFormSingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
-        this.currentSubmissionEditId,
+        this.currentSubmissionEditId
       )
     ) {
       const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid));
@@ -243,7 +291,10 @@ class SingleProcessingStore extends Reflux.Store {
         // This would happen when user is opening the processing URL directly,
         // thus asset might not be loaded yet. We need to wait for it and try
         // starting up again (through `onAssetLoad`).
-        assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this));
+        assetStore.whenLoaded(
+          this.currentAssetUid,
+          this.onAssetLoad.bind(this)
+        );
       }
     }
   }
@@ -274,12 +325,15 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  private onRouteChange(data: Update) {
+  private onRouteChange(data: RouterState) {
     if (this.previousPath === data.location.pathname) {
       return;
     }
 
-    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(':uid', this.currentAssetUid);
+    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(
+      ':uid',
+      this.currentAssetUid
+    );
 
     // Case 1: switching from a processing route to a processing route.
     // This means that we are changing either the question and the submission
@@ -300,7 +354,7 @@ class SingleProcessingStore extends Reflux.Store {
       isFormSingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
-        this.currentSubmissionEditId,
+        this.currentSubmissionEditId
       )
     ) {
       this.fetchAllInitialDataForAsset();
@@ -314,7 +368,10 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.submissionData = undefined;
     this.trigger(this.data);
 
-    actions.submissions.getSubmissionByUuid(this.currentAssetUid, this.currentSubmissionEditId);
+    actions.submissions.getSubmissionByUuid(
+      this.currentAssetUid,
+      this.currentSubmissionEditId
+    );
   }
 
   private onGetSubmissionByUuidCompleted(response: SubmissionResponse): void {
@@ -449,27 +506,27 @@ class SingleProcessingStore extends Reflux.Store {
     const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
     // NOTE: we treat empty transcript object same as nonexistent one
     this.data.transcript = undefined;
-    if (
-      transcriptResponse?.value &&
-      transcriptResponse?.languageCode
-    ) {
+    if (transcriptResponse?.value && transcriptResponse?.languageCode) {
       this.data.transcript = transcriptResponse;
     }
 
-    const translationsResponse = response[this.currentQuestionQpath]?.translation;
+    const translationsResponse =
+      response[this.currentQuestionQpath]?.translation;
     const translationsArray: Transx[] = [];
     if (translationsResponse) {
-      Object.keys(translationsResponse).forEach((languageCode: LanguageCode) => {
-        const translation = translationsResponse[languageCode];
-        if (translation.languageCode) {
-          translationsArray.push({
-            value: translation.value,
-            languageCode: translation.languageCode,
-            dateModified: translation.dateModified,
-            dateCreated: translation.dateCreated,
-          });
+      Object.keys(translationsResponse).forEach(
+        (languageCode: LanguageCode) => {
+          const translation = translationsResponse[languageCode];
+          if (translation.languageCode) {
+            translationsArray.push({
+              value: translation.value,
+              languageCode: translation.languageCode,
+              dateModified: translation.dateModified,
+              dateCreated: translation.dateCreated,
+            });
+          }
         }
-      });
+      );
     }
     this.data.translations = translationsArray;
 
@@ -480,12 +537,21 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onAnyCallFailed(response: FailResponse) {
-    const errorText = (
-      response.responseJSON?.detail ||
-      response.responseJSON?.error ||
-      response.statusText
-    );
+  /**
+   * Additionally to regular API failure response, we also handle a case when
+   * the call was aborted due to features not being enabled. In such case we get
+   * a simple string instead of response object.
+   */
+  private onAnyCallFailed(response: FailResponse | string) {
+    let errorText = t('Something went wrong');
+    if (typeof response === 'string') {
+      errorText = response;
+    } else {
+      errorText =
+        response.responseJSON?.detail ||
+        response.responseJSON?.error ||
+        response.statusText;
+    }
     alertify.notify(errorText, 'error');
     delete this.abortFetchData;
     this.isFetchingData = false;
@@ -522,15 +588,15 @@ class SingleProcessingStore extends Reflux.Store {
     if (!this.currentQuestionQpath) {
       return false;
     }
-    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
+    const googleTsResponse =
+      event.response[this.currentQuestionQpath]?.googlets;
     return (
       event.submissionEditId === this.currentSubmissionEditId &&
       googleTsResponse &&
       this.data.transcriptDraft &&
-      (
-        googleTsResponse.languageCode === this.data.transcriptDraft.languageCode ||
-        googleTsResponse.languageCode === this.data.transcriptDraft.regionCode
-      )
+      (googleTsResponse.languageCode ===
+        this.data.transcriptDraft.languageCode ||
+        googleTsResponse.languageCode === this.data.transcriptDraft.regionCode)
     );
   }
 
@@ -542,7 +608,8 @@ class SingleProcessingStore extends Reflux.Store {
     ) {
       return;
     }
-    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
+    const googleTsResponse =
+      event.response[this.currentQuestionQpath]?.googlets;
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
       this.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
@@ -583,10 +650,9 @@ class SingleProcessingStore extends Reflux.Store {
     if (
       googleTxResponse &&
       this.data.translationDraft &&
-      (
-        googleTxResponse.languageCode === this.data.translationDraft.languageCode ||
-        googleTxResponse.languageCode === this.data.translationDraft.regionCode
-      )
+      (googleTxResponse.languageCode ===
+        this.data.translationDraft.languageCode ||
+        googleTxResponse.languageCode === this.data.translationDraft.regionCode)
     ) {
       this.data.translationDraft.value = googleTxResponse.value;
     }
@@ -605,7 +671,9 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     this.data.translations.forEach((translation: Transx) => {
-      if (translation.languageCode !== this.data.translationDraft?.languageCode) {
+      if (
+        translation.languageCode !== this.data.translationDraft?.languageCode
+      ) {
         sources.push(translation.languageCode);
       }
     });
@@ -627,8 +695,8 @@ class SingleProcessingStore extends Reflux.Store {
     if (this.data.source === this.data.transcript?.languageCode) {
       return this.data.transcript;
     } else {
-      const found = this.data.translations.find((translation) =>
-        translation.languageCode === this.data.source
+      const found = this.data.translations.find(
+        (translation) => translation.languageCode === this.data.source
       );
       return found;
     }
@@ -640,6 +708,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   setTranscript(languageCode: LanguageCode, value: string) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
@@ -652,6 +724,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranscript() {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
@@ -662,13 +738,17 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranscription() {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isPollingForTranscript = true;
     processingActions.requestAutoTranscription(
       this.currentAssetUid,
       this.currentQuestionQpath,
       this.currentSubmissionEditId,
       this.data.transcriptDraft?.languageCode,
-      this.data.transcriptDraft?.regionCode,
+      this.data.transcriptDraft?.regionCode
     );
     this.trigger(this.data);
   }
@@ -714,6 +794,10 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** This stores the translation on backend. */
   setTranslation(languageCode: LanguageCode, value: string) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
@@ -726,6 +810,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranslation(languageCode: LanguageCode) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
@@ -737,6 +825,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranslation(languageCode: string) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
@@ -796,7 +888,10 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** NOTE: Returns editIds for current question name, not for all of them. */
   getCurrentQuestionSubmissionsEditIds() {
-    if (this.currentQuestionQpath && this.data.submissionsEditIds !== undefined) {
+    if (
+      this.currentQuestionQpath &&
+      this.data.submissionsEditIds !== undefined
+    ) {
       return this.data.submissionsEditIds[this.currentQuestionQpath];
     }
     return undefined;
@@ -813,8 +908,7 @@ class SingleProcessingStore extends Reflux.Store {
   hasUnsavedTranscriptDraftValue() {
     const draft = this.getTranscriptDraft();
     return (
-      draft?.value !== undefined &&
-      draft.value !== this.getTranscript()?.value
+      draft?.value !== undefined && draft.value !== this.getTranscript()?.value
     );
   }
 

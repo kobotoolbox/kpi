@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from secrets import token_urlsafe
 from typing import Optional
 
 from django.conf import settings
@@ -10,7 +9,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
 from django.core.files.base import ContentFile
-from django.core.signing import Signer
 from django.db import (
     ProgrammingError,
     connections,
@@ -28,11 +26,11 @@ from kpi.exceptions import (
 )
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
-from kpi.utils.datetime import one_minute_from_now
 from .storage import (
     get_kobocat_storage,
     KobocatFileSystemStorage,
 )
+
 
 def update_autofield_sequence(model):
     """
@@ -132,20 +130,62 @@ class KobocatDigestPartial(ShadowModel):
         but updates `KobocatDigestPartial` in the KoBoCAT database instead of
         `PartialDigest` in the KPI database
         """
-        # Because of circular imports, we cannot decorate the method with
-        # `@kc_transaction_atomic`
-        from .utils import kc_transaction_atomic
 
-        with kc_transaction_atomic():
-            cls.objects.filter(user=user).delete()
-            # Query for `user_id` since user PKs are synchronized
-            for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-                cls.objects.create(
-                    user=user,
-                    login=partial_digest.login,
-                    confirmed=partial_digest.confirmed,
-                    partial_digest=partial_digest.partial_digest,
-                )
+        # No need to decorate this method with a `kc_transaction_atomic` because
+        # it is only used in KobocatUser.sync() which is called only in
+        # `save_kobocat_user()` inside a (KoBoCAT) transaction.
+        cls.objects.filter(user=user).delete()
+        # Query for `user_id` since user PKs are synchronized
+        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
+            cls.objects.create(
+                user=user,
+                login=partial_digest.login,
+                confirmed=partial_digest.confirmed,
+                partial_digest=partial_digest.partial_digest,
+            )
+
+
+class KobocatFormDisclaimer(ShadowModel):
+
+    language_code = models.CharField(max_length=5, null=True)
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='disclaimers',
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    message = models.TextField(default='')
+    default = models.BooleanField(default=False)
+    hidden = models.BooleanField(default=False)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'form_disclaimer_formdisclaimer'
+
+    @classmethod
+    def sync(cls, form_disclaimer):
+
+        xform = None
+        language_code = None
+
+        if form_disclaimer.language:
+            language_code = form_disclaimer.language.code
+
+        if form_disclaimer.asset:
+            xform = form_disclaimer.asset.deployment.xform
+
+        try:
+            kc_form_disclaimer = cls.objects.get(
+                language_code=language_code, xform=xform
+            )
+        except cls.DoesNotExist:
+            kc_form_disclaimer = cls(
+                pk=form_disclaimer.pk, language_code=language_code, xform=xform
+            )
+
+        kc_form_disclaimer.message = form_disclaimer.message
+        kc_form_disclaimer.default = form_disclaimer.default
+        kc_form_disclaimer.hidden = form_disclaimer.hidden
+        kc_form_disclaimer.save()
 
 
 class KobocatGenericForeignKey(GenericForeignKey):
@@ -255,12 +295,7 @@ class KobocatUser(ShadowModel):
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
         # upon PKs being synchronized between KPI and KoBoCAT
-        try:
-            kc_auth_user = cls.objects.get(pk=auth_user.pk)
-            assert kc_auth_user.username == auth_user.username
-        except KobocatUser.DoesNotExist:
-            kc_auth_user = cls(pk=auth_user.pk, username=auth_user.username)
-
+        kc_auth_user = cls.get_kc_user(auth_user)
         kc_auth_user.password = auth_user.password
         kc_auth_user.last_login = auth_user.last_login
         kc_auth_user.is_superuser = auth_user.is_superuser
@@ -280,6 +315,16 @@ class KobocatUser(ShadowModel):
         # Update django-digest `PartialDigest`s in KoBoCAT.  This is only
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
+
+    @classmethod
+    def get_kc_user(cls, auth_user: 'auth.User') -> KobocatUser:
+        try:
+            kc_auth_user = cls.objects.get(pk=auth_user.pk)
+            assert kc_auth_user.username == auth_user.username
+        except KobocatUser.DoesNotExist:
+            kc_auth_user = cls(pk=auth_user.pk, username=auth_user.username)
+
+        return kc_auth_user
 
 
 class KobocatUserObjectPermission(ShadowModel):
@@ -372,8 +417,6 @@ class KobocatUserProfile(ShadowModel):
     )
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
-    created_by = models.ForeignKey(KobocatUser, null=True, blank=True,
-                                   on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     attachment_storage_bytes = models.BigIntegerField(default=0)
     metadata = models.JSONField(default=dict, blank=True)
@@ -381,17 +424,29 @@ class KobocatUserProfile(ShadowModel):
     # is using `LazyBooleanField` which is an integer behind the scene.
     # We do not want to port this class to KPI only for one line of code.
     is_mfa_active = models.PositiveSmallIntegerField(default=False)
+    validated_password = models.BooleanField(default=False)
 
     @classmethod
     def set_mfa_status(cls, user_id: int, is_active: bool):
 
-        try:
-            user_profile, created = cls.objects.get_or_create(user_id=user_id)
-        except cls.DoesNotExist:
-            pass
-        else:
-            user_profile.is_mfa_active = int(is_active)
-            user_profile.save(update_fields=['is_mfa_active'])
+        user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        user_profile.is_mfa_active = int(is_active)
+        user_profile.save(update_fields=['is_mfa_active'])
+
+    @classmethod
+    def set_password_details(
+        cls,
+        user_id: int,
+        validated: bool,
+    ):
+        """
+        Update the kobocat user's password_change_date and validated_password fields
+        """
+        user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        user_profile.validated_password = validated
+        user_profile.save(
+            update_fields=['validated_password']
+        )
 
 
 class KobocatToken(ShadowModel):
@@ -441,6 +496,7 @@ class KobocatXForm(ShadowModel):
     num_of_submissions = models.IntegerField(default=0)
     attachment_storage_bytes = models.BigIntegerField(default=0)
     kpi_asset_uid = models.CharField(max_length=32, null=True)
+    pending_delete = models.BooleanField(default=False)
 
     @property
     def md5_hash(self):
@@ -463,6 +519,12 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
+class ReadOnlyKobocatAttachmentManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(deleted_at__isnull=False)
+
+
 class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
 
     class Meta(ReadOnlyModel.Meta):
@@ -483,9 +545,8 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
-    # TODO: hide attachments that were deleted or replaced; see
-    # kobotoolbox/kobocat#792
-    # replaced_at = models.DateTimeField(blank=True, null=True)
+    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    objects = ReadOnlyKobocatAttachmentManager()
 
     @property
     def absolute_mp3_path(self):
@@ -558,14 +619,15 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
 class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
 
     date = models.DateField()
+    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(
-        KobocatXForm, related_name='daily_counts', on_delete=models.CASCADE
+        KobocatXForm, related_name='daily_counts', null=True, on_delete=models.CASCADE
     )
     counter = models.IntegerField(default=0)
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_dailyxformsubmissioncounter'
-        unique_together = ('date', 'xform')
+        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
@@ -593,7 +655,7 @@ class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
     month = models.IntegerField()
     user = models.ForeignKey(
         'shadow_model.KobocatUser',
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
     )
     xform = models.ForeignKey(
         'shadow_model.KobocatXForm',

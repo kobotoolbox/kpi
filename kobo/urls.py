@@ -5,8 +5,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 
-from kobo.apps.service_health.views import service_health
-
 
 admin.autodiscover()
 admin.site.login = staff_member_required(
@@ -27,11 +25,16 @@ urlpatterns = [
     re_path(r'^', include('kobo.apps.subsequences.urls')),
     re_path(r'^', include('kpi.urls')),
     re_path(r'^markdownx/', include('markdownx.urls')),
-    re_path(r'^markitup/', include('markitup.urls')),
+    # re_path(r'^markitup/', include('markitup.urls')),
+    re_path(r'^markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
     re_path(r'^help/', include('kobo.apps.help.urls')),
-    path('service_health/', service_health),
     re_path(
         r'kobocat/',
         RedirectView.as_view(url=settings.KOBOCAT_URL, permanent=True),
     ),
 ]
+
+if settings.ENABLE_METRICS:
+    urlpatterns.append(
+        path('', include('django_prometheus.urls')),
+    )

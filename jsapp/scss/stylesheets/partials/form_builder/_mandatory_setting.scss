@@ -6,12 +6,12 @@
 
   .mandatory-setting__row {
     &.mandatory-setting__row--custom {
-      .text-box {
+      .mandatory-settings-input-wrapper {
         margin-top: 5px;
         display: block;
       }
 
-      .radio__input:not(:checked) ~ .text-box {
+      input[type='radio']:not(:checked) ~ .mandatory-settings-input-wrapper {
         visibility: hidden;
         height: 0;
         overflow: hidden;

@@ -45,6 +45,10 @@ export const ROUTES = Object.freeze({
   FORM_RECORDS: '/forms/:uid/settings/records',
   FORM_REST: '/forms/:uid/settings/rest',
   FORM_REST_HOOK: '/forms/:uid/settings/rest/:hookUid',
-  FORM_KOBOCAT: '/forms/:uid/settings/kobocat',
   FORM_RESET: '/forms/:uid/reset',
 });
+
+export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
+  MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
+  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
+};

@@ -1,9 +1,11 @@
 # coding: utf-8
 from urllib.parse import urlparse
 
+from django.conf import settings
 from django.urls import (
     get_script_prefix,
-    resolve
+    resolve,
+    reverse,
 )
 from django.utils.encoding import uri_to_iri
 
@@ -30,3 +32,7 @@ def absolute_resolve(url):
 
     path = uri_to_iri(path)
     return resolve(path)
+
+
+def absolute_reverse(*args, **kwargs):
+    return f'{settings.KOBOFORM_URL}{reverse(*args, **kwargs)}'

@@ -9,12 +9,11 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTimeDate} from 'js/utils';
-import mixins from 'js/mixins';
 import {
   ADDITIONAL_SUBMISSION_PROPS,
-  PERMISSIONS_CODENAMES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {
   EXPORT_TYPES,
   DEFAULT_EXPORT_SETTINGS,
@@ -33,6 +32,7 @@ import {
 import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
+import {userCan} from 'js/components/permissions/utils';
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
 
@@ -316,7 +316,7 @@ export default class ProjectExportsCreator extends React.Component {
     // Select custom export toggle if not all rows are selected
     // but only if at least one is selected
     const customSelectionEnabled = (
-      data.export_settings.fields.length !== 0 &&
+      data.export_settings.fields?.length &&
       this.state.selectableRowsCount !== data.export_settings.fields.length
     );
 
@@ -424,7 +424,7 @@ export default class ProjectExportsCreator extends React.Component {
     // Case 2: Also omit saving if user doesn't have permissions to save.
     if (
       this.state.selectedDefinedExport !== null ||
-      !mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset)
+      !userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset)
     ) {
       this.handleScheduledExport(payload);
     // Case 3: There is a defined export with the same name already, so we need
@@ -534,11 +534,10 @@ export default class ProjectExportsCreator extends React.Component {
   renderAdvancedView() {
     const includeAllVersionsLabel = (
       <span>
-        {t('Include data from all')}
-        &nbsp;
-        <strong>{this.props.asset.deployed_versions.count}</strong>
-        &nbsp;
-        {t('versions')}
+        {t('Include fields from all ##count## versions').replace(
+          '##count##',
+          String(this.props.asset.deployed_versions.count)
+        )}
       </span>
     );
 
@@ -548,17 +547,17 @@ export default class ProjectExportsCreator extends React.Component {
       EXPORT_MULTIPLE_OPTIONS.summary,
       EXPORT_MULTIPLE_OPTIONS.both,
     ];
+    const template = t('Export ##SELECT_MANY## questions as…');
+    const [firstPart, nextPart] = template.split('##SELECT_MANY##');
 
     return (
       <bem.ProjectDownloads__advancedView>
         <bem.ProjectDownloads__column m='left'>
           <label className='project-downloads__column-row'>
             <bem.ProjectDownloads__title>
-              {t('Export')}
-              &nbsp;
+              {firstPart}
               <em>{t('Select Many')}</em>
-              &nbsp;
-              {t('questions as…')}
+              {nextPart}
             </bem.ProjectDownloads__title>
 
             <Select
@@ -591,17 +590,20 @@ export default class ProjectExportsCreator extends React.Component {
               label={t('Include groups in headers')}
             />
 
-            <TextBox
-              disabled={!this.state.isIncludeGroupsEnabled}
-              value={this.state.groupSeparator}
-              onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
-              label={t('Group separator')}
-              customModifiers={[
-                'on-white',
-                'group-separator',
-                (!this.state.isIncludeGroupsEnabled ? 'group-separator-disabled' : undefined),
-              ]}
-            />
+            <div className='project-downloads-group-textbox'>
+              <span
+                className='project-downloads-group-textbox__title'
+                disabled={!this.state.isIncludeGroupsEnabled}
+              >
+                {t('Group separator')}
+              </span>
+
+              <TextBox
+                disabled={!this.state.isIncludeGroupsEnabled}
+                value={this.state.groupSeparator}
+                onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
+              />
+            </div>
           </bem.ProjectDownloads__columnRow>
 
           {this.state.selectedExportType.value === EXPORT_TYPES.geojson.value &&
@@ -625,7 +627,7 @@ export default class ProjectExportsCreator extends React.Component {
           }
 
           {(this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
-              this.state.selectedExportType.value == EXPORT_TYPES.csv.value) &&
+              this.state.selectedExportType.value === EXPORT_TYPES.csv.value) &&
             <bem.ProjectDownloads__columnRow>
               <Checkbox
                 checked={this.state.isIncludeMediaUrlEnabled}
@@ -650,7 +652,7 @@ export default class ProjectExportsCreator extends React.Component {
               value={this.state.customExportName}
               onChange={this.onAnyInputChange.bind(this, 'customExportName')}
               placeholder={t('Name your export settings')}
-              customModifiers={['on-white', 'custom-export']}
+              customClassNames={['custom-export-name-textbox']}
             />
           </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>
@@ -707,7 +709,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   render() {
-    let formClassNames = ['project-downloads__exports-creator'];
+    const formClassNames = ['project-downloads__exports-creator'];
     if (!this.state.isComponentReady) {
       formClassNames.push('project-downloads__exports-creator--loading');
     }
@@ -776,7 +778,7 @@ export default class ProjectExportsCreator extends React.Component {
                   </label>
 
                   {this.state.selectedDefinedExport &&
-                    mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
+                    userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
                     <bem.ProjectDownloads__deleteSettingsButton
                       onClick={this.onDeleteExportSetting.bind(
                         this,

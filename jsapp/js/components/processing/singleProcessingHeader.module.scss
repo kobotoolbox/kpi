@@ -1,0 +1,40 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+
+.root {
+  @include mixins.centerRowFlex;
+
+  height: 100%;
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-white;
+  padding: 0 sizes.$x18;
+}
+
+.submissions {
+  @include mixins.centerRowFlex;
+
+  font-size: sizes.$x18;
+
+  > *:not(:first-child) {
+    margin-left: sizes.$x5;
+  }
+}
+
+.count {
+  margin-left: sizes.$x50;
+}
+
+.column {
+  &.columnMain {
+    flex: 1;
+
+    // HACK: this ensures this element doesn't push other flex items off screen
+    // when the content is too long.
+    min-width: 0;
+  }
+
+  & + & {
+    margin-left: sizes.$x10;
+  }
+}

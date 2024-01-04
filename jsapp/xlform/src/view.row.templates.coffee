@@ -1,5 +1,5 @@
 module.exports = do ->
-  replaceSupportEmail = require('utils').replaceSupportEmail
+  replaceSupportEmail = require('js/textUtils').replaceSupportEmail
 
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">
@@ -339,10 +339,10 @@ module.exports = do ->
               value="custom" #{if modifier is 'custom' then 'checked' else ''}
             >
             <span class="radio__label">#{t('Custom logic')}</span>
-            <label class="text-box text-box--on-white">
+            <label class="mandatory-settings-input-wrapper">
               <input
                 type="text"
-                class="text-box__input js-mandatory-setting-custom-text"
+                class="js-mandatory-setting-custom-text"
                 value=""
                 placeholder="#{t('Mandatory when this formula is true')}"
               >

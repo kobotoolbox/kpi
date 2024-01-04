@@ -7,30 +7,35 @@ from django.db.models.signals import post_delete
 from .utils import update_nlp_counter
 
 
-class MonthlyNLPUsageCounter(models.Model):
-    year = models.IntegerField()
-    month = models.IntegerField()
-    user = models.ForeignKey(User, related_name='users', on_delete=models.DO_NOTHING)
+class NLPUsageCounter(models.Model):
+    date = models.DateField()
+    user = models.ForeignKey(
+        User, related_name='nlp_counters', on_delete=models.CASCADE
+    )
     asset = models.ForeignKey('kpi.asset', null=True, on_delete=models.CASCADE)
     counters = models.JSONField(default=dict)
+    total_asr_seconds = models.PositiveIntegerField(default=0)
+    total_mt_characters = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['year', 'month', 'user', 'asset'],
-                             name='unique_with_asset'),
-            UniqueConstraint(fields=['year', 'month', 'user'],
-                             condition=Q(asset=None),
-                             name='unique_without_asset')
+            UniqueConstraint(
+                fields=['date', 'user', 'asset'], name='unique_with_asset'
+            ),
+            UniqueConstraint(
+                fields=['date', 'user'],
+                condition=Q(asset=None),
+                name='unique_without_asset',
+            ),
         ]
         indexes = [
-            models.Index(fields=('year', 'month', 'user')),
+            models.Index(fields=('date', 'user')),
         ]
 
     @classmethod
     def update_catch_all_counters_on_delete(cls, sender, instance, **kwargs):
         criteria = dict(
-            year=instance.year,
-            month=instance.month,
+            date=instance.date,
             user_id=instance.user_id,
             asset=None,
         )
@@ -52,7 +57,7 @@ class MonthlyNLPUsageCounter(models.Model):
 # removal of a related object), whereas the `delete()` model method is not
 # called
 post_delete.connect(
-    MonthlyNLPUsageCounter.update_catch_all_counters_on_delete,
-    sender=MonthlyNLPUsageCounter,
+    NLPUsageCounter.update_catch_all_counters_on_delete,
+    sender=NLPUsageCounter,
     dispatch_uid='update_catch_all_monthly_xform_submission_counters',
 )

@@ -1,12 +1,14 @@
 # coding: utf-8
 import base64
 import copy
+import dateutil.parser
 import json
 import os
 from io import StringIO
 
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.project_views.models.project_view import ProjectView
@@ -17,9 +19,8 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
 )
-from kpi.models import Asset
-from kpi.models import AssetFile
-from kpi.models import AssetVersion
+from kpi.models import Asset, AssetFile, AssetVersion
+from kpi.models.asset import AssetDeploymentStatus
 from kpi.serializers.v2.asset import AssetListSerializer
 from kpi.tests.base_test_case import (
     BaseAssetDetailTestCase,
@@ -29,6 +30,7 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
+from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import (
     get_region_for_view,
 )
@@ -200,11 +202,33 @@ class AssetListApiTests(BaseAssetTestCase):
             asset_type='template',
             content={},
         )
-        survey = Asset.objects.create(
+        deployed_survey = Asset.objects.create(
             owner=someuser,
-            name='survey',
+            name='Deployed survey',
             asset_type='survey',
         )
+        deployed_survey.deploy(backend='mock', active=True)
+
+        other_deployed_survey = Asset.objects.create(
+            owner=someuser,
+            name='Other deployed survey',
+            asset_type='survey',
+        )
+        other_deployed_survey.deploy(backend='mock', active=True)
+
+        archived_survey = Asset.objects.create(
+            owner=someuser,
+            name='Archived survey',
+            asset_type='survey',
+        )
+        archived_survey.deploy(backend='mock', active=False)
+
+        draft_survey = Asset.objects.create(
+            owner=someuser,
+            name='Draft survey',
+            asset_type='survey',
+        )
+
         another_collection = Asset.objects.create(
             owner=someuser,
             name='Someuser’s collection',
@@ -219,25 +243,34 @@ class AssetListApiTests(BaseAssetTestCase):
                 ]
             ]
 
-        # Default is by date_modified desc
+        # Default is by deployment_status (deployed, draft, archived), then
+        # date_modified desc
         expected_default_order = [
+            other_deployed_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
+            archived_survey.uid,
             another_collection.uid,
-            survey.uid,
             template.uid,
             collection.uid,
             question.uid,
         ]
+
         uids = uids_from_results()
         assert expected_default_order == uids
 
         # Sorted by name asc
         expected_order_by_name = [
             question.uid,
+            archived_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
             template.uid,
+            other_deployed_survey.uid,
             another_collection.uid,
-            survey.uid,
             collection.uid,
         ]
+
         uids = uids_from_results({'ordering': 'name'})
         assert expected_order_by_name == uids
 
@@ -246,8 +279,11 @@ class AssetListApiTests(BaseAssetTestCase):
             another_collection.uid,
             collection.uid,
             question.uid,
+            archived_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
             template.uid,
-            survey.uid,
+            other_deployed_survey.uid,
         ]
         uids = uids_from_results({
             'collections_first': 'true',
@@ -680,6 +716,10 @@ class AssetVersionApiTests(BaseTestCase):
         self.version = self.asset.asset_versions.first()
         self.version_list_url = reverse(self._get_endpoint('asset-version-list'),
                                         args=(self.asset.uid,))
+        self._version_detail_url = reverse(
+            self._get_endpoint('asset-version-detail'),
+            args=(self.asset.uid, self.version.uid)
+        )
 
     def test_asset_version(self):
         self.assertEqual(Asset.objects.count(), 2)
@@ -707,12 +747,60 @@ class AssetVersionApiTests(BaseTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         resp = self.client.get(self.version_list_url, format='json')
-        self.assertEqual(resp.data['count'], 0)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         _version_detail_url = reverse(self._get_endpoint('asset-version-detail'),
                                       args=(self.asset.uid, self.version.uid))
         resp2 = self.client.get(_version_detail_url)
         self.assertEqual(resp2.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(resp2.data['detail'], 'Not found.')
+
+    def test_view_access_to_version(self):
+        """
+        Test user with submissions permissions can view versions list
+        """
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        user = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(user, PERM_VIEW_ASSET)
+        # test list endpoint
+        resp = self.client.get(self.version_list_url, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data['count'], 1)
+        # test detailed endpoint
+        resp2 = self.client.get(self._version_detail_url)
+        self.assertEqual(resp2.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp2.data.get('uid'), self.version.uid)
+        # anonymous user
+        self.client.logout()
+        resp3 = self.client.get(self.version_list_url, format='json')
+        self.assertEqual(resp3.status_code, status.HTTP_404_NOT_FOUND)
+        resp4 = self.client.get(self._version_detail_url)
+        self.assertEqual(resp4.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_versions_readonly(self):
+        # patch request
+        response1 = self.client.patch(self._version_detail_url, data={'content': ''})
+        self.assertEqual(response1.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        # delete request
+        response2 = self.client.delete(self._version_detail_url)
+        self.assertEqual(response2.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_versions_public_access(self):
+        user = User.objects.get(username='anotheruser')
+        # public access anonymous user
+        anonymous_user = get_anonymous_user()
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
+        response1 = self.client.get(self.version_list_url)
+        self.assertEqual(response1.status_code, status.HTTP_200_OK)
+        response2 = self.client.get(self._version_detail_url)
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        # public access regular user
+        self.asset.remove_perm(user, PERM_VIEW_ASSET)
+        self.client.login(username='anotheruser', password='anotheruser')
+        response3 = self.client.get(self.version_list_url)
+        self.assertEqual(response3.status_code, status.HTTP_200_OK)
+        response4 = self.client.get(self._version_detail_url)
+        self.assertEqual(response4.status_code, status.HTTP_200_OK)
 
 
 class AssetDetailApiTests(BaseAssetDetailTestCase):
@@ -955,7 +1043,9 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(self.asset_url, format='json')
-        self.assertEqual(response.data['deployment__submission_count'], 1)
+        # No submission count is provided any longer to users with only
+        # row-level permissions
+        self.assertEqual(response.data['deployment__submission_count'], None)
 
     def test_assignable_permissions(self):
         self.assertEqual(self.asset.asset_type, 'survey')
@@ -1614,6 +1704,10 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
         self.assertEqual(response2.data['deployment__active'], True)
         self.assertEqual(response2.data['has_deployment'], True)
+        assert (
+            response2.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_asset_redeployment(self):
         self.test_asset_deployment()
@@ -1657,6 +1751,84 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.assertEqual(self.asset.deployment.version_id,
                          version_id)
 
+    def test_asset_deployment_dates(self):
+        p = dateutil.parser.parse
+
+        assert self.asset.date_deployed is None
+        asset_response = self.client.get(self.asset_url, format='json')
+        assert asset_response.data['date_deployed'] is None
+
+        before = timezone.now()
+        self.test_asset_deployment()
+        after = timezone.now()
+
+        asset_response = self.client.get(self.asset_url, format='json')
+        date_first_deployed = asset_response.data['date_deployed']
+        assert before <= p(date_first_deployed) <= after
+        deployed_version = asset_response.data['deployed_versions']['results'][
+            0
+        ]
+        assert asset_response.data['version_id'] == deployed_version['uid']
+        assert(
+            asset_response.data['deployed_version_id']
+            == deployed_version['uid']
+        )
+
+        # Add a form media file to this asset
+        crab_png_b64 = (
+            'iVBORw0KGgoAAAANSUhEUgAAABIAAAAPAgMAAACU6HeBAAAADFBMVEU7PTqv'
+            'OD/m6OX////GxYKhAAAAR0lEQVQI1y2MMQrAMAwD9Ul5yJQ1+Y8zm0Ig9iur'
+            'kmo4xAmEUgJpaYE9y0VLBrwVO9ZzUnSODidlthgossXf73pNDltav88X3Ncm'
+            'NcRl6K8AAAAASUVORK5CYII='
+        )
+        asset_file_list_url = reverse(
+            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
+        )
+        asset_file_post_data = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'I have pincers',
+            'base64Encoded': 'data:image/png;base64,' + crab_png_b64,
+            'metadata': json.dumps({'filename': 'crab.png'}),
+        }
+        asset_file_response = self.client.post(
+            asset_file_list_url, asset_file_post_data
+        )
+        assert asset_file_response.status_code == status.HTTP_201_CREATED
+
+        # Redeploy with the new media file, which is a change that occurs
+        # without creating a new `AssetVersion`
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'),
+            kwargs={'uid': self.asset_uid},
+        )
+        before = timezone.now()
+        redeploy_response = self.client.patch(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+                'version_id': deployed_version['uid'],
+            },
+        )
+        after = timezone.now()
+        assert redeploy_response.status_code == status.HTTP_200_OK
+
+        asset_response = self.client.get(self.asset_url, format='json')
+
+        assert (
+            before <= p(asset_response.data['date_deployed']) <= after
+        ), 'Redeployment should update the deployment timestamp'
+
+        assert (
+            deployed_version['date_modified']
+            == asset_response.data['deployed_versions']['results'][0][
+                'date_modified'
+            ]
+        ), (
+            'Redeploying the same version, unmodified, should not change the'
+            ' modification date of that version'
+        )
+
     def test_archive_asset(self):
         self.test_asset_deployment()
 
@@ -1669,6 +1841,41 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         })
 
         self.assertEqual(response1.data['asset']['deployment__active'], False)
+        assert (
+            response1.data['asset']['deployment_status']
+            == AssetDeploymentStatus.ARCHIVED.value
+        )
 
         response2 = self.client.get(self.asset_url, format='json')
         self.assertEqual(response2.data['deployment__active'], False)
+        assert (
+            response2.data['deployment_status']
+            == AssetDeploymentStatus.ARCHIVED.value
+        )
+
+    def test_archive_asset_does_not_modify_date_deployed(self):
+        self.test_asset_deployment()
+        self.asset.refresh_from_db()
+        original_date_deployed = self.asset.date_deployed
+
+        deployment_url = reverse(self._get_endpoint('asset-deployment'),
+                                 kwargs={'uid': self.asset_uid})
+
+
+        # archive
+        response = self.client.patch(deployment_url, {
+            'backend': 'mock',
+            'active': False,
+        })
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert self.asset.date_deployed == original_date_deployed
+
+        # unarchive
+        response = self.client.patch(deployment_url, {
+            'backend': 'mock',
+            'active': True,
+        })
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert self.asset.date_deployed == original_date_deployed

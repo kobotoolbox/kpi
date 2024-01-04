@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 import copy
 import io
 import json
@@ -6,10 +8,13 @@ import posixpath
 import re
 import uuid
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+
+from django.db.models.functions import Coalesce
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -34,12 +39,15 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
     InvalidXPathException,
+    KobocatCommunicationError,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
     XPathNotFoundException,
@@ -50,6 +58,7 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
@@ -57,7 +66,7 @@ from .kc_access.shadow_models import (
     KobocatXForm,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
-    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
+    ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -72,7 +81,7 @@ from ..exceptions import (
 )
 
 from kobo.apps.subsequences.utils import stream_with_extras
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -81,36 +90,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     `self.asset._deployment_data` models.JSONField (referred as "deployment data")
     """
 
-    PROTECTED_XML_FIELDS = [
-        '__version__',
-        'formhub',
-        'meta',
-    ]
-
     SYNCED_DATA_FILE_TYPES = {
         AssetFile.FORM_MEDIA: 'media',
         AssetFile.PAIRED_DATA: 'paired_data',
     }
-
-    SUBMISSION_UUID_PATTERN = re.compile(
-        r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}'
-    )
-
-    @property
-    def all_time_submission_count(self):
-        try:
-            xform_id = self.xform_id
-        except InvalidXFormException:
-            return 0
-
-        result = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
-            xform_id=xform_id
-        ).aggregate(Sum('counter'))
-
-        if count := result['counter__sum']:
-            return count
-
-        return 0
 
     @property
     def attachment_storage_bytes(self):
@@ -129,7 +112,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # if only the owner has permissions, no need to go further
         if len(users_with_perms) == 1 and \
-                list(users_with_perms)[0].id == self.asset.owner_id:
+            list(users_with_perms)[0].id == self.asset.owner_id:
             return
 
         with kc_transaction_atomic():
@@ -165,14 +148,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
+        # Otherwise, they have full access.
         if submission_ids:
-            partial_perms = True
             # Reset query, because all the submission ids have been already
             # retrieve
             data['query'] = {}
         else:
-            partial_perms = False
             submission_ids = data['submission_ids']
 
         submissions = self.get_submissions(
@@ -246,33 +227,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
-    @property
-    def current_month_submission_count(self):
-        try:
-            xform_id = self.xform_id
-        except InvalidXFormException:
-            return 0
-
-        today = timezone.now().date()
-        try:
-            monthly_counter = (
-                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
-                    'counter'
-                ).get(
-                    xform_id=xform_id,
-                    year=today.year,
-                    month=today.month,
-                )
-            )
-        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
-            return 0
-        else:
-            return monthly_counter.counter
-
     def connect(self, identifier=None, active=False):
         """
         `POST` initial survey content to KoBoCAT and create a new project.
         Store results in deployment data.
+        CAUTION: Does not save deployment data to the database!
         """
         # If no identifier was provided, construct one using
         # `settings.KOBOCAT_URL` and the uid of the asset
@@ -342,25 +301,56 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'version': self.asset.version_id,
         })
 
-    @property
-    def current_month_nlp_tracking(self):
+    @staticmethod
+    def nlp_tracking_data(asset_ids, start_date=None):
         """
-        Get the current month's NLP tracking data
+        Get the NLP tracking data since a specified date
+        If no date is provided, get all-time data
         """
-        today = datetime.today()
+        filter_args = {}
+        if start_date:
+            filter_args = {'date__gte': start_date}
         try:
-            monthly_nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('counters').get(
-                    asset_id=self.asset.id,
-                    year=today.year,
-                    month=today.month,
-                ).counters
+            nlp_tracking = (
+                NLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
+                .filter(
+                    asset_id__in=asset_ids,
+                    **filter_args
+                ).aggregate(
+                    total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
+                    total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
+                )
             )
-        except MonthlyNLPUsageCounter.DoesNotExist:
-            # return empty dict to match `monthly_nlp_tracking` type
-            return {}
+        except NLPUsageCounter.DoesNotExist:
+            return {
+                'total_nlp_asr_seconds': 0,
+                'total_nlp_mt_characters': 0,
+            }
         else:
-            return monthly_nlp_tracking
+            return nlp_tracking
+
+    def submission_count_since_date(self, start_date=None):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
+        today = timezone.now().date()
+        filter_args = {
+            'xform_id': xform_id,
+        }
+        if start_date:
+            filter_args['date__range'] = [start_date, today]
+        try:
+            # Note: this is replicating the functionality that was formerly in `current_month_submission_count`
+            # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
+            total_submissions = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
+                'date', 'counter'
+            ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
+        except ReadOnlyKobocatDailyXFormSubmissionCounter.DoesNotExist:
+            return 0
+        else:
+            return total_submissions['count_sum']
 
     @staticmethod
     def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
@@ -385,14 +375,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
-            if (
-                hasattr(e, 'response')
-                and e.response.status_code == status.HTTP_404_NOT_FOUND
-            ):
+            if not hasattr(e, 'response'):
+                raise
+
+            if e.response.status_code == status.HTTP_404_NOT_FOUND:
                 # The KC project is already gone!
                 pass
+            elif e.response.status_code in [
+                status.HTTP_502_BAD_GATEWAY,
+                status.HTTP_504_GATEWAY_TIMEOUT,
+            ]:
+                raise KobocatCommunicationError
+            elif e.response.status_code == status.HTTP_401_UNAUTHORIZED:
+                raise KobocatCommunicationError(
+                    'Could not authenticate to KoBoCAT'
+                )
             else:
                 raise
+
         super().delete()
 
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
@@ -539,8 +539,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 t('Your submission XML is malformed.')
             )
         try:
-            deprecated_uuid = xml_root.find('.//meta/deprecatedID').text
-            xform_uuid = xml_root.find('.//formhub/uuid').text
+            deprecated_uuid = xml_root.find(
+                self.SUBMISSION_DEPRECATED_UUID_XPATH
+            ).text
+            xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is missing critical elements.')
@@ -592,8 +594,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
         `url`
         """
+        kobocat_url = settings.KOBOCAT_URL
+        # If old domain name is detected, use it for search&replace below
+        if settings.KOBOCAT_OLD_URL and settings.KOBOCAT_OLD_URL in url:
+            kobocat_url = settings.KOBOCAT_OLD_URL
+
         return re.sub(
-            pattern='^{}'.format(re.escape(settings.KOBOCAT_URL)),
+            pattern='^{}'.format(re.escape(kobocat_url)),
             repl=settings.KOBOCAT_INTERNAL_URL,
             string=url
         )
@@ -626,10 +633,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError:
             submission_uuid = submission_id_or_uuid
         if submission_uuid:
-            if not re.match(self.SUBMISSION_UUID_PATTERN, submission_uuid):
-                # not sure how necessary such a sanitization step is,
-                # but it's not hurting anything
-                raise SubmissionNotFoundException
             # `_uuid` is the legacy identifier that changes (per OpenRosa spec)
             # after every edit; `meta/rootUuid` remains consistent across
             # edits. prefer the latter when fetching by UUID.
@@ -677,14 +680,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise XPathNotFoundException
 
             filters = {
-                # TODO: hide attachments that were deleted or replaced; see
-                # kobotoolbox/kobocat#792
-                # 'replaced_at': None,
                 'media_file_basename': attachment_filename,
             }
         else:
             filters = {
-                # 'replaced_at': None,
                 'pk': attachment_id,
             }
 
@@ -719,6 +718,73 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return ReadOnlyKobocatAttachment.objects.filter(
             instance_id=submission['_id']
         )
+
+    def get_daily_counts(
+        self, user: 'auth.User', timeframe: tuple[date, date]
+    ) -> dict:
+
+        user = get_database_user(user)
+
+        if user != self.asset.owner and self.asset.has_perm(
+            user, PERM_PARTIAL_SUBMISSIONS
+        ):
+            # We cannot use cached values from daily counter when user has
+            # partial permissions. We need to use MongoDB aggregation engine
+            # to retrieve the correct value according to user's permissions.
+            permission_filters = self.asset.get_filters_for_partial_perm(
+                user.pk, perm=PERM_VIEW_SUBMISSIONS
+            )
+
+            if not permission_filters:
+                return {}
+
+            query = {
+                '_userform_id': self.mongo_userform_id,
+                '_submission_time': {
+                    '$gte': f'{timeframe[0]}',
+                    '$lte': f'{timeframe[1]}T23:59:59'
+                }
+            }
+
+            query = MongoHelper.get_permission_filters_query(
+                query, permission_filters
+            )
+
+            documents = settings.MONGO_DB.instances.aggregate([
+                {
+                    '$match': query,
+                },
+                {
+                    '$group': {
+                        '_id': {
+                            '$dateToString': {
+                                'format': '%Y-%m-%d',
+                                'date': {
+                                    '$dateFromString': {
+                                        'format': "%Y-%m-%dT%H:%M:%S",
+                                        'dateString': "$_submission_time"
+                                    }
+                                }
+                            }
+                        },
+                        'count': {'$sum': 1}
+                    }
+                }
+            ])
+            return {doc['_id']: doc['count'] for doc in documents}
+
+        # Trivial case, user has 'view_permissions'
+        daily_counts = (
+            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+                'date', 'counter'
+            ).filter(
+                xform_id=self.xform_id,
+                date__range=timeframe,
+            )
+        )
+        return {
+            str(count['date']): count['counter'] for count in daily_counts
+        }
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((
@@ -777,6 +843,31 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             except KeyError:
                 pass
         return links
+
+    def get_orphan_postgres_submissions(self) -> Optional[QuerySet, bool]:
+        """
+        Return a queryset of all submissions still present in PostgreSQL
+        database related to `self.xform`.
+        Return False if one submission still exists in MongoDB at
+        least.
+        Otherwise, if `self.xform` does not exist (anymore), return None
+        """
+        all_submissions = self.get_submissions(
+            user=self.asset.owner,
+            fields=['_id'],
+            skip_count=True,
+        )
+        try:
+            next(all_submissions)
+        except StopIteration:
+            pass
+        else:
+            return False
+
+        try:
+            return ReadOnlyKobocatInstance.objects.filter(xform_id=self.xform_id)
+        except InvalidXFormException:
+            return None
 
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'
@@ -871,32 +962,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
-    @property
-    def nlp_tracking(self):
-        """
-        Get the current month's NLP tracking data
-        """
-        try:
-            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
-                asset_id=self.asset.id
-            )
-            total_counters = {}
-            for nlp_counters in nlp_usage_counters:
-                counters = nlp_counters.counters
-                for key in counters.keys():
-                    if key not in total_counters:
-                        total_counters[key] = 0
-                    total_counters[key] += counters[key]
-        except MonthlyNLPUsageCounter.DoesNotExist:
-            # return empty dict match `total_counters` type
-            return {}
-        else:
-            return total_counters
-
     def redeploy(self, active=None):
         """
         Replace (overwrite) the deployment, keeping the same identifier, and
-        optionally changing whether the deployment is active
+        optionally changing whether the deployment is active.
+        CAUTION: Does not save deployment data to the database!
         """
         if active is None:
             active = self.active
@@ -1393,8 +1463,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
     def __get_submissions_in_xml(
-            self,
-            **params
+        self,
+        **params
     ) -> Generator[str, None, None]:
         """
         Retrieve submissions directly from PostgreSQL.

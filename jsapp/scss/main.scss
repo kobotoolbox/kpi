@@ -1,3 +1,5 @@
+@import '~normalize.css';
+
 @import "variables";
 
 @import "./libs/mdl";
@@ -10,7 +12,6 @@
 
 @import "./libs/alertify.overrides";
 @import "./libs/react-select.overrides";
-@import "./libs/react-tagsinput";
 
 // Form Builder related stylesheets
 @import "stylesheets/partials/select2_override";
@@ -36,8 +37,6 @@
 @import "./components/kobo.form-builder";
 @import "./components/kobo.form-builder-message-box";
 @import "./components/kobo.locking";
-@import "./components/kobo.collection-asset-list";
-@import "./components/kobo.asset-row";
 @import "./components/kobo.lib-nav";
 @import "./components/kobo.lib-list";
 @import "./components/kobo.form-view";

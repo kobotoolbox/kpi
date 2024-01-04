@@ -15,7 +15,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import {withRouter} from 'js/router/legacy';
-import { observer } from 'mobx-react';
+import {when} from 'mobx';
 
 class LibraryNewItemForm extends React.Component {
   constructor(props) {
@@ -28,7 +28,7 @@ class LibraryNewItemForm extends React.Component {
   }
 
   componentDidMount() {
-    observer(sessionStore, () => {
+    when(() => sessionStore.isInitialLoadComplete, () => {
       this.setState({isSessionLoaded: true});
     });
   }

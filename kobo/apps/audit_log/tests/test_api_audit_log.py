@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from ..models import AuditLog
+from ..models import AuditAction, AuditLog
 
 
 class ApiAuditLogTestCase(BaseTestCase):
@@ -46,7 +46,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            method='delete'
+            action=AuditAction.DELETE
         )
         self.client.login(username='admin', password='pass')
         expected = [{
@@ -54,7 +54,8 @@ class ApiAuditLogTestCase(BaseTestCase):
             'model_name': 'bar',
             'object_id': 1,
             'user': 'http://testserver/users/someuser/',
-            'method': 'DELETE',
+            'user_uid': someuser.extra_details.uid,
+            'action': 'DELETE',
             'metadata': {},
             'date_created': date_created,
         }]
@@ -74,7 +75,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            method='update',
+            action=AuditAction.UPDATE,
         )
         AuditLog.objects.create(
             user=anotheruser,
@@ -82,7 +83,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            method='delete',
+            action=AuditAction.DELETE,
         )
         self.client.login(username='admin', password='pass')
         expected = [{
@@ -90,11 +91,12 @@ class ApiAuditLogTestCase(BaseTestCase):
             'model_name': 'bar',
             'object_id': 1,
             'user': 'http://testserver/users/anotheruser/',
-            'method': 'DELETE',
+            'user_uid': anotheruser.extra_details.uid,
+            'action': 'DELETE',
             'metadata': {},
             'date_created': date_created,
         }]
-        response = self.client.get(f'{self.audit_log_list_url}?q=method:delete')
+        response = self.client.get(f'{self.audit_log_list_url}?q=action:delete')
         audit_logs_count = AuditLog.objects.count()
         assert response.status_code == status.HTTP_200_OK
         assert audit_logs_count == 2

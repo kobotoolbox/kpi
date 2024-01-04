@@ -1,23 +1,24 @@
 # coding: utf-8
-import json
 import logging
 import os
 import re
 import string
 import subprocess
+from datetime import datetime
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
 import django.conf.locale
+import environ
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
-from django.utils.translation import get_language_info
-import environ
+from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
 
+from kpi.utils.json import LazyJSONSerializable
+from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-
 
 env = environ.Env()
 
@@ -58,7 +59,10 @@ if SESSION_COOKIE_DOMAIN:
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
-SESSION_COOKIE_AGE = 604800
+SESSION_COOKIE_AGE = env.int('DJANGO_SESSION_COOKIE_AGE', 604800)
+
+# Set language cookie age to same value as session cookie
+LANGUAGE_COOKIE_AGE = SESSION_COOKIE_AGE
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", False)
@@ -82,16 +86,17 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_prometheus',
     'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
-    "kobo.apps.accounts",
+    'kobo.apps.accounts',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
-    'hub',
+    'hub.HubAppConfig',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -100,7 +105,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'oauth2_provider',
-    'markitup',
     'django_digest',
     'kobo.apps.organizations',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
@@ -121,13 +125,19 @@ INSTALLED_APPS = (
     'kobo.apps.project_views.ProjectViewAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
+    'kobo.apps.trash_bin.TrashBinAppConfig',
+    'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
+    'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
+    'kobo.apps.django_allauth',
 )
 
 MIDDLEWARE = [
+    'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+    'hub.middleware.LocaleMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -186,7 +196,7 @@ CONSTANCE_CONFIG = {
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
-        'A synchronus export request will return the last export generated '
+        'A synchronous export request will return the last export generated '
         'with the same settings unless it is older than this value (seconds)'
     ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
@@ -232,8 +242,8 @@ CONSTANCE_CONFIG = {
         'Enable two-factor authentication'
     ),
     'MFA_LOCALIZED_HELP_TEXT': (
-        json.dumps({
-            'default': (
+        LazyJSONSerializable({
+            'default': t(
                 'If you cannot access your authenticator app, please enter one '
                 'of your backup codes instead. If you cannot access those '
                 'either, then you will need to request assistance by '
@@ -244,38 +254,41 @@ CONSTANCE_CONFIG = {
                 'a valid language code, but this entry is here to show you '
                 'an example of adding another message in a different language.'
             )
-        }, indent=0),  # `indent=0` at least adds newlines
+        }),
         (
-            'JSON object of guidance messages presented to users when they '
-            'click the "Problems with the token" link after being prompted for '
-            'their verification token. Markdown syntax is supported, and '
-            '`##support email##` will be replaced with the value of the '
-            '`SUPPORT_EMAIL` setting on this page.\n'
+            'Guidance message presented when users click the '
+            '"Problems with the token" link.\n\n'
+            '`##support email##` is a placeholder for the `SUPPORT_EMAIL` '
+            'setting.\n'
+            'Markdown syntax is supported.\n'
+            'The “default” message will be used if no translations are provided.'
+            ' The “default” should be in English.\n'
             'To add messages in other languages, follow the example of '
-            '`some-other-language`, but use a valid language code (e.g. `fr` '
-            'for French).'
+            '“some-other-language“, but replace “some-other-language“ with a '
+            'valid language code (e.g. “fr“ for French).'
+
         ),
         # Use custom field for schema validation
-        'mfa_help_text_fields_jsonschema'
+        'i18n_text_jsonfield_schema'
     ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
         'List of invited usernames, one per line, who will have access to NLP '
-        'ASR/MT processing via external (costly) APIs. Enter * to invite '
-        'all users'
+        'ASR/MT processing via external (costly) APIs.\nEnter * to invite '
+        'all users.'
     ),
     'ASR_MT_GOOGLE_CREDENTIALS': (
         '',
         'The JSON content of a private key file generated by the Google Cloud '
-        'IAM & Admin console. Leave blank to use a different Google '
-        'authentication mechanism'
+        'IAM & Admin console.\nLeave blank to use a different Google '
+        'authentication mechanism.'
     ),
     'USER_METADATA_FIELDS': (
-        json.dumps([
+        LazyJSONSerializable([
+            {'name': 'name', 'required': True},
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},
             {'name': 'sector', 'required': False},
-            {'name': 'gender', 'required': False},
             {'name': 'bio', 'required': False},
             {'name': 'city', 'required': False},
             {'name': 'country', 'required': False},
@@ -284,30 +297,39 @@ CONSTANCE_CONFIG = {
             {'name': 'instagram', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
-        'Display (and optionally require) these metadata fields for users. '
-        "Possible fields are 'organization', 'organization_website', "
-        "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
-        "and 'instagram'",
+        'Display (and optionally require) these metadata fields for users.\n'
+        "Possible fields are:\n"
+        "'organization', 'organization_website', 'sector', 'gender', 'bio', "
+        "'city', 'country', 'twitter', 'linkedin', and 'instagram'.\n\n"
+        'To add another language, follow the example below.\n\n'
+        '{"name": "name", "required": False, "label": '
+        '{"default": "Full Name", "fr": "Nom Complet"}}\n'
+        "'default' is a required field within the 'label' dict, but 'label' is optional.",
         # Use custom field for schema validation
-        'metadata_fields_jsonschema'
+        'long_metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
-        json.dumps([
+        LazyJSONSerializable([
             {'name': 'sector', 'required': False},
             {'name': 'country', 'required': False},
-            # {'name': 'operational_purpose', 'required': False},
-            # {'name': 'collects_pii', 'required': False},
+            {'name': 'description', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
-        'Display (and optionally require) these metadata fields for projects. '
-        "Possible fields are 'sector', 'country', 'operational_purpose', and "
-        "'collects_pii'.",
+        'Display (and optionally require) these metadata fields for projects.\n'
+        "Possible fields are:\n"
+        "'sector', 'country', 'operational_purpose', 'collects_pii', "
+        "and 'description'\n\n"
+        'To add another language, follow the example below.\n\n'
+        '{"name": "sector", "required": False, "label": '
+        '{"default": "Sector", "fr": "Secteur"}}\n'
+        "'default' is a required field within the 'label' dict, but 'label' is optional.",
         # Use custom field for schema validation
         'metadata_fields_jsonschema'
     ),
     'SECTOR_CHOICES': (
         '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
-        "Options available for the 'sector' metadata field, one per line."
+        "Options available for the 'sector' metadata field, one per line.",
+        'long_textfield'
     ),
     'OPERATIONAL_PURPOSE_CHOICES': (
         '',
@@ -316,19 +338,243 @@ CONSTANCE_CONFIG = {
     ),
     'ASSET_SNAPSHOT_DAYS_RETENTION': (
         30,
-        "Number of days to keep asset snapshots"
+        'Number of days to keep asset snapshots',
+        'positive_int'
+    ),
+    'FREE_TIER_THRESHOLDS': (
+        LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
+        'Free tier thresholds: storage in kilobytes, '
+        'data (number of submissions), '
+        'minutes of transcription, '
+        'number of translation characters',
+        # Use custom field for schema validation
+        'free_tier_threshold_jsonschema',
+    ),
+    'FREE_TIER_DISPLAY': (
+        LazyJSONSerializable(FREE_TIER_EMPTY_DISPLAY),
+        'Free tier frontend settings: name to use for the free tier, '
+        'array of text strings to display on the feature list of the Plans page',
+        'free_tier_display_jsonschema',
+    ),
+    'FREE_TIER_CUTOFF_DATE': (
+        datetime(2050, 1, 1).date(),
+        'Users on the free tier who registered before this date will\n'
+        'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
+    ),
+    'PROJECT_TRASH_GRACE_PERIOD': (
+        7,
+        'Number of days to keep projects in trash after users (soft-)deleted '
+        'them and before automatically hard-deleting them by the system',
+        'positive_int',
+    ),
+    'ACCOUNT_TRASH_GRACE_PERIOD': (
+        30 * 6,
+        'Number of days to keep deactivated accounts in trash before '
+        'automatically hard-deleting all their projects and data.\n'
+        'Use -1 to require a superuser to empty the trash manually instead of '
+        'having the system empty it automatically.',
+        'positive_int_minus_one',
+    ),
+    # Toggle for ZXCVBN
+    'ENABLE_PASSWORD_ENTROPY_METER': (
+        True,
+        'Display an entropy meter and password quality suggestions whenever users change their passwords.',
+    ),
+    'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION': (
+        False,
+        'Enable minimum length validation',
+    ),
+    'MINIMUM_PASSWORD_LENGTH': (
+        10,
+        'Minimum length for all passwords.',
+        int,
+    ),
+    'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION': (
+        False,
+        'Enable user attribute similarity validation. '
+        'See `PASSWORD_USER_ATTRIBUTES` below for customization.',
+    ),
+    'PASSWORD_USER_ATTRIBUTES': (
+        (
+            'username\n'
+            'full_name\n'
+            'email'
+        ),
+        'List (one per line) all user attributes for similarity validation.\n'
+        "Possible attributes are 'username', 'full_name', 'email', 'organization'."
+    ),
+    'ENABLE_COMMON_PASSWORD_VALIDATION': (
+        False,
+        'Enable common password validation.\n'
+        'To customize the list, go to Configuration file section and add common password file.\n'
+        'Django default list is based on https://tinyurl.com/django3-2-common-passwords.',
+    ),
+    'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION': (
+        False,
+        'Enable custom character rules',
+    ),
+    'PASSWORD_CUSTOM_CHARACTER_RULES': (
+        (
+            '[[:lower:]]\n'
+            '[[:upper:]]\n'
+            '\d\n'
+            '[\W_]'
+        ),
+        'List all custom character rules as regular expressions supported '
+        'by `regex` python library.\n'
+        'One per line.'
+        ,
+    ),
+    'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS': (
+        3,
+        'The minimum number of character rules to pass.',
+        int,
+    ),
+    'ENABLE_MOST_RECENT_PASSWORD_VALIDATION': (
+        False,
+        'Enable most recent password validation which will prevent the user from '
+        'reusing the most recent password.',
+    ),
+    'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT': (
+        False,
+        'Enable custom password guidance text to help users create their passwords.',
+    ),
+    'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
+        LazyJSONSerializable(
+            {
+                'default': t(
+                    'The password must be at least 10 characters long and'
+                    ' contain 3 or more of the following: uppercase letters,'
+                    ' lowercase letters, numbers, and special characters. It'
+                    ' cannot be similar to your name, username, or email'
+                    ' address.'
+                ),
+                'some-other-language': (
+                    'This will never appear because `some-other-language` is'
+                    ' not a valid language code, but this entry is here to show'
+                    ' you an example of adding another message in a different'
+                    ' language.'
+                ),
+            }
+        ),
+        (
+            'Guidance message presented when users create or modify a password. '
+            'It should reflect the defined password rules.\n\n'
+            'Markdown syntax is supported.\n'
+            'The “default” message will be used if no translations are provided.'
+            ' The “default” should be in English.\n'
+            'To add messages in other languages, follow the example of '
+            '“some-other-language“, but replace “some-other-language“ with a '
+            'valid language code (e.g. “fr“ for French).'
+        ),
+        'i18n_text_jsonfield_schema',
     ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
+    'free_tier_threshold_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
+        {'widget': 'django.forms.Textarea'},
+    ],
+    'free_tier_display_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
+        {'widget': 'django.forms.Textarea'},
+    ],
+    'i18n_text_jsonfield_schema': [
+        'kpi.fields.jsonschema_form_field.I18nTextJSONField',
+        {'widget': 'django.forms.Textarea'},
+    ],
+    'long_metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.UserMetadataFieldsListField',
+        {
+            'widget': 'django.forms.Textarea',
+            'widget_kwargs': {
+                'attrs': {'rows': 45}
+            }
+        },
+    ],
+    'long_textfield': [
+        'django.forms.fields.CharField',
+        {
+            'widget': 'django.forms.Textarea',
+            'widget_kwargs': {
+                'attrs': {'rows': 30}
+            }
+        },
+    ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
     ],
-    'mfa_help_text_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MfaHelpTextField',
-        {'widget': 'django.forms.Textarea'},
-    ],
+    'positive_int': ['django.forms.fields.IntegerField', {
+        'min_value': 0
+    }],
+    'positive_int_minus_one': ['django.forms.fields.IntegerField', {
+        'min_value': -1
+    }],
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    'General Options': (
+        'REGISTRATION_OPEN',
+        'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
+        'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'TERMS_OF_SERVICE_URL',
+        'PRIVACY_POLICY_URL',
+        'SOURCE_CODE_URL',
+        'SUPPORT_EMAIL',
+        'SUPPORT_URL',
+        'COMMUNITY_URL',
+        'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+        'EXPOSE_GIT_REV',
+        'FRONTEND_MIN_RETRY_TIME',
+        'FRONTEND_MAX_RETRY_TIME',
+    ),
+    'Rest Services': (
+        'ALLOW_UNSECURED_HOOK_ENDPOINTS',
+        'HOOK_MAX_RETRIES',
+    ),
+    'Natural language processing': (
+        'ASR_MT_INVITEE_USERNAMES',
+        'ASR_MT_GOOGLE_CREDENTIALS',
+    ),
+    'Security': (
+        'SSRF_ALLOWED_IP_ADDRESS',
+        'SSRF_DENIED_IP_ADDRESS',
+        'MFA_ISSUER_NAME',
+        'MFA_ENABLED',
+        'MFA_LOCALIZED_HELP_TEXT',
+    ),
+    'Metadata options': (
+        'USER_METADATA_FIELDS',
+        'PROJECT_METADATA_FIELDS',
+        'SECTOR_CHOICES',
+        'OPERATIONAL_PURPOSE_CHOICES',
+    ),
+    'Password Validation': (
+        'ENABLE_PASSWORD_ENTROPY_METER',
+        'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
+        'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
+        'ENABLE_COMMON_PASSWORD_VALIDATION',
+        'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
+        'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
+        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
+        'MINIMUM_PASSWORD_LENGTH',
+        'PASSWORD_USER_ATTRIBUTES',
+        'PASSWORD_CUSTOM_CHARACTER_RULES',
+        'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
+        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
+    ),
+    'Trash bin': (
+        'ASSET_SNAPSHOT_DAYS_RETENTION',
+        'ACCOUNT_TRASH_GRACE_PERIOD',
+        'PROJECT_TRASH_GRACE_PERIOD',
+    ),
+    'Tier settings': (
+        'FREE_TIER_THRESHOLDS',
+        'FREE_TIER_DISPLAY',
+        'FREE_TIER_CUTOFF_DATE',
+    ),
 }
 
 # Tell django-constance to use a database model instead of Redis
@@ -343,9 +589,6 @@ class DoNotUseRunner:
 
 
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
-
-# used in kpi.models.sitewide_messages
-MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 
 # The backend that handles user authentication must match KoBoCAT's when
 # sharing sessions. ModelBackend does not interfere with object-level
@@ -395,9 +638,40 @@ DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
 django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
+DJANGO_LANGUAGE_CODES = env.str(
+    'DJANGO_LANGUAGE_CODES',
+    default=(
+        'am '  # Amharic
+        'ar '  # Arabic
+        'bn '  # Bengali
+        'cs '  # Czech
+        'de '  # German
+        'en '  # English
+        'es '  # Spanish
+        'fa '  # Persian/Farsi
+        'fr '  # French
+        'hi '  # Hindi
+        'hu '  # Hungarian
+        'id '  # Indonesian
+        'ja '  # Japanese
+        'ku '  # Kurdish
+        'ln '  # Lingala
+        'my '  # Burmese/Myanmar
+        'ny '  # Chewa/Chichewa/Nyanja
+        'ne '  # Nepali
+        'pl '  # Polish
+        'pt '  # Portuguese
+        'ru '  # Russian
+        'th '  # Thai
+        'tr '  # Turkish
+        'uk '  # Ukrainian
+        'vi '  # Vietnamese
+        'zh-hans'  # Chinese Simplified
+    )
+)
 LANGUAGES = [
     (lang_code, get_language_info(lang_code)['name_local'])
-        for lang_code in env.str('DJANGO_LANGUAGE_CODES', 'en').split(' ')
+    for lang_code in DJANGO_LANGUAGE_CODES.split(' ')
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -431,7 +705,14 @@ PRIVATE_STORAGE_AUTH_FUNCTION = \
     'kpi.utils.private_storage.superuser_or_username_matches_prefix'
 
 # django-markdownx, for in-app messages
-MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
+MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
+MARKDOWNX_UPLOAD_CONTENT_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/svg+xml',
+    'image/gif',
+    'image/webp',
+]
 # Github-flavored Markdown from `py-gfm`,
 # ToDo Uncomment when it's compatible with Markdown 3.x
 # MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
@@ -490,6 +771,7 @@ REST_FRAMEWORK = {
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
@@ -519,6 +801,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
+                'kpi.context_processors.custom_password_guidance_text',
                 'kpi.context_processors.external_service_tokens',
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
@@ -531,6 +814,7 @@ TEMPLATES = [
     },
 ]
 
+DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
 RAVEN_JS_DSN = None
@@ -539,11 +823,16 @@ if RAVEN_JS_DSN_URL:
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
+
+# In case server must serve two KoBoCAT domain names (e.g. during a
+# domain name transfer), `settings.KOBOCAT_OLD_URL` adds support for
+# the domain name.
+KOBOCAT_OLD_URL = os.environ.get('KOBOCAT_OLD_URL')
+
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat')
 
 KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
-KOBOFORM_INTERNAL_URL = os.environ.get('KOBOFORM_INTERNAL_URL', 'http://kpi')
 
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
@@ -556,10 +845,21 @@ STRIPE_ENABLED = False
 if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
     STRIPE_ENABLED = True
 
+
+def dj_stripe_request_callback_method():
+    # This method exists because dj-stripe's documentation doesn't reflect reality.
+    # It claims that DJSTRIPE_SUBSCRIBER_MODEL no longer needs a request callback but
+    # this error occurs without it: `DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK must
+    # be implemented if a DJSTRIPE_SUBSCRIBER_MODEL is defined`
+    # It doesn't need to do anything other than exist
+    # https://github.com/dj-stripe/dj-stripe/issues/1900
+    pass
+
+
 DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
-STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID", None)
 STRIPE_LIVE_MODE = env.bool('STRIPE_LIVE_MODE', False)
 STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', "pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM")
 STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
@@ -605,8 +905,7 @@ if env.str("FRONTEND_DEV_MODE", None) == "host":
     CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
-CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
-CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
+CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'data:',
     'https://*.openstreetmap.org',
@@ -617,10 +916,10 @@ CSP_IMG_SRC = CSP_DEFAULT_SRC + [
 CSP_FRAME_SRC = CSP_DEFAULT_SRC
 
 if GOOGLE_ANALYTICS_TOKEN:
-    google_domain = '*.google-analytics.com'
-    CSP_SCRIPT_SRC.append(google_domain)
-    CSP_CONNECT_SRC.append(google_domain)
-    CSP_IMG_SRC.append(google_domain)
+    # Taken from https://developers.google.com/tag-platform/tag-manager/csp#google_analytics_4_google_analytics
+    CSP_SCRIPT_SRC.append('https://*.googletagmanager.com')
+    CSP_CONNECT_SRC.extend(['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'])
+    CSP_IMG_SRC.extend(['https://*.google-analytics.com', 'https://*.googletagmanager.com'])
 if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
     raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
     CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
@@ -664,9 +963,21 @@ CELERY_TASK_SOFT_TIME_LIMIT = int(
 
 CELERY_BEAT_SCHEDULE = {
     # Schedule every day at midnight UTC. Can be customized in admin section
-    "send-hooks-failures-reports": {
-        "task": "kobo.apps.hook.tasks.failures_reports",
-        "schedule": crontab(hour=0, minute=0),
+    'send-hooks-failures-reports': {
+        'task': 'kobo.apps.hook.tasks.failures_reports',
+        'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 30 minutes
+    'trash-bin-garbage-collector': {
+        'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
+        'schedule': crontab(minute=30),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every monday at 00:30
+    'markdown-images-garbage-collector': {
+        'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
+        'schedule': crontab(hour=0, minute=30, day_of_week=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }
@@ -689,8 +1000,18 @@ if 'KOBOCAT_URL' in os.environ:
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
+# Increase limits for long-running tasks
+# Notes: They are custom name, not part of `CELERY_*` namespace.
+CELERY_LONG_RUNNING_TASK_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_TASK_TIME_LIMIT', 4260)  # seconds
+)
+
+CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT', 4200)  # seconds
+)
 
 ''' Django allauth configuration '''
+# User.email should continue to be used instead of the EmailAddress model
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_EMAIL_REQUIRED = True
@@ -708,35 +1029,11 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
 }
-
-# See https://django-allauth.readthedocs.io/en/latest/configuration.html
-# Map env vars to upstream dict values, include exact case. Underscores for delimiter.
-# Example: SOCIALACCOUNT_PROVIDERS_provider_SETTING
-# Use numbers for arrays such as _1_FOO, _1_BAR, _2_FOO, _2_BAR
-SOCIALACCOUNT_PROVIDERS = {}
-if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
-    SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
-# Parse oidc settings as nested dict in array. Example:
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google-kobo" # Must be unique
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_server_url: "https://accounts.google.com"
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_name: "Kobo Google Apps"
-# Only OIDC supports multiple providers. For example, to add two Google Apps sign ins - use
-# OIDC and assign them a different server number. Do not use the allauth google provider.
-oidc_prefix = "SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_"
-oidc_pattern = re.compile(r"{prefix}\w+".format(prefix=oidc_prefix))
-oidc_servers = {}
-for key, value in {
-    key.replace(oidc_prefix, ""): val
-    for key, val in os.environ.items()
-    if oidc_pattern.match(key)
-}.items():
-    number, setting = key.split("_", 1)
-    if number in oidc_servers:
-        oidc_servers[number][setting] = value
-    else:
-        oidc_servers[number] = {setting: value}
-oidc_servers = [x for x in oidc_servers.values()]
-SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
+# For SSO, the signup form is prepopulated with the account email
+# If set True, the email field in the SSO signup form will be readonly
+UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
+    "UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE", False
+)
 
 WEBPACK_LOADER = {
     'DEFAULT': {
@@ -748,6 +1045,10 @@ WEBPACK_LOADER = {
 
 
 ''' Email configuration '''
+# This setting sets the prefix in the subject line of the account activation email
+# The default is the URL of the server. Set to blank to fit the email requirements
+ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
+
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
                                'django.core.mail.backends.filebased.EmailBackend')
 
@@ -868,8 +1169,8 @@ LOGGING = {
 sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
 if sentry_dsn:
     import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
 
     # All of this is already happening by default!
@@ -884,8 +1185,20 @@ if sentry_dsn:
             CeleryIntegration(),
             sentry_logging
         ],
-        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.05),
+        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.01),
         send_default_pii=True
+    )
+
+
+if ENABLE_METRICS := env.bool('ENABLE_METRICS', False):
+    MIDDLEWARE.insert(0, 'django_prometheus.middleware.PrometheusBeforeMiddleware')
+    MIDDLEWARE.append('django_prometheus.middleware.PrometheusAfterMiddleware')
+# Workaround https://github.com/korfuri/django-prometheus/issues/34
+PROMETHEUS_EXPORT_MIGRATIONS = False
+# https://github.com/korfuri/django-prometheus/blob/master/documentation/exports.md#exporting-metrics-in-a-wsgi-application-with-multiple-processes-per-process
+if start_port := env.int('METRICS_START_PORT', None):
+    PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(
+        start_port, env.int('METRICS_END_PORT', start_port + 10)
     )
 
 
@@ -991,6 +1304,9 @@ CACHES = {
     'default': env.cache(default='redis://redis_cache:6380/3'),
 }
 
+# How long to retain cached responses for kpi endpoints
+ENDPOINT_CACHE_DURATION = env.int('ENDPOINT_CACHE_DURATION', 60 * 15)  # 15 minutes
+
 ENV = None
 
 # The maximum size in bytes that a request body may be before a
@@ -1069,3 +1385,21 @@ SERVICE_ACCOUNT = {
     ),
     'WHITELISTED_HOSTS': env.list('SERVICE_ACCOUNT_WHITELISTED_HOSTS', default=[]),
 }
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'kpi.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'kpi.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'kpi.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'kpi.password_validation.CustomRulesValidator',
+    },
+    {
+        'NAME': 'kpi.password_validation.MostRecentPasswordValidator',
+    },
+]

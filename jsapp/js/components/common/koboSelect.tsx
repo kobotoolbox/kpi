@@ -8,12 +8,13 @@ import type {IconSize} from 'js/components/common/icon';
 import Icon from 'js/components/common/icon';
 import type {ButtonSize} from 'js/components/common/button';
 import {ButtonToIconMap} from 'js/components/common/button';
-import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import koboDropdownActions from 'js/components/common/koboDropdownActions';
 import './koboSelect.scss';
 
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
 bem.KoboSelect = makeBem(null, 'k-select');
+bem.KoboSelect__label = makeBem(bem.KoboSelect, 'label', 'label');
 bem.KoboSelect__trigger = makeBem(bem.KoboSelect, 'trigger');
 bem.KoboSelect__triggerSelectedOption = makeBem(bem.KoboSelect, 'trigger-selected-option', 'span');
 bem.KoboSelect__searchBox = makeBem(bem.KoboSelect, 'search-box', 'input');
@@ -21,6 +22,7 @@ bem.KoboSelect__clear = makeBem(bem.KoboSelect, 'clear');
 bem.KoboSelect__menu = makeBem(bem.KoboSelect, 'menu', 'menu');
 bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button');
 bem.KoboSelect__menuMessage = makeBem(bem.KoboSelect, 'menu-message', 'p');
+bem.KoboSelect__error = makeBem(bem.KoboSelect, 'error', 'p');
 
 const SEARCHBOX_NAME = 'kobo-select-search-box';
 
@@ -41,12 +43,14 @@ export interface KoboSelectOption {
   icon?: IconName;
   label: string;
   /** Needs to be unique! */
-  id: string;
+  value: string;
 }
 
 interface KoboSelectProps {
   /** Unique name. */
   name: string;
+  /** Will be displayed above the component. */
+  label?: string;
   type: KoboSelectType;
   /**
    * The size is the height of the trigger, but it also influences its paddings.
@@ -61,7 +65,7 @@ interface KoboSelectProps {
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
   options: KoboSelectOption[];
-  /** Pass the id or null for no selection. */
+  /** Pass the value or null for no selection. */
   selectedOption: string | null;
   /**
    * Callback function telling which option is selected now. Passes either
@@ -70,6 +74,7 @@ interface KoboSelectProps {
   onChange: (newSelectedOption: string | null) => void;
   'data-cy'?: string;
   placeholder?: string;
+  error?: string;
 }
 
 interface KoboSelectState {
@@ -174,7 +179,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   renderTrigger() {
     const foundSelectedOption = this.props.options.find((option) => (
       this.props.selectedOption !== null &&
-      option.id === this.props.selectedOption
+      option.value === this.props.selectedOption
     ));
 
     // When one of the options is selected, we display it inside the trigger.
@@ -249,7 +254,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   renderSearchBox() {
     const foundSelectedOption = this.props.options.find((option) => (
       this.props.selectedOption !== null &&
-      option.id === this.props.selectedOption
+      option.value === this.props.selectedOption
     ));
 
     return (
@@ -278,13 +283,13 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       <bem.KoboSelect__menu>
         {filteredOptions.map((option) => (
           <bem.KoboSelect__option
-            key={option.id}
-            onClick={this.onOptionClick.bind(this, option.id)}
+            key={option.value}
+            onClick={this.onOptionClick.bind(this, option.value)}
             title={option.label}
             m={{
               'selected': (
                 this.props.selectedOption !== null &&
-                this.props.selectedOption === option.id
+                this.props.selectedOption === option.value
               ),
             }}
           >
@@ -324,17 +329,33 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       modifiers.push('is-menu-visible');
     }
 
+    if (this.props.error) {
+      modifiers.push('has-error');
+    }
+
     return (
       <bem.KoboSelect m={modifiers}>
+        {this.props.label &&
+          <bem.KoboSelect__label htmlFor={this.props.name}>
+            {this.props.label}
+          </bem.KoboSelect__label>
+        }
+
         <KoboDropdown
           name={this.props.name}
-          placement={KoboDropdownPlacements['down-center']}
+          placement={'down-center'}
           isDisabled={Boolean(this.props.isDisabled)}
           hideOnMenuClick
           triggerContent={this.renderTrigger()}
           menuContent={this.renderMenu()}
           data-cy={this.props['data-cy']}
         />
+
+        {this.props.error &&
+          <bem.KoboSelect__error>
+            {this.props.error}
+          </bem.KoboSelect__error>
+        }
       </bem.KoboSelect>
     );
   }

@@ -1,6 +1,6 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
-import { observer } from 'mobx-react';
+import {when} from 'mobx';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
@@ -55,7 +55,7 @@ export class LibraryAssetFormComponent extends React.Component {
   }
 
   componentDidMount() {
-    observer(sessionStore, () => {
+    when(() => sessionStore.isInitialLoadComplete, () => {
       this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(
@@ -216,7 +216,6 @@ export class LibraryAssetFormComponent extends React.Component {
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               value={this.state.fields.name}
               onChange={this.onNameChange.bind(this)}
               label={t('Name')}
@@ -226,7 +225,6 @@ export class LibraryAssetFormComponent extends React.Component {
 
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               type='text-multiline'
               value={this.state.fields.description}
               onChange={this.onDescriptionChange.bind(this)}
@@ -237,7 +235,6 @@ export class LibraryAssetFormComponent extends React.Component {
 
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               value={this.state.fields.organization}
               onChange={this.onAnyFieldChange.bind(this, 'organization')}
               label={t('Organization')}

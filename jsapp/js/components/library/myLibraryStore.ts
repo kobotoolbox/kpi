@@ -1,20 +1,17 @@
 import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
-import type {Location} from 'history';
-import searchBoxStore from '../header/searchBoxStore';
+import searchBoxStore from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
-import {
-  getCurrentPath,
-  isAnyLibraryRoute,
-} from 'js/router/routerUtils';
+import {getCurrentPath, isAnyLibraryRoute} from 'js/router/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
 } from 'js/components/assetsTable/assetsTableConstants';
 import type {OrderDirection} from 'js/projects/projectViews/constants';
+import type {RouterState} from '@remix-run/router';
 import {ROUTES} from 'js/router/routerConstants';
-import { history } from "js/router/historyRouter";
+import {router} from 'js/router/legacy';
 import type {
   AssetResponse,
   AssetsResponse,
@@ -22,6 +19,7 @@ import type {
   SearchAssetsPredefinedParams,
 } from 'js/dataInterface';
 import type {AssetTypeName} from 'js/constants';
+import {reaction} from 'mobx';
 
 interface MyLibraryStoreData {
   isFetchingData: boolean;
@@ -44,9 +42,9 @@ class MyLibraryStore extends Reflux.Store {
    */
   abortFetchData?: Function;
   previousPath = getCurrentPath();
-  previousSearchPhrase = searchBoxStore.getSearchPhrase();
   PAGE_SIZE = 100;
   DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified'];
+  searchContext = 'MY_LIBRARY';
 
   isInitialised = false;
 
@@ -69,33 +67,67 @@ class MyLibraryStore extends Reflux.Store {
     filterValue: null,
   };
 
-  fetchDataDebounced?: () => void;
+  fetchDataDebounced?: (needsMetadata?: boolean) => void;
 
   init() {
     this.fetchDataDebounced = debounce(this.fetchData.bind(this), 2500);
 
     this.setDefaultColumns();
 
-    history.listen(this.onRouteChange.bind(this));
-    searchBoxStore.listen(this.searchBoxStoreChanged, this);
-    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
-    actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
-    actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
-    actions.library.searchMyLibraryAssets.started.listen(this.onSearchStarted.bind(this));
-    actions.library.searchMyLibraryAssets.completed.listen(this.onSearchCompleted.bind(this));
-    actions.library.searchMyLibraryAssets.failed.listen(this.onSearchFailed.bind(this));
-    actions.library.searchMyLibraryMetadata.completed.listen(this.onSearchMetadataCompleted.bind(this));
-    actions.resources.loadAsset.completed.listen(this.onAssetChanged.bind(this));
-    actions.resources.updateAsset.completed.listen(this.onAssetChanged.bind(this));
-    actions.resources.cloneAsset.completed.listen(this.onAssetCreated.bind(this));
-    actions.resources.createResource.completed.listen(this.onAssetCreated.bind(this));
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
+    // HACK: We add this ugly `setTimeout` to ensure router exists.
+    setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
+
+    reaction(
+      () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
+      this.onSearchBoxStoreChanged.bind(this)
+    );
+
+    actions.library.moveToCollection.completed.listen(
+      this.onMoveToCollectionCompleted.bind(this)
+    );
+    actions.library.subscribeToCollection.completed.listen(
+      this.fetchData.bind(this, true)
+    );
+    actions.library.unsubscribeFromCollection.completed.listen(
+      this.fetchData.bind(this, true)
+    );
+    actions.library.searchMyLibraryAssets.started.listen(
+      this.onSearchStarted.bind(this)
+    );
+    actions.library.searchMyLibraryAssets.completed.listen(
+      this.onSearchCompleted.bind(this)
+    );
+    actions.library.searchMyLibraryAssets.failed.listen(
+      this.onSearchFailed.bind(this)
+    );
+    actions.library.searchMyLibraryMetadata.completed.listen(
+      this.onSearchMetadataCompleted.bind(this)
+    );
+    actions.resources.loadAsset.completed.listen(
+      this.onAssetChanged.bind(this)
+    );
+    actions.resources.updateAsset.completed.listen(
+      this.onAssetChanged.bind(this)
+    );
+    actions.resources.cloneAsset.completed.listen(
+      this.onAssetCreated.bind(this)
+    );
+    actions.resources.createResource.completed.listen(
+      this.onAssetCreated.bind(this)
+    );
+    actions.resources.deleteAsset.completed.listen(
+      this.onDeleteAssetCompleted.bind(this)
+    );
     // TODO Improve reaction to uploads being finished after task is done:
     // https://github.com/kobotoolbox/kpi/issues/476
-    actions.resources.createImport.completed.listen(this.fetchDataDebounced.bind(this, true));
+    actions.resources.createImport.completed.listen(
+      this.fetchDataDebounced.bind(this, true)
+    );
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.startupStore.bind(this));
+    actions.permissions.getConfig.completed.listen(
+      this.startupStore.bind(this)
+    );
   }
 
   /**
@@ -103,11 +135,17 @@ class MyLibraryStore extends Reflux.Store {
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (!this.isInitialised && isAnyLibraryRoute() && !this.data.isFetchingData) {
-      this.fetchData(true);
+    if (
+      !this.isInitialised &&
+      isAnyLibraryRoute() &&
+      !this.data.isFetchingData
+    ) {
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     }
   }
 
+  /** Changes the order column to default and remove filtering. */
   setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
     this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
@@ -119,7 +157,7 @@ class MyLibraryStore extends Reflux.Store {
 
   getSearchParams() {
     const params: SearchAssetsPredefinedParams = {
-      searchPhrase: searchBoxStore.getSearchPhrase(),
+      searchPhrase: (searchBoxStore.data.searchPhrase ?? '').trim(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
       collectionsFirst: true,
@@ -154,42 +192,44 @@ class MyLibraryStore extends Reflux.Store {
     params.metadata = needsMetadata;
 
     const orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
-    const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
+    const direction =
+      this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
     params.ordering = `${direction}${orderColumn.orderBy}`;
 
     actions.library.searchMyLibraryAssets(params);
   }
 
-  onRouteChange(data: any) {
-    if (!this.isInitialised && isAnyLibraryRoute() && !this.data.isFetchingData) {
-      this.fetchData(true);
+  onRouteChange(data: RouterState) {
+    if (
+      !this.isInitialised &&
+      isAnyLibraryRoute() &&
+      !this.data.isFetchingData
+    ) {
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     } else if (
-      (
-        // coming from outside of library
-        this.previousPath.split('/')[1] !== 'library' ||
+      // coming from outside of library
+      (this.previousPath.split('/')[1] !== 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
-        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
-      ) &&
+        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)) &&
+      // coming into library
       isAnyLibraryRoute()
     ) {
       // refresh data when navigating into library from other place
       this.setDefaultColumns();
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     }
     this.previousPath = data.location.pathname;
   }
 
-  searchBoxStoreChanged() {
-    if (
-      searchBoxStore.getContext() === 'MY_LIBRARY' &&
-      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
-    ) {
+  onSearchBoxStoreChanged() {
+    if (searchBoxStore.data.context === this.searchContext) {
       // reset to first page when search changes
       this.data.currentPage = 0;
       this.data.totalPages = null;
       this.data.totalSearchAssets = null;
-      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
       this.fetchData(true);
     }
   }
@@ -210,7 +250,10 @@ class MyLibraryStore extends Reflux.Store {
     }
     this.data.totalSearchAssets = response.count;
     // update total count for the first time and the ones that will get a full count
-    if (this.data.totalUserAssets === null || searchBoxStore.getSearchPhrase() === '') {
+    if (
+      this.data.totalUserAssets === null ||
+      searchBoxStore.data.searchPhrase === ''
+    ) {
       this.data.totalUserAssets = this.data.totalSearchAssets;
     }
     this.data.isFetchingData = false;
@@ -253,12 +296,10 @@ class MyLibraryStore extends Reflux.Store {
         const loopAsset = this.data.assets[i];
         if (
           loopAsset.uid === asset.uid &&
-          (
-            // if the changed asset didn't change (e.g. was just loaded)
-            // let's not cause it to fetchMetadata
-            loopAsset.date_modified !== asset.date_modified ||
-            loopAsset.version_id !== asset.version_id
-          )
+          // if the changed asset didn't change (e.g. was just loaded)
+          // let's not cause it to fetchMetadata
+          (loopAsset.date_modified !== asset.date_modified ||
+            loopAsset.version_id !== asset.version_id)
         ) {
           this.data.assets[i] = asset;
           wasUpdated = true;
@@ -273,10 +314,7 @@ class MyLibraryStore extends Reflux.Store {
   }
 
   onAssetCreated(asset: AssetResponse) {
-    if (
-      assetUtils.isLibraryAsset(asset.asset_type) &&
-      asset.parent === null
-    ) {
+    if (assetUtils.isLibraryAsset(asset.asset_type) && asset.parent === null) {
       if (this.data.totalUserAssets !== null) {
         this.data.totalUserAssets++;
       }

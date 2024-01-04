@@ -164,6 +164,9 @@ module.exports = do ->
           val.set('value', '')
         view.render().insertInDOM(@)
 
+      # Initialize the mandatory asterisk
+      @_onMandatorySettingChange(@model.getValue('required'))
+
       return @
 
     toggleSettings: (show)->
@@ -423,6 +426,17 @@ module.exports = do ->
       @applyLocking()
       return @
 
+    # Updates the "mandatory" asterisk on the row card when settings change.
+    # Also called on initial card rendering.
+    # NOTE: the MandatorySettingView responds with a string (e.g. 'false') but
+    # the initial rendering method is passing a boolean.
+    _onMandatorySettingChange: (newVal) ->
+      if newVal and newVal isnt 'false' and newVal isnt ''
+        @$card.addClass('card--required')
+      else
+        @$card.removeClass('card--required')
+      return
+
     _expandedRender: ->
       @$header.after($viewTemplates.row.rowSettingsView())
       @cardSettingsWrap = @$('.card__settings').eq(0)
@@ -434,6 +448,7 @@ module.exports = do ->
         if key is 'required'
           @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
             model: @model.get('required')
+            onChange: @_onMandatorySettingChange.bind(@)
           }).render().insertInDOM(@)
         else if key is '_isRepeat' and @model.getValue('type') is 'kobomatrix'
           # don't display repeat checkbox for matrix groups

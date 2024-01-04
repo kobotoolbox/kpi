@@ -314,10 +314,50 @@ COUNTRIES = (
 # information about the language here. This dictionary will be used to update
 # `django.conf.locale.LANG_INFO`
 EXTRA_LANG_INFO = {
+    'am': {
+        'bidi': False,
+        'code': 'am',
+        'name': 'Amharic',
+        'name_local': 'አማርኛ',
+    },
     'ku': {
         'bidi': True,
         'code': 'ku',
         'name': 'Kurdish',
         'name_local': 'كوردی',
     },
+    'ln': {
+        'bidi': False,
+        'code': 'ln',
+        'name': 'Lingala',
+        'name_local': 'Lingala',
+    },
+    'ny': {
+        'bidi': False,
+        'code': 'ny',
+        'name': 'Nyanja',
+        'name_local': 'Nyanja',
+    },
+}
+
+PROJECT_METADATA_DEFAULT_LABELS = {
+    'sector': t('Sector'),
+    'country': t('Country'),
+    'operational_purpose': t('Operational purpose of data'),
+    'collects_pii': t('Does this project collect personally identifiable information?'),
+    'description': t('Description'),
+}
+
+USER_METADATA_DEFAULT_LABELS = {
+    'name': t('Full name'),
+    'organization': t('Organization'),
+    'organization_website': t('Organization website'),
+    'sector': t('Sector'),
+    'gender': t('Gender'),
+    'bio': t('Bio'),
+    'city': t('City'),
+    'country': t('Country'),
+    'twitter': t('Twitter'),
+    'linkedin': t('LinkedIn'),
+    'instagram': t('Instagram'),
 }

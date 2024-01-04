@@ -2,13 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import { observer } from 'mobx-react';
+import {when} from 'mobx';
 import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
 import Button from 'js/components/common/button';
 import clonedeep from 'lodash.clonedeep';
 import TextBox from 'js/components/common/textBox';
-import Checkbox from 'js/components/common/checkbox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -20,13 +19,13 @@ import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
-  addRequiredToLabel,
   escapeHtml,
   isAValidUrl,
   validFileTypes,
   notify,
   join,
-} from 'utils';
+} from 'js/utils';
+import {addRequiredToLabel} from 'js/textUtils';
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS,
@@ -35,8 +34,9 @@ import {ROUTES} from 'js/router/routerConstants';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import {withRouter} from 'js/router/legacy';
+import {userCan} from 'js/components/permissions/utils';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
@@ -106,10 +106,8 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep();
-    observer(sessionStore, () => {
-      this.setState({
-        isSessionLoaded: true,
-      });
+    when(() => sessionStore.isInitialLoadComplete, () => {
+      this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(
       actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this)),
@@ -119,7 +117,7 @@ class ProjectSettings extends React.Component {
       actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
-      history.listen(this.onRouteChange.bind(this))
+      router.subscribe(this.onRouteChange.bind(this))
     );
   }
 
@@ -293,28 +291,22 @@ class ProjectSettings extends React.Component {
   // archive flow
 
   isArchivable() {
-    return this.state.formAsset.has_deployment && this.state.formAsset.deployment__active;
+    return this.state.formAsset.deployment_status === 'deployed';
   }
 
   isArchived() {
-    return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
+    return this.state.formAsset.deployment_status === 'archived';
   }
 
   archiveProject(evt) {
     evt.preventDefault();
-    this.archiveAsset(this.state.formAsset.uid, this.onArchiveProjectStarted.bind(this));
-  }
-
-  onArchiveProjectStarted() {
+    this.archiveAsset(this.state.formAsset.uid);
     this.setState({isAwaitingArchiveCompleted: true});
   }
 
   unarchiveProject(evt) {
     evt.preventDefault();
-    this.unarchiveAsset(this.state.formAsset.uid, this.onUnarchiveProjectStarted.bind(this));
-  }
-
-  onUnarchiveProjectStarted() {
+    this.unarchiveAsset(this.state.formAsset.uid);
     this.setState({isAwaitingUnarchiveCompleted: true});
   }
 
@@ -669,6 +661,12 @@ class ProjectSettings extends React.Component {
 
     // superuser-configured metadata
     if (
+      envStore.data.getProjectMetadataField('description').required &&
+      !this.state.fields.description.trim()
+    ) {
+      fieldsWithErrors.push('description');
+    }
+    if (
       envStore.data.getProjectMetadataField('sector').required &&
       !this.state.fields.sector
     ) {
@@ -840,7 +838,6 @@ class ProjectSettings extends React.Component {
 
         <bem.FormModal__item>
           <TextBox
-            customModifiers='on-white'
             type='url'
             label={t('URL')}
             placeholder='https://'
@@ -875,6 +872,7 @@ class ProjectSettings extends React.Component {
     const operationalPurposes = envStore.data.operational_purpose_choices;
     const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii');
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
+    const descriptionField = envStore.data.getProjectMetadataField('description');
 
     return (
       <bem.FormModal__form
@@ -898,12 +896,12 @@ class ProjectSettings extends React.Component {
           </bem.Modal__footer>
         }
 
+        {/* Project Name */}
         <bem.FormModal__item m='wrapper'>
           {/* form builder displays name in different place */}
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
             <bem.FormModal__item>
               <TextBox
-                customModifiers='on-white'
                 value={this.state.fields.name}
                 onChange={this.onNameChange.bind(this)}
                 errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
@@ -914,22 +912,26 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {/* Description */}
+          {descriptionField &&
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               type='text-multiline'
               value={this.state.fields.description}
               onChange={this.onDescriptionChange.bind(this)}
-              label={t('Description')}
+              errors={this.hasFieldError('description') ? t('Please enter a description for your project') : false}
+              label={addRequiredToLabel(descriptionField.label, descriptionField.required)}
               placeholder={t('Enter short description here')}
               data-cy='description'
             />
           </bem.FormModal__item>
+          }
 
+          {/* Sector */}
           {sectorField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
               <WrappedSelect
-                label={addRequiredToLabel(t('Sector'), sectorField.required)}
+                label={addRequiredToLabel(sectorField.label, sectorField.required)}
                 value={this.state.fields.sector}
                 onChange={this.onAnyFieldChange.bind(this, 'sector')}
                 options={sectors}
@@ -942,10 +944,11 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {/* Country */}
           {countryField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'country' : null}>
               <WrappedSelect
-                label={addRequiredToLabel(t('Country'), countryField.required)}
+                label={addRequiredToLabel(countryField.label, countryField.required)}
                 isMulti
                 value={this.state.fields.country}
                 onChange={this.onAnyFieldChange.bind(this, 'country')}
@@ -959,10 +962,11 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {/* Operational Purpose of Data */}
           {operationalPurposeField &&
             <bem.FormModal__item>
               <WrappedSelect
-                label={addRequiredToLabel(t('Operational Purpose of Data'), operationalPurposeField.required)}
+                label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
                 value={this.state.fields.operational_purpose}
                 onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
                 options={operationalPurposes}
@@ -973,10 +977,11 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
+          {/* Does this project collect personally identifiable information? */}
           {collectsPiiField &&
             <bem.FormModal__item>
               <WrappedSelect
-                label={addRequiredToLabel(t('Does this project collect personally identifiable information?'), collectsPiiField.required)}
+                label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
                 value={this.state.fields.collects_pii}
                 onChange={this.onAnyFieldChange.bind(this, 'collects_pii')}
                 options={[
@@ -1009,7 +1014,7 @@ class ProjectSettings extends React.Component {
             </bem.Modal__footer>
           }
 
-          {this.userCan('manage_asset', this.state.formAsset) && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+          {userCan('manage_asset', this.state.formAsset) && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
@@ -1115,7 +1120,6 @@ class ProjectSettings extends React.Component {
 }
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
-reactMixin(ProjectSettings.prototype, mixins.permissions);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix);

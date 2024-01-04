@@ -67,6 +67,7 @@ class AssetSnapshot(
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
+    # FIXME: uuid on the KoboCAT logger.Instance model has max_length 249
     submission_uuid = models.CharField(null=True, max_length=41)
     _reversion_version_id = models.IntegerField(null=True)
     asset_version = models.ForeignKey(
@@ -98,7 +99,7 @@ class AssetSnapshot(
         Implements `OpenRosaFormListInterface.get_download_url()`
         """
         return reverse(
-            viewname='assetsnapshot-detail',
+            viewname='assetsnapshot-xml-with-disclaimer',
             format='xml',
             kwargs={'uid': self.uid},
             request=request

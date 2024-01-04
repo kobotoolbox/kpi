@@ -17,10 +17,8 @@ import submissionsActions from './actions/submissions';
 import formMediaActions from './actions/mediaActions';
 import exportsActions from './actions/exportsActions';
 import dataShareActions from './actions/dataShareActions';
-import {
-  notify,
-  replaceSupportEmail,
-} from 'utils';
+import {notify} from 'js/utils';
+import {replaceSupportEmail} from 'js/textUtils';
 
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
@@ -45,7 +43,6 @@ actions.auth = Reflux.createActions({
   verifyLogin: {children: ['loggedin', 'anonymous', 'failed']},
   logout: {children: ['completed', 'failed']},
   changePassword: {children: ['completed', 'failed']},
-  getEnvironment: {children: ['completed', 'failed']},
   getApiToken: {children: ['completed', 'failed']},
 });
 
@@ -88,8 +85,6 @@ actions.hooks = Reflux.createActions({
 
 actions.misc = Reflux.createActions({
   getUser: {children: ['completed', 'failed']},
-  checkUsername: {asyncResult: true, children: ['completed', 'failed']},
-  updateProfile: {children: ['completed', 'failed']},
 });
 
 permissionsActions.assignAssetPermission.failed.listen(() => {
@@ -123,45 +118,6 @@ actions.misc.getUser.listen((userUrl) => {
   dataInterface.getUser(userUrl)
     .done(actions.misc.getUser.completed)
     .fail(actions.misc.getUser.failed);
-});
-
-actions.misc.checkUsername.listen(function(username){
-  dataInterface.queryUserExistence(username)
-    .done(actions.misc.checkUsername.completed)
-    .fail(actions.misc.checkUsername.failed);
-});
-
-actions.misc.updateProfile.listen(function(data, callbacks={}){
-  dataInterface.patchProfile(data)
-    .done((...args) => {
-      actions.misc.updateProfile.completed(...args)
-      if (callbacks.onComplete) {
-        callbacks.onComplete(...args);
-      }
-    })
-    .fail((...args) => {
-      actions.misc.updateProfile.failed(...args)
-      if (callbacks.onFail) {
-        callbacks.onFail(...args);
-      }
-    });
-});
-actions.misc.updateProfile.completed.listen(function(){
-  notify(t('updated profile successfully'));
-});
-actions.misc.updateProfile.failed.listen(function(data) {
-  let hadFieldsErrors = false;
-  for (const [errorProp, errorValue] of Object.entries(data.responseJSON)){
-    if (errorProp !== 'non_fields_error') {
-      hadFieldsErrors = true;
-    }
-  }
-
-  if (hadFieldsErrors) {
-    notify(t('Some fields contain errors!'), 'error');
-  } else {
-    notify(t('Failed to update profile!'), 'error');
-  }
 });
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {
@@ -265,10 +221,13 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
   alertify.alert(t('unable to deploy'), failure_message);
 });
 
-actions.resources.setDeploymentActive.listen(function(details) {
+actions.resources.setDeploymentActive.listen(function(details, onComplete) {
   dataInterface.setDeploymentActive(details)
     .done((data) => {
       actions.resources.setDeploymentActive.completed(data.asset);
+      if (typeof onComplete === 'function') {
+        onComplete(data);
+      }
     })
     .fail(actions.resources.setDeploymentActive.failed);
 });
@@ -463,17 +422,6 @@ actions.auth.changePassword.completed.listen(() => {
 });
 actions.auth.changePassword.failed.listen(() => {
   notify(t('failed to change password'), 'error');
-});
-
-actions.auth.getEnvironment.listen(function(){
-  dataInterface.environment()
-    .done((data)=>{
-      actions.auth.getEnvironment.completed(data);
-    })
-    .fail(actions.auth.getEnvironment.failed);
-});
-actions.auth.getEnvironment.failed.listen(() => {
-  notify(t('failed to load environment data'), 'error');
 });
 
 actions.auth.getApiToken.listen(() => {

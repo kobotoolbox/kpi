@@ -1,5 +1,4 @@
 # coding: utf-8
-from constance.signals import config_updated
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
@@ -12,7 +11,10 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatToken,
     KobocatUser,
 )
-from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
+from kpi.deployment_backends.kc_access.utils import (
+    grant_kc_model_level_perms,
+    kc_transaction_atomic,
+)
 from kpi.models import Asset, TagUid
 from kpi.utils.permissions import grant_default_model_level_perms
 
@@ -43,16 +45,10 @@ def save_kobocat_user(sender, instance, created, raw, **kwargs):
     `settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES`
     """
     if not settings.TESTING:
-        KobocatUser.sync(instance)
-
-        if created:
-            # FIXME: If this fails, the next attempt results in
-            #   IntegrityError: duplicate key value violates unique constraint
-            #   "auth_user_username_key"
-            # and decorating this function with `transaction.atomic` doesn't
-            # seem to help. We should roll back the KC user creation if
-            # assigning model-level permissions fails
-            grant_kc_model_level_perms(instance)
+        with kc_transaction_atomic():
+            KobocatUser.sync(instance)
+            if created:
+                grant_kc_model_level_perms(instance)
 
 
 @receiver(post_save, sender=Token)

@@ -6,6 +6,7 @@ import Select from 'react-select';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
+import Button from 'js/components/common/button';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
@@ -374,9 +375,9 @@ class ConnectProjects extends React.Component {
           />
 
           {this.state.fieldsErrors?.source &&
-            <bem.KoboSelect__errors>
+            <bem.KoboSelect__error>
               {this.state.fieldsErrors?.source}
-            </bem.KoboSelect__errors>
+            </bem.KoboSelect__error>
           }
         </bem.KoboSelect__wrapper>
       );
@@ -443,6 +444,7 @@ class ConnectProjects extends React.Component {
           {this.renderSelect()}
 
           <TextBox
+            customClassNames={['connect-projects-textbox']}
             placeholder={t('Give a unique name to the import')}
             value={this.state.newFilename}
             onChange={this.onFilenameChange}
@@ -490,15 +492,19 @@ class ConnectProjects extends React.Component {
                   </div>
 
                   <div className='connect-projects__import-options'>
-                    <bem.KoboLightButton
-                      m={['red', 'icon-only']}
+                    <Button
+                      type='frame'
+                      color='red'
+                      size='m'
+                      startIcon='trash'
                       onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
-                    >
-                      <i className='k-icon k-icon-trash'/>
-                    </bem.KoboLightButton>
+                    />
 
-                    <bem.KoboLightButton
-                      m={['blue', 'icon-only']}
+                    <Button
+                      type='frame'
+                      color='blue'
+                      size='m'
+                      startIcon='settings'
                       onClick={() => this.showColumnFilterModal(
                         this.props.asset,
                         {
@@ -510,9 +516,7 @@ class ConnectProjects extends React.Component {
                         item.linkedFields,
                         item.attachmentUrl,
                       )}
-                    >
-                      <i className='k-icon k-icon-settings'/>
-                    </bem.KoboLightButton>
+                    />
                   </div>
                 </li>
               );

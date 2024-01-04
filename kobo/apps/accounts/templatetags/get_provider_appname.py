@@ -1,6 +1,6 @@
+from allauth.socialaccount.models import SocialApp
 from django import template
 from django.conf import settings
-from allauth.socialaccount.models import SocialApp
 
 register = template.Library()
 
@@ -26,14 +26,14 @@ def get_provider_appname(context, provider=None):
     provider = provider or context['provider']
     request = context['request']
     try:
-        appname = provider.get_app(request).name
-        return appname
+        appname = provider.app.name
+        if appname:
+            return appname
+        return SocialApp.objects.get_current(provider, request).name
     except SocialApp.DoesNotExist:
         return provider.name
 
 
 @register.simple_tag()
 def get_social_apps():
-    if settings.SOCIALACCOUNT_PROVIDERS:
-        return SocialApp.objects.all()
-    return []
+    return SocialApp.objects.filter(custom_data__isnull=True)

@@ -2,16 +2,23 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
+import Icon from 'js/components/common/icon';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Select from 'react-select';
-import {assign} from 'utils';
 import {
   META_QUESTION_TYPES,
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
 } from 'js/constants';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
+import './metadataEditor.scss';
+
+bem.FormBuilderMeta = makeBem(null, 'form-builder-meta');
+bem.FormBuilderMeta__columns = makeBem(bem.FormBuilderMeta, 'columns');
+bem.FormBuilderMeta__column = makeBem(bem.FormBuilderMeta, 'column');
+bem.FormBuilderMeta__row = makeBem(bem.FormBuilderMeta, 'row');
+bem.FormBuilderMeta__labelLink = makeBem(bem.FormBuilderMeta, 'label-link', 'a');
 
 const AUDIT_SUPPORT_URL = 'audit_logging.html';
 const RECORDING_SUPPORT_URL = 'recording-interviews.html';
@@ -46,7 +53,7 @@ export default class MetadataEditor extends React.Component {
     Object.keys(META_QUESTION_TYPES).forEach((metaType) => {
       const detail = this.getSurveyDetail(metaType);
       if (detail) {
-        newState.metaProperties.push(assign({}, detail.attributes));
+        newState.metaProperties.push(Object.assign({}, detail.attributes));
       }
     });
     this.setState(newState);
@@ -143,14 +150,12 @@ export default class MetadataEditor extends React.Component {
 
         {envStore.isReady &&
           envStore.data.support_url && (
-            <bem.TextBox__labelLink
-              href={
-                envStore.data.support_url + AUDIT_SUPPORT_URL
-              }
+            <bem.FormBuilderMeta__labelLink
+              href={envStore.data.support_url + AUDIT_SUPPORT_URL}
               target='_blank'
             >
-              <i className='k-icon k-icon-help' />
-            </bem.TextBox__labelLink>
+              <Icon name='help' size='xs' color='blue' />
+            </bem.FormBuilderMeta__labelLink>
           )}
       </React.Fragment>
     );
@@ -163,12 +168,12 @@ export default class MetadataEditor extends React.Component {
 
         {envStore.isReady &&
           envStore.data.support_url && (
-            <bem.TextBox__labelLink
+            <bem.FormBuilderMeta__labelLink
               href={envStore.data.support_url + RECORDING_SUPPORT_URL}
               target='_blank'
             >
-              <i className='k-icon k-icon-help' />
-            </bem.TextBox__labelLink>
+              <Icon name='help' size='s' color='blue' />
+            </bem.FormBuilderMeta__labelLink>
           )}
       </React.Fragment>
     );
@@ -233,7 +238,6 @@ export default class MetadataEditor extends React.Component {
         {this.isAuditEnabled() && (
           <bem.FormBuilderMeta__row>
             <TextBox
-              customModifiers='on-white'
               label={this.renderAuditInputLabel()}
               value={this.getAuditParameters()}
               disabled={this.props.isDisabled}

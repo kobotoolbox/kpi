@@ -1,9 +1,5 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
-import {
-  QUESTION_TYPES,
-  META_QUESTION_TYPES,
-} from 'js/constants';
+import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
 import type {AssetContent} from 'js/dataInterface';
 import {
   findRowByQpath,
@@ -16,15 +12,11 @@ import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
-import './singleProcessingHeader.scss';
-import { openProcessing } from './processingUtils';
-import { withRouter, WithRouterProps } from 'jsapp/js/router/legacy';
-
-bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header');
-bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section');
-bem.SingleProcessingHeader__submissions = makeBem(bem.SingleProcessingHeader, 'submissions', 'nav');
-bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count');
-bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number');
+import styles from './singleProcessingHeader.module.scss';
+import {openProcessing} from './processingUtils';
+import {withRouter} from 'jsapp/js/router/legacy';
+import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import classNames from 'classnames';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
@@ -34,11 +26,10 @@ interface SingleProcessingHeaderProps extends WithRouterProps {
 
 /**
  * Component with the current question label and the UI for switching between
- * submissions and questions.
+ * submissions and questions. It also has means of leaving Single Processing
+ * via "DONE" button.
  */
-class SingleProcessingHeader extends React.Component<
-  SingleProcessingHeaderProps
-> {
+class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
@@ -48,14 +39,16 @@ class SingleProcessingHeader extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
     this.forceUpdate();
   }
@@ -70,11 +63,18 @@ class SingleProcessingHeader extends React.Component<
   getFirstNonNullEditId(questionName: string) {
     const editIds = singleProcessingStore.getSubmissionsEditIds();
     if (editIds) {
-      return editIds[questionName]?.find((editIdOrNull) => editIdOrNull !== null) || null;
+      return (
+        editIds[questionName]?.find((editIdOrNull) => editIdOrNull !== null) ||
+        null
+      );
     }
     return null;
   }
 
+  /**
+   * For displaying question selector - filtered down to questions with
+   * responses and of audio type (for now).
+   */
   getQuestionSelectorOptions() {
     const options: KoboSelectOption[] = [];
     const editIds = singleProcessingStore.getSubmissionsEditIds();
@@ -86,7 +86,9 @@ class SingleProcessingHeader extends React.Component<
         // the question). Otherwise there's no point in having the question as
         // selectable option.
         const questionEditIds = editIds[qpath];
-        const hasAtLeastOneEditId = Boolean(questionEditIds.find((editIdOrNull) => editIdOrNull !== null));
+        const hasAtLeastOneEditId = Boolean(
+          questionEditIds.find((editIdOrNull) => editIdOrNull !== null)
+        );
         if (questionData && hasAtLeastOneEditId) {
           // Only allow audio questions at this point (we plan to allow text
           // and video in future).
@@ -101,7 +103,7 @@ class SingleProcessingHeader extends React.Component<
               0
             );
             options.push({
-              id: qpath,
+              value: qpath,
               label: translatedLabel !== null ? translatedLabel : rowName,
               icon: getRowTypeIcon(questionData.type),
             });
@@ -112,7 +114,7 @@ class SingleProcessingHeader extends React.Component<
     return options;
   }
 
-  /** Goes back to table view for given asset. */
+  /** Goes back to Data Table route for given project. */
   onDone() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid);
     this.props.router.navigate(newRoute);
@@ -126,20 +128,27 @@ class SingleProcessingHeader extends React.Component<
   goPrev() {
     const prevEditId = this.getPrevSubmissionEditId();
     if (prevEditId !== null && singleProcessingStore.currentQuestionQpath) {
-      this.goToSubmission(singleProcessingStore.currentQuestionQpath, prevEditId);
+      this.goToSubmission(
+        singleProcessingStore.currentQuestionQpath,
+        prevEditId
+      );
     }
   }
 
   goNext() {
     const nextEditId = this.getNextSubmissionEditId();
     if (nextEditId !== null && singleProcessingStore.currentQuestionQpath) {
-      this.goToSubmission(singleProcessingStore.currentQuestionQpath, nextEditId);
+      this.goToSubmission(
+        singleProcessingStore.currentQuestionQpath,
+        nextEditId
+      );
     }
   }
 
   /** Returns index or `null` (if store is not ready yet). */
   getCurrentSubmissionIndex(): number | null {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
     if (Array.isArray(editIds)) {
       const submissionEditIdIndex = editIds.findIndex(
         (item) => item.editId === this.props.submissionEditId
@@ -159,23 +168,20 @@ class SingleProcessingHeader extends React.Component<
   }
 
   /**
-   * Looks for closest previous submissionEditId that has data - i.e. it omits all
-   * `null`s in `submissionsEditIds` array. If there is no such `submissionEditId`
-   * found, simply returns `null`.
+   * Looks for closest previous submissionEditId that has data - i.e. it omits
+   * all `null`s in `submissionsEditIds` array. If there is no such
+   * `submissionEditId` to be found, simply returns `null`.
    */
   getPrevSubmissionEditId(): string | null {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
     if (!Array.isArray(editIds)) {
       return null;
     }
 
     const currentIndex = this.getCurrentSubmissionIndex();
     // If not found, or we are on first element, there is no previous.
-    if (
-      currentIndex === -1 ||
-      currentIndex === 0 ||
-      currentIndex === null
-    ) {
+    if (currentIndex === -1 || currentIndex === 0 || currentIndex === null) {
       return null;
     }
 
@@ -194,11 +200,12 @@ class SingleProcessingHeader extends React.Component<
 
   /**
    * Looks for closest next submissionEditId that has data - i.e. it omits all
-   * `null`s in `submissionsEditIds` array. If there is no such `submissionEditId`
-   * found, simply returns `null`.
+   * `null`s in `submissionsEditIds` array. If there is no such
+   * `submissionEditId` to be found, simply returns `null`.
    */
   getNextSubmissionEditId(): string | null {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
     if (!Array.isArray(editIds)) {
       return null;
     }
@@ -229,11 +236,12 @@ class SingleProcessingHeader extends React.Component<
   }
 
   render() {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
 
     return (
-      <bem.SingleProcessingHeader>
-        <bem.SingleProcessingHeader__column m='main'>
+      <header className={styles.root}>
+        <section className={classNames(styles.column, styles.columnMain)}>
           <KoboSelect
             name='single-processing-question-selector'
             type='gray'
@@ -242,11 +250,11 @@ class SingleProcessingHeader extends React.Component<
             selectedOption={singleProcessingStore.currentQuestionQpath || null}
             onChange={this.onQuestionSelectChange.bind(this)}
           />
-        </bem.SingleProcessingHeader__column>
+        </section>
 
-        <bem.SingleProcessingHeader__column>
-          <bem.SingleProcessingHeader__submissions>
-            <bem.SingleProcessingHeader__count>
+        <section className={styles.column}>
+          <nav className={styles.submissions}>
+            <div className={styles.count}>
               <strong>
                 {t('Item')}
                 &nbsp;
@@ -254,9 +262,11 @@ class SingleProcessingHeader extends React.Component<
               </strong>
               &nbsp;
               {Array.isArray(editIds) &&
-                t('of ##total_count##').replace('##total_count##', String(editIds.length))
-              }
-            </bem.SingleProcessingHeader__count>
+                t('of ##total_count##').replace(
+                  '##total_count##',
+                  String(editIds.length)
+                )}
+            </div>
 
             <Button
               type='bare'
@@ -275,10 +285,10 @@ class SingleProcessingHeader extends React.Component<
               onClick={this.goNext.bind(this)}
               isDisabled={this.getNextSubmissionEditId() === null}
             />
-          </bem.SingleProcessingHeader__submissions>
-        </bem.SingleProcessingHeader__column>
+          </nav>
+        </section>
 
-        <bem.SingleProcessingHeader__column>
+        <section className={styles.column}>
           <Button
             type='frame'
             size='l'
@@ -286,8 +296,8 @@ class SingleProcessingHeader extends React.Component<
             label={t('DONE')}
             onClick={this.onDone.bind(this)}
           />
-        </bem.SingleProcessingHeader__column>
-      </bem.SingleProcessingHeader>
+        </section>
+      </header>
     );
   }
 }

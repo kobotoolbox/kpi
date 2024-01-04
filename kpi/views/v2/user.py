@@ -8,6 +8,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from kpi.filters import SearchFilter
 from kpi.models.authorized_application import ApplicationTokenAuthentication
+from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.user import UserSerializer, UserListSerializer
 from kpi.tasks import sync_kobocat_xforms
 
@@ -23,6 +24,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     serializer_class = UserSerializer
     lookup_field = 'username'
     pagination_class = LimitOffsetPagination
+    permission_classes = (IsAuthenticated,)
     search_default_field_lookups = [
         'username__icontains',
     ]

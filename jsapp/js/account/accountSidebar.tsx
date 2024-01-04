@@ -1,13 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {NavLink} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import bem from 'js/bem';
 import Icon from 'js/components/common/icon';
-import envStore from 'js/envStore';
 import {ACCOUNT_ROUTES} from './routes';
 import {IconName} from 'jsapp/fonts/k-icons';
 import './accountSidebar.scss';
-import subscriptionStore from './subscriptionStore';
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 
 interface AccountNavLinkProps {
   iconName: IconName;
@@ -27,18 +26,11 @@ function AccountNavLink(props: AccountNavLinkProps) {
 }
 
 function AccountSidebar() {
-  const [env] = useState(() => envStore);
-  const [subscription] = useState(() => subscriptionStore);
+  const [showPlans, setShowPlans] = useState(false);
 
-  useEffect(() => {
-    if (
-      env.isReady &&
-      env.data.stripe_public_key &&
-      subscription.subscribedProduct === null
-    ) {
-      subscription.fetchSubscriptionInfo();
-    }
-  }, [env.isReady]);
+  useWhenStripeIsEnabled(() => {
+    setShowPlans(true);
+  }, []);
 
   return (
     <bem.FormSidebar m='account'>
@@ -52,15 +44,18 @@ function AccountSidebar() {
         name={t('Security')}
         to={ACCOUNT_ROUTES.SECURITY}
       />
-      {env.isReady &&
-        env.data.stripe_public_key &&
-        subscription.subscribedProduct && (
-          <AccountNavLink
-            iconName='editor'
-            name={t('Your Plan')}
-            to={ACCOUNT_ROUTES.PLAN}
-          />
-        )}
+      <AccountNavLink
+        iconName='reports'
+        name={t('Usage')}
+        to={ACCOUNT_ROUTES.USAGE}
+      />
+      {showPlans && (
+        <AccountNavLink
+          iconName='editor'
+          name={t('Plans')}
+          to={ACCOUNT_ROUTES.PLAN}
+        />
+      )}
     </bem.FormSidebar>
   );
 }

@@ -2,7 +2,7 @@
 import copy
 import json
 import re
-from xml.etree import ElementTree as ET
+from lxml import etree  # for compatibility with edit_submission_xml()
 
 import requests
 from django.conf import settings
@@ -22,9 +22,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.models import AuditLog
-from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
-from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.audit_log.models import AuditAction, AuditLog
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -50,6 +48,7 @@ from kpi.renderers import (
 )
 from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.utils.xml import edit_submission_xml
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
@@ -362,10 +361,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                     model_name=model_name,
                     object_id=submission['_id'],
                     user=request.user,
+                    user_uid=request.user.extra_details.uid,
                     metadata={
                         'asset_uid': self.asset.uid,
                         'uuid': submission['_uuid'],
-                    }
+                    },
+                    action=AuditAction.DELETE,
                 ))
 
         # Send request to KC
@@ -406,7 +407,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 metadata={
                     'asset_uid': self.asset.uid,
                     'uuid': submission['_uuid'],
-                }
+                },
+                action=AuditAction.DELETE,
             )
 
         return Response(**json_response)
@@ -653,16 +655,57 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission_xml = deployment.get_submission(
             submission_id, user, SUBMISSION_FORMAT_TYPE_XML
         )
+        if isinstance(submission_xml, str):
+            # Workaround for "Unicode strings with encoding declaration are not
+            # supported. Please use bytes input or XML fragments without
+            # declaration."
+            # TODO: handle this in a unified way instead of haphazardly. See,
+            # e.g., `kpi.utils.xml.strip_nodes()`
+            submission_xml = submission_xml.encode()
+        submission_xml_root = etree.fromstring(submission_xml)
         # The JSON version is needed to detect its version
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
         if 'meta/rootUuid' in submission_json:
             # this submission has been edited at least one time
-            submission_uuid = submission_json['meta/rootUuid']
+            original_submission_uuid = submission_json['meta/rootUuid']
         else:
             # never been edited
-            submission_uuid = submission_json['meta/instanceID']
+
+            # Note: KoboCAT will accept a submission whose XML lacks
+            # `<meta><instanceID>`, even though that violates the OpenRosa
+            # spec. KoboCAT then automatically generates a UUID for the
+            # submission, but that UUID is added neither to the XML nor to
+            # `meta/instanceID` in the JSON representation
+            original_submission_uuid = 'uuid:' + submission_json['_uuid']
+
+        # Add mandatory XML elements if they are missing from the original
+        # submission. They could be overwritten unconditionally, but be
+        # conservative for now and don't modify anything unless they're missing
+        # entirely
+        if (
+            not (e := submission_xml_root.find(deployment.FORM_UUID_XPATH))
+            or not e.text.strip()
+        ):
+            form_uuid = deployment.backend_response['uuid']
+            edit_submission_xml(
+                submission_xml_root, deployment.FORM_UUID_XPATH, form_uuid
+            )
+        if (
+            not (
+                e := submission_xml_root.find(
+                    deployment.SUBMISSION_CURRENT_UUID_XPATH
+                )
+            )
+            or not e.text.strip()
+        ):
+            edit_submission_xml(
+                submission_xml_root,
+                deployment.SUBMISSION_CURRENT_UUID_XPATH,
+                'uuid:' + submission_json['_uuid'],
+            )
+
         # Do not use version_uid from the submission until UI gives users the
         # possibility to choose which version they want to use
 
@@ -682,7 +725,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # root node name specified in the form XML (i.e. the first child of
         # `<instance>`) must match the root node name of the submission XML,
         # otherwise Enketo will refuse to open the submission.
-        xml_root_node_name = ET.fromstring(submission_xml).tag
+        xml_root_node_name = submission_xml_root.tag
 
         # This will raise `AssetVersion.DoesNotExist` if the inferred version
         # of the submission disappears between the call to `build_formpack()`
@@ -692,7 +735,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             regenerate=True,
             root_node_name=xml_root_node_name,
             version_uid=version_uid,
-            submission_uuid=submission_uuid,
+            submission_uuid=original_submission_uuid,
         )
 
         data = {
@@ -701,7 +744,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 kwargs={'uid': snapshot.uid},
                 request=request,
             ),
-            'instance': submission_xml,
+            'instance': etree.tostring(submission_xml_root),
             'instance_id': submission_json['_uuid'],
             'form_id': snapshot.uid,
             'return_url': 'false'  # String to be parsed by EE as a boolean
