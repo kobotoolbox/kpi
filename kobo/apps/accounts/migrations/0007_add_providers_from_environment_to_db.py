@@ -33,6 +33,7 @@ def add_OIDC_settings_from_env(apps, schema_editor):
 
     for index, app in enumerate(oidc_apps):
         app_id = app.get('id')
+        client_id = app.get('APP_client_id')
 
         # the app needs a name to be editable in the admin - give it a default name if necessary
         app_name = app.get('name', f'OIDC {index}')
@@ -42,14 +43,16 @@ def add_OIDC_settings_from_env(apps, schema_editor):
         if app_tenant := app.get('TENANT', app.get('tenant', None)):
             app_settings['tenant'] = app_tenant
 
-        if app_id and app_settings['server_url']:
+        if app_id and client_id and app_settings['server_url']:
             db_social_app = SocialApp.objects.filter(
                 Q(provider=app_id) |
                 Q(provider__iexact='openid_connect', provider_id=app_id) |
                 Q(provider='', name__iexact=app_name)
             ).first()
+            created = False
             if not db_social_app:
                 db_social_app = SocialApp.objects.create()
+                created = True
             db_social_app.settings = app_settings
             if not db_social_app.settings.get('previous_provider'):
                 db_social_app.settings['previous_provider'] = app_id
@@ -58,13 +61,15 @@ def add_OIDC_settings_from_env(apps, schema_editor):
             # we don't want to overwrite the following settings if they're already defined
             # on the social app we grabbed
             db_social_app.name = db_social_app.name or app_name
-            db_social_app.client_id = db_social_app.client_id or app.get('APP_client_id', '')
+            db_social_app.client_id = db_social_app.client_id or client_id
             db_social_app.secret = db_social_app.secret or app.get('APP_secret', '')
             db_social_app.key = db_social_app.key or app.get('APP_key', '')
             db_social_app.save()
 
+            # if we had to create a social app, it was defined solely in env vars
             # hide the OIDC provider from the login page, since it was already hidden
-            SocialAppCustomData.objects.get_or_create(social_app=db_social_app)
+            if created:
+                SocialAppCustomData.objects.get_or_create(social_app=db_social_app)
 
     # copy the SOCIALACCOUNT_PROVIDERS_microsoft_TENANT variable to the `microsoft` provider, if both are present
     if ms_tenant := os.environ.get('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
