@@ -191,6 +191,7 @@ export default function TextBox(props: TextBoxProps) {
         <div className={styles.label}>
           {props.label}{' '}
           {props.required && <span className={styles.requiredMark}>*</span>}
+          {/* TODO: Make aria text "##label## (required)" */}
         </div>
       )}
 
