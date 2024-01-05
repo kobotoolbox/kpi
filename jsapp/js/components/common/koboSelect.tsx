@@ -350,6 +350,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
         <KoboDropdown
           name={this.props.name}
           placement={'down-center'}
+          isRequired={this.props.isRequired}
           isDisabled={Boolean(this.props.isDisabled)}
           hideOnMenuClick
           triggerContent={this.renderTrigger()}

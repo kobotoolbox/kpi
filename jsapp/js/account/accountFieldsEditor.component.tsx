@@ -283,6 +283,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           <div className={cx(styles.field, styles.orgTypeDropdown)}>
             <KoboSelect
               label={getLabel('organization_type')}
+              isRequired={isRequired('organization_type')}
               name='organization_type'
               type='outline'
               size='l'
