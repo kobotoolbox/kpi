@@ -82,6 +82,33 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     props.onChange(newValues);
   }
 
+  const cleanedUrl = (value: string) => {
+    if (!value) {
+      return '';
+    }
+    value = ('' + value).trim();
+    if (!value.match(/.\../)) {
+      return value;
+    } // "dotless". don't change it
+    if (!value.match(/^https?:\/\/.*/)) {
+      value = 'https://' + value; // add missing protocol
+    }
+    return value;
+  };
+
+  function updateWebsiteAddress(input: string) {
+    onAnyFieldChange('organization_website', cleanedUrl(input));
+  }
+
+  function onWebsiteKeydown(event: string) {
+    if (event === 'Enter') {
+      onAnyFieldChange(
+        'organization_website',
+        cleanedUrl(props.values.organization_website)
+      );
+    }
+  }
+
   /**
    * Field will be displayed if it is enabled on Back end and not omitted
    * in `displayedFields`.
@@ -279,11 +306,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             <div className={styles.field}>
               <TextBox
                 label={getLabel('organization_website')}
+                type='url'
                 value={props.values.organization_website}
+                required={true}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
                   'organization_website'
                 )}
+                onBlur={updateWebsiteAddress}
+                onKeyPress={onWebsiteKeydown}
                 errors={props.errors?.organization_website}
               />
             </div>

@@ -43,7 +43,7 @@
       value = ('' + value).trim();
       if (!value.match(/.\../)) {return value;} // "dotless". don't change it
       if (!value.match(/^https?:\/\/.*/)) {
-        value = 'http://' + value; // add missing protocol
+        value = 'https://' + value; // add missing protocol
       }
       return value;
     };

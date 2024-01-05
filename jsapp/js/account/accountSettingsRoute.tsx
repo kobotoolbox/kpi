@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
+import Button from 'js/components/common/button';
 import {observer} from 'mobx-react';
-import {unstable_usePrompt as usePrompt} from 'react-router-dom';
+import {Form, unstable_usePrompt as usePrompt} from 'react-router-dom';
 import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
@@ -16,7 +17,7 @@ import type {
   AccountFieldsErrors,
 } from './account.constants';
 
-bem.AccountSettings = makeBem(null, 'account-settings');
+bem.AccountSettings = makeBem(null, 'account-settings', 'form');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
@@ -131,16 +132,16 @@ const AccountSettings = observer(() => {
   };
 
   return (
-    <bem.AccountSettings>
+    <bem.AccountSettings onSubmit={updateProfile}>
       <bem.AccountSettings__actions>
-        <bem.KoboButton
-          className='account-settings-save'
-          onClick={updateProfile.bind(form)}
-          m={['blue']}
-        >
-          {t('Save Changes')}
-          {!form.isPristine && ' *'}
-        </bem.KoboButton>
+        <Button
+          type={'full'}
+          classNames={['account-settings-save']}
+          color={'blue'}
+          size={'l'}
+          isSubmit
+          label={t('Save Changes') + (form.isPristine ? '' : ' *')}
+        />
       </bem.AccountSettings__actions>
 
       <bem.AccountSettings__item m={'column'}>
