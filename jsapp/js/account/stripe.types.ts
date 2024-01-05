@@ -158,6 +158,7 @@ export interface Organization {
   created: string;
   modified: string;
   slug: string;
+  owner: string;
 }
 
 export enum PlanNames {

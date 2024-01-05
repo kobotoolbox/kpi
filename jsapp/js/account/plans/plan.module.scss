@@ -19,6 +19,15 @@
   cursor: wait;
 }
 
+.sticky {
+  position: fixed;
+  z-index: 10;
+}
+
+.unauthorized {
+  opacity: 50%;
+}
+
 .allPlans {
   column-gap: sizes.$x20;
   display: flex;
@@ -41,6 +50,10 @@
 .intervalToggle input[type='radio'] {
   display: none;
   appearance: none;
+
+  &[aria-disabled=true] + label {
+    pointer-events: none;
+  }
 }
 
 .intervalToggle label {
@@ -58,22 +71,22 @@
   background-color: colors.$kobo-blue;
   color: colors.$kobo-white;
   border-radius: sizes.$x4;
-}
 
-.intervalToggle input[type='radio']:checked + label:after {
-  background-color: colors.$kobo-blue;
-  padding: sizes.$x8 sizes.$x12;
-}
+  &:after {
+    background-color: colors.$kobo-blue;
+    padding: sizes.$x8 sizes.$x12;
+  }
 
-.intervalToggle input[type='radio']:checked + label:before {
-  width: sizes.$x20;
-  height: sizes.$x20;
-  color: colors.$kobo-cloud;
-  padding: sizes.$x8 sizes.$x12;
-}
+  &:before {
+    width: sizes.$x20;
+    height: sizes.$x20;
+    color: colors.$kobo-cloud;
+    padding: sizes.$x8 sizes.$x12;
+  }
 
-.intervalToggle input[type='radio']:checked + label:hover {
-  background-color: color.adjust(colors.$kobo-blue, $lightness: -5%);
+  &:hover {
+      background-color: color.adjust(colors.$kobo-blue, $lightness: -5%);
+  }
 }
 
 .intervalToggle input[type='radio'] + label:hover {
