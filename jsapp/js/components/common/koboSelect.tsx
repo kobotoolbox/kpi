@@ -343,7 +343,6 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           <bem.KoboSelect__label htmlFor={this.props.name}>
             {this.props.label}{' '}
             {this.props.isRequired && <span className={'k-select__required-mark'}>*</span>}
-            {/* TODO: Make screenreader text "##label## (required)" */}
           </bem.KoboSelect__label>
         }
 
