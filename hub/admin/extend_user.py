@@ -20,6 +20,7 @@ from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     username_validators,
 )
+from kobo.apps.organizations.models import OrganizationUser
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
@@ -66,6 +67,25 @@ class UserCreationForm(DjangoUserCreationForm):
     )
 
 
+class OrgInline(admin.StackedInline):
+    model = OrganizationUser
+    extra = 0
+    verbose_name_plural = 'Organization'
+    view_on_site = False
+    readonly_fields = ('active_subscription_billing_detail',)
+
+    def has_add_permission(self, request, obj=OrganizationUser):
+        return False
+
+    def active_subscription_billing_detail(self, obj):
+        details = obj.organization.active_subscription_billing_details
+        return details if details else "None"
+
+    active_subscription_billing_detail.short_description = (
+        "Active Subscriptions"
+    )
+
+
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     """
     Deleting users used to a two-step process since KPI and KoBoCAT
@@ -85,6 +105,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
 
     form = UserChangeForm
     add_form = UserCreationForm
+    inlines = [OrgInline]
     change_form_template = 'admin/loginas/change_form.html'
     list_display = (
         'username',
