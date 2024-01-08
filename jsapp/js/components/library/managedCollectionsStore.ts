@@ -12,15 +12,15 @@ import type {
 } from 'js/dataInterface';
 import {router} from 'js/router/legacy';
 
-export interface OwnedCollectionsStoreData {
+export interface ManagedCollectionsStoreData {
   isFetchingData: boolean;
   collections: AssetResponse[];
 }
 
-class OwnedCollectionsStore extends Reflux.Store {
+class ManagedCollectionsStore extends Reflux.Store {
   isInitialised = false;
 
-  data: OwnedCollectionsStoreData = {
+  data: ManagedCollectionsStoreData = {
     isFetchingData: false,
     collections: [],
   };
@@ -128,7 +128,7 @@ class OwnedCollectionsStore extends Reflux.Store {
 }
 
 /** This store keeps an up to date list of owned collections. */
-const ownedCollectionsStore = new OwnedCollectionsStore();
-ownedCollectionsStore.init();
+const managedCollectionsStore = new ManagedCollectionsStore();
+managedCollectionsStore.init();
 
-export default ownedCollectionsStore;
+export default managedCollectionsStore;
