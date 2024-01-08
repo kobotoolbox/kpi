@@ -22,8 +22,8 @@ import {
   getRouteAssetUid,
   isAnyFormRoute,
 } from 'js/router/routerUtils';
-import managedCollectionsStore from 'jsapp/js/components/library/managedCollectionsStore';
-import type {ManagedCollectionsStoreData} from 'jsapp/js/components/library/managedCollectionsStore';
+import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
 import './assetActionButtons.scss';
 import {withRouter} from 'jsapp/js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
@@ -57,7 +57,7 @@ interface AssetActionButtonsProps extends WithRouterProps {
 }
 
 interface AssetActionButtonsState {
-  managedCollections: AssetResponse[];
+  ownedCollections: AssetResponse[];
   shouldHidePopover: boolean;
   isPopoverVisible: boolean;
   isSubscribePending: boolean;
@@ -77,7 +77,7 @@ class AssetActionButtons extends React.Component<
   constructor(props: AssetActionButtonsProps) {
     super(props);
     this.state = {
-      managedCollections: managedCollectionsStore.data.collections,
+      ownedCollections: ownedCollectionsStore.data.collections,
       shouldHidePopover: false,
       isPopoverVisible: false,
       isSubscribePending: false,
@@ -86,8 +86,8 @@ class AssetActionButtons extends React.Component<
   }
 
   componentDidMount() {
-    managedCollectionsStore.listen(
-      this.onManagedCollectionsStoreChanged.bind(this),
+    ownedCollectionsStore.listen(
+      this.onOwnedCollectionsStoreChanged.bind(this),
       this
     );
     this.unlisteners.push(
@@ -110,8 +110,8 @@ class AssetActionButtons extends React.Component<
     this.setState({isSubscribePending: false});
   }
 
-  onManagedCollectionsStoreChanged(storeData: ManagedCollectionsStoreData) {
-    this.setState({managedCollections: storeData.collections});
+  onOwnedCollectionsStoreChanged(storeData: OwnedCollectionsStoreData) {
+    this.setState({ownedCollections: storeData.collections});
   }
 
   // methods for inner workings of component
@@ -331,12 +331,12 @@ class AssetActionButtons extends React.Component<
         {userCanEdit &&
           assetType !== ASSET_TYPES.survey.id &&
           assetType !== ASSET_TYPES.collection.id &&
-          this.state.managedCollections.length > 0 && [
+          this.state.ownedCollections.length > 0 && [
             <bem.PopoverMenu__heading key='heading'>
               {t('Move to')}
             </bem.PopoverMenu__heading>,
             <bem.PopoverMenu__moveTo key='list'>
-              {this.state.managedCollections.map((collection) => {
+              {this.state.ownedCollections.map((collection) => {
                 const modifiers = ['move-coll-item'];
                 const isAssetParent =
                   collection.url === this.props.asset.parent;
