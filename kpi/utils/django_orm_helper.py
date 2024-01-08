@@ -98,7 +98,7 @@ class RemoveJSONFieldAttribute(Func):
     ):
         super().__init__(
             expression,
-            Value(f"{{{attribute_dotted_path.replace('.', ',')}}}"),
+            Value('{' + attribute_dotted_path.replace('.', ',') + '}'),
             **extra,
         )
 

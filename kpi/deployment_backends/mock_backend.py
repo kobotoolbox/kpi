@@ -384,14 +384,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return {}
 
     def get_enketo_survey_links(self):
-        # `self` is a demo Enketo form, but there's no guarantee it'll be
-        # around forever.
         return {
-            'offline_url': f'https://enke.to/_/#{self.enketo_id}',
-            'url': f'https://enke.to/::#{self.enketo_id}',
-            'iframe_url': f'https://enke.to/i/::#{self.enketo_id}',
-            'preview_url': f'https://enke.to/preview/::#{self.enketo_id}',
-            # f'preview_iframe_url': 'https://enke.to/preview/i/::#{self.enketo_id}',
+            'offline_url': f'https://example.org/_/#{self.enketo_id}',
+            'url': f'https://example.org/::#{self.enketo_id}',
+            'iframe_url': f'https://example.org/i/::#{self.enketo_id}',
+            'preview_url': f'https://example.org/preview/::#{self.enketo_id}',
         }
 
     def get_submission_detail_url(self, submission_id: int) -> str:

@@ -1,7 +1,6 @@
 # coding: utf-8
 import logging
 import os
-import re
 import string
 import subprocess
 from datetime import datetime
@@ -888,7 +887,7 @@ ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
 # How long to wait before flushing an individual preview from Enketo's cache
 ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
-ENKETO_REDIS_MAIN_URL = os.environ.get('ENKETO_REDIS_MAIN_URL', 'redis://localhost:6379/')
+ENKETO_REDIS_MAIN_URL = env.str('ENKETO_REDIS_MAIN_URL')
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration

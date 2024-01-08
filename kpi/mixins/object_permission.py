@@ -544,7 +544,7 @@ class ObjectPermissionMixin:
         self._update_partial_permissions(
             user_obj, perm, partial_perms=partial_perms
         )
-        post_assign_perm.send_robust(
+        post_assign_perm.send(
             sender=self.__class__,
             instance=self,
             user=user_obj,
@@ -710,7 +710,7 @@ class ObjectPermissionMixin:
 
         self._update_partial_permissions(user_obj, perm, remove=True)
 
-        post_remove_perm.send_robust(
+        post_remove_perm.send(
             sender=self.__class__,
             instance=self,
             user=user_obj,

@@ -4,7 +4,7 @@ from itertools import islice
 from django.conf import settings
 from django.db import migrations
 
-from kpi.constants import PERM_ADD_SUBMISSIONS
+from kpi.constants import PERM_ADD_SUBMISSIONS, SKIP_HEAVY_MIGRATIONS_GUIDANCE
 from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
 
 CHUNK_SIZE = 2000
@@ -14,13 +14,7 @@ def assign_add_submissions_to_anonymous_users(apps, schema_editor):
     if settings.SKIP_HEAVY_MIGRATIONS or settings.TESTING:
         return
 
-    print(
-        """
-        This migration might take a while. If it is too slow, you may want to
-        re-run migrations with SKIP_HEAVY_MIGRATIONS=True and apply this one
-        manually from the django shell.
-        """
-    )
+    print(SKIP_HEAVY_MIGRATIONS_GUIDANCE)
 
     Asset = apps.get_model('kpi', 'Asset')  # noqa
     ObjectPermission = apps.get_model('kpi', 'ObjectPermission')  # noqa
@@ -58,13 +52,7 @@ def remove_add_submissions_from_anonymous_users(apps, schema_editor):
     if settings.SKIP_HEAVY_MIGRATIONS:
         return
 
-    print(
-        """
-        This migration might take a while. If it is too slow, you may want to
-        re-run migrations with SKIP_HEAVY_MIGRATIONS=True and apply this one
-        manually from the django shell.
-        """
-    )
+    print(SKIP_HEAVY_MIGRATIONS_GUIDANCE)
 
     Asset = apps.get_model('kpi', 'Asset')  # noqa
     ObjectPermission = apps.get_model('kpi', 'ObjectPermission')  # noqa
