@@ -48,17 +48,10 @@ def add_implied_permission(
             {'_submitted_by': 'someuser'},
         ],
         'validate_submissions': [
-            {
-                'my_question': 'my_response1',
-                'my_question2': 'my_response2'
-            },
+            {'my_question': 'my_response1', 'my_question2': 'my_response2'}
         ],
         'delete_submissions': [
-            {
-                'my_question': 'my_response1',
-                'my_question2': 'my_response2'
-            },
-            {'_submitted_by': {'$in': ['v']}}
+            {'my_question': 'my_response1', 'my_question2': 'my_response2'}
         ],
     }
 
