@@ -61,13 +61,22 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
   const metadata = envStore.data.getUserMetadataFieldsAsSimpleDict();
 
-  /** Get label and (required) for a given user metadata fieldname */
+  /** Get label for a given user metadata fieldname */
   function getLabel(fieldName: UserFieldName): string {
-    const label =
+    return (
       metadata[fieldName]?.label ||
-      (console.error(`No label for fieldname "${fieldName}"`), fieldName);
-    const required = metadata[fieldName]?.required || false;
-    return addRequiredToLabel(label, required);
+      (console.error(`No label for fieldname "${fieldName}"`), fieldName)
+    );
+  }
+
+  /** Is this label required? */
+  function isRequired(fieldName: UserFieldName): boolean {
+    return metadata[fieldName]?.required || false;
+  }
+
+  /** Get label and (required) for a given user metadata fieldname */
+  function getLabelWithRequired(fieldName: UserFieldName): string {
+    return addRequiredToLabel(getLabel(fieldName), isRequired(fieldName));
   }
 
   function isFieldRequired(fieldName: UserFieldName): boolean {
@@ -80,6 +89,33 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   ) {
     const newValues = {...props.values, [fieldName]: newValue};
     props.onChange(newValues);
+  }
+
+  const cleanedUrl = (value: string) => {
+    if (!value) {
+      return '';
+    }
+    value = ('' + value).trim();
+    if (!value.match(/.\../)) {
+      return value;
+    } // "dotless". don't change it
+    if (!value.match(/^https?:\/\/.*/)) {
+      value = 'https://' + value; // add missing protocol
+    }
+    return value;
+  };
+
+  function updateWebsiteAddress(input: string) {
+    onAnyFieldChange('organization_website', cleanedUrl(input));
+  }
+
+  function onWebsiteKeydown(event: string) {
+    if (event === 'Enter') {
+      onAnyFieldChange(
+        'organization_website',
+        cleanedUrl(props.values.organization_website)
+      );
+    }
   }
 
   /**
@@ -154,6 +190,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           <div className={cx(styles.field, styles.thirds)}>
             <TextBox
               label={getLabel('name')}
+              required={isRequired('name')}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
               value={props.values.name}
               errors={props.errors?.name}
@@ -169,6 +206,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           <div className={styles.field}>
             <KoboSelect
               label={getLabel('gender')}
+              isRequired={isRequired('gender')}
               name='gender'
               type='outline'
               size='l'
@@ -189,6 +227,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           <div className={cx(styles.field, styles.thirds)}>
             <KoboSelect
               label={getLabel('country')}
+              isRequired={isRequired('country')}
               name='country'
               type='outline'
               size='l'
@@ -209,6 +248,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           <div className={cx(styles.field, styles.thirds)}>
             <TextBox
               label={getLabel('city')}
+              required={isRequired('city')}
               value={props.values.city}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
               errors={props.errors?.city}
@@ -222,6 +262,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           <div className={styles.field}>
             <KoboSelect
               label={getLabel('sector')}
+              isRequired={isRequired('sector')}
               name='sector'
               type='outline'
               size='l'
@@ -242,6 +283,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           <div className={cx(styles.field, styles.orgTypeDropdown)}>
             <KoboSelect
               label={getLabel('organization_type')}
+              isRequired={isRequired('organization_type')}
               name='organization_type'
               type='outline'
               size='l'
@@ -262,6 +304,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             <div className={styles.field}>
               <TextBox
                 label={getLabel('organization')}
+                required={isRequired('organization')}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
                   'organization'
@@ -279,11 +322,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             <div className={styles.field}>
               <TextBox
                 label={getLabel('organization_website')}
+                type='url'
                 value={props.values.organization_website}
+                required={isRequired('organization_website')}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
                   'organization_website'
                 )}
+                onBlur={updateWebsiteAddress}
+                onKeyPress={onWebsiteKeydown}
                 errors={props.errors?.organization_website}
               />
             </div>
@@ -297,6 +344,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             <TextBox
               type='text-multiline'
               label={getLabel('bio')}
+              required={isRequired('bio')}
               value={props.values.bio}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
               errors={props.errors?.bio}
@@ -318,7 +366,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               <div className={styles.field}>
                 <TextBox
                   startIcon='logo-twitter'
-                  placeholder={getLabel('twitter')}
+                  placeholder={getLabelWithRequired('twitter')}
                   value={props.values.twitter}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
                   errors={props.errors?.twitter}
@@ -331,7 +379,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               <div className={styles.field}>
                 <TextBox
                   startIcon='logo-linkedin'
-                  placeholder={getLabel('linkedin')}
+                  placeholder={getLabelWithRequired('linkedin')}
                   value={props.values.linkedin}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
                   errors={props.errors?.linkedin}
@@ -344,7 +392,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               <div className={styles.field}>
                 <TextBox
                   startIcon='logo-instagram'
-                  placeholder={getLabel('instagram')}
+                  placeholder={getLabelWithRequired('instagram')}
                   value={props.values.instagram}
                   onChange={onAnyFieldChange.bind(
                     onAnyFieldChange,
