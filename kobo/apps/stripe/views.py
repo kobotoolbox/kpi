@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django_dont_vary_on.decorators import only_vary_on
 from djstripe import enums
 from djstripe.models import (
     Customer,
@@ -433,6 +434,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
+@method_decorator(only_vary_on('Origin'), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Returns Product and Price Lists, sorted from the product with the lowest price to highest
