@@ -13,7 +13,7 @@ import {
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
-import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import managedCollectionsStore from 'js/components/library/managedCollectionsStore';
 import {withRouter} from 'js/router/legacy';
 import {when} from 'mobx';
 
@@ -38,7 +38,7 @@ class LibraryNewItemForm extends React.Component {
 
     let targetPath = ROUTES.NEW_LIBRARY_ITEM;
     if (this.isLibrarySingle()) {
-      const found = ownedCollectionsStore.find(this.currentAssetID());
+      const found = managedCollectionsStore.find(this.currentAssetID());
       if (found && found.asset_type === ASSET_TYPES.collection.id) {
         // when creating from within a collection page, make the new asset
         // a child of this collection
