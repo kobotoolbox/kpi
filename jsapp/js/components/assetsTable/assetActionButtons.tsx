@@ -22,8 +22,8 @@ import {
   getRouteAssetUid,
   isAnyFormRoute,
 } from 'js/router/routerUtils';
-import managedCollectionsStore from 'jsapp/js/components/library/managedCollectionsStore';
-import type {ManagedCollectionsStoreData} from 'jsapp/js/components/library/managedCollectionsStore';
+import managedCollectionsStore from 'js/components/library/managedCollectionsStore';
+import type {ManagedCollectionsStoreData} from 'js/components/library/managedCollectionsStore';
 import './assetActionButtons.scss';
 import {withRouter} from 'jsapp/js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
