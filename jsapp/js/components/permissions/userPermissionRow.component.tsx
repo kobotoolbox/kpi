@@ -66,7 +66,8 @@ export default class UserPermissionRow extends React.Component<
 
   /**
    * Note: we remove "view_asset" permission, as it is the most basic one,
-   * so removing it will in fact remove all permissions
+   * so removing it will in fact remove every permission except `add_submissions`.
+   * That permission will be removed seprately.
    */
   removeAllPermissions() {
     this.setState({isBeingDeleted: true});
@@ -75,10 +76,25 @@ export default class UserPermissionRow extends React.Component<
         perm.permission ===
         permConfig.getPermissionByCodename('view_asset')?.url
     );
+
+    const userAddSubmissionsPerm = this.props.permissions.find(
+      (perm) =>
+        perm.permission ===
+        permConfig.getPermissionByCodename('add_submissions')?.url
+    );
     if (userViewAssetPerm) {
       actions.permissions.removeAssetPermission(
         this.props.assetUid,
         userViewAssetPerm.url
+      );
+    }
+
+    // We have to remove this permission seprately as it can be granted without
+    // `view_asset`.
+    if (userAddSubmissionsPerm) {
+      actions.permissions.removeAssetPermission(
+        this.props.assetUid,
+        userAddSubmissionsPerm.url
       );
     }
   }
