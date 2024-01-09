@@ -255,10 +255,16 @@ export const CHECKBOX_LABELS: {[key in CheckboxNameAll]: string} = {
 };
 Object.freeze(CHECKBOX_LABELS);
 
-export const PARTIAL_BY_USERS_DEFAULT_LABEL = t(
+export const PARTIAL_BY_USERS_LABEL = t(
   'Act on submissions only from specific users'
 );
 
-export const PARTIAL_BY_RESPONSES_DEFAULT_LABEL = t(
+export const PARTIAL_BY_RESPONSES_LABEL = t(
   'Act on submissions based on a condition'
+);
+
+// To be used when there are multiple filters in single permission - e.g. it has
+// both "by users" and "by responses" defined.
+export const PARTIAL_BY_MULTIPLE_LABEL = t(
+  'Act on submissions based on multiple conditions'
 );

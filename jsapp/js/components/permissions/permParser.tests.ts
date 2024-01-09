@@ -64,26 +64,6 @@ describe('permParser', () => {
       chai.expect(parsed[2].user.name).to.equal('olivier');
       chai.expect(parsed[2].permissions.length).to.equal(1);
     });
-
-    it('should build proper form data for multiple partial permissions', () => {
-      const parsed = parseBackendData(
-        endpoints.assetWithMultiplePartial.results,
-        endpoints.assetWithMultiplePartial.results[0].user,
-      );
-
-      chai.expect(parsed).to.deep.equal({
-        formView: true,
-        submissionsAdd: true,
-        submissionsEditPartialByResponses: true,
-        submissionsEditPartialByResponsesQuestion: 'Where_are_you_from',
-        submissionsEditPartialByResponsesValue: 'Poland',
-        submissionsDeletePartialByUsers: true,
-        submissionsDeletePartialByUsersList: ['dave', 'krzysztof'],
-        submissionsValidatePartialByResponses: true,
-        submissionsValidatePartialByResponsesQuestion: 'What_is_your_fav_animal',
-        submissionsValidatePartialByResponsesValue: 'Racoon',
-      });
-    });
   });
 
   describe('sortParseBackendOutput', () => {
@@ -220,9 +200,9 @@ describe('permParser', () => {
         formView: true,
         submissionsViewPartialByUsers: true,
         submissionsViewPartialByUsersList: ['john', 'olivier'],
-        submissionsViewPartialByResponses: true,
-        submissionsViewPartialByResponsesQuestion: 'Where_are_you_from',
-        submissionsViewPartialByResponsesValue: 'Poland',
+        submissionsEditPartialByResponses: true,
+        submissionsEditPartialByResponsesQuestion: 'Where_are_you_from',
+        submissionsEditPartialByResponsesValue: 'Poland',
       });
     });
 
@@ -250,6 +230,45 @@ describe('permParser', () => {
           permission: '/api/v2/permissions/view_asset/',
         },
       ]);
+    });
+
+    it('should build proper form data for multiple partial permissions', () => {
+      const testUser = 'gwyneth';
+
+      const usersWithPerms = parseBackendData(
+        endpoints.assetWithMultiplePartial.results,
+        endpoints.assetWithMultiplePartial.results[0].user
+      );
+
+      // Get testUser permissions
+      const testUserPerms =
+        usersWithPerms.find((item) => item.user.name === testUser)
+          ?.permissions || [];
+
+      // Build the data again for the testUser
+      const builtFormData = buildFormData(testUserPerms, testUser);
+
+      chai.expect(builtFormData).to.deep.equal({
+        username: 'gwyneth',
+        formView: true,
+        submissionsAdd: true,
+        submissionsViewPartialByUsers: true,
+        submissionsViewPartialByUsersList: ['dave', 'krzysztof'],
+        submissionsViewPartialByResponses: true,
+        submissionsViewPartialByResponsesQuestion: 'Where_are_you_from',
+        submissionsViewPartialByResponsesValue: 'Poland',
+        submissionsEditPartialByResponses: true,
+        submissionsEditPartialByResponsesQuestion: 'Your_color',
+        submissionsEditPartialByResponsesValue: 'blue',
+        submissionsDeletePartialByUsers: true,
+        submissionsDeletePartialByUsersList: ['kate', 'joshua'],
+        submissionsValidatePartialByUsers: true,
+        submissionsValidatePartialByUsersList: ['zachary'],
+        submissionsValidatePartialByResponses: true,
+        submissionsValidatePartialByResponsesQuestion:
+          'What_is_your_fav_animal',
+        submissionsValidatePartialByResponsesValue: 'Racoon',
+      });
     });
   });
 
@@ -279,7 +298,7 @@ describe('permParser', () => {
       ]);
     });
 
-    it('should add partial_permissions property for partial submissions permission', () => {
+    it('should add partial_permissions with merged filters for identical partial permission', () => {
       const parsed = parseFormData({
         username: 'leszek',
         formView: true,
@@ -302,11 +321,46 @@ describe('permParser', () => {
           partial_permissions: [
             {
               url: '/api/v2/permissions/view_submissions/',
-              filters: [{_submitted_by: {$in: ['john', 'olivier', 'eric']}}],
+              filters: [
+                [
+                  {_submitted_by: {$in: ['john', 'olivier', 'eric']}},
+                  {Where_are_you_from: 'Poland'},
+                ],
+              ],
             },
+          ],
+        },
+      ]);
+    });
+
+    it('should add separate partial_permissions for different partial permission', () => {
+      const parsed = parseFormData({
+        username: 'leszek',
+        formView: true,
+        formEdit: false,
+        submissionsView: false,
+        submissionsViewPartialByUsers: true,
+        submissionsViewPartialByUsersList: ['john', 'olivier', 'eric'],
+        submissionsAdd: false,
+        submissionsEdit: false,
+        submissionsEditPartialByResponses: true,
+        submissionsEditPartialByResponsesQuestion: 'Where_are_you_from',
+        submissionsEditPartialByResponsesValue: 'Poland',
+        submissionsValidate: false,
+      });
+
+      chai.expect(parsed).to.deep.equal([
+        {
+          user: '/api/v2/users/leszek/',
+          permission: '/api/v2/permissions/partial_submissions/',
+          partial_permissions: [
             {
               url: '/api/v2/permissions/view_submissions/',
-              filters: [{Where_are_you_from: {$eq: 'Poland'}}],
+              filters: [[{_submitted_by: {$in: ['john', 'olivier', 'eric']}}]],
+            },
+            {
+              url: '/api/v2/permissions/change_submissions/',
+              filters: [[{Where_are_you_from: 'Poland'}]],
             },
           ],
         },
@@ -408,11 +462,11 @@ describe('permParser', () => {
           partial_permissions: [
             {
               url: '/api/v2/permissions/view_submissions/',
-              filters: [{_submitted_by: {$in: ['john', 'olivier']}}],
+              filters: [[{_submitted_by: {$in: ['john', 'olivier']}}]],
             },
             {
-              url: '/api/v2/permissions/view_submissions/',
-              filters: [{Where_are_you_from: {$eq: 'Poland'}}],
+              url: '/api/v2/permissions/change_submissions/',
+              filters: [[{Where_are_you_from: 'Poland'}]],
             },
           ],
         },
