@@ -9,6 +9,7 @@ import {
   getQuestionTypeDefinition,
   getQuestionsFromSchema,
   updateSurveyQuestions,
+  hasManagePermissionsToCurrentAsset,
 } from 'js/components/processing/analysis/utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
 import type {AnalysisQuestionInternal} from '../constants';
@@ -142,6 +143,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         // We only allow editing one question at a time, so adding new is not
         // possible until user stops editing
         isDisabled={
+          !hasManagePermissionsToCurrentAsset() ||
           analysisQuestions.state.questionsBeingEdited.length !== 0 ||
           analysisQuestions.state.isPending
         }
@@ -153,7 +155,10 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}
-        isDisabled={analysisQuestions.state.isPending}
+        isDisabled={
+          !hasManagePermissionsToCurrentAsset() ||
+          analysisQuestions.state.isPending
+        }
       />
     </header>
   );

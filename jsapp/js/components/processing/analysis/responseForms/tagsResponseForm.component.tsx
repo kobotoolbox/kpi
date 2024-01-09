@@ -13,6 +13,7 @@ import commonStyles from './common.module.scss';
 
 interface TagsResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
 /**
@@ -79,6 +80,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
           onlyUnique
           addOnBlur
           addOnPaste
+          disabled={!props.canEdit}
         />
       </section>
     </>

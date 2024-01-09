@@ -19,11 +19,14 @@ import {
   findQuestion,
   getQuestionsFromSchema,
   updateSurveyQuestions,
+  hasManagePermissionsToCurrentAsset,
 } from '../utils';
 import classnames from 'classnames';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import {handleApiFail} from 'js/api';
 import type {FailResponse} from 'js/dataInterface';
+import assetStore from 'js/assetStore';
+import {userCan} from 'js/components/permissions/utils';
 
 export interface AnalysisQuestionRowProps {
   uuid: string;
@@ -55,7 +58,15 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     return null;
   }
 
-  const isDragDisabled = analysisQuestions.state.isPending;
+  // Responding to analysis question requires `edit_submissions` permission.
+  const hasEditSubmissionsPermissions = (() => {
+    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+    return userCan('change_submissions', asset);
+  })();
+
+  // Reordering analysis questions requires `manage_asset` permission.
+  const isDragDisabled =
+    analysisQuestions.state.isPending || !hasManagePermissionsToCurrentAsset();
 
   const previewRef = useRef<HTMLLIElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
@@ -187,19 +198,44 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
             return <CommonHeader uuid={item.uuid} />;
           }
           case 'qual_select_multiple': {
-            return <SelectMultipleResponseForm uuid={item.uuid} />;
+            return (
+              <SelectMultipleResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           case 'qual_select_one': {
-            return <SelectOneResponseForm uuid={item.uuid} />;
+            return (
+              <SelectOneResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           case 'qual_tags': {
-            return <TagsResponseForm uuid={item.uuid} />;
+            return (
+              <TagsResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           case 'qual_integer': {
-            return <IntegerResponseForm uuid={item.uuid} />;
+            return (
+              <IntegerResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           case 'qual_text': {
-            return <TextResponseForm uuid={item.uuid} />;
+            return (
+              <TextResponseForm
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            );
           }
           default: {
             return (

@@ -12,6 +12,7 @@ import commonStyles from './common.module.scss';
 
 interface SelectMultipleResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
 /**
@@ -102,6 +103,7 @@ export default function SelectMultipleResponseForm(
           type='bare'
           items={getCheckboxes()}
           onChange={onCheckboxesChange}
+          disabled={!props.canEdit}
         />
       </section>
     </>

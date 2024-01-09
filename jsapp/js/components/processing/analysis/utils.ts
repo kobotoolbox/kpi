@@ -22,6 +22,7 @@ import type {
 import type {Json} from '../../common/common.interfaces';
 import assetStore from 'js/assetStore';
 import singleProcessingStore from '../singleProcessingStore';
+import {userCan} from 'js/components/permissions/utils';
 
 /** Finds given question in state */
 export function findQuestion(uuid: string, state: AnalysisQuestionsState) {
@@ -181,7 +182,11 @@ export async function updateSurveyQuestions(
   try {
     const response = await fetchPatch<AssetResponse>(
       endpoints.ASSET_URL.replace(':uid', assetUid),
-      {advanced_features: advancedFeatures as Json}
+      {advanced_features: advancedFeatures as Json},
+      // The `updateSurveyQuestions` function can fail for other reasons too, so
+      // we rely on the error displaying to be handled elsewhere - to avoid
+      // duplicated notifications
+      {notifyAboutError: false}
     );
 
     // TODO think of better way to handle this
@@ -227,7 +232,9 @@ async function updateResponse(
 
     const apiResponse = await fetchPostUrl<SubmissionProcessingDataResponse>(
       processingUrl,
-      payload as Json
+      payload as Json,
+      // We handle the errors in the `updateResponseAndReducer` function.
+      {notifyAboutError: false}
     );
 
     return {
@@ -301,4 +308,9 @@ export async function updateResponseAndReducer(
     handleApiFail(err as FailResponse);
     dispatch({type: 'updateResponseFailed'});
   }
+}
+
+export function hasManagePermissionsToCurrentAsset(): boolean {
+  const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+  return userCan('manage_asset', asset);
 }
