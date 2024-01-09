@@ -132,6 +132,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
+    'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

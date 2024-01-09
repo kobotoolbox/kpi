@@ -55,12 +55,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     Only used for unit testing and interface testing.
     """
 
-    PROTECTED_XML_FIELDS = [
-        '__version__',
-        'formhub',
-        'meta',
-    ]
-
     @property
     def attachment_storage_bytes(self):
         submissions = self.get_submissions(self.asset.owner)
@@ -140,6 +134,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, active=False):
+        def generate_uuid_for_form():
+            # From KoboCAT's onadata.libs.utils.model_tools
+            return uuid.uuid4().hex
+
         self.store_data({
             'backend': 'mock',
             'identifier': 'mock://%s' % self.asset.uid,
@@ -147,7 +145,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'backend_response': {
                 'downloadable': active,
                 'has_kpi_hook': self.asset.has_active_hooks,
-                'kpi_asset_uid': self.asset.uid
+                'kpi_asset_uid': self.asset.uid,
+                'uuid': generate_uuid_for_form(),
             },
             'version': self.asset.version_id,
         })
