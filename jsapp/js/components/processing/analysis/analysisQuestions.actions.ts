@@ -31,7 +31,7 @@ export type AnalysisQuestionsAction =
   // fresh data from Back-end.
   | {
       type: 'updateQuestionCompleted';
-      payload: {questions: AnalysisQuestionInternal[]};
+      payload: {question: AnalysisQuestionInternal};
     }
   // Unlocks UI after failed API call
   | {type: 'udpateQuestionFailed'}
