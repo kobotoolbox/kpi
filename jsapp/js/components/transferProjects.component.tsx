@@ -13,6 +13,8 @@ import {
 } from './transferProjects.api';
 import type {AssetResponse} from 'js/dataInterface';
 import sessionStore from 'js/stores/session';
+import envStore from 'js/envStore';
+import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 
 interface TransferProjectsProps {
   asset: AssetResponse;
@@ -139,7 +141,15 @@ export default function TransferProjects(props: TransferProjectsProps) {
                   'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
                 )}
                 &nbsp;
-                <a>{t('Learn more')}</a>
+                <a
+                  href={
+                    envStore.data.support_url +
+                    HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                  }
+                  target='_blank'
+                >
+                  {t('Learn more')}
+                </a>
                 &nbsp;
                 {t('→')}
               </span>
@@ -212,10 +222,18 @@ export default function TransferProjects(props: TransferProjectsProps) {
                   )}
                 </strong>
                 &nbsp;
-                <a>{t('Learn more')}</a>
+                <a
+                  href={
+                    envStore.data.support_url +
+                    HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                  }
+                  target='_blank'
+                >
+                  {t('Learn more')}
+                </a>
               </div>
             </div>
-            {/* Unused element to prevent firefox autocomplete 
+            {/* Unused element to prevent firefox autocomplete
             suggestions on username field */}
             <input type='text' style={{display: 'none'}} />
             <div className={styles.input}>
@@ -251,7 +269,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               color='blue'
               type='full'
               size='m'
-              isSubmit={true}
+              isSubmit
             />
           </KoboModalFooter>
         </form>
