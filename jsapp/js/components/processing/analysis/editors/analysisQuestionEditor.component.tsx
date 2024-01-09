@@ -149,6 +149,7 @@ export default function AnalysisQuestionEditor(
           // This should never happen :) I.e. the list of questions from
           // `response` will include the question, it's just the `.find`
           // that has a possibility to return `undefined` :shrug:
+          throw new Error('Question not found in the list of questions');
         }
       } catch (err) {
         handleApiFail(err as FailResponse);
