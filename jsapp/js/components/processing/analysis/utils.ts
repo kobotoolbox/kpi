@@ -22,6 +22,7 @@ import type {
 import type {Json} from '../../common/common.interfaces';
 import assetStore from 'js/assetStore';
 import singleProcessingStore from '../singleProcessingStore';
+import {userCan} from 'js/components/permissions/utils';
 
 /** Finds given question in state */
 export function findQuestion(uuid: string, state: AnalysisQuestionsState) {
@@ -294,4 +295,9 @@ export async function updateResponseAndReducer(
     handleApiFail(err as FailResponse);
     dispatch({type: 'updateResponseFailed'});
   }
+}
+
+export function hasManagePermissionsToCurrentAsset(): boolean {
+  const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+  return userCan('manage_asset', asset);
 }

@@ -19,6 +19,7 @@ import {
   findQuestion,
   getQuestionsFromSchema,
   updateSurveyQuestions,
+  hasManagePermissionsToCurrentAsset,
 } from '../utils';
 import classnames from 'classnames';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
@@ -57,20 +58,15 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     return null;
   }
 
-  // Reordering analysis questions requires `manage_asset` permission.
-  const hasManagePermissions = (() => {
-    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
-    return userCan('manage_asset', asset);
-  })();
-
   // Responding to analysis question requires `edit_submissions` permission.
   const hasEditSubmissionsPermissions = (() => {
     const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
     return userCan('change_submissions', asset);
   })();
 
+  // Reordering analysis questions requires `manage_asset` permission.
   const isDragDisabled =
-    analysisQuestions.state.isPending || !hasManagePermissions;
+    analysisQuestions.state.isPending || !hasManagePermissionsToCurrentAsset();
 
   const previewRef = useRef<HTMLLIElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
