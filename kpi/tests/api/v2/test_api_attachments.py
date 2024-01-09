@@ -50,16 +50,16 @@ class AttachmentApiTests(BaseAssetTestCase):
         _uuid = str(uuid.uuid4())
         submission = {
             '__version__': v_uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             'q2': 'audio_conversion_test_image.jpg',
             '_uuid': _uuid,
             'meta/instanceID': f'uuid:{_uuid}',
             '_attachments': [
                 {
                     'id': 1,
-                    'download_url': 'http://testserver/someuser/audio_conversion_test_clip.mp4',
-                    'filename': 'someuser/audio_conversion_test_clip.mp4',
-                    'mimetype': 'video/mp4',
+                    'download_url': 'http://testserver/someuser/audio_conversion_test_clip.3gp',
+                    'filename': 'someuser/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
                 },
                 {
                     'id': 2,
@@ -142,7 +142,7 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response['Content-Type'] == 'video/mp4'
+        assert response['Content-Type'] == 'video/3gpp'
 
     def test_get_attachment_with_id(self):
         url = reverse(
@@ -156,7 +156,7 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response['Content-Type'] == 'video/mp4'
+        assert response['Content-Type'] == 'video/3gpp'
 
     def test_duplicate_attachment_with_submission(self):
         # Grab the original submission and attachment
@@ -171,7 +171,7 @@ class AttachmentApiTests(BaseAssetTestCase):
         )
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response['Content-Type'] == 'video/mp4'
+        assert response['Content-Type'] == 'video/3gpp'
         original_file = response.data
 
         # Duplicate the submission
@@ -199,7 +199,7 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response['Content-Type'] == 'video/mp4'
+        assert response['Content-Type'] == 'video/3gpp'
         duplicate_file = response.data
 
         # Ensure that the files are the same
@@ -266,4 +266,4 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response['Content-Type'] == 'video/mp4'
+        assert response['Content-Type'] == 'video/3gpp'
