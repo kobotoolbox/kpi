@@ -328,8 +328,11 @@ class CustomerPortalView(APIView):
             Recurring add-ons and the Enterprise plan aren't included in the default billing configuration.
             This lets us hide them as an 'upgrade' option for paid plan users.
             """
-            needs_custom_config = price.product.metadata.get('product_type', '') == 'addon'
-            needs_custom_config = needs_custom_config or price.product.metadata.get('plan_type', '') == 'enterprise'
+            metadata = price.product.metadata
+            needs_custom_config = (
+                metadata.get('product_type') == 'addon'
+                or metadata.get('plan_type') == 'enterprise'
+            )
             if needs_custom_config:
                 # Try getting the portal configuration that lets us switch to the provided price
                 current_config = next(
