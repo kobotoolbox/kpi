@@ -20,6 +20,25 @@
   }
 }
 
+.balanceEntry {
+  align-items: center;
+  margin-top: -0.5em;
+}
+
+.balanceContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.5em 0.5em;
+  margin-right: -0.5em;
+  border-radius: 0.25em;;
+
+  i {
+    margin-right: 0.5em;
+  }
+}
+
 .warning {
   background-color: colors.$kobo-light-amber;
 }
