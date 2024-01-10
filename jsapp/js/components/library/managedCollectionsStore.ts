@@ -133,7 +133,7 @@ class ManagedCollectionsStore extends Reflux.Store {
   }
 }
 
-/** This store keeps an up to date list of owned collections. */
+/** This store keeps an up to date list of managed collections. */
 const managedCollectionsStore = new ManagedCollectionsStore();
 managedCollectionsStore.init();
 
