@@ -43,6 +43,15 @@ if 'djstripe' not in INSTALLED_APPS:
     INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe')
 STRIPE_ENABLED = True
 
+# Per django recommendations, we use the dummy cache backend to avoid having
+# to disable caching on a per-test basis
+# https://docs.djangoproject.com/en/3.1/topics/cache/#dummy-caching-for-development
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
 WEBPACK_LOADER['DEFAULT'][
     'LOADER_CLASS'
 ] = 'webpack_loader.loader.FakeWebpackLoader'
