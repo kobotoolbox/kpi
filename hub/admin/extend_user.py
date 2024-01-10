@@ -77,7 +77,7 @@ class OrgInline(admin.StackedInline):
         'is_admin',
     ]
     raw_id_fields = ('user', 'organization')
-    readonly_fields = ('active_subscription_status')
+    readonly_fields = ('active_subscription_status',)
 
     def active_subscription_status(self, obj):
         return obj.active_subscription_status
