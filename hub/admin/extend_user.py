@@ -33,6 +33,7 @@ from .mixins import AdvancedSearchMixin
 
 
 class UserChangeForm(DjangoUserChangeForm):
+
     username = CharField(
         label='username',
         max_length=USERNAME_MAX_LENGTH,
@@ -48,17 +49,16 @@ class UserChangeForm(DjangoUserChangeForm):
             and AccountTrash.objects.filter(user_id=self.instance.pk).exists()
         ):
             url = reverse('admin:trash_bin_accounttrash_changelist')
-            raise ValidationError(
-                mark_safe(
-                    f'User is in <a href="{url}">trash</a> and cannot be reactivated'
-                    f' from here.'
-                )
-            )
+            raise ValidationError(mark_safe(
+                f'User is in <a href="{url}">trash</a> and cannot be reactivated'
+                f' from here.'
+            ))
 
         return cleaned_data
 
 
 class UserCreationForm(DjangoUserCreationForm):
+
     username = CharField(
         label='username',
         max_length=USERNAME_MAX_LENGTH,
@@ -78,13 +78,14 @@ class OrgInline(admin.StackedInline):
     ]
     raw_id_fields = ('user', 'organization')
     readonly_fields = ('active_subscription_status',)
-    active_subscription_status.short_description = 'Active Subscription'
 
     def active_subscription_status(self, obj):
         return obj.active_subscription_status
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
+
+    active_subscription_status.short_description = 'Active Subscription'
 
 
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
@@ -141,9 +142,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     )
     actions = ['remove', 'delete']
 
-    @admin.action(
-        description='Remove selected users (delete everything but their username)'
-    )
+    @admin.action(description='Remove selected users (delete everything but their username)')
     def remove(self, request, queryset, **kwargs):
         """
         Put users in trash and schedule their data deletion according to
@@ -184,9 +183,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
 
     @admin.display(description='Removal request date')
     def get_date_removal_requested(self, obj):
-        if not (
-            date_removal_requested := obj.extra_details.date_removal_requested
-        ):
+        if not (date_removal_requested := obj.extra_details.date_removal_requested):
             return '-'
 
         return date_removal_requested
@@ -200,6 +197,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
 
     @admin.display(description='Status')
     def get_status(self, obj):
+
         if not obj.last_login and not obj.extra_details.date_removal_requested:
             return 'Never logged in'
 
@@ -221,6 +219,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         )
 
     def get_search_results(self, request, queryset, search_term):
+
         if request.path != '/admin/auth/user/':
             # If search comes from autocomplete field, use parent class method
             return super(UserAdmin, self).get_search_results(
@@ -243,7 +242,9 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             user_id=obj.id,
             year=today.year,
             month=today.month,
-        ).aggregate(counter=Sum('counter'))
+        ).aggregate(
+            counter=Sum('counter')
+        )
         return instances.get('counter')
 
     def _remove_or_delete(
@@ -265,9 +266,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             )
             return
 
-        AccountTrash.toggle_user_statuses(
-            [u['pk'] for u in users], active=False
-        )
+        AccountTrash.toggle_user_statuses([u['pk'] for u in users], active=False)
 
         self.message_user(
             request,
@@ -276,6 +275,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         )
 
     def _get_message(self, singular: bool, grace_period: int) -> str:
+
         url = reverse('admin:trash_bin_accounttrash_changelist')
 
         if grace_period == -1:
