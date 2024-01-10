@@ -78,13 +78,14 @@ class OrgInline(admin.StackedInline):
     ]
     raw_id_fields = ('user', 'organization')
     readonly_fields = ('active_subscription_status',)
-    active_subscription_status.short_description = 'Active Subscription'
 
     def active_subscription_status(self, obj):
         return obj.active_subscription_status
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
+
+    active_subscription_status.short_description = 'Active Subscription'
 
 
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
