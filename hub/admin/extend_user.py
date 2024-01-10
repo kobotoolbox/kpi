@@ -80,7 +80,10 @@ class OrgInline(admin.StackedInline):
     readonly_fields = ('active_subscription_status',)
 
     def active_subscription_status(self, obj):
-        return obj.active_subscription_status
+        if settings.STRIPE_ENABLED:
+            return obj.active_subscription_status
+        else:
+            return None
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False

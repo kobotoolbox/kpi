@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db.models import F
-from djstripe.models import Customer, Subscription
+if settings.STRIPE_ENABLED:
+   from djstripe.models import Customer, Subscription
 from functools import partial
 
 from organizations.abstract import (
