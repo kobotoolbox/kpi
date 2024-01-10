@@ -69,21 +69,23 @@ class UserCreationForm(DjangoUserCreationForm):
 
 class OrgInline(admin.StackedInline):
     model = OrganizationUser
-    extra = 0
     verbose_name_plural = 'Organization'
     view_on_site = False
-    readonly_fields = ('active_subscription_billing_detail',)
+    list_display = [
+        'user',
+        'organization',
+        'is_admin',
+    ]
+    raw_id_fields = ('user', 'organization')
+    readonly_fields = ('active_subscription_status')
+
+    def active_subscription_status(self, obj):
+        return obj.active_subscription_status
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
 
-    def active_subscription_billing_detail(self, obj):
-        details = obj.organization.active_subscription_billing_details
-        return details if details else "None"
-
-    active_subscription_billing_detail.short_description = (
-        "Active Subscriptions"
-    )
+    active_subscription_status.short_description = 'Active Subscription'
 
 
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
