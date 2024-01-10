@@ -18,7 +18,6 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   if (!props.limits.length) {
     return null;
   }
-  styles.limitBannerContainer, styles.warningBanner;
   return (
     <div
       className={cx(styles.limitBannerContainer, {
