@@ -26,11 +26,11 @@ from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+from django_redis import get_redis_connection
 from kobo_service_account.utils import get_request_headers
 from lxml import etree
 from rest_framework import status
 from rest_framework.reverse import reverse
-from redis import Redis
 
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -80,8 +80,6 @@ from ..exceptions import (
 
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
-
-enketo_redis_client = Redis.from_url(settings.ENKETO_REDIS_MAIN_URL)
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -1137,6 +1135,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
 
+        enketo_redis_client = get_redis_connection('enketo_redis_main')
         enketo_redis_client.hset(
             f'id:{enketo_id}',
             'openRosaServer',
