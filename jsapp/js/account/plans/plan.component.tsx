@@ -44,6 +44,7 @@ import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 import {PlanButton} from 'js/account/plans/planButton.component';
 import Session from 'js/stores/session';
 import InlineMessage from 'js/components/common/inlineMessage';
+import {PriceDisplay} from 'js/account/plans/priceDisplay.component';
 
 interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
@@ -619,15 +620,7 @@ export default function Plan() {
                           ? price.name
                           : freeTierOverride?.name || price.name}
                       </h1>
-                      <div className={styles.priceTitle}>
-                        {!price.prices?.unit_amount
-                          ? t('Free')
-                          : price.prices?.recurring?.interval === 'year'
-                          ? `$${(price.prices?.unit_amount / 100 / 12).toFixed(
-                              2
-                            )} USD/month`
-                          : price.prices.human_readable_price}
-                      </div>
+                      <PriceDisplay price={price.prices} />
                       <ul className={styles.featureContainer}>
                         {Object.keys(price.metadata).map(
                           (featureItem: string) =>
