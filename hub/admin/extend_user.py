@@ -33,7 +33,6 @@ from .mixins import AdvancedSearchMixin
 
 
 class UserChangeForm(DjangoUserChangeForm):
-
     username = CharField(
         label='username',
         max_length=USERNAME_MAX_LENGTH,
@@ -77,13 +76,13 @@ class OrgInline(admin.StackedInline):
         'is_admin',
     ]
     raw_id_fields = ('user', 'organization')
-    readonly_fields = ('active_subscription_status',)
+    readonly_fields = (
+        settings.STRIPE_ENABLED and ('active_subscription_status',) or []
+    )
 
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
-            return obj.active_subscription_status
-        else:
-            return None
+            return obj.active_subscription_status if obj.active_subscription_status else "None"
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
