@@ -136,8 +136,11 @@ class MockDeployment(TestCase):
 
         # Using the deployment should work
         self.asset.deployment.store_data({'direct_access': True})
+        self.assertTrue('_stored_data_key' in self.asset._deployment_data)
         self.asset.save()
+        self.assertFalse('_stored_data_key' in self.asset._deployment_data)
         self.asset.refresh_from_db()
+        self.assertFalse('_stored_data_key' in self.asset._deployment_data)
         self.assertNotEqual(self.asset._deployment_data, deployment_data)  # noqa
         self.assertTrue(self.asset._deployment_data['direct_access'])  # noqa
 

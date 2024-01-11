@@ -96,6 +96,12 @@ Additional class names:
     transform: translate(0);
   }
 
+  .wrapped-tooltip [data-tip]::after,
+  .wrapped-tooltip[data-tip]::after {
+    width: 300px;
+    white-space: normal;
+  }
+
   // more actions in asset-row adjustment
   .asset-row .popover-menu [data-tip]::after {
     left: -60%;

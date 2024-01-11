@@ -1,12 +1,15 @@
-# coding: utf-8
+from typing import Union
+
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.db.models.signals import post_save, post_delete
+
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
 from kobo.apps.hook.models.hook import Hook
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatToken,
     KobocatUser,
@@ -15,8 +18,13 @@ from kpi.deployment_backends.kc_access.utils import (
     grant_kc_model_level_perms,
     kc_transaction_atomic,
 )
+from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset, TagUid
-from kpi.utils.permissions import grant_default_model_level_perms
+from kpi.utils.object_permission import post_assign_perm, post_remove_perm
+from kpi.utils.permissions import (
+    grant_default_model_level_perms,
+    is_user_anonymous,
+)
 
 
 @receiver(post_save, sender=User)
@@ -100,3 +108,39 @@ def post_delete_asset(sender, instance, **kwargs):
     else:
         if parent:
             parent.update_languages()
+
+
+@receiver(post_assign_perm, sender=Asset)
+def post_assign_asset_perm(
+    sender,
+    instance,
+    user: Union['auth.User', 'AnonymousUser'],
+    codename: str,
+    **kwargs
+):
+
+    if not (is_user_anonymous(user) and codename == PERM_ADD_SUBMISSIONS):
+        return
+
+    try:
+        instance.deployment.set_enketo_open_rosa_server(require_auth=False)
+    except DeploymentNotFound:
+        return
+
+
+@receiver(post_remove_perm, sender=Asset)
+def post_remove_asset_perm(
+    sender,
+    instance,
+    user: Union['auth.User', 'AnonymousUser'],
+    codename: str,
+    **kwargs
+):
+
+    if not (is_user_anonymous(user) and codename == PERM_ADD_SUBMISSIONS):
+        return
+
+    try:
+        instance.deployment.set_enketo_open_rosa_server(require_auth=True)
+    except DeploymentNotFound:
+        return
