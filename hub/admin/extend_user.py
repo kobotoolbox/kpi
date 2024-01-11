@@ -33,6 +33,7 @@ from .mixins import AdvancedSearchMixin
 
 
 class UserChangeForm(DjangoUserChangeForm):
+
     username = CharField(
         label='username',
         max_length=USERNAME_MAX_LENGTH,
