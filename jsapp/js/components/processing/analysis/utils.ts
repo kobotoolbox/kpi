@@ -122,7 +122,7 @@ export function applyUpdateResponseToInternalQuestions(
       if (typeof foundResponse.val === 'number') {
         question.response = String(foundResponse.val);
       } else {
-        question.response = foundResponse.val;
+        question.response = foundResponse.val || '';
       }
     }
   });
@@ -174,9 +174,8 @@ export async function updateSurveyQuestions(
   }
 
   // Step 3: prepare the data for the endpoint
-  advancedFeatures.qual.qual_survey = convertQuestionsFromInternalToSchema(
-    questions
-  );
+  advancedFeatures.qual.qual_survey =
+    convertQuestionsFromInternalToSchema(questions);
 
   // Step 4: Update the data (yay!)
   try {
@@ -214,7 +213,7 @@ async function updateResponse(
   qpath: string,
   analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
-  newResponse: string | string[] | number
+  newResponse: string | string[] | number | undefined
 ) {
   try {
     const payload: AnalysisResponseUpdateRequest = {
@@ -264,7 +263,7 @@ async function updateResponse(
 export async function updateResponseAndReducer(
   dispatch: React.Dispatch<AnalysisQuestionsAction>,
   surveyQuestionQpath: string,
-  analysisQuestionUUid: string,
+  analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
   response: string | string[]
 ) {
@@ -282,9 +281,16 @@ export async function updateResponseAndReducer(
   // Step 2: QUAL_INTEGER CONVERSION HACK (PART 1/2):
   // For code simplicity (I hope so!) we handle `qual_integer` as string and
   // only convert it to/from actual integer when talking with Back end.
-  let actualResponse: string | string[] | number = response;
+  let actualResponse: string | string[] | number | undefined = response;
   if (analysisQuestionType === 'qual_integer') {
-    actualResponse = parseInt(String(response));
+    const actualResponseAsNumber = parseInt(String(response));
+    if (Number.isInteger(actualResponseAsNumber)) {
+      actualResponse = parseInt(String(response));
+    } else {
+      // If what we got for `qual_integer` is not a number, let's pass empty
+      // string to avoid errors.
+      actualResponse = undefined;
+    }
   }
 
   // Step 3: Store the response using the `advanced_submission_post` API
@@ -293,7 +299,7 @@ export async function updateResponseAndReducer(
       processingUrl,
       singleProcessingStore.currentSubmissionEditId,
       surveyQuestionQpath,
-      analysisQuestionUUid,
+      analysisQuestionUuid,
       analysisQuestionType,
       actualResponse
     );
