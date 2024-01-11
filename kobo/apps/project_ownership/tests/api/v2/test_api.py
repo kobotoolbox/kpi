@@ -94,6 +94,7 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
             email='thirduser@example.com',
         )
         self.asset = Asset.objects.get(pk=1)
+        self.asset.save()  # Set asset permissions for owner
         self.invite = Invite.objects.create(
             sender=self.someuser, recipient=self.anotheruser
         )
@@ -238,10 +239,30 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_invite_set_as_cancelled_on_project_deletion(self):
+
+        self.client.login(username='someuser', password='someuser')
+        assert self.invite.status == InviteStatusChoices.PENDING.value
+        asset_detail_url = reverse(
+            self._get_endpoint('asset-detail'),
+            args=[self.asset.uid],
+        )
+        response = self.client.delete(asset_detail_url)
+        # Should be a 204, but DRF Browsable API renderer (the default)
+        # alter the status code and returns a 200 instead.
+        # All other deletion tests on Asset assert a 200 either.
+        assert response.status_code == status.HTTP_200_OK
+
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.get(self.invite_detail_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['status'] == InviteStatusChoices.CANCELLED.value
+
 
 class ProjectOwnershipAccountUsageAPITestCase(KpiTestCase):
 
     def test_account_usage_transfered_to_new_user(self):
+
 
         # Use /api/v2/service_usage/
         # Test new_owner usage is 0
