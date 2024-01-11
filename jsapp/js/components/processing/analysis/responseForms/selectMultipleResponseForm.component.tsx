@@ -74,14 +74,9 @@ export default function SelectMultipleResponseForm(
     if (question?.additionalFields?.choices) {
       return (
         question?.additionalFields?.choices
-          // We hide all choices flaged as deleted.
-          .filter((item) => {
-            if (item.options?.deleted) {
-              return false;
-            }
-            return true;
-          })
-          // And then we produce checkbox object of each choice left.
+          // We hide all choices flagged as deleted…
+          .filter((item) => !item.options?.deleted)
+          // …and then we produce checkbox object of each choice left
           .map((choice) => {
             return {
               name: choice.uuid,

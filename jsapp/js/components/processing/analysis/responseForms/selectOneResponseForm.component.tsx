@@ -66,12 +66,18 @@ export default function SelectOneResponseForm(
 
   function getOptions(): RadioOption[] {
     if (question?.additionalFields?.choices) {
-      return question?.additionalFields?.choices.map((choice) => {
-        return {
-          value: choice.uuid,
-          label: choice.labels._default,
-        };
-      });
+      return (
+        question?.additionalFields?.choices
+          // We hide all choices flagged as deleted…
+          .filter((item) => !item.options?.deleted)
+          // …and then we produce radio option object of each choice left
+          .map((choice) => {
+            return {
+              value: choice.uuid,
+              label: choice.labels._default,
+            };
+          })
+      );
     }
     return [];
   }
