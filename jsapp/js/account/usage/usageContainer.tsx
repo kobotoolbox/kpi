@@ -89,7 +89,9 @@ const UsageContainer = ({
         </li>
         {isStripeEnabled && (
           <li className={cx(styles.balanceEntry)}>
-            <label>{t('Balance')}</label>
+            <label>
+              <strong>{t('Balance')}</strong>
+            </label>
             <div
               className={cx(styles.balanceContainer, {
                 [styles.warning]: isNearingLimit,
