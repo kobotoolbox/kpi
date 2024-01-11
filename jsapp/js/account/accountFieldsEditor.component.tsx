@@ -165,6 +165,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     );
   }
 
+  let count = 0; // field counter to adjust wrapping with spacers
+
   return (
     <div>
       <div className={styles.row}>
@@ -186,8 +188,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
       <div className={styles.flexFields}>
         {/* Full name */}
-        {isFieldToBeDisplayed('name') && (
-          <div className={cx(styles.field, styles.thirds)}>
+        {isFieldToBeDisplayed('name') && ++count && (
+          <div className={styles.field}>
             <TextBox
               label={getLabel('name')}
               required={isRequired('name')}
@@ -202,7 +204,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
 
         {/* Gender */}
-        {isFieldToBeDisplayed('gender') && (
+        {isFieldToBeDisplayed('gender') && ++count && (
           <div className={styles.field}>
             <KoboSelect
               label={getLabel('gender')}
@@ -222,9 +224,14 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           </div>
         )}
 
+        {/* Insert a blank spacer to start a new row for these */}
+        {!!(count % 2) && isFieldToBeDisplayed('country') && isFieldToBeDisplayed('city') && ++count && (
+          <div className={styles.field}/>
+        )}
+
         {/* Country */}
-        {isFieldToBeDisplayed('country') && (
-          <div className={cx(styles.field, styles.thirds)}>
+        {isFieldToBeDisplayed('country') && ++count && (
+          <div className={styles.field}>
             <KoboSelect
               label={getLabel('country')}
               isRequired={isRequired('country')}
@@ -244,8 +251,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
 
         {/* City */}
-        {isFieldToBeDisplayed('city') && (
-          <div className={cx(styles.field, styles.thirds)}>
+        {isFieldToBeDisplayed('city') && ++count && (
+          <div className={styles.field}>
             <TextBox
               label={getLabel('city')}
               required={isRequired('city')}
@@ -255,10 +262,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             />
           </div>
         )}
-      </div>
-      <div className={styles.flexFields}>
         {/* Primary Sector */}
-        {isFieldToBeDisplayed('sector') && (
+        {isFieldToBeDisplayed('sector') && ++count && (
           <div className={styles.field}>
             <KoboSelect
               label={getLabel('sector')}
@@ -279,7 +284,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
 
         {/* Organization Type */}
-        {isOrganizationTypeFieldToBeDisplayed() && (
+        {isOrganizationTypeFieldToBeDisplayed() && ++count && (
           <div className={cx(styles.field, styles.orgTypeDropdown)}>
             <KoboSelect
               label={getLabel('organization_type')}
@@ -296,6 +301,12 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               error={props.errors?.organization_type}
             />
           </div>
+        )}
+
+
+        {/* Insert a blank spacer to start a new row for these */}
+        {!!(count % 2) && isFieldToBeDisplayed('organization') && isFieldToBeDisplayed('organization_website') && (
+          <div className={styles.field}/>
         )}
 
         {/* Organization */}
@@ -316,7 +327,6 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           )}
 
         {/* Organization Website */}
-        {/* --------- TODO: ADD VALIDATION BEHAVIOR ---------- */}
         {isFieldToBeDisplayed('organization_website') &&
           !areOrganizationFieldsToBeSkipped() && (
             <div className={styles.field}>

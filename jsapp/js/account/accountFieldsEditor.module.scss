@@ -29,8 +29,8 @@
 }
 
 .flexFields {
-  // Flexbox helps us maintain a layout when some fields may be customized
-  // or removed.
+  // Flexbox helps us maintain a wrapping layout when some fields may be
+  // customized or removed.
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
@@ -40,10 +40,7 @@
 
   .field {
     flex: 1;
-    min-width: 40%; // These fields can sit next to each other in pairs.
-    &.thirds {
-      min-width: 26%;
-    }
+    min-width: 40%; // Let fields sit next to each other in pairs.
   }
 
   &:empty {
