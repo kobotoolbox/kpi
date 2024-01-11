@@ -14,7 +14,7 @@ except ImportError:
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.files.storage import get_storage_class
+from django.core.files.storage import default_storage
 from django.db.models import (
     CharField,
     Count,
@@ -77,7 +77,6 @@ def generate_country_report(
         'Count',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output_file:
         writer = csv.writer(output_file)
         writer.writerow(columns)
@@ -596,7 +595,6 @@ def generate_user_details_report(
         'city',
         'bio',
         'organization',
-        'require_auth',
         'primarySector',
         'organization_website',
         'twitter',
@@ -644,7 +642,6 @@ def generate_user_details_report(
         .order_by('id')
     )
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as f:
         columns = USER_COLS + EXTRA_DETAILS_COLS
         writer = csv.writer(f)
