@@ -1301,8 +1301,10 @@ SESSION_REDIS = {
 
 CACHES = {
     # Set CACHE_URL to override
-    'default': env.cache(default='redis://redis_cache:6380/3'),
-    'enketo_redis_main': env.cache(var='ENKETO_REDIS_MAIN_URL', default=None)
+    'default': env.cache_url(default='redis://redis_cache:6380/3'),
+    'enketo_redis_main': env.cache_url(
+        'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
+    ),
 }
 
 # How long to retain cached responses for kpi endpoints
