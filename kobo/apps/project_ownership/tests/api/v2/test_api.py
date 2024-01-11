@@ -27,11 +27,15 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         User = get_user_model()  # noqa
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
-        self.thirduser =  User.objects.create_user(
-            username='thirduser', password='thirduser', email='thirduser@example.com'
+        self.thirduser = User.objects.create_user(
+            username='thirduser',
+            password='thirduser',
+            email='thirduser@example.com',
         )
 
-        self.invite_url = reverse(self._get_endpoint('project-ownership-invite-list'))
+        self.invite_url = reverse(
+            self._get_endpoint('project-ownership-invite-list')
+        )
         self.asset = Asset.objects.get(pk=1)
 
     def test_can_create_invite_as_asset_owner(self):
@@ -61,7 +65,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_cannot_create_invite_as_regular_user(self):
-        
+
         self.client.login(username='thirduser', password='thirduser')
         payload = {
             'recipient': self.absolute_reverse(
@@ -73,6 +77,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         response = self.client.post(self.invite_url, data=payload, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+
 class ProjectOwnershipInviteAPITestCase(KpiTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -83,14 +88,22 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         User = get_user_model()  # noqa
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
-        self.thirduser =  User.objects.create_user(
-            username='thirduser', password='thirduser', email='thirduser@example.com'
+        self.thirduser = User.objects.create_user(
+            username='thirduser',
+            password='thirduser',
+            email='thirduser@example.com',
         )
-
         self.asset = Asset.objects.get(pk=1)
-        self.invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
-        self.transfer = Transfer.objects.create(invite=self.invite, asset=self.asset)
-        self.invite_detail_url = reverse(self._get_endpoint('project-ownership-invite-detail'), args=[self.invite.uid])
+        self.invite = Invite.objects.create(
+            sender=self.someuser, recipient=self.anotheruser
+        )
+        self.transfer = Transfer.objects.create(
+            invite=self.invite, asset=self.asset
+        )
+        self.invite_detail_url = reverse(
+            self._get_endpoint('project-ownership-invite-detail'),
+            args=[self.invite.uid],
+        )
 
     def test_can_cancel_invite_as_sender(self):
 
@@ -98,7 +111,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.CANCELLED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["status"] == InviteStatusChoices.CANCELLED.value
 
@@ -108,7 +123,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.CANCELLED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_cannot_cancel_invite_as_recipient(self):
@@ -117,7 +134,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.CANCELLED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_can_accept_invite_as_recipient(self):
@@ -126,7 +145,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.ACCEPTED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["status"] == "in_progress"
 
@@ -136,7 +157,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.DECLINED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["status"] == "declined"
 
@@ -146,7 +169,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.ACCEPTED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_cannot_decline_invite_as_sender(self):
@@ -155,11 +180,13 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.DECLINED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_cannot_change_in_progress_invite(self):
-        
+
         self.invite.status = InviteStatusChoices.IN_PROGRESS.value
         self.invite.save()
 
@@ -167,7 +194,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.DECLINED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_cannot_change_complete_invite(self):
@@ -178,7 +207,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.DECLINED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_cannot_change_failed_invite(self):
@@ -189,7 +220,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.ACCEPTED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_cannot_change_expired_invite(self):
@@ -200,7 +233,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         payload = {
             'status': InviteStatusChoices.ACCEPTED.value
         }
-        response = self.client.patch(self.invite_detail_url, data=payload, format='json')
+        response = self.client.patch(
+            self.invite_detail_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
@@ -259,11 +294,11 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         in_app_response = self.client.get(reverse('inappmessage-list'))
         assert in_app_response.status_code == status.HTTP_200_OK
         assert in_app_response.data['count'] == 1
-    
+
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_other_users_do_not_receive_in_app_message(self):
         self.client.login(username='alice', password='alice')
-        
+
         in_app_response = self.client.get(reverse('inappmessage-list'))
         assert in_app_response.status_code == status.HTTP_200_OK
         assert in_app_response.data['count'] == 0
