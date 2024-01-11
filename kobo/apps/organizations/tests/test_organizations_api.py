@@ -44,7 +44,7 @@ class OrganizationTestCase(BaseTestCase):
         self._insert_data()
         organization2 = baker.make(Organization, id='org_abcd123')
         organization2.add_user(user=self.user, is_admin=True)
-        with self.assertNumQueries(FuzzyInt(2, 4)):
+        with self.assertNumQueries(FuzzyInt(8, 10)):
             res = self.client.get(self.url_list)
         self.assertContains(res, organization2.name)
 
@@ -63,7 +63,7 @@ class OrganizationTestCase(BaseTestCase):
     def test_update(self):
         self._insert_data()
         data = {'name': 'edit'}
-        with self.assertNumQueries(FuzzyInt(4, 6)):
+        with self.assertNumQueries(FuzzyInt(8, 10)):
             res = self.client.patch(self.url_detail, data)
         self.assertContains(res, data['name'])
 

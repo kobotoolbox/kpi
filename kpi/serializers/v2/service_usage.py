@@ -214,7 +214,7 @@ class ServiceUsageSerializer(serializers.Serializer):
             return
 
         organization = Organization.objects.filter(
-            owner__organization_user__user=self.context.get('request').user,
+            organization_users__user=self.context.get('request').user,
             id=organization_id,
         ).first()
 

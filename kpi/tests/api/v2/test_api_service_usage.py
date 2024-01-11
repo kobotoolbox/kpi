@@ -8,10 +8,8 @@ from django.contrib.auth.models import User
 from django.db import connection
 from django.urls import reverse
 from django.utils import timezone
-from model_bakery import baker
 from rest_framework import status
 
-from kobo.apps.organizations.models import Organization
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
@@ -23,6 +21,9 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
 class ServiceUsageAPIBase(BaseAssetTestCase):
+    """
+    This class contains setup logic and utility functions to test submissions/usage
+    """
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -33,14 +34,17 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
     ]
     xform = None
     counter = None
+    attachment_id = 0
 
-    def setUp(self) -> None:
-        super().setUp()
-        self.client.login(username='anotheruser', password='anotheruser')
-        self.anotheruser = User.objects.get(username='anotheruser')
-        self.someuser = User.objects.get(username='someuser')
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.client = cls.client_class()
+        cls.client.login(username='anotheruser', password='anotheruser')
+        cls.anotheruser = User.objects.get(username='anotheruser')
+        cls.someuser = User.objects.get(username='someuser')
         with connection.schema_editor() as schema_editor:
-            for unmanaged_model in self.unmanaged_models:
+            for unmanaged_model in cls.unmanaged_models:
                 schema_editor.create_model(unmanaged_model)
 
     def _create_asset(self, user=None):
@@ -73,38 +77,6 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = self.asset.deployment.submission_list_url
         self._deployment = self.asset.deployment
-
-    def add_submission(self):
-        """
-        Adds ONE submission to an asset
-        """
-        submissions = []
-        v_uid = self.asset.latest_deployed_version.uid
-
-        submission = {
-            '__version__': v_uid,
-            'q1': 'audio_conversion_test_clip.mp4',
-            'q2': 'audio_conversion_test_image.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'id': 1,
-                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.mp4',
-                    'filename': 'anotheruser/audio_conversion_test_clip.mp4',
-                    'mimetype': 'video/mp4',
-                },
-                {
-                    'id': 2,
-                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',
-                    'filename': 'anotheruser/audio_conversion_test_image.jpg',
-                    'mimetype': 'image/jpeg',
-                },
-            ],
-            '_submitted_by': 'anotheruser',
-        }
-        submissions.append(submission)
-        self.asset.deployment.mock_submissions(submissions, flush_db=False)
-        self.update_xform_counters(self.asset, submissions=1)
 
     def add_nlp_trackers(self):
         """
@@ -140,61 +112,41 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
             total_mt_characters=counter_2['google_mt_characters'],
         )
 
-    def add_submissions(self):
+    def add_submissions(self, count=2):
         """
-        Adds TWO submissions to an asset
+        Add one or more submissions to an asset (TWO by default)
         """
         submissions = []
         v_uid = self.asset.latest_deployed_version.uid
 
-        submission1 = {
-            '__version__': v_uid,
-            'q1': 'audio_conversion_test_clip.mp4',
-            'q2': 'audio_conversion_test_image.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'id': 3,
-                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.mp4',
-                    'filename': 'anotheruser/audio_conversion_test_clip.mp4',
-                    'mimetype': 'video/mp4',
-                },
-                {
-                    'id': 4,
-                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',
-                    'filename': 'anotheruser/audio_conversion_test_image.jpg',
-                    'mimetype': 'image/jpeg',
-                },
-            ],
-            '_submitted_by': 'anotheruser',
-        }
-        submission2 = {
-            '__version__': v_uid,
-            'q1': 'audio_conversion_test_clip.mp4',
-            'q2': 'audio_conversion_test_image.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'id': 5,
-                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.mp4',
-                    'filename': 'anotheruser/audio_conversion_test_clip.mp4',
-                    'mimetype': 'video/mp4',
-                },
-                {
-                    'id': 6,
-                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',
-                    'filename': 'anotheruser/audio_conversion_test_image.jpg',
-                    'mimetype': 'image/jpeg',
-                },
-            ],
-            '_submitted_by': 'anotheruser',
-        }
-
-        submissions.append(submission1)
-        submissions.append(submission2)
+        for x in range(count):
+            submission = {
+                '__version__': v_uid,
+                'q1': 'audio_conversion_test_clip.mp4',
+                'q2': 'audio_conversion_test_image.jpg',
+                '_uuid': str(uuid.uuid4()),
+                '_attachments': [
+                    {
+                        'id': self.attachment_id,
+                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.mp4',
+                        'filename': 'anotheruser/audio_conversion_test_clip.mp4',
+                        'mimetype': 'video/mp4',
+                    },
+                    {
+                        'id': self.attachment_id + 1,
+                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',
+                        'filename': 'anotheruser/audio_conversion_test_image.jpg',
+                        'mimetype': 'image/jpeg',
+                    },
+                ],
+                '_submitted_by': 'anotheruser',
+            }
+            # increment the attachment ID for each attachment created
+            self.attachment_id = self.attachment_id + 2
+            submissions.append(submission)
 
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
-        self.update_xform_counters(self.asset, submissions=2)
+        self.update_xform_counters(self.asset, submissions=count)
 
     def update_xform_counters(self, asset: Asset, submissions: int = 0):
         """
@@ -230,7 +182,6 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
                     user_id=asset.owner_id,
                 )
             )
-            print(vars(self.counter))
             self.counter.save()
 
     def expected_file_size(self):
@@ -261,7 +212,7 @@ class ServiceUsageAPITestCase(ServiceUsageAPIBase):
         """
         self._create_asset()
         self.add_nlp_trackers()
-        self.add_submission()
+        self.add_submissions(count=1)
 
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
@@ -291,7 +242,7 @@ class ServiceUsageAPITestCase(ServiceUsageAPIBase):
         aggregated properly with
         """
         self._create_asset()
-        self.add_submission()
+        self.add_submissions(count=1)
 
         self._create_asset()
         self.add_submissions()
