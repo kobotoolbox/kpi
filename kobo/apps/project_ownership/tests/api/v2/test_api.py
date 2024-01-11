@@ -262,7 +262,9 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
 class ProjectOwnershipAccountUsageAPITestCase(KpiTestCase):
 
     def test_account_usage_transfered_to_new_user(self):
-
+        service_usage_url = reverse(
+            self._get_endpoint('service-usage-list'),
+        )
 
         # Use /api/v2/service_usage/
         # Test new_owner usage is 0
