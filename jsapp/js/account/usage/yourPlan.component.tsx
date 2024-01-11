@@ -10,6 +10,7 @@ import {ACCOUNT_ROUTES} from 'js/account/routes';
 import envStore from 'js/envStore';
 import {PlanNames} from 'js/account/stripe.types';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
+import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 
 /*
  * Show the user's current plan and any storage add-ons, with links to the Plans page
@@ -50,6 +51,9 @@ export const YourPlan = () => {
         <h2 className={usageStyles.headerText}>{t('Your plan')}</h2>
       </header>
       <section className={styles.section}>
+        <div className={styles.banner}>
+          <LimitNotifications usagePage />
+        </div>
         <div className={styles.planInfo}>
           <p className={styles.plan}>
             <strong>
