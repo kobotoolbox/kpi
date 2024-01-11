@@ -26,11 +26,11 @@ from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+from django_redis import get_redis_connection
 from kobo_service_account.utils import get_request_headers
 from lxml import etree
 from rest_framework import status
 from rest_framework.reverse import reverse
-from redis import Redis
 
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -84,8 +84,6 @@ from ..exceptions import (
     KobocatDuplicateSubmissionException,
 )
 
-enketo_redis_client = Redis.from_url(settings.ENKETO_REDIS_MAIN_URL)
-
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
@@ -93,20 +91,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     `self.asset._deployment_data` models.JSONField (referred as "deployment data")
     """
 
-    PROTECTED_XML_FIELDS = [
-        '__version__',
-        'formhub',
-        'meta',
-    ]
-
     SYNCED_DATA_FILE_TYPES = {
         AssetFile.FORM_MEDIA: 'media',
         AssetFile.PAIRED_DATA: 'paired_data',
     }
-
-    SUBMISSION_UUID_PATTERN = re.compile(
-        r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}'
-    )
 
     @property
     def attachment_storage_bytes(self):
@@ -525,8 +513,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 t('Your submission XML is malformed.')
             )
         try:
-            deprecated_uuid = xml_root.find('.//meta/deprecatedID').text
-            xform_uuid = xml_root.find('.//formhub/uuid').text
+            deprecated_uuid = xml_root.find(self.SUBMISSION_UUID_XPATH).text
+            xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is missing critical elements.')
@@ -624,10 +612,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError:
             submission_uuid = submission_id_or_uuid
         if submission_uuid:
-            if not re.match(self.SUBMISSION_UUID_PATTERN, submission_uuid):
-                # not sure how necessary such a sanitization step is,
-                # but it's not hurting anything
-                raise SubmissionNotFoundException
             # `_uuid` is the legacy identifier that changes (per OpenRosa spec)
             # after every edit; `meta/rootUuid` remains consistent across
             # edits. prefer the latter when fetching by UUID.
@@ -1119,6 +1103,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
 
+        enketo_redis_client = get_redis_connection('enketo_redis_main')
         enketo_redis_client.hset(
             f'id:{enketo_id}',
             'openRosaServer',

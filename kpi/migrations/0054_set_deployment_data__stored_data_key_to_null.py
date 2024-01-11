@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.db import migrations
 
+from kpi.constants import SKIP_HEAVY_MIGRATIONS_GUIDANCE
 from kpi.utils.django_orm_helper import RemoveJSONFieldAttribute
 
 
@@ -10,13 +11,7 @@ def set_stored_data_key_to_null(apps, schema_editor):
     if settings.SKIP_HEAVY_MIGRATIONS:
         return
 
-    print(
-        """
-        This migration might take a while. If it is too slow, you may want to
-        re-run migrations with SKIP_HEAVY_MIGRATIONS=True and apply this one
-        manually from the django shell.
-        """
-    )
+    print(SKIP_HEAVY_MIGRATIONS_GUIDANCE)
 
     Asset = apps.get_model('kpi', 'Asset')  # noqa
 

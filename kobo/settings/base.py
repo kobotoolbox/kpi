@@ -960,7 +960,6 @@ ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
 # How long to wait before flushing an individual preview from Enketo's cache
 ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
-ENKETO_REDIS_MAIN_URL = os.environ.get('ENKETO_REDIS_MAIN_URL', 'redis://localhost:6379/')
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -1398,7 +1397,10 @@ SESSION_REDIS = {
 
 CACHES = {
     # Set CACHE_URL to override
-    'default': env.cache(default='redis://redis_cache:6380/3'),
+    'default': env.cache_url(default='redis://redis_cache:6380/3'),
+    'enketo_redis_main': env.cache_url(
+        'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
+    ),
 }
 
 # How long to retain cached responses for kpi endpoints

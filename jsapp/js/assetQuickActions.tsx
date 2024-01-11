@@ -32,7 +32,7 @@ import {userCan} from './components/permissions/utils';
 import {renderJSXMessage} from './alertify';
 
 export function openInFormBuilder(uid: string) {
-  if (routerIsActive('library')) {
+  if (routerIsActive(ROUTES.LIBRARY)) {
     router!.navigate(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid));
   } else {
     router!.navigate(ROUTES.FORM_EDIT.replace(':uid', uid));

@@ -55,12 +55,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     Only used for unit testing and interface testing.
     """
 
-    PROTECTED_XML_FIELDS = [
-        '__version__',
-        'formhub',
-        'meta',
-    ]
-
     @property
     def attachment_storage_bytes(self):
         submissions = self.get_submissions(self.asset.owner)
@@ -140,13 +134,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, active=False):
+        def generate_uuid_for_form():
+            # From KoboCAT's onadata.libs.utils.model_tools
+            return uuid.uuid4().hex
+
         self.store_data({
             'backend': 'mock',
             'active': active,
             'backend_response': {
                 'downloadable': active,
                 'has_kpi_hook': self.asset.has_active_hooks,
-                'kpi_asset_uid': self.asset.uid
+                'kpi_asset_uid': self.asset.uid,
+                'uuid': generate_uuid_for_form(),
             },
             'version': self.asset.version_id,
         })
@@ -383,14 +382,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return {}
 
     def get_enketo_survey_links(self):
-        # `self` is a demo Enketo form, but there's no guarantee it'll be
-        # around forever.
         return {
-            'offline_url': f'https://enke.to/_/#{self.enketo_id}',
-            'url': f'https://enke.to/::#{self.enketo_id}',
-            'iframe_url': f'https://enke.to/i/::#{self.enketo_id}',
-            'preview_url': f'https://enke.to/preview/::#{self.enketo_id}',
-            # f'preview_iframe_url': 'https://enke.to/preview/i/::#{self.enketo_id}',
+            'offline_url': f'https://example.org/_/#{self.enketo_id}',
+            'url': f'https://example.org/::#{self.enketo_id}',
+            'iframe_url': f'https://example.org/i/::#{self.enketo_id}',
+            'preview_url': f'https://example.org/preview/::#{self.enketo_id}',
         }
 
     def get_submission_detail_url(self, submission_id: int) -> str:
@@ -534,7 +530,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'backend_response': backend_response
         })
 
-    def set_enketo_open_rosa_server(self, require_auth: bool):
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
         pass
 
     def set_has_kpi_hooks(self):

@@ -468,7 +468,7 @@ class XMLExternalDataPermission(permissions.BasePermission):
         Otherwise, the paired source (the parent project) data may be exposed
         to anyone.
         """
-        # Check whether `asset` owner's account requires authentication:
+        # Check whether the project requires authentication
         try:
             require_auth = obj.asset.deployment.xform.require_auth
         except (DeploymentNotFound, AttributeError):

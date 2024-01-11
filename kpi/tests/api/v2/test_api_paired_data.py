@@ -394,7 +394,7 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
             'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
             MagicMock(),
         ) as xf_mock:
-            type(xf_mock).require_auth = PropertyMock(return_value=False)
+            xf_mock.require_auth = False
             response = self.client.get(self.external_xml_url)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
