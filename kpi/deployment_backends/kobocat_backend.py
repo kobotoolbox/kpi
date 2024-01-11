@@ -1027,6 +1027,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         parsed_url = urlparse(settings.KOBOCAT_URL)
         domain_name = parsed_url.netloc
         asset_uid = self.asset.uid
+        enketo_redis_client = get_redis_connection('enketo_redis_main')
 
         try:
             enketo_redis_client.rename(
