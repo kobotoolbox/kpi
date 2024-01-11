@@ -225,9 +225,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
 
         {/* Insert a blank spacer to start a new row for these */}
-        {!!(count % 2) && isFieldToBeDisplayed('country') && isFieldToBeDisplayed('city') && ++count && (
-          <div className={styles.field}/>
-        )}
+        {!!(count % 2) &&
+          isFieldToBeDisplayed('country') &&
+          isFieldToBeDisplayed('city') &&
+          ++count && <div className={styles.field} />}
 
         {/* Country */}
         {isFieldToBeDisplayed('country') && ++count && (
@@ -305,9 +306,11 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
 
         {/* Insert a blank spacer to start a new row for these */}
-        {!!(count % 2) && isFieldToBeDisplayed('organization') && isFieldToBeDisplayed('organization_website') && (
-          <div className={styles.field}/>
-        )}
+        {!!(count % 2) &&
+          isFieldToBeDisplayed('organization') &&
+          isFieldToBeDisplayed('organization_website') && (
+            <div className={styles.field} />
+          )}
 
         {/* Organization */}
         {isFieldToBeDisplayed('organization') &&
