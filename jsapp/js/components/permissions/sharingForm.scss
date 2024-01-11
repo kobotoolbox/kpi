@@ -1,6 +1,7 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/_variables';
 @use 'scss/libs/_mdl';
+@use 'scss/sizes';
 
 $s-flexed-row-button-width: 100px;
 $s-flexed-row-select-width: 200px;
@@ -136,6 +137,10 @@ $s-gray-row-spacing: 10px;
     top: 5px;
     right: 5px;
   }
+}
+
+.form-modal__item--permissions-header {
+  font-weight: bold;
 }
 
 .user-permissions-editor {

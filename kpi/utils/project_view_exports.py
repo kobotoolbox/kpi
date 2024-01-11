@@ -60,7 +60,6 @@ METADATA_FIELDS = (
     'city',
     'bio',
     'organization',
-    'require_auth',
     'primarySector',
     'organization_website',
     'twitter',

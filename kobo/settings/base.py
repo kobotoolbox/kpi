@@ -1,7 +1,6 @@
 # coding: utf-8
 import logging
 import os
-import re
 import string
 import subprocess
 from datetime import datetime
@@ -612,6 +611,7 @@ ANONYMOUS_USER_ID = -1
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_asset',
     'kpi.discover_asset',
+    'kpi.add_submissions',
     'kpi.view_submissions',
 )
 
@@ -1302,7 +1302,10 @@ SESSION_REDIS = {
 
 CACHES = {
     # Set CACHE_URL to override
-    'default': env.cache(default='redis://redis_cache:6380/3'),
+    'default': env.cache_url(default='redis://redis_cache:6380/3'),
+    'enketo_redis_main': env.cache_url(
+        'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
+    ),
 }
 
 # How long to retain cached responses for kpi endpoints
