@@ -230,8 +230,8 @@ class ServiceUsageSerializer(serializers.Serializer):
                 organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
                 organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
             )
-            if enterprise_users.exists():
-                self._user_ids = list(enterprise_users)
+            if enterprise_users:
+                self._user_ids = enterprise_users[:settings.ORGANIZATION_USER_LIMIT]
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
         billing_details = organization.active_subscription_billing_details
