@@ -477,7 +477,10 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     >                           },
     >                           "unit_amount": int (cents),
     >                           "human_readable_price": string,
-    >                           "metadata": {}
+    >                           "metadata": {},
+    >                           "active": bool,
+    >                           "product": string,
+    >                           "transform_quantity": null | {'round': 'up'|'down', 'divide_by': int}
     >                       },
     >                       ...
     >                   ],
