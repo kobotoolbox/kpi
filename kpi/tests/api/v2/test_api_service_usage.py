@@ -39,13 +39,14 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.client = cls.client_class()
-        cls.client.login(username='anotheruser', password='anotheruser')
         cls.anotheruser = User.objects.get(username='anotheruser')
         cls.someuser = User.objects.get(username='someuser')
         with connection.schema_editor() as schema_editor:
             for unmanaged_model in cls.unmanaged_models:
                 schema_editor.create_model(unmanaged_model)
+
+    def setUp(self):
+        self.client.login(username='anotheruser', password='anotheruser')
 
     def _create_asset(self, user=None):
         owner = user or self.anotheruser
@@ -166,7 +167,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
                 kpi_asset_uid=asset.uid,
                 date_created=today,
                 date_modified=today,
-                user_id=asset.owner_id,
+                user_id=asset.owner.id,
             )
             self.xform.save()
 
@@ -179,7 +180,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
                     date=today.date(),
                     counter=submissions,
                     xform=self.xform,
-                    user_id=asset.owner_id,
+                    user_id=asset.owner.id,
                 )
             )
             self.counter.save()

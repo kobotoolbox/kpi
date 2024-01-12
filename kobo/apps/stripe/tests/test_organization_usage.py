@@ -30,8 +30,7 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         super().setUpTestData()
         cls.now = timezone.now()
 
-        cls.client = cls.client_class()
-        cls.anotheruser = User.objects.get(username='anotheruser')
+        anotheruser = User.objects.get(username='anotheruser')
         cls.organization = baker.make(Organization, id='orgAKWMFskafsngf', name='test organization')
         cls.organization.add_user(cls.anotheruser, is_admin=True)
         assets = create_mock_assets([cls.anotheruser], cls.assets_per_user)
