@@ -142,6 +142,11 @@ export interface BasePrice {
   };
   metadata: {[key: string]: string};
   product: BaseProduct;
+  billing_scheme: 'per_unit' | 'tiered' | null;
+  transform_quantity: null | {
+    round: 'up' | 'down';
+    divide_by: number;
+  };
 }
 
 export interface BaseSubscription {
@@ -166,8 +171,6 @@ export enum PlanNames {
   'COMMUNITY' = 'Community',
   'PRO' = 'Professional',
   'ENTERPRISE' = 'Enterprise',
-  'ENTERPRISE_GOLD' = 'Enterprise Gold',
-  'ENTERPRISE_PLATINUM' = 'Enterprise Platinum',
 }
 
 export enum Limits {

@@ -14,7 +14,6 @@ import {
   postCheckout,
   postCustomerPortal,
 } from '../stripe.api';
-import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -29,7 +28,6 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
 import {
   getSubscriptionsForProductId,
-  isChangeScheduled,
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
 import type {
@@ -41,12 +39,11 @@ import type {
 } from 'js/account/stripe.types';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
-import {PlanButton} from 'js/account/plans/planButton.component';
 import Session from 'js/stores/session';
 import InlineMessage from 'js/components/common/inlineMessage';
-import {PriceDisplay} from 'js/account/plans/priceDisplay.component';
+import {PlanContainer} from 'js/account/plans/planContainer.component';
 
-interface PlanState {
+export interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
   intervalFilter: string;
   filterToggle: boolean;
@@ -73,7 +70,7 @@ type DataUpdates =
       type: 'month' | 'year';
     };
 
-interface FreeTierOverride extends FreeTierThresholds {
+export interface FreeTierOverride extends FreeTierThresholds {
   name: string | null;
   [key: `feature_list_${number}`]: string | null;
 }
@@ -154,28 +151,6 @@ export default function Plan() {
     (subscription: SubscriptionInfo) =>
       ACTIVE_STRIPE_STATUSES.includes(subscription.status),
     []
-  );
-
-  const shouldShowManage = useCallback(
-    (product: Price) => {
-      const subscriptions = getSubscriptionsForProductId(
-        product.id,
-        state.subscribedProduct
-      );
-      if (!subscriptions || !subscriptions.length) {
-        return false;
-      }
-
-      const activeSubscription = subscriptions.find(
-        (subscription: SubscriptionInfo) => hasManageableStatus(subscription)
-      );
-      if (!activeSubscription) {
-        return false;
-      }
-
-      return isChangeScheduled(product.prices, [activeSubscription]);
-    },
-    [hasManageableStatus, state.subscribedProduct]
   );
 
   const freeTierOverride = useMemo((): FreeTierOverride | null => {
@@ -439,34 +414,6 @@ export default function Plan() {
     }
   };
 
-  // Get feature items and matching icon boolean
-  const getListItem = (listType: string, plan: string) => {
-    const listItems: Array<{icon: boolean; item: string}> = [];
-    filterPrices.map((price) =>
-      Object.keys(price.metadata).map((featureItem: string) => {
-        const numberItem = featureItem.lastIndexOf('_');
-        const currentResult = featureItem.substring(numberItem + 1);
-
-        const currentIcon = `feature_${listType}_check_${currentResult}`;
-        if (
-          featureItem.includes(`feature_${listType}_`) &&
-          !featureItem.includes(`feature_${listType}_check`) &&
-          price.name === plan
-        ) {
-          const keyName = `feature_${listType}_${currentResult}`;
-          let iconBool = false;
-          const itemName: string =
-            price.prices.metadata?.[keyName] || price.metadata[keyName];
-          if (price.metadata[currentIcon] !== undefined) {
-            iconBool = JSON.parse(price.metadata[currentIcon]);
-            listItems.push({icon: iconBool, item: itemName});
-          }
-        }
-      })
-    );
-    return listItems;
-  };
-
   const hasMetaFeatures = () => {
     let expandBool = false;
     if (state.products && state.products.length > 0) {
@@ -500,53 +447,6 @@ export default function Plan() {
   useEffect(() => {
     hasMetaFeatures();
   }, [state.products]);
-
-  const renderFeaturesList = (
-    items: Array<{
-      icon: 'positive' | 'positive_pro' | 'negative';
-      label: string;
-    }>,
-    title?: string
-  ) => (
-    <div key={title}>
-      <h2 className={styles.listTitle}>{title} </h2>
-      <ul>
-        {items.map((item) => (
-          <li key={item.label}>
-            <div className={styles.iconContainer}>
-              {item.icon !== 'negative' ? (
-                <Icon
-                  name='check'
-                  size='m'
-                  color={item.icon === 'positive_pro' ? 'teal' : 'storm'}
-                />
-              ) : (
-                <Icon name='close' size='m' color='red' />
-              )}
-            </div>
-            {item.label}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-
-  const returnListItem = (type: string, name: string, featureTitle: string) => {
-    const items: Array<{
-      icon: 'positive' | 'positive_pro' | 'negative';
-      label: string;
-    }> = [];
-    getListItem(type, name).map((listItem) => {
-      if (listItem.icon && name === 'Professional') {
-        items.push({icon: 'positive_pro', label: listItem.item});
-      } else if (!listItem.icon) {
-        items.push({icon: 'negative', label: listItem.item});
-      } else {
-        items.push({icon: 'positive', label: listItem.item});
-      }
-    });
-    return renderFeaturesList(items, featureTitle);
-  };
 
   if (!state.products?.length || !state.organization) {
     return null;
@@ -603,80 +503,19 @@ export default function Plan() {
               <div className={styles.allPlans}>
                 {filterPrices.map((price: Price) => (
                   <div className={styles.stripePlans} key={price.id}>
-                    {isSubscribedProduct(price) ? (
-                      <div className={styles.currentPlan}>{t('Your plan')}</div>
-                    ) : (
-                      <div />
-                    )}
-                    <div
-                      className={classnames({
-                        [styles.planContainerWithBadge]:
-                          isSubscribedProduct(price),
-                        [styles.planContainer]: true,
-                      })}
-                    >
-                      <h1 className={styles.priceName}>
-                        {price.prices?.unit_amount
-                          ? price.name
-                          : freeTierOverride?.name || price.name}
-                      </h1>
-                      <PriceDisplay price={price.prices} />
-                      <ul className={styles.featureContainer}>
-                        {Object.keys(price.metadata).map(
-                          (featureItem: string) =>
-                            featureItem.includes('feature_list_') && (
-                              <li key={featureItem}>
-                                <div className={styles.iconContainer}>
-                                  <Icon
-                                    name='check'
-                                    size='m'
-                                    color={
-                                      price.prices.unit_amount
-                                        ? 'teal'
-                                        : 'storm'
-                                    }
-                                  />
-                                </div>
-                                {getFeatureMetadata(price, featureItem)}
-                              </li>
-                            )
-                        )}
-                      </ul>
-                      {expandComparison && (
-                        <div className={styles.expandedContainer}>
-                          <hr />
-                          {state.featureTypes.map((type, index, array) => {
-                            const featureItem = getListItem(type, price.name);
-                            return (
-                              featureItem.length > 0 && [
-                                returnListItem(
-                                  type,
-                                  price.name,
-                                  price.metadata[`feature_${type}_title`]
-                                ),
-                                index !== array.length - 1 && (
-                                  <hr key={`hr-${type}`} />
-                                ),
-                              ]
-                            );
-                          })}
-                        </div>
-                      )}
-                      <PlanButton
-                        price={price}
-                        downgrading={
-                          activeSubscriptions?.length > 0 &&
-                          activeSubscriptions?.[0].items?.[0].price
-                            .unit_amount > price.prices.unit_amount
-                        }
-                        isSubscribedToPlan={isSubscribedProduct(price)}
-                        buySubscription={buySubscription}
-                        showManage={shouldShowManage(price)}
-                        isBusy={isDisabled}
-                        setIsBusy={setIsBusy}
-                        organization={state.organization}
-                      />
-                    </div>
+                    <PlanContainer
+                      freeTierOverride={freeTierOverride}
+                      expandComparison={expandComparison}
+                      isSubscribedProduct={isSubscribedProduct}
+                      price={price}
+                      filterPrices={filterPrices}
+                      hasManageableStatus={hasManageableStatus}
+                      setIsBusy={setIsBusy}
+                      isDisabled={isDisabled}
+                      state={state}
+                      buySubscription={buySubscription}
+                      activeSubscriptions={activeSubscriptions}
+                    />
                   </div>
                 ))}
                 {shouldShowExtras && (
@@ -757,7 +596,6 @@ export default function Plan() {
           </div>
         </>
       )}
-      {isUnauthorized && <aside>Bleh</aside>}
     </>
   );
 }
