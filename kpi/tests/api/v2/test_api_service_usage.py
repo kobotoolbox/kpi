@@ -46,6 +46,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
                 schema_editor.create_model(unmanaged_model)
 
     def setUp(self):
+        super().setUp()
         self.client.login(username='anotheruser', password='anotheruser')
 
     def _create_asset(self, user=None):
