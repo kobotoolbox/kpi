@@ -2,7 +2,7 @@ import timeit
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
-from django.test import override_settings
+from django.core.cache import cache
 from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
@@ -66,6 +66,9 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         url = reverse(self._get_endpoint('organizations-list'))
         self.detail_url = f'{url}{self.organization.id}/service_usage/'
         self.client.login(username='anotheruser', password='anotheruser')
+
+    def tearDown(self):
+        cache.clear()
 
     def test_usage_doesnt_include_org_users_without_subscription(self):
         """
