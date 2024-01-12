@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, OuterRef, Subquery, QuerySet
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework import serializers
@@ -175,30 +175,35 @@ class ServiceUsageSerializer(serializers.Serializer):
             return self._anchor_date.replace(year=self._now.year - 1)
         return self._anchor_date.replace(year=self._now.year)
 
+    def _filter_by_user(self, counter_query: QuerySet) -> QuerySet:
+        if self._user_id:
+            return counter_query.filter(user_id=self._user_id)
+        else:
+            return counter_query.filter(
+                Q(
+                    user_id=Subquery(
+                        self._user_subquery.values('pk')[:settings.ORGANIZATION_USER_LIMIT]
+                    )
+                )
+            )
+
     def _get_nlp_user_counters(self, month_filter, year_filter):
-        nlp_tracking = (
-            NLPUsageCounter.objects.only(
-                'date', 'total_asr_seconds', 'total_mt_characters'
-            )
-            .filter(
-                user_id__in=self._user_ids,
-            )
-            .aggregate(
-                asr_seconds_current_year=Coalesce(
-                    Sum('total_asr_seconds', filter=year_filter), 0
-                ),
-                mt_characters_current_year=Coalesce(
-                    Sum('total_mt_characters', filter=year_filter), 0
-                ),
-                asr_seconds_current_month=Coalesce(
-                    Sum('total_asr_seconds', filter=month_filter), 0
-                ),
-                mt_characters_current_month=Coalesce(
-                    Sum('total_mt_characters', filter=month_filter), 0
-                ),
-                asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
-                mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
-            )
+        nlp_tracking = NLPUsageCounter.objects.only('date', 'total_asr_seconds', 'total_mt_characters')
+        nlp_tracking = self._filter_by_user(nlp_tracking).aggregate(
+            asr_seconds_current_year=Coalesce(
+                Sum('total_asr_seconds', filter=year_filter), 0
+            ),
+            mt_characters_current_year=Coalesce(
+                Sum('total_mt_characters', filter=year_filter), 0
+            ),
+            asr_seconds_current_month=Coalesce(
+                Sum('total_asr_seconds', filter=month_filter), 0
+            ),
+            mt_characters_current_month=Coalesce(
+                Sum('total_mt_characters', filter=month_filter), 0
+            ),
+            asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
+            mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
         )
 
         for nlp_key, count in nlp_tracking.items():
@@ -211,7 +216,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         )
 
         if not organization_id:
-            return
+            return False
 
         organization = Organization.objects.filter(
             organization_users__user=self.context.get('request').user,
@@ -220,31 +225,36 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         if not organization:
             # Couldn't find organization, proceed as normal
-            return
-
-        if settings.STRIPE_ENABLED:
-            # if the user is in an organization and has an enterprise plan, get all org users and their total usage
-            enterprise_users = User.objects.values_list('pk', flat=True).filter(
-                organizations_organization__id=organization_id,
-                organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-                organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
-                organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
-            )
-            if enterprise_users:
-                self._user_ids = enterprise_users[:settings.ORGANIZATION_USER_LIMIT]
+            return False
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
-        billing_details = organization.active_subscription_billing_details
-        if billing_details:
+        if billing_details := organization.active_subscription_billing_details:
             self._anchor_date = billing_details['billing_cycle_anchor'].date()
             self._period_start = billing_details['current_period_start'].date()
             self._period_end = billing_details['current_period_end'].date()
             self._subscription_interval = billing_details['recurring_interval']
 
-    def _get_per_asset_usage(self, user):
-        self._user_ids = [user.pk]
+        if settings.STRIPE_ENABLED:
+            # if the user is in an organization and has an enterprise plan, get all org users and their total usage
+            self._user_subquery = User.objects.filter(
+                Q(
+                    organizations_organization__id=organization_id,
+                    organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                    organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
+                    organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
+                ) | Q(
+                    pk=self._user_id
+                )
+            ).filter(pk=OuterRef('user_id'))
+            return True
+        return False
 
-        self._get_organization_details()
+    def _get_per_asset_usage(self, user):
+        self._user_id = user.pk
+        # get the subquery of users for the organization
+        if self._get_organization_details():
+            # we can't check if self._user_subquery is defined, since that evaluates the queryset
+            self._user_id = None
 
         self._get_storage_usage()
 
@@ -267,11 +277,8 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        xforms = (
-            KobocatXForm.objects.only('bytes_sum', 'id')
-            .filter(user_id__in=self._user_ids)
-            .exclude(pending_delete=True)
-        )
+        xforms = KobocatXForm.objects.only('attachment_storage_bytes', 'id').exclude(pending_delete=True)
+        xforms = self._filter_by_user(xforms)
 
         total_storage_bytes = xforms.aggregate(
             bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
@@ -285,19 +292,15 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        submission_count = (
-            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
-                user_id__in=self._user_ids,
-            )
-            .aggregate(
-                all_time=Coalesce(Sum('counter'), 0),
-                current_year=Coalesce(
-                    Sum('counter', filter=year_filter), 0
-                ),
-                current_month=Coalesce(
-                    Sum('counter', filter=month_filter), 0
-                ),
-            )
+        submission_count = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only('counter', 'user_id')
+        submission_count = self._filter_by_user(submission_count).aggregate(
+            all_time=Coalesce(Sum('counter'), 0),
+            current_year=Coalesce(
+                Sum('counter', filter=year_filter), 0
+            ),
+            current_month=Coalesce(
+                Sum('counter', filter=month_filter), 0
+            ),
         )
 
         for submission_key, count in submission_count.items():
