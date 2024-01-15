@@ -88,18 +88,20 @@ const UsageContainer = ({
           <data>{limitDisplay(usage)}</data>
         </li>
         {isStripeEnabled && (
-          <li>
-            <strong>{t('Balance')}</strong>
-            <strong
-              className={cx({
+          <li className={cx(styles.balanceEntry)}>
+            <label>
+              <strong>{t('Balance')}</strong>
+            </label>
+            <div
+              className={cx(styles.balanceContainer, {
                 [styles.warning]: isNearingLimit,
                 [styles.overlimit]: isOverLimit,
               })}
             >
               {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
               {isOverLimit && <Icon name='warning' color='red' size='m' />}
-              {limitDisplay(usage, limit)}
-            </strong>
+              <strong>{limitDisplay(usage, limit)}</strong>
+            </div>
           </li>
         )}
         {hasStorageAddOn && type === USAGE_CONTAINER_TYPE.STORAGE && (
