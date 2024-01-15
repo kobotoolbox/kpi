@@ -116,8 +116,8 @@ class SessionAuthentication(DRFSessionAuthentication):
     and requests for which the user does not have permission (403 forbidden).
     See https://github.com/encode/django-rest-framework/issues/5968#issuecomment-39935282
 
-    We use authenticate_header to fill the WWW-Authenticate header (using the 'Session'
-    cookie's key), which makes DRF send a response code of 401 for unauthenticated requests.
+    We use authenticate_header to fill the WWW-Authenticate header with a challenge,
+    which makes DRF send a response code of 401 for unauthenticated requests.
     """
 
     def authenticate_header(self, request):
