@@ -108,16 +108,16 @@ class EnketoSessionAuthentication(DRFSessionAuthentication):
 
 class SessionAuthentication(DRFSessionAuthentication):
     """
-    This class is needed, because REST Framework's default SessionAuthentication
-    does never return 401's, because they cannot fill the WWW-Authenticate header
-    with a valid value in the 401 response. As a result, we cannot distinguish
-    calls that are not unauthorized (401 unauthorized) and calls for which the
-    user does not have permission (403 forbidden).
+    This class is needed to return 401 responses when authentication fails.
+
+    REST Framework's default SessionAuthentication never returns 401, only 403, because
+    it can't fill the WWW-Authenticate header with a valid value in the 401 response.
+    As a result, we can't distinguish requests that are not authorized (401 unauthorized)
+    and requests for which the user does not have permission (403 forbidden).
     See https://github.com/encode/django-rest-framework/issues/5968#issuecomment-39935282
 
-    We do set authenticate_header function in SessionAuthentication, so that a
-    value for the WWW-Authenticate header can be retrieved and the response code
-    is automatically set to 401 in case of unauthenticated requests.
+    We use authenticate_header to fill the WWW-Authenticate header (using the 'Session'
+    cookie's key), which makes DRF send a response code of 401 for unauthenticated requests.
     """
 
     def authenticate_header(self, request):
