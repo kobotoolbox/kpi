@@ -10,7 +10,6 @@
 
 import {ROUTES, PATHS, PROJECTS_ROUTES} from 'js/router/routerConstants';
 import session from '../stores/session';
-// import {redirectDocument} from 'react-router';
 import {when} from 'mobx';
 
 /**

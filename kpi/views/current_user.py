@@ -44,7 +44,6 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "linkedin": string,
     >               "instagram": string,
     >               "organization": string,
-    >               "require_auth": boolean,
     >               "last_ui_language": string,
     >               "organization_website": sting,
     >           },
