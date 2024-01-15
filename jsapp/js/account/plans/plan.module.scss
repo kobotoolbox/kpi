@@ -115,6 +115,7 @@
   padding-bottom: sizes.$x16;
   font-weight: 600;
   line-height: sizes.$x20;
+  height: 2em;
 }
 
 .planContainer :global .k-button {
@@ -210,7 +211,7 @@ a.enterpriseLink {
 }
 
 .expandedContainer > :nth-child(3) {
-  height: 6em;
+  height: 7em;
   margin-bottom: sizes.$x24;
 }
 
@@ -249,10 +250,14 @@ a.enterpriseLink {
   }
 
   .featureContainer {
-    flex: 1;
+    height: 26em;
   }
 
-  .expandedContainer > :nth-child(n+2) {
-    height: auto;
+  .priceTitle {
+    height: 2.5em;
+  }
+
+  .expandedContainer > :nth-child(4) {
+    height: 10.5em;
   }
 }

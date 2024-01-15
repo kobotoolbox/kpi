@@ -8,11 +8,10 @@
  * of defined ROUTES.
  */
 
-import {
-  ROUTES,
-  PATHS,
-} from 'js/router/routerConstants';
-import {PROJECTS_ROUTES} from 'js/projects/routes';
+import {ROUTES, PATHS, PROJECTS_ROUTES} from 'js/router/routerConstants';
+import session from '../stores/session';
+// import {redirectDocument} from 'react-router';
+import {when} from 'mobx';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -37,6 +36,21 @@ export function getCurrentPath(): string {
   const route = location.hash.split('#');
   return route.length > 1 ? route[1] : '';
 }
+
+/**
+ * Redirects to `getLoginUrl()` if a page that requires authentication
+ * is naviagated to
+ */
+// This function uses `redirectDocument` which requires a react-router version
+// of 6.19.1 or greater but upgrading is causing a AwaitRenderStatus error when
+// we run `npm run build`
+// export const authLoader = async () => {
+//   await when(() => session.isAuthStateKnown);
+//   if (!session.isLoggedIn) {
+//     return redirectDocument(getLoginUrl());
+//   }
+//   return null;
+// };
 
 /*
  * A list of functions that match routes defined in constants

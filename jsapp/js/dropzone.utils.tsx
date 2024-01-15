@@ -22,7 +22,7 @@ function onImportSingleXLSFormFile(
   name: string,
   base64Encoded: string | ArrayBuffer | null
 ) {
-  const isLibrary = routerIsActive('library');
+  const isLibrary = routerIsActive(ROUTES.LIBRARY);
 
   const importPromise = new Promise<ImportResponse>((resolve, reject) => {
     if (!base64Encoded) {
@@ -149,7 +149,7 @@ function onImportOneAmongMany(
   fileIndex: number,
   totalFilesInBatch: number
 ) {
-  const isLibrary = routerIsActive('library');
+  const isLibrary = routerIsActive(ROUTES.LIBRARY);
   const isLastFileInBatch = fileIndex + 1 === totalFilesInBatch;
 
   // We open the modal that displays the message with total files count.
