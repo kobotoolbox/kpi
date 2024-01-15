@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {useSearchParams} from 'react-router-dom';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
@@ -6,7 +7,12 @@ import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
 
 import styles from './transferProjectsInvite.module.scss';
-import {acceptInvite, declineInvite, getAssetFromInviteUid, TransferStatuses} from './transferProjects.api';
+import {
+  acceptInvite,
+  declineInvite,
+  getAssetFromInviteUid,
+  TransferStatuses,
+} from './transferProjects.api';
 
 interface DisplayDetails {
   assetName: string;
@@ -18,10 +24,15 @@ interface TransferProjectsInviteProps {
   setInvite: Function;
 }
 
-export default function TransferProjectsInvite(props: TransferProjectsInviteProps) {
+export default function TransferProjectsInvite(
+  props: TransferProjectsInviteProps
+) {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [isDeclined, setIsDeclined] = useState(false);
+  const [declinePending, setDeclinePending] = useState(false);
+  const [acceptPending, setAcceptPending] = useState(false);
   const [asset, setAsset] = useState<DisplayDetails | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     getAssetFromInviteUid(props.inviteUid).then((data) => {
@@ -41,6 +52,7 @@ export default function TransferProjectsInvite(props: TransferProjectsInviteProp
   }
 
   function decline() {
+    setDeclinePending(true)
     declineInvite(props.inviteUid).then(() => {
       setIsDeclined(true);
       props.setInvite(
@@ -48,17 +60,22 @@ export default function TransferProjectsInvite(props: TransferProjectsInviteProp
         asset?.assetName,
         asset?.assetOwner
       );
+      setDeclinePending(false);
+      setSearchParams();
     });
   }
 
   function accept() {
+    setAcceptPending(true);
     acceptInvite(props.inviteUid).then(() => {
+      setAcceptPending(false);
       setIsModalOpen(!isModalOpen);
       props.setInvite(
         TransferStatuses.Accepted,
         asset?.assetName,
         asset?.assetOwner
       );
+      setSearchParams()
     });
   }
 
@@ -129,6 +146,8 @@ export default function TransferProjectsInvite(props: TransferProjectsInviteProp
               color='blue'
               type='frame'
               size='l'
+              isDisabled={acceptPending}
+              isPending={declinePending}
             />
             <Button
               label={t('Accept')}
@@ -136,6 +155,8 @@ export default function TransferProjectsInvite(props: TransferProjectsInviteProp
               color='blue'
               type='full'
               size='l'
+              isDisabled={declinePending}
+              isPending={acceptPending}
             />
           </KoboModalFooter>
         )}
