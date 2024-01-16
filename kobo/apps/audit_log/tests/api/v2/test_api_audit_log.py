@@ -20,7 +20,7 @@ class ApiAuditLogTestCase(BaseTestCase):
     def test_list_as_anonymous(self):
         self.client.logout()
         response = self.client.get(self.audit_log_list_url)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_list_as_regular_user(self):
         self.client.login(username='someuser', password='someuser')

@@ -31,9 +31,9 @@ class OrganizationTestCase(BaseTestCase):
         self._insert_data()
         self.client.logout()
         response_list = self.client.get(self.url_list)
-        assert response_list.status_code == status.HTTP_403_FORBIDDEN
+        assert response_list.status_code == status.HTTP_401_UNAUTHORIZED
         response_detail = self.client.get(self.url_detail)
-        assert response_detail.status_code == status.HTTP_403_FORBIDDEN
+        assert response_detail.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_create(self):
         data = {'name': 'my org'}
