@@ -36,24 +36,10 @@ export function getCurrentPath(): string {
   const route = location.hash.split('#');
   return route.length > 1 ? route[1] : '';
 }
-/**
- * Redirects to `getLoginUrl()` if a page that requires authentication
- * is naviagated to
- */
-// This function uses `redirectDocument` which requires a react-router version
-// of 6.19.1 or greater but upgrading is causing a AwaitRenderStatus error when
-// we run `npm run build`
-// export const authLoader = async () => {
-//   await when(() => session.isAuthStateKnown);
-//   if (!session.isLoggedIn) {
-//     return redirectDocument(getLoginUrl());
-//   }
-//   return null;
-// };
 
 /**
  * Redirects to `getLoginUrl()` if a page that requires authentication
- * is naviagated to
+ * is navigated to
  */
 // This function uses `redirectDocument` which requires a react-router version
 // of 6.19.1 or greater but upgrading is causing a AwaitRenderStatus error when
