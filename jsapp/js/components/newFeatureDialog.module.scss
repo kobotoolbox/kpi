@@ -1,0 +1,34 @@
+@use '~kobo-common/src/styles/colors';
+
+.root {
+	position: relative;
+  z-index: 100100100;
+}
+
+.wrapper {
+	position: relative;
+}
+
+.dialog {
+  position: absolute;
+  border-radius: 4px;
+  left: -2%;
+  transform: translateY(10%);
+  padding: 12px;
+  color: colors.$kobo-white;
+  background: colors.$kobo-dark-blue;
+}
+
+.dialog::before {
+  content: " ";
+  left: 5%;
+  border: solid transparent;
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-width: 6px;
+  margin-left: calc(6px * -1);
+  bottom: 100%;
+  border-bottom-color: colors.$kobo-dark-blue;
+}
