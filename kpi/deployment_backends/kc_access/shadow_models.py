@@ -123,6 +123,7 @@ class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
     )
     deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
     objects = KobocatAttachmentManager()
+    all_objects = models.Manager()
 
     @property
     def absolute_mp3_path(self):

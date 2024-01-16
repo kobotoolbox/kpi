@@ -43,21 +43,20 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
         )
 
     submissions = transfer.asset.deployment.get_submissions(
-        transfer.asset.owner, fields=['_attachments']
+        transfer.asset.owner, fields=['_id']
     )
 
-    attachment_ids = [
-        a['id']
-        for i in submissions
-        for a in i.get('_attachments', [])
+    submission_ids = [
+        s['_id']
+        for s in submissions
     ]
 
-    if not attachment_ids:
+    if not submission_ids:
         _mark_task_as_successful(transfer, async_task_type)
         return
 
-    attachments = KobocatAttachment.objects.filter(
-        pk__in=attachment_ids
+    attachments = KobocatAttachment.all_objects.filter(
+        instance_id__in=submission_ids
     ).exclude(media_file__startswith=f'{transfer.asset.owner.username}/')
 
     for attachment in attachments.iterator():
