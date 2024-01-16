@@ -1,4 +1,5 @@
 import os
+import posixpath
 
 from django.db.models import FileField
 from django.db.models.fields.files import FieldFile
@@ -25,15 +26,25 @@ class ExtendedFieldFile(FieldFile):
                 return False
 
             self.name = new_path
-        else:
-            try:
-                with self.storage.open(old_path, 'rb') as f:
-                    self.save(new_path, f, save=False)
-                self.storage.delete(old_path)
-            except FileNotFoundError:
-                return False
+            return True
 
-        return True
+        upload_to = self.field.upload_to
+        # Temporary change `upload_to` - which is called internally by
+        # `self.save()` below - to new target folder
+        self.field.upload_to = lambda i, fn: posixpath.join(target_folder, fn)
+        success = False
+        try:
+            with self.storage.open(old_path, 'rb') as f:
+                self.save(filename, f, save=False)
+            self.storage.delete(old_path)
+            success = True
+        except FileNotFoundError:
+            pass
+        finally:
+            # Restore `upload_to`
+            self.field.upload_to = upload_to
+
+        return success
 
 
 class ExtendedFileField(FileField):

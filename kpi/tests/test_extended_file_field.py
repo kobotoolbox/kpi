@@ -1,6 +1,6 @@
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.test import TestCase
+from django.test import override_settings, TestCase
 
 from kpi.models.asset import Asset
 from kpi.models.asset_file import AssetFile
@@ -18,14 +18,13 @@ class ExtendedFileFieldTestCase(TestCase):
         )
         asset_file.content = ContentFile(b'foo', name='foo.txt')
         asset_file.save()
-        path = f'/someuser/asset_files/{asset.uid}/form_media/foo.txt'
-        new_path = f'/__pytest_moved/foo.txt'
+        path = f'someuser/asset_files/{asset.uid}/form_media/foo.txt'
+        new_path = f'__pytest_moved/foo.txt'
+
         try:
             assert default_storage.exists(path)
             assert not default_storage.exists(new_path)
-
             asset_file.content.move('__pytest_moved')
-
             assert not default_storage.exists(path)
             assert default_storage.exists(new_path)
 
