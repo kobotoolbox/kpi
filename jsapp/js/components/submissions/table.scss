@@ -1,6 +1,7 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/z-indexes';
 @use 'js/components/common/checkbox';
+@use 'sass:color';
 
 // These are custom styles for Table View table.
 
@@ -471,11 +472,11 @@ $s-data-table-font: 13px;
   }
 
   .rt-th.is-sorted {
-    background-color: rgba(colors.$kobo-light-teal, 0.5);
+    background-color: color.adjust(colors.$kobo-light-teal, $lightness: 4%);
   }
 
   .rt-td.is-sorted {
-    background-color: rgba(colors.$kobo-light-teal, 0.2);
+    background-color: color.adjust(colors.$kobo-light-teal, $lightness: 8%);
   }
 
   // NOTE: submissions actions column is always frozen as first column
