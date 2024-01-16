@@ -4,15 +4,19 @@ import abc
 import copy
 import datetime
 import json
+import os
+from contextlib import contextmanager
 from datetime import date
 from typing import Union, Iterator, Optional
 
 from bson import json_util
+from django.conf import settings
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
@@ -370,8 +374,24 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_model(self):
         pass
 
+    @staticmethod
+    @abc.abstractmethod
+    @contextmanager
+    def suspend_submissions(user_ids: list[int]):
+        pass
+
     @abc.abstractmethod
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
+        pass
+
+    @abc.abstractmethod
+    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+        pass
+
+    @abc.abstractmethod
+    def transfer_submissions_ownership(
+        self, previous_owner_username: str
+    ) -> bool:
         pass
 
     def validate_submission_list_params(
@@ -616,3 +636,35 @@ class BaseDeploymentBackend(abc.ABC):
         else:
             queryset = PairedData.objects(self.asset).values()
             return queryset
+
+    def _rewrite_json_attachment_urls(
+        self, submission: dict, request
+    ) -> dict:
+        if not request or '_attachments' not in submission:
+            return submission
+
+        for attachment in submission['_attachments']:
+            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
+                # We should use 'attachment-list' with `?xpath=` but we do not
+                # know what the XPath is here. Since the primary key is already
+                # exposed, let's use it to build the url with 'attachment-detail'
+                kpi_url = reverse(
+                    'attachment-detail',
+                    args=(self.asset.uid, submission['_id'], attachment['id']),
+                    request=request,
+                )
+                key = f'download{suffix}_url'
+                try:
+                    attachment[key] = kpi_url
+                except KeyError:
+                    continue
+            filename = attachment['filename']
+            attachment['filename'] = os.path.join(
+                self.asset.owner.username,
+                'attachments',
+                submission['formhub/uuid'],
+                submission['_uuid'],
+                os.path.basename(filename)
+            )
+
+        return submission

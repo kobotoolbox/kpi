@@ -6,19 +6,17 @@ import re
 import time
 import uuid
 from collections import defaultdict
+from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
-
-from django.db.models import Sum
-from django.db.models.functions import Coalesce
-from django.utils import timezone
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from deepmerge import always_merger
 from dict2xml import dict2xml as dict2xml_real
 from django.conf import settings
@@ -68,6 +66,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             attachments = self.get_attachment_objects_from_dict(submission)
             storage_bytes += sum([attachment.media_file_size for attachment in attachments])
         return storage_bytes
+
+    @property
+    def backend_response(self):
+        backend_response_ = self.get_data('backend_response', {})
+        backend_response_['formid'] = self.asset.uid
+        return backend_response_
 
     def bulk_assign_mapped_perms(self):
         pass
@@ -454,7 +458,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.current_submission_count = total_count
 
         submissions = [
-            MongoHelper.to_readable_dict(submission)
+            self._rewrite_json_attachment_urls(
+                MongoHelper.to_readable_dict(submission),
+                request,
+            )
             for submission in mongo_cursor
         ]
 
@@ -684,10 +691,46 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return MockLoggerInstance
 
+    @staticmethod
+    @contextmanager
+    def suspend_submissions(user_ids: list[int]):
+        try:
+            yield
+        finally:
+            pass
+
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
         queryset = self._get_metadata_queryset(file_type=file_type)
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
+
+    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+        NLPUsageCounter.objects.filter(
+            asset=self.asset, user=self.asset.owner
+        ).update(user=new_owner)
+
+        # Kobocat models are not implemented, but mocked in unit tests.
+
+    def transfer_submissions_ownership(
+        self, previous_owner_username: str
+    ) -> bool:
+
+        results = settings.MONGO_DB.instances.update_many(
+            {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
+            {
+                '$set': {
+                    '_userform_id': self.mongo_userform_id
+                }
+            },
+        )
+
+        return (
+            results.matched_count == 0 or
+            (
+                results.matched_count > 0
+                and results.matched_count == results.modified_count
+            )
+        )
 
     @property
     def xform(self):
@@ -695,6 +738,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         Dummy property, only present to be mocked by unit tests
         """
         pass
+
+    @property
+    def xform_id_string(self):
+        return self.asset.uid
 
     @classmethod
     def __prepare_bulk_update_data(cls, updates: dict) -> dict:

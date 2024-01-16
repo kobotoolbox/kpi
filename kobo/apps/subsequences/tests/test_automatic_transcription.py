@@ -34,6 +34,7 @@ def test_instantiate_action_with_params():
     action_instance = AutomaticTranscriptionAction(action_params)
     assert action_instance is not None
 
+
 @pytest.mark.skip(reason='transcription currently does not depend on this working')
 def test_submission_status_before_change():
     survey, submission = _survey_and_submission()

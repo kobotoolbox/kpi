@@ -30,7 +30,6 @@ from django_redis import get_redis_connection
 from kobo_service_account.utils import get_request_headers
 from lxml import etree
 from rest_framework import status
-from rest_framework.reverse import reverse
 
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -917,7 +916,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         If `request` is provided, submission attachments url are rewritten to
         point to KPI (instead of KoBoCAT).
-        See `__rewrite_json_attachment_urls()`
+        See `BaseDeploymentBackend._rewrite_json_attachment_urls()`
         """
 
         mongo_query_params['submission_ids'] = submission_ids
@@ -1386,6 +1385,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 ),
             )
 
+    def transfer_submissions_ownership(
+        self, previous_owner_username: str
+    ) -> bool:
+
+        results = settings.MONGO_DB.instances.update_many(
+            {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
+            {
+                '$set': {
+                    '_userform_id': self.mongo_userform_id
+                }
+            },
+        )
+
+        return (
+            results.matched_count == 0 or
+            (
+                results.matched_count > 0
+                and results.matched_count == results.modified_count
+            )
+        )
+
     def transfer_counters_ownership(self, new_owner: 'auth.User'):
 
         NLPUsageCounter.objects.filter(
@@ -1405,25 +1425,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         KobocatUserProfile.objects.filter(user_id=self.asset.owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
             + self.xform.attachment_storage_bytes
-        )
-
-    def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
-
-        results = settings.MONGO_DB.instances.update_many(
-            {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
-            {
-                '$set': {
-                    '_userform_id': self.mongo_userform_id
-                }
-            },
-        )
-
-        return (
-            results.matched_count == 0 or
-            (
-                results.matched_count > 0
-                and results.matched_count == results.modified_count
-            )
         )
 
     def _kobocat_request(self, method, url, expect_formid=True, **kwargs):
@@ -1549,7 +1550,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
 
         return (
-            self.__rewrite_json_attachment_urls(
+            self._rewrite_json_attachment_urls(
                 MongoHelper.to_readable_dict(submission),
                 request,
             )
@@ -1737,38 +1738,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'results': results,
             },
         }
-
-    def __rewrite_json_attachment_urls(
-        self, submission: dict, request
-    ) -> list:
-        if not request or '_attachments' not in submission:
-            return submission
-
-        for attachment in submission['_attachments']:
-            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
-                # We should use 'attachment-list' with `?xpath=` but we do not
-                # know what the XPath is here. Since the primary key is already
-                # exposed, let's use it to build the url with 'attachment-detail'
-                kpi_url = reverse(
-                    'attachment-detail',
-                    args=(self.asset.uid, submission['_id'], attachment['id']),
-                    request=request,
-                )
-                key = f'download{suffix}_url'
-                try:
-                    attachment[key] = kpi_url
-                except KeyError:
-                    continue
-            filename = attachment['filename']
-            attachment['filename'] = os.path.join(
-                self.asset.owner.username,
-                'attachments',
-                submission['formhub/uuid'],
-                submission['_uuid'],
-                os.path.basename(filename)
-            )
-
-        return submission
 
     def __save_kc_metadata(self, file_: SyncBackendMediaInterface):
         """

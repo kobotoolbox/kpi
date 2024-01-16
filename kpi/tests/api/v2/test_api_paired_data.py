@@ -1,6 +1,6 @@
 # coding: utf-8
 import unittest
-from mock import patch, MagicMock, PropertyMock
+from mock import patch, MagicMock
 
 from django.contrib.auth.models import User
 from django.urls import reverse
