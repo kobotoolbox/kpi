@@ -11,6 +11,7 @@
 import {ROUTES, PATHS, PROJECTS_ROUTES} from 'js/router/routerConstants';
 import session from '../stores/session';
 import {when} from 'mobx';
+// import {redirectDocument} from 'react-router';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -35,6 +36,20 @@ export function getCurrentPath(): string {
   const route = location.hash.split('#');
   return route.length > 1 ? route[1] : '';
 }
+/**
+ * Redirects to `getLoginUrl()` if a page that requires authentication
+ * is naviagated to
+ */
+// This function uses `redirectDocument` which requires a react-router version
+// of 6.19.1 or greater but upgrading is causing a AwaitRenderStatus error when
+// we run `npm run build`
+// export const authLoader = async () => {
+//   await when(() => session.isAuthStateKnown);
+//   if (!session.isLoggedIn) {
+//     return redirectDocument(getLoginUrl());
+//   }
+//   return null;
+// };
 
 /**
  * Redirects to `getLoginUrl()` if a page that requires authentication
@@ -97,7 +112,12 @@ export function isLibraryItemXformRoute(uid: string): boolean {
 }
 
 export function isAnyProjectsViewRoute() {
-  return getCurrentPath() === PROJECTS_ROUTES.MY_PROJECTS || getCurrentPath().startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''));
+  return (
+    getCurrentPath() === PROJECTS_ROUTES.MY_PROJECTS ||
+    getCurrentPath().startsWith(
+      PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', '')
+    )
+  );
 }
 
 export function isFormRoute(uid: string): boolean {
@@ -155,7 +175,10 @@ export function isFormMapRoute(uid: string): boolean {
 }
 
 export function isFormMapByRoute(uid: string, viewby: string): boolean {
-  return getCurrentPath() === ROUTES.FORM_MAP_BY.replace(':uid', uid).replace(':viewby', viewby);
+  return (
+    getCurrentPath() ===
+    ROUTES.FORM_MAP_BY.replace(':uid', uid).replace(':viewby', viewby)
+  );
 }
 
 /** Note that this is `false` for sub-routes of `FORM_SETTINGS`. */
@@ -181,7 +204,10 @@ export function isFormRestRoute(uid: string): boolean {
 }
 
 export function isFormRestHookRoute(uid: string, hookUid: string): boolean {
-  return getCurrentPath() === ROUTES.FORM_REST_HOOK.replace(':uid', uid).replace(':hookUid', hookUid);
+  return (
+    getCurrentPath() ===
+    ROUTES.FORM_REST_HOOK.replace(':uid', uid).replace(':hookUid', hookUid)
+  );
 }
 
 export function isFormSingleProcessingRoute(
@@ -189,10 +215,12 @@ export function isFormSingleProcessingRoute(
   qpath: string,
   submissionEditId: string
 ): boolean {
-  return getCurrentPath() === ROUTES.FORM_PROCESSING
-    .replace(':uid', uid)
-    .replace(':qpath', qpath)
-    .replace(':submissionEditId', submissionEditId);
+  return (
+    getCurrentPath() ===
+    ROUTES.FORM_PROCESSING.replace(':uid', uid)
+      .replace(':qpath', qpath)
+      .replace(':submissionEditId', submissionEditId)
+  );
 }
 
 export function isFormResetRoute(uid: string): boolean {
