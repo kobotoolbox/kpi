@@ -20,13 +20,20 @@ class ExtendedFileFieldTestCase(TestCase):
         asset_file.save()
         path = f'/someuser/asset_files/{asset.uid}/form_media/foo.txt'
         new_path = f'/__pytest_moved/foo.txt'
-        assert default_storage.exists(path)
-        assert not default_storage.exists(new_path)
+        try:
+            assert default_storage.exists(path)
+            assert not default_storage.exists(new_path)
 
-        asset_file.content.move('__pytest_moved')
+            asset_file.content.move('__pytest_moved')
 
-        assert not default_storage.exists(path)
-        assert default_storage.exists(new_path)
+            assert not default_storage.exists(path)
+            assert default_storage.exists(new_path)
 
-        with default_storage.open(new_path, 'r') as f:
-            assert f.read() == 'foo'
+            with default_storage.open(new_path, 'r') as f:
+                assert f.read() == 'foo'
+        finally:
+            # Clean-up
+            if default_storage.exists(path):
+                default_storage.delete(path)
+            if default_storage.exists(new_path):
+                default_storage.delete(new_path)
