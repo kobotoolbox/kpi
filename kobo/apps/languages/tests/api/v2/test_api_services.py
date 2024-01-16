@@ -68,15 +68,10 @@ class TranslationServiceListApiTestCase(BaseApiTestCase):
 
     def test_cannot_list_as_anonymous_user(self):
         self.client.logout()
-<<<<<<< HEAD
         response = self.client.get(
             reverse(self._get_endpoint('translation_service-list'))
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-=======
-        response = self.client.get(reverse('translation_service-list'))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
->>>>>>> beta
 
     def test_list_with_search(self):
         """
