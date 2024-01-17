@@ -872,6 +872,8 @@ if STRIPE_ENABLED:
 STRIPE_PUBLIC_KEY = STRIPE_LIVE_PUBLIC_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_PUBLIC_KEY
 
 '''Organizations settings'''
+# necessary to prevent calls to `/organizations/{ORG_ID}/service_usage/` (and any other
+# queries that may need to aggregate data for all organization users) from slowing down db
 ORGANIZATION_USER_LIMIT = env.str('ORGANIZATION_USER_LIMIT', 400)
 
 
