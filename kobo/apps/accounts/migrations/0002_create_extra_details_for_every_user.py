@@ -4,18 +4,14 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.db import migrations
 
+from kpi.constants import SKIP_HEAVY_MIGRATIONS_GUIDANCE
+
 
 def create_extra_user_detail(apps, schema_editor):
     if settings.SKIP_HEAVY_MIGRATIONS:
         return
 
-    print(
-        """
-        This migration might take a while. If it is too slow, you may want to
-        re-run migrations with SKIP_HEAVY_MIGRATIONS=True and apply this one
-        manually from the django shell.
-        """
-    )
+    print(SKIP_HEAVY_MIGRATIONS_GUIDANCE)
 
     User = apps.get_model('auth', 'User')
     ExtraUserDetail = apps.get_model('hub', 'ExtraUserDetail')

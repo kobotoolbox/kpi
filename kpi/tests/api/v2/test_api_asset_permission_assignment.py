@@ -682,7 +682,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         bad_assignments = [
             {
                 'user': 'AnonymousUser',
-                'permission': PERM_ADD_SUBMISSIONS,  # should return a 400
+                'permission': PERM_DELETE_SUBMISSIONS,  # should return a 400
             },
             {
                 'user': 'someuser',

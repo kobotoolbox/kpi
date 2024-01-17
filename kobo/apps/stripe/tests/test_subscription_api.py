@@ -48,7 +48,7 @@ class SubscriptionAPITestCase(BaseTestCase):
     def test_anonymous_user(self):
         self.client.logout()
         response = self.client.get(reverse('subscriptions-list'))
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_not_own_subscription(self):
         self._insert_data()
