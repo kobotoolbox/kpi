@@ -20,7 +20,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 from deepmerge import always_merger
-from dict2xml import dict2xml
+from dict2xml import dict2xml as dict2xml_real
 from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import gettext as t
@@ -50,16 +50,15 @@ from .base_backend import BaseDeploymentBackend
 from ..exceptions import KobocatBulkUpdateSubmissionsClientException
 
 
+def dict2xml(*args, **kwargs):
+    """ To facilitate mocking in unit tests """
+    return dict2xml_real(*args, **kwargs)
+
+
 class MockDeploymentBackend(BaseDeploymentBackend):
     """
     Only used for unit testing and interface testing.
     """
-
-    PROTECTED_XML_FIELDS = [
-        '__version__',
-        'formhub',
-        'meta',
-    ]
 
     @property
     def attachment_storage_bytes(self):
@@ -140,6 +139,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, active=False):
+        def generate_uuid_for_form():
+            # From KoboCAT's onadata.libs.utils.model_tools
+            return uuid.uuid4().hex
+
         self.store_data({
             'backend': 'mock',
             'identifier': 'mock://%s' % self.asset.uid,
@@ -147,7 +150,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'backend_response': {
                 'downloadable': active,
                 'has_kpi_hook': self.asset.has_active_hooks,
-                'kpi_asset_uid': self.asset.uid
+                'kpi_asset_uid': self.asset.uid,
+                'uuid': generate_uuid_for_form(),
             },
             'version': self.asset.version_id,
         })
@@ -305,6 +309,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.asset.deployment.mock_submissions([duplicated_submission])
         return duplicated_submission
 
+    @property
+    def enketo_id(self):
+        return 'self'
+
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
@@ -380,14 +388,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return {}
 
     def get_enketo_survey_links(self):
-        # `self` is a demo Enketo form, but there's no guarantee it'll be
-        # around forever.
         return {
-            'offline_url': 'https://enke.to/_/#self',
-            'url': 'https://enke.to/::self',
-            'iframe_url': 'https://enke.to/i/::self',
-            'preview_url': 'https://enke.to/preview/::self',
-            # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
+            'offline_url': f'https://example.org/_/#{self.enketo_id}',
+            'url': f'https://example.org/::#{self.enketo_id}',
+            'iframe_url': f'https://example.org/i/::#{self.enketo_id}',
+            'preview_url': f'https://example.org/preview/::#{self.enketo_id}',
         }
 
     def get_submission_detail_url(self, submission_id: int) -> str:
@@ -527,6 +532,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
             'backend_response': backend_response
         })
+
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
+        pass
 
     def set_has_kpi_hooks(self):
         """
@@ -676,6 +686,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         queryset = self._get_metadata_queryset(file_type=file_type)
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
+
+    @property
+    def xform(self):
+        """
+        Dummy property, only present to be mocked by unit tests
+        """
+        pass
 
     @classmethod
     def __prepare_bulk_update_data(cls, updates: dict) -> dict:

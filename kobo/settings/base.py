@@ -1,7 +1,6 @@
 # coding: utf-8
 import logging
 import os
-import re
 import string
 import subprocess
 from datetime import datetime
@@ -128,10 +127,10 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
-    'kobo.apps.django_allauth',
 )
 
 MIDDLEWARE = [
+    'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -611,6 +610,7 @@ ANONYMOUS_USER_ID = -1
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_asset',
     'kpi.discover_asset',
+    'kpi.add_submissions',
     'kpi.view_submissions',
 )
 
@@ -653,6 +653,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'hu '  # Hungarian
         'id '  # Indonesian
         'ja '  # Japanese
+        'km '  # Khmer
         'ku '  # Kurdish
         'ln '  # Lingala
         'my '  # Burmese/Myanmar
@@ -766,7 +767,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
         # default
-        'rest_framework.authentication.SessionAuthentication',
+        'kpi.authentication.SessionAuthentication',
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
@@ -1300,7 +1301,10 @@ SESSION_REDIS = {
 
 CACHES = {
     # Set CACHE_URL to override
-    'default': env.cache(default='redis://redis_cache:6380/3'),
+    'default': env.cache_url(default='redis://redis_cache:6380/3'),
+    'enketo_redis_main': env.cache_url(
+        'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
+    ),
 }
 
 # How long to retain cached responses for kpi endpoints
