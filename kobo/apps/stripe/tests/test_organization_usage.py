@@ -3,6 +3,7 @@ import timeit
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
@@ -136,7 +137,7 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
             self.expected_file_size() * self.expected_submissions_single
         )
 
-    def test_endpoint_speed_(self):
+    def test_endpoint_speed(self):
         # get the average request time for 10 hits to the endpoint
         single_user_time = timeit.timeit(lambda: self.client.get(self.detail_url), number=10)
 
@@ -152,3 +153,34 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         assert single_user_time < 1.5
         assert multi_user_time < 2
         assert multi_user_time < single_user_time * 2
+
+    @override_settings(ENDPOINT_CACHE_DURATION=10000)
+    def test_endpoint_is_cached(self):
+        """
+        Test that multiple hits to the endpoint from the same origin are properly cached
+        """
+        self.generate_subscription(
+            {
+                'plan_type': 'enterprise',
+                'organizations': True,
+            }
+        )
+
+        response = self.client.get(self.detail_url)
+        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
+        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
+        assert response.data['total_storage_bytes'] == (
+            self.expected_file_size() * self.expected_submissions_multi
+        )
+
+        # add some submissions to a new asset
+        assets = create_mock_assets([self.anotheruser], self.assets_per_user)
+        add_mock_submissions(assets, self.submissions_per_asset)
+
+        # make sure the second request doesn't reflect the additional submissions
+        response = self.client.get(self.detail_url)
+        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
+        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
+        assert response.data['total_storage_bytes'] == (
+            self.expected_file_size() * self.expected_submissions_multi
+        )
