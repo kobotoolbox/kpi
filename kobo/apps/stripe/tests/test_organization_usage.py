@@ -63,7 +63,7 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         cache.clear()
 
     def generate_subscription(self, metadata: dict):
-        """Create a subscription for a product with custom"""
+        """Create a subscription for a product with custom metadata"""
         product = baker.make(Product, active=True, metadata={
             'product_type': 'plan',
             **metadata,

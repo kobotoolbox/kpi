@@ -176,16 +176,10 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._anchor_date.replace(year=self._now.year)
 
     def _filter_by_user(self, counter_query: QuerySet) -> QuerySet:
-        if self._user_id:
-            return counter_query.filter(user_id=self._user_id)
-        else:
-            return counter_query.filter(
-                Q(
-                    user_id=Subquery(
-                        self._user_subquery.values('pk')[:settings.ORGANIZATION_USER_LIMIT]
-                    )
-                )
-            )
+        """
+        Filter counter models by a list of user ids
+        """
+        return counter_query.filter(user_id__in=self._user_ids)
 
     def _get_nlp_user_counters(self, month_filter, year_filter):
         nlp_tracking = NLPUsageCounter.objects.only('date', 'total_asr_seconds', 'total_mt_characters')
@@ -216,7 +210,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         )
 
         if not organization_id:
-            return False
+            return
 
         organization = Organization.objects.filter(
             organization_users__user=self.context.get('request').user,
@@ -225,7 +219,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         if not organization:
             # Couldn't find organization, proceed as normal
-            return False
+            return
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
         if billing_details := organization.active_subscription_billing_details:
@@ -235,26 +229,22 @@ class ServiceUsageSerializer(serializers.Serializer):
             self._subscription_interval = billing_details['recurring_interval']
 
         if settings.STRIPE_ENABLED:
-            # if the user is in an organization and has an enterprise plan, get all org users and their total usage
-            self._user_subquery = User.objects.filter(
-                Q(
+            # if the user is in an organization and has an enterprise plan, get all org users
+            self._user_ids = list(
+                User.objects.filter(
                     organizations_organization__id=organization_id,
                     organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
                     organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
                     organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
-                ) | Q(
-                    pk=self._user_id
+                ).values_list('pk', flat=True)[:settings.ORGANIZATION_USER_LIMIT] or (
+                    self._user_ids
                 )
-            ).filter(pk=OuterRef('user_id'))
-            return True
-        return False
+            )
 
     def _get_per_asset_usage(self, user):
-        self._user_id = user.pk
-        # get the subquery of users for the organization
-        if self._get_organization_details():
-            # we can't check if self._user_subquery is defined, since that evaluates the queryset
-            self._user_id = None
+        self._user_ids = [user.pk]
+        # get the billing data and list of organization users (if applicable)
+        self._get_organization_details()
 
         self._get_storage_usage()
 
