@@ -183,8 +183,7 @@ export function getSubmissionDisplayData(
       }
       // let's hide rows that don't carry any submission data
       if (
-        row.type === QUESTION_TYPES.note.id ||
-        row.type === QUESTION_TYPES.hidden.id
+        row.type === QUESTION_TYPES.note.id
       ) {
         continue;
       }

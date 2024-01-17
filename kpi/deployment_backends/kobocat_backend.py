@@ -12,9 +12,6 @@ from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
-
-from django.db.models.functions import Coalesce
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -23,13 +20,15 @@ except ImportError:
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from lxml import etree
 from django.core.files import File
 from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+from django_redis import get_redis_connection
 from kobo_service_account.utils import get_request_headers
+from lxml import etree
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -55,7 +54,6 @@ from kpi.exceptions import (
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
-from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
@@ -539,7 +537,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 t('Your submission XML is malformed.')
             )
         try:
-            deprecated_uuid = xml_root.find(self.SUBMISSION_UUID_XPATH).text
+            deprecated_uuid = xml_root.find(
+                self.SUBMISSION_DEPRECATED_UUID_XPATH
+            ).text
             xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
@@ -584,6 +584,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(
             kc_response, expected_response_format='xml'
         )
+
+    @property
+    def enketo_id(self):
+        if not (enketo_id := self.get_data('enketo_id')):
+            self.get_enketo_survey_links()
+            enketo_id = self.get_data('enketo_id')
+        return enketo_id
 
     @staticmethod
     def external_to_internal_url(url):
@@ -810,6 +817,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return links
 
     def get_enketo_survey_links(self):
+        if not self.get_data('backend_response'):
+            return {}
+
         data = {
             'server_url': '{}/{}'.format(
                 settings.KOBOCAT_URL.rstrip('/'),
@@ -817,6 +827,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             ),
             'form_id': self.backend_response['id_string']
         }
+
         try:
             response = requests.post(
                 f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
@@ -835,6 +846,33 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError:
             logging.error('Received invalid JSON from Enketo', exc_info=True)
             return {}
+
+        try:
+            enketo_id = links.pop('enketo_id')
+        except KeyError:
+            logging.error(
+                'Invalid response from Enketo: `enketo_id` is not found',
+                exc_info=True,
+            )
+            return {}
+
+        stored_enketo_id = self.get_data('enketo_id')
+        if stored_enketo_id != enketo_id:
+            if stored_enketo_id:
+                logging.warning(
+                    f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
+                )
+            self.save_to_db({'enketo_id': enketo_id})
+
+        if self.xform.require_auth:
+            # Unfortunately, EE creates unique ID based on OpenRosa server URL.
+            # Thus, we need to always generated the ID with the same URL
+            # (i.e.: with username) to be retro-compatible and then,
+            # overwrite the OpenRosa server URL again.
+            self.set_enketo_open_rosa_server(
+                require_auth=True, enketo_id=enketo_id
+            )
+
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try:
                 del links[discard]
@@ -1082,6 +1120,30 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         })
         return True
 
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
+        # Kobocat handles Open Rosa requests with different accesses.
+        #  - Authenticated access, https://[kc]
+        #  - Anonymous access, https://[kc]/username
+        # Enketo generates its unique ID based on the server URL.
+        # Thus, if the project requires authentication, we need to update Redis
+        # directly to keep the same ID and let Enketo submit data to correct
+        # endpoint
+        if not enketo_id:
+            enketo_id = self.enketo_id
+
+        server_url = settings.KOBOCAT_URL.rstrip('/')
+        if not require_auth:
+            server_url = f'{server_url}/{self.asset.owner.username}'
+
+        enketo_redis_client = get_redis_connection('enketo_redis_main')
+        enketo_redis_client.hset(
+            f'id:{enketo_id}',
+            'openRosaServer',
+            server_url,
+        )
+
     def set_has_kpi_hooks(self):
         """
         `PATCH` `has_kpi_hooks` boolean of related KoBoCAT XForm.
@@ -1298,6 +1360,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     'id_string',
                     'num_of_submissions',
                     'attachment_storage_bytes',
+                    'require_auth',
                 )
                 .select_related(
                     'user'

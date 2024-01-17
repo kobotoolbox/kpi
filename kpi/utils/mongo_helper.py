@@ -41,11 +41,15 @@ class MongoHelper:
     OR_OPERATOR = '$or'
     AND_OPERATOR = '$and'
     IN_OPERATOR = '$in'
+    NIN_OPERATOR = '$nin'
+    NOT_OPERATOR = '$not'
 
     KEY_WHITELIST = [
         OR_OPERATOR,
         AND_OPERATOR,
         IN_OPERATOR,
+        NIN_OPERATOR,
+        NOT_OPERATOR,
         '$exists',
         '$gt',
         '$gte',

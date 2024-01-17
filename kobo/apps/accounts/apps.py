@@ -1,6 +1,4 @@
 from django.apps import AppConfig
-from django.conf import settings
-from django.core.checks import Error, register
 
 
 # Config to set custom name for app in django admin UI

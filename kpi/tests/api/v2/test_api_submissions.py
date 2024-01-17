@@ -2,6 +2,7 @@
 import copy
 import json
 import lxml
+import mock
 import random
 import string
 import time
@@ -14,6 +15,7 @@ except ImportError:
 
 import pytest
 import responses
+from dict2xml import dict2xml
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -1246,6 +1248,47 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             submission_uuid=f"uuid:{self.submission['_uuid']}"
         )
         assert new_snapshot.pk != snapshot.pk
+
+    @responses.activate
+    def test_edit_submission_with_xml_encoding_declaration(self):
+        def dict2xml_with_encoding_declaration(*args, **kwargs):
+            return '<?xml version="1.0" encoding="utf-8"?>' + dict2xml(
+                *args, **kwargs
+            )
+
+        with mock.patch(
+            'kpi.deployment_backends.mock_backend.dict2xml'
+        ) as mock_dict2xml:
+            mock_dict2xml.side_effect = dict2xml_with_encoding_declaration
+            submission = self.submissions[-1]
+            submission_xml = self.asset.deployment.get_submissions(
+                user=self.asset.owner,
+                format_type=SUBMISSION_FORMAT_TYPE_XML,
+                submission_ids=[submission['_id']],
+            )[0]
+            assert submission_xml.startswith(
+                '<?xml version="1.0" encoding="utf-8"?>'
+            )
+
+            # Get edit endpoint
+            edit_url = reverse(
+                self._get_endpoint('submission-enketo-edit'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'pk': submission['_id'],
+                },
+            )
+
+            # Set up a mock Enketo response and attempt the edit request
+            ee_url = f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+            responses.add_callback(
+                responses.POST,
+                ee_url,
+                callback=enketo_edit_instance_response_with_uuid_validation,
+                content_type='application/json',
+            )
+            response = self.client.get(edit_url, {'format': 'json'})
+            assert response.status_code == status.HTTP_200_OK
 
     @responses.activate
     def test_edit_submission_with_xml_missing_uuids(self):

@@ -64,7 +64,7 @@ import AudioCell from './audioCell';
 import {
   userCan,
   userCanPartially,
-  isSubmissionWritable,
+  userCanSubmission,
 } from 'js/components/permissions/utils';
 
 const DEFAULT_PAGE_SIZE = 30;
@@ -478,17 +478,17 @@ export class DataTable extends React.Component {
                 onChange={this.bulkUpdateChange.bind(this, row.original._id)}
                 disabled={
                   !(
-                    isSubmissionWritable(
+                    userCanSubmission(
                       'change_submissions',
                       this.props.asset,
                       row.original
                     ) ||
-                    isSubmissionWritable(
+                    userCanSubmission(
                       'delete_submissions',
                       this.props.asset,
                       row.original
                     ) ||
-                    isSubmissionWritable(
+                    userCanSubmission(
                       'validate_submissions',
                       this.props.asset,
                       row.original
@@ -508,7 +508,7 @@ export class DataTable extends React.Component {
             </button>
 
             {userCanSeeEditIcon &&
-              isSubmissionWritable(
+              userCanSubmission(
                 'change_submissions',
                 this.props.asset,
                 row.original
@@ -587,7 +587,7 @@ export class DataTable extends React.Component {
           )}
           currentValue={this.getValidationStatusOption(row.original)}
           isDisabled={
-            !isSubmissionWritable(
+            !userCanSubmission(
               PERMISSIONS_CODENAMES.validate_submissions,
               this.props.asset,
               row.original
@@ -990,7 +990,9 @@ export class DataTable extends React.Component {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
           : 'is-frozen is-last-frozen';
-        col.headerClassName = 'is-frozen is-last-frozen';
+        col.headerClassName = col.headerClassName
+          ? `is-frozen is-last-frozen ${col.headerClassName}`
+          : 'is-frozen is-last-frozen';
       }
     });
 

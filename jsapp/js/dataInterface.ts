@@ -248,18 +248,26 @@ export interface LabelValuePair {
   value: string;
 }
 
-interface PartialPermissionFilter {
-  [questionName: string]: {
-    // For the `mongoOperator` the only supported ones now are $in and $eq.
-    // There are more to be found at
-    // https://www.mongodb.com/docs/manual/reference/operator/query
-    [mongoOperator: string]: string | string[];
-  };
-}
+export interface PartialPermissionFilterByUsers {_submitted_by: {$in: string[]}}
+
+// NOTE: this will always have a single key with single value
+export interface PartialPermissionFilterByResponses {[questionName: string]: string}
+
+export type PartialPermissionFilter = PartialPermissionFilterByUsers | PartialPermissionFilterByResponses;
+
+export type PartialPermissionFilters = Array<Array<PartialPermissionFilter>>;
 
 export interface PartialPermission {
   url: string;
-  filters: PartialPermissionFilter[];
+  // NOTE: we are only supporting literally four combinations of filters here:
+  // 1. [[…ByUsers]]
+  // 2. [[…ByResponses]]
+  // 3. [[…ByUsers, …ByResponses]]
+  // 4. [[…ByUsers], […ByResponses]]
+  // Unfortunately typescript can't define it precisely, so we go with something
+  // imperfect
+  /** An array of arrays; each nested array contains one or two filters. */
+  filters: PartialPermissionFilters;
 }
 
 /** Permission object to be used when making API requests. */

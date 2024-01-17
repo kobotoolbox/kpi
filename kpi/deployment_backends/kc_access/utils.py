@@ -92,7 +92,6 @@ def get_kc_profile_data(user_id):
         'address',
         'city',
         'country',
-        'require_auth',
         'twitter',
         'metadata',
     ]
@@ -113,28 +112,6 @@ def get_kc_profile_data(user_id):
             value = json.dumps(value)
         result[field] = value
     return result
-
-
-def set_kc_require_auth(user_id, require_auth):
-    """
-    Configure whether or not authentication is required to see and submit data
-    to a user's projects.
-    WRITES to KobocatUserProfile.require_auth
-
-    :param int user_id: ID/primary key of the :py:class:`User` object.
-    :param bool require_auth: The desired setting.
-    """
-    user = User.objects.get(pk=user_id)
-    _trigger_kc_profile_creation(user)
-    with transaction.atomic():
-        token, _ = Token.objects.get_or_create(user=user)
-        try:
-            KobocatUserProfile.objects.filter(user_id=user_id).update(
-                require_auth=require_auth
-            )
-        except ProgrammingError as e:
-            raise ProgrammingError('set_kc_require_auth error accessing '
-                                   'kobocat tables: {}'.format(repr(e)))
 
 
 def _get_content_type_kwargs_for_related(obj):
@@ -291,6 +268,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
         if remove:
             flags = {flag: not value for flag, value in flags.items()}
         xform_updates.update(flags)
+
     # Write to the KC database
     KobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
 

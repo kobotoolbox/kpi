@@ -7,7 +7,7 @@ from rest_framework.authentication import (
     BaseAuthentication,
     BasicAuthentication as DRFBasicAuthentication,
     TokenAuthentication as DRFTokenAuthentication,
-    SessionAuthentication,
+    SessionAuthentication as DRFSessionAuthentication,
     get_authorization_header,
 )
 from rest_framework.exceptions import AuthenticationFailed
@@ -66,7 +66,7 @@ class DigestAuthentication(MfaBlockerMixin, BaseAuthentication):
         return self.authenticator.build_challenge_response()
 
 
-class EnketoSessionAuthentication(SessionAuthentication):
+class EnketoSessionAuthentication(DRFSessionAuthentication):
     """
     Enketo Express uses `__csrf` as both the cookie from which to read the CSRF
     token and as the field in the POST data where it returns the token when it
@@ -104,6 +104,30 @@ class EnketoSessionAuthentication(SessionAuthentication):
             domain=settings.SESSION_COOKIE_DOMAIN,
             secure=settings.SESSION_COOKIE_SECURE or None,
         )
+
+
+class SessionAuthentication(DRFSessionAuthentication):
+    """
+    This class is needed to return 401 responses when authentication fails.
+
+    REST Framework's default SessionAuthentication never returns 401, only 403, because
+    it can't fill the WWW-Authenticate header with a valid value in the 401 response.
+    As a result, we can't distinguish requests that are not authorized (401 unauthorized)
+    and requests for which the user does not have permission (403 forbidden).
+    See https://github.com/encode/django-rest-framework/issues/5968#issuecomment-39935282
+
+    Overriding `authenticate_header()` causes DRF to generate 401 responses for
+    unauthenticated requests, with the `WWW-Authenticate` header set to the
+    value returned by `authenticate_header()`. See
+    https://www.django-rest-framework.org/api-guide/authentication/#custom-authentication
+
+    Ideally, 401 responses would return multiple `WWW-Authenticate` headers,
+    one for each supported authentication mechanism (session, digest, basic, …)
+    See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate
+    """
+
+    def authenticate_header(self, request):
+        return 'Session'
 
 
 class TokenAuthentication(MfaBlockerMixin, DRFTokenAuthentication):
