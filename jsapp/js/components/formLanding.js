@@ -31,6 +31,8 @@ import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import AnonymousSubmission from './anonymousSubmission.component';
+import styles from './anonymousSubmission.module.scss';
+import NewFeatureDialog from './newFeatureDialog.component';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
@@ -47,6 +49,7 @@ class FormLanding extends React.Component {
       nextPagesVersions: [],
       anonymousSubmissions: false,
       anonymousPermissions: [],
+      shouldShowNewFeatureDialog: false,
     };
     autoBind(this);
   }
@@ -54,7 +57,7 @@ class FormLanding extends React.Component {
     // reset loaded versions when new one is deployed
     this.listenTo(
       actions.resources.deployAsset.completed,
-      this.resetLoadedVersions
+      this.resetLoadedVersionsf
     );
     this.listenTo(
       actions.permissions.getAssetPermissions.completed,
@@ -81,7 +84,9 @@ class FormLanding extends React.Component {
     const permission = this.state.anonymousPermissions.find(
       (perm) =>
         perm.permission ===
-        permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
+        permConfig.getPermissionByCodename(
+          PERMISSIONS_CODENAMES.add_submissions
+        ).url
     );
     if (this.state.anonymousSubmissions) {
       actions.permissions.removeAssetPermission(
@@ -170,6 +175,9 @@ class FormLanding extends React.Component {
   }
   showSharingModal(evt) {
     evt.preventDefault();
+    stores.pageState._onHideModal = () => {
+      this.setState({shouldShowNewFeatureDialog: true});
+    };
     stores.pageState.showModal({
       type: MODAL_TYPES.SHARING,
       assetid: this.state.uid,
@@ -426,12 +434,21 @@ class FormLanding extends React.Component {
             <bem.FormView__cell
               m={['padding', 'anonymous-submissions', 'bordertop']}
             >
-              <AnonymousSubmission
-                checked={this.state.anonymousSubmissions}
-                onChange={() => this.updateAssetAnonymousSubmissions()}
-                modalType={stores.pageState.state.modal?.type}
-                stores={stores.pageState.state}
-              />
+              <NewFeatureDialog
+                className={styles.root}
+                content={t(
+                  'This feature was originally “Require authentication to see forms and submit data”. This is now a per-project setting.'
+                )}
+                supportArticle={
+                  envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                }
+                disabled={stores.pageState.state?.modal}
+              >
+                <AnonymousSubmission
+                  checked={this.state.anonymousSubmissions}
+                  onChange={() => this.updateAssetAnonymousSubmissions()}
+                />
+              </NewFeatureDialog>
             </bem.FormView__cell>
           )}
         </bem.FormView__cell>
