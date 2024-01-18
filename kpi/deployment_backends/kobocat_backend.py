@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import io
 import json
+import os.path
 import posixpath
 import re
 import uuid
@@ -22,7 +23,7 @@ except ImportError:
 
 import requests
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, SuspiciousFileOperation
 from lxml import etree
 from django.core.files import File
 from django.db.models import Sum
@@ -68,6 +69,7 @@ from .kc_access.shadow_models import (
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
+from .kc_access.storage import default_kobocat_storage
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
@@ -1675,6 +1677,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     attachment[key] = kpi_url
                 except KeyError:
                     continue
+
+            # Add question_xpath if it does not already exist
+            if 'question_xpath' not in attachment:
+                basename = os.path.basename(attachment['filename'])
+                attachment['question_xpath'] = ''
+
+                for idx, value in enumerate(submission.values()):
+                    if not isinstance(value, str):
+                        continue
+                    try:
+                        valid_name = default_kobocat_storage.get_valid_name(value)
+                    except SuspiciousFileOperation:
+                        continue
+
+                    if valid_name == basename:
+                        attachment['question_xpath'] = list(submission)[idx]
+                        break
 
         return submission
 
