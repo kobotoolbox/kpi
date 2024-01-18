@@ -322,10 +322,10 @@ describe('permParser', () => {
             {
               url: '/api/v2/permissions/view_submissions/',
               filters: [
-                [
-                  {_submitted_by: {$in: ['john', 'olivier', 'eric']}},
-                  {Where_are_you_from: 'Poland'},
-                ],
+                {
+                  _submitted_by: {$in: ['john', 'olivier', 'eric']},
+                  Where_are_you_from: 'Poland',
+                }
               ],
             },
           ],
@@ -356,11 +356,11 @@ describe('permParser', () => {
           partial_permissions: [
             {
               url: '/api/v2/permissions/view_submissions/',
-              filters: [[{_submitted_by: {$in: ['john', 'olivier', 'eric']}}]],
+              filters: [{_submitted_by: {$in: ['john', 'olivier', 'eric']}}],
             },
             {
               url: '/api/v2/permissions/change_submissions/',
-              filters: [[{Where_are_you_from: 'Poland'}]],
+              filters: [{Where_are_you_from: 'Poland'}],
             },
           ],
         },
@@ -462,11 +462,11 @@ describe('permParser', () => {
           partial_permissions: [
             {
               url: '/api/v2/permissions/view_submissions/',
-              filters: [[{_submitted_by: {$in: ['john', 'olivier']}}]],
+              filters: [{_submitted_by: {$in: ['john', 'olivier']}}],
             },
             {
               url: '/api/v2/permissions/change_submissions/',
-              filters: [[{Where_are_you_from: 'Poland'}]],
+              filters: [{Where_are_you_from: 'Poland'}],
             },
           ],
         },

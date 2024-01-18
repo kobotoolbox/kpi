@@ -16,8 +16,6 @@ import type {
   PermissionBase,
   PartialPermission,
   PartialPermissionFilter,
-  PartialPermissionFilterByUsers,
-  PartialPermissionFilterByResponses,
 } from 'js/dataInterface';
 import {
   getCheckboxNameByPermission,
@@ -26,9 +24,7 @@ import {
   getPartialByResponsesCheckboxName,
   getPartialByResponsesQuestionName,
   getPartialByResponsesValueName,
-  isPartialByUsersFilter,
-  isPartialByResponsesFilter,
-  getPartialByUsersFilter,
+  getPartialByUsersFilterList,
   getPartialByResponsesFilter,
 } from './utils';
 
@@ -195,9 +191,13 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
       const listName = getPartialByUsersListName(byUsersCheckboxName);
       const partialUsers = data[listName] || [];
 
+      // For one user it will be string, for multiple it will be an `$in` object
+      const submittedByValue =
+        partialUsers.length === 1 ? partialUsers[0] : {$in: partialUsers};
+
       partialPerms.push({
         url: getPermUrl(permCodename),
-        filters: [[{_submitted_by: {$in: partialUsers}}]],
+        filters: [{_submitted_by: submittedByValue}],
       });
     }
   }
@@ -228,13 +228,17 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
         const foundPerm = partialPerms.find(
           (partialPerm) => partialPerm.url === permUrl
         );
-        if (foundPerm?.filters[0]) {
-          foundPerm.filters[0].push(filter);
+        // We are purposefully interested in first filter only, as UI is not
+        // able to handle OR filters (multiple filters)
+        const foundPermFilter = foundPerm?.filters[0];
+        if (foundPermFilter) {
+          // We merge current filter into the existing one
+          foundPerm.filters[0] = {...foundPermFilter, ...filter};
         } else {
           // Step 2.1B: If this is new permission, we simply add it
           partialPerms.push({
             url: permUrl,
-            filters: [[filter]],
+            filters: [filter],
           });
         }
       }
@@ -316,11 +320,11 @@ export function buildFormData(
         // tops. There might be one "by users" or one "by responses" or one each
         // - no other possiblities can happen. We get each of them separately
         // and try to put them back as form data:
-        const byUsersFilter = getPartialByUsersFilter(partial);
+        const byUsersFilterList = getPartialByUsersFilterList(partial);
         const byResponsesFilter = getPartialByResponsesFilter(partial);
 
         // Step 4. Handle "by users" filter (if one exists for this permission)
-        if (byUsersFilter) {
+        if (byUsersFilterList) {
           const byUsersCheckboxName = getPartialByUsersCheckboxName(
             nonPartialCheckboxName
           );
@@ -329,7 +333,7 @@ export function buildFormData(
               getPartialByUsersListName(byUsersCheckboxName);
 
             // Step 4A. Set the list of usernames
-            const filterUsernames = byUsersFilter._submitted_by.$in;
+            const filterUsernames = byUsersFilterList;
             formData[byUsersListName] = filterUsernames;
 
             // Step 4B. Enable "by users" checkbox (but only if the users list

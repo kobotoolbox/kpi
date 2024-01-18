@@ -290,11 +290,11 @@ const assetWithPartial: PaginatedResponse<PermissionResponse> = {
       partial_permissions: [
         {
           url: '/api/v2/permissions/view_submissions/',
-          filters: [[{_submitted_by: {$in: ['john', 'olivier']}}]],
+          filters: [{_submitted_by: {$in: ['john', 'olivier']}}],
         },
         {
           url: '/api/v2/permissions/change_submissions/',
-          filters: [[{Where_are_you_from: 'Poland'}]],
+          filters: [{Where_are_you_from: 'Poland'}],
         },
       ],
     },
@@ -323,27 +323,27 @@ const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
         {
           url: '/api/v2/permissions/view_submissions/',
           filters: [
-            [
-              {Where_are_you_from: 'Poland'},
-              {_submitted_by: {$in: ['dave', 'krzysztof']}},
-            ],
+            {
+              Where_are_you_from: 'Poland',
+              _submitted_by: {$in: ['dave', 'krzysztof']},
+            },
           ],
         },
         {
           url: '/api/v2/permissions/change_submissions/',
-          filters: [[{Your_color: 'blue'}]],
+          filters: [{Your_color: 'blue'}],
         },
         {
           url: '/api/v2/permissions/delete_submissions/',
-          filters: [[{_submitted_by: {$in: ['kate', 'joshua']}}]],
+          filters: [{_submitted_by: {$in: ['kate', 'joshua']}}],
         },
         // This permission is the OR one, which is not supported by Front-end
         // code and should be treated as AND
         {
           url: '/api/v2/permissions/validate_submissions/',
           filters: [
-            [{What_is_your_fav_animal: 'Racoon'}],
-            [{_submitted_by: {$in: ['zachary']}}],
+            {What_is_your_fav_animal: 'Racoon'},
+            {_submitted_by: 'zachary'},
           ],
         },
       ],
