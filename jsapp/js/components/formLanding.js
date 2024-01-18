@@ -247,6 +247,7 @@ class FormLanding extends React.Component {
       });
     }
   }
+
   renderHistory() {
     var dvcount = this.state.deployed_versions.count;
     const versionsToDisplay = this.state.deployed_versions.results.concat(
@@ -428,6 +429,8 @@ class FormLanding extends React.Component {
               <AnonymousSubmission
                 checked={this.state.anonymousSubmissions}
                 onChange={() => this.updateAssetAnonymousSubmissions()}
+                modalType={stores.pageState.state.modal?.type}
+                stores={stores.pageState.state}
               />
             </bem.FormView__cell>
           )}
