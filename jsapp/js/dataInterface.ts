@@ -248,26 +248,46 @@ export interface LabelValuePair {
   value: string;
 }
 
-export interface PartialPermissionFilterByUsers {_submitted_by: {$in: string[]}}
+export interface PartialPermissionFilterByUsers {
+  _submitted_by?: string | {$in: string[]};
+}
 
-// NOTE: this will always have a single key with single value
-export interface PartialPermissionFilterByResponses {[questionName: string]: string}
+export interface PartialPermissionFilterByResponses {
+  [questionName: string]: string;
+}
 
-export type PartialPermissionFilter = PartialPermissionFilterByUsers | PartialPermissionFilterByResponses;
-
-export type PartialPermissionFilters = Array<Array<PartialPermissionFilter>>;
+/**
+ * Filter can have properties of both of these interfaces, thus we use union
+ * type here.
+ */
+export type PartialPermissionFilter =
+  | PartialPermissionFilterByUsers
+  | PartialPermissionFilterByResponses;
 
 export interface PartialPermission {
   url: string;
-  // NOTE: we are only supporting literally four combinations of filters here:
-  // 1. [[…ByUsers]]
-  // 2. [[…ByResponses]]
-  // 3. [[…ByUsers, …ByResponses]]
-  // 4. [[…ByUsers], […ByResponses]]
-  // Unfortunately typescript can't define it precisely, so we go with something
-  // imperfect
-  /** An array of arrays; each nested array contains one or two filters. */
-  filters: PartialPermissionFilters;
+  /**
+   * An array of filters (objects). Multiple objects means "OR", multiple
+   * properties within the same filter mean "AND".
+   *
+   * There are much more possible cases here, but Front End is supporting only
+   * a single filter object, i.e. the code will ignore `filters[1]`,
+   * `filters[2]` etc. So the cases supported by current UI are:
+   *
+   * 1. single user:
+   *    `filters: [{_submitted_by: 'joe'}]`
+   * 2. single user alternative (equivalent to point above):
+   *    `filters: [{_submitted_by: {$in: ['joe']}}]`
+   * 3. multiple users:
+   *    `filters: [{_submitted_by: {$in: ['bob', 'adam']}}]`
+   * 4. single question response:
+   *    `filters: [{question_one: 'answer'}]`
+   * 5. user AND single question response:
+   *    `filters: [{_submitted_by: 'joe', question_one: 'answer'}]`
+   * 6. multiple users AND single question response:
+   *    `filters: [{_submitted_by: {$in: ['bob', 'adam']}, question_one: 'answer'}]`
+   */
+  filters: PartialPermissionFilter[];
 }
 
 /** Permission object to be used when making API requests. */

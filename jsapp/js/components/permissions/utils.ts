@@ -1,3 +1,4 @@
+import clonedeep from 'lodash.clonedeep';
 import sessionStore from 'js/stores/session';
 import permConfig from './permConfig';
 import {buildUserUrl, ANON_USERNAME_URL} from 'js/users/utils';
@@ -151,27 +152,45 @@ export function userCanRemoveSharedProject(asset: AssetResponse) {
 /** Detects if given filter is of "by users" kind. */
 export function isPartialByUsersFilter(filter: PartialPermissionFilter) {
   return (
-    '_submitted_by' in filter &&
-    Object.keys(filter).length === 1 &&
-    typeof filter._submitted_by === 'object' &&
-    '$in' in filter._submitted_by
+    // We are lookin for object with `_submitted_by` property…
+    ('_submitted_by' in filter &&
+      // …and value being an object with `$in` pointing at an array of usernames,
+      // or simply a string (single username)
+      typeof filter._submitted_by === 'object' &&
+      '$in' in filter._submitted_by &&
+      Array.isArray(filter._submitted_by.$in) &&
+      filter._submitted_by.$in.length !== 0) ||
+    ('_submitted_by' in filter &&
+      typeof filter._submitted_by === 'string' &&
+      filter._submitted_by.length !== 0)
   );
 }
 
-/** Finds "by users" filter inside the partial permission. */
-export function getPartialByUsersFilter(
+/**
+ * Finds "by users" filter inside the partial permission and returns the users
+ * list from it. If there is no "by users" filter we return `undefined`.
+ */
+export function getPartialByUsersFilterList(
   partialPerm: PartialPermission
-): PartialPermissionFilterByUsers | undefined {
+): string[] | undefined {
   let found: PartialPermissionFilterByUsers | undefined;
-  partialPerm.filters.forEach((filtersArr) => {
-    filtersArr.forEach((filter) => {
-      if (isPartialByUsersFilter(filter)) {
-        // We cast the type, because we checked with `isPartialByUsersFilter`
-        found = filter as PartialPermissionFilterByUsers;
-      }
-    });
+
+  partialPerm.filters.forEach((filter) => {
+    if (isPartialByUsersFilter(filter)) {
+      // We cast the type, because we checked with `isPartialByUsersFilter`
+      found = filter as PartialPermissionFilterByUsers;
+    }
   });
-  return found;
+
+  if (!found) {
+    return undefined;
+  } else if (typeof found._submitted_by === 'string') {
+    return [found._submitted_by];
+  } else if (found._submitted_by && Array.isArray(found._submitted_by.$in)) {
+    return found._submitted_by.$in;
+  }
+
+  return undefined;
 }
 
 /**
@@ -182,34 +201,44 @@ export function hasPartialByUsers(perm: UserPerm) {
   return Boolean(
     'partial_permissions' in perm &&
       perm.partial_permissions?.some((partialPerm) =>
-        Boolean(getPartialByUsersFilter(partialPerm))
+        Boolean(getPartialByUsersFilterList(partialPerm))
       )
   );
 }
 
 /** Detects if given filter is of "by responses" kind. */
 export function isPartialByResponsesFilter(filter: PartialPermissionFilter) {
-  return (
-    '_submitted_by' in filter === false &&
-    Object.keys(filter).length === 1 &&
-    typeof Object.values(filter)[0] === 'string'
-  );
+  const filterKeys = Object.keys(filter);
+  // We are looking for an object that has some props other thane the one for
+  // "by users" filter (at least one other)
+  return filterKeys.some((key) => key !== '_submitted_by');
 }
 
-/** Finds "by responses" filter inside the partial permission. */
+/**
+ * Finds "by responses" filter inside the partial permission. Note that if given
+ * filter includes both "by responses" and "by users" properties, we will omit
+ * `_submitted_by` in returned object.
+ */
 export function getPartialByResponsesFilter(
   partialPerm: PartialPermission
 ): PartialPermissionFilterByResponses | undefined {
   let found: PartialPermissionFilterByResponses | undefined;
-  partialPerm.filters.forEach((filtersArr) => {
-    filtersArr.forEach((filter) => {
-      if (isPartialByResponsesFilter(filter)) {
-        // We cast the type, because we checked with `isPartialByResponsesFilter`
-        found = filter as PartialPermissionFilterByResponses;
-      }
-    });
+  partialPerm.filters.forEach((filter) => {
+    if (isPartialByResponsesFilter(filter)) {
+      // We cast the type, because we checked with `isPartialByResponsesFilter`
+      found = filter as PartialPermissionFilterByResponses;
+    }
   });
-  return found;
+
+  if (found) {
+    const foundClone = clonedeep(found);
+    // Remove `_submitted_by`, leave "by responses" stuff (at current point
+    // in time we leave everything else)
+    delete foundClone._submitted_by;
+    return foundClone;
+  }
+
+  return undefined;
 }
 
 /**
@@ -270,7 +299,7 @@ export function userCanSubmission(
     return false;
   }
 
-  const byUsersFilter = getPartialByUsersFilter(partialPerm);
+  const byUsersFilterList = getPartialByUsersFilterList(partialPerm);
   const byResponsesFilter = getPartialByResponsesFilter(partialPerm);
 
   // It is possible that given permission will have both filters, so we need to
@@ -279,15 +308,15 @@ export function userCanSubmission(
   let thisUserCanWithByUsersFilter = true;
   let thisUserCanWithByResponsesFilter = true;
 
-  if (byUsersFilter) {
+  if (byUsersFilterList) {
     const submittedByUsername = submission._submitted_by;
     // If the `_submitted_by` was not stored, there is no way of knowing.
     if (submittedByUsername === null) {
       return false;
     }
-
-    const allowedUsers = byUsersFilter._submitted_by.$in;
-    thisUserCanWithByUsersFilter = allowedUsers.includes(submittedByUsername);
+    // Check if given username is inside the allowed usernames list (`byUsersFilterList`)
+    thisUserCanWithByUsersFilter =
+      byUsersFilterList.includes(submittedByUsername);
   }
 
   if (byResponsesFilter) {
@@ -521,9 +550,9 @@ function getByUsersFriendlyPermName(
 
   if (perm.partial_permissions) {
     perm.partial_permissions.forEach((partial) => {
-      const byUsersFilter = getPartialByUsersFilter(partial);
-      if (byUsersFilter) {
-        permUsers = permUsers.concat(byUsersFilter._submitted_by.$in);
+      const byUsersFilterList = getPartialByUsersFilterList(partial);
+      if (byUsersFilterList) {
+        permUsers = permUsers.concat(byUsersFilterList);
       }
     });
   }

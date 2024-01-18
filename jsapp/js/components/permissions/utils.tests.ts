@@ -1,20 +1,20 @@
 import type {
   PartialPermission,
   PermissionResponse,
-  PartialPermissionFilters,
+  PartialPermissionFilter,
 } from 'js/dataInterface';
 import {
   hasPartialByUsers,
   hasPartialByResponses,
   isPartialByUsersFilter,
-  getPartialByUsersFilter,
+  getPartialByUsersFilterList,
   isPartialByResponsesFilter,
   getPartialByResponsesFilter,
 } from './utils';
 
 // single partial "by users"
-const PARTIAL_BY_USERS_FILTERS: PartialPermissionFilters = [
-  [{_submitted_by: {$in: ['john', 'olivier']}}],
+const PARTIAL_BY_USERS_FILTERS: PartialPermissionFilter[] = [
+  {_submitted_by: {$in: ['john', 'olivier']}},
 ];
 const PARTIAL_PERM_BY_USERS: PartialPermission = {
   url: '/api/v2/permissions/view_submissions/',
@@ -29,8 +29,8 @@ const GENERAL_PERM_BY_USERS: PermissionResponse = {
 };
 
 // single partial "by responses"
-const PARTIAL_BY_RESPONSES_FILTERS: PartialPermissionFilters = [
-  [{Where_are_you_from: 'Poland'}],
+const PARTIAL_BY_RESPONSES_FILTERS: PartialPermissionFilter[] = [
+  {Where_are_you_from: 'Poland'},
 ];
 const PARTIAL_PERM_BY_RESPONSES: PartialPermission = {
   url: '/api/v2/permissions/view_submissions/',
@@ -45,8 +45,8 @@ const GENERAL_PERM_BY_RESPONSES: PermissionResponse = {
 };
 
 // both partial in single filter (AND)
-const PARTIAL_BY_BOTH_AND_FILTERS: PartialPermissionFilters = [
-  [{What_do_you_love: 'Chaos'}, {_submitted_by: {$in: ['zoe', 'xavier']}}],
+const PARTIAL_BY_BOTH_AND_FILTERS: PartialPermissionFilter[] = [
+  {What_do_you_love: 'Chaos', _submitted_by: {$in: ['zoe', 'xavier']}},
 ];
 const PARTIAL_PERM_BY_BOTH_AND: PartialPermission = {
   url: '/api/v2/permissions/view_submissions/',
@@ -61,9 +61,9 @@ const GENERAL_PERM_BY_BOTH_AND: PermissionResponse = {
 };
 
 // both partial in separate filters (OR)
-const PARTIAL_BY_BOTH_OR_FILTERS: PartialPermissionFilters = [
-  [{Your_fav_animal: 'Racoon'}],
-  [{_submitted_by: {$in: ['phil', 'vanessa']}}],
+const PARTIAL_BY_BOTH_OR_FILTERS: PartialPermissionFilter[] = [
+  {Your_fav_animal: 'Racoon'},
+  {_submitted_by: {$in: ['phil', 'vanessa']}},
 ];
 const PARTIAL_PERM_BY_BOTH_OR: PartialPermission = {
   url: '/api/v2/permissions/view_submissions/',
@@ -121,53 +121,53 @@ describe('permissions utils', () => {
   describe('isPartialByUsersFilter', () => {
     it('should match partial "by users" filter', () => {
       chai
-        .expect(isPartialByUsersFilter(PARTIAL_BY_USERS_FILTERS[0][0]))
+        .expect(isPartialByUsersFilter(PARTIAL_BY_USERS_FILTERS[0]))
         .to.equal(true);
     });
 
     it('should not match other partial filter', () => {
       chai
-        .expect(isPartialByUsersFilter(PARTIAL_BY_RESPONSES_FILTERS[0][0]))
+        .expect(isPartialByUsersFilter(PARTIAL_BY_RESPONSES_FILTERS[0]))
         .to.equal(false);
     });
   });
 
-  describe('getPartialByUsersFilter', () => {
+  describe('getPartialByUsersFilterList', () => {
     it('should find partial "by users" filter in filters with one', () => {
       chai
-        .expect(getPartialByUsersFilter(PARTIAL_PERM_BY_USERS))
-        .to.deep.equal({_submitted_by: {$in: ['john', 'olivier']}});
+        .expect(getPartialByUsersFilterList(PARTIAL_PERM_BY_USERS))
+        .to.deep.equal(['john', 'olivier']);
     });
 
     it('should not find partial "by users" filter in filters with single different filter', () => {
       chai
-        .expect(getPartialByUsersFilter(PARTIAL_PERM_BY_RESPONSES))
+        .expect(getPartialByUsersFilterList(PARTIAL_PERM_BY_RESPONSES))
         .to.equal(undefined);
     });
 
     it('should find partial "by users" filter in filters with multiple AND filters', () => {
       chai
-        .expect(getPartialByUsersFilter(PARTIAL_PERM_BY_BOTH_AND))
-        .to.deep.equal({_submitted_by: {$in: ['zoe', 'xavier']}});
+        .expect(getPartialByUsersFilterList(PARTIAL_PERM_BY_BOTH_AND))
+        .to.deep.equal(['zoe', 'xavier']);
     });
 
     it('should find partial "by users" filter in filters with multiple OR filters', () => {
       chai
-        .expect(getPartialByUsersFilter(PARTIAL_PERM_BY_BOTH_OR))
-        .to.deep.equal({_submitted_by: {$in: ['phil', 'vanessa']}});
+        .expect(getPartialByUsersFilterList(PARTIAL_PERM_BY_BOTH_OR))
+        .to.deep.equal(['phil', 'vanessa']);
     });
   });
 
   describe('isPartialByResponsesFilter', () => {
     it('should match partial "by responses" filter', () => {
       chai
-        .expect(isPartialByResponsesFilter(PARTIAL_BY_RESPONSES_FILTERS[0][0]))
+        .expect(isPartialByResponsesFilter(PARTIAL_BY_RESPONSES_FILTERS[0]))
         .to.equal(true);
     });
 
     it('should not match other partial filter', () => {
       chai
-        .expect(isPartialByResponsesFilter(PARTIAL_BY_USERS_FILTERS[0][0]))
+        .expect(isPartialByResponsesFilter(PARTIAL_BY_USERS_FILTERS[0]))
         .to.equal(false);
     });
   });
