@@ -83,7 +83,7 @@ export default class ReportContents extends React.Component {
               return (
                 question &&
                 o.list_name === question.select_from_list_name &&
-                (o.name === resps[j] || o.$autoname === resps[j])
+                (o.label === resps[j])
               );
             });
             if (choice && choice.label && choice.label[tnslIndex]) {
@@ -105,7 +105,7 @@ export default class ReportContents extends React.Component {
                 return (
                   qGB &&
                   o.list_name === qGB.select_from_list_name &&
-                  (o.name === r || o.$autoname === r)
+                  (o.label === r)
                 );
               });
               if (choice?.label && choice.label[tnslIndex]) {
