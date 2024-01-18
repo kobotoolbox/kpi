@@ -57,7 +57,7 @@ class FormLanding extends React.Component {
     // reset loaded versions when new one is deployed
     this.listenTo(
       actions.resources.deployAsset.completed,
-      this.resetLoadedVersionsf
+      this.resetLoadedVersions
     );
     this.listenTo(
       actions.permissions.getAssetPermissions.completed,
