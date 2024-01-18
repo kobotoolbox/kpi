@@ -442,6 +442,7 @@ class FormLanding extends React.Component {
                 supportArticle={
                   envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
                 }
+                featureKey='anonymousSubmissions'
                 disabled={stores.pageState.state?.modal}
               >
                 <AnonymousSubmission

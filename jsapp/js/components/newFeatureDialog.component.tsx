@@ -6,6 +6,12 @@ import cx from 'classnames';
 interface NewFeatureDialogProps {
   children: React.ReactNode;
   className?: string;
+  /**
+   * Used to differentiate between dialogs for different features.
+   * Tip: Use the feature name. It's added to the end of the localstorage key.
+   * If two or more dialogs have the same featureKey, clicking one should dismiss all of them.
+   */
+  featureKey: string;
   content: string;
   supportArticle?: string;
   /**
@@ -18,6 +24,7 @@ interface NewFeatureDialogProps {
 export default function NewFeatureDialog({
   children,
   className = '',
+  featureKey,
   content,
   supportArticle,
   disabled = false,
@@ -25,12 +32,12 @@ export default function NewFeatureDialog({
   const [showDialog, setShowDialog] = useState<boolean>(false);
 
   useEffect(() => {
-    const dialogStatus = localStorage.getItem('dialogStatus');
+    const dialogStatus = localStorage.getItem(`kpiDialogStatus-${featureKey}`);
     setShowDialog(!dialogStatus);
   }, [disabled]);
 
   function closeDialog() {
-    localStorage.setItem('dialogStatus', 'shown');
+    localStorage.setItem(`kpiDialogStatus-${featureKey}`, 'shown');
     setShowDialog(!showDialog);
   }
 

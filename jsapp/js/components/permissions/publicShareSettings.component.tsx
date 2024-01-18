@@ -82,6 +82,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
             supportArticle={
               envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
             }
+            featureKey='anonymousSubmissions'
           >
             <AnonymousSubmission
               checked={anonCanAddData}
