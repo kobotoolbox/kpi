@@ -809,7 +809,7 @@ export class DataTable extends React.Component {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = getMediaAttachment(row.original, row.value);
+                mediaAttachment = getMediaAttachment(row.original, row.value, q.$xpath);
               }
 
               if (
