@@ -78,7 +78,8 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   }
 
   &.service-row__column--submission,
-  &.service-row__column--status {
+  &.service-row__column--status,
+  &.service-row__column--event {
     flex: 1;
     padding: 0 $s-service-row-column-spacing;
     line-height: $s-service-row-action-button;

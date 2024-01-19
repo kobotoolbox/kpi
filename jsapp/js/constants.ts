@@ -109,6 +109,13 @@ export const HOOK_LOG_STATUSES = {
   FAILED: 0,
 };
 
+export const HOOK_LOG_EVENT = {
+  SUBMIT: 'on_submit',
+  EDIT: 'on_edit',
+  DELETE: 'on_delete',
+  VALIDATION: 'on_validation_status_change',
+}
+
 export const KEY_CODES = Object.freeze({
   TAB: 9,
   ENTER: 13,

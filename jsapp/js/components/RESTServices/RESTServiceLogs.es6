@@ -12,6 +12,7 @@ import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
 import {formatTime, notify} from 'utils';
 import {
+  HOOK_LOG_EVENT,
   HOOK_LOG_STATUSES,
   MODAL_TYPES
 } from '../../constants';
@@ -26,6 +27,7 @@ export default class RESTServiceLogs extends React.Component {
       hookUid: props.hookUid,
       isLoadingHook: true,
       isLoadingLogs: true,
+      event: HOOK_LOG_EVENT.SUBMIT,
       logs: [],
       nextPageUrl: null
     };
@@ -43,7 +45,8 @@ export default class RESTServiceLogs extends React.Component {
         this.setState({
           isLoadingHook: false,
           hookName: data.name,
-          isHookActive: data.active
+          isHookActive: data.active,
+          event: data.event,
         });
       })
       .fail(() => {
@@ -62,7 +65,8 @@ export default class RESTServiceLogs extends React.Component {
             isLoadingLogs: false,
             logs: data.results,
             nextPageUrl: data.next,
-            totalLogsCount: data.count
+            totalLogsCount: data.count,
+            event: data.event,
           });
         },
         onFail: () => {
@@ -258,6 +262,7 @@ export default class RESTServiceLogs extends React.Component {
           <bem.FormView__cell m={['box']}>
             <bem.ServiceRow m='header'>
               <bem.ServiceRow__column m='submission'>{t('Submission')}</bem.ServiceRow__column>
+              <bem.ServiceRow__column m='event'>{t('Event')}</bem.ServiceRow__column>
               <bem.ServiceRow__column m='status'>
                 {t('Status')}
                 { this.hasAnyFailedLogs() &&
@@ -298,10 +303,30 @@ export default class RESTServiceLogs extends React.Component {
                 statusLabel = t('Failed');
               }
 
+              let eventLabel = '';
+              switch(log.event) {
+                case HOOK_LOG_EVENT.SUBMIT:
+                  eventLabel = t('Submission')
+                  break;
+                case HOOK_LOG_EVENT.EDIT:
+                  eventLabel = t('Edit')
+                  break;
+                case HOOK_LOG_EVENT.DELETE:
+                  eventLabel = t('Deletion')
+                  break;
+                case HOOK_LOG_EVENT.VALIDATION:
+                  eventLabel = t('Validation status')
+                  break;
+              }
+
               return (
                 <bem.ServiceRow {...rowProps}>
                   <bem.ServiceRow__column m='submission'>
                     {log.submission_id}
+                  </bem.ServiceRow__column>
+
+                  <bem.ServiceRow__column m='submission'>
+                    {eventLabel}
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column

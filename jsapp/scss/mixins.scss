@@ -51,3 +51,21 @@
   outline: sizes.$x3 solid colors.$kobo-alt-blue !important;
   border-color: colors.$kobo-blue !important;
 }
+
+@mixin form-subrow() {
+  padding-left: 30px;
+  padding-block: 2px;
+  position: relative;
+
+  &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10px;
+      width: 15px;
+      height: 15px;
+      border-left: 1px solid colors.$kobo-gray-92;
+      border-bottom: 1px solid colors.$kobo-gray-92;
+      border-radius: 2px;
+  }
+}
