@@ -142,7 +142,6 @@ stores.pageState = Reflux.createStore({
     if (this._onHideModal) {
       this._onHideModal();
     }
-    console.log('stores porper', this.state);
     this.setState({
       modal: false
     });

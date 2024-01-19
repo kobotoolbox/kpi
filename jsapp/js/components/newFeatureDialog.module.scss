@@ -1,4 +1,5 @@
 @use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
 
 .root {
 	position: relative;
@@ -12,8 +13,8 @@
 .dialog {
   width: 50%;
   position: absolute;
-  border-radius: 4px;
-  padding: 12px;
+  border-radius: sizes.$x4;
+  padding: sizes.$x12;
   color: colors.$kobo-white;
   background: colors.$kobo-dark-blue;
 }
@@ -26,23 +27,27 @@
   width: 0;
   position: absolute;
   pointer-events: none;
-  border-width: 6px;
-  margin-left: calc(6px * -1);
+  border-width: sizes.$x6;
+  margin-left: calc(sizes.$x6 * -1);
   bottom: 100%;
   border-bottom-color: colors.$kobo-dark-blue;
 }
 
 .header {
-  color: colors.$kobo-white !important;
-  font-weight: 600 !important;
+  color: colors.$kobo-white;
+  font-weight: 600;
   display: flex;
   justify-content: space-between;
-  padding-bottom: 12px;
+  padding-bottom: sizes.$x12;
   align-items: center;
+
+  .k-button :hover {
+    background-color: transparent;
+  }
 }
 
 .support {
-  padding-top: 8px;
+  padding-top: sizes.$x8;
   margin: 0;
   color: lighten(colors.$kobo-blue, 20%);
   text-decoration: underline;
