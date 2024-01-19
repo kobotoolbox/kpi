@@ -21,6 +21,14 @@ extend-select = ["I"]
 [tool.ruff.lint.isort]
 known-first-party = ["kobo"]
 
+[tool.pytest.ini_options]
+addopts = [
+    '-m "not performance"',
+]
+markers = [
+    "performance: marks test for performance that may unexpectedly fail on slower platforms (not executed by default - select with '-m \"performance\"')",
+]
+
 # Types are not enforced but are a good practice
 [tool.mypy]
 # Exclude virtual environment projects that cause mypy to error
