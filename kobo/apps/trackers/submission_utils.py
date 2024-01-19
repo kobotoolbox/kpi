@@ -75,7 +75,7 @@ def update_xform_counters(asset: Asset, xform: KobocatXForm = None, submissions:
             kpi_asset_uid=asset.uid,
             date_created=today,
             date_modified=today,
-            user_id=asset.owner.id,
+            user_id=asset.owner_id,
         )
         xform.save()
 
@@ -94,7 +94,7 @@ def update_xform_counters(asset: Asset, xform: KobocatXForm = None, submissions:
                 date=today.date(),
                 counter=submissions,
                 xform=xform,
-                user_id=asset.owner.id,
+                user_id=asset.owner_id,
             )
         )
         counter.save()

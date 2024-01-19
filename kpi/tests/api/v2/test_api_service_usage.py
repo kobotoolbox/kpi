@@ -168,7 +168,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
                 kpi_asset_uid=asset.uid,
                 date_created=today,
                 date_modified=today,
-                user_id=asset.owner.id,
+                user_id=asset.owner_id,
             )
             self.xform.save()
 
@@ -181,7 +181,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
                     date=today.date(),
                     counter=submissions,
                     xform=self.xform,
-                    user_id=asset.owner.id,
+                    user_id=asset.owner_id,
                 )
             )
             self.counter.save()
