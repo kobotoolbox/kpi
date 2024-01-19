@@ -990,7 +990,9 @@ export class DataTable extends React.Component {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
           : 'is-frozen is-last-frozen';
-        col.headerClassName = 'is-frozen is-last-frozen';
+        col.headerClassName = col.headerClassName
+          ? `is-frozen is-last-frozen ${col.headerClassName}`
+          : 'is-frozen is-last-frozen';
       }
     });
 
