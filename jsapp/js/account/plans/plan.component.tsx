@@ -242,7 +242,7 @@ export default function Plan() {
   useEffect(() => {
     if (
       state.organization &&
-      state.organization.owner !== session.currentAccount.username
+      state.organization.owner_username !== session.currentAccount.username
     ) {
       setIsUnauthorized(true);
     }
