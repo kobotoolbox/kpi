@@ -75,7 +75,6 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
       <bem.FormModal__item m='permissions'>
         <bem.FormModal__item m='anonymous-submissions'>
           <NewFeatureDialog
-            className={styles.root}
             content={t(
               'This feature was originally “Require authentication to see forms and submit data”. This is now a per-project setting.'
             )}

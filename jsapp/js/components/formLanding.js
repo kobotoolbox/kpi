@@ -10,7 +10,6 @@ import sessionStore from 'js/stores/session';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
-import Icon from 'js/components/common/icon';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
@@ -28,7 +27,6 @@ import {
 } from 'js/components/permissions/utils';
 import permConfig from 'js/components/permissions/permConfig';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
-import ToggleSwitch from 'js/components/common/toggleSwitch';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import AnonymousSubmission from './anonymousSubmission.component';
 import styles from './anonymousSubmission.module.scss';
@@ -435,7 +433,6 @@ class FormLanding extends React.Component {
               m={['padding', 'anonymous-submissions', 'bordertop']}
             >
               <NewFeatureDialog
-                className={styles.root}
                 content={t(
                   'This feature was originally “Require authentication to see forms and submit data”. This is now a per-project setting.'
                 )}

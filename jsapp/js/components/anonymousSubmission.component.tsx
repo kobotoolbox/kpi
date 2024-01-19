@@ -1,10 +1,9 @@
-import React, {useState} from 'react';
+import React from 'react';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import envStore from 'js/envStore';
-import {HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES} from 'js/constants';
+import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import Icon from 'js/components/common/icon';
 import styles from './anonymousSubmission.module.scss';
-import NewFeatureDialog from './newFeatureDialog.component';
 
 interface AnonymousSubmissionProps {
   checked: boolean;
@@ -13,7 +12,7 @@ interface AnonymousSubmissionProps {
 
 export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
   return (
-    <>
+    <div className={styles.root}>
       <ToggleSwitch
         checked={props.checked}
         onChange={props.onChange}
@@ -31,6 +30,6 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
       >
         <Icon size='s' name='help' color='storm' />
       </a>
-    </>
+    </div>
   );
 }
