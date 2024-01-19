@@ -253,12 +253,9 @@ class AssetActionButtons extends React.Component<
 
   renderMoreActionsTrigger() {
     const assetType = this.props.asset.asset_type;
-    const userHasDeletePermission = userCan(
-      'delete_submissions',
-      this.props.asset
-    );
+    const userCanDelete = userCan('delete_submissions', this.props.asset);
 
-    if (assetType === ASSET_TYPES.collection.id && !userHasDeletePermission) {
+    if (assetType === ASSET_TYPES.collection.id && !userCanDelete) {
       return null;
     }
 
