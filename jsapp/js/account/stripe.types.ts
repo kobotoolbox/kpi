@@ -72,7 +72,7 @@ interface SubscriptionSchedule {
 }
 
 export interface SubscriptionInfo {
-  plan: PlanInfo;
+  plan: number;
   djstripe_created: string;
   djstripe_updated: string;
   id: string;
@@ -83,7 +83,7 @@ export interface SubscriptionInfo {
   application_fee_percent: any;
   billing_cycle_anchor: string;
   billing_thresholds: any;
-  cancel_at: any;
+  cancel_at: string | null;
   cancel_at_period_end: boolean;
   canceled_at: any;
   collection_method: string;
