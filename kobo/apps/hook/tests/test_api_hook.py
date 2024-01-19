@@ -6,7 +6,9 @@ from constance.test import override_config
 from django.contrib.auth.models import User
 from django.urls import reverse
 from mock import patch
+from mock import Mock
 from rest_framework import status
+import pytest
 
 from kobo.apps.hook.constants import (
     HOOK_LOG_FAILED,
@@ -23,9 +25,16 @@ from kpi.constants import (
 from kpi.utils.datetime import several_minutes_from_now
 from .hook_test_case import HookTestCase, MockSSRFProtect
 
+from kobo.apps.hook.constants import (
+    HookEvent,
+    HOOK_EVENT_SUBMIT,
+    HOOK_EVENT_EDIT,
+    HOOK_EVENT_DELETE,
+    HOOK_EVENT_VALIDATION,
+)
+
 
 class ApiHookTestCase(HookTestCase):
-
     def test_anonymous_access(self):
         hook = self._create_hook()
         self.client.logout()
@@ -470,3 +479,304 @@ class ApiHookTestCase(HookTestCase):
         # Test bad argument
         response = self.client.get(f'{hook_log_url}?end=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+            new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_event_on_submit(self):
+        # Create hook
+        hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={},
+                                       on_event={
+                                            "onEdit": False,
+                                            "onDelete": False,
+                                            "onSubmit": True,
+                                            "onValidation": False
+                                        })
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0]['_id'], 'event': HOOK_EVENT_SUBMIT}
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+
+        # Retrieve hook_log data
+        log_event = response.data.get('results')[0].get('event') if response.data.get('count') == 1 else None
+        self.assertEqual(response.data.get('count'), 1)
+        # Expect the event is correct
+        self.assertEqual(log_event, HOOK_EVENT_SUBMIT)
+
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        response = self.client.get(f'{hook_log_url}', format='json')
+        self.assertEqual(response.data.get('count'), 1)
+
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+            new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_event_on_edit(self):
+        # Create hook
+        hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={},
+                                       on_event={
+                                            "onEdit": True,
+                                            "onDelete": False,
+                                            "onSubmit": False,
+                                            "onValidation": False
+                                        })
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0]['_id'], 'event': HOOK_EVENT_EDIT}
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+
+        # Retrieve hook_log data
+        log_event = response.data.get('results')[0].get('event') if response.data.get('count') == 1 else None
+        self.assertEqual(response.data.get('count'), 1)
+        self.assertEqual(log_event, HOOK_EVENT_EDIT)
+
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        response = self.client.get(f'{hook_log_url}', format='json')
+        self.assertEqual(response.data.get('count'), 2)
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+            new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_event_on_delete(self):
+        # Create hook
+        hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={},
+                                       on_event={
+                                            "onEdit": False,
+                                            "onDelete": True,
+                                            "onSubmit": False,
+                                            "onValidation": False
+                                        })
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0]['_id'], 'event': HOOK_EVENT_DELETE}
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+
+        # Retrieve hook_log data
+        log_event = response.data.get('results')[0].get('event') if response.data.get('count') == 1 else None
+        self.assertEqual(response.data.get('count'), 1)
+        self.assertEqual(log_event, HOOK_EVENT_DELETE)
+
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        response = self.client.get(f'{hook_log_url}', format='json')
+        self.assertEqual(response.data.get('count'), 1)
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+            new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_event_on_validation(self):
+        # Create hook
+        hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={},
+                                       on_event={
+                                            "onEdit": False,
+                                            "onDelete": False,
+                                            "onSubmit": False,
+                                            "onValidation": True
+                                        })
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0]['_id'], 'event': HOOK_EVENT_VALIDATION}
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+
+        # Retrieve hook_log data
+        log_event = response.data.get('results')[0].get('event') if response.data.get('count') == 1 else None
+        self.assertEqual(response.data.get('count'), 1)
+        self.assertEqual(log_event, HOOK_EVENT_VALIDATION)
+
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        response = self.client.get(f'{hook_log_url}', format='json')
+        self.assertEqual(response.data.get('count'), 2)
+
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+            new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_event_on_submit_false(self):
+        # Create hook
+        hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={},
+                                       on_event={
+                                            "onEdit": False,
+                                            "onDelete": False,
+                                            "onSubmit": False,
+                                            "onValidation": False
+                                        })
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0]['_id'], 'event': HOOK_EVENT_SUBMIT}
+        response = self.client.post(hook_signal_url, data=data, format='json')
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+
+        # Expect no hook_log was created !
+        self.assertEqual(response.data.get('count'), 0)
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+            new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_event_on_edit_false(self):
+        # Create hook
+        hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={},
+                                       on_event={
+                                            "onEdit": False,
+                                            "onDelete": False,
+                                            "onSubmit": False,
+                                            "onValidation": False
+                                        })
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0]['_id'], 'event': HOOK_EVENT_EDIT}
+        response = self.client.post(hook_signal_url, data=data, format='json')
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+
+        # Expect no hook_log was created !
+        self.assertEqual(response.data.get('count'), 0)
+
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+            new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_event_on_delete_false(self):
+        # Create hook
+        hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={},
+                                       on_event={
+                                            "onEdit": False,
+                                            "onDelete": False,
+                                            "onSubmit": False,
+                                            "onValidation": False
+                                        })
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0]['_id'], 'event': HOOK_EVENT_DELETE}
+        response = self.client.post(hook_signal_url, data=data, format='json')
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+
+        # Expect no hook_log was created !
+        self.assertEqual(response.data.get('count'), 0)
+
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+            new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_event_on_validation_false(self):
+        # Create hook
+        hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={},
+                                       on_event={
+                                            "onEdit": False,
+                                            "onDelete": False,
+                                            "onSubmit": False,
+                                            "onValidation": False
+                                        })
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0]['_id'], 'event': HOOK_EVENT_VALIDATION}
+        response = self.client.post(hook_signal_url, data=data, format='json')
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+
+        # Expect no hook_log was created !
+        self.assertEqual(response.data.get('count'), 0)

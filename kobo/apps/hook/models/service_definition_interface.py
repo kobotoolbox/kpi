@@ -12,6 +12,10 @@ from kpi.utils.log import logging
 from .hook import Hook
 from .hook_log import HookLog
 from ..constants import (
+    HOOK_EVENT_SUBMIT,
+    HOOK_EVENT_EDIT,
+    HOOK_EVENT_DELETE,
+    HOOK_EVENT_VALIDATION,
     HOOK_LOG_SUCCESS,
     HOOK_LOG_FAILED,
     KOBO_INTERNAL_ERROR_STATUS_CODE,
@@ -20,10 +24,12 @@ from ..constants import (
 
 class ServiceDefinitionInterface(metaclass=ABCMeta):
 
-    def __init__(self, hook, submission_id):
+    def __init__(self, hook, submission_id, uid=None, event = HOOK_EVENT_SUBMIT):
         self._hook = hook
         self._submission_id = submission_id
-        self._data = self._get_data()
+        self._event = event
+        self._uid_hook_log = uid # If uid == None, we considere it's a new log to create, else, it will be retrieve using this
+        self._data = self._get_data() # if data is changed between retries, get data will be reset and get the new data
 
     def _get_data(self):
         """
@@ -169,15 +175,15 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         """
         fields = {
             'hook': self._hook,
-            'submission_id': self._submission_id
+            'submission_id': self._submission_id,
+            'event': self._event
         }
-        try:
-            # Try to load the log with a multiple field FK because
-            # we don't know the log `uid` in this context, but we do know
-            # its `hook` FK and its `submission_id`
-            log = HookLog.objects.get(**fields)
-        except HookLog.DoesNotExist:
+
+        # Retrieving the Hooklog if it already created within a retry(), or create it if not
+        if self._uid_hook_log is None:
             log = HookLog(**fields)
+        else:
+            log = HookLog.objects.get(uid=self._uid_hook_log)
 
         if success:
             log.status = HOOK_LOG_SUCCESS
@@ -193,11 +199,11 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             json.loads(message)
         except ValueError:
             message = re.sub(r"<[^>]*>", " ", message).strip()
-
         log.message = message
 
         try:
             log.save()
+            self._uid_hook_log = log.uid
         except Exception as e:
             logging.error(
                 f'ServiceDefinitionInterface.save_log - {str(e)}',
