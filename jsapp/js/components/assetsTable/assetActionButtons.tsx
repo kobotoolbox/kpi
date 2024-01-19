@@ -252,6 +252,16 @@ class AssetActionButtons extends React.Component<
   }
 
   renderMoreActionsTrigger() {
+    const assetType = this.props.asset.asset_type;
+    const userHasDeletePermission = userCan(
+      'delete_submissions',
+      this.props.asset
+    );
+
+    if (assetType === ASSET_TYPES.collection.id && !userHasDeletePermission) {
+      return null;
+    }
+
     return (
       <div className='right-tooltip' data-tip={t('More actions')}>
         <i className='k-icon k-icon-more' />
