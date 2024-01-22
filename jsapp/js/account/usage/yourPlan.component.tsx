@@ -76,8 +76,8 @@ export const YourPlan = () => {
   }, [env.isReady, subscriptions.isInitialised]);
 
   /*
-   * Performs logical operations to determine what information to provide about 
-   * the upcoming status of user's subscription. Currently it is assumed that 
+   * Performs logical operations to determine what information to provide about
+   * the upcoming status of user's subscription. Currently it is assumed that
    * the only type of scheduled price change will be a downgrade from annual to monthly
    */
   const subscriptionUpdate = useMemo(() => {
@@ -196,20 +196,29 @@ export const YourPlan = () => {
       {subscriptionUpdate?.type === 'productChange' && (
         <div className={styles.subscriptionChangeNotice}>
           {t(
-            'Your ##current_plan## plan will change to the ##next_plan## plan on ##change_date##. You can continue using ##current_plan## plan features until the end of the billing period.'
+            'Your ##current_plan## plan will change to the ##next_plan## plan on'
           )
-            .replace(/\#\#current\_plan\#\#/g, planName)
-            .replace('##next_plan##', subscriptionUpdate.nextProduct!.name)
-            .replace('##change_date##', formatDate(subscriptionUpdate.date))}
+            .replace('##current_plan##', planName)
+            .replace('##next_plan##', subscriptionUpdate.nextProduct!.name)}
+          &nbsp;
+          <time dateTime={subscriptionUpdate.date}>
+            {formatDate(subscriptionUpdate.date)}
+          </time>
+          {t(
+            '. You can continue using ##current_plan## plan features until the end of the billing period.'
+          ).replace('##current_plan##', planName)}
         </div>
       )}
       {subscriptionUpdate?.type === 'priceChange' && (
         <div className={styles.subscriptionChangeNotice}>
           {t(
-            'Your ##current_plan## plan will change from annual to monthly starting from ##change_date##. '
-          )
-            .replace('##current_plan##', planName)
-            .replace('##change_date##', formatDate(subscriptionUpdate.date))}
+            'Your ##current_plan## plan will change from annual to monthly starting from'
+          ).replace('##current_plan##', planName)}
+          &nbsp;
+          <time dateTime={subscriptionUpdate.date}>
+            {formatDate(subscriptionUpdate.date)}
+          </time>
+          .
         </div>
       )}
     </article>
