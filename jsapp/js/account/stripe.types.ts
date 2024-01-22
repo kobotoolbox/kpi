@@ -163,7 +163,7 @@ export interface Organization {
   created: string;
   modified: string;
   slug: string;
-  owner: string;
+  owner_username: string;
 }
 
 export enum PlanNames {
