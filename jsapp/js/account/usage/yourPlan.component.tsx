@@ -1,4 +1,3 @@
-import usageStyles from 'js/account/usage/usage.module.scss';
 import styles from 'js/account/usage/yourPlan.module.scss';
 import React, {useEffect, useMemo, useState} from 'react';
 import {formatDate, unixToUtc} from 'js/utils';
@@ -8,23 +7,23 @@ import sessionStore from 'js/stores/session';
 import BillingButton from 'js/account/plans/billingButton.component';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import envStore from 'js/envStore';
-import {PlanNames, BasePrice, BaseProduct} from 'js/account/stripe.types';
+import {PlanNames, BaseProduct, Product} from 'js/account/stripe.types';
 import {getProducts} from '../stripe.api';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 
-type PlanChangeType =
+type subscriptiontype =
   | 'cancellation'
   | 'renewal'
   | 'productChange'
   | 'priceChange'
   | '';
 
-export interface PlanChangeState {
-  nextProduct: BaseProduct | null;
-  nextPrice: BasePrice | null;
-  planChange: PlanChangeType;
-  planChangeDate: string;
-}
+const badgeColorKeys: {[key: string]: BadgeColor} = {
+  renewal: 'light-blue',
+  cancellation: 'light-red',
+  productChange: 'light-amber',
+  priceChange: 'light-amber',
+};
 
 /*
  * Show the user's current plan and any storage add-ons, with links to the Plans page
@@ -33,12 +32,16 @@ export const YourPlan = () => {
   const [subscriptions] = useState(() => subscriptionStore);
   const [env] = useState(() => envStore);
   const [session] = useState(() => sessionStore);
-  const [planChangeState, setPlanChangeState] = useState<PlanChangeState>({
-    nextProduct: null,
-    nextPrice: null,
-    planChange: '',
-    planChangeDate: '',
-  });
+  const [productsState, setProductsState] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      await getProducts().then((productResponse) => {
+        setProductsState(productResponse.results);
+      });
+    };
+    fetchProducts();
+  }, []);
 
   /*
    * The plan name displayed to the user. This will display, in order of precedence:
@@ -72,61 +75,49 @@ export const YourPlan = () => {
     }
   }, [env.isReady, subscriptions.isInitialised]);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      await getProducts().then((productResponse) => {
-        let nextProduct: BaseProduct | null = null;
-        let nextPrice: BasePrice | null = null;
-        let planChangeDate = '';
-        let planChange: PlanChangeType = '';
-        if (currentPlan?.cancel_at) {
-          planChangeDate = currentPlan.cancel_at;
-          planChange = 'cancellation';
-        } else if (
-          currentPlan?.schedule &&
-          currentPlan.schedule.status === 'active' &&
-          currentPlan.schedule.phases?.length &&
-          currentPlan.schedule.phases.length > 1
-        ) {
-          let nextPhaseItem = currentPlan.schedule.phases[1].items[0];
-          for (const product of productResponse.results) {
-            let price = product.prices.find(
-              (price) => price.id === nextPhaseItem.price
-            );
-            if (price) {
-              nextPrice = price;
-              nextProduct = product;
-              planChangeDate = unixToUtc(
-                currentPlan.schedule.phases[0].end_date!
-              );
-              planChange =
-                nextProduct.id === currentPlan.items[0].price.product.id
-                  ? 'priceChange'
-                  : 'productChange';
-              break;
-            }
+  /*
+   * Performs logical operations to determine what information to provide about 
+   * the upcoming status of user's subscription. Currently it is assumed that 
+   * the only type of scheduled price change will be a downgrade from annual to monthly
+   */
+  const subscriptionUpdate = useMemo(() => {
+    if (currentPlan && productsState.length) {
+      let nextProduct: BaseProduct | null = null;
+      let date = '';
+      let type: subscriptiontype = '';
+      if (currentPlan.cancel_at) {
+        date = currentPlan.cancel_at;
+        type = 'cancellation';
+      } else if (
+        currentPlan.schedule &&
+        currentPlan.schedule.status === 'active' &&
+        currentPlan.schedule.phases?.length &&
+        currentPlan.schedule.phases.length > 1
+      ) {
+        let nextPhaseItem = currentPlan.schedule.phases[1].items[0];
+        for (const product of productsState) {
+          let price = product.prices.find(
+            (price) => price.id === nextPhaseItem.price
+          );
+          if (price) {
+            nextProduct = product;
+            date = unixToUtc(currentPlan.schedule.phases[0].end_date!);
+            type =
+              nextProduct.id === currentPlan.items[0].price.product.id
+                ? 'priceChange'
+                : 'productChange';
+            break;
           }
-        } else if (currentPlan && planChange === '') {
-          planChangeDate = currentPlan.current_period_end;
-          planChange = 'renewal';
         }
-        setPlanChangeState({
-          nextProduct,
-          nextPrice,
-          planChangeDate,
-          planChange,
-        });
-      });
-    };
-    fetchProducts();
-  }, [currentPlan]);
-
-  const badgeColorKeys: {[key: string]: BadgeColor} = {
-    renewal: 'light-blue',
-    cancellation: 'light-red',
-    productChange: 'light-amber',
-    priceChange: 'light-amber',
-  };
+      } else if (currentPlan && type === '') {
+        date = currentPlan.current_period_end;
+        type = 'renewal';
+      }
+      return {nextProduct, date, type};
+    } else {
+      return null;
+    }
+  }, [currentPlan, productsState]);
 
   return (
     <article>
@@ -146,31 +137,31 @@ export const YourPlan = () => {
               startDate
             )}
           </time>
-          {planChangeState.planChange && (
+          {subscriptionUpdate && (
             <Badge
-              color={badgeColorKeys[planChangeState.planChange]}
+              color={badgeColorKeys[subscriptionUpdate.type]}
               size={'s'}
               label={
                 <time
-                  dateTime={planChangeState.planChangeDate}
+                  dateTime={subscriptionUpdate.date}
                   className={styles.updateBadge}
                 >
-                  {planChangeState.planChange === 'renewal' &&
+                  {subscriptionUpdate.type === 'renewal' &&
                     t('Renews on ##renewal_date##').replace(
                       '##renewal_date##',
-                      formatDate(planChangeState.planChangeDate)
+                      formatDate(subscriptionUpdate.date)
                     )}
                   {['cancellation', 'productChange'].includes(
-                    planChangeState.planChange
+                    subscriptionUpdate.type
                   ) &&
                     t('Ends on ##end_date##').replace(
                       '##end_date##',
-                      formatDate(planChangeState.planChangeDate)
+                      formatDate(subscriptionUpdate.date)
                     )}
-                  {planChangeState.planChange === 'priceChange' &&
+                  {subscriptionUpdate.type === 'priceChange' &&
                     t('Switching to monthly on ##change_date##').replace(
                       '##change_date##',
-                      formatDate(planChangeState.planChangeDate)
+                      formatDate(subscriptionUpdate.date)
                     )}
                 </time>
               }
@@ -195,36 +186,30 @@ export const YourPlan = () => {
          */}
         </nav>
       </section>
-      {planChangeState.planChange === 'cancellation' && (
+      {subscriptionUpdate?.type === 'cancellation' && (
         <div className={styles.subscriptionChangeNotice}>
           {t(
             'Your ##current_plan## plan has been canceled but will remain active until the end of the billing period.'
           ).replace('##current_plan##', planName)}
         </div>
       )}
-      {planChangeState.planChange === 'productChange' && (
+      {subscriptionUpdate?.type === 'productChange' && (
         <div className={styles.subscriptionChangeNotice}>
           {t(
             'Your ##current_plan## plan will change to the ##next_plan## plan on ##change_date##. You can continue using ##current_plan## plan features until the end of the billing period.'
           )
             .replace(/\#\#current\_plan\#\#/g, planName)
-            .replace('##next_plan##', planChangeState.nextProduct!.name)
-            .replace(
-              '##change_date##',
-              formatDate(planChangeState.planChangeDate)
-            )}
+            .replace('##next_plan##', subscriptionUpdate.nextProduct!.name)
+            .replace('##change_date##', formatDate(subscriptionUpdate.date))}
         </div>
       )}
-      {planChangeState.planChange === 'priceChange' && (
+      {subscriptionUpdate?.type === 'priceChange' && (
         <div className={styles.subscriptionChangeNotice}>
           {t(
             'Your ##current_plan## plan will change from annual to monthly starting from ##change_date##. '
           )
             .replace('##current_plan##', planName)
-            .replace(
-              '##change_date##',
-              formatDate(planChangeState.planChangeDate)
-            )}
+            .replace('##change_date##', formatDate(subscriptionUpdate.date))}
         </div>
       )}
     </article>
