@@ -127,6 +127,7 @@ export default function Plan() {
     newPrice: null,
     products: [],
     currentSubscription: null,
+    quantity: 1,
   });
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default']);
   const [session, setSession] = useState(() => Session);
@@ -383,7 +384,7 @@ export default function Plan() {
     });
   };
 
-  const buySubscription = (price: BasePrice) => {
+  const buySubscription = (price: BasePrice, quantity: number = 1) => {
     if (!price.id || isDisabled || !state.organization?.id) {
       return;
     }
@@ -394,7 +395,7 @@ export default function Plan() {
       ) {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
-        postCustomerPortal(state.organization.id, price.id)
+        postCustomerPortal(state.organization.id, price.id, quantity)
           .then(processCheckoutResponse)
           .catch(() => setIsBusy(false));
       } else {
@@ -404,11 +405,12 @@ export default function Plan() {
           products: state.products,
           newPrice: price,
           currentSubscription: activeSubscriptions[0],
+          quantity: quantity,
         });
       }
     } else {
       // just send the user to the checkout page
-      postCheckout(price.id, state.organization.id)
+      postCheckout(price.id, state.organization.id, quantity)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false));
     }
@@ -431,17 +433,6 @@ export default function Plan() {
       });
     }
     return expandBool;
-  };
-
-  const getFeatureMetadata = (price: Price, featureItem: string) => {
-    if (
-      price.prices.unit_amount === 0 &&
-      freeTierOverride &&
-      freeTierOverride.hasOwnProperty(featureItem)
-    ) {
-      return freeTierOverride[featureItem as keyof FreeTierOverride];
-    }
-    return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
   };
 
   useEffect(() => {
