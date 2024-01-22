@@ -1658,9 +1658,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def __rewrite_json_attachment_urls(
         self, submission: dict, request
-    ) -> list:
+    ) -> dict:
         if not request or '_attachments' not in submission:
             return submission
+
+        submission_values = submission.values()
+        questions = list(submission)
+        attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
 
         for attachment in submission['_attachments']:
             for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
@@ -1678,22 +1682,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 except KeyError:
                     continue
 
-            # Add question_xpath if it does not already exist
-            if 'question_xpath' not in attachment:
-                basename = os.path.basename(attachment['filename'])
-                attachment['question_xpath'] = ''
+            # Retrieve XPath and add it to attachment dictionary
+            basename = os.path.basename(attachment['filename'])
+            attachment['question_xpath'] = ''
 
-                for idx, value in enumerate(submission.values()):
-                    if not isinstance(value, str):
-                        continue
-                    try:
-                        valid_name = default_kobocat_storage.get_valid_name(value)
-                    except SuspiciousFileOperation:
-                        continue
+            for idx, value in enumerate(submission_values):
+                if not isinstance(value, str):
+                    continue
+                try:
+                    valid_name = default_kobocat_storage.get_valid_name(value)
+                except SuspiciousFileOperation:
+                    continue
 
-                    if valid_name == basename:
-                        attachment['question_xpath'] = list(submission)[idx]
-                        break
+                if (
+                    valid_name == basename
+                    and questions[idx] in attachment_xpaths
+                ):
+                    attachment['question_xpath'] = questions[idx]
+                    break
 
         return submission
 
