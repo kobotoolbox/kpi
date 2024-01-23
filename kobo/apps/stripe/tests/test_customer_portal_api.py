@@ -93,6 +93,7 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
                 'id': 'test',
                 'metadata': {
                     'portal_price': self.price.id,
+                    'quantity': '1',
                 },
                 'active': True,
                 'livemode': False,
