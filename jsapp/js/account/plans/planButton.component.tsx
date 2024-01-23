@@ -5,13 +5,14 @@ import {postCustomerPortal} from 'js/account/stripe.api';
 import {processCheckoutResponse} from 'js/account/stripe.utils';
 
 interface PlanButtonProps {
-  buySubscription: (price: BasePrice) => void;
+  buySubscription: (price: BasePrice, quantity?: number) => void;
   downgrading: boolean;
   isBusy: boolean;
   isSubscribedToPlan: boolean;
   showManage: boolean;
   organization?: Organization | null;
   price: Price;
+  quantity: number;
   setIsBusy: (value: boolean) => void;
 }
 
@@ -27,6 +28,7 @@ export const PlanButton = ({
   setIsBusy,
   buySubscription,
   showManage,
+  quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
   if (!price || !organization || price.prices.unit_amount === 0) {
@@ -35,7 +37,7 @@ export const PlanButton = ({
 
   const manageSubscription = (subscriptionPrice?: BasePrice) => {
     setIsBusy(true);
-    postCustomerPortal(organization.id, subscriptionPrice?.id)
+    postCustomerPortal(organization.id, subscriptionPrice?.id, quantity)
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false));
   };
@@ -44,7 +46,7 @@ export const PlanButton = ({
     return (
       <BillingButton
         label={t('Upgrade')}
-        onClick={() => buySubscription(price.prices)}
+        onClick={() => buySubscription(price.prices, quantity)}
         aria-label={`upgrade to ${price.name}`}
         isDisabled={isBusy}
       />
@@ -65,7 +67,7 @@ export const PlanButton = ({
   return (
     <BillingButton
       label={t('Change plan')}
-      onClick={() => buySubscription(price.prices)}
+      onClick={() => buySubscription(price.prices, quantity)}
       aria-label={`change your subscription to ${price.name}`}
       isDisabled={isBusy}
     />

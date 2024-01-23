@@ -29,10 +29,11 @@ export async function getProducts() {
 
 export async function changeSubscription(
   priceId: string,
-  subscriptionId: string
+  subscriptionId: string,
+  quantity = 1
 ) {
   return fetchGet<ChangePlan>(
-    `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}`,
+    `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}&quantity=${quantity}`,
     {
       errorMessageDisplay: t(
         "We couldn't make the requested change to your plan.\nYour current plan has not been changed."
@@ -50,9 +51,13 @@ export async function getOrganization() {
 /**
  * Start a checkout session for the given price and organization. Response contains the checkout URL.
  */
-export async function postCheckout(priceId: string, organizationId: string) {
+export async function postCheckout(
+  priceId: string,
+  organizationId: string,
+  quantity = 1
+) {
   return fetchPost<Checkout>(
-    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}`,
+    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}&quantity=${quantity}`,
     {},
     {
       errorMessageDisplay:
@@ -64,9 +69,13 @@ export async function postCheckout(priceId: string, organizationId: string) {
 /**
  * Get the URL of the Stripe customer portal for an organization.
  */
-export async function postCustomerPortal(organizationId: string, priceId?: string) {
+export async function postCustomerPortal(
+  organizationId: string,
+  priceId: string = '',
+  quantity = 1
+) {
   return fetchPost<Checkout>(
-    `${endpoints.PORTAL_URL}?organization_id=${organizationId}&price_id=${priceId || ''}`,
+    `${endpoints.PORTAL_URL}?organization_id=${organizationId}&price_id=${priceId}&quantity=${quantity}`,
     {},
     {
       errorMessageDisplay:

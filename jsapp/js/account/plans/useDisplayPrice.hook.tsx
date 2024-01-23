@@ -1,17 +1,11 @@
-import styles from 'js/account/plans/plan.module.scss';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useMemo} from 'react';
 import {BasePrice} from 'js/account/stripe.types';
 
-interface PriceDisplayProps {
-  price: BasePrice;
-  submissionQuantity: number;
-}
-
-export const PriceDisplay = ({
-  price,
-  submissionQuantity,
-}: PriceDisplayProps) => {
-  const priceDisplay = useMemo(() => {
+export const useDisplayPrice = (
+  price: BasePrice | null,
+  submissionQuantity = 1
+) => {
+  return useMemo(() => {
     if (!price?.unit_amount) {
       return t('Free');
     }
@@ -35,6 +29,4 @@ export const PriceDisplay = ({
       totalPrice.toFixed(2)
     );
   }, [submissionQuantity, price]);
-
-  return <div className={styles.priceTitle}>{priceDisplay}</div>;
 };

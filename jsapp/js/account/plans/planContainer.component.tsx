@@ -1,18 +1,18 @@
 import classnames from 'classnames';
 import styles from 'js/account/plans/plan.module.scss';
-import {PriceDisplay} from 'js/account/plans/priceDisplay.component';
 import Icon from 'js/components/common/icon';
 import {PlanButton} from 'js/account/plans/planButton.component';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {BasePrice, Price, SubscriptionInfo} from 'js/account/stripe.types';
 import {FreeTierOverride, PlanState} from 'js/account/plans/plan.component';
 import {
   getSubscriptionsForProductId,
   isChangeScheduled,
 } from 'js/account/stripe.utils';
-import TextBox from 'js/components/common/textBox';
+import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect';
+import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 
-const MAX_SUBMISSION_PURCHASE = 10000000;
+const MAX_PLAN_QUANTITY = 5;
 
 interface PlanContainerProps {
   price: Price;
@@ -24,7 +24,7 @@ interface PlanContainerProps {
   filterPrices: Price[];
   setIsBusy: (isBusy: boolean) => void;
   hasManageableStatus: (sub: SubscriptionInfo) => boolean;
-  buySubscription: (price: BasePrice) => void;
+  buySubscription: (price: BasePrice, quantity?: number) => void;
   activeSubscriptions: SubscriptionInfo[];
 }
 
@@ -43,6 +43,7 @@ export const PlanContainer = ({
 }: PlanContainerProps) => {
   const [submissionQuantity, setSubmissionQuantity] = useState(1);
   const [error, setError] = useState('');
+  const displayPrice = useDisplayPrice(price.prices, submissionQuantity);
   const shouldShowManage = useCallback(
     (product: Price) => {
       const subscriptions = getSubscriptionsForProductId(
@@ -151,20 +152,31 @@ export const PlanContainer = ({
     return renderFeaturesList(items, featureTitle);
   };
 
-  const onSubmissionsChange = (value: number) => {
-    if (value) {
-      setSubmissionQuantity(value);
-    }
-    if (value > MAX_SUBMISSION_PURCHASE) {
-      setError(
-        t(
-          'This plan only supports up to ##submissions## submissions per month. If your project needs more than that, please contact us about our Private Server options.'
-        ).replace('##submissions##', MAX_SUBMISSION_PURCHASE.toLocaleString())
-      );
-    } else {
-      if (error.length) {
-        setError('');
+  const submissionOptions = useMemo((): KoboSelectOption[] => {
+    const options = [];
+    const submissionsPerUnit = price.metadata?.submission_limit;
+    if (submissionsPerUnit) {
+      for (let i = 1; i <= MAX_PLAN_QUANTITY; i++) {
+        const submissionCount = parseInt(submissionsPerUnit) * i;
+        options.push({
+          label: '##submissions## submissions/month'.replace(
+            '##submissions##',
+            submissionCount.toLocaleString()
+          ),
+          value: submissionCount.toString(),
+        });
       }
+    }
+    return options;
+  }, [price]);
+
+  const onSubmissionsChange = (value: string | null) => {
+    if (value === null) {
+      return;
+    }
+    const submissions = parseInt(value);
+    if (submissions) {
+      setSubmissionQuantity(submissions);
     }
   };
 
@@ -186,17 +198,15 @@ export const PlanContainer = ({
             ? price.name
             : freeTierOverride?.name || price.name}
         </h1>
-        <PriceDisplay
-          price={price.prices}
-          submissionQuantity={submissionQuantity}
-        />
+        <div className={styles.priceTitle}>{displayPrice}</div>
         {price.prices.transform_quantity && (
-          <TextBox
-            label={t('Total Submissions per Month')}
-            errors={error.length ? error : false}
-            type={'number'}
+          <KoboSelect
+            name={t('Total Submissions per Month')}
+            options={submissionOptions}
+            size={'m'}
+            type={'outline'}
             onChange={onSubmissionsChange}
-            value={submissionQuantity.toString()}
+            selectedOption={submissionQuantity.toString()}
           />
         )}
         <ul className={styles.featureContainer}>
@@ -241,6 +251,7 @@ export const PlanContainer = ({
             activeSubscriptions?.[0].items?.[0].price.unit_amount >
               price.prices.unit_amount
           }
+          quantity={submissionQuantity}
           isSubscribedToPlan={isSubscribedProduct(price)}
           buySubscription={buySubscription}
           showManage={shouldShowManage(price)}

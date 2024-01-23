@@ -175,15 +175,16 @@ class ServiceUsageSerializer(serializers.Serializer):
             return self._anchor_date.replace(year=self._now.year - 1)
         return self._anchor_date.replace(year=self._now.year)
 
-    def _filter_by_user(self, counter_query: QuerySet) -> QuerySet:
+    def _filter_by_user(self, user_ids: list) -> Q:
         """
-        Filter counter models by a list of user ids
+        Turns a list of user ids into a query object to filter by
         """
-        return counter_query.filter(user_id__in=self._user_ids)
+        return Q(user_id__in=user_ids)
 
     def _get_nlp_user_counters(self, month_filter, year_filter):
-        nlp_tracking = NLPUsageCounter.objects.only('date', 'total_asr_seconds', 'total_mt_characters')
-        nlp_tracking = self._filter_by_user(nlp_tracking).aggregate(
+        nlp_tracking = NLPUsageCounter.objects.only(
+            'date', 'total_asr_seconds', 'total_mt_characters'
+        ).filter(self._user_id_query).aggregate(
             asr_seconds_current_year=Coalesce(
                 Sum('total_asr_seconds', filter=year_filter), 0
             ),
@@ -203,7 +204,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         for nlp_key, count in nlp_tracking.items():
             self._total_nlp_usage[nlp_key] = count if count is not None else 0
 
-    def _get_organization_details(self):
+    def _get_organization_details(self, user_id: int):
         # Get the organization ID from the request
         organization_id = self.context.get(
             'organization_id', None
@@ -213,7 +214,7 @@ class ServiceUsageSerializer(serializers.Serializer):
             return
 
         organization = Organization.objects.filter(
-            organization_users__user=self.context.get('request').user,
+            organization_users__user_id=user_id,
             id=organization_id,
         ).first()
 
@@ -230,21 +231,25 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         if settings.STRIPE_ENABLED:
             # if the user is in an organization and has an enterprise plan, get all org users
-            self._user_ids = list(
+            # we evaluate this queryset instead of using it as a subquery because it's referencing
+            # fields from the auth_user tables on kpi *and* kobocat, making getting results in a
+            # single query not feasible until those tables are combined
+            user_ids = list(
                 User.objects.filter(
                     organizations_organization__id=organization_id,
                     organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
                     organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
                     organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
-                ).values_list('pk', flat=True)[:settings.ORGANIZATION_USER_LIMIT] or (
-                    self._user_ids
-                )
+                ).values_list('pk', flat=True)[:settings.ORGANIZATION_USER_LIMIT]
             )
+            if user_ids:
+                self._user_id_query = self._filter_by_user(user_ids)
 
     def _get_per_asset_usage(self, user):
-        self._user_ids = [user.pk]
+        self._user_id = user.pk
+        self._user_id_query = self._filter_by_user([self._user_id])
         # get the billing data and list of organization users (if applicable)
-        self._get_organization_details()
+        self._get_organization_details(self._user_id)
 
         self._get_storage_usage()
 
@@ -267,8 +272,9 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        xforms = KobocatXForm.objects.only('attachment_storage_bytes', 'id').exclude(pending_delete=True)
-        xforms = self._filter_by_user(xforms)
+        xforms = KobocatXForm.objects.only('attachment_storage_bytes', 'id').exclude(
+            pending_delete=True
+        ).filter(self._user_id_query)
 
         total_storage_bytes = xforms.aggregate(
             bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
@@ -282,8 +288,9 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        submission_count = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only('counter', 'user_id')
-        submission_count = self._filter_by_user(submission_count).aggregate(
+        submission_count = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
+            'counter', 'user_id'
+        ).filter(self._user_id_query).aggregate(
             all_time=Coalesce(Sum('counter'), 0),
             current_year=Coalesce(
                 Sum('counter', filter=year_filter), 0
