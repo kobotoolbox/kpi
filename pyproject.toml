@@ -22,8 +22,16 @@ extend-select = ["I"]
 known-first-party = ["kobo"]
 
 [tool.pytest.ini_options]
+testpaths = [
+    'kobo',
+    'kpi',
+    'hub',
+]
+env = [
+    'DJANGO_SETTINGS_MODULE=kobo.settings.testing',
+]
 addopts = [
-    '-m "not performance"',
+    '-m not performance',
 ]
 markers = [
     "performance: marks test for performance that may unexpectedly fail on slower platforms (not executed by default - select with '-m \"performance\"')",
@@ -36,7 +44,7 @@ exclude = [
     "src/django-digest",
     "src/formpack",
     "src/kobo-service-account",
-    "src/python-digest"
+    "src/python-digest",
 ]
 [tool.django-stubs]
 django_settings_module = "kobo.settings"
