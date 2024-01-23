@@ -170,6 +170,7 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
       metadata = {
         ...addOn.items[0].price.product.metadata,
         ...addOn.items[0].price.metadata,
+        quantity: activeAddOns[0].quantity.toString(),
       };
       newLimits = {...newLimits, ...getLimitsForMetadata(metadata, newLimits)};
     });
@@ -210,6 +211,7 @@ const getStripeMetadataAndFreeTierStatus = async () => {
       metadata = {
         ...freeProduct.metadata,
         ...freeProduct.prices[0].metadata,
+        quantity: '1',
       };
     } catch (error) {
       // couldn't find the free monthly product, continue in case we have limits to display from the free tier override
