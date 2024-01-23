@@ -362,7 +362,6 @@ class CustomerPortalView(APIView):
                         {
                             'prices': [price.id],
                             'product': price.product.id,
-                            'quantity': '1',
                         },
                     ]
                     current_config['features']['subscription_update']['products'] = new_products
