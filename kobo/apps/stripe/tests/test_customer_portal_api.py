@@ -93,13 +93,12 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
                 'id': 'test',
                 'metadata': {
                     'portal_price': self.price.id,
-                    'quantity': '1',
                 },
                 'active': True,
                 'livemode': False,
             },
         ]
-        create_config.return_value = {'id': 'test'}
+        create_config.return_value = {'id': 'test', 'quantity': '1'}
         response = self.client.post(url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['url'].startswith('https://billing.stripe.com/')
