@@ -639,10 +639,7 @@ export function getRowSupplementalResponses(
   rowName: string
 ): DisplayResponse[] {
   const output: DisplayResponse[] = [];
-
-  const survey = asset?.content?.survey || [];
-  const flatPaths = getSurveyFlatPaths(survey, true);
-  const questionXPath = flatPaths[rowName];
+  const surveyRows = asset?.content?.survey || [];
 
   if (isRowProcessingEnabled(asset.uid, rowName)) {
     const advancedFeatures = asset.advanced_features;
@@ -656,7 +653,7 @@ export function getRowSupplementalResponses(
               null,
               getColumnLabel(asset, path, false),
               path,
-              questionXPath,
+              getQuestionXPath(surveyRows, rowName),
               undefined,
               getSupplementalDetailsContent(submissionData, path)
             )
@@ -674,7 +671,7 @@ export function getRowSupplementalResponses(
               null,
               getColumnLabel(asset, path, false),
               path,
-              questionXPath,
+              getQuestionXPath(surveyRows, rowName),
               undefined,
               getSupplementalDetailsContent(submissionData, path)
             )
@@ -705,3 +702,8 @@ export default {
   getSubmissionDisplayData,
   getRepeatGroupAnswers,
 };
+
+export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
+  const flatPaths = getSurveyFlatPaths(surveyRows, true);
+  return flatPaths[rowName]
+}

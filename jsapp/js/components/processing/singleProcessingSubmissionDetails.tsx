@@ -1,5 +1,4 @@
 import React from 'react';
-import {getSurveyFlatPaths} from 'js/assetUtils';
 import type {AssetContent} from 'js/dataInterface';
 import {
   QUESTION_TYPES,
@@ -9,6 +8,7 @@ import {
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import SubmissionDataList from 'js/components/submissions/submissionDataList';
 import {
+  getQuestionXPath,
   getRowData,
   getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
@@ -83,8 +83,10 @@ export default class SingleProcessingSubmissionDetails extends React.Component<S
     }
 
     // Attachment needs to be an object with urls.
-    const flatPaths = getSurveyFlatPaths(this.props.assetContent.survey, true);
-    const questionXPath = flatPaths[singleProcessingStore.currentQuestionName];
+    const questionXPath = getQuestionXPath(
+      this.props.assetContent.survey,
+      singleProcessingStore.currentQuestionName
+    );
 
     const attachment = getMediaAttachment(submissionData, rowData, questionXPath);
     if (typeof attachment === 'string') {
