@@ -18,20 +18,22 @@ export interface UsageState {
   isLoaded: boolean;
 }
 
+const INITIAL_USAGE_STATE: UsageState = Object.freeze({
+  storage: 0,
+  submissions: 0,
+  transcriptionMinutes: 0,
+  translationChars: 0,
+  currentMonthStart: '',
+  currentYearStart: '',
+  billingPeriodEnd: null,
+  trackingPeriod: 'month',
+  isPeriodLoaded: false,
+  lastUpdated: '',
+  isLoaded: false,
+});
+
 export function useUsage() {
-  const [usage, setUsage] = useState<UsageState>({
-    storage: 0,
-    submissions: 0,
-    transcriptionMinutes: 0,
-    translationChars: 0,
-    currentMonthStart: '',
-    currentYearStart: '',
-    billingPeriodEnd: null,
-    trackingPeriod: 'month',
-    isPeriodLoaded: false,
-    lastUpdated: '',
-    isLoaded: false,
-  });
+  const [usage, setUsage] = useState<UsageState>(INITIAL_USAGE_STATE);
 
   // get subscription interval (monthly, yearly) from the subscriptionStore when ready
   useEffect(() => {
@@ -91,15 +93,4 @@ export function useUsage() {
   return usage;
 }
 
-export const UsageContext = createContext<UsageState>({
-  storage: 0,
-  submissions: 0,
-  transcriptionMinutes: 0,
-  translationChars: 0,
-  currentMonthStart: '',
-  currentYearStart: '',
-  billingPeriodEnd: null,
-  trackingPeriod: 'month',
-  isPeriodLoaded: false,
-  isLoaded: false,
-});
+export const UsageContext = createContext<UsageState>(INITIAL_USAGE_STATE);
