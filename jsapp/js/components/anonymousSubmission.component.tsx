@@ -17,7 +17,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
         checked={props.checked}
         onChange={props.onChange}
         label={t(
-          'Allow web submissions to this form without a username and password'
+          'Allow submissions to this form without a username and password'
         )}
       />
       <a

@@ -434,7 +434,7 @@ class FormLanding extends React.Component {
             >
               <NewFeatureDialog
                 content={t(
-                  'This feature was originally “Require authentication to see forms and submit data”. This is now a per-project setting.'
+                  'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.'
                 )}
                 supportArticle={
                   envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
