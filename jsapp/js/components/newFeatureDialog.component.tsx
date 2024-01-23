@@ -34,6 +34,10 @@ export default function NewFeatureDialog({
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const [localStorageKey, setLocalStorageKey] = useState('');
 
+  /*
+   * When this component is mounted, create the localstorage key we'll use to
+   * store/check whether the dialog has been dismissed
+   */
   useEffect(() => {
     (async () => {
       const username = sessionStore.currentAccount.username;
@@ -51,17 +55,27 @@ export default function NewFeatureDialog({
         setLocalStorageKey(`kpiDialogStatus-${featureKey}-${hashHex}`);
       } else {
         // `crypto.subtle` is only available in secure (https://) contexts
-        setLocalStorageKey(`kpiDialogStatus-${featureKey}-FOR DEVELOPMENT ONLY-${username}`);
+        setLocalStorageKey(
+          `kpiDialogStatus-${featureKey}-FOR DEVELOPMENT ONLY-${username}`
+        );
       }
     })();
+  }, []);
 
-    const dialogStatus = localStorage.getItem(localStorageKey);
-    setShowDialog(!dialogStatus && !!localStorageKey);
+  /*
+   * Show the dialog if we have a key to check and localstorage has an entry for this
+   * user/feature combination, hide it otherwise
+   */
+  useEffect(() => {
+    const dialogStatus =
+      localStorageKey && localStorage.getItem(localStorageKey);
+    setShowDialog(!dialogStatus);
   }, [disabled, localStorageKey]);
 
+  // Close the dialog box and store that we've closed it
   function closeDialog() {
     localStorage.setItem(localStorageKey, 'shown');
-    setShowDialog(!showDialog);
+    setShowDialog(false);
   }
 
   return (
