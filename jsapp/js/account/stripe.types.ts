@@ -142,6 +142,11 @@ export interface BasePrice {
   };
   metadata: {[key: string]: string};
   product: BaseProduct;
+  billing_scheme: 'per_unit' | 'tiered' | null;
+  transform_quantity: null | {
+    round: 'up' | 'down';
+    divide_by: number;
+  };
 }
 
 export interface BaseSubscription {
@@ -158,19 +163,27 @@ export interface Organization {
   created: string;
   modified: string;
   slug: string;
+  owner_username: string;
+}
+
+export enum PlanNames {
+  'FREE' = 'Community',
+  'COMMUNITY' = 'Community',
+  'PRO' = 'Professional',
+  'ENTERPRISE' = 'Enterprise',
 }
 
 export enum Limits {
   'unlimited' = 'unlimited',
 }
 
-type LimitAmount = number | Limits.unlimited;
+export type LimitAmount = number | 'unlimited';
 
 export interface AccountLimit {
-  submission_limit: LimitAmount | number;
-  nlp_seconds_limit: LimitAmount | number;
-  nlp_character_limit: LimitAmount | number;
-  storage_bytes_limit: LimitAmount | number;
+  submission_limit: LimitAmount;
+  nlp_seconds_limit: LimitAmount;
+  nlp_character_limit: LimitAmount;
+  storage_bytes_limit: LimitAmount;
 }
 
 export interface Product extends BaseProduct {

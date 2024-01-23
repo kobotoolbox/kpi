@@ -1,18 +1,26 @@
-import classnames from 'classnames';
 import prettyBytes from 'pretty-bytes';
-import React from 'react';
-import type {RecurringInterval} from 'js/account/stripe.types';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {LimitAmount, RecurringInterval} from 'js/account/stripe.types';
 import Icon from 'js/components/common/icon';
 import styles from 'js/account/usage/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
-import AriaText from 'js/components/common/ariaText';
+import {Limits} from 'js/account/stripe.types';
+import cx from 'classnames';
+import subscriptionStore from 'js/account/subscriptionStore';
+import Badge from 'js/components/common/badge';
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
+
+export enum USAGE_CONTAINER_TYPE {
+  'TRANSCRIPTION',
+  'STORAGE',
+}
 
 interface UsageContainerProps {
   usage: number;
-  limit: number | 'unlimited';
+  limit: LimitAmount;
   period: RecurringInterval;
   label?: string;
-  isStorage?: boolean;
+  type?: USAGE_CONTAINER_TYPE;
 }
 
 const UsageContainer = ({
@@ -20,41 +28,100 @@ const UsageContainer = ({
   limit,
   period,
   label = undefined,
-  isStorage = false,
+  type = undefined,
 }: UsageContainerProps) => {
+  const [isStripeEnabled, setIsStripeEnabled] = useState(false);
+  const [subscriptions] = useState(() => subscriptionStore);
+  const hasStorageAddOn = useMemo(
+    () => subscriptions.addOnsResponse.length > 0,
+    [subscriptions.addOnsResponse]
+  );
+  useWhenStripeIsEnabled(() => setIsStripeEnabled(true), []);
   let limitRatio = 0;
-  if (limit !== 'unlimited' && limit) {
+  if (limit !== Limits.unlimited && limit) {
     limitRatio = usage / limit;
   }
   const isOverLimit = limitRatio >= 1;
   const isNearingLimit = !isOverLimit && limitRatio > USAGE_WARNING_RATIO;
+
+  /**
+   * Render a limit amount, usage amount, or total balance as readable text
+   * @param {number|'unlimited'} amount - The limit/usage amount
+   * @param {number|'unlimited'|null} [available=null] - If we're showing a balance,
+   * `amount` takes the usage amount and this takes the limit amount
+   */
+  const limitDisplay = useCallback(
+    (amount, available = null) => {
+      if (amount === Limits.unlimited || available === Limits.unlimited) {
+        return t('Unlimited');
+      }
+      const total = available ? available - amount : amount;
+      switch (type) {
+        case USAGE_CONTAINER_TYPE.STORAGE:
+          return prettyBytes(total);
+        case USAGE_CONTAINER_TYPE.TRANSCRIPTION:
+          return t('##minutes## mins').replace(
+            '##minutes##',
+            total.toLocaleString()
+          );
+        default:
+          return total.toLocaleString();
+      }
+    },
+    [limit, type, usage]
+  );
+
   return (
-    <div className={styles.usage}>
-      <strong className={styles.description}>
-        {label || (period === 'month' ? t('Monthly') : t('Yearly'))}
-      </strong>
-      <div
-        className={classnames(styles.usageRow, {
-          [styles.warning]: isNearingLimit,
-          [styles.overlimit]: isOverLimit,
-        })}
-      >
-        {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
-        {isOverLimit && <Icon name='warning' color='red' size='m' />}
-        <strong>
-          {isStorage ? prettyBytes(usage) : usage.toLocaleString()}
-        </strong>
-        {limit !== 'unlimited' && limit && (
-          <>
-            {' '}
-            <AriaText uiText='/' screenReaderText={t('used out of')} />{' '}
-            <span>
-              {isStorage ? prettyBytes(limit) : limit.toLocaleString()}
-            </span>
-          </>
+    <>
+      <ul className={cx(styles.usage, {[styles.hasAddon]: hasStorageAddOn})}>
+        {isStripeEnabled && (
+          <li>
+            <label>{t('Available')}</label>
+            <data value={limit}>{limitDisplay(limit)}</data>
+          </li>
         )}
-      </div>
-    </div>
+        <li>
+          <label>
+            {label ||
+              (period === 'month' ? t('Used this month') : t('Used this year'))}
+          </label>
+          <data>{limitDisplay(usage)}</data>
+        </li>
+        {isStripeEnabled && (
+          <li className={cx(styles.balanceEntry)}>
+            <label>
+              <strong>{t('Balance')}</strong>
+            </label>
+            <div
+              className={cx(styles.balanceContainer, {
+                [styles.warning]: isNearingLimit,
+                [styles.overlimit]: isOverLimit,
+              })}
+            >
+              {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
+              {isOverLimit && <Icon name='warning' color='red' size='m' />}
+              <strong>{limitDisplay(usage, limit)}</strong>
+            </div>
+          </li>
+        )}
+        {hasStorageAddOn && type === USAGE_CONTAINER_TYPE.STORAGE && (
+          <li>
+            <Badge
+              color={'light-blue'}
+              size={'m'}
+              label={
+                <strong>
+                  {
+                    subscriptions.addOnsResponse[0].items?.[0].price.product
+                      .name
+                  }
+                </strong>
+              }
+            />
+          </li>
+        )}
+      </ul>
+    </>
   );
 };
 
