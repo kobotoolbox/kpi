@@ -52,7 +52,7 @@ DEFINITIONS['qual_integer'] = {
     'type': 'object',
     'properties': {
         'type': {'const': 'qual_integer'},
-        'val': {'type': 'integer'},
+        'val': {'type': ['integer', 'null']},
     },
 }
 DEFINITIONS['qual_select_one'] = {

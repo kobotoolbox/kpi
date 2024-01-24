@@ -213,7 +213,7 @@ async function updateResponse(
   qpath: string,
   analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
-  newResponse: string | string[] | number | undefined
+  newResponse: string | string[] | number | null
 ) {
   try {
     const payload: AnalysisResponseUpdateRequest = {
@@ -281,15 +281,20 @@ export async function updateResponseAndReducer(
   // Step 2: QUAL_INTEGER CONVERSION HACK (PART 1/2):
   // For code simplicity (I hope so!) we handle `qual_integer` as string and
   // only convert it to/from actual integer when talking with Back end.
-  let actualResponse: string | string[] | number | undefined = response;
+  let actualResponse: string | string[] | number | null = response;
   if (analysisQuestionType === 'qual_integer') {
     const actualResponseAsNumber = parseInt(String(response));
     if (Number.isInteger(actualResponseAsNumber)) {
       actualResponse = parseInt(String(response));
     } else {
-      // If what we got for `qual_integer` is not a number, let's pass empty
-      // string to avoid errors.
-      actualResponse = undefined;
+      if (String(response) !== '') {
+        // This really shouldn't happen!
+        window.Raven?.captureMessage(`Invalid qual_integer response: "${response}"`);
+      }
+      // An empty response should be represented as `null`. For continuity with
+      // existing code, invalid responses are also transformed to `null` before
+      // sending to the back end
+      actualResponse = null;
     }
   }
 

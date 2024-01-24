@@ -103,8 +103,8 @@ export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
 export interface AnalysisResponse {
   type: AnalysisQuestionType;
   uuid: string;
-  /** `undefined` is for `qual_integer` */
-  val: string | string[] | number | undefined;
+  /** `null` is for `qual_integer` */
+  val: string | string[] | number | null;
 }
 
 /**
