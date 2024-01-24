@@ -115,6 +115,7 @@ function getLimitsForMetadata(
   limitsToCompare: false | AccountLimit = false
 ) {
   const limits: Partial<AccountLimit> = {};
+  const quantity = parseInt(metadata['quantity']);
   for (const [key, value] of Object.entries(metadata)) {
     // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
     if (limitsToCompare) {
@@ -131,8 +132,9 @@ function getLimitsForMetadata(
     }
     // only use metadata needed for limit calculations
     if (key in DEFAULT_LIMITS) {
-      limits[key as keyof AccountLimit] =
-        value === Limits.unlimited ? Limits.unlimited : parseInt(value);
+        const numericValue = parseInt(value);
+        limits[key as keyof AccountLimit] =
+          value === Limits.unlimited ? Limits.unlimited : numericValue * quantity;
     }
   }
   return limits;
@@ -177,6 +179,7 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
       metadata = {
         ...addOn.items[0].price.product.metadata,
         ...addOn.items[0].price.metadata,
+        quantity: activeAddOns[0].quantity.toString(),
       };
       newLimits = {...newLimits, ...getLimitsForMetadata(metadata, newLimits)};
     });
@@ -201,6 +204,7 @@ const getStripeMetadataAndFreeTierStatus = async () => {
     metadata = {
       ...activeSubscriptions[0].items[0].price.product.metadata,
       ...activeSubscriptions[0].items[0].price.metadata,
+      quantity: activeSubscriptions[0].quantity.toString(),
     };
   } else {
     // the user has no subscription, so get limits from the free monthly product
@@ -216,6 +220,7 @@ const getStripeMetadataAndFreeTierStatus = async () => {
       metadata = {
         ...freeProduct.metadata,
         ...freeProduct.prices[0].metadata,
+        quantity: '1',
       };
     } catch (error) {
       // couldn't find the free monthly product, continue in case we have limits to display from the free tier override
