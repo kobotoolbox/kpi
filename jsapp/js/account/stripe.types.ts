@@ -205,6 +205,14 @@ export enum ChangePlanStatus {
   'error' = 'error',
 }
 
+export enum SubscriptionChangeType {
+  CANCELLATION,
+  RENEWAL,
+  PRODUCT_CHANGE,
+  PRICE_CHANGE,
+  NO_CHANGE
+}
+
 export type ChangePlan =
   | {
       status: ChangePlanStatus.success | ChangePlanStatus.pending;

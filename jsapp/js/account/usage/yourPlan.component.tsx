@@ -1,28 +1,27 @@
 import styles from 'js/account/usage/yourPlan.module.scss';
 import React, {useEffect, useMemo, useState} from 'react';
-import {formatDate, unixToUtc} from 'js/utils';
+import {formatDate} from 'js/utils';
 import Badge, {BadgeColor} from 'js/components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
 import sessionStore from 'js/stores/session';
 import BillingButton from 'js/account/plans/billingButton.component';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import envStore from 'js/envStore';
-import {PlanNames, BaseProduct, Product} from 'js/account/stripe.types';
+import {
+  PlanNames,
+  Product,
+  SubscriptionChangeType,
+} from 'js/account/stripe.types';
 import {getProducts} from '../stripe.api';
+import {getSubscriptionChangeDetails} from '../stripe.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 
-type subscriptiontype =
-  | 'cancellation'
-  | 'renewal'
-  | 'productChange'
-  | 'priceChange'
-  | '';
-
-const badgeColorKeys: {[key: string]: BadgeColor} = {
-  renewal: 'light-blue',
-  cancellation: 'light-red',
-  productChange: 'light-amber',
-  priceChange: 'light-amber',
+const BADGE_COLOR_KEYS: {[key in SubscriptionChangeType]: BadgeColor} = {
+  [SubscriptionChangeType.RENEWAL]: 'light-blue',
+  [SubscriptionChangeType.CANCELLATION]: 'light-red',
+  [SubscriptionChangeType.PRODUCT_CHANGE]: 'light-amber',
+  [SubscriptionChangeType.PRICE_CHANGE]: 'light-amber',
+  [SubscriptionChangeType.NO_CHANGE]: 'light-blue',
 };
 
 /*
@@ -81,42 +80,7 @@ export const YourPlan = () => {
    * the only type of scheduled price change will be a downgrade from annual to monthly
    */
   const subscriptionUpdate = useMemo(() => {
-    if (currentPlan && productsState.length) {
-      let nextProduct: BaseProduct | null = null;
-      let date = '';
-      let type: subscriptiontype = '';
-      if (currentPlan.cancel_at) {
-        date = currentPlan.cancel_at;
-        type = 'cancellation';
-      } else if (
-        currentPlan.schedule &&
-        currentPlan.schedule.status === 'active' &&
-        currentPlan.schedule.phases?.length &&
-        currentPlan.schedule.phases.length > 1
-      ) {
-        let nextPhaseItem = currentPlan.schedule.phases[1].items[0];
-        for (const product of productsState) {
-          let price = product.prices.find(
-            (price) => price.id === nextPhaseItem.price
-          );
-          if (price) {
-            nextProduct = product;
-            date = unixToUtc(currentPlan.schedule.phases[0].end_date!);
-            type =
-              nextProduct.id === currentPlan.items[0].price.product.id
-                ? 'priceChange'
-                : 'productChange';
-            break;
-          }
-        }
-      } else if (currentPlan && type === '') {
-        date = currentPlan.current_period_end;
-        type = 'renewal';
-      }
-      return {nextProduct, date, type};
-    } else {
-      return null;
-    }
+    return getSubscriptionChangeDetails(currentPlan, productsState);
   }, [currentPlan, productsState]);
 
   return (
@@ -139,26 +103,28 @@ export const YourPlan = () => {
           </time>
           {subscriptionUpdate && (
             <Badge
-              color={badgeColorKeys[subscriptionUpdate.type]}
+              color={BADGE_COLOR_KEYS[subscriptionUpdate.type]!}
               size={'s'}
               label={
                 <time
                   dateTime={subscriptionUpdate.date}
                   className={styles.updateBadge}
                 >
-                  {subscriptionUpdate.type === 'renewal' &&
+                  {subscriptionUpdate.type === SubscriptionChangeType.RENEWAL &&
                     t('Renews on ##renewal_date##').replace(
                       '##renewal_date##',
                       formatDate(subscriptionUpdate.date)
                     )}
-                  {['cancellation', 'productChange'].includes(
-                    subscriptionUpdate.type
-                  ) &&
+                  {[
+                    SubscriptionChangeType.CANCELLATION,
+                    SubscriptionChangeType.PRODUCT_CHANGE,
+                  ].includes(subscriptionUpdate.type) &&
                     t('Ends on ##end_date##').replace(
                       '##end_date##',
                       formatDate(subscriptionUpdate.date)
                     )}
-                  {subscriptionUpdate.type === 'priceChange' &&
+                  {subscriptionUpdate.type ===
+                    SubscriptionChangeType.PRICE_CHANGE &&
                     t('Switching to monthly on ##change_date##').replace(
                       '##change_date##',
                       formatDate(subscriptionUpdate.date)
@@ -186,14 +152,14 @@ export const YourPlan = () => {
          */}
         </nav>
       </section>
-      {subscriptionUpdate?.type === 'cancellation' && (
+      {subscriptionUpdate?.type === SubscriptionChangeType.CANCELLATION && (
         <div className={styles.subscriptionChangeNotice}>
           {t(
             'Your ##current_plan## plan has been canceled but will remain active until the end of the billing period.'
           ).replace('##current_plan##', planName)}
         </div>
       )}
-      {subscriptionUpdate?.type === 'productChange' && (
+      {subscriptionUpdate?.type === SubscriptionChangeType.PRODUCT_CHANGE && (
         <div className={styles.subscriptionChangeNotice}>
           {t(
             'Your ##current_plan## plan will change to the ##next_plan## plan on'
@@ -209,7 +175,7 @@ export const YourPlan = () => {
           ).replace('##current_plan##', planName)}
         </div>
       )}
-      {subscriptionUpdate?.type === 'priceChange' && (
+      {subscriptionUpdate?.type === SubscriptionChangeType.PRICE_CHANGE && (
         <div className={styles.subscriptionChangeNotice}>
           {t(
             'Your ##current_plan## plan will change from annual to monthly starting from'

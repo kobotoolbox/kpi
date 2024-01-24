@@ -2,15 +2,17 @@ import {when} from 'mobx';
 
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import envStore from 'js/envStore';
-import type {
+import {
   BasePrice,
+  BaseProduct,
   ChangePlan,
   Checkout,
   Product,
+  SubscriptionChangeType,
   SubscriptionInfo,
 } from 'js/account/stripe.types';
 import subscriptionStore from 'js/account/subscriptionStore';
-import {notify} from 'js/utils';
+import {convertUnixTimestampToUtc, notify} from 'js/utils';
 import {ChangePlanStatus} from 'js/account/stripe.types';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 
@@ -126,4 +128,47 @@ export const getSubscriptionsForProductId = (
     );
   }
   return null;
+};
+
+export const getSubscriptionChangeDetails = (
+  currentPlan: SubscriptionInfo | null,
+  products: Product[]
+) => {
+  if (!(currentPlan && products.length)) {
+    return null;
+  }
+  let nextProduct: BaseProduct | null = null;
+  let date = '';
+  let type: SubscriptionChangeType = SubscriptionChangeType.NO_CHANGE;
+  if (currentPlan.cancel_at) {
+    date = currentPlan.cancel_at;
+    type = SubscriptionChangeType.CANCELLATION;
+  } else if (
+    currentPlan.schedule &&
+    currentPlan.schedule.status === 'active' &&
+    currentPlan.schedule.phases?.length &&
+    currentPlan.schedule.phases.length > 1
+  ) {
+    let nextPhaseItem = currentPlan.schedule.phases[1].items[0];
+    for (const product of products) {
+      let price = product.prices.find(
+        (price) => price.id === nextPhaseItem.price
+      );
+      if (price) {
+        nextProduct = product;
+        date = convertUnixTimestampToUtc(
+          currentPlan.schedule.phases[0].end_date!
+        );
+        type =
+          nextProduct.id === currentPlan.items[0].price.product.id
+            ? SubscriptionChangeType.PRICE_CHANGE
+            : SubscriptionChangeType.PRODUCT_CHANGE;
+        break;
+      }
+    }
+  } else if (currentPlan && type === SubscriptionChangeType.NO_CHANGE) {
+    date = currentPlan.current_period_end;
+    type = SubscriptionChangeType.RENEWAL;
+  }
+  return {nextProduct, date, type};
 };
