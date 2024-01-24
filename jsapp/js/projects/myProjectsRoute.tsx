@@ -122,6 +122,10 @@ function MyProjectsRoute() {
         <h1>{t('Drop files to upload')}</h1>
       </div>
 
+      <UsageContext.Provider value={usage}>
+        <LimitNotifications useModal />
+      </UsageContext.Provider>
+
       <section className={styles.root}>
         {invite.status && (
           <div className={banner ? styles.banner : styles.noBanner}>
@@ -200,9 +204,6 @@ function MyProjectsRoute() {
             </div>
           )}
         </header>
-        <UsageContext.Provider value={usage}>
-          <LimitNotifications useModal />
-        </UsageContext.Provider>
         <ProjectsTable
           assets={customView.assets}
           isLoading={!customView.isFirstLoadComplete}

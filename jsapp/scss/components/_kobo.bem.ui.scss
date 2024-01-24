@@ -19,7 +19,7 @@
   height: calc(100% - #{$layout-desktop-header-height});
   position: relative;
   flex-grow: 0;
-  overflow: hidden;
+  overflow-x: hidden;
 
   > .dropzone,
   .public-collections-wrapper {

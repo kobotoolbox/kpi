@@ -53,6 +53,8 @@ $x800: 800px;
 }
 
 // relative sizes (rem units - scales with root document font size)
+$r12: pxToRem($x12);
+$r14: pxToRem($x14);
 $r16: pxToRem($x16); // 1em at default font size of 16px
 $r18: pxToRem($x18);
 

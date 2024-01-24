@@ -3,6 +3,7 @@
 
 .root {
   display: flex;
+  align-items: flex-start;
   padding-bottom: sizes.$x12;
   padding-top: sizes.$x8;
   border-bottom: 1px solid colors.$kobo-gray-96;
@@ -10,4 +11,8 @@
 
 a.right-tooltip {
   margin-left: sizes.$x8;
+}
+
+.root > *:not(:last-child) {
+  margin-right: sizes.$x8;
 }

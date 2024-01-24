@@ -152,6 +152,7 @@ export interface SubmissionAttachment {
   download_small_url: string;
   mimetype: string;
   filename: string;
+  question_xpath: string;
   instance: number;
   xform: number;
   id: number;

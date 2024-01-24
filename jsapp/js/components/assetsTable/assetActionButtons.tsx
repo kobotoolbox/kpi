@@ -252,6 +252,13 @@ class AssetActionButtons extends React.Component<
   }
 
   renderMoreActionsTrigger() {
+    const assetType = this.props.asset.asset_type;
+    const userCanDelete = userCan('delete_submissions', this.props.asset);
+
+    if (assetType === ASSET_TYPES.collection.id && !userCanDelete) {
+      return null;
+    }
+
     return (
       <div className='right-tooltip' data-tip={t('More actions')}>
         <i className='k-icon k-icon-more' />
@@ -266,6 +273,7 @@ class AssetActionButtons extends React.Component<
       downloads = this.props.asset.downloads;
     }
     const userCanEdit = userCan('change_asset', this.props.asset);
+    const userCanDelete = userCan('delete_submissions', this.props.asset);
     const isDeployable =
       assetType === ASSET_TYPES.survey.id &&
       this.props.asset.deployed_version_id === null;
@@ -383,7 +391,7 @@ class AssetActionButtons extends React.Component<
             </bem.PopoverMenu__link>
           )}
 
-        {userCanEdit && (
+        {userCanEdit && userCanDelete && (
           <bem.PopoverMenu__link onClick={this.delete}>
             <i className='k-icon k-icon-trash' />
             {t('Delete')}

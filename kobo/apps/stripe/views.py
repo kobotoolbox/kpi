@@ -324,14 +324,17 @@ class CustomerPortalView(APIView):
             if not len(all_configs):
                 return Response({'error': "Missing Stripe billing configuration."}, status=status.HTTP_502_BAD_GATEWAY)
 
-            is_price_for_addon = price.product.metadata.get('product_type', '') == 'addon'
-
-            if is_price_for_addon:
-                """
-                Recurring add-ons aren't included in the default billing configuration.
-                This lets us hide them as an 'upgrade' option for paid plan users.
-                Here, we try getting the portal configuration that lets us switch to the provided price.
-                """
+            """
+            Recurring add-ons and the Enterprise plan aren't included in the default billing configuration.
+            This lets us hide them as an 'upgrade' option for paid plan users.
+            """
+            metadata = price.product.metadata
+            needs_custom_config = (
+                metadata.get('product_type') == 'addon'
+                or metadata.get('plan_type') == 'enterprise'
+            )
+            if needs_custom_config:
+                # Try getting the portal configuration that lets us switch to the provided price
                 current_config = next(
                     (config for config in all_configs if (
                             config['active'] and
@@ -350,7 +353,7 @@ class CustomerPortalView(APIView):
                     )), None
                 )
 
-                if is_price_for_addon:
+                if needs_custom_config:
                     """
                     we couldn't find a custom configuration, let's try making a new one
                     add the price we're switching into to the list of prices that allow subscription updates
@@ -474,7 +477,10 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     >                           },
     >                           "unit_amount": int (cents),
     >                           "human_readable_price": string,
-    >                           "metadata": {}
+    >                           "metadata": {},
+    >                           "active": bool,
+    >                           "product": string,
+    >                           "transform_quantity": null | {'round': 'up'|'down', 'divide_by': int}
     >                       },
     >                       ...
     >                   ],

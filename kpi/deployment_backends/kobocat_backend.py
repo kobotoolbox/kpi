@@ -3,6 +3,7 @@ import copy
 import io
 import json
 import os
+import os.path
 import re
 import uuid
 from collections import defaultdict
@@ -71,6 +72,7 @@ from .kc_access.shadow_models import (
     KobocatXForm,
     ReadOnlyKobocatInstance,
 )
+from .kc_access.storage import default_kobocat_storage
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,

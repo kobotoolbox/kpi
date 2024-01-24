@@ -10,7 +10,6 @@ import sessionStore from 'js/stores/session';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
-import Icon from 'js/components/common/icon';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
@@ -28,9 +27,10 @@ import {
 } from 'js/components/permissions/utils';
 import permConfig from 'js/components/permissions/permConfig';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
-import ToggleSwitch from 'js/components/common/toggleSwitch';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import AnonymousSubmission from './anonymousSubmission.component';
+import styles from './anonymousSubmission.module.scss';
+import NewFeatureDialog from './newFeatureDialog.component';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
@@ -47,6 +47,7 @@ class FormLanding extends React.Component {
       nextPagesVersions: [],
       anonymousSubmissions: false,
       anonymousPermissions: [],
+      shouldShowNewFeatureDialog: false,
     };
     autoBind(this);
   }
@@ -81,7 +82,9 @@ class FormLanding extends React.Component {
     const permission = this.state.anonymousPermissions.find(
       (perm) =>
         perm.permission ===
-        permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
+        permConfig.getPermissionByCodename(
+          PERMISSIONS_CODENAMES.add_submissions
+        ).url
     );
     if (this.state.anonymousSubmissions) {
       actions.permissions.removeAssetPermission(
@@ -170,6 +173,9 @@ class FormLanding extends React.Component {
   }
   showSharingModal(evt) {
     evt.preventDefault();
+    stores.pageState._onHideModal = () => {
+      this.setState({shouldShowNewFeatureDialog: true});
+    };
     stores.pageState.showModal({
       type: MODAL_TYPES.SHARING,
       assetid: this.state.uid,
@@ -247,6 +253,7 @@ class FormLanding extends React.Component {
       });
     }
   }
+
   renderHistory() {
     var dvcount = this.state.deployed_versions.count;
     const versionsToDisplay = this.state.deployed_versions.results.concat(
@@ -431,10 +438,21 @@ class FormLanding extends React.Component {
             <bem.FormView__cell
               m={['padding', 'anonymous-submissions', 'bordertop']}
             >
-              <AnonymousSubmission
-                checked={this.state.anonymousSubmissions}
-                onChange={() => this.updateAssetAnonymousSubmissions()}
-              />
+              <NewFeatureDialog
+                content={t(
+                  'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.'
+                )}
+                supportArticle={
+                  envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                }
+                featureKey='anonymousSubmissions'
+                disabled={stores.pageState.state?.modal}
+              >
+                <AnonymousSubmission
+                  checked={this.state.anonymousSubmissions}
+                  onChange={() => this.updateAssetAnonymousSubmissions()}
+                />
+              </NewFeatureDialog>
             </bem.FormView__cell>
           )}
         </bem.FormView__cell>

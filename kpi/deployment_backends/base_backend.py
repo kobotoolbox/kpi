@@ -11,6 +11,7 @@ from typing import Union, Iterator, Optional
 
 from bson import json_util
 from django.conf import settings
+from django.core.exceptions import SuspiciousFileOperation
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -643,6 +644,10 @@ class BaseDeploymentBackend(abc.ABC):
         if not request or '_attachments' not in submission:
             return submission
 
+        submission_values = submission.values()
+        questions = list(submission)
+        attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
+
         for attachment in submission['_attachments']:
             for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
                 # We should use 'attachment-list' with `?xpath=` but we do not
@@ -666,5 +671,24 @@ class BaseDeploymentBackend(abc.ABC):
                 submission['_uuid'],
                 os.path.basename(filename)
             )
+
+            # Retrieve XPath and add it to attachment dictionary
+            basename = os.path.basename(attachment['filename'])
+            attachment['question_xpath'] = ''
+
+            for idx, value in enumerate(submission_values):
+                if not isinstance(value, str):
+                    continue
+                try:
+                    valid_name = default_kobocat_storage.get_valid_name(value)
+                except SuspiciousFileOperation:
+                    continue
+
+                if (
+                    valid_name == basename
+                    and questions[idx] in attachment_xpaths
+                ):
+                    attachment['question_xpath'] = questions[idx]
+                    break
 
         return submission
