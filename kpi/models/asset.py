@@ -13,6 +13,7 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch, Q, F
 from django.utils.translation import gettext_lazy as t
+from django_request_cache import cache_for_request
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
@@ -42,6 +43,7 @@ from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     ASSET_TYPE_TEXT,
+    ATTACHMENT_QUESTION_TYPES,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
@@ -541,6 +543,18 @@ class Asset(ObjectPermissionMixin,
         return advanced_submission_jsonschema(
             content, self.advanced_features, url=url
         )
+
+    @cache_for_request
+    def get_attachment_xpaths(self, deployed: bool = True) -> list:
+        version = (
+            self.latest_deployed_version if deployed else self.latest_version
+        )
+        survey = version.to_formpack_schema()['content']['survey']
+        return [
+            q['$xpath']
+            for q in survey
+            if q['type'] in ATTACHMENT_QUESTION_TYPES
+        ]
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
