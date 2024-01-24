@@ -8,7 +8,7 @@
   align-items: center;
   justify-content: space-between;
   margin-block-end: 1.5em;
-  border-block: 1px solid colors.$kobo-gray-96;
+  border-block: sizes.$x1 solid colors.$kobo-gray-96;
 }
 
 .banner {
@@ -34,7 +34,7 @@
 
 .subscriptionChangeNotice {
   width: 100%;
-  padding: 12px 16px;
+  padding: sizes.$x12 sizes.$x16;
   background-color: colors.$kobo-gray-96;
   margin-bottom: 1.5em;
 }
