@@ -2,8 +2,6 @@ from __future__ import annotations
 import copy
 import io
 import json
-import os
-import os.path
 import re
 import uuid
 from collections import defaultdict
@@ -317,8 +315,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if start_date:
             filter_args['date__range'] = [start_date, today]
         try:
-            # Note: this is replicating the functionality that was formerly in `current_month_submission_count`
-            # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
+            # Note: this is replicating the functionality that was formerly in
+            # `current_month_submission_count`. `current_month_submission_count`
+            # didn't account for partial permissions, and this doesn't either
             total_submissions = KobocatDailyXFormSubmissionCounter.objects.only(
                 'date', 'counter'
             ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
@@ -1505,6 +1504,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         id_string = self.backend_response['id_string']
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
+
+    def _open_rosa_server_storage(self):
+        return default_kobocat_storage
 
     def __delete_kc_metadata(
         self, kc_file_: dict, file_: Union[AssetFile, PairedData] = None
