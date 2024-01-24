@@ -546,8 +546,10 @@ class Asset(ObjectPermissionMixin,
 
     @cache_for_request
     def get_attachment_xpaths(self, deployed: bool = True) -> list:
-        v = self.latest_deployed_version if deployed else self.latest_version
-        survey = v.to_formpack_schema()['content']['survey']
+        version = (
+            self.latest_deployed_version if deployed else self.latest_version
+        )
+        survey = version.to_formpack_schema()['content']['survey']
         return [
             q['$xpath']
             for q in survey
