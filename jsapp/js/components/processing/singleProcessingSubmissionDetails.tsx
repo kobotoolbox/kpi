@@ -8,6 +8,7 @@ import {
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import SubmissionDataList from 'js/components/submissions/submissionDataList';
 import {
+  getQuestionXPath,
   getRowData,
   getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
@@ -81,8 +82,13 @@ export default class SingleProcessingSubmissionDetails extends React.Component<S
       return null;
     }
 
-    // Attachment needs to be object with urls.
-    const attachment = getMediaAttachment(submissionData, rowData);
+    // Attachment needs to be an object with urls.
+    const questionXPath = getQuestionXPath(
+      this.props.assetContent.survey,
+      singleProcessingStore.currentQuestionName
+    );
+
+    const attachment = getMediaAttachment(submissionData, rowData, questionXPath);
     if (typeof attachment === 'string') {
       return;
     }
