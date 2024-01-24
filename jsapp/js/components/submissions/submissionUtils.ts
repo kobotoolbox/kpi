@@ -15,7 +15,6 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
-  ROOT_URL,
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import type {
@@ -681,20 +680,6 @@ export function getRowSupplementalResponses(
     }
   }
   return output;
-}
-
-/**
- * Mimics Django get_valid_filename() to match back-end renaming when an
- * attachment is saved in storage.
- * See https://github.com/django/django/blob/832adb31f27cfc18ad7542c7eda5a1b6ed5f1669/django/utils/text.py#L224
- */
-// @TODO Could be delete it, not needed anymore since we rely on question XPath
-export function getValidFilename(fileName: string): string {
-  return fileName
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/ /g, '_')
-    .replace(/[^\p{L}\p{M}\.\d_-]/gu, '');
 }
 
 export default {
