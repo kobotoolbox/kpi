@@ -159,7 +159,7 @@ const AccountSettings = observer(() => {
               <div className='anonymous-submission-notice-copy'>
                 <strong>
                   {t(
-                    '"Require authentication to see forms and submit data" has been moved.'
+                    'You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.'
                   )}
                 </strong>
                 &nbsp;

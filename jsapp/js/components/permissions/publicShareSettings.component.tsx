@@ -12,6 +12,9 @@ import envStore from 'js/envStore';
 import Icon from 'js/components/common/icon';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import AnonymousSubmission from '../anonymousSubmission.component';
+import styles from 'js/components/anonymousSubmission.module.scss';
+import {stores} from 'js/stores';
+import NewFeatureDialog from 'js/components/newFeatureDialog.component';
 
 const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
@@ -71,10 +74,20 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
     return (
       <bem.FormModal__item m='permissions'>
         <bem.FormModal__item m='anonymous-submissions'>
-          <AnonymousSubmission
-            checked={anonCanAddData}
-            onChange={this.togglePerms.bind(this, 'add_submissions')}
-          />
+          <NewFeatureDialog
+            content={t(
+              'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.'
+            )}
+            supportArticle={
+              envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
+            }
+            featureKey='anonymousSubmissions'
+          >
+            <AnonymousSubmission
+              checked={anonCanAddData}
+              onChange={this.togglePerms.bind(this, 'add_submissions')}
+            />
+          </NewFeatureDialog>
         </bem.FormModal__item>
 
         <bem.FormModal__item m='permissions-header'>

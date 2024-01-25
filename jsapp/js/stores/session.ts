@@ -7,8 +7,9 @@ import type {Json} from 'js/components/common/common.interfaces';
 import type {ProjectViewsSettings} from 'js/projects/customViewStore';
 
 class SessionStore {
-  currentAccount: AccountResponse | {username: string} = {
+  currentAccount: AccountResponse | {username: string; date_joined: string} = {
     username: ANON_USERNAME,
+    date_joined: '',
   };
   isAuthStateKnown = false;
   isLoggedIn = false;

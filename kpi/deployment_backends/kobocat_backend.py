@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import io
 import json
+import os.path
 import posixpath
 import re
 import uuid
@@ -19,7 +20,7 @@ except ImportError:
 
 import requests
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, SuspiciousFileOperation
 from django.core.files import File
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
@@ -66,6 +67,7 @@ from .kc_access.shadow_models import (
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
+from .kc_access.storage import default_kobocat_storage
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
@@ -1717,9 +1719,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def __rewrite_json_attachment_urls(
         self, submission: dict, request
-    ) -> list:
+    ) -> dict:
         if not request or '_attachments' not in submission:
             return submission
+
+        submission_values = submission.values()
+        questions = list(submission)
+        attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
 
         for attachment in submission['_attachments']:
             for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
@@ -1736,6 +1742,25 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     attachment[key] = kpi_url
                 except KeyError:
                     continue
+
+            # Retrieve XPath and add it to attachment dictionary
+            basename = os.path.basename(attachment['filename'])
+            attachment['question_xpath'] = ''
+
+            for idx, value in enumerate(submission_values):
+                if not isinstance(value, str):
+                    continue
+                try:
+                    valid_name = default_kobocat_storage.get_valid_name(value)
+                except SuspiciousFileOperation:
+                    continue
+
+                if (
+                    valid_name == basename
+                    and questions[idx] in attachment_xpaths
+                ):
+                    attachment['question_xpath'] = questions[idx]
+                    break
 
         return submission
 

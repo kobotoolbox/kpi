@@ -1,3 +1,4 @@
+@use 'scss/breakpoints';
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 
@@ -5,8 +6,12 @@
   padding: sizes.$x40;
 }
 
-h2 {
+.headerText {
   margin-bottom: sizes.$x28;
+  font-size: sizes.$r18;
+  font-weight: 700;
+  color: hsl(225, 33%, 59%);
+  text-transform: uppercase;
 }
 
 .article {
@@ -32,16 +37,18 @@ h2 {
   display: flex;
   justify-content: center;
   flex-flow: wrap;
-  gap: sizes.$x12;
+  gap: sizes.$x24;
+  flex: 1 1 0;
+  width: 100%;
 }
 
 .box {
   // TODO: Should we add this size or try some flex magic to make the width work?
-  width: 250px;
+  min-width: 250px;
+  width: 100%;
   border: sizes.$x1 solid;
   border-color: colors.$kobo-gray-92;
-  border-radius: 5%;
-  margin-right: sizes.$x12;
+  border-radius: sizes.$x6;
   padding: sizes.$x24;
   display: flex;
   flex-direction: column;
@@ -63,4 +70,16 @@ h2 {
 .date {
   display: block;
   font-size: sizes.$x14;
+}
+
+@media screen and (min-width: breakpoints.$b600) {
+  .subrow {
+    flex-wrap: nowrap;
+  }
+}
+
+@media screen and (min-width: breakpoints.$b1440) {
+  .row {
+    flex-wrap: nowrap;
+  }
 }

@@ -1,6 +1,7 @@
 # coding: utf-8
 from django.conf import settings as django_settings
 from django.core.files.storage import FileSystemStorage
+from django.utils.functional import SimpleLazyObject
 from storages.backends.s3boto3 import S3Boto3Storage
 from storages.backends.azure_storage import AzureStorage
 
@@ -16,6 +17,9 @@ def get_kobocat_storage():
         return AzureStorage()
     else:
         return KobocatFileSystemStorage()
+
+
+default_kobocat_storage = SimpleLazyObject(get_kobocat_storage)
 
 
 class KobocatFileSystemStorage(FileSystemStorage):
