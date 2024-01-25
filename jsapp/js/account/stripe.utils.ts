@@ -172,3 +172,27 @@ export const getSubscriptionChangeDetails = (
   }
   return {nextProduct, date, type};
 };
+
+/**
+ * Takes a Stripe quantity (representing a total number of submissions included with a plan)
+ * and returns the transformed quantity. The total price of the transaction can be
+ * found by (transformed quantity x price unit amount).
+ * @param baseQuantity - the `quantity` field of the subscription in Stripe (total submission limit)
+ * @param price - the price to base quantity calculations on
+ */
+export const getAdjustedQuantityForPrice = (
+  baseQuantity: number,
+  price: BasePrice
+) => {
+  let adjustedQuantity = baseQuantity;
+  if (price.transform_quantity?.divide_by) {
+    adjustedQuantity /= price.transform_quantity.divide_by;
+  }
+  if (price.transform_quantity?.round === 'up') {
+    adjustedQuantity = Math.ceil(adjustedQuantity);
+  }
+  if (price.transform_quantity?.round === 'down') {
+    adjustedQuantity = Math.floor(adjustedQuantity);
+  }
+  return adjustedQuantity;
+};
