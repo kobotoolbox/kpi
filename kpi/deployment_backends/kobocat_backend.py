@@ -1505,6 +1505,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
 
+    @property
     def _open_rosa_server_storage(self):
         return default_kobocat_storage
 
