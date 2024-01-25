@@ -117,7 +117,6 @@ export default function Usage() {
   return (
     <UsageContext.Provider value={usage}>
       <div className={styles.root}>
-        {limits.stripeEnabled && <YourPlan />}
         <header className={styles.header}>
           <h2 className={styles.headerText}>{t('Your usage')}</h2>
           {typeof usage.lastUpdated === 'string' && (
@@ -129,6 +128,7 @@ export default function Usage() {
             </p>
           )}
         </header>
+        {limits.stripeEnabled && <YourPlan />}
         <div className={styles.row}>
           <div className={cx(styles.row, styles.subrow)}>
             <div className={styles.box}>
