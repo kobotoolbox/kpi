@@ -12,8 +12,6 @@ import {
 import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 
-const MAX_PLAN_QUANTITY = 5;
-
 interface PlanContainerProps {
   price: Price;
   isDisabled: boolean;
@@ -161,9 +159,14 @@ export const PlanContainer = ({
 
   const submissionOptions = useMemo((): KoboSelectOption[] => {
     const options = [];
-    const submissionsPerUnit = price.metadata?.submission_limit;
+    const submissionsPerUnit =
+      price.prices.metadata?.submission_limit ||
+      price.metadata?.submission_limit;
+    const maxPlanQuantity = parseInt(
+      price.prices.metadata?.max_purchase_quantity || '1'
+    );
     if (submissionsPerUnit) {
-      for (let i = 1; i <= MAX_PLAN_QUANTITY; i++) {
+      for (let i = 1; i <= maxPlanQuantity; i++) {
         const submissionCount = parseInt(submissionsPerUnit) * i;
         options.push({
           label: '##submissions## submissions/month'.replace(
