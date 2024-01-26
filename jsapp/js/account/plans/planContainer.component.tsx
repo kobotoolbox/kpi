@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {BasePrice, Price, SubscriptionInfo} from 'js/account/stripe.types';
 import {FreeTierOverride, PlanState} from 'js/account/plans/plan.component';
 import {
+  getAdjustedQuantityForPrice,
   getSubscriptionsForProductId,
   isChangeScheduled,
 } from 'js/account/stripe.utils';
@@ -62,6 +63,14 @@ export const PlanContainer = ({
     },
     [hasManageableStatus, state.subscribedProduct]
   );
+
+  // The adjusted quantity is the number we multiply the price by to get the total price
+  const adjustedQuantity = useMemo(() => {
+    return getAdjustedQuantityForPrice(
+      submissionQuantity,
+      price.prices.transform_quantity
+    );
+  }, [price, submissionQuantity]);
 
   // Populate submission dropdown with the submission quantity from the customer's plan, if possible
   useEffect(() => {
@@ -130,7 +139,7 @@ export const PlanContainer = ({
           let iconBool = false;
           const itemName: string =
             price.prices.metadata?.[keyName] || price.metadata[keyName];
-          if (price.metadata[currentIcon] !== undefined) {
+          if (price.metadata?.[currentIcon] !== undefined) {
             iconBool = JSON.parse(price.metadata[currentIcon]);
             listItems.push({icon: iconBool, item: itemName});
           }
@@ -169,7 +178,7 @@ export const PlanContainer = ({
       for (let i = 1; i <= maxPlanQuantity; i++) {
         const submissionCount = parseInt(submissionsPerUnit) * i;
         options.push({
-          label: '##submissions## submissions/month'.replace(
+          label: '##submissions## submissions /month'.replace(
             '##submissions##',
             submissionCount.toLocaleString()
           ),
@@ -212,17 +221,73 @@ export const PlanContainer = ({
             : freeTierOverride?.name || price.name}
         </h1>
         <div className={styles.priceTitle}>{displayPrice}</div>
-        {price.prices.transform_quantity && (
-          <KoboSelect
-            name={t('Total Submissions per Month')}
-            options={submissionOptions}
-            size={'m'}
-            type={'outline'}
-            onChange={onSubmissionsChange}
-            selectedOption={submissionQuantity.toString()}
-          />
-        )}
         <ul className={styles.featureContainer}>
+          {price.prices.transform_quantity && (
+            <>
+              <li className={styles.selectableFeature}>
+                <Icon name='check' size='m' color='teal' />
+                <KoboSelect
+                  name={t('Total Submissions per Month')}
+                  options={submissionOptions}
+                  size={'s'}
+                  type={'outline'}
+                  onChange={onSubmissionsChange}
+                  selectedOption={submissionQuantity.toString()}
+                />
+              </li>
+              <li>
+                <div className={styles.iconContainer}>
+                  <Icon
+                    name='check'
+                    size='m'
+                    color={price.prices.unit_amount ? 'teal' : 'storm'}
+                  />
+                </div>
+                {t('##asr_minutes## minutes of automated transcription /month')
+                  .replace(
+                    '##asr_minutes##',
+                    (
+                      (adjustedQuantity *
+                        (parseInt(price.metadata?.nlp_seconds_limit || '0') ||
+                          parseInt(
+                            price.prices.metadata?.nlp_seconds_limit || '0'
+                          ))) /
+                      60
+                    ).toLocaleString()
+                  )
+                  .replace(
+                    '##plan_interval##',
+                    price.prices.recurring!.interval
+                  )}
+              </li>
+              <li>
+                <div className={styles.iconContainer}>
+                  <Icon
+                    name='check'
+                    size='m'
+                    color={price.prices.unit_amount ? 'teal' : 'storm'}
+                  />
+                </div>
+                {t(
+                  '##mt_characters## characters of machine translation /##plan_interval##'
+                )
+                  .replace(
+                    '##mt_characters##',
+                    (
+                      adjustedQuantity *
+                      (parseInt(price.metadata?.nlp_character_limit || '0') ||
+                        parseInt(
+                          price.prices.metadata?.nlp_character_limit || '0'
+                        ))
+                    ).toLocaleString()
+                  )
+                  .replace(
+                    '##plan_interval##',
+                    price.prices.recurring!.interval
+                  )}
+              </li>
+            </>
+          )}
           {Object.keys(price.metadata).map(
             (featureItem: string) =>
               featureItem.includes('feature_list_') && (

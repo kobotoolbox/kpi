@@ -183,6 +183,13 @@ $plan-badge-height: sizes.$x38;
   margin-right: sizes.$x12;
 }
 
+.selectableFeature {
+  display: inline-flex;
+  align-items: center;
+  gap: sizes.$x6;
+  margin-top: -(sizes.$x10);
+}
+
 .enterprisePlanContainer {
   flex: 1;
   display: flex;
