@@ -9,11 +9,14 @@ import type {LanguageCode} from 'js/components/languages/languagesStore';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 
 interface KeywordSearchFieldsEditorProps {
-  uuid: string;
+  questionUuid: string;
   fields: AdditionalFields;
   onFieldsChange: (fields: AdditionalFields) => void;
 }
 
+/**
+ * TBD
+ */
 export default function KeywordSearchFieldsEditor(
   props: KeywordSearchFieldsEditorProps
 ) {
@@ -49,8 +52,14 @@ export default function KeywordSearchFieldsEditor(
   return (
     <section className={styles.root}>
       <section className={styles.left}>
-        <label htmlFor={inputHtmlId}>{t('Look for')}</label>
+        <label className={styles.sideLabel} htmlFor={inputHtmlId}>
+          {t('Look for')}
+        </label>
 
+        {/*
+          While doing https://github.com/kobotoolbox/kpi/issues/4594 ensure that
+          a support article is written and a link updated here <3
+        */}
         <a className={styles.helpLink} href={'#TODO'}>
           <Icon name={'information'} size='xs' />
           {t('help')}
@@ -70,15 +79,16 @@ export default function KeywordSearchFieldsEditor(
       </section>
 
       <section className={styles.right}>
-        <label>{t('Search this transcript/translation:')}</label>
+        <label className={styles.sideLabel}>
+          {t('Search this transcript/translation:')}
+        </label>
 
         <TransxSelector
           languageCodes={singleProcessingStore.getSources()}
           selectedLanguage={props.fields.source}
           onChange={onSourceChange}
-          // TODO: after PR https://github.com/kobotoolbox/kpi/pull/4423
-          // is merged into feature/analysis branch, lets introduce size and
-          // color props here, so we can use 'm' 'gray' here
+          size='l'
+          type='outline'
         />
       </section>
     </section>

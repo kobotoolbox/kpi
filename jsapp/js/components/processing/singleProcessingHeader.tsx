@@ -127,7 +127,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
 
   goPrev() {
     const prevEditId = this.getPrevSubmissionEditId();
-    if (prevEditId !== null && singleProcessingStore.currentQuestionQpath) {
+    if (prevEditId !== null) {
       this.goToSubmission(
         singleProcessingStore.currentQuestionQpath,
         prevEditId
@@ -137,7 +137,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
 
   goNext() {
     const nextEditId = this.getNextSubmissionEditId();
-    if (nextEditId !== null && singleProcessingStore.currentQuestionQpath) {
+    if (nextEditId !== null) {
       this.goToSubmission(
         singleProcessingStore.currentQuestionQpath,
         nextEditId
@@ -247,7 +247,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
             type='gray'
             size='l'
             options={this.getQuestionSelectorOptions()}
-            selectedOption={singleProcessingStore.currentQuestionQpath || null}
+            selectedOption={singleProcessingStore.currentQuestionQpath}
             onChange={this.onQuestionSelectChange.bind(this)}
           />
         </section>

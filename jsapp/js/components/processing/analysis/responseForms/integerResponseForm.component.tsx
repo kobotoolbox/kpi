@@ -1,28 +1,24 @@
 import React, {useContext, useState} from 'react';
 import TextBox from 'js/components/common/textBox';
-import type {TextBoxType} from 'js/components/common/textBox';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {AUTO_SAVE_TYPING_DELAY} from 'js/components/processing/analysis/constants';
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  quietlyUpdateResponse,
+  updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
 import CommonHeader from './commonHeader.component';
 import commonStyles from './common.module.scss';
 
-interface DefaultResponseFormProps {
+interface IntegerResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
 /**
- * A component responsible for displaying an interactive form for user to
- * respond to given analysis question or to modify existing response.
- *
- * If user has sufficient permissions, it allows to toggle the question
- * definition editor.
+ * Displays a common header and an integer text box.
  */
-export default function DefaultResponseForm(props: DefaultResponseFormProps) {
+export default function IntegerResponseForm(props: IntegerResponseFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
   if (!analysisQuestions) {
     return null;
@@ -40,16 +36,25 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
     return null;
   }
 
-  const [response, setResponse] = useState<string>(question.response);
+  // This will either be an existing response or an empty string
+  const initialResponse =
+    typeof question.response === 'string' ? question.response : '';
+
+  const [response, setResponse] = useState<string>(initialResponse);
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>();
 
-  function saveResponse() {
+  async function saveResponse() {
     clearTimeout(typingTimer);
 
-    quietlyUpdateResponse(
-      analysisQuestions?.state,
-      analysisQuestions?.dispatch,
+    if (!analysisQuestions || !question) {
+      return;
+    }
+
+    updateResponseAndReducer(
+      analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
+      question.type,
       response
     );
   }
@@ -60,13 +65,10 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
     setTypingTimer(setTimeout(saveResponse, AUTO_SAVE_TYPING_DELAY));
   }
 
-  // This component is a general/default component for handling responses, and
-  // we want it to present a text input. But since creating a separate component
-  // for `qual_integer` with a single line being different, we opt for this litte
-  // check here.
-  let textBoxType: TextBoxType = 'text-multiline';
-  if (qaDefinition.type === 'qual_integer') {
-    textBoxType = 'number';
+  function onInputChange(newResponse: string) {
+    analysisQuestions?.dispatch({type: 'hasUnsavedWork'});
+    setResponse(newResponse);
+    saveResponseDelayedAndQuietly();
   }
 
   return (
@@ -75,14 +77,12 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
 
       <section className={commonStyles.content}>
         <TextBox
-          type={textBoxType}
+          type='number'
           value={response}
-          onChange={(newResponse: string) => {
-            setResponse(newResponse);
-            saveResponseDelayedAndQuietly();
-          }}
-          placeholder={t('Start typing your answer')}
+          onChange={onInputChange}
+          placeholder={t('Type your answer')}
           onBlur={saveResponse}
+          disabled={!props.canEdit}
         />
       </section>
     </>

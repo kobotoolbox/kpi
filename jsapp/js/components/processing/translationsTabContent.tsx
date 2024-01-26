@@ -309,6 +309,8 @@ export default class TranslationsTabContent extends React.Component<
             onChange={(newSelectedOption: LanguageCode | null) => {
               this.selectTranslation(newSelectedOption || undefined);
             }}
+            size='s'
+            type='blue'
           />
         </label>
       );

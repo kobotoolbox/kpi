@@ -4,7 +4,7 @@ import AnalysisQuestionsContext from 'js/components/processing/analysis/analysis
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  quietlyUpdateResponse,
+  updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
 import Radio from 'js/components/common/radio';
 import type {RadioOption} from 'js/components/common/radio';
@@ -14,8 +14,12 @@ import styles from './selectOneResponseForm.module.scss';
 
 interface SelectOneResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
+/**
+ * Displays a common header and radio input with all available choices.
+ */
 export default function SelectOneResponseForm(
   props: SelectOneResponseFormProps
 ) {
@@ -36,27 +40,44 @@ export default function SelectOneResponseForm(
     return null;
   }
 
-  const [response, setResponse] = useState<string>(question.response);
+  // This will either be an existing response or an empty string
+  const initialResponse =
+    typeof question.response === 'string' ? question.response : '';
+
+  const [response, setResponse] = useState<string>(initialResponse);
 
   function onRadioChange(newResponse: string) {
+    if (!analysisQuestions || !question) {
+      return;
+    }
+
+    // Update local state
     setResponse(newResponse);
 
-    quietlyUpdateResponse(
-      analysisQuestions?.state,
-      analysisQuestions?.dispatch,
+    // Update endpoint and reducer
+    updateResponseAndReducer(
+      analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
+      question.type,
       newResponse
     );
   }
 
   function getOptions(): RadioOption[] {
     if (question?.additionalFields?.choices) {
-      return question?.additionalFields?.choices.map((choice) => {
-        return {
-          value: choice.uuid,
-          label: choice.label,
-        };
-      });
+      return (
+        question?.additionalFields?.choices
+          // We hide all choices flagged as deleted…
+          .filter((item) => !item.options?.deleted)
+          // …and then we produce radio option object of each choice left
+          .map((choice) => {
+            return {
+              value: choice.uuid,
+              label: choice.labels._default,
+            };
+          })
+      );
     }
     return [];
   }
@@ -74,6 +95,7 @@ export default function SelectOneResponseForm(
           onChange={onRadioChange}
           selected={response}
           isClearable
+          isDisabled={!props.canEdit}
         />
       </section>
     </>

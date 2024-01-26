@@ -4,15 +4,21 @@ import AnalysisQuestionsContext from 'js/components/processing/analysis/analysis
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  quietlyUpdateResponse,
+  updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
+// We don't use `KoboTagsInput` here, because we don't want the tags splitting
+// feature it has built in. It's easier for us to use `TagsInput` directly.
 import TagsInput from 'react-tagsinput';
 import commonStyles from './common.module.scss';
 
 interface TagsResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
+/**
+ * Displays a common header and a tags input.
+ */
 export default function TagsResponseForm(props: TagsResponseFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
   if (!analysisQuestions) {
@@ -31,25 +37,28 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
     return null;
   }
 
-  const [response, setResponse] = useState<string>(question.response);
+  // This will either be an existing list of tags, or an empty list.
+  const initialResponse = Array.isArray(question.response)
+    ? question.response
+    : [];
 
-  function getTags() {
-    if (response?.length !== 0) {
-      return response.split(',');
-    }
-    return [];
-  }
+  const [response, setResponse] = useState<string[]>(initialResponse);
 
   function onTagsChange(newTags: string[]) {
-    const newResponse = newTags.join(',');
+    if (!analysisQuestions || !question) {
+      return;
+    }
 
-    setResponse(newResponse);
+    // Update local state
+    setResponse(newTags);
 
-    quietlyUpdateResponse(
-      analysisQuestions?.state,
-      analysisQuestions?.dispatch,
+    // Update endpoint and reducer
+    updateResponseAndReducer(
+      analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
-      newResponse
+      question.type,
+      newTags
     );
   }
 
@@ -59,11 +68,19 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
 
       <section className={commonStyles.content}>
         <TagsInput
-          value={getTags()}
+          value={response}
           onChange={onTagsChange}
+          // Adds a listener to changes on the internal text field before
+          // text is added as a tag
+          inputProps={{
+            onChange: () => {
+              analysisQuestions?.dispatch({type: 'hasUnsavedWork'});
+            },
+          }}
           onlyUnique
           addOnBlur
           addOnPaste
+          disabled={!props.canEdit}
         />
       </section>
     </>

@@ -8,17 +8,14 @@
   gap: sizes.$x10;
 }
 
-.left,
-.right {
-  :global label {
-    color: colors.$kobo-storm;
-    font-size: sizes.$x12;
-    font-weight: 700;
-    line-height: 200%;
-    margin-bottom: sizes.$x3;
-    display: inline-block;
-    vertical-align: bottom;
-  }
+.sideLabel {
+  color: colors.$kobo-storm;
+  font-size: sizes.$x12;
+  font-weight: 700;
+  line-height: 200%;
+  margin-bottom: sizes.$x3;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 .left {

@@ -1,15 +1,20 @@
 import {generateUuid, moveArrayElementToIndex} from 'jsapp/js/utils';
-import type {AnalysisQuestion} from './constants';
+import type {AnalysisQuestionInternal} from './constants';
 import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
-
-interface AnalysisQuestionDraftable extends AnalysisQuestion {
-  isDraft?: boolean;
-}
+import {
+  applyUpdateResponseToInternalQuestions,
+  updateSingleQuestionPreservingResponse,
+} from './utils';
 
 export interface AnalysisQuestionsState {
   /** Whether any async action is being done right now. */
   isPending: boolean;
-  questions: AnalysisQuestionDraftable[];
+  /**
+   * It's true if user has made a change in the UI and the Back end has not been
+   * updated yet. Every completed call to API will change it back to false.
+   */
+  hasUnsavedWork: boolean;
+  questions: AnalysisQuestionInternal[];
   /**
    * A list of uids of questions with definitions being edited. I.e. whenever
    * project manager starts editing question definition, the uid is being added
@@ -35,24 +40,44 @@ type AnalysisQuestionReducerType = (
 
 export const initialState: AnalysisQuestionsState = {
   isPending: false,
+  hasUnsavedWork: false,
   questions: [],
   questionsBeingEdited: [],
 };
 
+/**
+ * This reducer holds all data related to Qualitative Analysis Questions - both
+ * the definitions and the responses (merged together for simplicity).
+ */
 export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
   state: AnalysisQuestionsState,
   action: AnalysisQuestionsAction
 ) => {
   switch (action.type) {
+    case 'setQuestions': {
+      return {
+        ...state,
+        questions: action.payload.questions,
+      };
+    }
     case 'addQuestion': {
       // This is the place that assigns the uid to the question
       const newUuid = generateUuid();
 
-      const newQuestion: AnalysisQuestionDraftable = {
+      let initialResponse: string | string[] = '';
+      if (
+        action.payload.type === 'qual_tags' ||
+        action.payload.type === 'qual_select_multiple'
+      ) {
+        initialResponse = [];
+      }
+
+      const newQuestion: AnalysisQuestionInternal = {
+        qpath: action.payload.qpath,
         type: action.payload.type,
         labels: {_default: ''},
         uuid: newUuid,
-        response: '',
+        response: initialResponse,
         // Note: initially the question is being added as a draft. It
         // wouldn't be stored in database until user saves it intentionally.
         isDraft: true,
@@ -61,36 +86,46 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         // We add the question at the beginning of the existing array.
-        questions: [
-          newQuestion,
-          ...state.questions,
-        ],
+        questions: [newQuestion, ...state.questions],
         // We immediately open this question for editing
         questionsBeingEdited: [...state.questionsBeingEdited, newUuid],
+        hasUnsavedWork: true,
       };
     }
     case 'deleteQuestion': {
       return {
         ...state,
         isPending: true,
-        // Here we immediately remove the question from the list and wait for
-        // a successful API call that will return new questions list (without
-        // the deleted question).
-        questions: state.questions.filter(
-          (question) => question.uuid !== action.payload.uuid
-        ),
+        // Here we immediately mark the question as `deleted` and wait for
+        // a successful API call that will return new questions list (to ensure
+        // the deletion went as expected).
+        questions: state.questions.map((question) => {
+          if (question.uuid === action.payload.uuid) {
+            if (typeof question.options !== 'object') {
+              question.options = {};
+            }
+            question.options.deleted = true;
+          }
+          return question;
+        }),
       };
     }
     case 'deleteQuestionCompleted': {
       return {
         ...state,
         isPending: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
       };
     }
     case 'startEditingQuestion': {
       return {
         ...state,
+        // Instead of checking changes on every input in the edited question,
+        // we assume that, as soon as user starts to edit a question, there are
+        // unsaved changes. This is not ideal UX, but it's much simpler and
+        // still logical.
+        hasUnsavedWork: true,
         questionsBeingEdited: [
           ...state.questionsBeingEdited,
           action.payload.uuid,
@@ -102,6 +137,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         // If we stop editing a question that was a draft, we need to remove it
         // from the questions list
+        hasUnsavedWork: false,
         questions: state.questions.filter((question) => {
           if (question.uuid === action.payload.uuid && question.isDraft) {
             return false;
@@ -123,11 +159,21 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
-        questions: action.payload.questions,
+        hasUnsavedWork: false,
+        questions: updateSingleQuestionPreservingResponse(
+          action.payload.question,
+          state.questions
+        ),
         // After question definition was updated, we no longer modify it (this
         // closes the editor)
         // Note: this assumes we are only allowing one question editor at a time
         questionsBeingEdited: [],
+      };
+    }
+    case 'udpateQuestionFailed': {
+      return {
+        ...state,
+        isPending: false,
       };
     }
     case 'updateResponse': {
@@ -137,10 +183,23 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       };
     }
     case 'updateResponseCompleted': {
+      const newQuestions = applyUpdateResponseToInternalQuestions(
+        action.payload.qpath,
+        action.payload.apiResponse,
+        state.questions
+      );
+
       return {
         ...state,
         isPending: false,
-        questions: action.payload.questions,
+        hasUnsavedWork: false,
+        questions: newQuestions,
+      };
+    }
+    case 'updateResponseFailed': {
+      return {
+        ...state,
+        isPending: false,
       };
     }
     case 'reorderQuestion': {
@@ -166,6 +225,12 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         questions: action.payload.questions,
       };
     }
+    case 'applyQuestionsOrderFailed': {
+      return {
+        ...state,
+        isPending: false,
+      };
+    }
     case 'initialiseSearch': {
       return {
         ...state,
@@ -176,7 +241,14 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
+      };
+    }
+    case 'hasUnsavedWork': {
+      return {
+        ...state,
+        hasUnsavedWork: true,
       };
     }
     default: {

@@ -4,7 +4,7 @@ import AnalysisQuestionsContext from 'js/components/processing/analysis/analysis
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  quietlyUpdateResponse,
+  updateResponseAndReducer,
 } from 'js/components/processing/analysis/utils';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
@@ -12,8 +12,13 @@ import commonStyles from './common.module.scss';
 
 interface SelectMultipleResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
+/**
+ * Displays a common header and a list of checkboxes - each one for the choice
+ * available.
+ */
 export default function SelectMultipleResponseForm(
   props: SelectMultipleResponseFormProps
 ) {
@@ -34,33 +39,52 @@ export default function SelectMultipleResponseForm(
     return null;
   }
 
-  const [response, setResponse] = useState<string>(question.response);
+  // This will either be an existing list of selected choices, or an empty list.
+  const initialResponse = Array.isArray(question.response)
+    ? question.response
+    : [];
+
+  const [response, setResponse] = useState<string[]>(initialResponse);
 
   function onCheckboxesChange(items: MultiCheckboxItem[]) {
-    const newFields = items
+    if (!analysisQuestions || !question) {
+      return;
+    }
+
+    const newResponse = items
       .filter((item) => item.checked)
       .map((item) => item.name);
-    const newResponse = newFields.join(',');
 
+    analysisQuestions?.dispatch({type: 'hasUnsavedWork'});
+
+    // Update local state
     setResponse(newResponse);
 
-    quietlyUpdateResponse(
-      analysisQuestions?.state,
-      analysisQuestions?.dispatch,
+    // Update endpoint and reducer
+    updateResponseAndReducer(
+      analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
+      question.type,
       newResponse
     );
   }
 
   function getCheckboxes(): MultiCheckboxItem[] {
     if (question?.additionalFields?.choices) {
-      return question?.additionalFields?.choices.map((choice) => {
-        return {
-          name: choice.uuid,
-          label: choice.label,
-          checked: response.split(',').includes(choice.uuid),
-        };
-      });
+      return (
+        question?.additionalFields?.choices
+          // We hide all choices flagged as deleted…
+          .filter((item) => !item.options?.deleted)
+          // …and then we produce checkbox object of each choice left
+          .map((choice) => {
+            return {
+              name: choice.uuid,
+              label: choice.labels._default,
+              checked: response.includes(choice.uuid),
+            };
+          })
+      );
     }
     return [];
   }
@@ -74,6 +98,7 @@ export default function SelectMultipleResponseForm(
           type='bare'
           items={getCheckboxes()}
           onChange={onCheckboxesChange}
+          disabled={!props.canEdit}
         />
       </section>
     </>

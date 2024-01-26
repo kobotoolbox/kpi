@@ -14,6 +14,9 @@ interface KeywordSearchResponseFormProps {
   uuid: string;
 }
 
+/**
+ * TBD, see https://github.com/kobotoolbox/kpi/issues/4594
+ */
 export default function KeywordSearchResponseForm(
   props: KeywordSearchResponseFormProps
 ) {
@@ -125,7 +128,7 @@ export default function KeywordSearchResponseForm(
                     size='s'
                     label={t('##number## instances').replace(
                       '##number##',
-                      question.response
+                      String(question.response)
                     )}
                   />
                   &nbsp;

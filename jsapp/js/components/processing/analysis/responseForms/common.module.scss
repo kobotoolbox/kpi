@@ -3,7 +3,8 @@
 @use '~kobo-common/src/styles/colors';
 @use '../analysisVariables';
 
-$label-left-position: analysisVariables.$icon-size + analysisVariables.$inner-horizontal-gap;
+$label-left-position: analysisVariables.$icon-size +
+  analysisVariables.$inner-horizontal-gap;
 
 .header {
   @include mixins.centerRowFlex;

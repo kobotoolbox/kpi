@@ -6,11 +6,14 @@ import KoboDropdown from 'js/components/common/koboDropdown';
 import {ANALYSIS_QUESTION_TYPES} from './constants';
 import type {AnalysisQuestionTypeDefinition} from './constants';
 import Icon from 'js/components/common/icon';
-import assetStore from 'jsapp/js/assetStore';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import {userCan} from 'js/components/permissions/utils';
 import classNames from 'classnames';
+import {hasManagePermissionsToCurrentAsset} from './utils';
 
+/**
+ * This piece of UI is displaying the button/dropdown for adding new questions
+ * (definitions). It also has a saving state indicator.
+ */
 export default function AnalysisHeader() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
   if (!analysisQuestions) {
@@ -24,12 +27,9 @@ export default function AnalysisHeader() {
     (definition) => definition.isAutomated
   );
 
-  const hasManagePermissions = (() => {
-    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
-    return userCan('manage_asset', asset);
-  })();
-
-  function renderQuestionTypeButton(definition: AnalysisQuestionTypeDefinition) {
+  function renderQuestionTypeButton(
+    definition: AnalysisQuestionTypeDefinition
+  ) {
     return (
       <li
         className={classNames({
@@ -45,7 +45,10 @@ export default function AnalysisHeader() {
         onClick={() => {
           analysisQuestions?.dispatch({
             type: 'addQuestion',
-            payload: {type: definition.type},
+            payload: {
+              qpath: singleProcessingStore.currentQuestionQpath,
+              type: definition.type,
+            },
           });
         }}
         tabIndex={0}
@@ -87,14 +90,19 @@ export default function AnalysisHeader() {
         // We only allow editing one question at a time, so adding new is not
         // possible until user stops editing
         isDisabled={
-          !hasManagePermissions ||
+          !hasManagePermissionsToCurrentAsset() ||
           analysisQuestions?.state.questionsBeingEdited.length !== 0
         }
       />
 
       <span>
+        {!analysisQuestions.state.isPending &&
+          analysisQuestions.state.hasUnsavedWork &&
+          t('Unsaved changes')}
         {analysisQuestions.state.isPending && t('Saving…')}
-        {!analysisQuestions.state.isPending && t('Saved')}
+        {!analysisQuestions.state.hasUnsavedWork &&
+          !analysisQuestions.state.isPending &&
+          t('Saved')}
       </span>
     </header>
   );
