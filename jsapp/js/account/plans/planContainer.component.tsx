@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import styles from 'js/account/plans/plan.module.scss';
 import Icon from 'js/components/common/icon';
 import {PlanButton} from 'js/account/plans/planButton.component';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {BasePrice, Price, SubscriptionInfo} from 'js/account/stripe.types';
 import {FreeTierOverride, PlanState} from 'js/account/plans/plan.component';
 import {
@@ -17,7 +17,7 @@ const MAX_PLAN_QUANTITY = 5;
 interface PlanContainerProps {
   price: Price;
   isDisabled: boolean;
-  isSubscribedProduct: (product: Price) => boolean;
+  isSubscribedProduct: (product: Price, quantity: number) => boolean;
   freeTierOverride: FreeTierOverride | null;
   expandComparison: boolean;
   state: PlanState;
@@ -42,7 +42,6 @@ export const PlanContainer = ({
   activeSubscriptions,
 }: PlanContainerProps) => {
   const [submissionQuantity, setSubmissionQuantity] = useState(1);
-  const [error, setError] = useState('');
   const displayPrice = useDisplayPrice(price.prices, submissionQuantity);
   const shouldShowManage = useCallback(
     (product: Price) => {
@@ -65,6 +64,13 @@ export const PlanContainer = ({
     },
     [hasManageableStatus, state.subscribedProduct]
   );
+
+  useEffect(() => {
+    const subscribedQuantity = activeSubscriptions?.[0]?.quantity;
+    if (subscribedQuantity && isSubscribedProduct(price, subscribedQuantity)) {
+      setSubmissionQuantity(subscribedQuantity);
+    }
+  }, [isSubscribedProduct, activeSubscriptions, price]);
 
   const getFeatureMetadata = (price: Price, featureItem: string) => {
     if (
@@ -182,14 +188,17 @@ export const PlanContainer = ({
 
   return (
     <>
-      {isSubscribedProduct(price) ? (
+      {isSubscribedProduct(price, submissionQuantity) ? (
         <div className={styles.currentPlan}>{t('Your plan')}</div>
       ) : (
         <div />
       )}
       <div
         className={classnames({
-          [styles.planContainerWithBadge]: isSubscribedProduct(price),
+          [styles.planContainerWithBadge]: isSubscribedProduct(
+            price,
+            submissionQuantity
+          ),
           [styles.planContainer]: true,
         })}
       >
@@ -252,7 +261,7 @@ export const PlanContainer = ({
               price.prices.unit_amount
           }
           quantity={submissionQuantity}
-          isSubscribedToPlan={isSubscribedProduct(price)}
+          isSubscribedToPlan={isSubscribedProduct(price, submissionQuantity)}
           buySubscription={buySubscription}
           showManage={shouldShowManage(price)}
           isBusy={isDisabled}

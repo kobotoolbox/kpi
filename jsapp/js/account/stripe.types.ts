@@ -143,10 +143,20 @@ export interface BasePrice {
   metadata: {[key: string]: string};
   product: BaseProduct;
   billing_scheme: 'per_unit' | 'tiered' | null;
-  transform_quantity: null | {
-    round: 'up' | 'down';
-    divide_by: number;
-  };
+  transform_quantity: null | TransformQuantity;
+}
+
+export type PriceMetadata = Record<
+  string,
+  string | TransformQuantity | null
+> & {
+  quantity: string;
+  transform_quantity: null | TransformQuantity;
+};
+
+export interface TransformQuantity {
+  divide_by: number;
+  round: 'up' | 'down';
 }
 
 export interface BaseSubscription {
@@ -210,7 +220,7 @@ export enum SubscriptionChangeType {
   RENEWAL,
   PRODUCT_CHANGE,
   PRICE_CHANGE,
-  NO_CHANGE
+  NO_CHANGE,
 }
 
 export type ChangePlan =

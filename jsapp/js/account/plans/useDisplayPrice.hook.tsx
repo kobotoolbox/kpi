@@ -14,7 +14,10 @@ export const useDisplayPrice = (
     if (price?.recurring?.interval === 'year') {
       totalPrice /= 12;
     }
-    totalPrice *= getAdjustedQuantityForPrice(submissionQuantity, price);
+    totalPrice *= getAdjustedQuantityForPrice(
+      submissionQuantity,
+      price.transform_quantity
+    );
     return t('$##price## USD/month').replace(
       '##price##',
       totalPrice.toFixed(2)

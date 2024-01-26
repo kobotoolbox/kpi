@@ -336,7 +336,7 @@ export default function Plan() {
             // don't show recurring add-ons
             product.metadata.product_type === 'plan' &&
             // only show products that don't have a `plan_type` or those that match the `?type=` query param
-            (visiblePlanTypes.includes(product.metadata?.plan_type) ||
+            (visiblePlanTypes.includes(product.metadata?.plan_type || '') ||
               (!product.metadata?.plan_type &&
                 visiblePlanTypes.includes('default')))
           );
@@ -356,7 +356,7 @@ export default function Plan() {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
-    (product: Price) => {
+    (product: Price, quantity = null) => {
       if (!product.prices?.unit_amount && !hasActiveSubscription) {
         return true;
       }
@@ -370,7 +370,9 @@ export default function Plan() {
         return subscriptions.some(
           (subscription: SubscriptionInfo) =>
             subscription.items[0].price.id === product.prices.id &&
-            hasManageableStatus(subscription)
+            hasManageableStatus(subscription) &&
+            quantity &&
+            quantity === subscription.quantity
         );
       }
       return false;
@@ -495,6 +497,7 @@ export default function Plan() {
                 {filterPrices.map((price: Price) => (
                   <div className={styles.stripePlans} key={price.id}>
                     <PlanContainer
+                      key={price.prices.id}
                       freeTierOverride={freeTierOverride}
                       expandComparison={expandComparison}
                       isSubscribedProduct={isSubscribedProduct}
@@ -582,6 +585,7 @@ export default function Plan() {
             )}
             <ConfirmChangeModal
               onRequestClose={dismissConfirmModal}
+              setIsBusy={setIsBusy}
               {...confirmModal}
             />
           </div>
