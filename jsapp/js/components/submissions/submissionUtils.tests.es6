@@ -28,6 +28,7 @@ import {
   matrixRepeatSurveySubmission,
   matrixRepeatSurveyDisplayData,
   submissionWithAttachmentsWithUnicode,
+  assetWithSupplementalDetails,
   submissionWithSupplementalDetails,
 } from './submissionUtils.mocks';
 import {
