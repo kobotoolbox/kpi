@@ -31,6 +31,7 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
+from kobo.apps.stripe.utils import get_total_price_for_quantity
 from kpi.permissions import IsAuthenticated
 
 
@@ -85,14 +86,16 @@ class ChangePlanView(APIView):
     def modify_subscription(price, subscription, quantity):
         stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
         subscription_item = subscription.items.get()
-        # Exit immediately if the price we're changing to is the same as the price they're currently paying
-        if price.id == subscription_item.price.id:
+        # Exit immediately if the price/quantity we're changing to is the price/quantity they're currently subscribed to
+        if quantity == subscription.quantity and price.id == subscription_item.price.id:
             return Response(
                 {'status': 'already subscribed'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # If we're upgrading their plan or moving to a plan with the same price, change the subscription immediately
-        if price.unit_amount >= subscription_item.price.unit_amount:
+        current_total_price = get_total_price_for_quantity(subscription_item.price, subscription.quantity)
+        new_total_price = get_total_price_for_quantity(price, quantity)
+        if new_total_price >= current_total_price:
             stripe_response = stripe.Subscription.modify(
                 subscription.id,
                 payment_behavior='pending_if_incomplete',
@@ -101,6 +104,7 @@ class ChangePlanView(APIView):
                     {
                         'id': subscription_item.id,
                         'price': price.id,
+                        'quantity': quantity,
                     }
                 ],
             )
@@ -132,8 +136,9 @@ class ChangePlanView(APIView):
                 subscription=subscription,
                 status=enums.SubscriptionScheduleStatus.active,
             )
-            # If the subscription is already scheduled to change to the given price, quit
-            if schedule.phases[-1]['items'][0]['price'] == price_id:
+            # If the subscription is already scheduled to change to the given price/quantity, quit
+            last_phase_item = schedule.phases[-1]['items'][0]
+            if last_phase_item['price'] == price_id and last_phase_item.get('quantity') == quantity:
                 return Response(
                     {'status': 'already scheduled to change to price'},
                     status=status.HTTP_400_BAD_REQUEST,
