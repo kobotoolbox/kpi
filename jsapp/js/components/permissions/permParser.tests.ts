@@ -2,6 +2,7 @@ import {
   parseFormData,
   buildFormData,
   parseBackendData,
+  removeImpliedPerms,
   parseUserWithPermsList,
   sortParseBackendOutput,
 } from './permParser';
@@ -63,6 +64,105 @@ describe('permParser', () => {
       chai.expect(parsed[1].permissions.length).to.equal(2);
       chai.expect(parsed[2].user.name).to.equal('olivier');
       chai.expect(parsed[2].permissions.length).to.equal(1);
+    });
+  });
+
+  describe('removeImpliedPerms', () => {
+    it('should remove implied non-partial permissions', () => {
+      const cleanedUpOutput = removeImpliedPerms([
+        // Delete submissions is the one that gives/implies `view_submissions`
+        // and `view_asset`
+        {
+          user: '/api/v2/users/joe/',
+          permission: '/api/v2/permissions/delete_submissions/',
+        },
+        {
+          user: '/api/v2/users/joe/',
+          permission: '/api/v2/permissions/view_submissions/',
+        },
+        {
+          user: '/api/v2/users/joe/',
+          permission: '/api/v2/permissions/view_asset/',
+        },
+      ]);
+
+      chai.expect(cleanedUpOutput).to.deep.equal([
+        {
+          user: '/api/v2/users/joe/',
+          permission: '/api/v2/permissions/delete_submissions/',
+        },
+      ]);
+    });
+
+    it('should remove implied partial permissions', () => {
+      const cleanedUpOutput = removeImpliedPerms([
+        {
+          user: '/api/v2/users/gwyneth/',
+          permission: '/api/v2/permissions/partial_submissions/',
+          partial_permissions: [
+            {
+              url: '/api/v2/permissions/add_submissions/',
+              filters: [
+                {
+                  Where_is_it: 'North',
+                  _submitted_by: 'georgia',
+                },
+              ],
+            },
+            {
+              url: '/api/v2/permissions/view_submissions/',
+              filters: [
+                {
+                  Where_is_it: 'South',
+                  _submitted_by: {
+                    $in: ['josh', 'bob'],
+                  },
+                },
+                {
+                  Where_is_it: 'North',
+                  _submitted_by: 'georgia',
+                },
+              ],
+            },
+            {
+              url: '/api/v2/permissions/change_submissions/',
+              filters: [
+                {
+                  Where_is_it: 'North',
+                  _submitted_by: 'georgia',
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+
+      chai.expect(cleanedUpOutput).to.deep.equal([
+        {
+          user: '/api/v2/users/gwyneth/',
+          permission: '/api/v2/permissions/partial_submissions/',
+          partial_permissions: [
+            {
+              url: '/api/v2/permissions/view_submissions/',
+              filters: [
+                {
+                  _submitted_by: {$in: ['josh', 'bob']},
+                  Where_is_it: 'South',
+                },
+              ],
+            },
+            {
+              url: '/api/v2/permissions/change_submissions/',
+              filters: [
+                {
+                  _submitted_by: 'georgia',
+                  Where_is_it: 'North',
+                },
+              ],
+            },
+          ],
+        },
+      ]);
     });
   });
 
@@ -182,7 +282,6 @@ describe('permParser', () => {
 
       chai.expect(built).to.deep.equal({
         username: 'eric',
-        formView: true,
         submissionsView: true,
       });
     });
@@ -197,7 +296,6 @@ describe('permParser', () => {
 
       chai.expect(built).to.deep.equal({
         username: 'tessa',
-        formView: true,
         submissionsViewPartialByUsers: true,
         submissionsViewPartialByUsersList: ['john', 'olivier'],
         submissionsEditPartialByResponses: true,
@@ -250,7 +348,6 @@ describe('permParser', () => {
 
       chai.expect(builtFormData).to.deep.equal({
         username: 'gwyneth',
-        formView: true,
         submissionsAdd: true,
         submissionsViewPartialByUsers: true,
         submissionsViewPartialByUsersList: ['dave', 'krzysztof'],
@@ -325,7 +422,7 @@ describe('permParser', () => {
                 {
                   _submitted_by: {$in: ['john', 'olivier', 'eric']},
                   Where_are_you_from: 'Poland',
-                }
+                },
               ],
             },
           ],

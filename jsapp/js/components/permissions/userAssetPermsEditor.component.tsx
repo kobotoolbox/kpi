@@ -4,21 +4,16 @@ import cx from 'classnames';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
-import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {parseFormData, buildFormData} from './permParser';
-import type {UserPerm, PermsFormData} from './permParser';
-import permConfig from './permConfig';
 import {notify} from 'js/utils';
 import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
 import {KEY_CODES} from 'js/constants';
 import {
-  PARTIAL_BY_USERS_PERM_PAIRS,
-  PARTIAL_BY_RESPONSES_PERM_PAIRS,
+  CHECKBOX_DISABLED_SUFFIX,
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
-  PARTIAL_IMPLIED_CHECKBOX_PAIRS,
 } from './permConstants';
 import type {
   CheckboxNameAll,
@@ -28,7 +23,7 @@ import type {
   PermissionCodename,
 } from './permConstants';
 import type {AssignablePermsMap} from './sharingForm.component';
-import type {PermissionBase} from 'js/dataInterface';
+import type {PermissionBase, PermissionResponse} from 'js/dataInterface';
 import userExistence from 'js/users/userExistence.store';
 import {
   getPartialByUsersListName,
@@ -40,19 +35,24 @@ import {getSurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import {
+  applyValidityRules,
+  isAssignable,
+  isPartialByUsersValid,
+  isPartialByResponsesValid,
+  getFormData,
+} from './userAssetPermsEditor.utils';
 import styles from './userAssetPermsEditor.module.scss';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
 const USERNAMES_SEPARATOR = ',';
-
-const SUFFIX_DISABLED = 'Disabled';
 
 interface UserAssetPermsEditorProps {
   assetUid: string;
   /** Permissions user username (could be empty for new) */
   username?: string;
   /** list of permissions (could be empty for new) */
-  permissions?: UserPerm[];
+  permissions?: PermissionResponse[];
   assignablePerms: AssignablePermsMap;
   /** List of permissions with exclusion of the asset owner permissions */
   nonOwnerPerms: PermissionBase[];
@@ -61,7 +61,7 @@ interface UserAssetPermsEditorProps {
 }
 
 /** Note that this bares a lot of similarities with `PermsFormData` interface */
-interface UserAssetPermsEditorState {
+export interface UserAssetPermsEditorState {
   isSubmitPending: boolean;
   // We need both `isEditingUsername` and `isCheckingUsername` to block sending
   // permissions to Back end, when we're not sure if user exists.
@@ -78,8 +78,10 @@ interface UserAssetPermsEditorState {
   submissionsView: boolean;
   submissionsViewDisabled: boolean;
   submissionsViewPartialByUsers: boolean;
+  submissionsViewPartialByUsersDisabled: boolean;
   submissionsViewPartialByUsersList: string[];
   submissionsViewPartialByResponses: boolean;
+  submissionsViewPartialByResponsesDisabled: boolean;
   submissionsViewPartialByResponsesQuestion: string | null;
   submissionsViewPartialByResponsesValue: string;
   submissionsAdd: boolean;
@@ -87,22 +89,28 @@ interface UserAssetPermsEditorState {
   submissionsEdit: boolean;
   submissionsEditDisabled: boolean;
   submissionsEditPartialByUsers: boolean;
+  submissionsEditPartialByUsersDisabled: boolean;
   submissionsEditPartialByUsersList: string[];
   submissionsEditPartialByResponses: boolean;
+  submissionsEditPartialByResponsesDisabled: boolean;
   submissionsEditPartialByResponsesQuestion: string | null;
   submissionsEditPartialByResponsesValue: string;
   submissionsValidate: boolean;
   submissionsValidateDisabled: boolean;
   submissionsValidatePartialByUsers: boolean;
+  submissionsValidatePartialByUsersDisabled: boolean;
   submissionsValidatePartialByUsersList: string[];
   submissionsValidatePartialByResponses: boolean;
+  submissionsValidatePartialByResponsesDisabled: boolean;
   submissionsValidatePartialByResponsesQuestion: string | null;
   submissionsValidatePartialByResponsesValue: string;
   submissionsDelete: boolean;
   submissionsDeleteDisabled: boolean;
   submissionsDeletePartialByUsers: boolean;
+  submissionsDeletePartialByUsersDisabled: boolean;
   submissionsDeletePartialByUsersList: string[];
   submissionsDeletePartialByResponses: boolean;
+  submissionsDeletePartialByResponsesDisabled: boolean;
   submissionsDeletePartialByResponsesQuestion: string | null;
   submissionsDeletePartialByResponsesValue: string;
 }
@@ -133,8 +141,10 @@ export default class UserAssetPermsEditor extends React.Component<
       submissionsView: false,
       submissionsViewDisabled: false,
       submissionsViewPartialByUsers: false,
+      submissionsViewPartialByUsersDisabled: false,
       submissionsViewPartialByUsersList: [],
       submissionsViewPartialByResponses: false,
+      submissionsViewPartialByResponsesDisabled: false,
       submissionsViewPartialByResponsesQuestion: null,
       submissionsViewPartialByResponsesValue: '',
       submissionsAdd: false,
@@ -142,22 +152,28 @@ export default class UserAssetPermsEditor extends React.Component<
       submissionsEdit: false,
       submissionsEditDisabled: false,
       submissionsEditPartialByUsers: false,
+      submissionsEditPartialByUsersDisabled: false,
       submissionsEditPartialByUsersList: [],
       submissionsEditPartialByResponses: false,
+      submissionsEditPartialByResponsesDisabled: false,
       submissionsEditPartialByResponsesQuestion: null,
       submissionsEditPartialByResponsesValue: '',
       submissionsValidate: false,
       submissionsValidateDisabled: false,
       submissionsValidatePartialByUsers: false,
+      submissionsValidatePartialByUsersDisabled: false,
       submissionsValidatePartialByUsersList: [],
       submissionsValidatePartialByResponses: false,
+      submissionsValidatePartialByResponsesDisabled: false,
       submissionsValidatePartialByResponsesQuestion: null,
       submissionsValidatePartialByResponsesValue: '',
       submissionsDelete: false,
       submissionsDeleteDisabled: false,
       submissionsDeletePartialByUsers: false,
+      submissionsDeletePartialByUsersDisabled: false,
       submissionsDeletePartialByUsersList: [],
       submissionsDeletePartialByResponses: false,
+      submissionsDeletePartialByResponsesDisabled: false,
       submissionsDeletePartialByResponsesQuestion: null,
       submissionsDeletePartialByResponsesValue: '',
     };
@@ -180,12 +196,17 @@ export default class UserAssetPermsEditor extends React.Component<
    * Fills up form with provided user name and permissions (if applicable)
    */
   applyPropsData() {
+    // Build form data from given existing permissions (e.g. when this component
+    // is being used to edit existing permissions)
     const formData = buildFormData(
       this.props.permissions || [],
       this.props.username
     );
 
-    this.state = this.applyValidityRules(Object.assign(this.state, formData));
+    // Merge built form data with existing state (with defaults) and then apply
+    // validity rules (handles disabling and checking/unchecking properties
+    // based on implied/contradictory rules from `permConfig`).
+    this.state = applyValidityRules(Object.assign(this.state, formData));
   }
 
   componentDidMount() {
@@ -225,142 +246,13 @@ export default class UserAssetPermsEditor extends React.Component<
   }
 
   /**
-   * Helps to avoid users submitting invalid data.
-   *
-   * Checking some of the checkboxes implies that other are also checked
-   * and can't be unchecked.
-   *
-   * Checking some of the checkboxes implies that other can't be checked.
-   *
-   * Returns updated state object
-   */
-  applyValidityRules(stateObj: UserAssetPermsEditorState) {
-    // Step 1: Avoid mutation
-    let output = clonedeep(stateObj);
-
-    // Step 2: Enable all checkboxes (make them not disabled) before applying
-    // the rules
-    for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
-      output = Object.assign(output, {[checkboxName + SUFFIX_DISABLED]: false});
-    }
-
-    // Step 3: Lock submission add -- OUTDATED after per project anonymous submissions
-
-    // Step 4: Apply permissions configuration rules to checkboxes
-    for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
-      output = this.applyValidityRulesForCheckbox(checkboxName, output);
-    }
-
-    // Step 5: For each unchecked partial checkbox, clean up the data of related
-    // properties
-    for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
-      if (
-        checkboxName in PARTIAL_BY_USERS_PERM_PAIRS &&
-        output[checkboxName] === false
-      ) {
-        const byUsersCheckboxName = checkboxName as CheckboxNamePartialByUsers;
-        const listName = getPartialByUsersListName(byUsersCheckboxName);
-        // Cleanup the list of users
-        output = Object.assign(output, {[listName]: []});
-      }
-
-      if (
-        checkboxName in PARTIAL_BY_RESPONSES_PERM_PAIRS &&
-        output[checkboxName] === false
-      ) {
-        const byResponsesCheckboxName =
-          checkboxName as CheckboxNamePartialByResponses;
-        const questionName = getPartialByResponsesQuestionName(
-          byResponsesCheckboxName
-        );
-        const valueName = getPartialByResponsesValueName(
-          byResponsesCheckboxName
-        );
-        // Cleanup the question and value
-        output = Object.assign(output, {[questionName]: null, [valueName]: ''});
-      }
-    }
-
-    return output;
-  }
-
-  /**
-   * For given checkbox (permission) uses permissions config to fix all implied
-   * and contradictory checkboxes (permissions).
-   *
-   * Returns updated state object
-   */
-  applyValidityRulesForCheckbox(
-    checkboxName: CheckboxNameAll,
-    stateObj: UserAssetPermsEditorState
-  ) {
-    let output = clonedeep(stateObj);
-
-    // Step 1: Only apply the rules for checked checkboxes
-    if (output[checkboxName] === false) {
-      return output;
-    }
-
-    // Step 2: Get implied and contradictory perms from definition
-    const permDef = permConfig.getPermissionByCodename(
-      CHECKBOX_PERM_PAIRS[checkboxName]
-    );
-    const impliedPerms = permDef?.implied || [];
-    const contradictoryPerms = permDef?.contradictory || [];
-
-    // Step 3: All implied will be checked and disabled
-    impliedPerms.forEach((permUrl) => {
-      const impliedPermDef = permConfig.getPermission(permUrl);
-      if (!impliedPermDef) {
-        return;
-      }
-
-      let impliedCheckboxes = this.getPermissionCheckboxPairs(
-        impliedPermDef.codename
-      );
-      if (checkboxName in PARTIAL_IMPLIED_CHECKBOX_PAIRS) {
-        impliedCheckboxes = impliedCheckboxes.concat(
-          PARTIAL_IMPLIED_CHECKBOX_PAIRS[checkboxName]
-        );
-      }
-
-      impliedCheckboxes.forEach((impliedCheckbox) => {
-        output = Object.assign(output, {
-          [impliedCheckbox]: true,
-          [impliedCheckbox + SUFFIX_DISABLED]: true,
-        });
-      });
-    });
-
-    // Step 4: All contradictory will be unchecked and disabled
-    contradictoryPerms.forEach((permUrl) => {
-      const contradictoryPermDef = permConfig.getPermission(permUrl);
-      if (!contradictoryPermDef) {
-        return;
-      }
-
-      const contradictoryCheckboxes = this.getPermissionCheckboxPairs(
-        contradictoryPermDef.codename
-      );
-      contradictoryCheckboxes.forEach((contradictoryCheckbox) => {
-        output = Object.assign(output, {
-          [contradictoryCheckbox]: false,
-          [contradictoryCheckbox + SUFFIX_DISABLED]: true,
-        });
-      });
-    });
-
-    return output;
-  }
-
-  /**
    * Single callback for all checkboxes to keep the complex connections logic
    * being up to date regardless which one changed.
    */
   onCheckboxChange(checkboxName: CheckboxNameAll, isChecked: boolean) {
     let output = clonedeep(this.state);
     output = Object.assign(output, {[checkboxName]: isChecked});
-    this.setState(this.applyValidityRules(output));
+    this.setState(applyValidityRules(output));
   }
 
   /**
@@ -448,31 +340,9 @@ export default class UserAssetPermsEditor extends React.Component<
     this.setState(output);
   }
 
-  /**
-   * Multiple checkboxes have `partial_submissions`, so this function returns
-   * an array of items
-   */
-  getPermissionCheckboxPairs(permCodename: PermissionCodename) {
-    const found: CheckboxNameAll[] = [];
-
-    for (const [checkboxName, checkboxPermPair] of Object.entries(
-      CHECKBOX_PERM_PAIRS
-    )) {
-      if (checkboxPermPair === permCodename) {
-        found.push(checkboxName as CheckboxNameAll);
-      }
-    }
-
-    return found;
-  }
-
+  // We make a proxy here to avoid passing `assignablePerms` props each time
   isAssignable(permCodename: PermissionCodename) {
-    const permDef = permConfig.getPermissionByCodename(permCodename);
-    if (!permDef) {
-      return false;
-    } else {
-      return this.props.assignablePerms.has(permDef.url);
-    }
+    return isAssignable(permCodename, this.props.assignablePerms);
   }
 
   /**
@@ -488,14 +358,26 @@ export default class UserAssetPermsEditor extends React.Component<
 
     return (
       isAnyCheckboxChecked &&
-      this.isPartialByUsersValid('submissionsViewPartialByUsers') &&
-      this.isPartialByUsersValid('submissionsEditPartialByUsers') &&
-      this.isPartialByUsersValid('submissionsDeletePartialByUsers') &&
-      this.isPartialByUsersValid('submissionsValidatePartialByUsers') &&
-      this.isPartialByResponsesValid('submissionsViewPartialByResponses') &&
-      this.isPartialByResponsesValid('submissionsEditPartialByResponses') &&
-      this.isPartialByResponsesValid('submissionsDeletePartialByResponses') &&
-      this.isPartialByResponsesValid('submissionsValidatePartialByResponses') &&
+      isPartialByUsersValid('submissionsViewPartialByUsers', this.state) &&
+      isPartialByUsersValid('submissionsEditPartialByUsers', this.state) &&
+      isPartialByUsersValid('submissionsDeletePartialByUsers', this.state) &&
+      isPartialByUsersValid('submissionsValidatePartialByUsers', this.state) &&
+      isPartialByResponsesValid(
+        'submissionsViewPartialByResponses',
+        this.state
+      ) &&
+      isPartialByResponsesValid(
+        'submissionsEditPartialByResponses',
+        this.state
+      ) &&
+      isPartialByResponsesValid(
+        'submissionsDeletePartialByResponses',
+        this.state
+      ) &&
+      isPartialByResponsesValid(
+        'submissionsValidatePartialByResponses',
+        this.state
+      ) &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       !this.state.isCheckingUsername &&
@@ -505,77 +387,6 @@ export default class UserAssetPermsEditor extends React.Component<
     );
   }
 
-  /**
-   * The list of users for …PartialByUsers checkbox can't be empty if
-   * the checkbox is checked
-   */
-  isPartialByUsersValid(partialCheckboxName: CheckboxNamePartialByUsers) {
-    // If partial checkbox is checked, we require the users list to not be empty
-    if (this.state[partialCheckboxName] === true) {
-      return (
-        this.state[getPartialByUsersListName(partialCheckboxName)].length !== 0
-      );
-    }
-    return true;
-  }
-
-  isPartialByResponsesValid(
-    partialCheckboxName: CheckboxNamePartialByResponses
-  ) {
-    // If partial checkbox is checked, we require the question and value to be
-    // present
-    if (this.state[partialCheckboxName] === true) {
-      return (
-        this.state[getPartialByResponsesQuestionName(partialCheckboxName)] &&
-        this.state[getPartialByResponsesValueName(partialCheckboxName)]
-      );
-    }
-    return true;
-  }
-
-  /**
-   * Returns only the properties for assignable permissions
-   */
-  getFormData() {
-    const output: PermsFormData = {
-      // We always include username
-      username: this.state.username,
-    };
-
-    // We loop through all of the checkboxes to see if the permission paired to
-    // it is assignable
-    for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
-      if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
-        // Add current form data to output
-        output[checkboxName] = this.state[checkboxName];
-
-        if (checkboxName in PARTIAL_BY_USERS_PERM_PAIRS) {
-          // We cast it here, because we ensure it's partial "by users" with
-          // the above function
-          const listName = getPartialByUsersListName(
-            checkboxName as CheckboxNamePartialByUsers
-          );
-          output[listName] = this.state[listName];
-        }
-
-        if (checkboxName in PARTIAL_BY_RESPONSES_PERM_PAIRS) {
-          // We cast it here, because we ensure it's partial "by responses" with
-          // the above function
-          const questionName = getPartialByResponsesQuestionName(
-            checkboxName as CheckboxNamePartialByResponses
-          );
-          const valueName = getPartialByResponsesValueName(
-            checkboxName as CheckboxNamePartialByResponses
-          );
-          output[questionName] = this.state[questionName] || '';
-          output[valueName] = this.state[valueName];
-        }
-      }
-    }
-
-    return output;
-  }
-
   onSubmit(evt: React.FormEvent<HTMLFormElement>) {
     evt.preventDefault();
 
@@ -583,7 +394,7 @@ export default class UserAssetPermsEditor extends React.Component<
       return;
     }
 
-    const formData = this.getFormData();
+    const formData = getFormData(this.state, this.props.assignablePerms);
 
     const parsedPerms = parseFormData(formData);
 
@@ -612,7 +423,7 @@ export default class UserAssetPermsEditor extends React.Component<
     // We need to trick TypeScript here, because we don't want to refactor too
     // much code to make it perfect
     const disabledPropName = (checkboxName +
-      SUFFIX_DISABLED) as keyof UserAssetPermsEditorState;
+      CHECKBOX_DISABLED_SUFFIX) as keyof UserAssetPermsEditorState;
     const isDisabled = Boolean(this.state[disabledPropName]);
     return (
       <Checkbox

@@ -1,3 +1,5 @@
+import isEqual from 'lodash.isequal';
+import clonedeep from 'lodash.clonedeep';
 import permConfig from './permConfig';
 import type {
   PermissionCodename,
@@ -27,14 +29,6 @@ import {
   getPartialByUsersFilterList,
   getPartialByResponsesFilter,
 } from './utils';
-
-export interface UserPerm {
-  /** Url of given permission instance (permission x user). */
-  url: string;
-  /** Url of given permission type. */
-  permission: string;
-  partial_permissions?: PartialPermission[];
-}
 
 export interface PermsFormData {
   /** Who give permissions to */
@@ -79,7 +73,7 @@ export interface UserWithPerms {
     isOwner: boolean;
   };
   /** A list of permissions for that user. */
-  permissions: UserPerm[];
+  permissions: PermissionResponse[];
 }
 
 /**
@@ -137,7 +131,9 @@ function buildBackendPerm(
 }
 
 /**
- * Removes contradictory permissions from the parsed list of BackendPerms.
+ * Removes contradictory permissions from the parsed list of BackendPerms. This
+ * is mostly needed for safety reasons, cleaning up some permissions that don't
+ * make sense.
  */
 function removeContradictoryPerms(parsed: PermissionBase[]): PermissionBase[] {
   const contraPerms = new Set();
@@ -154,9 +150,62 @@ function removeContradictoryPerms(parsed: PermissionBase[]): PermissionBase[] {
 }
 
 /**
- * Removes implied permissions from the parsed list of BackendPerms.
+ * Removes all redundant (implied) filters and permissions from a list of
+ * partial permissions.
  */
-function removeImpliedPerms(parsed: PermissionBase[]): PermissionBase[] {
+export function removeImpliedPartialPerms(
+  partialPerms: PartialPermission[]
+): PartialPermission[] {
+  // Step 1. Don't mutate things
+  let perms = clonedeep(partialPerms);
+
+  // Step 2. Gather all implied permissions x filters pairs.
+  const redundantFilters: Array<{
+    permUrl: string;
+    filter: PartialPermissionFilter;
+  }> = [];
+  perms.forEach((partialPerm) => {
+    const permDef = permConfig.getPermission(partialPerm.url);
+    permDef?.implied.forEach((impliedPerm) => {
+      partialPerm.filters.forEach((filter) => {
+        redundantFilters.push({
+          permUrl: impliedPerm,
+          filter: filter,
+        });
+      });
+    });
+  });
+
+  // Step 3. Traverse through partial permissions again, this time removing all
+  // filters found in `redundantFilters`, and all permissions with empty
+  // filters (meaning all filters for that permissions are implied, so whole
+  // permission is in fact implied).
+  perms = perms.filter((partialPerm) => {
+    const currentPermUrl = partialPerm.url;
+
+    // Remove given filter for given permission if it's on the list
+    partialPerm.filters = partialPerm.filters.filter(
+      (item) =>
+        !redundantFilters.some((redundantFilter) =>
+          isEqual(redundantFilter, {permUrl: currentPermUrl, filter: item})
+        )
+    );
+
+    // if filters array is empty, remove whole permission
+    return partialPerm.filters.length !== 0;
+  });
+
+  return perms;
+}
+
+/**
+ * Removes implied permissions from the parsed list of BackendPerms. Also
+ * removes any implied partial permissions (technically removes implied filters)
+ * from within any single `partial_permissions`
+ */
+export function removeImpliedPerms(parsed: PermissionBase[]): PermissionBase[] {
+  // Step 1. Loop through all given permissions and store all implied perms they
+  // have (as a flat list in `impliedPerms`).
   const impliedPerms = new Set();
   parsed.forEach((backendPerm) => {
     const permDef = permConfig.getPermission(backendPerm.permission);
@@ -164,10 +213,26 @@ function removeImpliedPerms(parsed: PermissionBase[]): PermissionBase[] {
       impliedPerms.add(impliedPerm);
     });
   });
-  parsed = parsed.filter(
+
+  // Step 2. We remove implied from the outcome list
+  const output = parsed.filter(
     (backendPerm) => !impliedPerms.has(backendPerm.permission)
   );
-  return parsed;
+
+  // Step 3. Remove implied permissions for each `partial_submissions` left
+  output.forEach((backendPerm) => {
+    const permDef = permConfig.getPermission(backendPerm.permission);
+    if (
+      permDef?.codename === 'partial_submissions' &&
+      backendPerm.partial_permissions
+    ) {
+      backendPerm.partial_permissions = removeImpliedPartialPerms(
+        backendPerm.partial_permissions
+      );
+    }
+  });
+
+  return output;
 }
 
 /**
@@ -278,17 +343,25 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
 }
 
 /**
- * Builds form data from list of permissions.
+ * Builds form data from a list of permissions. It will only produce data for
+ * the properties that comes directly from these permissions, i.e. there will
+ * be nothing in returned object that comes from implied permissions. Other
+ * functions are ensuring that (see `applyValidityRules` function from
+ * `userAssetPermsEditor.utils.ts` file).
  */
 export function buildFormData(
-  permissions: UserPerm[],
+  permissions: PermissionResponse[],
   username?: string
 ): PermsFormData {
   const formData: PermsFormData = {
     username: username || '',
   };
 
-  permissions.forEach((perm) => {
+  // The UI code is confused when it gets all implied permissions together with
+  // the "actual" ones, so we need to do some cleanup first
+  const deimpliedPerms = removeImpliedPerms(permissions);
+
+  deimpliedPerms.forEach((perm) => {
     if (perm.permission === getPermUrl('view_asset')) {
       formData.formView = true;
     }
@@ -424,7 +497,7 @@ export function parseUserWithPermsList(
  */
 export function parseBackendData(
   /** Permissions array (results property from endpoint response) */
-  data: PermissionResponse[],
+  perms: PermissionResponse[],
   /** Asset owner url (used as identifier) */
   ownerUrl: string,
   /** Whether to include permissions assigned to the anonymous user */
@@ -432,22 +505,16 @@ export function parseBackendData(
 ): UserWithPerms[] {
   const output: UserWithPerms[] = [];
 
-  const groupedData: {[userName: string]: UserPerm[]} = {};
-  data.forEach((item) => {
+  const groupedData: {[userName: string]: PermissionResponse[]} = {};
+  perms.forEach((perm) => {
     // anonymous user permissions are our inner way of handling public sharing
-    if (getUsernameFromUrl(item.user) === ANON_USERNAME && !includeAnon) {
+    if (getUsernameFromUrl(perm.user) === ANON_USERNAME && !includeAnon) {
       return;
     }
-    if (!groupedData[item.user]) {
-      groupedData[item.user] = [];
+    if (!groupedData[perm.user]) {
+      groupedData[perm.user] = [];
     }
-    groupedData[item.user].push({
-      url: item.url,
-      permission: item.permission,
-      partial_permissions: item.partial_permissions
-        ? item.partial_permissions
-        : undefined,
-    });
+    groupedData[perm.user].push(perm);
   });
 
   Object.keys(groupedData).forEach((userUrl) => {

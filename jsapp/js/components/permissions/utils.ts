@@ -29,7 +29,6 @@ import {
   PARTIAL_BY_USERS_LABEL,
   PARTIAL_BY_RESPONSES_LABEL,
 } from './permConstants';
-import type {UserPerm} from './permParser';
 
 /** For `.find`-ing the permissions */
 function _doesPermMatch(
@@ -197,7 +196,7 @@ export function getPartialByUsersFilterList(
  * Detect if permission has partial permissions and "by users" filter in
  * at least one of them.
  */
-export function hasPartialByUsers(perm: UserPerm) {
+export function hasPartialByUsers(perm: PermissionResponse) {
   return Boolean(
     'partial_permissions' in perm &&
       perm.partial_permissions?.some((partialPerm) =>
@@ -245,7 +244,7 @@ export function getPartialByResponsesFilter(
  * Detect if permission has partial permissions and "by users" filter in
  * at least one of them.
  */
-export function hasPartialByResponses(perm: UserPerm) {
+export function hasPartialByResponses(perm: PermissionResponse) {
   return Boolean(
     'partial_permissions' in perm &&
       perm.partial_permissions?.some((partialPerm) =>
@@ -477,7 +476,7 @@ export function getCheckboxLabel(checkboxName: CheckboxNameAll) {
  * Returns a human readable permission label, has to do some juggling for
  * partial permissions. Fallback is permission codename.
  */
-export function getPermLabel(perm: UserPerm) {
+export function getPermLabel(perm: PermissionResponse) {
   // For partial permissions we return a general label that matches all possible
   // partial permissions (i.e. same label for "View submissions only from
   // specific users" and "Edit submissions only from specific users" etc.). With
@@ -520,7 +519,7 @@ export function getPermLabel(perm: UserPerm) {
  * combined name.
  */
 export function getFriendlyPermName(
-  perm: UserPerm,
+  perm: PermissionResponse,
   maxParentheticalUsernames = 3
 ) {
   const permLabel = getPermLabel(perm);
@@ -543,7 +542,7 @@ export function getFriendlyPermName(
 }
 
 function getByUsersFriendlyPermName(
-  perm: UserPerm,
+  perm: PermissionResponse,
   maxParentheticalUsernames = 3
 ) {
   let permUsers: string[] = [];

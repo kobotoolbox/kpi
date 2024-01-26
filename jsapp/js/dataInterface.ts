@@ -294,7 +294,7 @@ export interface PartialPermission {
 export interface PermissionBase {
   /** User URL */
   user: string;
-  /** Permission URL */
+  /** URL of given permission type. */
   permission: string;
   partial_permissions?: PartialPermission[];
 }
@@ -309,11 +309,9 @@ interface PartialPermissionLabel {
 
 /** A single permission instance for a given user coming from API endpoint. */
 export interface PermissionResponse extends PermissionBase {
+  /** URL of given permission instance (permission x user). */
   url: string;
-  user: string;
-  permission: string;
-  label: string | PartialPermissionLabel;
-  partial_permissions?: PartialPermission[];
+  label?: string | PartialPermissionLabel;
 }
 
 /**

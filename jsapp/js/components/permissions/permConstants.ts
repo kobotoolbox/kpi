@@ -268,3 +268,5 @@ export const PARTIAL_BY_RESPONSES_LABEL = t(
 export const PARTIAL_BY_MULTIPLE_LABEL = t(
   'Act on submissions based on multiple conditions'
 );
+
+export const CHECKBOX_DISABLED_SUFFIX = 'Disabled';
