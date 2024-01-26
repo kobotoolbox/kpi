@@ -481,30 +481,32 @@ class Asset(ObjectPermissionMixin,
             return output
         for qual_question in qual_survey:
             qname = qual_question['qpath'].split('-')[-1]
-            additional_fields.append(
-                # Surely some of this stuff is not actually used…
-                # (added to match extend_col_deets() from
-                # kobo/apps/subsequences/utils/parse_known_cols)
-                #
-                # See also injectSupplementalRowsIntoListOfRows() in
-                # assetUtils.ts
-
-                dict(
-                    label=qual_question['labels']['_default'],
-                    name=f"{qname}/{qual_question['uuid']}",
-                    dtpath=f"{qual_question['qpath']}/{qual_question['uuid']}",
-                    type=qual_question['type'],
-                    # could say '_default' or the language of the transcript,
-                    # but really that would be meaningless and misleading
-                    language='??',
-                    source=qual_question['qpath'],
-                    qpath=f"{qual_question['qpath']}-{qual_question['uuid']}",
-                    # seems not applicable given the transx questions describe
-                    # manual vs. auto here and which engine was used
-                    settings='??',
-                    path=[qual_question['qpath'], qual_question['uuid']],
-                )
+            # Surely some of this stuff is not actually used…
+            # (added to match extend_col_deets() from
+            # kobo/apps/subsequences/utils/parse_known_cols)
+            #
+            # See also injectSupplementalRowsIntoListOfRows() in
+            # assetUtils.ts
+            field = dict(
+                label=qual_question['labels']['_default'],
+                name=f"{qname}/{qual_question['uuid']}",
+                dtpath=f"{qual_question['qpath']}/{qual_question['uuid']}",
+                type=qual_question['type'],
+                # could say '_default' or the language of the transcript,
+                # but really that would be meaningless and misleading
+                language='??',
+                source=qual_question['qpath'],
+                qpath=f"{qual_question['qpath']}-{qual_question['uuid']}",
+                # seems not applicable given the transx questions describe
+                # manual vs. auto here and which engine was used
+                settings='??',
+                path=[qual_question['qpath'], qual_question['uuid']],
             )
+            try:
+                field['choices'] = qual_question['choices']
+            except KeyError:
+                pass
+            additional_fields.append(field)
         return output
 
     def clone(self, version_uid=None):

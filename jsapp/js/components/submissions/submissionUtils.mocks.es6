@@ -2653,8 +2653,18 @@ export const submissionWithSupplementalDetails = {
         },
         {
           'val': [
-            'b180037c-930b-4025-ba21-1d59ee07485d',
-            'fa63c403-2a26-426c-97d6-9b8cfc277545',
+            {
+              labels: {
+                _default: 'First',
+              },
+              val: 'b180037c-930b-4025-ba21-1d59ee07485d',
+            },
+            {
+              labels: {
+                _default: 'Third',
+              },
+              val: 'fa63c403-2a26-426c-97d6-9b8cfc277545',
+            },
           ],
           'type': 'qual_select_multiple',
           'uuid': '1a89e0da-3344-4b5d-b919-ab8b072e0918',
@@ -2670,7 +2680,12 @@ export const submissionWithSupplementalDetails = {
           'uuid': '056c8f57-0733-4669-a84e-aa9726ffbf6b',
         },
         {
-          'val': '33f4e83d-4bd7-4dbc-b80b-94cac72944fb',
+          'val': {
+            labels: {
+              _default: 'Yes',
+            },
+            val: '33f4e83d-4bd7-4dbc-b80b-94cac72944fb',
+          },
           'type': 'qual_select_one',
           'uuid': '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d',
         },

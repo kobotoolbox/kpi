@@ -28,7 +28,6 @@ import {
   matrixRepeatSurveySubmission,
   matrixRepeatSurveyDisplayData,
   submissionWithAttachmentsWithUnicode,
-  assetWithSupplementalDetails,
   submissionWithSupplementalDetails,
 } from './submissionUtils.mocks';
 import {
@@ -178,8 +177,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return analysis question value properly for qual_select_multiple', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
-      '_supplementalDetails/Secret_password_as_an_audio_file/1a89e0da-3344-4b5d-b919-ab8b072e0918',
-      assetWithSupplementalDetails.advanced_features
+      '_supplementalDetails/Secret_password_as_an_audio_file/1a89e0da-3344-4b5d-b919-ab8b072e0918'
     );
     expect(test).to.equal('First, Third');
   });
@@ -187,8 +185,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return analysis question value properly for qual_tags', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
-      '_supplementalDetails/Secret_password_as_an_audio_file/b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
-      assetWithSupplementalDetails.advanced_features
+      '_supplementalDetails/Secret_password_as_an_audio_file/b05f29f7-8b58-4dd7-8695-c29cb04f3f7a'
     );
     expect(test).to.equal('best, things, ever recorder by human, 3');
   });
@@ -196,8 +193,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return analysis question value properly for qual_integer', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
-      '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
-      assetWithSupplementalDetails.advanced_features
+      '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22'
     );
     expect(test).to.equal('12345');
   });

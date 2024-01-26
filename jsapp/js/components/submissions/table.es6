@@ -905,8 +905,7 @@ export class DataTable extends React.Component {
           ) {
             const supplementalDetailsContent = getSupplementalDetailsContent(
               row.original,
-              key,
-              this.props.asset.advanced_features
+              key
             );
 
             return (

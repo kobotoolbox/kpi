@@ -100,11 +100,60 @@ export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
 }
 
 /** Analysis question response (to a question defined as `uuid`) from Back end. */
-export interface AnalysisResponse {
+export interface AnalysisRequest {
   type: AnalysisQuestionType;
   uuid: string;
   /** `null` is for `qual_integer` */
   val: string | string[] | number | null;
+}
+
+/**
+ * This is a response object for `qual_select_one` and `qual_select_multiple`.
+ * Besides `uuid` of a choice, it also has `labels`. It makes it easier to
+ * display these responses in the UI.
+ */
+interface AnalysisResponseSelectXValue {
+  labels: AnalysisLabels;
+  /** The `uuid` of selected `AnalysisQuestionChoice`. */
+  val: string;
+}
+
+/**
+ * A lot of options, because:
+ * - `qual_tags` returns `string[]`
+ * - `qual_text` returns `string`
+ * - `qual_integer` returns `number`
+ * - `qual_select_one` returns `AnalysisResponseSelectXValue`
+ * - `qual_select_multiple` returns `AnalysisResponseSelectXValue[]`
+ */
+type AnalysisResponseValue =
+  | string
+  | string[]
+  | number
+  | AnalysisResponseSelectXValue
+  | AnalysisResponseSelectXValue[];
+
+/**
+ * This is the object that is returned from interacting with the processing
+ * endpoint (`asset.advanced_submission_schema.url`). It's similar to
+ * the `SubmissionAnalysisResponse`, but with less detailed `val` - for both
+ * `qual_select_one` and `qual_select_multiple` it will return a `string` (an
+ * `uuid` of choice) and `string[]` (list of `uuid` of selected choices)
+ * respectively.
+ */
+export interface AnalysisResponse extends AnalysisQuestionBase {
+  val: string | string[] | number;
+}
+
+/**
+ * This is the object that is returned from interacting with the data endpoint
+ * (`/api/v2/assets/:uid/data`), it will be inside the `_supplementalDetails`
+ * object for each appropiate submission. It's similar to `AnalysisResponse`,
+ * but with more detailed `val` for `qual_select_one` and `qual_select_multiple`
+ * - containing both `uuid` and a `labels` object.
+ */
+export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
+  val: AnalysisResponseValue;
 }
 
 /**
@@ -113,7 +162,7 @@ export interface AnalysisResponse {
 export interface AnalysisResponseUpdateRequest {
   [qpath: string]:
     | {
-        qual: AnalysisResponse[];
+        qual: AnalysisRequest[];
       }
     | string; // this will never be a string, but we need TS to stop complaining
   submission: string;
