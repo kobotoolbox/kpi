@@ -64,10 +64,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
         );
       }
     }
-
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
+
     return (
       <bem.SubmissionDataTable__row
         m={['group', `type-${item.type}`]}
@@ -206,7 +206,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.audio.id:
       case QUESTION_TYPES.video.id:
       case QUESTION_TYPES.file.id:
-        return this.renderAttachment(item.type, item.data, item.name);
+        return this.renderAttachment(item.type, item.data, item.name, item.xpath);
       case QUESTION_TYPES.geotrace.id:
         return this.renderMultiplePointsData(item.data);
       case QUESTION_TYPES.geoshape.id:
@@ -264,8 +264,8 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     ));
   }
 
-  renderAttachment(type: string, filename: string, name: string) {
-    const attachment = getMediaAttachment(this.props.submissionData, filename);
+  renderAttachment(type: string, filename: string, name: string, xpath: string) {
+    const attachment = getMediaAttachment(this.props.submissionData, filename, xpath);
     if (attachment && attachment instanceof Object) {
       if (type === QUESTION_TYPES.audio.id) {
         return (

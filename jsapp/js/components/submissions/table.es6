@@ -810,7 +810,7 @@ export class DataTable extends React.Component {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = getMediaAttachment(row.original, row.value);
+                mediaAttachment = getMediaAttachment(row.original, row.value, q.$xpath);
               }
 
               if (
@@ -993,7 +993,9 @@ export class DataTable extends React.Component {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
           : 'is-frozen is-last-frozen';
-        col.headerClassName = 'is-frozen is-last-frozen';
+        col.headerClassName = col.headerClassName
+          ? `is-frozen is-last-frozen ${col.headerClassName}`
+          : 'is-frozen is-last-frozen';
       }
     });
 
@@ -1231,17 +1233,43 @@ export class DataTable extends React.Component {
    * @param {boolean} isChecked
    */
   bulkUpdateChange(sid, isChecked) {
-    const selectedRows = this.state.selectedRows;
-    if (isChecked) {
-      selectedRows[sid] = true;
-    } else {
-      delete selectedRows[sid];
-    }
+    const {selectedRows, lastChecked, shiftSelection} = this.state;
 
-    this.setState({
-      selectedRows: selectedRows,
-      selectAll: false,
-    });
+    if (isChecked) {
+      const updatedSelectedRows = {...selectedRows, [sid]: true};
+      const updatedShiftSelection = {
+        ...shiftSelection,
+        [sid]: window.event?.shiftKey,
+      };
+
+      // Handles range selection of checkboxes if the shift key is held down
+      // for both start and end values
+      if (
+        window.event?.shiftKey &&
+        lastChecked &&
+        selectedRows[lastChecked] &&
+        shiftSelection[lastChecked]
+      ) {
+        const [start, end] = [lastChecked, sid].map(Number);
+        for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
+          updatedSelectedRows[i] = true;
+          delete updatedShiftSelection[i];
+        }
+      }
+      this.setState({
+        selectedRows: updatedSelectedRows,
+        lastChecked: isChecked ? sid : null,
+        selectAll: false,
+        shiftSelection: updatedShiftSelection,
+      });
+    } else {
+      const {[sid]: _, ...updatedSelectedRows} = selectedRows;
+      this.setState({
+        selectedRows: updatedSelectedRows,
+        lastChecked: null,
+        selectAll: false,
+      });
+    }
   }
 
   /**

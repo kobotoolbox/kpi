@@ -28,11 +28,9 @@ import {
   matrixRepeatSurveySubmission,
   matrixRepeatSurveyDisplayData,
   submissionWithAttachmentsWithUnicode,
-  assetWithSupplementalDetails,
   submissionWithSupplementalDetails,
 } from './submissionUtils.mocks';
 import {
-  getValidFilename,
   getMediaAttachment,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
@@ -147,15 +145,6 @@ describe('getSubmissionDisplayData', () => {
         }, 0, matrixRepeatSurveySubmission).children;
       const target = matrixRepeatSurveyDisplayData;
       expect(test).excludingEvery('__proto__').to.deep.equal(target);
-  });
-});
-
-describe('getValidFilename', () => {
-  it('should return a file name which matches Django renaming', () => {
-    const fileName = submissionWithAttachmentsWithUnicode.A_picture;
-    const test = getValidFilename(fileName);
-    const target = 'Un_ete_au_Quebec_Canada-19_41_32.jpg';
-    expect(test).to.equal(target);
   });
 });
 

@@ -1,5 +1,7 @@
 # coding: utf-8
 import unittest
+from mock import patch, MagicMock, PropertyMock
+
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -376,8 +378,6 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         # collectors need to have 'add_submission' permission to view the paired
         # data.
         self.client.logout()
-        self.anotheruser.extra_details.data['require_auth'] = True
-        self.anotheruser.extra_details.save()
         self.login_as_other_user('quidam', 'quidam')
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -391,21 +391,13 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         # When owner's destination asset does not require any authentications,
         # everybody can see their data
         self.client.logout()
-        response = self.client.get(self.external_xml_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_get_external_from_owner_with_extra_detail(self):
-        self.deploy_source()
-        # When owner's destination asset does not require any authentications,
-        # everybody can see their data
-        self.client.logout()
-
-        # Remove owner's extra detail
-        ExtraUserDetail.objects.filter(user=self.anotheruser).delete()
-        self.anotheruser.refresh_from_db()
-
-        response = self.client.get(self.external_xml_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        with patch(
+            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
+            MagicMock(),
+        ) as xf_mock:
+            xf_mock.require_auth = False
+            response = self.client.get(self.external_xml_url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @unittest.skip(reason='Skip until mock back end supports XML submissions')
     def test_get_external_with_changed_source_fields(self):
