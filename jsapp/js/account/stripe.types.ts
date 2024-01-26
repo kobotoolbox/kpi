@@ -6,32 +6,6 @@ export interface BaseProduct {
   metadata: Record<string, string>;
 }
 
-export interface PlanInfo {
-  product: BaseProduct;
-  djstripe_created: string;
-  djstripe_updated: string;
-  id: string;
-  livemode: boolean;
-  created: string;
-  metadata: {};
-  description: string;
-  active: boolean;
-  aggregate_usage: string;
-  amount: string;
-  amount_decimal: string;
-  billing_scheme: string;
-  currency: string;
-  interval: string;
-  interval_count: 1;
-  nickname: string;
-  tiers: any;
-  tiers_mode: string;
-  transform_usage: any;
-  trial_period_days: any;
-  usage_type: string;
-  djstripe_owner_account: string;
-}
-
 interface SubscriptionPhase {
   items: [
     {
@@ -220,6 +194,7 @@ export enum SubscriptionChangeType {
   RENEWAL,
   PRODUCT_CHANGE,
   PRICE_CHANGE,
+  QUANTITY_CHANGE,
   NO_CHANGE,
 }
 

@@ -116,6 +116,10 @@ export const getSubscriptionsForProductId = (
   return null;
 };
 
+/*
+ * Performs logical operations to determine what information to provide about
+ * the upcoming status of user's subscription.
+ */
 export const getSubscriptionChangeDetails = (
   currentPlan: SubscriptionInfo | null,
   products: Product[]
@@ -145,10 +149,15 @@ export const getSubscriptionChangeDetails = (
         date = convertUnixTimestampToUtc(
           currentPlan.schedule.phases[0].end_date!
         );
-        type =
-          nextProduct.id === currentPlan.items[0].price.product.id
-            ? SubscriptionChangeType.PRICE_CHANGE
-            : SubscriptionChangeType.PRODUCT_CHANGE;
+        if (nextProduct.id === currentPlan.items[0].price.product.id) {
+          if (currentPlan.quantity !== nextPhaseItem.quantity) {
+            type = SubscriptionChangeType.QUANTITY_CHANGE;
+          } else {
+            type = SubscriptionChangeType.PRICE_CHANGE;
+          }
+        } else {
+          type = SubscriptionChangeType.PRODUCT_CHANGE;
+        }
         break;
       }
     }

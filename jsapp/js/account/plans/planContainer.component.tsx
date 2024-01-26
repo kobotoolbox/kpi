@@ -65,6 +65,7 @@ export const PlanContainer = ({
     [hasManageableStatus, state.subscribedProduct]
   );
 
+  // Populate submission dropdown with the submission quantity from the customer's plan, if possible
   useEffect(() => {
     const subscribedQuantity = activeSubscriptions?.[0]?.quantity;
     if (subscribedQuantity && isSubscribedProduct(price, subscribedQuantity)) {

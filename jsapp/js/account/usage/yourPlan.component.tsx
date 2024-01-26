@@ -21,6 +21,7 @@ const BADGE_COLOR_KEYS: {[key in SubscriptionChangeType]: BadgeColor} = {
   [SubscriptionChangeType.CANCELLATION]: 'light-red',
   [SubscriptionChangeType.PRODUCT_CHANGE]: 'light-amber',
   [SubscriptionChangeType.PRICE_CHANGE]: 'light-amber',
+  [SubscriptionChangeType.QUANTITY_CHANGE]: 'light-amber',
   [SubscriptionChangeType.NO_CHANGE]: 'light-blue',
 };
 
@@ -74,11 +75,6 @@ export const YourPlan = () => {
     }
   }, [env.isReady, subscriptions.isInitialised]);
 
-  /*
-   * Performs logical operations to determine what information to provide about
-   * the upcoming status of user's subscription. Currently it is assumed that
-   * the only type of scheduled price change will be a downgrade from annual to monthly
-   */
   const subscriptionUpdate = useMemo(() => {
     return getSubscriptionChangeDetails(currentPlan, productsState);
   }, [currentPlan, productsState]);
@@ -121,6 +117,12 @@ export const YourPlan = () => {
                   ].includes(subscriptionUpdate.type) &&
                     t('Ends on ##end_date##').replace(
                       '##end_date##',
+                      formatDate(subscriptionUpdate.date)
+                    )}
+                  {subscriptionUpdate.type ===
+                    SubscriptionChangeType.QUANTITY_CHANGE &&
+                    t('Changing usage limits on ##change_date##').replace(
+                      '##change_date##',
                       formatDate(subscriptionUpdate.date)
                     )}
                   {subscriptionUpdate.type ===
@@ -173,6 +175,26 @@ export const YourPlan = () => {
           {t(
             '. You can continue using ##current_plan## plan features until the end of the billing period.'
           ).replace('##current_plan##', planName)}
+        </div>
+      )}
+      {subscriptionUpdate?.type === SubscriptionChangeType.QUANTITY_CHANGE && (
+        <div className={styles.subscriptionChangeNotice}>
+          {t(
+            'Your ##current_plan## plan will change to include up to ##submission_quantity## submissions/month starting from'
+          )
+            .replace('##current_plan##', planName)
+            .replace(
+              '##submission_quantity##',
+              (
+                subscriptions.planResponse[0].schedule.phases?.[1].items[0]
+                  .quantity || ''
+              ).toLocaleString()
+            )}
+          &nbsp;
+          <time dateTime={subscriptionUpdate.date}>
+            {formatDate(subscriptionUpdate.date)}
+          </time>
+          .
         </div>
       )}
       {subscriptionUpdate?.type === SubscriptionChangeType.PRICE_CHANGE && (
