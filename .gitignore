@@ -25,6 +25,7 @@ celerybeat-schedule
 deployments.json
 .DS_Store
 jsapp/fonts
+media
 env
 cypress/cypress/videos/*
 cypress/cypress/screenshots/*

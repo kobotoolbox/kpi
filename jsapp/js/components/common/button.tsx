@@ -3,6 +3,8 @@ import type {IconName} from 'jsapp/fonts/k-icons';
 import type {IconSize} from 'js/components/common/icon';
 import Icon from 'js/components/common/icon';
 import './button.scss';
+import type {TooltipAlignment} from './tooltip';
+import Tooltip from './tooltip';
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't
@@ -61,6 +63,8 @@ export interface ButtonProps {
    * for icon-only buttons.
    */
   tooltip?: string;
+  /** Sets the alignment of the tooltip */
+  tooltipPosition?: TooltipAlignment;
   isDisabled?: boolean;
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
@@ -134,9 +138,6 @@ const Button = (props: ButtonProps) => {
 
   // For the attributes that don't have a falsy value.
   const additionalButtonAttributes: AdditionalButtonAttributes = {};
-  if (props.tooltip) {
-    additionalButtonAttributes['data-tip'] = props.tooltip;
-  }
   if (props['data-cy']) {
     additionalButtonAttributes['data-cy'] = props['data-cy'];
   }
@@ -153,7 +154,7 @@ const Button = (props: ButtonProps) => {
     }
   };
 
-  return (
+  const renderButton = () => (
     <button
       className={classNames.join(' ')}
       type={props.isSubmit ? 'submit' : 'button'}
@@ -175,6 +176,22 @@ const Button = (props: ButtonProps) => {
         <Icon name='spinner' size={iconSize} classNames={['k-spin']} />
       )}
     </button>
+  );
+
+  return (
+    <>
+      {props.tooltip !== undefined ? (
+        <Tooltip
+          text={props.tooltip}
+          ariaLabel={props.tooltip}
+          alignment={props.tooltipPosition}
+        >
+          {renderButton()}
+        </Tooltip>
+      ) : (
+        renderButton()
+      )}
+    </>
   );
 };
 

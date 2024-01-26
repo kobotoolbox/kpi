@@ -138,7 +138,7 @@ $button-border-radius: sizes.$x6;
 .k-button {
   cursor: pointer;
   color: inherit;
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   align-items: center;
   align-content: center;

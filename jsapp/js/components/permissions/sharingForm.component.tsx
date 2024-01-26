@@ -254,11 +254,7 @@ export default class SharingForm extends React.Component<
         {/* public sharing settings */}
         {assetType === ASSET_TYPES.survey.id && (
           <>
-            <bem.Modal__hr />
-
             <bem.FormModal__item m='share-settings'>
-              <h2>{t('Share publicly by link')}</h2>
-
               <PublicShareSettings
                 publicPerms={this.state.publicPerms}
                 assetUid={this.props.assetUid}

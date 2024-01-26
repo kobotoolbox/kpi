@@ -45,13 +45,7 @@ class AuthenticationApiTests(BaseAssetTestCase):
         with override_settings(MFA_SUPPORTED_AUTH_CLASSES=[]):
             response = self.client.get(self.list_url, **auth_headers)
 
-        # DRF looks at the first authentication class to expose
-        # a `WWW-authenticate` header. If the first one does not implement a
-        # `authenticate_header()` method, it coerces exceptions to 403
-        # Because SessionAuthentication is the first one, a 403 is returned.
-        # If it had been BasicAuthentication, it would have been a 401 response
-        # instead.
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertTrue(
             'Multi-factor authentication is enabled for this account.'
             in response.content.decode()
@@ -78,13 +72,8 @@ class AuthenticationApiTests(BaseAssetTestCase):
         }
 
         response = self.client.get(self.list_url, **auth_headers)
-        # DRF looks at the first authentication class to expose
-        # a `WWW-authenticate` header. If the first one does not implement a
-        # `authenticate_header()` method, it coerces exceptions to 403
-        # Because SessionAuthentication is the first one, a 403 is returned.
-        # If it had been BasicAuthentication, it would have been a 401 response
-        # instead.
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertTrue(
             'Multi-factor authentication is enabled for this account.'
             in response.content.decode()
