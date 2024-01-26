@@ -43,6 +43,10 @@ interface SubmissionDataTableProps {
   showXMLNames?: boolean;
 }
 
+/**
+ * This is a table that displays all data for single submission. It is currently
+ * being used int Single Submission Modal.
+ */
 class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   constructor(props: SubmissionDataTableProps) {
     super(props);

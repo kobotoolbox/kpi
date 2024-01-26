@@ -1,0 +1,30 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'js/components/common/button';
+@use '../analysisVariables';
+
+$choice-width: 66.66%;
+
+.choice {
+  @include mixins.centerRowFlex;
+  gap: analysisVariables.$inner-horizontal-gap;
+  width: $choice-width;
+
+  &:not(:last-child) {
+    margin-bottom: analysisVariables.$inner-vertical-gap;
+  }
+}
+
+.labelInput {
+  flex: 1;
+}
+
+.addOption {
+  // We make it shorter to take the trash icon buttons from choices above into
+  // the picture
+  width: calc($choice-width - button.$button-height-m - sizes.$x6);
+
+  :global .k-button {
+    width: 100%;
+  }
+}

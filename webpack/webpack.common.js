@@ -90,6 +90,11 @@ const commonOptions = {
       utils: path.join(__dirname, '../jsapp/js/utils'),
       test: path.join(__dirname, '../test'),
     },
+    // HACKFIX: needed because of https://github.com/react-dnd/react-dnd/issues/3423
+    fallback: {
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+    },
   },
   plugins: [
     new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),

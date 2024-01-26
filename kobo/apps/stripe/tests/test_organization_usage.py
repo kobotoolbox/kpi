@@ -138,7 +138,7 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
             self.expected_file_size() * self.expected_submissions_single
         )
 
-    @pytest.mark.xfail
+    @pytest.mark.performance
     def test_endpoint_speed(self):
         # get the average request time for 10 hits to the endpoint
         single_user_time = timeit.timeit(lambda: self.client.get(self.detail_url), number=10)
