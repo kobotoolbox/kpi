@@ -8,7 +8,7 @@ export type AnalysisQuestionsAction =
   // Sets all the quetsion with new ones (useful for initialising)
   | {type: 'setQuestions'; payload: {questions: AnalysisQuestionInternal[]}}
   // Creates a draft question of given type with new uid assigned
-  | {type: 'addQuestion'; payload: {type: AnalysisQuestionType}}
+  | {type: 'addQuestion'; payload: {qpath: string; type: AnalysisQuestionType}}
   // Opens question for editing, i.e. causes the editor to be opened for given
   // question
   | {type: 'startEditingQuestion'; payload: {uuid: string}}
@@ -31,7 +31,7 @@ export type AnalysisQuestionsAction =
   // fresh data from Back-end.
   | {
       type: 'updateQuestionCompleted';
-      payload: {questions: AnalysisQuestionInternal[]};
+      payload: {question: AnalysisQuestionInternal};
     }
   // Unlocks UI after failed API call
   | {type: 'udpateQuestionFailed'}

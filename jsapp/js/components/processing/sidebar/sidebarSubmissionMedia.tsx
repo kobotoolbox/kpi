@@ -4,6 +4,7 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import type {AssetContent} from 'js/dataInterface';
 import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
 import {
+  getQuestionXPath,
   getRowData,
   getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
@@ -44,8 +45,18 @@ export default function SidebarSubmissionMedia(
     return null;
   }
 
-  // Attachment needs to be object with urls.
-  const attachment = getMediaAttachment(submissionData, rowData);
+  // NB: XPath work moved here from the now-deleted
+  // `singleProcessingSubmissionDetails.tsx` by jnm to resolve a merge
+  // conflict. It was originally added in commit
+  // b7d110a793d6fd5fcc280502b987c68d4b50aae9 (PR #4811)
+
+  // Attachment needs to be an object with urls.
+  const questionXPath = getQuestionXPath(
+    props.asset.survey,
+    store.currentQuestionName
+  );
+
+  const attachment = getMediaAttachment(submissionData, rowData, questionXPath);
   if (typeof attachment === 'string') {
     return null;
   }

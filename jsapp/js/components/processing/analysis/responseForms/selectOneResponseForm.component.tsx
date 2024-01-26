@@ -14,6 +14,7 @@ import styles from './selectOneResponseForm.module.scss';
 
 interface SelectOneResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
 /**
@@ -56,6 +57,7 @@ export default function SelectOneResponseForm(
     // Update endpoint and reducer
     updateResponseAndReducer(
       analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
       question.type,
       newResponse
@@ -64,12 +66,18 @@ export default function SelectOneResponseForm(
 
   function getOptions(): RadioOption[] {
     if (question?.additionalFields?.choices) {
-      return question?.additionalFields?.choices.map((choice) => {
-        return {
-          value: choice.uuid,
-          label: choice.labels._default,
-        };
-      });
+      return (
+        question?.additionalFields?.choices
+          // We hide all choices flagged as deleted…
+          .filter((item) => !item.options?.deleted)
+          // …and then we produce radio option object of each choice left
+          .map((choice) => {
+            return {
+              value: choice.uuid,
+              label: choice.labels._default,
+            };
+          })
+      );
     }
     return [];
   }
@@ -87,6 +95,7 @@ export default function SelectOneResponseForm(
           onChange={onRadioChange}
           selected={response}
           isClearable
+          isDisabled={!props.canEdit}
         />
       </section>
     </>

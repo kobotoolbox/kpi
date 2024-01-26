@@ -14,7 +14,6 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
-  ROOT_URL,
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import type {
@@ -80,6 +79,8 @@ export class DisplayResponse {
   public label: string | null;
   /** Unique identifier */
   public name: string;
+  /** XPath  */
+  public xpath: string;
   /**
    * Unique identifier of a choices list, only applicable for question types
    * that uses choices lists.
@@ -92,12 +93,14 @@ export class DisplayResponse {
     type: AnyRowTypeName | null,
     label: string | null,
     name: string,
+    xpath: string,
     listName: string | undefined,
     data?: string | null
   ) {
     this.type = type;
     this.label = label;
     this.name = name;
+    this.xpath = xpath;
     if (data) {
       this.data = data;
     }
@@ -192,8 +195,7 @@ export function getSubmissionDisplayData(
       }
       // let's hide rows that don't carry any submission data
       if (
-        row.type === QUESTION_TYPES.note.id ||
-        row.type === QUESTION_TYPES.hidden.id
+        row.type === QUESTION_TYPES.note.id
       ) {
         continue;
       }
@@ -297,6 +299,7 @@ export function getSubmissionDisplayData(
           row.type,
           rowLabel,
           rowName,
+          flatPaths[rowName],
           rowListName,
           rowData
         );
@@ -309,6 +312,7 @@ export function getSubmissionDisplayData(
               null,
               getColumnLabel(asset, sdKey, false),
               sdKey,
+              flatPaths[rowName],
               undefined,
               getSupplementalDetailsContent(submissionData, sdKey)
             )
@@ -399,6 +403,7 @@ function populateMatrixData(
         questionSurveyObj.type,
         getTranslatedRowLabel(questionName, survey, translationIndex),
         questionName,
+        flatPaths[questionName],
         getRowListName(questionSurveyObj),
         questionData
       );
@@ -536,15 +541,16 @@ function getRowListName(row: SurveyRow | undefined): string | undefined {
  */
 export function getMediaAttachment(
   submission: SubmissionResponse,
-  fileName: string
+  fileName: string,
+  questionXPath: string
 ): string | SubmissionAttachment {
-  const validFileName = getValidFilename(fileName);
   let mediaAttachment: string | SubmissionAttachment = t(
     'Could not find ##fileName##'
   ).replace('##fileName##', fileName);
 
   submission._attachments.forEach((attachment) => {
-    if (attachment.filename.includes(validFileName)) {
+
+    if (attachment.question_xpath === questionXPath) {
       // Check if the audio filetype is of type not supported by player and send it to format to mp3
       if (
         attachment.mimetype.includes('audio/') &&
@@ -553,11 +559,8 @@ export function getMediaAttachment(
         !attachment.mimetype.includes('/wav') &&
         !attachment.mimetype.includes('ogg')
       ) {
-        const questionPath = Object.keys(submission).find(
-          (key) => submission[key] === fileName
-        );
 
-        const newAudioURL = `${ROOT_URL}/api/v2/assets/${submission._xform_id_string}/data/${attachment.instance}/attachments/?xpath=${questionPath}&format=mp3`;
+        const newAudioURL = attachment.download_url + '?format=mp3';
         const newAttachment = {
           ...attachment,
           download_url: newAudioURL,
@@ -683,21 +686,13 @@ export function getSupplementalDetailsContent(
   return t('N/A');
 }
 
-/**
- * Mimics Django get_valid_filename() to match back-end renaming when an
- * attachment is saved in storage.
- * See https://github.com/django/django/blob/832adb31f27cfc18ad7542c7eda5a1b6ed5f1669/django/utils/text.py#L224
- */
-export function getValidFilename(fileName: string): string {
-  return fileName
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/ /g, '_')
-    .replace(/[^\p{L}\p{M}\.\d_-]/gu, '');
-}
-
 export default {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
   getRepeatGroupAnswers,
 };
+
+export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
+  const flatPaths = getSurveyFlatPaths(surveyRows, true);
+  return flatPaths[rowName]
+}

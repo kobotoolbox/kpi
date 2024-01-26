@@ -22,6 +22,7 @@ import type {
 import type {Json} from '../../common/common.interfaces';
 import assetStore from 'js/assetStore';
 import singleProcessingStore from '../singleProcessingStore';
+import {userCan} from 'js/components/permissions/utils';
 
 /** Finds given question in state */
 export function findQuestion(uuid: string, state: AnalysisQuestionsState) {
@@ -37,8 +38,6 @@ export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
  * questions definitions on endpoint.
  */
 export function convertQuestionsFromInternalToSchema(
-  /** The qpath of the asset question to which the analysis questions will refer */
-  qpath: string,
   questions: AnalysisQuestionInternal[]
 ): AnalysisQuestionSchema[] {
   return questions.map((question) => {
@@ -49,7 +48,7 @@ export function convertQuestionsFromInternalToSchema(
       options: question.options,
       choices: question.additionalFields?.choices,
       scope: 'by_question#survey',
-      qpath: qpath,
+      qpath: question.qpath,
     };
   });
 }
@@ -64,6 +63,7 @@ export function convertQuestionsFromSchemaToInternal(
 ): AnalysisQuestionInternal[] {
   return questions.map((question) => {
     const output: AnalysisQuestionInternal = {
+      qpath: question.qpath,
       uuid: question.uuid,
       type: question.type,
       labels: question.labels,
@@ -102,11 +102,26 @@ export function applyUpdateResponseToInternalQuestions(
       if (typeof foundResponse.val === 'number') {
         question.response = String(foundResponse.val);
       } else {
-        question.response = foundResponse.val;
+        question.response = foundResponse.val || '';
       }
     }
   });
   return newQuestions;
+}
+
+/** Update a question in a list of questions preserving existing response. */
+export function updateSingleQuestionPreservingResponse(
+  questionToUpdate: AnalysisQuestionInternal,
+  questions: AnalysisQuestionInternal[]
+): AnalysisQuestionInternal[] {
+  return clonedeep(questions).map((question) => {
+    if (question.uuid === questionToUpdate.uuid) {
+      // Preserve exsiting response, but update everything else
+      return {...questionToUpdate, response: question.response};
+    } else {
+      return question;
+    }
+  });
 }
 
 export function getQuestionsFromSchema(
@@ -123,7 +138,6 @@ export function getQuestionsFromSchema(
  */
 export async function updateSurveyQuestions(
   assetUid: string,
-  qpath: string,
   questions: AnalysisQuestionInternal[]
 ) {
   // Step 1: Make sure not to mutate existing object
@@ -140,16 +154,18 @@ export async function updateSurveyQuestions(
   }
 
   // Step 3: prepare the data for the endpoint
-  advancedFeatures.qual.qual_survey = convertQuestionsFromInternalToSchema(
-    qpath,
-    questions
-  );
+  advancedFeatures.qual.qual_survey =
+    convertQuestionsFromInternalToSchema(questions);
 
   // Step 4: Update the data (yay!)
   try {
     const response = await fetchPatch<AssetResponse>(
       endpoints.ASSET_URL.replace(':uid', assetUid),
-      {advanced_features: advancedFeatures as Json}
+      {advanced_features: advancedFeatures as Json},
+      // The `updateSurveyQuestions` function can fail for other reasons too, so
+      // we rely on the error displaying to be handled elsewhere - to avoid
+      // duplicated notifications
+      {notifyAboutError: false}
     );
 
     // TODO think of better way to handle this
@@ -177,7 +193,7 @@ async function updateResponse(
   qpath: string,
   analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
-  newResponse: string | string[] | number
+  newResponse: string | string[] | number | null
 ) {
   try {
     const payload: AnalysisResponseUpdateRequest = {
@@ -195,7 +211,9 @@ async function updateResponse(
 
     const apiResponse = await fetchPostUrl<SubmissionProcessingDataResponse>(
       processingUrl,
-      payload as Json
+      payload as Json,
+      // We handle the errors in the `updateResponseAndReducer` function.
+      {notifyAboutError: false}
     );
 
     return {
@@ -224,7 +242,8 @@ async function updateResponse(
  */
 export async function updateResponseAndReducer(
   dispatch: React.Dispatch<AnalysisQuestionsAction>,
-  analysisQuestionUUid: string,
+  surveyQuestionQpath: string,
+  analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
   response: string | string[]
 ) {
@@ -242,9 +261,21 @@ export async function updateResponseAndReducer(
   // Step 2: QUAL_INTEGER CONVERSION HACK (PART 1/2):
   // For code simplicity (I hope so!) we handle `qual_integer` as string and
   // only convert it to/from actual integer when talking with Back end.
-  let actualResponse: string | string[] | number = response;
+  let actualResponse: string | string[] | number | null = response;
   if (analysisQuestionType === 'qual_integer') {
-    actualResponse = parseInt(String(response));
+    const actualResponseAsNumber = parseInt(String(response));
+    if (Number.isInteger(actualResponseAsNumber)) {
+      actualResponse = parseInt(String(response));
+    } else {
+      if (String(response) !== '') {
+        // This really shouldn't happen!
+        window.Raven?.captureMessage(`Invalid qual_integer response: "${response}"`);
+      }
+      // An empty response should be represented as `null`. For continuity with
+      // existing code, invalid responses are also transformed to `null` before
+      // sending to the back end
+      actualResponse = null;
+    }
   }
 
   // Step 3: Store the response using the `advanced_submission_post` API
@@ -252,8 +283,8 @@ export async function updateResponseAndReducer(
     const result = await updateResponse(
       processingUrl,
       singleProcessingStore.currentSubmissionEditId,
-      singleProcessingStore.currentQuestionQpath,
-      analysisQuestionUUid,
+      surveyQuestionQpath,
+      analysisQuestionUuid,
       analysisQuestionType,
       actualResponse
     );
@@ -268,4 +299,9 @@ export async function updateResponseAndReducer(
     handleApiFail(err as FailResponse);
     dispatch({type: 'updateResponseFailed'});
   }
+}
+
+export function hasManagePermissionsToCurrentAsset(): boolean {
+  const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+  return userCan('manage_asset', asset);
 }

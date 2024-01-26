@@ -6,10 +6,9 @@ import KoboDropdown from 'js/components/common/koboDropdown';
 import {ANALYSIS_QUESTION_TYPES} from './constants';
 import type {AnalysisQuestionTypeDefinition} from './constants';
 import Icon from 'js/components/common/icon';
-import assetStore from 'jsapp/js/assetStore';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import {userCan} from 'js/components/permissions/utils';
 import classNames from 'classnames';
+import {hasManagePermissionsToCurrentAsset} from './utils';
 
 /**
  * This piece of UI is displaying the button/dropdown for adding new questions
@@ -27,11 +26,6 @@ export default function AnalysisHeader() {
   const automatedTypes = Object.values(ANALYSIS_QUESTION_TYPES).filter(
     (definition) => definition.isAutomated
   );
-
-  const hasManagePermissions = (() => {
-    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
-    return userCan('manage_asset', asset);
-  })();
 
   function renderQuestionTypeButton(
     definition: AnalysisQuestionTypeDefinition
@@ -51,7 +45,10 @@ export default function AnalysisHeader() {
         onClick={() => {
           analysisQuestions?.dispatch({
             type: 'addQuestion',
-            payload: {type: definition.type},
+            payload: {
+              qpath: singleProcessingStore.currentQuestionQpath,
+              type: definition.type,
+            },
           });
         }}
         tabIndex={0}
@@ -93,7 +90,7 @@ export default function AnalysisHeader() {
         // We only allow editing one question at a time, so adding new is not
         // possible until user stops editing
         isDisabled={
-          !hasManagePermissions ||
+          !hasManagePermissionsToCurrentAsset() ||
           analysisQuestions?.state.questionsBeingEdited.length !== 0
         }
       />

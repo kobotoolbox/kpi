@@ -641,4 +641,6 @@ const constants = {
   USAGE_WARNING_RATIO,
 };
 
+export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
+
 export default constants;

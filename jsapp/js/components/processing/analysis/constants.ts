@@ -71,13 +71,14 @@ export interface AnalysisQuestionBase {
   labels: AnalysisLabels;
   uuid: string;
   options?: AnalysisQuestionOptions;
+  /** The survey question that this analysis questions is for. */
+  qpath: string;
 }
 
 /** Analysis question definition from the asset's schema (i.e. from Back end) */
 export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
   // 'by_question#survey'
   scope: string;
-  qpath: string;
   choices?: AnalysisQuestionChoice[];
 }
 
@@ -102,7 +103,8 @@ export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
 export interface AnalysisRequest {
   type: AnalysisQuestionType;
   uuid: string;
-  val: string | string[] | number;
+  /** `null` is for `qual_integer` */
+  val: string | string[] | number | null;
 }
 
 /**

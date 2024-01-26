@@ -131,17 +131,26 @@ export default function AnalysisQuestionEditor(
       try {
         const response = await updateSurveyQuestions(
           singleProcessingStore.currentAssetUid,
-          singleProcessingStore.currentQuestionQpath,
           updatedQuestions
         );
 
-        // Step 4: update reducer's state with new list after the call finishes
-        analysisQuestions?.dispatch({
-          type: 'updateQuestionCompleted',
-          payload: {
-            questions: getQuestionsFromSchema(response?.advanced_features),
-          },
-        });
+        // We get all questions in the response, but we only need the one we've
+        // just updated
+        const newQuestions = getQuestionsFromSchema(response?.advanced_features);
+        const currentNewQuestion = newQuestions.find((item) => item.uuid === props.uuid);
+
+        if (currentNewQuestion) {
+          // Step 4: update reducer's state with new list after the call finishes
+          analysisQuestions?.dispatch({
+            type: 'updateQuestionCompleted',
+            payload: {question: currentNewQuestion},
+          });
+        } else {
+          // This should never happen :) I.e. the list of questions from
+          // `response` will include the question, it's just the `.find`
+          // that has a possibility to return `undefined` :shrug:
+          throw new Error('Question not found in the list of questions');
+        }
       } catch (err) {
         handleApiFail(err as FailResponse);
         analysisQuestions?.dispatch({type: 'udpateQuestionFailed'});

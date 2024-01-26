@@ -15,6 +15,10 @@
 # ssrf protect
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
+# django-dont-vary-on
+# using a fork for django > 1.1.0 compatibility
+-e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
+
 # Regular PyPI packages
 Django>=3.2,<3.3
 Markdown

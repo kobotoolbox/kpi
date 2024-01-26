@@ -12,6 +12,7 @@ import commonStyles from './common.module.scss';
 
 interface TextResponseFormProps {
   uuid: string;
+  canEdit: boolean;
 }
 
 /**
@@ -51,6 +52,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
 
     updateResponseAndReducer(
       analysisQuestions.dispatch,
+      question.qpath,
       props.uuid,
       question.type,
       response
@@ -80,6 +82,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
           onChange={onInputChange}
           placeholder={t('Type your answer')}
           onBlur={saveResponse}
+          disabled={!props.canEdit}
         />
       </section>
     </>

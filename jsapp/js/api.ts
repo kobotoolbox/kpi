@@ -2,7 +2,7 @@
 import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
-import {notify} from './utils';
+import {notify} from 'js/utils';
 
 /**
  * Useful for handling the fail responses from API. Its main goal is to display

@@ -115,6 +115,8 @@ COPY --from=build-python "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
+    mkdir -p "${TMP_DIR}/.npm" && \
+    npm config set cache "${TMP_DIR}/.npm" --global && \
     npm install -g npm@8.5.5 && \
     npm install -g check-dependencies@1 && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \

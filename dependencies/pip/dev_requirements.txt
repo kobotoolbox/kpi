@@ -14,6 +14,8 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
     # via -r dependencies/pip/requirements.in
+-e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
+    # via -r dependencies/pip/requirements.in
 amqp==5.1.1
     # via
     #   -r dependencies/pip/requirements.in

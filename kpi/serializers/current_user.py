@@ -20,7 +20,6 @@ from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kobo.apps.constance_backends.utils import to_python_object
 from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
-from kpi.deployment_backends.kc_access.utils import set_kc_require_auth
 from kpi.fields import WritableJSONField
 from kpi.utils.gravatar_url import gravatar_url
 
@@ -124,16 +123,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        # `require_auth` needs to be read from KC every time
-        # except during testing, when KC's database is not available
-        if (
-            settings.KOBOCAT_URL
-            and settings.KOBOCAT_INTERNAL_URL
-            and not settings.TESTING
-        ):
-            extra_details['require_auth'] = get_kc_profile_data(obj.pk).get(
-                'require_auth', False
-            )
+        # TODO Remove `require_auth` when front end do not use it anymore.
+        #   It is not used anymore by back end. Still there for retro-compatibility
+        extra_details['require_auth'] = True
 
         return rep
 
@@ -214,15 +206,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 extra_details_obj, _ = ExtraUserDetail.objects.get_or_create(
                     user=instance
                 )
-                if (
-                    settings.KOBOCAT_URL
-                    and settings.KOBOCAT_INTERNAL_URL
-                    and 'require_auth' in extra_details['data']
-                ):
-                    # `require_auth` needs to be written back to KC
-                    set_kc_require_auth(
-                        instance.pk, extra_details['data']['require_auth']
-                    )
 
                 # This is a PATCH, so retain existing values for keys that were
                 # not included in the request

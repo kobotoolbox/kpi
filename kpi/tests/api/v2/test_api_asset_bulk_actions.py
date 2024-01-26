@@ -220,7 +220,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         asset.assign_perm(anonymous, PERM_VIEW_ASSET)
         self.client.logout()
         response = self._create_send_payload([asset.uid], 'archive')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
         # Ensure anonymous user still access someuser's public project
         detail_response = self._get_asset_detail_results(asset.uid)
@@ -293,7 +293,7 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         asset.assign_perm(anonymous, PERM_VIEW_ASSET)
         self.client.logout()
         response = self._create_send_payload([asset.uid], 'delete')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
         asset.refresh_from_db()
         assert asset.deployment.active is True

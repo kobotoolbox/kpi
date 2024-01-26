@@ -1,7 +1,10 @@
 import {generateUuid, moveArrayElementToIndex} from 'jsapp/js/utils';
 import type {AnalysisQuestionInternal} from './constants';
 import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
-import {applyUpdateResponseToInternalQuestions} from './utils';
+import {
+  applyUpdateResponseToInternalQuestions,
+  updateSingleQuestionPreservingResponse,
+} from './utils';
 
 export interface AnalysisQuestionsState {
   /** Whether any async action is being done right now. */
@@ -70,6 +73,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       }
 
       const newQuestion: AnalysisQuestionInternal = {
+        qpath: action.payload.qpath,
         type: action.payload.type,
         labels: {_default: ''},
         uuid: newUuid,
@@ -156,7 +160,10 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         isPending: false,
         hasUnsavedWork: false,
-        questions: action.payload.questions,
+        questions: updateSingleQuestionPreservingResponse(
+          action.payload.question,
+          state.questions
+        ),
         // After question definition was updated, we no longer modify it (this
         // closes the editor)
         // Note: this assumes we are only allowing one question editor at a time

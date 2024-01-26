@@ -849,6 +849,11 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translationDraft = undefined;
     this.data.source = undefined;
 
+    // When we leave Analysis tab, we need to reset the flag responsible for
+    // keeping the status of unsaved changes. This way it's not blocking
+    // navigation after leaving the tab directly from editing.
+    this.setAnalysisTabHasUnsavedChanges(false);
+
     this.trigger(this.data);
   }
 

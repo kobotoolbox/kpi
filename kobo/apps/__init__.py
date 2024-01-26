@@ -1,5 +1,4 @@
 # coding: utf-8
-import kombu.exceptions
 from django.apps import AppConfig
 from django.core.checks import register, Tags
 
