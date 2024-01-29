@@ -70,6 +70,11 @@ SHADOW_MODEL_APP_LABEL = 'shadow_model'
 SHADOW_MODEL_APP_LABELS = [
     SHADOW_MODEL_APP_LABEL,
     'superuser_stats',
+    'logger',
+    'viewer',
+    'main',
+    'open_rosa_server_form_disclaimer',
+    'restservice',
 ]
 
 # List of nested attributes which bypass 'dots' encoding

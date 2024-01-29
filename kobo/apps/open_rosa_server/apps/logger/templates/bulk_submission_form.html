@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+{% load i18n %}
+
+  <section>
+  <div class="page-header">
+    <h2>Bulk Upload Form</h2>
+  </div>
+  <div class="row-fluid">
+		<form method="post" action="./bulk-submission" enctype="multipart/form-data">
+      <div class="span4">
+        <input type="file" name="zip_submission_file" />
+      </div>
+      <div>
+        <input type="submit" value="{% trans 'Submit' %}" />
+       </div>
+			{% csrf_token %}
+    </form>
+  </div>
+    </section>
+{% endblock %}
+

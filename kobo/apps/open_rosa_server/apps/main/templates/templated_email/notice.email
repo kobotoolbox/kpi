@@ -1,0 +1,31 @@
+{% block subject %}{% blocktrans with username=username %}Ona notification for {{username}}{% endblocktrans %}{% endblock %}
+{% block plain %}
+{% blocktrans with full_name=full_name message=message %}
+  Hi {{full_name}},
+
+  {{message}}
+
+  Thanks for using Ona!
+  The Formhub Dev Team
+
+  P.S. Please consider joining the ona-support group, https://groups.google.com/forum/#!forum/ona-support
+{% endblocktrans %}
+{% endblock %}
+{% block html %}
+{% blocktrans with full_name=full_name message=message %}
+  <p>Hi {{full_name}},</p>
+
+  <p>
+      {{message}}
+  </p>
+
+  <p>
+      Thanks for using Ona!
+  </p>
+
+  <p>
+      P.S. Please consider joining the <a
+      href="https://groups.google.com/forum/#!forum/ona-support">ona-support group</a>.
+  </p>
+{% endblocktrans %}
+{% endblock %}

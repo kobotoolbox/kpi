@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}
+{%  trans "Update XForm" %} {{xform.id_string}}
+{% endblock %}
+{% block content %}
+
+
+<form method="post" action=".">
+	<table>
+		<tbody>
+			{{ form.as_table }}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td>
+					{% csrf_token %}
+					<input type="submit" value="{% trans 'Submit' %}" />
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+</form>
+
+{% endblock %}
+

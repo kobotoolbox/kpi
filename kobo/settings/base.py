@@ -15,8 +15,12 @@ from django.urls import reverse_lazy
 from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
 
+from kobo.apps.stripe.constants import (
+    FREE_TIER_NO_THRESHOLDS,
+    FREE_TIER_EMPTY_DISPLAY,
+)
+from kobo.apps.open_rosa_server.settings.base import *
 from kpi.utils.json import LazyJSONSerializable
-from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -127,9 +131,37 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
+    'kobo.apps.open_rosa_server.apps.logger.LoggerAppConfig',
+    'kobo.apps.open_rosa_server.apps.viewer',
+    'kobo.apps.open_rosa_server.apps.main',
+    'kobo.apps.open_rosa_server.apps.restservice',
+    'kobo.apps.open_rosa_server.apps.api',
+    'guardian',
+    'kobo.apps.open_rosa_server.libs',
+    # FIXME same name
+    # 'kobo.apps.open_rosa_server.apps.form_disclaimer.FormDisclaimerAppConfig',
 )
 
+# BEFORE KOBOCAT migration
+# MIDDLEWARE = [
+#     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
+#     'corsheaders.middleware.CorsMiddleware',
+#     'django.middleware.security.SecurityMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'hub.middleware.LocaleMiddleware',
+#     'allauth.account.middleware.AccountMiddleware',
+#     'django.middleware.common.CommonMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+#     'hub.middleware.UsernameInResponseHeaderMiddleware',
+#     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
+#     'django_request_cache.middleware.RequestCacheMiddleware',
+# ]
+
 MIDDLEWARE = [
+    'kobo.apps.open_rosa_server.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -137,14 +169,22 @@ MIDDLEWARE = [
     'hub.middleware.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # Still needed really?
+    'kobo.apps.open_rosa_server.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # FIXME ref to request.user.profile
+    # 'kobo.apps.open_rosa_server.libs.utils.middleware.RestrictedAccessMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'kobo.apps.open_rosa_server.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
 ]
+
+
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL')
@@ -598,6 +638,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
+    'guardian.backends.ObjectPermissionBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
