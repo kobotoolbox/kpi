@@ -13,7 +13,7 @@ from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
-class TestCheckoutLinkAPITestCase(BaseTestCase):
+class TestChangePlanAPITestCase(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
@@ -27,6 +27,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
             id='price_1LsSOSAR39rDI89svTKog9Hq',
             product=product,
             unit_amount=1000,
+            transform_quantity=None,
         )
         self.high_price = baker.make(
             Price,
@@ -34,6 +35,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
             id='price_sfmOFe33rfsfd36685657',
             product=product,
             unit_amount=2000,
+            transform_quantity=None,
         )
 
     @staticmethod

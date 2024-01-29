@@ -168,10 +168,10 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
             }
         )
 
-        response = self.client.get(self.detail_url)
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
-        assert response.data['total_storage_bytes'] == (
+        first_response = self.client.get(self.detail_url)
+        assert first_response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
+        assert first_response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
+        assert first_response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
 
@@ -180,9 +180,5 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         add_mock_submissions(assets, self.submissions_per_asset)
 
         # make sure the second request doesn't reflect the additional submissions
-        response = self.client.get(self.detail_url)
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
-        assert response.data['total_storage_bytes'] == (
-            self.expected_file_size() * self.expected_submissions_multi
-        )
+        second_response = self.client.get(self.detail_url)
+        self.assertEqual(first_response.data, second_response.data)

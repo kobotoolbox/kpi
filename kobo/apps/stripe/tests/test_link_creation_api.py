@@ -26,7 +26,13 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         self.client.force_login(self.someuser)
         product = baker.prepare(Product, active=True)
         product.save()
-        self.price = baker.make(Price, active=True, id='price_1LsSOSAR39rDI89svTKog9Hq', product=product)
+        self.price = baker.make(
+            Price,
+            active=True,
+            id='price_1LsSOSAR39rDI89svTKog9Hq',
+            product=product,
+            metadata={"max_purchase_quantity": "3"},
+        )
 
     @staticmethod
     def _get_url(query_params):

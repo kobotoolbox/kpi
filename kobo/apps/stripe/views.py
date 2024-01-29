@@ -93,7 +93,7 @@ class ChangePlanView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # If we're upgrading their plan or moving to a plan with the same price, change the subscription immediately
-        current_total_price = get_total_price_for_quantity(subscription_item.price, subscription.quantity)
+        current_total_price = get_total_price_for_quantity(subscription_item.price, subscription_item.quantity)
         new_total_price = get_total_price_for_quantity(price, quantity)
         if new_total_price >= current_total_price:
             stripe_response = stripe.Subscription.modify(
