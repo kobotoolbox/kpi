@@ -70,6 +70,9 @@ SHADOW_MODEL_APP_LABEL = 'shadow_model'
 SHADOW_MODEL_APP_LABELS = [
     SHADOW_MODEL_APP_LABEL,
     'superuser_stats',
+]
+
+OPEN_ROSA_SERVER_MODELS = [
     'logger',
     'viewer',
     'main',

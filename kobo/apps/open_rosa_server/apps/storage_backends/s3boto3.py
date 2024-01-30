@@ -5,6 +5,7 @@ import logging
 import storages.backends.s3boto3 as upstream
 
 
+# FIXME Duplicate with existing code
 class S3Boto3StorageFile(upstream.S3Boto3StorageFile):
     def __init__(self, name, mode, storage, buffer_size=None):
         super().__init__(name, mode, storage, buffer_size)

@@ -1,5 +1,5 @@
 # coding: utf-8
-from .constants import SHADOW_MODEL_APP_LABELS
+from .constants import OPEN_ROSA_SERVER_MODELS, SHADOW_MODEL_APP_LABELS
 from .exceptions import ReadOnlyModelError
 
 
@@ -9,8 +9,12 @@ class DefaultDatabaseRouter:
         """
         Reads go to KoBoCAT database when `model` is a ShadowModel
         """
-        if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
+        if (
+            model._meta.app_label in SHADOW_MODEL_APP_LABELS
+            or model._meta.app_label in OPEN_ROSA_SERVER_MODELS
+        ):
             return 'kobocat'
+
         return 'default'
 
     def db_for_write(self, model, **hints):
@@ -21,7 +25,10 @@ class DefaultDatabaseRouter:
         if getattr(model, 'read_only', False):
             raise ReadOnlyModelError
 
-        if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
+        if (
+            model._meta.app_label in SHADOW_MODEL_APP_LABELS
+            or model._meta.app_label in OPEN_ROSA_SERVER_MODELS
+        ):
             return 'kobocat'
 
         return 'default'
@@ -38,6 +45,7 @@ class DefaultDatabaseRouter:
         """
         if db != 'default' or app_label in SHADOW_MODEL_APP_LABELS:
             return False
+
         return True
 
 
