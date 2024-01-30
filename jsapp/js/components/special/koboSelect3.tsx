@@ -63,17 +63,14 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     }
   };
   // const scrollTriggerIntoView = () => {
-  //   triggerElRef.current?.scrollIntoView({behavior: 'instant', block: 'nearest'});
+  //   triggerElRef.current?.scrollIntoView({block: 'nearest'});
   // };
   const scrollOptionIntoView = () => {
     const optionEl =
       menuElRef.current?.querySelector(
         `[data-value='${optionRef.current.value}']`
       ) || menuElRef.current?.querySelector('[data-value]'); // goto top if none
-    optionEl?.scrollIntoView({
-      behavior: 'instant',
-      block: 'nearest',
-    });
+    optionEl?.scrollIntoView({block: 'nearest'});
   };
   // Comparison helpers, for letter matching
   const closestAscii = (str: string) => {
@@ -249,10 +246,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     forceUpdate();
   };
 
-
-  const triggerBlurHandler = (e: React.FocusEvent) => {
-    closeMenu();
-  };
+  const triggerBlurHandler = () => {closeMenu();};
   const triggerMouseDownHandler = (e: React.MouseEvent) => {
     if (e.button === 0) {
       toggleMenu();
