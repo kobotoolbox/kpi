@@ -100,7 +100,10 @@ export default class KoboDropdown extends React.Component<
 
   /** When trigger is focused, this handles the keyboard navigation */
   onTriggerKeyDown(evt: React.KeyboardEvent<Node>) {
-    if (evt.key === KeyNames.Enter) {
+    if (
+      evt.key === KeyNames.Enter ||
+      (evt.key === KeyNames.Space && !this.state.isMenuVisible)
+    ) {
       evt.preventDefault();
       this.toggleMenu();
     }
