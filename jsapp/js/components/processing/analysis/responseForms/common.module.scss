@@ -1,0 +1,37 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+@use '../analysisVariables';
+
+$label-left-position: analysisVariables.$icon-size +
+  analysisVariables.$inner-horizontal-gap;
+
+.header {
+  @include mixins.centerRowFlex;
+  gap: analysisVariables.$inner-horizontal-gap;
+
+  &:not(:last-child) {
+    margin-bottom: analysisVariables.$inner-vertical-gap;
+  }
+}
+
+.headerLabel {
+  color: colors.$kobo-gray-40;
+  font-size: sizes.$x16;
+  font-weight: 600;
+  flex: 1;
+}
+
+.headerIcon {
+  background-color: colors.$kobo-light-teal;
+  color: colors.$kobo-teal;
+  border-radius: sizes.$x6;
+  width: analysisVariables.$icon-size;
+  height: analysisVariables.$icon-size;
+  line-height: analysisVariables.$icon-size;
+  text-align: center;
+}
+
+.content {
+  padding-left: $label-left-position;
+}

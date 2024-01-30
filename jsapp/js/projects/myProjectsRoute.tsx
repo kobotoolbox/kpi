@@ -27,7 +27,7 @@ import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
-import {UsageContext, useUsage} from 'js/account/useUsage.hook';
+import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
@@ -79,6 +79,10 @@ function MyProjectsRoute() {
         <h1>{t('Drop files to upload')}</h1>
       </div>
 
+      <UsageContext.Provider value={usage}>
+        <LimitNotifications useModal />
+      </UsageContext.Provider>
+
       <section className={styles.root}>
         <header className={styles.header}>
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
@@ -113,9 +117,6 @@ function MyProjectsRoute() {
             </div>
           )}
         </header>
-        <UsageContext.Provider value={usage}>
-          <LimitNotifications useModal />
-        </UsageContext.Provider>
         <ProjectsTable
           assets={customView.assets}
           isLoading={!customView.isFirstLoadComplete}

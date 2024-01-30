@@ -145,8 +145,6 @@ export default class UserAssetPermsEditor extends React.Component<
       this.props.username
     );
     this.state = this.applyValidityRules(Object.assign(this.state, formData));
-
-    this.state = this.applySubmissionsAddRules(this.state);
   }
 
   componentDidMount() {
@@ -197,8 +195,7 @@ export default class UserAssetPermsEditor extends React.Component<
       output = Object.assign(output, {[checkboxName + SUFFIX_DISABLED]: false});
     }
 
-    // Step 3: Lock submission add
-    output = this.applySubmissionsAddRules(output);
+    // Step 3: Lock submission add -- OUTDATED after per project anonymous submissions
 
     // Step 4: Apply permissions configuration rules to checkboxes
     for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
@@ -217,33 +214,6 @@ export default class UserAssetPermsEditor extends React.Component<
         );
         output = Object.assign(output, {[listName]: []});
       }
-    }
-
-    return output;
-  }
-
-  /**
-   * For users with disabled `auth_required` we need to force check
-   * "add submissions" and don't allow unchecking it.
-   *
-   * Returns updated state object
-   */
-  applySubmissionsAddRules(stateObj: UserAssetPermsEditorState) {
-    let output = clonedeep(stateObj);
-
-    if (
-      this.isAssignable('add_submissions') &&
-      'extra_details' in sessionStore.currentAccount &&
-      sessionStore.currentAccount.extra_details?.require_auth !== true
-    ) {
-      output = Object.assign(output, {
-        [CHECKBOX_NAMES.submissionsAdd]: true,
-        [CHECKBOX_NAMES.submissionsAdd + SUFFIX_DISABLED]: true,
-      });
-      output = this.applyValidityRulesForCheckbox(
-        CHECKBOX_NAMES.submissionsAdd,
-        output
-      );
     }
 
     return output;

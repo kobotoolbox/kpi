@@ -7,6 +7,8 @@ import './accountSettings.scss';
 import {notify, stringToColor} from 'js/utils';
 import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
+import Icon from 'js/components/common/icon';
+import envStore from 'js/envStore';
 import {
   getInitialAccountFieldsValues,
   getProfilePatchData,
@@ -15,6 +17,7 @@ import type {
   AccountFieldsValues,
   AccountFieldsErrors,
 } from './account.constants';
+import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -151,6 +154,33 @@ const AccountSettings = observer(() => {
 
         {sessionStore.isInitialLoadComplete && form.isUserDataLoaded && (
           <bem.AccountSettings__item m='fields'>
+            <bem.AccountSettings__item m='anonymous-submission-notice'>
+              <Icon name='information' color='amber' size='m' />
+              <div className='anonymous-submission-notice-copy'>
+                <strong>
+                  {t(
+                    'You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.'
+                  )}
+                </strong>
+                &nbsp;
+                <div>
+                  {t(
+                    'This privacy feature is now a per-project setting. New projects will require authentication by default.'
+                  )}
+                </div>
+                &nbsp;
+                <a
+                  href={
+                    envStore.data.support_url +
+                    HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                  }
+                  target='_blank'
+                >
+                  {t('Learn more about these changes here.')}
+                </a>
+              </div>
+            </bem.AccountSettings__item>
+
             <AccountFieldsEditor
               errors={form.fieldsWithErrors.extra_details}
               values={form.fields}

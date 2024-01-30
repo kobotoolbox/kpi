@@ -1,8 +1,4 @@
 # coding: utf-8
-from django.conf import settings
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie
 from rest_framework import (
     renderers,
     viewsets,
@@ -14,15 +10,14 @@ from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 
 
-# @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
-# @method_decorator(vary_on_cookie, name='list')
 class ServiceUsageViewSet(viewsets.GenericViewSet):
     """
     ## Service Usage Tracker
     <p>Tracks the total usage of different services for the logged-in user</p>
     <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
     <p>Tracks the current total storage used</p>
-    <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
+    <p>Note: this endpoint is not currently used by the frontend to display usage information</p>
+    <p>See /api/v2/organizations/{organization_id}/service_usage/ for the endpoint we use on the Usage page</p>
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/service_usage/

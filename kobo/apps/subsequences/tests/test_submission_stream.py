@@ -2,6 +2,7 @@ import json
 
 from django.test import TestCase
 
+from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.models import Asset
 
@@ -11,33 +12,62 @@ def mock_submission_stream():
 
 class TestSubmissionStream(TestCase):
     def setUp(self):
-        self.asset = Asset()
+        self.asset = Asset.objects.create()
 
     def test_submission_stream_is_flat(self):
-        extras = {
-            'aaa': {'QQ': {'transcript': {'value': 'New transcript',
-                   'revisions': [{'value': 'Here is the audio transcript',
-                     'dateModified': '2021-12-27 22:51:23',
-                     'languageCode': 'en'}],
-                   'dateCreated': '2022-01-19 23:06:55',
-                   'dateModified': '2022-01-19 23:06:55'},
-                  'translation': {'en': {'value': 'new translation'},
-                   'revisions': [{'en': {'value': 'le translation'},
-                     'dateModified': '2022-01-19 23:10:04'}],
-                   'dateCreated': '2022-01-19 23:14:15',
-                   'dateModified': '2022-01-19 23:14:15'}}
+        SubmissionExtras.objects.create(
+            asset=self.asset,
+            submission_uuid='aaa',
+            content={
+                'QQ': {
+                    'transcript': {
+                        'value': 'New transcript',
+                        'revisions': [
+                            {
+                                'value': 'Here is the audio transcript',
+                                'dateModified': '2021-12-27 22:51:23',
+                                'languageCode': 'en',
+                            }
+                        ],
+                        'dateCreated': '2022-01-19 23:06:55',
+                        'dateModified': '2022-01-19 23:06:55',
+                    },
+                    'translation': {
+                        'en': {'value': 'new translation'},
+                        'revisions': [
+                            {
+                                'en': {'value': 'le translation'},
+                                'dateModified': '2022-01-19 23:10:04',
+                            }
+                        ],
+                        'dateCreated': '2022-01-19 23:14:15',
+                        'dateModified': '2022-01-19 23:14:15',
+                    },
+                }
             },
-            'bbb': {'QQ': {'transcript': {'value': 'New transcript',
-                   'revisions': [],
-                   'dateCreated': '2022-01-19 23:16:51',
-                   'dateModified': '2022-01-19 23:16:51'},
-                  'translation': {'en': {'value': 'new translation'},
-                   'revisions': [],
-                   'dateCreated': '2022-01-19 23:16:51',
-                   'dateModified': '2022-01-19 23:16:51'}}},
-        }
+        )
+        SubmissionExtras.objects.create(
+            asset=self.asset,
+            submission_uuid='bbb',
+            content={
+                'QQ': {
+                    'transcript': {
+                        'value': 'New transcript',
+                        'revisions': [],
+                        'dateCreated': '2022-01-19 23:16:51',
+                        'dateModified': '2022-01-19 23:16:51',
+                    },
+                    'translation': {
+                        'en': {'value': 'new translation'},
+                        'revisions': [],
+                        'dateCreated': '2022-01-19 23:16:51',
+                        'dateModified': '2022-01-19 23:16:51',
+                    },
+                }
+            },
+        )
         output = []
-        for i in stream_with_extras(mock_submission_stream(), extras):
+        for i in stream_with_extras(mock_submission_stream(), self.asset):
             output.append(i)
         assert '_supplementalDetails' in output[0]
         assert '_supplementalDetails' in output[1]

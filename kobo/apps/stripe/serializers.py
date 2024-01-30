@@ -100,7 +100,6 @@ class CheckoutLinkSerializer(PriceIdSerializer):
 
 
 class PriceSerializer(BasePriceSerializer):
-    product = BaseProductSerializer()
 
     class Meta(BasePriceSerializer.Meta):
         fields = (
@@ -114,18 +113,23 @@ class PriceSerializer(BasePriceSerializer):
             'metadata',
             'active',
             'product',
+            'transform_quantity',
         )
 
 
+class PriceWithProductSerializer(PriceSerializer):
+    product = BaseProductSerializer()
+
+
 class ProductSerializer(BaseProductSerializer):
-    prices = BasePriceSerializer(many=True)
+    prices = PriceSerializer(many=True)
 
     class Meta(BaseProductSerializer.Meta):
         fields = ('id', 'name', 'description', 'type', 'prices', 'metadata')
 
 
 class SubscriptionItemSerializer(serializers.ModelSerializer):
-    price = PriceSerializer()
+    price = PriceWithProductSerializer()
 
     class Meta:
         model = SubscriptionItem
