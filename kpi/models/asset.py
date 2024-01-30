@@ -558,20 +558,21 @@ class Asset(ObjectPermissionMixin,
         survey = content['survey']
 
         def _get_xpaths(survey_: dict) -> Optional[list]:
-            try:
-                return [
-                    question['$xpath']
-                    for question in survey_
-                    if question['type'] in ATTACHMENT_QUESTION_TYPES
-                ]
-            except KeyError as e:
-                # If KeyError is anything else than '$xpath', we raise the error.
-                # Otherwise, we pass (and return None) because '$xpath'
-                # and '$qpath' should be injected before next try
-                if str(e).strip("'") != '$xpath':
-                    raise e
-
-            return None
+            """
+            Returns an empty list if no questions that take attachments are
+            present. Returns `None` if XPath are missing from the survey
+            content
+            """
+            xpaths = []
+            for question in survey_:
+                if question['type'] not in ATTACHMENT_QUESTION_TYPES:
+                    continue
+                try:
+                    xpath = question['$xpath']
+                except KeyError:
+                    return None
+                xpaths.append(xpath)
+            return xpaths
 
         if xpaths := _get_xpaths(survey):
             return xpaths
