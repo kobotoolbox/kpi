@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@f3eb0412e9fd0a67c215632e3438e7e6dee30e51#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@724de16b625caa834adf4181c239c187a1a3773f#egg=formpack
 
 # service-account
 -e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
