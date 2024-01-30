@@ -177,7 +177,8 @@ RUN chown -R ":${UWSGI_GROUP}" ${CELERY_PID_DIR} && \
     chmod g+w ${CELERY_PID_DIR} && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_LOGS_DIR} && \
-    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR}
+    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR} && \
+    chown -R root:root "${TMP_DIR}/.npm"
 
 
 EXPOSE 8000
