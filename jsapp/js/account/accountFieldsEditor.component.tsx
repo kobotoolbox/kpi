@@ -106,15 +106,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   };
 
   function updateWebsiteAddress(input: string) {
-    onAnyFieldChange('organization_website', cleanedUrl(input));
+    const cleaned = cleanedUrl(input);
+    if (cleaned !== input) {
+      onAnyFieldChange('organization_website', cleaned);
+    }
   }
 
   function onWebsiteKeydown(event: string) {
     if (event === 'Enter') {
-      onAnyFieldChange(
-        'organization_website',
-        cleanedUrl(props.values.organization_website)
-      );
+      updateWebsiteAddress(props.values.organization_website);
     }
   }
 
