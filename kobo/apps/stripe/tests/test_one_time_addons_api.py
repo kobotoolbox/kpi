@@ -63,7 +63,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self._create_session_and_payment_intent()
         self.client.logout()
         response = self.client.get(self.url)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_not_own_addon(self):
         self._insert_data()

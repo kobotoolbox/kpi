@@ -852,12 +852,7 @@ class ExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
-            extr = dict(
-                source.submission_extras.values_list(
-                    'submission_uuid', 'content'
-                )
-            )
-            submission_stream = stream_with_extras(submission_stream, extr)
+            submission_stream = stream_with_extras(submission_stream, source)
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions

@@ -1,7 +1,6 @@
 import React from 'react';
 import {observer} from 'mobx-react-lite';
 import sessionStore from 'js/stores/session';
-import {PATHS} from 'js/router/routerConstants';
 import styles from './ssoSection.module.scss';
 import {deleteSocialAccount} from './sso.api';
 import Button from 'jsapp/js/components/common/button';
@@ -53,7 +52,7 @@ const SsoSection = observer(() => {
             <a
               href={
                 'accounts/' +
-                socialApp.provider +
+                (socialApp.provider_id || socialApp.provider) +
                 '/login/?process=connect&next=%2F%23%2Faccount%2Fsecurity'
               }
               className={styles.passwordLink}

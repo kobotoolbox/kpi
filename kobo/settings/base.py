@@ -1,7 +1,6 @@
 # coding: utf-8
 import logging
 import os
-import re
 import string
 import subprocess
 from datetime import datetime
@@ -131,10 +130,12 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
+    'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hub.middleware.LocaleMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -609,6 +610,7 @@ ANONYMOUS_USER_ID = -1
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_asset',
     'kpi.discover_asset',
+    'kpi.add_submissions',
     'kpi.view_submissions',
 )
 
@@ -651,6 +653,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'hu '  # Hungarian
         'id '  # Indonesian
         'ja '  # Japanese
+        'km '  # Khmer
         'ku '  # Kurdish
         'ln '  # Lingala
         'my '  # Burmese/Myanmar
@@ -764,10 +767,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
         # default
-        'rest_framework.authentication.SessionAuthentication',
+        'kpi.authentication.SessionAuthentication',
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
@@ -866,6 +870,11 @@ if STRIPE_ENABLED:
     DJSTRIPE_WEBHOOK_SECRET = env.str('DJSTRIPE_WEBHOOK_SECRET', None)
     DJSTRIPE_WEBHOOK_VALIDATION = env.str('DJSTRIPE_WEBHOOK_VALIDATION', 'verify_signature')
 STRIPE_PUBLIC_KEY = STRIPE_LIVE_PUBLIC_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_PUBLIC_KEY
+
+'''Organizations settings'''
+# necessary to prevent calls to `/organizations/{ORG_ID}/service_usage/` (and any other
+# queries that may need to aggregate data for all organization users) from slowing down db
+ORGANIZATION_USER_LIMIT = env.str('ORGANIZATION_USER_LIMIT', 400)
 
 
 ''' Enketo configuration '''
@@ -1030,61 +1039,6 @@ SOCIALACCOUNT_FORMS = {
 UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
     "UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE", False
 )
-
-# See https://django-allauth.readthedocs.io/en/latest/configuration.html
-# Map env vars to upstream dict values, include exact case. Underscores for delimiter.
-# Example: SOCIALACCOUNT_PROVIDERS_provider_SETTING
-# Use numbers for arrays such as _1_FOO, _1_BAR, _2_FOO, _2_BAR
-SOCIALACCOUNT_PROVIDERS = {}
-if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
-    SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
-# Parse oidc settings as nested dict in array. Example:
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google" # Must be unique
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_server_url: "https://accounts.google.com"
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_name: "Kobo Google Apps"
-# Only OIDC supports multiple providers. For example, to add two Google Apps sign ins - use
-# OIDC and assign them a different server number. Do not use the allauth google provider.
-oidc_prefix = "SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_"
-oidc_pattern = re.compile(r"{prefix}\w+".format(prefix=oidc_prefix))
-oidc_servers = {}
-oidc_nested_keys = ['APP', 'SCOPE', 'AUTH_PARAMS']
-
-for key, value in {
-    key.replace(oidc_prefix, ""): val
-    for key, val in os.environ.items()
-    if oidc_pattern.match(key)
-}.items():
-    number, setting = key.split("_", 1)
-    parsed_key = None
-    nested_key = filter(lambda setting_key : setting.startswith(setting_key), oidc_nested_keys)
-    nested_key = list(nested_key)
-    if len(nested_key):
-        _, parsed_key = setting.split(nested_key[0] + "_", 1)
-        setting = nested_key[0]
-    if number in oidc_servers:
-        if parsed_key:
-            if setting in oidc_servers[number]:
-                if parsed_key.isdigit():
-                    oidc_servers[number][setting].append(value)
-                else:
-                    oidc_servers[number][setting][parsed_key] = value
-            else:
-                if parsed_key.isdigit():
-                    oidc_servers[number][setting] = [value]
-                else:
-                    oidc_servers[number][setting] = {parsed_key: value}
-        else:
-            oidc_servers[number][setting] = value
-    else:
-        if parsed_key:
-            if parsed_key.isdigit():
-                oidc_servers[number] = {setting: [value]}
-            else:
-                oidc_servers[number] = {setting: {parsed_key: value}}
-        else:
-            oidc_servers[number] = {setting: value}
-oidc_servers = [x for x in oidc_servers.values()]
-SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
 
 WEBPACK_LOADER = {
     'DEFAULT': {
@@ -1352,7 +1306,10 @@ SESSION_REDIS = {
 
 CACHES = {
     # Set CACHE_URL to override
-    'default': env.cache(default='redis://redis_cache:6380/3'),
+    'default': env.cache_url(default='redis://redis_cache:6380/3'),
+    'enketo_redis_main': env.cache_url(
+        'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
+    ),
 }
 
 # How long to retain cached responses for kpi endpoints
