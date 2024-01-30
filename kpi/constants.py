@@ -3,6 +3,14 @@ SUBMISSION_FORMAT_TYPE_XML = "xml"
 SUBMISSION_FORMAT_TYPE_JSON = "json"
 
 GEO_QUESTION_TYPES = ('geopoint', 'geotrace', 'geoshape')
+ATTACHMENT_QUESTION_TYPES = (
+    'audit',
+    'image',
+    'audio',
+    'video',
+    'file',
+    'background-audio',
+)
 
 ASSET_TYPE_TEXT = 'text'
 ASSET_TYPE_EMPTY = 'empty'

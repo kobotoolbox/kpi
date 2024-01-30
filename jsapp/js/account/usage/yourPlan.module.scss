@@ -1,0 +1,37 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+
+.section {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: 1.5em;
+  border-block: 1px solid colors.$kobo-gray-85
+}
+
+.banner {
+  flex-basis: 100%;
+  margin-top: 1em;
+  margin-bottom: -1em;
+}
+
+.plan {
+  font-size: sizes.$r18;
+  margin-block-start: 0;
+}
+
+.planInfo {
+  margin-block: 1.5em;
+}
+
+.renewal {
+  font-weight: bold;
+  font-size: sizes.$r12;
+  padding-inline: 0.25em;
+}
+
+.start {
+  padding-inline-end: 1em;
+}

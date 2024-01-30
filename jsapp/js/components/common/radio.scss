@@ -17,43 +17,6 @@
     }
   }
 
-  // Disabled state
-  &.radio--disabled {
-    .radio__row {
-      cursor: default;
-    }
-
-    .radio__input,
-    .radio__label {
-      pointer-events: none;
-      opacity: 0.5;
-    }
-
-    .radio__input:checked {
-      color: colors.$kobo-white;
-      border-color: colors.$kobo-gray-40;
-      background-color: colors.$kobo-gray-40;
-    }
-  }
-
-  // Hover states
-  .radio__row:hover {
-    // Unchecked
-    .radio__input:not(:checked) {
-      border-color: colors.$kobo-gray-40;
-      background-color: colors.$kobo-light-blue;
-    }
-
-    // Checked
-    .radio__input:checked {
-      border-color: colors.$kobo-alt-blue;
-
-      &::after {
-        background-color: colors.$kobo-alt-blue;
-      }
-    }
-  }
-
   .radio__input,
   .radio__label {
     display: inline-block;
@@ -76,7 +39,7 @@
     position: relative;
     margin: 0;
     color: colors.$kobo-gray-65;
-    border: sizes.$x1 solid colors.$kobo-gray-65;
+    border: sizes.$x1 solid currentcolor;
     background-color: colors.$kobo-white;
     width: sizes.$x20;
     height: sizes.$x20;
@@ -87,25 +50,50 @@
     &::after {
       display: block;
       position: absolute;
-      opacity: 0;
       content: '';
       top: sizes.$x4;
       left: sizes.$x4;
       border-radius: 50%;
       width: sizes.$x10;
       height: sizes.$x10;
-      background-color: colors.$kobo-blue;
+      background-color: currentcolor;
     }
 
-    &:checked {
-      border-color: colors.$kobo-blue;
-
-      &::after {opacity: 1;}
+    &:not(:checked)::after {
+      display: none;
     }
 
     // Keyboard focus styles
     &:focus-visible {
       @include mixins.default-ui-focus;
     }
+  }
+
+  // Idle checked state
+  .radio__input:checked {
+    color: colors.$kobo-blue;
+  }
+
+  // Disabled state
+  &.radio--disabled {
+    .radio__row {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .radio__input:checked {
+      color: colors.$kobo-gray-40;
+    }
+  }
+
+  // Hover unchecked state
+  .radio__row:hover .radio__input:not(:checked) {
+    color: colors.$kobo-gray-40;
+    background-color: colors.$kobo-light-blue;
+  }
+
+  // Hover checked state
+  .radio__row:hover .radio__input:checked {
+    color: colors.$kobo-alt-blue;
   }
 }

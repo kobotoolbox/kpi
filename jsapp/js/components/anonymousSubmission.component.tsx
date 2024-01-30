@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import envStore from 'js/envStore';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
@@ -17,7 +17,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
         checked={props.checked}
         onChange={props.onChange}
         label={t(
-          'Allow web submissions to this form without a username and password'
+          'Allow submissions to this form without a username and password'
         )}
       />
       <a
@@ -25,7 +25,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
         className='right-tooltip wrapped-tooltip'
         target='_blank'
         data-tip={t(
-          'Allow anyone to see this form and add submissions. Click the icon to learn more.'
+          'Allow anonymous submissions for this project. Previously, this was an account-wide setting. Click the icon to learn more.'
         )}
       >
         <Icon size='s' name='help' color='storm' />
