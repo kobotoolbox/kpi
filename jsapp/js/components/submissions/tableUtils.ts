@@ -64,14 +64,25 @@ export function getColumnLabel(
       translationIndex
     );
 
-    if (supplementalPathParts.isTranscript) {
+    if (supplementalPathParts.type === 'transcript') {
       return `${t('transcript')} (${
         supplementalPathParts.languageCode
       }) | ${sourceQuestionLabel}`;
-    } else if (supplementalPathParts.isTranslation) {
+    } else if (supplementalPathParts.type === 'translation') {
       return `${t('translation')} (${
         supplementalPathParts.languageCode
       }) | ${sourceQuestionLabel}`;
+    } else {
+      // this is absurd, to undo what `injectSupplementalRowsIntoListOfRows()`
+      // did when the back end already provided what's needed in the first
+      // place
+      const dtpath = key.slice('_supplementalDetails/'.length);
+      // FIXME: pass the entire object (or at least the label!) provided by
+      // the back end through to this function, without doing all this nonsense
+      const analysisQuestion = asset.analysis_form_json?.additional_fields.filter((f) => f.dtpath === dtpath)[0];
+      if (analysisQuestion?.label) {
+        return `${analysisQuestion.label} | ${sourceQuestionLabel}`;
+      }
     }
   }
 

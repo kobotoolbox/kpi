@@ -871,6 +871,11 @@ if STRIPE_ENABLED:
     DJSTRIPE_WEBHOOK_VALIDATION = env.str('DJSTRIPE_WEBHOOK_VALIDATION', 'verify_signature')
 STRIPE_PUBLIC_KEY = STRIPE_LIVE_PUBLIC_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_PUBLIC_KEY
 
+'''Organizations settings'''
+# necessary to prevent calls to `/organizations/{ORG_ID}/service_usage/` (and any other
+# queries that may need to aggregate data for all organization users) from slowing down db
+ORGANIZATION_USER_LIMIT = env.str('ORGANIZATION_USER_LIMIT', 400)
+
 
 ''' Enketo configuration '''
 ENKETO_URL = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')

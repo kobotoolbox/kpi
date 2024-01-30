@@ -2,7 +2,7 @@ import React, {createRef} from 'react';
 import bem, {makeBem} from 'js/bem';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
-import {formatSeconds, generateUid, notify} from 'js/utils';
+import {formatSeconds, generateUuid, notify} from 'js/utils';
 import 'js/components/common/miniAudioPlayer.scss';
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player');
@@ -32,7 +32,7 @@ class MiniAudioPlayer extends React.Component<
 > {
   audioRef = createRef<HTMLAudioElement>();
   /** Useful for stopping. */
-  uid = generateUid();
+  uid = generateUuid();
 
   private onAudioLoadedBound = this.onAudioLoaded.bind(this);
   private onAudioErrorBound = this.onAudioError.bind(this);

@@ -1,0 +1,32 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+
+.root {
+  display: flex;
+  justify-content: right;
+  padding-top: sizes.$x18;
+  padding-bottom: sizes.$x10;
+}
+
+.description {
+  padding-bottom: sizes.$x36;
+}
+
+.display:not(:last-child) {
+  padding-bottom: sizes.$x36;
+}
+
+.wrapWithParens {
+  span::before {
+    content: '(';
+  }
+
+  span::after {
+    content: ')';
+  }
+}
+
+.options {
+  margin: 0 !important;
+  overflow-y: auto;
+}

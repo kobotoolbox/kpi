@@ -1,14 +1,15 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/sizes';
 @use 'scss/mixins';
-@use 'js/components/common/icon';
 
 .k-inline-message {
   @include mixins.centerRowFlex;
 
   margin: 0;
-  padding: sizes.$x21 sizes.$x24;
+  padding: sizes.$x12 sizes.$x24;
   width: 100%;
+  border-radius: sizes.$x6;
+  color: colors.$kobo-gray-40;
 
   .k-icon {
     margin-right: sizes.$x12;
@@ -33,25 +34,41 @@
 }
 
 .k-inline-message--type-default {
-  color: colors.$kobo-gray-24;
   background-color: colors.$kobo-gray-96;
+
+  .k-icon {
+    color: colors.$kobo-gray-65;
+  }
 }
 
 .k-inline-message--type-error {
-  color: colors.$kobo-dark-red;
   background-color: colors.$kobo-light-red;
+
+  .k-icon {
+    color: colors.$kobo-red;
+  }
 }
 
 .k-inline-message--type-success {
-  color: colors.$kobo-dark-teal;
   background-color: colors.$kobo-light-teal;
+
+  .k-icon {
+    color: colors.$kobo-teal;
+  }
 }
 
 .k-inline-message--type-warning {
-  color: colors.$kobo-dark-amber;
   background-color: colors.$kobo-light-amber;
+
+  .k-icon {
+    color: colors.$kobo-amber;
+  }
 }
 
-.k-inline-message__message {
+// We need a bit stronger specificity here
+.k-inline-message p.k-inline-message__message {
   margin: 0;
+  text-align: left;
+  font-size: sizes.$x14;
+  line-height: sizes.$x22;
 }

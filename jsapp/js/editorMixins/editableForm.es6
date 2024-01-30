@@ -838,21 +838,6 @@ export default Object.assign({
                 />
               </bem.FormBuilderAside__row>
             }
-
-            {this.hasMetadataAndDetails() &&
-             envStore.data.project_metadata_fields.length > 0 &&
-              <bem.FormBuilderAside__row>
-                <bem.FormBuilderAside__header>
-                  {t('Details')}
-                </bem.FormBuilderAside__header>
-
-                <ProjectSettings
-                  context={PROJECT_SETTINGS_CONTEXTS.BUILDER}
-                  onProjectDetailsChange={this.onProjectDetailsChange}
-                  formAsset={this.state.asset}
-                />
-              </bem.FormBuilderAside__row>
-            }
           </bem.FormBuilderAside__content>
         }
 
