@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import Button from 'js/components/common/button';
 import {observer} from 'mobx-react';
-import {Form, unstable_usePrompt as usePrompt} from 'react-router-dom';
+import type {Form} from 'react-router-dom';
+import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
@@ -89,7 +90,9 @@ const AccountSettings = observer(() => {
     when: !form.isPristine,
     message: t('You have unsaved changes. Leave settings without saving?'),
   });
-  const updateProfile = () => {
+  const updateProfile = (e: React.FormEvent) => {
+    e?.preventDefault?.(); // Prevent form submission page reload
+
     const profilePatchData = getProfilePatchData(form.fields);
     dataInterface
       .patchProfile(profilePatchData)
