@@ -26,6 +26,12 @@
     margin-bottom: sizes.$x6;
     color: colors.$kobo-gray-24;
   }
+
+  :global {
+    .checkbox__wrapper {
+      margin-top: sizes.$x6;
+    }
+  }
 }
 
 .flexFields {
@@ -34,13 +40,14 @@
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start; // better alignment when there's error feedback
   gap: sizes.$x15 sizes.$x20;
   margin-bottom: sizes.$x15;
 
   .field {
     flex: 1;
-    min-width: 40%; // Let fields sit next to each other in pairs.
+    // If there's enough room, let fields sit next to each other in pairs.
+    min-width: (max(40%, 14em));
   }
 
   &:empty {
