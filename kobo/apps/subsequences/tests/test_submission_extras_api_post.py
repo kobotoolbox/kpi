@@ -84,7 +84,7 @@ class ValidateSubmissionTest(APITestCase):
         summ = tx_instance.compile_revised_record({}, edits=first_post)
         assert summ['q1']['translation']['tx1']['value'] == 'VAL1'
         assert len(summ['q1']['translation']['tx1']['revisions']) == 0
-        summ1 = deepcopy(summ)
+
         second_post = {
             'q1': {
                 'translation': {
@@ -94,6 +94,14 @@ class ValidateSubmissionTest(APITestCase):
                 }
             }
         }
+        summ1 = tx_instance.compile_revised_record(
+            deepcopy(summ), edits=second_post
+        )
+        assert summ1['q1']['translation']['tx1']['value'] == 'VAL2'
+        assert len(summ1['q1']['translation']['tx1']['revisions']) == 1
+        assert (
+            summ1['q1']['translation']['tx1']['revisions'][0]['value'] == 'VAL1'
+        )
 
     def test_transx_requires_change_asset_permission(self):
         """
