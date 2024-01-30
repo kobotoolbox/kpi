@@ -25,7 +25,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
         className='right-tooltip wrapped-tooltip'
         target='_blank'
         data-tip={t(
-          'Allow anyone to see this form and add submissions. Click the icon to learn more.'
+          'Allow anonymous submissions for this project. Previously, this was an account-wide setting. Click the icon to learn more.'
         )}
       >
         <Icon size='s' name='help' color='storm' />

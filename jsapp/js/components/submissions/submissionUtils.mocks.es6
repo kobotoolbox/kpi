@@ -1910,6 +1910,84 @@ export const assetWithSupplementalDetails = {
         'de',
       ],
     },
+    'qual': {
+      'qual_survey': [
+        {
+          'type': 'qual_text',
+          'uuid': 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
+          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'scope': 'by_question#survey',
+          'labels': {
+            '_default': 'What is?',
+          },
+        },
+        {
+          'type': 'qual_integer',
+          'uuid': '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
+          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'scope': 'by_question#survey',
+          'labels': {
+            '_default': 'How much is the fish?',
+          },
+        },
+        {
+          'type': 'qual_tags',
+          'uuid': 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
+          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'scope': 'by_question#survey',
+          'labels': {
+            '_default': 'Another tag question here?',
+          },
+        },
+        {
+          'type': 'qual_select_multiple',
+          'uuid': '1a89e0da-3344-4b5d-b919-ab8b072e0918',
+          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'scope': 'by_question#survey',
+          'labels': {
+            '_default': 'Choose multiple',
+          },
+          'choices': [
+            {
+              'uuid': 'b180037c-930b-4025-ba21-1d59ee07485d',
+              'labels': {
+                '_default': 'First',
+              },
+            },
+            {
+              'uuid': 'db4a6b84-4103-4584-a515-27bcf3f0e7ab',
+              'labels': {
+                '_default': 'Second',
+              },
+            },
+            {
+              'uuid': 'fa63c403-2a26-426c-97d6-9b8cfc277545',
+              'labels': {
+                '_default': 'Third',
+              },
+            },
+          ],
+        },
+        {
+          'type': 'qual_auto_keyword_count',
+          'uuid': 'd4813284-d928-43b7-bde5-133eabe76024',
+          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'scope': 'by_question#survey',
+          'labels': {
+            '_default': 'How many swear words were used?',
+          },
+        },
+        {
+          'type': 'qual_tags',
+          'uuid': '056c8f57-0733-4669-a84e-aa9726ffbf6b',
+          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'scope': 'by_question#survey',
+          'labels': {
+            '_default': 'Do tags work?',
+          },
+        },
+      ],
+    },
   },
   'advanced_submission_schema': {
     'type': 'object',
@@ -2552,6 +2630,66 @@ export const submissionWithSupplementalDetails = {
           'languageCode': 'pl',
         },
       },
+      'qual': [
+        {
+          'val': [
+            'best',
+            'things',
+            'ever recorder by human',
+            '3',
+          ],
+          'type': 'qual_tags',
+          'uuid': 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
+        },
+        {
+          'val': 12345,
+          'type': 'qual_integer',
+          'uuid': '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
+        },
+        {
+          'val': 'a thing',
+          'type': 'qual_text',
+          'uuid': 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
+        },
+        {
+          'val': [
+            {
+              labels: {
+                _default: 'First',
+              },
+              val: 'b180037c-930b-4025-ba21-1d59ee07485d',
+            },
+            {
+              labels: {
+                _default: 'Third',
+              },
+              val: 'fa63c403-2a26-426c-97d6-9b8cfc277545',
+            },
+          ],
+          'type': 'qual_select_multiple',
+          'uuid': '1a89e0da-3344-4b5d-b919-ab8b072e0918',
+        },
+        {
+          'val': [
+            'wow',
+            'this works',
+            'f me',
+            'alpha beta gamma',
+          ],
+          'type': 'qual_tags',
+          'uuid': '056c8f57-0733-4669-a84e-aa9726ffbf6b',
+        },
+        {
+          'val': {
+            labels: {
+              _default: 'Yes',
+            },
+            val: '33f4e83d-4bd7-4dbc-b80b-94cac72944fb',
+          },
+          'type': 'qual_select_one',
+          'uuid': '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d',
+        },
+      ],
     },
   },
 };
