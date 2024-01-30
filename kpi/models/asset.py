@@ -549,12 +549,35 @@ class Asset(ObjectPermissionMixin,
         version = (
             self.latest_deployed_version if deployed else self.latest_version
         )
-        survey = version.to_formpack_schema()['content']['survey']
-        return [
-            q['$xpath']
-            for q in survey
-            if q['type'] in ATTACHMENT_QUESTION_TYPES
-        ]
+
+        if version:
+            content = version.to_formpack_schema()['content']
+        else:
+            content = self.content
+
+        survey = content['survey']
+
+        def _get_xpaths(survey_: dict) -> Optional[list]:
+            try:
+                return [
+                    question['$xpath']
+                    for question in survey_
+                    if question['type'] in ATTACHMENT_QUESTION_TYPES
+                ]
+            except KeyError as e:
+                # If KeyError is anything else than '$xpath', we raise the error.
+                # Otherwise, we pass (and return None) because '$xpath'
+                # and '$qpath' should be injected before next try
+                if str(e).strip("'") != '$xpath':
+                    raise e
+
+            return None
+
+        if xpaths := _get_xpaths(survey):
+            return xpaths
+
+        self._insert_qpath(content)
+        return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
