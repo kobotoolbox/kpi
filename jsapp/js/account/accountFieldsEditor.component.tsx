@@ -199,6 +199,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               placeholder={t(
                 'Use this to display your real name to other users'
               )}
+              renderFocused
             />
           </div>
         )}
