@@ -2,6 +2,7 @@ import {
   applyValidityRules,
   isPartialByUsersValid,
   isPartialByResponsesValid,
+  getFormData,
 } from './userAssetPermsEditor.utils';
 import permConfig from './permConfig';
 import {endpoints} from './permParser.mocks';
@@ -233,6 +234,30 @@ describe('userAssetPermsEditor utils tests', () => {
           )
         )
         .to.equal(false);
+    });
+  });
+
+  describe('getFormData', () => {
+    it('should remove unassignable permissions from output', () => {
+      const stateObj = {
+        ...EMPTY_EDITOR_STATE,
+        formEdit: true,
+        submissionsAdd: true,
+        submissionsView: true,
+        submissionsValidate: true,
+        submissionsDelete: true,
+      };
+
+      const testAssignablePerms = new Map([
+        ['/api/v2/permissions/add_submissions/', 'Add submissions'],
+        ['/api/v2/permissions/view_submissions/', 'View submissions'],
+      ]);
+
+      chai.expect(getFormData(stateObj, testAssignablePerms)).to.deep.equal({
+        username: 'zefir',
+        submissionsAdd: true,
+        submissionsView: true,
+      });
     });
   });
 });

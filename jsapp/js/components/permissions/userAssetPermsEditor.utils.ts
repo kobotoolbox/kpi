@@ -220,7 +220,7 @@ export function isPartialByResponsesValid(
 export function getFormData(
   stateObj: UserAssetPermsEditorState,
   assignablePerms: AssignablePermsMap
-) {
+): PermsFormData {
   const output: PermsFormData = {
     // We always include username
     username: stateObj.username,
