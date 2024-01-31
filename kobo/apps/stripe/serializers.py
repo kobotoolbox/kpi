@@ -136,7 +136,7 @@ class SubscriptionItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubscriptionItem
-        fields = ('id', 'price')
+        fields = ('id', 'price', 'quantity')
 
 
 class SubscriptionScheduleSerializer(serializers.ModelSerializer):

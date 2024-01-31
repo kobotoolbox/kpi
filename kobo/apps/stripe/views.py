@@ -87,7 +87,7 @@ class ChangePlanView(APIView):
         stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
         subscription_item = subscription.items.get()
         # Exit immediately if the price/quantity we're changing to is the price/quantity they're currently subscribed to
-        if quantity == subscription.quantity and price.id == subscription_item.price.id:
+        if quantity == subscription_item.quantity and price.id == subscription_item.price.id:
             return Response(
                 {'status': 'already subscribed'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -109,7 +109,7 @@ class ChangePlanView(APIView):
                 ],
             )
             # If there are pending updates, there was a problem scheduling the change to their plan
-            if stripe_response['pending_update']:
+            if stripe_response.get('pending_update'):
                 return Response({
                     'status': 'pending',
                 })
