@@ -17,6 +17,7 @@ import {
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
   PARTIAL_IMPLIED_CHECKBOX_PAIRS,
+  CHECKBOX_LABELS,
 } from './permConstants';
 import type {
   CheckboxNameAll,
@@ -27,7 +28,7 @@ import type {
 import type {AssignablePermsMap} from './sharingForm.component';
 import type {PermissionBase} from 'js/dataInterface';
 import userExistence from 'js/users/userExistence.store';
-import {getPartialByUsersListName, getCheckboxLabel} from './utils';
+import {getPartialByUsersListName} from './utils';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
 const USERNAMES_SEPARATOR = ',';
@@ -513,7 +514,7 @@ export default class UserAssetPermsEditor extends React.Component<
         checked={this.state[checkboxName]}
         disabled={isDisabled}
         onChange={this.onCheckboxChange.bind(this, checkboxName)}
-        label={getCheckboxLabel(checkboxName)}
+        label={CHECKBOX_LABELS[checkboxName]}
       />
     );
   }
