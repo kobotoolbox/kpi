@@ -14,6 +14,24 @@ from shortuuid import ShortUUID
 
 from kobo.apps.form_disclaimer.models import FormDisclaimer
 
+# Goals for the future:
+#
+# 1. All XML handling is done in this file. No other files import anything from
+#    xml, lxml, etc. directly; instead, they import helpers from this file.
+#
+# 2. All XML parsing is done by defusedxml. However:
+#     The defusedxml modules are not drop-in replacements of their stdlib
+#     counterparts. The modules only provide functions and classes related to
+#     parsing and loading of XML. For all other features, use the classes,
+#     functions, and constants from the stdlib modules.
+#     (https://github.com/tiran/defusedxml)
+#
+# The imports below are those given as examples by the defusedxml
+# "documentation" (the README), except for correcting a typo in the second
+# import:
+from defusedxml import ElementTree as DET
+from xml.etree import ElementTree as ET
+
 
 def strip_nodes(
     source: Union[str, bytes],
@@ -187,12 +205,112 @@ def add_xml_declaration(
     return xml_
 
 
-def get_path(parts: List[str], start: int = 0, end: int = None) -> str:
-    return '/'.join(parts[start:end])
+class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):
+    """
+    If the root element has a default namespace (`xmlns` attribute), continue
+    storing it in that attribute instead of moving it into a Clark notation
+    prefix on the tag name of the root and all children.
+    """
+    def __init__(self, *args, **kwargs):
+        self.default_namespace_uri = None
+        self.parsing_root_element = True
+        super().__init__(*args, **kwargs)
+
+    def start_ns(self, prefix, uri):
+        if (
+            self.parsing_root_element
+            and prefix == ''
+            and self.default_namespace_uri is None
+        ):
+            # The default namespace!
+            self.default_namespace_uri = uri
+        if hasattr(super(), 'start_ns'):
+            return super().start_ns(prefix, uri)
+
+    def start(self, tag, attrs):
+        # This method is called after `start_ns()`
+        if self.parsing_root_element:
+            self.parsing_root_element = False
+            if self.default_namespace_uri:
+                # Add the default namespace back to the `xmlns` attribute
+                # of the root element
+                attrs['xmlns'] = self.default_namespace_uri
+        if self.default_namespace_uri:
+            # Remove the Clark notation prefix if it matches the default
+            # namespace
+            tag = tag.removeprefix('{' + self.default_namespace_uri + '}')
+        return super().start(tag, attrs)
+
+
+def fromstring_preserve_root_xmlns(
+    text: str,
+    forbid_dtd: bool = False,
+    forbid_entities: bool = True,
+    forbid_external: bool = True,
+) -> ET.Element:
+    """
+    Parse an XML string, but leave the default namespace in the `xmlns`
+    attribute if the root element has one, and do not use Clark notation
+    prefixes on tag names for the default namespace.
+
+    Copied from `defusedxml.common._generate_etree_functions()`, except that
+    the `target` is changed to a custom class. Necessary because
+    `defusedxml.ElementTree.fromstring()`, unlike the standard library
+    `xml.etree.ElementTree.fromstring()`, does not allow specifying a parser.
+    """
+    parser = DET.DefusedXMLParser(
+        target=OmitDefaultNamespacePrefixTreeBuilder(),
+        forbid_dtd=forbid_dtd,
+        forbid_entities=forbid_entities,
+        forbid_external=forbid_external,
+    )
+    parser.feed(text)
+    return parser.close()
+
+
+def xml_tostring(el: ET.Element) -> str:
+    """
+    Thin wrapper around `ElementTree.tostring()` as a step toward a future
+    where all XML handling is done in this file
+    """
+    # "Use encoding="unicode" to generate a Unicode string (otherwise, a
+    # bytestring is generated)."
+    # https://docs.python.org/3.10/library/xml.etree.elementtree.html#xml.etree.ElementTree.tostring
+    return DET.tostring(el, encoding='unicode')
+
+
+def get_or_create_element(
+    xml_parsed: ET.Element,
+    path: str,
+) -> ET.Element:
+    """
+    Return the element at the given `path`, creating it (and all necessary
+    ancestors) if it does not exist. Beware that this creation logic is VERY
+    simplistic and interpets the `path` as a simple slash-separated list of
+    tags.
+    """
+
+    el = xml_parsed.find(path)
+    if el is not None:
+        return el
+
+    # Construct the tree of elements, one node at a time
+    path_parts = path.split('/')
+    traversed_parts = []
+    parent_el = xml_parsed
+    for part in path_parts:
+        traversed_parts.append(part)
+        el = xml_parsed.find('/'.join(traversed_parts))
+        if el is None:
+            el = ET.Element(part)
+            parent_el.append(el)
+        parent_el = el
+
+    return el
 
 
 def edit_submission_xml(
-    xml_parsed: etree._Element,
+    xml_parsed: xml.etree.ElementTree.Element,
     path: str,
     value: str,
 ) -> None:
@@ -200,19 +318,7 @@ def edit_submission_xml(
     Edit submission XML with an XPath and new value, creating a new tree
     element if the path doesn't yet exist.
     """
-    element = xml_parsed.find(path)
-    if element is None:
-        path_parts = path.split('/')
-        # Construct the tree of elements, one node at a time
-        for i, node in enumerate(path_parts):
-            element = xml_parsed.find(get_path(path_parts, end=i + 1))
-            if element is None:
-                parent = (
-                    xml_parsed
-                    if i == 0
-                    else xml_parsed.find(get_path(path_parts, end=i))
-                )
-                element = etree.SubElement(parent, node)
+    element = get_or_create_element(xml_parsed, path)
     element.text = value
 
 
