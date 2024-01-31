@@ -1,5 +1,5 @@
 import {useState, useReducer, useContext, useEffect} from 'react';
-import type {BaseSubscription} from 'js/account/stripe.types';
+import type {SubscriptionInfo} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
@@ -8,7 +8,7 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
 
 interface SubscribedState {
-  subscribedProduct: null | BaseSubscription;
+  subscribedProduct: null | SubscriptionInfo;
 }
 
 const initialState = {

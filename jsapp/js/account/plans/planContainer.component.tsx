@@ -72,11 +72,26 @@ export const PlanContainer = ({
     );
   }, [price, submissionQuantity]);
 
-  // Populate submission dropdown with the submission quantity from the customer's plan, if possible
+  // Populate submission dropdown with the submission quantity from the customer's plan
+  // Default to this price's base submission quantity, if applicable
   useEffect(() => {
-    const subscribedQuantity = activeSubscriptions?.[0]?.quantity;
+    const subscribedQuantity =
+      activeSubscriptions.length && activeSubscriptions?.[0].items[0].quantity;
     if (subscribedQuantity && isSubscribedProduct(price, subscribedQuantity)) {
       setSubmissionQuantity(subscribedQuantity);
+    } else if (
+      // if there's no active subscription, check if this price has a default quantity
+      price.prices.transform_quantity &&
+      Boolean(
+        Number(price.metadata?.submission_limit) ||
+          Number(price.prices.metadata?.submission_limit)
+      )
+    ) {
+      // prioritize the submission limit from the price over the submission limit from the product
+      setSubmissionQuantity(
+        parseInt(price.prices.metadata.submission_limit) ||
+          parseInt(price.metadata.submission_limit)
+      );
     }
   }, [isSubscribedProduct, activeSubscriptions, price]);
 
@@ -203,9 +218,9 @@ export const PlanContainer = ({
     <>
       {isSubscribedProduct(price, submissionQuantity) ? (
         <div className={styles.currentPlan}>{t('Your plan')}</div>
-      ) : (
-        <div />
-      )}
+      ) : isSubscribedProduct(price, submissionQuantity) ? (
+        <div className={styles.currentPlan}>{t('Your plan')}</div>
+      ) : null}
       <div
         className={classnames({
           [styles.planContainerWithBadge]: isSubscribedProduct(

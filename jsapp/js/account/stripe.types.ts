@@ -69,7 +69,7 @@ export interface SubscriptionInfo {
   next_pending_invoice_item_invoice: any;
   pending_invoice_item_interval: any;
   pending_update: any;
-  quantity: 1;
+  quantity: number;
   start_date: string;
   status: string;
   trial_end: any;
@@ -82,7 +82,13 @@ export interface SubscriptionInfo {
   pending_setup_intent: any;
   schedule: SubscriptionSchedule;
   default_tax_rates: [];
-  items: Array<{price: BasePrice}>;
+  items: SubscriptionItem[];
+}
+
+export interface SubscriptionItem {
+  id: string;
+  price: BasePrice;
+  quantity: number;
 }
 
 // There is probably a better way to hand the nested types
@@ -131,13 +137,6 @@ export type PriceMetadata = Record<
 export interface TransformQuantity {
   divide_by: number;
   round: 'up' | 'down';
-}
-
-export interface BaseSubscription {
-  id: number;
-  price: Product;
-  status: string;
-  items: [{price: BasePrice}];
 }
 
 export interface Organization {
