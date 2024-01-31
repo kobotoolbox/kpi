@@ -22,7 +22,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     <div
       className={cx(styles.limitBannerContainer, {
         [styles.warningBanner]: props.warning,
-        [styles.accountPage]: props.accountPage
+        [styles.accountPage]: props.accountPage,
       })}
     >
       <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'red'} />
@@ -32,7 +32,10 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           : t('You have reached your')}
         <strong>
           {' '}
-          {props.interval === 'month' ? t('monthly') : t('yearly')}{' '}
+          {(props.limits.length > 1 || props.limits[0] !== 'storage') &&
+          props.interval === 'month'
+            ? t('monthly')
+            : t('yearly')}{' '}
           {props.limits.map((item, i) => (
             <span key={i}>
               {i > 0 && props.limits.length > 2 && ', '}
@@ -40,8 +43,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
               {item}
             </span>
           ))}{' '}
-          {t('limit')}
-          {props.limits.length > 1 && 's'}
+          {props.limits.length > 1 ? t('limit') : t('limits')}
         </strong>
         {'. '}
         {props.warning && (
