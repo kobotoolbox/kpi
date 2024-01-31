@@ -9,6 +9,7 @@ import {
   getAdjustedQuantityForPrice,
   getSubscriptionsForProductId,
   isChangeScheduled,
+  isDowngrade,
 } from 'js/account/stripe.utils';
 import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
@@ -41,6 +42,7 @@ export const PlanContainer = ({
   activeSubscriptions,
 }: PlanContainerProps) => {
   const [submissionQuantity, setSubmissionQuantity] = useState(1);
+  // display price for the plan/price/quantity we're currently displaying
   const displayPrice = useDisplayPrice(price.prices, submissionQuantity);
   const shouldShowManage = useCallback(
     (product: Price) => {
@@ -62,6 +64,11 @@ export const PlanContainer = ({
       return isChangeScheduled(product.prices, [activeSubscription]);
     },
     [hasManageableStatus, state.subscribedProduct]
+  );
+
+  const isDowngrading = useMemo(
+    () => isDowngrade(activeSubscriptions, price.prices, submissionQuantity),
+    [activeSubscriptions, price, submissionQuantity]
   );
 
   // The adjusted quantity is the number we multiply the price by to get the total price
@@ -339,11 +346,7 @@ export const PlanContainer = ({
         )}
         <PlanButton
           price={price}
-          downgrading={
-            activeSubscriptions?.length > 0 &&
-            activeSubscriptions?.[0].items?.[0].price.unit_amount >
-              price.prices.unit_amount
-          }
+          downgrading={isDowngrading}
           quantity={submissionQuantity}
           isSubscribedToPlan={isSubscribedProduct(price, submissionQuantity)}
           buySubscription={buySubscription}

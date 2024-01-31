@@ -28,6 +28,7 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
 import {
   getSubscriptionsForProductId,
+  isDowngrade,
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
 import type {
@@ -392,9 +393,7 @@ export default function Plan() {
     }
     setIsBusy(true);
     if (activeSubscriptions.length) {
-      if (
-        activeSubscriptions[0].items?.[0].price.unit_amount < price.unit_amount
-      ) {
+      if (!isDowngrade(activeSubscriptions, price, quantity)) {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
         postCustomerPortal(state.organization.id, price.id, quantity)

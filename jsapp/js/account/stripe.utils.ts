@@ -7,6 +7,7 @@ import {
   BaseProduct,
   ChangePlan,
   Checkout,
+  Price,
   Product,
   SubscriptionChangeType,
   SubscriptionInfo,
@@ -190,4 +191,28 @@ export const getAdjustedQuantityForPrice = (
     adjustedQuantity = Math.floor(adjustedQuantity);
   }
   return adjustedQuantity;
+};
+
+/**
+ * Tests whether a new price/quantity would cost less than the user's current subscription.
+ */
+export const isDowngrade = (
+  currentSubscriptions: SubscriptionInfo[],
+  price: BasePrice,
+  newQuantity: number
+) => {
+  if (!currentSubscriptions.length) {
+    return false;
+  }
+  const subscriptionItem = currentSubscriptions[0].items[0];
+  const currentTotalPrice =
+    subscriptionItem.price.unit_amount *
+    getAdjustedQuantityForPrice(
+      subscriptionItem.quantity,
+      subscriptionItem.price.transform_quantity
+    );
+  const newTotalPrice =
+    price.unit_amount *
+    getAdjustedQuantityForPrice(newQuantity, price.transform_quantity);
+  return currentTotalPrice > newTotalPrice;
 };
