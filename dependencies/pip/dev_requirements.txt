@@ -133,7 +133,6 @@ django==3.2.15
     #   django-debug-toolbar
     #   django-extensions
     #   django-filter
-    #   django-js-asset
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-organizations
@@ -169,13 +168,9 @@ django-extensions==3.1.5
     # via -r dependencies/pip/requirements.in
 django-filter==21.1
     # via -r dependencies/pip/requirements.in
-django-js-asset==2.0.0
-    # via django-mptt
 django-loginas==0.3.10
     # via -r dependencies/pip/requirements.in
 django-markdownx==4.0.2
-    # via -r dependencies/pip/requirements.in
-django-mptt==0.13.4
     # via -r dependencies/pip/requirements.in
 django-oauth-toolkit==2.0.0
     # via -r dependencies/pip/requirements.in
