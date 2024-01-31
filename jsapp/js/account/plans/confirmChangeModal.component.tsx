@@ -96,9 +96,12 @@ const ConfirmChangeModal = ({
 
   // get the product type to display as a translatable string
   const getPriceType = useCallback(
-    (price: BasePrice) => {
+    (price: BasePrice | null) => {
+      if (!price) {
+        return t('plan');
+      }
       const product = getProductForPriceId(price.id);
-      if (price && product) {
+      if (product) {
         if (isAddonProduct(product)) {
           return t('add-on');
         } else {
