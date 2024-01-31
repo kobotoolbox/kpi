@@ -106,13 +106,6 @@ class KobocatCommunicationError(Exception):
         super().__init__(message, *args, **kwargs)
 
 
-class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = t(
-        'An error occurred trying to bulk update the submissions.')
-    default_code = 'bulk_update_submissions_error'
-
-
 class KobocatDeploymentException(exceptions.APIException):
     def __init__(self, *args, **kwargs):
         if 'response' in kwargs:
