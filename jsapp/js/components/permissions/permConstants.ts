@@ -166,3 +166,33 @@ export const PARTIAL_IMPLIED_CHECKBOX_PAIRS = {
   [CHECKBOX_NAMES.submissionsEditPartialByUsers]: CHECKBOX_NAMES.submissionsAdd,
 };
 Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS);
+
+/**
+ * Most of these labels are also available from `api/v2/assets/<uid>/` endpoint
+ * in the `assignable_permissions` property. Unfortunately due to how the data
+ * is architectured, the labels for partial permissions are not going to be
+ * available for multiple types.
+ */
+export const CHECKBOX_LABELS: {[key in CheckboxNameAll]: string} = {
+  formView: t('View form'),
+  formEdit: t('Edit form'),
+  formManage: t('Manage project'),
+  submissionsAdd: t('Add submissions'),
+  submissionsView: t('View submissions'),
+  submissionsViewPartialByUsers: t('View submissions only from specific users'),
+  submissionsEdit: t('Edit submissions'),
+  submissionsEditPartialByUsers: t('Edit submissions only from specific users'),
+  submissionsValidate: t('Validate submissions'),
+  submissionsValidatePartialByUsers: t(
+    'Validate submissions only from specific users'
+  ),
+  submissionsDelete: t('Delete submissions'),
+  submissionsDeletePartialByUsers: t(
+    'Delete submissions only from specific users'
+  ),
+};
+Object.freeze(CHECKBOX_LABELS);
+
+export const PARTIAL_BY_USERS_DEFAULT_LABEL = t(
+  'Act on submissions only from specific users'
+);
