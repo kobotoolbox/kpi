@@ -37,11 +37,17 @@ class TranslationAction(BaseAction):
 
     def has_change(self, orecord, erecord):
         for language in self.languages:
-            olang = orecord.get(language, False)
-            elang = erecord.get(language, False)
-            if olang is False or elang is False:
+            olang = orecord.get(language, {})
+            elang = erecord.get(language, {})
+            if not elang:
+                # This language is neither being edited nor deleted (deletion
+                # would send an "edit" with value ⌫ , aka `BaseAction.DELETE`)
+                continue
+            if not olang:
+                # A new language is always a change
                 return True
-            if self.record_repr(olang) != self.record_repr(elang):
+            if olang.get('value') != elang.get('value'):
+                # An existing language has translation text that has changed
                 return True
         return False
 
@@ -180,8 +186,21 @@ class TranslationAction(BaseAction):
         yield (manual_name, manual_engine)
 
     def record_repr(self, record):
+        # TODO: Make sure this method is sensible. Some places, e.g.
+        # `BaseAction.is_auto_request()`, expect this method to return a
+        # single string; however, multiple translations cannot be represented
+        # adequately this way.
+        # Cope with this by returning a single string if there is only one
+        # translation, matching the previous behavior. If there is more than
+        # one translation, return a dictionary of
+        # `{'lang1': 'translation1','lang2': 'translation2', …}`.
+
         if len(record.keys()) == 1:
             return [*record.values()][0].get('value')
+        return {
+            lang: lang_record.get('value')
+            for lang, lang_record in record.items()
+        }
 
     def auto_request_repr(self, erecord):
         lang_code = [*erecord.values()][0]['languageCode']

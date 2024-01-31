@@ -462,17 +462,6 @@ export function getCheckboxNameByPermission(
 }
 
 /**
- * A wrapper function for getting item from `CHECKBOX_LABELS`. If anything goes
- * awry, we will return checkbox name as fallback.
- */
-export function getCheckboxLabel(checkboxName: CheckboxNameAll) {
-  if (checkboxName in CHECKBOX_LABELS) {
-    return CHECKBOX_LABELS[checkboxName];
-  }
-  return checkboxName;
-}
-
-/**
  * Returns a human readable permission label, has to do some juggling for
  * partial permissions. Fallback is permission codename.
  */
@@ -498,8 +487,8 @@ export function getPermLabel(perm: PermissionResponse) {
   if (permDef) {
     const checkboxName = getCheckboxNameByPermission(permDef.codename);
 
-    if (checkboxName && checkboxName in CHECKBOX_LABELS) {
-      return getCheckboxLabel(checkboxName);
+    if (checkboxName) {
+      return CHECKBOX_LABELS[checkboxName];
     }
   }
 

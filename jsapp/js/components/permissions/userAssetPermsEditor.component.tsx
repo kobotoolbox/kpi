@@ -14,6 +14,7 @@ import {
   CHECKBOX_DISABLED_SUFFIX,
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
+  CHECKBOX_LABELS,
 } from './permConstants';
 import type {
   CheckboxNameAll,
@@ -27,7 +28,6 @@ import type {PermissionBase, PermissionResponse} from 'js/dataInterface';
 import userExistence from 'js/users/userExistence.store';
 import {
   getPartialByUsersListName,
-  getCheckboxLabel,
   getPartialByResponsesQuestionName,
   getPartialByResponsesValueName,
 } from './utils';
@@ -430,7 +430,7 @@ export default class UserAssetPermsEditor extends React.Component<
         checked={this.state[checkboxName]}
         disabled={isDisabled}
         onChange={this.onCheckboxChange.bind(this, checkboxName)}
-        label={getCheckboxLabel(checkboxName)}
+        label={CHECKBOX_LABELS[checkboxName]}
       />
     );
   }
