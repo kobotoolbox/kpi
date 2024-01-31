@@ -44,6 +44,12 @@ class BadPermissionsException(Exception):
     pass
 
 
+class BulkUpdateSubmissionsClientException(exceptions.ValidationError):
+    # This is message should be overridden with something more specific
+    default_detail = t('Invalid payload for bulk updating of submissions')
+    default_code = 'bulk_update_submissions_client_error'
+
+
 class DeploymentDataException(Exception):
 
     def __init__(self, *args, **kwargs):
@@ -98,12 +104,6 @@ class KobocatCommunicationError(Exception):
         self, message='Could not communicate with KoBoCAT', *args, **kwargs
     ):
         super().__init__(message, *args, **kwargs)
-
-
-class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
-    # This is message should be overridden with something more specific
-    default_detail = t('Invalid payload for bulk updating of submissions')
-    default_code = 'bulk_update_submissions_client_error'
 
 
 class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
