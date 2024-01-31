@@ -12,8 +12,8 @@ import type {
   PartialPermission,
 } from 'js/dataInterface';
 import {
-  getPartialCheckboxListName,
-  getPartialCheckboxName,
+  getPartialByUsersListName,
+  getPartialByUsersCheckboxName,
   getCheckboxNameByPermission,
 } from './utils';
 
@@ -33,17 +33,17 @@ export interface PermsFormData {
   formManage?: boolean;
   submissionsAdd?: boolean;
   submissionsView?: boolean;
-  submissionsViewPartial?: boolean;
-  submissionsViewPartialUsers?: string[];
+  submissionsViewPartialByUsers?: boolean;
+  submissionsViewPartialByUsersList?: string[];
   submissionsEdit?: boolean;
-  submissionsEditPartial?: boolean;
-  submissionsEditPartialUsers?: string[];
+  submissionsEditPartialByUsers?: boolean;
+  submissionsEditPartialByUsersList?: string[];
   submissionsDelete?: boolean;
-  submissionsDeletePartial?: boolean;
-  submissionsDeletePartialUsers?: string[];
+  submissionsDeletePartialByUsers?: boolean;
+  submissionsDeletePartialByUsersList?: string[];
   submissionsValidate?: boolean;
-  submissionsValidatePartial?: boolean;
-  submissionsValidatePartialUsers?: string[];
+  submissionsValidatePartialByUsers?: boolean;
+  submissionsValidatePartialByUsersList?: string[];
 }
 
 export interface UserWithPerms {
@@ -167,12 +167,12 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
     CHECKBOX_NAMES.submissionsValidate,
     CHECKBOX_NAMES.submissionsDelete,
   ].forEach((checkboxName) => {
-    const partialCheckboxName = getPartialCheckboxName(checkboxName);
+    const partialCheckboxName = getPartialByUsersCheckboxName(checkboxName);
 
     if (partialCheckboxName && data[partialCheckboxName]) {
       const permCodename = PARTIAL_PERM_PAIRS[partialCheckboxName];
 
-      const listName = getPartialCheckboxListName(partialCheckboxName);
+      const listName = getPartialByUsersListName(partialCheckboxName);
       const partialUsers = data[listName] || [];
 
       partialPerms.push({
@@ -234,7 +234,7 @@ export function buildFormData(
         if (!nonPartialCheckboxName) {
           return;
         }
-        const partialCheckboxName = getPartialCheckboxName(
+        const partialCheckboxName = getPartialByUsersCheckboxName(
           nonPartialCheckboxName
         );
         if (!partialCheckboxName) {
@@ -245,7 +245,7 @@ export function buildFormData(
 
         partial.filters.forEach((filter) => {
           if (filter._submitted_by) {
-            const listName = getPartialCheckboxListName(partialCheckboxName);
+            const listName = getPartialByUsersListName(partialCheckboxName);
             formData[listName] = filter._submitted_by.$in;
           }
         });
