@@ -50,11 +50,19 @@ function AccountSidebar() {
         to={ACCOUNT_ROUTES.USAGE}
       />
       {showPlans && (
-        <AccountNavLink
-          iconName='editor'
-          name={t('Plans')}
-          to={ACCOUNT_ROUTES.PLAN}
-        />
+        <>
+          <AccountNavLink
+            iconName='editor'
+            name={t('Plans')}
+            to={ACCOUNT_ROUTES.PLAN}
+          />
+          {/* TODO: Only show link for community plan users */}
+          <AccountNavLink
+            iconName='plus'
+            name={t('Add-ons')}
+            to={ACCOUNT_ROUTES.ADD_ONS}
+          />
+        </>
       )}
     </bem.FormSidebar>
   );
