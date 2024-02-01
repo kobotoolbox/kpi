@@ -1,5 +1,5 @@
-# coding: utf-8
-from .constants import OPEN_ROSA_SERVER_MODELS, SHADOW_MODEL_APP_LABELS
+from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
+from .constants import SHADOW_MODEL_APP_LABELS
 from .exceptions import ReadOnlyModelError
 
 
@@ -11,7 +11,7 @@ class DefaultDatabaseRouter:
         """
         if (
             model._meta.app_label in SHADOW_MODEL_APP_LABELS
-            or model._meta.app_label in OPEN_ROSA_SERVER_MODELS
+            or model._meta.app_label in OPENROSA_APP_LABELS
         ):
             return 'kobocat'
 
@@ -27,7 +27,7 @@ class DefaultDatabaseRouter:
 
         if (
             model._meta.app_label in SHADOW_MODEL_APP_LABELS
-            or model._meta.app_label in OPEN_ROSA_SERVER_MODELS
+            or model._meta.app_label in OPENROSA_APP_LABELS
         ):
             return 'kobocat'
 
@@ -37,13 +37,23 @@ class DefaultDatabaseRouter:
         """
         Relations between objects are allowed
         """
+        # Relationship between databases will raise an error, but it helps
+        # to lure Django to construct SQL queries when using models which exist
+        # in both databases (i.e. `auth_user`)
         return True
 
     def allow_migrate(self, db, app_label, model=None, **hints):
         """
         All default models end up in this pool.
         """
-        if db != 'default' or app_label in SHADOW_MODEL_APP_LABELS:
+        if db == 'default' and app_label in OPENROSA_APP_LABELS:
+            return False
+
+        if (
+            app_label in SHADOW_MODEL_APP_LABELS or
+            db != 'default'
+            and app_label not in OPENROSA_APP_LABELS
+        ):
             return False
 
         return True

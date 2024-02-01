@@ -19,7 +19,7 @@ from kobo.apps.stripe.constants import (
     FREE_TIER_NO_THRESHOLDS,
     FREE_TIER_EMPTY_DISPLAY,
 )
-from kobo.apps.open_rosa_server.settings.base import *
+from kobo.apps.openrosa.settings.base import *
 from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
@@ -131,15 +131,15 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
-    'kobo.apps.open_rosa_server.apps.logger.LoggerAppConfig',
-    'kobo.apps.open_rosa_server.apps.viewer',
-    'kobo.apps.open_rosa_server.apps.main',
-    'kobo.apps.open_rosa_server.apps.restservice',
-    'kobo.apps.open_rosa_server.apps.api',
+    'kobo.apps.openrosa.apps.logger.LoggerAppConfig',
+    'kobo.apps.openrosa.apps.viewer',
+    'kobo.apps.openrosa.apps.main',
+    'kobo.apps.openrosa.apps.restservice',
+    'kobo.apps.openrosa.apps.api',
     'guardian',
-    'kobo.apps.open_rosa_server.libs',
+    'kobo.apps.openrosa.libs',
     # FIXME same name
-    # 'kobo.apps.open_rosa_server.apps.form_disclaimer.FormDisclaimerAppConfig',
+    'kobo.apps.openrosa.apps.form_disclaimer.FormDisclaimerAppConfig',
 )
 
 # BEFORE KOBOCAT migration
@@ -161,7 +161,7 @@ INSTALLED_APPS = (
 # ]
 
 MIDDLEWARE = [
-    'kobo.apps.open_rosa_server.apps.main.middleware.RevisionMiddleware',
+    'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -170,14 +170,14 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     # Still needed really?
-    'kobo.apps.open_rosa_server.libs.utils.middleware.LocaleMiddlewareWithTweaks',
+    'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # FIXME ref to request.user.profile
-    # 'kobo.apps.open_rosa_server.libs.utils.middleware.RestrictedAccessMiddleware',
+    # 'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'kobo.apps.open_rosa_server.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
+    'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
@@ -1450,4 +1450,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'kpi.password_validation.MostRecentPasswordValidator',
     },
+]
+
+# Needed to avoid Constance to create permissions on Kobocat database
+CONSTANCE_DBS = [
+    'default'
 ]

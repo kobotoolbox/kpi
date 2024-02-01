@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Userprofile Permissions
 CAN_ADD_USERPROFILE = 'add_userprofile'
 CAN_CHANGE_USERPROFILE = 'change_userprofile'
@@ -35,3 +33,13 @@ CAN_DELETE_PROJECT = 'delete_project'
 CAN_ADD_DATADICTIONARY = 'add_datadictionary'
 CAN_CHANGE_DATADICTIONARY = 'change_datadictionary'
 CAN_DELETE_DATADICTIONARY = 'delete_datadictionary'
+
+OPENROSA_APP_LABELS = [
+    'api',
+    'logger',
+    'viewer',
+    'main',
+    'openrosa_form_disclaimer',
+    'restservice',
+    'guardian',
+]

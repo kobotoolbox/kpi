@@ -72,14 +72,6 @@ SHADOW_MODEL_APP_LABELS = [
     'superuser_stats',
 ]
 
-OPEN_ROSA_SERVER_MODELS = [
-    'logger',
-    'viewer',
-    'main',
-    'open_rosa_server_form_disclaimer',
-    'restservice',
-]
-
 # List of nested attributes which bypass 'dots' encoding
 NESTED_MONGO_RESERVED_ATTRIBUTES = [
     "_validation_status",
