@@ -3,7 +3,7 @@ import re
 from functools import wraps
 
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.contrib.sites.models import Site
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404

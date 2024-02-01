@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='dailyxformsubmissioncounter',
             name='user',
-            field=models.ForeignKey('auth.User', related_name='daily_users', null=False, on_delete=models.CASCADE),
+            field=models.ForeignKey(settings.AUTH_USER_MODEL, related_name='daily_users', null=False, on_delete=models.CASCADE),
         ),
     ]

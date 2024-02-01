@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import annotations
+
 import abc
 import copy
 import datetime
@@ -8,6 +9,7 @@ from datetime import date
 from typing import Union, Iterator, Optional
 
 from bson import json_util
+from django.conf import settings
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -72,12 +74,12 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def bulk_update_submissions(
-        self, data: dict, user: 'auth.User'
+        self, data: dict, user: settings.AUTH_USER_MODEL
     ) -> dict:
         pass
 
     @abc.abstractmethod
-    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+    def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
         pass
 
     @abc.abstractmethod
@@ -103,16 +105,16 @@ class BaseDeploymentBackend(abc.ABC):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+    def delete_submission(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
         pass
 
     @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
+    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs) -> dict:
         pass
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:
         pass
 
@@ -125,7 +127,7 @@ class BaseDeploymentBackend(abc.ABC):
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
-        user: 'auth.User',
+        user: 'settings.AUTH_USER_MODEL',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> tuple:
@@ -135,7 +137,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
+    def get_daily_counts(self, user: settings.AUTH_USER_MODEL, timeframe: tuple[date, date]) -> dict:
         pass
 
     def get_data(
@@ -179,7 +181,7 @@ class BaseDeploymentBackend(abc.ABC):
     def get_submission(
         self,
         submission_id: int,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params: dict
@@ -229,7 +231,7 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def get_submissions(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
         request: Optional['rest_framework.request.Request'] = None,
@@ -254,7 +256,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
+    def get_validation_status(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
         """
         Return a formatted dict to be passed to a Response object
         """
@@ -329,13 +331,13 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def set_validation_status(self,
                               submission_id: int,
-                              user: 'auth.User',
+                              user: settings.AUTH_USER_MODEL,
                               data: dict,
                               method: str) -> dict:
         pass
 
     @abc.abstractmethod
-    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+    def set_validation_statuses(self, user: settings.AUTH_USER_MODEL, data: dict) -> dict:
         pass
 
     @property
@@ -374,7 +376,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def validate_submission_list_params(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         validate_count: bool = False,
         partial_perm=PERM_VIEW_SUBMISSIONS,
@@ -508,7 +510,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def validate_access_with_partial_perms(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         perm: str,
         submission_ids: list = [],
         query: dict = {},

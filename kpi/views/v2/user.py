@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response

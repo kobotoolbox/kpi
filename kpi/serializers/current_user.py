@@ -7,7 +7,7 @@ except ImportError:
 
 import constance
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError

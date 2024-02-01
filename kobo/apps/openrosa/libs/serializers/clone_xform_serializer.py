@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.core.validators import ValidationError
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.utils.translation import gettext as t
 
 from rest_framework import serializers

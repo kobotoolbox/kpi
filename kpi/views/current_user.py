@@ -1,6 +1,6 @@
 # coding: utf-8
 from constance import config
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import gettext as t

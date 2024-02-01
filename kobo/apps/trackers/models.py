@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.db import models
 from django.db.models import Q
 from django.db.models.constraints import UniqueConstraint

@@ -3,7 +3,7 @@ import glob
 import os
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 
 from kobo.apps.openrosa.apps.logger.models import XForm, Instance
 from kobo.apps.openrosa.apps.main.models import UserProfile

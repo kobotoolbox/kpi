@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import \
     DataDictionary, upload_to
 from django.core.files.storage import default_storage

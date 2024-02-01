@@ -4,7 +4,7 @@ import boto3
 
 from botocore.exceptions import ClientError
 from dateutil.relativedelta import relativedelta
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.db.models import F, Func, Value, CharField
 from django.db.models.functions import Lower
 from django.utils import timezone

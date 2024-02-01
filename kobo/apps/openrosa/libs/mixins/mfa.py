@@ -8,7 +8,7 @@ from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 
 class MFABlockerMixin:
 
-    def validate_mfa_not_active(self, user: 'auth.User'):
+    def validate_mfa_not_active(self, user: settings.AUTH_USER_MODEL):
         """
         Raise an exception if MFA is enabled for user's account.
         """

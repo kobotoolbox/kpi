@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.exceptions import FieldError, ValidationError
 from django.db import models
 

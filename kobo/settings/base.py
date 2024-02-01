@@ -94,6 +94,7 @@ INSTALLED_APPS = (
     'django_prometheus',
     'reversion',
     'private_storage',
+    'kobo.apps.kobo_auth',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
     'allauth',
@@ -1458,3 +1459,5 @@ AUTH_PASSWORD_VALIDATORS = [
 CONSTANCE_DBS = [
     'default'
 ]
+
+AUTH_USER_MODEL = 'kobo_auth.User'

@@ -3,7 +3,7 @@ import json
 import unittest
 from urllib.parse import unquote_plus
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from lxml import etree

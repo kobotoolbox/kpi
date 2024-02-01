@@ -5,7 +5,7 @@ import datetime
 import constance
 from constance.test import override_config
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.http import HttpRequest
 from django.template import RequestContext, Template
 from django.test import override_settings

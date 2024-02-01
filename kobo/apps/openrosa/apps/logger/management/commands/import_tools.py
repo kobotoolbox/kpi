@@ -5,7 +5,7 @@ import glob
 import os
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.management.base import BaseCommand, CommandError
 
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip

@@ -187,7 +187,7 @@ class Command(BaseCommand):
 
         return users.order_by('pk')
 
-    def _lock_user_profile(self, user: 'auth.User'):
+    def _lock_user_profile(self, user: settings.AUTH_USER_MODEL):
         # Retrieve or create user's profile.
         (
             user_profile,
@@ -241,7 +241,7 @@ class Command(BaseCommand):
 
         return profile_query
 
-    def _update_user_profile(self, user: 'auth.User'):
+    def _update_user_profile(self, user: settings.AUTH_USER_MODEL):
 
         if self._verbosity >= 1:
             self.stdout.write(

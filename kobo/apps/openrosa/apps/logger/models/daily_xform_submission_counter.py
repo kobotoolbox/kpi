@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.db import models
 from django.db.models import UniqueConstraint, Q, F
 
@@ -44,4 +44,3 @@ class DailyXFormSubmissionCounter(models.Model):
             cls.objects.filter(**criteria).update(
                 counter=F('counter') + daily_counter.counter
             )
-

@@ -1,11 +1,9 @@
 # coding: utf-8
-from django.contrib.auth.models import User, AnonymousUser
-from django.urls import reverse
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
 from hub.models import PerUserSetting
-from kpi.utils.strings import to_str
-
+from kobo.apps.kobo_auth.shortcuts import User
 
 class PerUserSettingTestCase(TestCase):
 

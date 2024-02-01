@@ -5,7 +5,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField

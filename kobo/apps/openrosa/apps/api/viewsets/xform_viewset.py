@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.http import Http404, HttpResponseBadRequest

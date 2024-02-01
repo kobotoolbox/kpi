@@ -2,7 +2,7 @@
 import random
 
 from django.contrib.auth.models import Permission
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.management.base import BaseCommand
 
 from kpi.models import Asset

@@ -7,7 +7,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import reversion
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
 from django.db import models as django_models, transaction

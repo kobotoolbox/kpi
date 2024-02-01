@@ -13,7 +13,7 @@ except ImportError:
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.files.storage import default_storage
 from django.db.models import (
     CharField,

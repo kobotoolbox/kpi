@@ -3,7 +3,7 @@ import json
 from datetime import timedelta
 
 from constance.test import override_config
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.test import TestCase
 from django.utils.timezone import now
 

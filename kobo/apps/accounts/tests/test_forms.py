@@ -1,4 +1,5 @@
 from constance.test import override_config
+from django.conf import settings
 from django.test import TestCase, override_settings
 from django.utils import translation
 from model_bakery import baker
@@ -11,7 +12,7 @@ from kpi.utils.json import LazyJSONSerializable
 class AccountFormsTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = baker.make('auth.User')
+        cls.user = baker.make(settings.AUTH_USER_MODEL)
         cls.sociallogin = baker.make(
             "socialaccount.SocialAccount", user=cls.user
         )

@@ -316,7 +316,7 @@ class KobocatUser(ShadowModel):
         KobocatDigestPartial.sync(kc_auth_user)
 
     @classmethod
-    def get_kc_user(cls, auth_user: 'auth.User') -> KobocatUser:
+    def get_kc_user(cls, auth_user: settings.AUTH_USER_MODEL) -> KobocatUser:
         try:
             kc_auth_user = cls.objects.get(pk=auth_user.pk)
             assert kc_auth_user.username == auth_user.username

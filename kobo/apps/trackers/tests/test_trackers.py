@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.trackers.utils import update_nlp_counter

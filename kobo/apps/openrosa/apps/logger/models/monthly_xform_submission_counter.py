@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.constraints import UniqueConstraint

@@ -2,7 +2,7 @@
 from copy import deepcopy
 from collections import OrderedDict
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.test import TestCase
 
 from formpack import FormPack

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -41,7 +42,7 @@ class AssetUserPartialPermission(models.Model):
         on_delete=models.CASCADE,
     )
     user = models.ForeignKey(
-        'auth.User',
+        settings.AUTH_USER_MODEL,
         related_name='user_partial_permissions',
         on_delete=models.CASCADE,
     )

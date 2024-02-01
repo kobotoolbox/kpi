@@ -4,7 +4,7 @@ from xml.dom import NotFoundErr
 from django.conf import settings
 from django.core.files import File
 from django.core.validators import ValidationError
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.http import Http404
 from django.utils.translation import gettext as t
 from rest_framework import exceptions

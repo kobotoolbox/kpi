@@ -176,7 +176,7 @@ class Asset(ObjectPermissionMixin,
     )
     parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
-    owner = models.ForeignKey('auth.User', related_name='assets', null=True,
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assets', null=True,
                               on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
@@ -1245,7 +1245,7 @@ class Asset(ObjectPermissionMixin,
 
     def _update_partial_permissions(
         self,
-        user: 'auth.User',
+        user: 'settings.AUTH_USER_MODEL',
         perm: str,
         remove: bool = False,
         partial_perms: Optional[dict] = None,
@@ -1371,7 +1371,7 @@ class UserAssetSubscription(models.Model):
     """ Record a user's subscription to a publicly-discoverable collection,
     i.e. one where the anonymous user has been granted `discover_asset` """
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='b')
 
     class Meta:

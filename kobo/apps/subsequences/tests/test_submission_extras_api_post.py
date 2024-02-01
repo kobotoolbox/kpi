@@ -1,7 +1,7 @@
 from copy import deepcopy
 from unittest.mock import patch
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse

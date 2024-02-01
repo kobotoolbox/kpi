@@ -7,7 +7,7 @@ from io import BytesIO
 from xml.sax.saxutils import escape as xml_escape
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import default_storage
 from django.urls import reverse

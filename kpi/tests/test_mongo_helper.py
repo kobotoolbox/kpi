@@ -25,7 +25,7 @@ class MongoHelperTestCase(TestCase):
         assert instances[1] == expected_count
 
     def test_get_instances(self):
-        users = baker.make('auth.User', _quantity=2)
+        users = baker.make(settings.AUTH_USER_MODEL, _quantity=2)
         assets = []
         for user in users:
             asset = baker.make('kpi.Asset', owner=user)

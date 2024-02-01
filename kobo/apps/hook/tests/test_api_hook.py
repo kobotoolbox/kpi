@@ -3,7 +3,7 @@ import json
 
 import responses
 from constance.test import override_config
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 from mock import patch
 from rest_framework import status

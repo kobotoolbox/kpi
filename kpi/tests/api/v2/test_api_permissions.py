@@ -1,9 +1,9 @@
 # coding: utf-8
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,

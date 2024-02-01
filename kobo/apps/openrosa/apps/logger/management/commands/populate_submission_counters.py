@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Count, Value, F, DateField
@@ -125,7 +125,10 @@ class Command(BaseCommand):
             self.stdout.write(f'\tNo daily counters data...')
 
     def add_monthly_counters(
-        self, total_submissions: dict, xform: 'logger.XForm', user: 'auth.User'
+        self,
+        total_submissions: dict,
+        xform: 'logger.XForm',
+        user: settings.AUTH_USER_MODEL
     ):
         monthly_counters = []
 
@@ -174,7 +177,7 @@ class Command(BaseCommand):
 
         return daily_counters, total_submissions
 
-    def clean_old_data(self, user: 'auth.User'):
+    def clean_old_data(self, user: settings.AUTH_USER_MODEL):
         # First delete only records covered by desired max days.
         if self._verbosity >= 2:
             self.stdout.write(f'\tDeleting old data...')
@@ -197,7 +200,7 @@ class Command(BaseCommand):
             )
         ).filter(user_id=user.pk, date__gte=self._date_threshold).delete()
 
-    def suspend_submissions_for_user(self, user: 'auth.User'):
+    def suspend_submissions_for_user(self, user: settings.AUTH_USER_MODEL):
         # Retrieve or create user's profile.
         (
             user_profile,
@@ -230,7 +233,7 @@ class Command(BaseCommand):
             ),
         )
 
-    def update_user_profile(self, user: 'auth.User'):
+    def update_user_profile(self, user: settings.AUTH_USER_MODEL):
         # Update user's profile (and lock the related row)
         updates = {
             'submissions_suspended': False,

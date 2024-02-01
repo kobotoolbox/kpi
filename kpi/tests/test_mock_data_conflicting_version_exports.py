@@ -2,7 +2,7 @@
 import itertools
 from collections import defaultdict
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 from django.test import TestCase
 

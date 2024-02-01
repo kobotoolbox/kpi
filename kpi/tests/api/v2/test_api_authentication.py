@@ -1,7 +1,7 @@
 # coding: utf-8
 import base64
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 from django.test import override_settings
 from rest_framework import status

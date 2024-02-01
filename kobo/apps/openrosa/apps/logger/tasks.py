@@ -9,7 +9,7 @@ from io import StringIO
 from celery import shared_task
 from dateutil import relativedelta
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.utils import timezone

@@ -35,7 +35,7 @@ from .models.account import AccountTrash
 from .models.project import ProjectTrash
 
 
-def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
+def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
 
     asset_id = asset.pk
     asset_uid = asset.uid
@@ -80,7 +80,7 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
 
 @transaction.atomic
 def move_to_trash(
-    request_author: 'auth.User',
+    request_author: settings.AUTH_USER_MODEL,
     objects_list: list[dict],
     grace_period: int,
     trash_type: str,
@@ -187,7 +187,7 @@ def move_to_trash(
 
 @transaction.atomic()
 def put_back(
-    request_author: 'auth.User', objects_list: list[dict], trash_type: str
+    request_author: settings.AUTH_USER_MODEL, objects_list: list[dict], trash_type: str
 ):
     """
     Remove related objects from trash.
@@ -246,8 +246,8 @@ def put_back(
 
 
 def replace_user_with_placeholder(
-    user: 'auth.User', retain_audit_logs: bool = True
-) -> 'auth.User':
+    user: settings.AUTH_USER_MODEL, retain_audit_logs: bool = True
+) -> settings.AUTH_USER_MODEL:
     """
     Replace a user with an inactive placeholder, which prevents others from
     registering a new account with the same username. The placeholder uses the
@@ -285,7 +285,7 @@ def replace_user_with_placeholder(
     return placeholder_user
 
 
-def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
+def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
 
     (
         app_label,

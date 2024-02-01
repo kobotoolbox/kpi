@@ -1,7 +1,7 @@
 # coding: utf-8
 from allauth.account.models import EmailAddress
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.shortcuts import resolve_url
 from django.test import override_settings
 from django.urls import reverse

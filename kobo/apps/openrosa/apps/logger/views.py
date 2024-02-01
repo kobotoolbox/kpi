@@ -6,7 +6,7 @@ import re
 from datetime import datetime, date
 
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.contrib import messages
 from django.core.files.storage import default_storage
 from django.http import (

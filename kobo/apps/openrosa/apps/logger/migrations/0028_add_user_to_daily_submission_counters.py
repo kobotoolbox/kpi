@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='DailyXFormSubmissionCounter',
             name='user',
-            field=models.ForeignKey('auth.User', related_name='daily_users', null=True, on_delete=models.CASCADE),
+            field=models.ForeignKey(settings.AUTH_USER_MODEL, related_name='daily_users', null=True, on_delete=models.CASCADE),
         ),
         migrations.RunPython(
             add_user_to_daily_submission_counter,

@@ -10,7 +10,7 @@ from django.core.files.base import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.storage import default_storage
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.shortcuts import render
 from django.utils.text import slugify
 from openpyxl.utils.datetime import to_excel, time_to_days, timedelta_to_days

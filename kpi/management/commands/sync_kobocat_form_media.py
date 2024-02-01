@@ -5,7 +5,7 @@ import time
 from typing import Optional
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand

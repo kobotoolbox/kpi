@@ -2,7 +2,7 @@
 from typing import Union
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets

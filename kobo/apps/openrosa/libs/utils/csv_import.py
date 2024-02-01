@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import TextIO, Union
 
 import unicodecsv as ucsv
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xml, safe_create_instance

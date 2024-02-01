@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.conf import settings
 from django.db.models import Sum, Q, OuterRef, Subquery, QuerySet
 from django.db.models.functions import Coalesce

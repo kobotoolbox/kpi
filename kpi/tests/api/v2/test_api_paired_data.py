@@ -2,7 +2,7 @@
 import unittest
 from mock import patch, MagicMock, PropertyMock
 
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail

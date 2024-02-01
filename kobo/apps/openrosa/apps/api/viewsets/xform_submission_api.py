@@ -3,7 +3,7 @@ import re
 import io
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from kobo_service_account.utils import get_real_user

@@ -7,7 +7,7 @@ import re
 import rest_framework.request
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from kobo.apps.kobo_auth.shortcuts import User
 from django.core.files.storage import default_storage, FileSystemStorage
 from django.urls import reverse
 from django.db.models import Q
