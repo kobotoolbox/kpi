@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django_digest.test import DigestAuth
-from guardian.shortcuts import assign_perm
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo_service_account.utils import get_request_headers
 from rest_framework import status
 

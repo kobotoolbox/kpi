@@ -43,3 +43,5 @@ OPENROSA_APP_LABELS = [
     'restservice',
     'guardian',
 ]
+
+OPENROSA_DB_ALIAS = 'kobocat'

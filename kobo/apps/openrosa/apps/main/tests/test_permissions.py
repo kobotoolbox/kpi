@@ -1,7 +1,7 @@
 # coding: utf-8
 import os
 
-from guardian.shortcuts import assign_perm, remove_perm
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
 
 from .test_base import TestBase
 

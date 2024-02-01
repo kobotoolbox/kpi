@@ -88,7 +88,7 @@ MEDIA_URL = f"/{env.str('KOBOCAT_MEDIA_URL', 'media').strip('/')}/"
 # Example: "http://media.lawrence.com/static/"
 # STATIC_URL = '/static/'
 
-# FIXME Do not support it anymore
+# FIXME Let's stop support it!
 # if os.environ.get('KOBOCAT_ROOT_URI_PREFIX'):
 #     KOBOCAT_ROOT_URI_PREFIX = '/' + os.environ['KOBOCAT_ROOT_URI_PREFIX'].strip('/') + '/'
 #     MEDIA_URL = KOBOCAT_ROOT_URI_PREFIX + MEDIA_URL.lstrip('/')
@@ -226,7 +226,7 @@ MEDIA_URL = f"/{env.str('KOBOCAT_MEDIA_URL', 'media').strip('/')}/"
 #     'kobo.apps.openrosa.apps.form_disclaimer.FormDisclaimerAppConfig',
 # ]
 
-# FIXME Does it break KPI
+# FIXME Does it break KPI ?
 USE_THOUSAND_SEPARATOR = True
 
 # COMPRESS = True

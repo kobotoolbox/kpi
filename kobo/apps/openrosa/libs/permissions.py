@@ -1,5 +1,5 @@
 # coding: utf-8
-from guardian.shortcuts import get_users_with_perms
+from kobo.apps.openrosa.libs.utils.guardian import get_users_with_perms
 
 
 def get_object_users_with_permissions(obj, exclude=None, serializable=False):

@@ -6,7 +6,7 @@ from xml.dom import Node
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.encoding import smart_str
-from guardian.shortcuts import assign_perm, get_perms_for_model
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm, get_perms_for_model
 from pyxform import SurveyElementBuilder
 from pyxform.builder import create_survey_from_xls
 from pyxform.question import Question

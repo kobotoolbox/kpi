@@ -5,7 +5,7 @@ import re
 from django.http import Http404
 from django_digest.test import DigestAuth
 from django_digest.test import Client as DigestClient
-from guardian.shortcuts import assign_perm
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from mock import patch
 
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile

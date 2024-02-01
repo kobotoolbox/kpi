@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.core.exceptions import ImproperlyConfigured
-from guardian.shortcuts import get_objects_for_user
+from kobo.apps.openrosa.libs.utils.guardian import get_objects_for_user
 
 
 class ViewPermissionMixin:

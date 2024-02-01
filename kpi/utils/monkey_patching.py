@@ -4,7 +4,7 @@ from django.contrib.auth.management import (
     DEFAULT_DB_ALIAS,
 )
 
-from django.conf import settings
+from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 
 
 def create_permissions(app_config, using=DEFAULT_DB_ALIAS, **kwargs):
@@ -13,7 +13,7 @@ def create_permissions(app_config, using=DEFAULT_DB_ALIAS, **kwargs):
     on migrations
     """
     if (
-        app_config.label in settings.OPENROSA_APP_LABELS
+        app_config.label in OPENROSA_APP_LABELS
         and using == DEFAULT_DB_ALIAS
     ):
         return

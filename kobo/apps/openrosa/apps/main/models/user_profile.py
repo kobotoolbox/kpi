@@ -6,7 +6,7 @@ from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.translation import gettext_lazy
 from guardian.conf import settings as guardian_settings
-from guardian.shortcuts import get_perms_for_model, assign_perm
+from kobo.apps.openrosa.libs.utils.guardian import get_perms_for_model, assign_perm
 from rest_framework.authtoken.models import Token
 
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField

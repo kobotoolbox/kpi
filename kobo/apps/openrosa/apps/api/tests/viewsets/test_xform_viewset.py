@@ -8,7 +8,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.test.client import Client
 from defusedxml import minidom
-from guardian.shortcuts import assign_perm
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo_service_account.utils import get_request_headers
 from rest_framework import status
 

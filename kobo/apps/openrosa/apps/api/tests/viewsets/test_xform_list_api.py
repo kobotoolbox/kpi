@@ -4,7 +4,7 @@ import re
 
 from django.conf import settings
 from django_digest.test import DigestAuth
-from guardian.shortcuts import assign_perm
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (

@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.db.models import Q
-from guardian.shortcuts import assign_perm, get_objects_for_user
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm, get_objects_for_user
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet

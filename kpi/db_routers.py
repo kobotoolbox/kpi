@@ -1,4 +1,8 @@
-from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
+from kobo.apps.openrosa.libs.constants import (
+    OPENROSA_APP_LABELS,
+    OPENROSA_DB_ALIAS,
+)
+from kpi.utils.database import get_thread_local
 from .constants import SHADOW_MODEL_APP_LABELS
 from .exceptions import ReadOnlyModelError
 
@@ -13,9 +17,9 @@ class DefaultDatabaseRouter:
             model._meta.app_label in SHADOW_MODEL_APP_LABELS
             or model._meta.app_label in OPENROSA_APP_LABELS
         ):
-            return 'kobocat'
+            return OPENROSA_DB_ALIAS
 
-        return 'default'
+        return get_thread_local('DB_ALIAS', 'default')
 
     def db_for_write(self, model, **hints):
         """
@@ -29,9 +33,9 @@ class DefaultDatabaseRouter:
             model._meta.app_label in SHADOW_MODEL_APP_LABELS
             or model._meta.app_label in OPENROSA_APP_LABELS
         ):
-            return 'kobocat'
+            return OPENROSA_DB_ALIAS
 
-        return 'default'
+        return get_thread_local('DB_ALIAS', 'default')
 
     def allow_relation(self, obj1, obj2, **hints):
         """

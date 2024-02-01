@@ -15,7 +15,7 @@ from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext_lazy as t
-from guardian.shortcuts import (
+from kobo.apps.openrosa.libs.utils.guardian import (
     assign_perm,
     get_perms_for_model
 )
