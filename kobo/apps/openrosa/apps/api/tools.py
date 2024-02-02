@@ -19,7 +19,6 @@ from django.http import (
 from django.utils.translation import gettext as t
 from kobo_service_account.utils import get_real_user, get_request_headers
 from rest_framework import exceptions
-from rest_framework.authtoken.models import Token
 from rest_framework.request import Request
 from taggit.forms import TagField
 
@@ -233,7 +232,7 @@ def get_view_name(view_obj):
     # issubclass() because ViewSets also inherit (indirectly) from APIView.
     try:
         if inspect.getmro(view_obj.__class__)[1] is rest_framework_views.APIView:
-            return 'KoBo Api'  # awkward capitalization for consistency
+            return 'Kobo Api v1'
     except KeyError:
         pass
     return rest_framework_views.get_view_name(view_obj)

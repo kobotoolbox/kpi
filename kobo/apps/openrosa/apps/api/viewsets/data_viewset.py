@@ -13,374 +13,383 @@ from kobo_service_account.utils import get_real_user
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import ParseError
 from rest_framework.serializers import ValidationError
 from rest_framework.settings import api_settings
 
-from kobo.apps.openrosa.apps.api.exceptions import NoConfirmationProvidedException
-from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import custom_response_handler
-from kobo.apps.openrosa.apps.api.tools import add_tags_to_instance, \
-    add_validation_status_to_instance, get_validation_status, \
-    remove_validation_status_from_instance
+from kobo.apps.openrosa.apps.api.exceptions import (
+    NoConfirmationProvidedException,
+)
+from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import (
+    custom_response_handler,
+)
+from kobo.apps.openrosa.apps.api.tools import (
+    add_tags_to_instance,
+    add_validation_status_to_instance,
+    get_validation_status,
+    remove_validation_status_from_instance,
+)
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.models.instance import (
     Instance,
     nullify_exports_time_of_last_submission,
     update_xform_submission_count_delete,
 )
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import (
     _remove_from_mongo,
     ParsedInstance,
 )
 from kobo.apps.openrosa.libs.renderers import renderers
 from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
-    AnonymousUserPublicFormsMixin)
+    AnonymousUserPublicFormsMixin,
+)
 from kobo.apps.openrosa.apps.api.permissions import (
     EnketoSubmissionEditPermissions,
     EnketoSubmissionViewPermissions,
     XFormDataPermissions,
 )
 from kobo.apps.openrosa.libs.serializers.data_serializer import (
-    DataSerializer, DataListSerializer, DataInstanceSerializer)
+    DataSerializer,
+    DataListSerializer,
+    DataInstanceSerializer,
+)
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     EnketoError,
     get_enketo_submission_url,
 )
-
+from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
 
 
-class DataViewSet(AnonymousUserPublicFormsMixin, ModelViewSet):
+class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
 
     """
-This endpoint provides access to submitted data in JSON format. Where:
+    This endpoint provides access to submitted data in JSON format. Where:
 
-* `pk` - the form unique identifier
-* `dataid` - submission data unique identifier
-* `owner` - username of the owner of the data point
+    * `pk` - the form unique identifier
+    * `dataid` - submission data unique identifier
+    * `owner` - username of the owner of the data point
 
-## GET JSON List of data end points
+    ## GET JSON List of data end points
 
-Lists the data endpoints accessible to requesting user, for anonymous access
-a list of public data endpoints is returned.
+    Lists the data endpoints accessible to requesting user, for anonymous access
+    a list of public data endpoints is returned.
 
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data
-</pre>
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data
+    </pre>
 
-> Example
->
->       curl -X GET https://example.com/api/v1/data
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/data
 
-> Response
->
->        [{
->            "id": 4240,
->            "id_string": "dhis2form"
->            "title": "dhis2form"
->            "description": "dhis2form"
->            "url": "https://example.com/api/v1/data/4240"
->         },
->            ...
->        ]
+    > Response
+    >
+    >        [{
+    >            "id": 4240,
+    >            "id_string": "dhis2form"
+    >            "title": "dhis2form"
+    >            "description": "dhis2form"
+    >            "url": "https://example.com/api/v1/data/4240"
+    >         },
+    >            ...
+    >        ]
 
-## Download data in `csv` format
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data.csv</pre>
->
->       curl -O https://example.com/api/v1/data.csv
+    ## Download data in `csv` format
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data.csv</pre>
+    >
+    >       curl -O https://example.com/api/v1/data.csv
 
-## GET JSON List of data end points filter by owner
+    ## GET JSON List of data end points filter by owner
 
-Lists the data endpoints accessible to requesting user, for the specified
-`owner` as a query parameter.
+    Lists the data endpoints accessible to requesting user, for the specified
+    `owner` as a query parameter.
 
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data?<code>owner</code>=<code>owner_username</code>
-</pre>
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data?<code>owner</code>=<code>owner_username</code>
+    </pre>
 
-> Example
->
->       curl -X GET https://example.com/api/v1/data?owner=ona
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/data?owner=ona
 
-## Get Submitted data for a specific form
-Provides a list of json submitted data for a specific form.
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data/<code>{pk}</code></pre>
-> Example
->
->       curl -X GET https://example.com/api/v1/data/22845
+    ## Get Submitted data for a specific form
+    Provides a list of json submitted data for a specific form.
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data/<code>{pk}</code></pre>
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/data/22845
 
-> Response
->
->        [
->            {
->                "_id": 4503,
->                "expense_type": "service",
->                "_xform_id_string": "exp",
->                "_geolocation": [
->                    null,
->                    null
->                ],
->                "end": "2013-01-03T10:26:25.674+03",
->                "start": "2013-01-03T10:25:17.409+03",
->                "expense_date": "2011-12-23",
->                "_status": "submitted_via_web",
->                "today": "2013-01-03",
->                "_uuid": "2e599f6fe0de42d3a1417fb7d821c859",
->                "imei": "351746052013466",
->                "formhub/uuid": "46ea15e2b8134624a47e2c4b77eef0d4",
->                "kind": "monthly",
->                "_submission_time": "2013-01-03T02:27:19",
->                "required": "yes",
->                "_attachments": [],
->                "item": "Rent",
->                "amount": "35000.0",
->                "deviceid": "351746052013466",
->                "subscriberid": "639027...60317"
->            },
->            {
->                ....
->                "subscriberid": "639027...60317"
->            }
->        ]
+    > Response
+    >
+    >        [
+    >            {
+    >                "_id": 4503,
+    >                "expense_type": "service",
+    >                "_xform_id_string": "exp",
+    >                "_geolocation": [
+    >                    null,
+    >                    null
+    >                ],
+    >                "end": "2013-01-03T10:26:25.674+03",
+    >                "start": "2013-01-03T10:25:17.409+03",
+    >                "expense_date": "2011-12-23",
+    >                "_status": "submitted_via_web",
+    >                "today": "2013-01-03",
+    >                "_uuid": "2e599f6fe0de42d3a1417fb7d821c859",
+    >                "imei": "351746052013466",
+    >                "formhub/uuid": "46ea15e2b8134624a47e2c4b77eef0d4",
+    >                "kind": "monthly",
+    >                "_submission_time": "2013-01-03T02:27:19",
+    >                "required": "yes",
+    >                "_attachments": [],
+    >                "item": "Rent",
+    >                "amount": "35000.0",
+    >                "deviceid": "351746052013466",
+    >                "subscriberid": "639027...60317"
+    >            },
+    >            {
+    >                ....
+    >                "subscriberid": "639027...60317"
+    >            }
+    >        ]
 
-## Get a single data submission for a given form
+    ## Get a single data submission for a given form
 
-Get a single specific submission json data providing `pk`
- and `dataid` as url path parameters, where:
+    Get a single specific submission json data providing `pk`
+     and `dataid` as url path parameters, where:
 
-* `pk` - is the identifying number for a specific form
-* `dataid` - is the unique id of the data, the value of `_id` or `_uuid`
+    * `pk` - is the identifying number for a specific form
+    * `dataid` - is the unique id of the data, the value of `_id` or `_uuid`
 
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code></pre>
-> Example
->
->       curl -X GET https://example.com/api/v1/data/22845/4503
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code></pre>
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/data/22845/4503
 
-> Response
->
->            {
->                "_id": 4503,
->                "expense_type": "service",
->                "_xform_id_string": "exp",
->                "_geolocation": [
->                    null,
->                    null
->                ],
->                "end": "2013-01-03T10:26:25.674+03",
->                "start": "2013-01-03T10:25:17.409+03",
->                "expense_date": "2011-12-23",
->                "_status": "submitted_via_web",
->                "today": "2013-01-03",
->                "_uuid": "2e599f6fe0de42d3a1417fb7d821c859",
->                "imei": "351746052013466",
->                "formhub/uuid": "46ea15e2b8134624a47e2c4b77eef0d4",
->                "kind": "monthly",
->                "_submission_time": "2013-01-03T02:27:19",
->                "required": "yes",
->                "_attachments": [],
->                "item": "Rent",
->                "amount": "35000.0",
->                "deviceid": "351746052013466",
->                "subscriberid": "639027...60317"
->            },
->            {
->                ....
->                "subscriberid": "639027...60317"
->            }
->        ]
+    > Response
+    >
+    >            {
+    >                "_id": 4503,
+    >                "expense_type": "service",
+    >                "_xform_id_string": "exp",
+    >                "_geolocation": [
+    >                    null,
+    >                    null
+    >                ],
+    >                "end": "2013-01-03T10:26:25.674+03",
+    >                "start": "2013-01-03T10:25:17.409+03",
+    >                "expense_date": "2011-12-23",
+    >                "_status": "submitted_via_web",
+    >                "today": "2013-01-03",
+    >                "_uuid": "2e599f6fe0de42d3a1417fb7d821c859",
+    >                "imei": "351746052013466",
+    >                "formhub/uuid": "46ea15e2b8134624a47e2c4b77eef0d4",
+    >                "kind": "monthly",
+    >                "_submission_time": "2013-01-03T02:27:19",
+    >                "required": "yes",
+    >                "_attachments": [],
+    >                "item": "Rent",
+    >                "amount": "35000.0",
+    >                "deviceid": "351746052013466",
+    >                "subscriberid": "639027...60317"
+    >            },
+    >            {
+    >                ....
+    >                "subscriberid": "639027...60317"
+    >            }
+    >        ]
 
-## Query submitted data of a specific form
-Provides a list of json submitted data for a specific form. Use `query`
-parameter to apply form data specific, see
-<a href="http://docs.mongodb.org/manual/reference/operator/query/">
-http://docs.mongodb.org/manual/reference/operator/query/</a>.
+    ## Query submitted data of a specific form
+    Provides a list of json submitted data for a specific form. Use `query`
+    parameter to apply form data specific, see
+    <a href="http://docs.mongodb.org/manual/reference/operator/query/">
+    http://docs.mongodb.org/manual/reference/operator/query/</a>.
 
-For more details see
-<a href="https://github.com/modilabs/formhub/wiki/Formhub-Access-Points-(API)#
-api-parameters">
-API Parameters</a>.
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data/<code>{pk}</code>?query={"field":"value"}</b>
-<b>GET</b> /api/v1/data/<code>{pk}</code>?query={"field":{"op": "value"}}"</b>
-</pre>
-> Example
->
->       curl -X GET 'https://example.com/api/v1/data/22845?query={"kind": \
-"monthly"}'
->       curl -X GET 'https://example.com/api/v1/data/22845?query={"date": \
-{"$gt": "2014-09-29T01:02:03+0000"}}'
+    For more details see
+    <a href="https://github.com/modilabs/formhub/wiki/Formhub-Access-Points-(API)#
+    api-parameters">
+    API Parameters</a>.
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data/<code>{pk}</code>?query={"field":"value"}</b>
+    <b>GET</b> /api/v1/data/<code>{pk}</code>?query={"field":{"op": "value"}}"</b>
+    </pre>
+    > Example
+    >
+    >       curl -X GET 'https://example.com/api/v1/data/22845?query={"kind": \
+    "monthly"}'
+    >       curl -X GET 'https://example.com/api/v1/data/22845?query={"date": \
+    {"$gt": "2014-09-29T01:02:03+0000"}}'
 
-> Response
->
->        [
->            {
->                "_id": 4503,
->                "expense_type": "service",
->                "_xform_id_string": "exp",
->                "_geolocation": [
->                    null,
->                    null
->                ],
->                "end": "2013-01-03T10:26:25.674+03",
->                "start": "2013-01-03T10:25:17.409+03",
->                "expense_date": "2011-12-23",
->                "_status": "submitted_via_web",
->                "today": "2013-01-03",
->                "_uuid": "2e599f6fe0de42d3a1417fb7d821c859",
->                "imei": "351746052013466",
->                "formhub/uuid": "46ea15e2b8134624a47e2c4b77eef0d4",
->                "kind": "monthly",
->                "_submission_time": "2013-01-03T02:27:19",
->                "required": "yes",
->                "_attachments": [],
->                "item": "Rent",
->                "amount": "35000.0",
->                "deviceid": "351746052013466",
->                "subscriberid": "639027...60317"
->            },
->            {
->                ....
->                "subscriberid": "639027...60317"
->            }
->        ]
+    > Response
+    >
+    >        [
+    >            {
+    >                "_id": 4503,
+    >                "expense_type": "service",
+    >                "_xform_id_string": "exp",
+    >                "_geolocation": [
+    >                    null,
+    >                    null
+    >                ],
+    >                "end": "2013-01-03T10:26:25.674+03",
+    >                "start": "2013-01-03T10:25:17.409+03",
+    >                "expense_date": "2011-12-23",
+    >                "_status": "submitted_via_web",
+    >                "today": "2013-01-03",
+    >                "_uuid": "2e599f6fe0de42d3a1417fb7d821c859",
+    >                "imei": "351746052013466",
+    >                "formhub/uuid": "46ea15e2b8134624a47e2c4b77eef0d4",
+    >                "kind": "monthly",
+    >                "_submission_time": "2013-01-03T02:27:19",
+    >                "required": "yes",
+    >                "_attachments": [],
+    >                "item": "Rent",
+    >                "amount": "35000.0",
+    >                "deviceid": "351746052013466",
+    >                "subscriberid": "639027...60317"
+    >            },
+    >            {
+    >                ....
+    >                "subscriberid": "639027...60317"
+    >            }
+    >        ]
 
-## Query submitted data of a specific form using Tags
-Provides a list of json submitted data for a specific form matching specific
-tags. Use the `tags` query parameter to filter the list of forms, `tags`
-should be a comma separated list of tags.
+    ## Query submitted data of a specific form using Tags
+    Provides a list of json submitted data for a specific form matching specific
+    tags. Use the `tags` query parameter to filter the list of forms, `tags`
+    should be a comma separated list of tags.
 
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data?<code>tags</code>=<code>tag1,tag2</code></pre>
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data/<code>{pk}</code>?<code>tags\
-</code>=<code>tag1,tag2</code></pre>
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data?<code>tags</code>=<code>tag1,tag2</code></pre>
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data/<code>{pk}</code>?<code>tags\
+    </code>=<code>tag1,tag2</code></pre>
 
-> Example
->
->       curl -X GET https://example.com/api/v1/data/22845?tags=monthly
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/data/22845?tags=monthly
 
-## Tag a submission data point
+    ## Tag a submission data point
 
-A `POST` payload of parameter `tags` with a comma separated list of tags.
+    A `POST` payload of parameter `tags` with a comma separated list of tags.
 
-Examples
+    Examples
 
-- `animal fruit denim` - space delimited, no commas
-- `animal, fruit denim` - comma delimited
+    - `animal fruit denim` - space delimited, no commas
+    - `animal, fruit denim` - comma delimited
 
-<pre class="prettyprint">
-<b>POST</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/labels</pre>
+    <pre class="prettyprint">
+    <b>POST</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/labels</pre>
 
-Payload
+    Payload
 
-    {"tags": "tag1, tag2"}
+        {"tags": "tag1, tag2"}
 
-## Delete a specific tag from a submission
+    ## Delete a specific tag from a submission
 
-<pre class="prettyprint">
-<b>DELETE</b> /api/v1/data/<code>{pk}</code>/<code>\
-{dataid}</code>/labels/<code>tag_name</code></pre>
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v1/data/<code>{pk}</code>/<code>\
+    {dataid}</code>/labels/<code>tag_name</code></pre>
 
-> Request
->
->       curl -X DELETE \
-https://example.com/api/v1/data/28058/20/labels/tag1
-or to delete the tag "hello world"
->
->       curl -X DELETE \
-https://example.com/api/v1/data/28058/20/labels/hello%20world
->
-> Response
->
->        HTTP 200 OK
+    > Request
+    >
+    >       curl -X DELETE \
+    https://example.com/api/v1/data/28058/20/labels/tag1
+    or to delete the tag "hello world"
+    >
+    >       curl -X DELETE \
+    https://example.com/api/v1/data/28058/20/labels/hello%20world
+    >
+    > Response
+    >
+    >        HTTP 200 OK
 
 
-## Query submitted validation status of a specific submission
+    ## Query submitted validation status of a specific submission
 
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/validation_status</pre>
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/validation_status</pre>
 
-> Example
->
->       curl -X GET https://example.com/api/v1/data/22845/56/validation_status
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/data/22845/56/validation_status
 
-> Response
->
->       {
->           "timestamp": 1513299978,
->           "by_whom ": "John Doe",
->           "uid": "validation_status_approved",
->           "color": "#00ff00",
->           "label: "Approved"
->       }
+    > Response
+    >
+    >       {
+    >           "timestamp": 1513299978,
+    >           "by_whom ": "John Doe",
+    >           "uid": "validation_status_approved",
+    >           "color": "#00ff00",
+    >           "label: "Approved"
+    >       }
 
-## Change validation status of a submission data point
+    ## Change validation status of a submission data point
 
-A `PATCH` payload of parameter `validation_status`.
+    A `PATCH` payload of parameter `validation_status`.
 
-<pre class="prettyprint">
-<b>PATCH</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/validation_status</pre>
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/validation_status</pre>
 
-Payload
+    Payload
 
->       {
->           "validation_status_uid": "validation_status_not_approved"
->       }
+    >       {
+    >           "validation_status_uid": "validation_status_not_approved"
+    >       }
 
-> Example
->
->       curl -X PATCH https://example.com/api/v1/data/22845/56/validation_status
+    > Example
+    >
+    >       curl -X PATCH https://example.com/api/v1/data/22845/56/validation_status
 
-> Response
->
->       {
->           "timestamp": 1513299978,
->           "by_whom ": "John Doe",
->           "uid": "validation_status_not_approved",
->           "color": "#ff0000",
->           "label": "Not Approved"
->       }
+    > Response
+    >
+    >       {
+    >           "timestamp": 1513299978,
+    >           "by_whom ": "John Doe",
+    >           "uid": "validation_status_not_approved",
+    >           "color": "#ff0000",
+    >           "label": "Not Approved"
+    >       }
 
-## Get enketo edit link for a submission instance
+    ## Get enketo edit link for a submission instance
 
-<pre class="prettyprint">
-<b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/enketo
-</pre>
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/enketo
+    </pre>
 
-> Example
->
->       curl -X GET https://example.com/api/v1/data/28058/20/enketo?return_url=url
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/data/28058/20/enketo?return_url=url
 
-> Response
->       {"url": "https://hmh2a.enketo.formhub.org"}
->
->
+    > Response
+    >       {"url": "https://hmh2a.enketo.formhub.org"}
+    >
+    >
 
-## Delete a specific submission instance
+    ## Delete a specific submission instance
 
-Delete a specific submission in a form
+    Delete a specific submission in a form
 
-<pre class="prettyprint">
-<b>DELETE</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>
-</pre>
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>
+    </pre>
 
-> Example
->
->       curl -X DELETE https://example.com/api/v1/data/28058/20
+    > Example
+    >
+    >       curl -X DELETE https://example.com/api/v1/data/28058/20
 
-> Response
->
->       HTTP 204 No Content
->
->
-"""
+    > Response
+    >
+    >       HTTP 204 No Content
+    >
+    >
+    """
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [
         renderers.XLSRenderer,
         renderers.XLSXRenderer,

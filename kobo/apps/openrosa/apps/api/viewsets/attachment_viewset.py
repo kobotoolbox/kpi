@@ -2,19 +2,23 @@
 from django.http import Http404
 from django.utils.translation import gettext as t
 from rest_framework import renderers
-from rest_framework import viewsets
 from rest_framework.response import Response
 
 
 from kobo.apps.openrosa.apps.api.permissions import AttachmentObjectPermissions
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.libs import filters
-from kobo.apps.openrosa.libs.serializers.attachment_serializer import AttachmentSerializer
-from kobo.apps.openrosa.libs.renderers.renderers import MediaFileContentNegotiation, \
-    MediaFileRenderer
+from kobo.apps.openrosa.libs.serializers.attachment_serializer import (
+    AttachmentSerializer,
+)
+from kobo.apps.openrosa.libs.renderers.renderers import (
+    MediaFileContentNegotiation,
+    MediaFileRenderer,
+)
+from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
-class AttachmentViewSet(viewsets.ReadOnlyModelViewSet):
+class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
     """
 
     ## Lists attachments of all xforms

@@ -4,14 +4,9 @@ from xml.dom import NotFoundErr
 from django.conf import settings
 from django.core.files import File
 from django.core.validators import ValidationError
-from kobo.apps.kobo_auth.shortcuts import User
 from django.http import Http404
 from django.utils.translation import gettext as t
-from rest_framework import exceptions
-from rest_framework import mixins
-from rest_framework import status
-from rest_framework import viewsets
-from rest_framework import permissions
+from rest_framework import exceptions, mixins, status, permissions
 from rest_framework.generics import get_object_or_404
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
@@ -23,15 +18,18 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
-from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.authentication import DigestAuthentication
 from kobo.apps.openrosa.libs.mixins.openrosa_headers_mixin import OpenRosaHeadersMixin
 from kobo.apps.openrosa.libs.renderers.renderers import TemplateXMLRenderer
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormListSerializer
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormManifestSerializer
-from kobo.apps.openrosa.libs.utils.logger_tools import publish_form, publish_xml_form, \
-    get_instance_or_404
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    publish_form,
+    publish_xml_form,
+    get_instance_or_404,
+)
+from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 
 def _extract_uuid(text):
@@ -74,9 +72,13 @@ class DoXmlFormUpload:
         return publish_xml_form(self.xml_file, self.user)
 
 
-class BriefcaseApi(OpenRosaHeadersMixin, mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin, mixins.ListModelMixin,
-                   viewsets.GenericViewSet):
+class BriefcaseApi(
+    OpenRosaHeadersMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    OpenRosaGenericViewSet,
+):
     """
     Implements the [Briefcase Aggregate API](\
     https://code.google.com/p/opendatakit/wiki/BriefcaseAggregateAPI).

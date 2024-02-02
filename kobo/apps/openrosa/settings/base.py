@@ -413,41 +413,41 @@ DIGEST_NONCE_BACKEND = 'kobo.apps.openrosa.apps.django_digest_backends.cache.Red
 
 # FIXME Kobocat migration: To be merged
 
-REST_FRAMEWORK = {
-    # Use hyperlinked styles by default.
-    # Only used if the `serializer_class` attribute is not set on a view.
-    'DEFAULT_MODEL_SERIALIZER_CLASS':
-    'rest_framework.serializers.HyperlinkedModelSerializer',
-
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'kobo.apps.openrosa.libs.authentication.DigestAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-        'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
-        # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
-        # Django authentication is called before DRF authentication and users get authenticated with
-        # Session if it comes first (which bypass BasicAuthentication and MFA validation)
-        'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'kobo_service_account.authentication.ServiceAccountAuthentication',
-    ),
-    'DEFAULT_RENDERER_CLASSES': (
-        # Keep JSONRenderer at the top "in order to send JSON responses to
-        # clients that do not specify an Accept header." See
-        # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework_jsonp.renderers.JSONPRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-        'rest_framework_xml.renderers.XMLRenderer',
-        'rest_framework_csv.renderers.CSVRenderer',
-    ),
-    'VIEW_NAME_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_name',
-    'VIEW_DESCRIPTION_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_description',
-}
+# REST_FRAMEWORK = {
+#     # Use hyperlinked styles by default.
+#     # Only used if the `serializer_class` attribute is not set on a view.
+#     'DEFAULT_MODEL_SERIALIZER_CLASS':
+#     'rest_framework.serializers.HyperlinkedModelSerializer',
+#
+#     # Use Django's standard `django.contrib.auth` permissions,
+#     # or allow read-only access for unauthenticated users.
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.AllowAny',
+#     ],
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'kobo.apps.openrosa.libs.authentication.DigestAuthentication',
+#         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+#         'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
+#         # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
+#         # Django authentication is called before DRF authentication and users get authenticated with
+#         # Session if it comes first (which bypass BasicAuthentication and MFA validation)
+#         'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#         'kobo_service_account.authentication.ServiceAccountAuthentication',
+#     ),
+#     'DEFAULT_RENDERER_CLASSES': (
+#         # Keep JSONRenderer at the top "in order to send JSON responses to
+#         # clients that do not specify an Accept header." See
+#         # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
+#         'rest_framework.renderers.JSONRenderer',
+#         'rest_framework_jsonp.renderers.JSONPRenderer',
+#         'rest_framework.renderers.BrowsableAPIRenderer',
+#         'rest_framework_xml.renderers.XMLRenderer',
+#         'rest_framework_csv.renderers.CSVRenderer',
+#     ),
+#     'VIEW_NAME_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_name',
+#     'VIEW_DESCRIPTION_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_description',
+# }
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
@@ -558,8 +558,9 @@ GOOGLE_ANALYTICS_DOMAIN = "auto"
 # duration to keep zip exports before deletion (in seconds)
 ZIP_EXPORT_COUNTDOWN = 24 * 60 * 60
 
-# default content length for submission requests
-DEFAULT_CONTENT_LENGTH = 10000000
+# FIXME Kobocat migration: Use OPENROSA_DEFAULT_CONTENT_LENGTH from main base.py
+# # default content length for submission requests
+# DEFAULT_CONTENT_LENGTH = 10000000
 
 # Use 1 or 0 for multiple selects instead of True or False for csv, xls exports
 BINARY_SELECT_MULTIPLES = False

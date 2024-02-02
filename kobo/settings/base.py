@@ -637,7 +637,7 @@ TEST_RUNNER = __name__ + '.DoNotUseRunner'
 # KoBoCAT also lists ModelBackend before
 # guardian.backends.ObjectPermissionBackend.
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
+    'kpi.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
     'kobo.apps.openrosa.libs.backends.ObjectPermissionBackend',
@@ -825,6 +825,50 @@ REST_FRAMEWORK = {
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
+
+OPENROSA_REST_FRAMEWORK = {
+
+    'DEFAULT_PAGINATION_CLASS': None,
+    'DEFAULT_VERSIONING_CLASS': None,
+
+    # deprecated
+    # # Use hyperlinked styles by default.
+    # # Only used if the `serializer_class` attribute is not set on a view.
+    # 'DEFAULT_MODEL_SERIALIZER_CLASS': (
+    #     'rest_framework.serializers.HyperlinkedModelSerializer'
+    # ),
+    # # Use Django's standard `django.contrib.auth` permissions,
+    # # or allow read-only access for unauthenticated users.
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.AllowAny',
+    # ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'kobo.apps.openrosa.libs.authentication.DigestAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
+        # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
+        # Django authentication is called before DRF authentication and users get authenticated with
+        # Session if it comes first (which bypass BasicAuthentication and MFA validation)
+        'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
+        'kpi.authentication.SessionAuthentication',
+        'kobo_service_account.authentication.ServiceAccountAuthentication',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        # Keep JSONRenderer at the top "in order to send JSON responses to
+        # clients that do not specify an Accept header." See
+        # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework_jsonp.renderers.JSONPRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework_xml.renderers.XMLRenderer',
+        'rest_framework_csv.renderers.CSVRenderer',
+    ],
+    # FIXME Kobocat migration: Move to main REST_FRAMEWORK and change logic to handle kobocat view properly
+    'VIEW_NAME_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_name',
+    'VIEW_DESCRIPTION_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_description',
+}
+
 
 TEMPLATES = [
     {
@@ -1369,7 +1413,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 # OpenRosa setting in bytes
-OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
+OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 # Should match KoBoCAT setting

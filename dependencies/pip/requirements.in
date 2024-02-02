@@ -108,7 +108,9 @@ sentry-sdk
 
 # Kobocat
 django-guardian
-
+modilabs-python-utils
+djangorestframework-csv
+djangorestframework-jsonp
 
 # Python 3.8 support
 backports.zoneinfo; python_version < '3.9'

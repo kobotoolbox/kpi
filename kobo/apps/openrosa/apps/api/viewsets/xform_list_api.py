@@ -8,7 +8,7 @@ except ImportError:
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -22,13 +22,11 @@ from kobo.apps.openrosa.libs.renderers.renderers import XFormListRenderer
 from kobo.apps.openrosa.libs.renderers.renderers import XFormManifestRenderer
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormListSerializer
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormManifestSerializer
+from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
-# 10,000,000 bytes
-DEFAULT_CONTENT_LENGTH = getattr(settings, 'DEFAULT_CONTENT_LENGTH', 10000000)
+class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
-
-class XFormListApi(viewsets.ReadOnlyModelViewSet):
     content_negotiation_class = MediaFileContentNegotiation
     filter_backends = (filters.XFormListObjectPermissionFilter,)
     queryset = XForm.objects.filter(downloadable=True)
@@ -56,8 +54,8 @@ class XFormListApi(viewsets.ReadOnlyModelViewSet):
         return {
             'Date': dt,
             'X-OpenRosa-Version': '1.0',
-            'X-OpenRosa-Accept-Content-Length': DEFAULT_CONTENT_LENGTH,
-            'Content-Type': 'text/xml; charset=utf-8'
+            'X-OpenRosa-Accept-Content-Length': settings.OPENROSA_DEFAULT_CONTENT_LENGTH,
+            'Content-Type': 'text/xml; charset=utf-8',
         }
 
     def get_response_for_head_request(self):

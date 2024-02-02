@@ -1,6 +1,7 @@
 # coding: utf-8
 from django.conf import settings
-from django.contrib import admin
+# FIXME Kobocat migration: Remove
+# from django.contrib import admin
 
 from django.urls import include, re_path
 from django.views.generic import RedirectView
@@ -29,7 +30,8 @@ from kobo.apps.openrosa.apps.logger.views import (
     download_jsonform,
 )
 
-admin.autodiscover()
+# FIXME Kobocat migration: Deactivate
+# admin.autodiscover()
 
 urlpatterns = [
     # change Language
@@ -37,12 +39,13 @@ urlpatterns = [
     re_path('^api/v1/', include(router.urls)),
     re_path('^api/v1/', include(router_with_patch_list.urls)),
     re_path(r'^service_health/$', service_health),
-    re_path(r'^api/', RedirectView.as_view(url='/api/v1/')),
-    re_path(r'^api/v1', RedirectView.as_view(url='/api/v1/')),
+    re_path(r'^api/', RedirectView.as_view(url='/api/v1foo/')),
+    re_path(r'^api/v1', RedirectView.as_view(url='/api/v1bar/')),
 
+    # FIXME Kobocat migration: Deactivate
     # django default stuff
-    re_path(r'^accounts/', include('django.contrib.auth.urls')),
-    re_path(r'^admin/', admin.site.urls),
+    # re_path(r'^accounts/', include('django.contrib.auth.urls')),
+    # re_path(r'^admin/', admin.site.urls),
 
     # oath2_provider
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
@@ -60,11 +63,12 @@ urlpatterns = [
             attachment_url, name='attachment_url'),
     re_path(r'^jsi18n/$', JavaScriptCatalog.as_view(packages=['kobo.apps.openrosa.apps.main', 'kobo.apps.openrosa.apps.viewer']),
             name='javascript-catalog'),
-    re_path(
-        r'^(?P<username>[^/]+)/$',
-        RedirectView.as_view(url=koboform.redirect_url('/')),
-        name='user_profile',
-    ),
+    # FIXME Kobocat migration: Deactivate
+    #re_path(
+    #    r'^(?P<username>[^/]+)/$',
+    #    RedirectView.as_view(url=koboform.redirect_url('/')),
+    #    name='user_profile',
+    #),
 
     # briefcase api urls
     re_path(r"^view/submissionList$",

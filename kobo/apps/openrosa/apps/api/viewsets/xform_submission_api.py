@@ -2,14 +2,12 @@
 import re
 import io
 
-from django.conf import settings
 from kobo.apps.kobo_auth.shortcuts import User
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from kobo_service_account.utils import get_real_user
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework.authentication import (
     BasicAuthentication,
@@ -30,10 +28,8 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     safe_create_instance,
     UnauthenticatedEditAttempt,
 )
+from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
-
-# 10,000,000 bytes
-DEFAULT_CONTENT_LENGTH = getattr(settings, 'DEFAULT_CONTENT_LENGTH', 10000000)
 xml_error_re = re.compile('>(.*)<')
 
 
@@ -80,58 +76,59 @@ def create_instance_from_json(username, request):
     return safe_create_instance(username, xml_file, [], None, request)
 
 
-class XFormSubmissionApi(OpenRosaHeadersMixin,
-                         mixins.CreateModelMixin, viewsets.GenericViewSet):
+class XFormSubmissionApi(
+    OpenRosaHeadersMixin, mixins.CreateModelMixin, OpenRosaGenericViewSet
+):
     """
-Implements OpenRosa Api [FormSubmissionAPI](\
-    https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
+    Implements OpenRosa Api [FormSubmissionAPI](\
+        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
 
-## Submit an XML XForm submission
+    ## Submit an XML XForm submission
 
-<pre class="prettyprint">
-<b>POST</b> /api/v1/submissions</pre>
-> Example
->
->       curl -X POST -F xml_submission_file=@/path/to/submission.xml \
-https://example.com/api/v1/submissions
+    <pre class="prettyprint">
+    <b>POST</b> /api/v1/submissions</pre>
+    > Example
+    >
+    >       curl -X POST -F xml_submission_file=@/path/to/submission.xml \
+    https://example.com/api/v1/submissions
 
-## Submit an JSON XForm submission
+    ## Submit an JSON XForm submission
 
-<pre class="prettyprint">
-<b>POST</b> /api/v1/submissions</pre>
-> Example
->
->       curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]} \
-http://localhost:8000/api/v1/submissions -u user:pass -H "Content-Type: \
-application/json"
+    <pre class="prettyprint">
+    <b>POST</b> /api/v1/submissions</pre>
+    > Example
+    >
+    >       curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]} \
+    http://localhost:8000/api/v1/submissions -u user:pass -H "Content-Type: \
+    application/json"
 
-Here is some example JSON, it would replace `[the JSON]` above:
->       {
->           "transport": {
->               "available_transportation_types_to_referral_facility": \
-["ambulance", "bicycle"],
->               "loop_over_transport_types_frequency": {
->                   "ambulance": {
->                       "frequency_to_referral_facility": "daily"
->                   },
->                   "bicycle": {
->                       "frequency_to_referral_facility": "weekly"
->                   },
->                   "boat_canoe": null,
->                   "bus": null,
->                   "donkey_mule_cart": null,
->                   "keke_pepe": null,
->                   "lorry": null,
->                   "motorbike": null,
->                   "taxi": null,
->                   "other": null
->               }
->           }
->           "meta": {
->               "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
->           }
->       }
-"""
+    Here is some example JSON, it would replace `[the JSON]` above:
+    >       {
+    >           "transport": {
+    >               "available_transportation_types_to_referral_facility": \
+    ["ambulance", "bicycle"],
+    >               "loop_over_transport_types_frequency": {
+    >                   "ambulance": {
+    >                       "frequency_to_referral_facility": "daily"
+    >                   },
+    >                   "bicycle": {
+    >                       "frequency_to_referral_facility": "weekly"
+    >                   },
+    >                   "boat_canoe": null,
+    >                   "bus": null,
+    >                   "donkey_mule_cart": null,
+    >                   "keke_pepe": null,
+    >                   "lorry": null,
+    >                   "motorbike": null,
+    >                   "taxi": null,
+    >                   "other": null
+    >               }
+    >           }
+    >           "meta": {
+    >               "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+    >           }
+    >       }
+    """
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     model = Instance
     permission_classes = (permissions.AllowAny,)

@@ -25,4 +25,4 @@ class use_db:
 
 
 def get_thread_local(attr, default=None):
-    return getattr(thread_local, attr, default)
+    return getattr(thread_local, attr, None) or default

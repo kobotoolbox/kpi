@@ -2,11 +2,9 @@
 import io
 import json
 import uuid
+import csv
 from datetime import datetime
 from typing import TextIO, Union
-
-import unicodecsv as ucsv
-from kobo.apps.kobo_auth.shortcuts import User
 
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xml, safe_create_instance
@@ -63,7 +61,8 @@ def submit_csv(
     xform: 'kobo.apps.openrosa.apps.logger.models.XForm',
     csv_file: Union[str, TextIO],
 ) -> dict:
-    """ Imports CSV data to an existing form
+    """
+    Imports CSV data to an existing form
 
     Takes a csv formatted file or string containing rows of submission/instance
     and converts those to xml submissions and finally submits them by calling
@@ -73,11 +72,15 @@ def submit_csv(
     if isinstance(csv_file, str):
         csv_file = io.StringIO(csv_file)
     elif csv_file is None or not hasattr(csv_file, 'read'):
-        return {'error': ('Invalid param type for `csv_file`. '
-                          'Expected file or String '
-                          'got {} instead.'.format(type(csv_file).__name__))}
+        return {
+            'error': (
+                'Invalid param type for `csv_file`. '
+                'Expected file or String '
+                'got {} instead.'.format(type(csv_file).__name__)
+            )
+        }
 
-    csv_reader = ucsv.DictReader(csv_file)
+    csv_reader = csv.DictReader(csv_file)
     rollback_uuids = []
     submission_time = datetime.utcnow().isoformat()
     ona_uuid = {'formhub': {'uuid': xform.uuid}}

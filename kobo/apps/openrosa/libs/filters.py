@@ -1,13 +1,37 @@
 # coding: utf-8
 from django.shortcuts import get_object_or_404
 from rest_framework import filters
-from rest_framework_guardian import filters as guardian_filters
 from rest_framework.exceptions import ParseError
+from rest_framework.filters import BaseFilterBackend
 
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.libs.utils.guardian import get_objects_for_user
 
 
-class AnonDjangoObjectPermissionFilter(guardian_filters.ObjectPermissionsFilter):
+class GuardianObjectPermissionsFilter(BaseFilterBackend):
+    """
+    Copy from django-rest-framework-guardian `ObjectPermissionsFilter`
+    Avoid importing  the library (which does not seem to be maintained anymore)
+    """
+
+    perm_format = '%(app_label)s.view_%(model_name)s'
+    shortcut_kwargs = {
+        'accept_global_perms': False,
+    }
+
+    def filter_queryset(self, request, queryset, view):
+        user = request.user
+        permission = self.perm_format % {
+            'app_label': queryset.model._meta.app_label,
+            'model_name': queryset.model._meta.model_name,
+        }
+
+        return get_objects_for_user(
+            user, permission, queryset, **self.shortcut_kwargs
+        )
+
+
+class AnonDjangoObjectPermissionFilter(GuardianObjectPermissionsFilter):
     def filter_queryset(self, request, queryset, view):
         """
         Anonymous user has no object permissions, return queryset as it is.
@@ -18,7 +42,7 @@ class AnonDjangoObjectPermissionFilter(guardian_filters.ObjectPermissionsFilter)
         return super().filter_queryset(request, queryset, view)
 
 
-class RowLevelObjectPermissionFilter(guardian_filters.ObjectPermissionsFilter):
+class RowLevelObjectPermissionFilter(GuardianObjectPermissionsFilter):
     def filter_queryset(self, request, queryset, view):
         """
         Return queryset as-is if user is anonymous or super user. Otherwise,
@@ -47,16 +71,13 @@ class XFormListObjectPermissionFilter(RowLevelObjectPermissionFilter):
 
 
 class XFormOwnerFilter(filters.BaseFilterBackend):
-
     owner_prefix = 'user'
 
     def filter_queryset(self, request, queryset, view):
         owner = request.query_params.get('owner')
 
         if owner:
-            kwargs = {
-                self.owner_prefix + '__username': owner
-            }
+            kwargs = {self.owner_prefix + '__username': owner}
 
             return queryset.filter(**kwargs)
 
@@ -84,7 +105,6 @@ class TagFilter(filters.BaseFilterBackend):
 
 
 class XFormPermissionFilterMixin:
-
     @staticmethod
     def _get_xform(request, queryset, view, keyword):
         xform_id = request.query_params.get('xform')
@@ -137,8 +157,9 @@ class XFormPermissionFilterMixin:
         return queryset.filter(**kwargs)
 
 
-class MetaDataFilter(XFormPermissionFilterMixin,
-                     guardian_filters.ObjectPermissionsFilter):
+class MetaDataFilter(
+    XFormPermissionFilterMixin, GuardianObjectPermissionsFilter
+):
     def filter_queryset(self, request, queryset, view):
         queryset = self._xform_filter_queryset(request, queryset, view, 'xform')
         data_type = request.query_params.get('data_type')
@@ -147,18 +168,19 @@ class MetaDataFilter(XFormPermissionFilterMixin,
         return queryset
 
 
-class AttachmentFilter(XFormPermissionFilterMixin,
-                       guardian_filters.ObjectPermissionsFilter):
+class AttachmentFilter(
+    XFormPermissionFilterMixin, GuardianObjectPermissionsFilter
+):
     def filter_queryset(self, request, queryset, view):
-        queryset = self._xform_filter_queryset(request, queryset, view,
-                                               'instance__xform')
+        queryset = self._xform_filter_queryset(
+            request, queryset, view, 'instance__xform'
+        )
         instance_id = request.query_params.get('instance')
         if instance_id:
             try:
                 int(instance_id)
             except ValueError:
-                raise ParseError(
-                    "Invalid value for instance %s." % instance_id)
+                raise ParseError("Invalid value for instance %s." % instance_id)
             instance = get_object_or_404(Instance, pk=instance_id)
             queryset = queryset.filter(instance=instance)
 

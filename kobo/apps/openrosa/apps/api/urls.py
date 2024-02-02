@@ -5,7 +5,6 @@ from rest_framework import routers
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.urlpatterns import format_suffix_patterns
-from rest_framework.views import APIView
 
 from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentViewSet
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
@@ -17,6 +16,7 @@ from kobo.apps.openrosa.apps.api.viewsets.user import UserViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
+from .utils.rest_framework.views import OpenRosaAPIView
 
 
 class MultiLookupRouter(routers.DefaultRouter):
@@ -141,163 +141,163 @@ class MultiLookupRouter(routers.DefaultRouter):
         for prefix, viewset, basename in self.registry:
             api_root_dict[prefix] = list_name.format(basename=basename)
 
-        class OnaApi(APIView):
+        class KoboAPIV1(OpenRosaAPIView):
             """
-## KoBo JSON Rest API endpoints:
+            ## Kobo JSON Rest API endpoints:
 
-### Data
-* [/api/v1/data](/api/v1/data) - List, Retrieve submission data
+            ### Data
+            * [/api/v1/data](/api/v1/data) - List, Retrieve submission data
 
-### Forms
-* [/api/v1/forms](/api/v1/forms) - List, Retrieve form information
-* [/api/v1/media](/api/v1/media) - List, Retrieve media attachments
-* [/api/v1/metadata](/api/v1/metadata) - List, Retrieve form metadata
-* [/api/v1/submissions](/api/v1/submissions) - Submit XForms to a form
+            ### Forms
+            * [/api/v1/forms](/api/v1/forms) - List, Retrieve form information
+            * [/api/v1/media](/api/v1/media) - List, Retrieve media attachments
+            * [/api/v1/metadata](/api/v1/metadata) - List, Retrieve form metadata
+            * [/api/v1/submissions](/api/v1/submissions) - Submit XForms to a form
 
-### Users and Organizations
-* [/api/v1/user](/api/v1/user) - Return authenticated user profile info
+            ### Users and Organizations
+            * [/api/v1/user](/api/v1/user) - Return authenticated user profile info
 
-## Status Codes
+            ## Status Codes
 
-* **200** - Successful [`GET`, `PATCH`, `PUT`]
-* **201** - Resource successfully created [`POST`]
-* **204** - Resouce successfully deleted [`DELETE`]
-* **403** - Permission denied to resource
-* **404** - Resource was not found
+            * **200** - Successful [`GET`, `PATCH`, `PUT`]
+            * **201** - Resource successfully created [`POST`]
+            * **204** - Resouce successfully deleted [`DELETE`]
+            * **403** - Permission denied to resource
+            * **404** - Resource was not found
 
-## Authentication
+            ## Authentication
 
-KoBo JSON API enpoints support both Basic authentication
-and API Token Authentication through the `Authorization` header.
+            Kobo JSON API endpoints support both Basic authentication
+            and API Token Authentication through the `Authorization` header.
 
-### Basic Authentication
+            ### Basic Authentication
 
-Example using curl:
+            Example using curl:
 
-    curl -X GET https://example.com/api/v1/ -u username:password
+                curl -X GET https://example.com/api/v1/ -u username:password
 
-### Token Authentication
+            ### Token Authentication
 
-Example using curl:
+            Example using curl:
 
-    curl -X GET https://example.com/api/v1/ -H "Authorization: Token TOKEN_KEY"
+                curl -X GET https://example.com/api/v1/ -H "Authorization: Token TOKEN_KEY"
 
-### KoBo Tagging API
+            ### Kobo Tagging API
 
-* [Filter form list by tags.](
-/api/v1/forms#get-list-of-forms-with-specific-tags)
-* [List Tags for a specific form.](
-/api/v1/forms#get-list-of-tags-for-a-specific-form)
-* [Tag Forms.](/api/v1/forms#tag-forms)
-* [Delete a specific tag.](/api/v1/forms#delete-a-specific-tag)
-* [List form data by tag.](
-/api/v1/data#query-submitted-data-of-a-specific-form-using-tags)
-* [Tag a specific submission](/api/v1/data#tag-a-submission-data-point)
+            * [Filter form list by tags.](
+            /api/v1/forms#get-list-of-forms-with-specific-tags)
+            * [List Tags for a specific form.](
+            /api/v1/forms#get-list-of-tags-for-a-specific-form)
+            * [Tag Forms.](/api/v1/forms#tag-forms)
+            * [Delete a specific tag.](/api/v1/forms#delete-a-specific-tag)
+            * [List form data by tag.](
+            /api/v1/data#query-submitted-data-of-a-specific-form-using-tags)
+            * [Tag a specific submission](/api/v1/data#tag-a-submission-data-point)
 
-## Using Oauth2 with the KoBo API
+            ## Using Oauth2 with the Kobo API
 
-You can learn more about oauth2 [here](
-http://tools.ietf.org/html/rfc6749).
+            You can learn more about oauth2 [here](
+            http://tools.ietf.org/html/rfc6749).
 
-### 1. Register your client application with KoBo - [register](\
-/o/applications/register/)
+            ### 1. Register your client application with Kobo - [register](\
+            /o/applications/register/)
 
-- `name` - name of your application
-- `client_type` - Client Type: select confidential
-- `authorization_grant_type` - Authorization grant type: Authorization code
-- `redirect_uri` - Redirect urls: redirection endpoint
+            - `name` - name of your application
+            - `client_type` - Client Type: select confidential
+            - `authorization_grant_type` - Authorization grant type: Authorization code
+            - `redirect_uri` - Redirect urls: redirection endpoint
 
-Keep note of the `client_id` and the `client_secret`, it is required when
- requesting for an `access_token`.
+            Keep note of the `client_id` and the `client_secret`, it is required when
+             requesting for an `access_token`.
 
-### 2. Authorize client application.
+            ### 2. Authorize client application.
 
-The authorization url is of the form:
+            The authorization url is of the form:
 
-<pre class="prettyprint">
-<b>GET</b> /o/authorize?client_id=XXXXXX&response_type=code&state=abc</pre>
+            <pre class="prettyprint">
+            <b>GET</b> /o/authorize?client_id=XXXXXX&response_type=code&state=abc</pre>
 
-example:
+            example:
 
-    http://localhost:8000/o/authorize?client_id=e8&response_type=code&state=xyz
+                http://localhost:8000/o/authorize?client_id=e8&response_type=code&state=xyz
 
-Note: Providing the url to any user will prompt for a password and
-request for read and write permission for the application whose `client_id` is
-specified.
+            Note: Providing the url to any user will prompt for a password and
+            request for read and write permission for the application whose `client_id` is
+            specified.
 
-Where:
+            Where:
 
-- `client_id` - is the client application id - ensure its urlencoded
-- `response_type` - should be code
-- `state` - a random state string that you client application will get when
-   redirection happens
+            - `client_id` - is the client application id - ensure its urlencoded
+            - `response_type` - should be code
+            - `state` - a random state string that you client application will get when
+               redirection happens
 
-What happens:
+            What happens:
 
-1. a login page is presented, the username used to login determines the account
-   that provides access.
-2. redirection to the client application occurs, the url is of the form:
+            1. a login page is presented, the username used to login determines the account
+               that provides access.
+            2. redirection to the client application occurs, the url is of the form:
 
->   REDIRECT_URI/?state=abc&code=YYYYYYYYY
+            >   REDIRECT_URI/?state=abc&code=YYYYYYYYY
 
-example redirect uri
+            example redirect uri
 
-    http://localhost:30000/?state=xyz&code=SWWk2PN6NdCwfpqiDiPRcLmvkw2uWd
+                http://localhost:30000/?state=xyz&code=SWWk2PN6NdCwfpqiDiPRcLmvkw2uWd
 
-- `code` - is the code to use to request for `access_token`
-- `state` - same state string used during authorization request
+            - `code` - is the code to use to request for `access_token`
+            - `state` - same state string used during authorization request
 
-Your client application should use the `code` to request for an access_token.
+            Your client application should use the `code` to request for an access_token.
 
-### 3. Request for access token.
+            ### 3. Request for access token.
 
-You need to make a `POST` request with `grant_type`, `code`, `client_id` and
- `redirect_uri` as `POST` payload params. You should authenticate the request
- with `Basic Authentication` using your `client_id` and `client_secret` as
- `username:password` pair.
+            You need to make a `POST` request with `grant_type`, `code`, `client_id` and
+             `redirect_uri` as `POST` payload params. You should authenticate the request
+             with `Basic Authentication` using your `client_id` and `client_secret` as
+             `username:password` pair.
 
-Request:
+            Request:
 
-<pre class="prettyprint">
-<b>POST</b>/o/token</pre>
+            <pre class="prettyprint">
+            <b>POST</b>/o/token</pre>
 
-Payload:
+            Payload:
 
-    grant_type=authorization_code&code=YYYYYYYYY&client_id=XXXXXX&
-    redirect_uri=http://redirect/uri/path
+                grant_type=authorization_code&code=YYYYYYYYY&client_id=XXXXXX&
+                redirect_uri=http://redirect/uri/path
 
-curl example:
+            curl example:
 
-    curl -X POST -d "grant_type=authorization_code&
-    code=PSwrMilnJESZVFfFsyEmEukNv0sGZ8&
-    client_id=e8x4zzJJIyOikDqjPcsCJrmnU22QbpfHQo4HhRnv&
-    redirect_uri=http://localhost:30000" "http://localhost:8000/o/token/"
-    --user "e8:xo7i4LNpMj"
+                curl -X POST -d "grant_type=authorization_code&
+                code=PSwrMilnJESZVFfFsyEmEukNv0sGZ8&
+                client_id=e8x4zzJJIyOikDqjPcsCJrmnU22QbpfHQo4HhRnv&
+                redirect_uri=http://localhost:30000" "http://localhost:8000/o/token/"
+                --user "e8:xo7i4LNpMj"
 
-Response:
+            Response:
 
-    {
-        "access_token": "Q6dJBs9Vkf7a2lVI7NKLT8F7c6DfLD",
-        "token_type": "Bearer", "expires_in": 36000,
-        "refresh_token": "53yF3uz79K1fif2TPtNBUFJSFhgnpE",
-        "scope": "read write groups"
-    }
+                {
+                    "access_token": "Q6dJBs9Vkf7a2lVI7NKLT8F7c6DfLD",
+                    "token_type": "Bearer", "expires_in": 36000,
+                    "refresh_token": "53yF3uz79K1fif2TPtNBUFJSFhgnpE",
+                    "scope": "read write groups"
+                }
 
-Where:
+            Where:
 
-- `access_token` - access token - expires
-- `refresh_token` - token to use to request a new `access_token` in case it has
-   expored.
+            - `access_token` - access token - expires
+            - `refresh_token` - token to use to request a new `access_token` in case it has
+               expored.
 
-Now that you have an `access_token` you can make API calls.
+            Now that you have an `access_token` you can make API calls.
 
-### 4. Accessing the KoBo API using the `access_token`.
+            ### 4. Accessing the KoBo API using the `access_token`.
 
-Example using curl:
+            Example using curl:
 
-    curl -X GET https://example.com/api/v1
-    -H "Authorization: Bearer ACCESS_TOKEN"
-"""
+                curl -X GET https://example.com/api/v1
+                -H "Authorization: Bearer ACCESS_TOKEN"
+            """
             _ignore_model_permissions = True
 
             def get(self, request, format=None):
@@ -314,7 +314,7 @@ Example using curl:
                         continue
                 return Response(ret)
 
-        return OnaApi.as_view()
+        return KoboAPIV1.as_view()
 
     def get_urls(self):
         ret = []
@@ -401,9 +401,5 @@ router.register(r'formlist', XFormListApi, basename='formlist')
 router.register(r'submissions', XFormSubmissionApi, basename='submissions')
 router.register(r'briefcase', BriefcaseApi, basename='briefcase')
 
-
 router_with_patch_list = MultiLookupRouterWithPatchList(trailing_slash=False)
 router_with_patch_list.register(r'data', DataViewSet, basename='data')
-
-#router_api_v1 = ExtendedDefaultRouter()
-#data_routes = router_api_v1.register(r'data', DataViewSet, basename='data')

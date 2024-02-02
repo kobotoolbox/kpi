@@ -1,3 +1,5 @@
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
+
 from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
     OPENROSA_DB_ALIAS,
@@ -19,7 +21,7 @@ class DefaultDatabaseRouter:
         ):
             return OPENROSA_DB_ALIAS
 
-        return get_thread_local('DB_ALIAS', 'default')
+        return get_thread_local('DB_ALIAS', DEFAULT_DB_ALIAS)
 
     def db_for_write(self, model, **hints):
         """
@@ -35,7 +37,7 @@ class DefaultDatabaseRouter:
         ):
             return OPENROSA_DB_ALIAS
 
-        return get_thread_local('DB_ALIAS', 'default')
+        return get_thread_local('DB_ALIAS', DEFAULT_DB_ALIAS)
 
     def allow_relation(self, obj1, obj2, **hints):
         """
@@ -50,12 +52,12 @@ class DefaultDatabaseRouter:
         """
         All default models end up in this pool.
         """
-        if db == 'default' and app_label in OPENROSA_APP_LABELS:
+        if db == DEFAULT_DB_ALIAS and app_label in OPENROSA_APP_LABELS:
             return False
 
         if (
             app_label in SHADOW_MODEL_APP_LABELS or
-            db != 'default'
+            db != DEFAULT_DB_ALIAS
             and app_label not in OPENROSA_APP_LABELS
         ):
             return False
@@ -69,13 +71,13 @@ class SingleDatabaseRouter(DefaultDatabaseRouter):
         """
         Reads always go to `default`
         """
-        return 'default'
+        return DEFAULT_DB_ALIAS
 
     def db_for_write(self, model, **hints):
         """
         Writes always go to default
         """
-        return 'default'
+        return DEFAULT_DB_ALIAS
 
 
 class TestingDatabaseRouter(SingleDatabaseRouter):

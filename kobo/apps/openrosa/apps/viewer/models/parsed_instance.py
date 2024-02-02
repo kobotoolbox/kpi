@@ -96,7 +96,7 @@ class ParsedInstance(models.Model):
             return [
                 {
                     'count': xform_instances.count_documents(
-                        query, maxTimeMS=settings.MONGO_DB_MAX_TIME_MS
+                        query, maxTimeMS=settings.MONGO_QUERY_TIMEOUT
                     )
                 }
             ]
@@ -148,7 +148,7 @@ class ParsedInstance(models.Model):
             return [
                 {
                     'count': xform_instances.count_documents(
-                        query, maxTimeMS=settings.MONGO_DB_MAX_TIME_MS
+                        query, maxTimeMS=settings.MONGO_QUERY_TIMEOUT
                     )
                 }
             ]
@@ -177,7 +177,7 @@ class ParsedInstance(models.Model):
             return [
                 {
                     'count': xform_instances.count_documents(
-                        query, maxTimeMS=settings.MONGO_DB_MAX_TIME_MS
+                        query, maxTimeMS=settings.MONGO_QUERY_TIMEOUT
                     )
                 }
             ]
@@ -209,7 +209,7 @@ class ParsedInstance(models.Model):
         return xform_instances.find(
             query,
             fields_to_select,
-            max_time_ms=settings.MONGO_DB_MAX_TIME_MS,
+            max_time_ms=settings.MONGO_QUERY_TIMEOUT,
         )
 
     @classmethod

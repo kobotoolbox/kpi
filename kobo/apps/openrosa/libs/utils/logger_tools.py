@@ -84,7 +84,7 @@ OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
 OPEN_ROSA_VERSION = '1.0'
 DEFAULT_CONTENT_TYPE = 'text/xml; charset=utf-8'
-DEFAULT_CONTENT_LENGTH = settings.DEFAULT_CONTENT_LENGTH
+DEFAULT_CONTENT_LENGTH = settings.OPENROSA_DEFAULT_CONTENT_LENGTH
 
 uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
                         re.DOTALL)
@@ -344,7 +344,7 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
         userform_id = "%s_%s" % (user.username, xform.id_string)
         mongo_count = mongo_instances.count_documents(
             {common_tags.USERFORM_ID: userform_id},
-            maxTimeMS=settings.MONGO_DB_MAX_TIME_MS
+            maxTimeMS=settings.MONGO_QUERY_TIMEOUT
         )
 
         if instance_count != mongo_count or update_all:
@@ -823,7 +823,7 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
             [rec[common_tags.ID] for rec in mongo_instances.find(
                 {common_tags.USERFORM_ID: userform_id},
                 {common_tags.ID: 1},
-                max_time_ms=settings.MONGO_DB_MAX_TIME_MS
+                max_time_ms=settings.MONGO_QUERY_TIMEOUT
         )])
         sys.stdout.write("Total no of mongo instances: %d\n" % len(mongo_ids))
         # get the difference

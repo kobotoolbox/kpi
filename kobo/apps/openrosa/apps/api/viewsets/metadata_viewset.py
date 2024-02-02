@@ -1,18 +1,22 @@
 # coding: utf-8
 from rest_framework import renderers
-from rest_framework import viewsets
 from rest_framework.response import Response
 
 from kobo.apps.openrosa.apps.api.permissions import MetaDataObjectPermissions
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
-from kobo.apps.openrosa.libs.serializers.metadata_serializer import MetaDataSerializer
+from kobo.apps.openrosa.libs.serializers.metadata_serializer import (
+    MetaDataSerializer,
+)
 from kobo.apps.openrosa.libs import filters
-from kobo.apps.openrosa.libs.renderers.renderers import MediaFileContentNegotiation, \
-    MediaFileRenderer
+from kobo.apps.openrosa.libs.renderers.renderers import (
+    MediaFileContentNegotiation,
+    MediaFileRenderer,
+)
+from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 
-class MetaDataViewSet(viewsets.ModelViewSet):
+class MetaDataViewSet(OpenRosaModelViewSet):
     """
     This endpoint provides access to form metadata, for example, supporting
     documents, media files to be used in the form, source documents and map

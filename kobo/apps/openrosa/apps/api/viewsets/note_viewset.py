@@ -1,62 +1,66 @@
 # coding: utf-8
 from django.db.models import Q
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, get_objects_for_user
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
 from kobo.apps.openrosa.apps.api.permissions import NoteObjectPermissions
 from kobo.apps.openrosa.apps.logger.models import Note, XForm
 from kobo.apps.openrosa.libs.constants import CAN_VIEW_XFORM
 from kobo.apps.openrosa.libs.serializers.note_serializer import NoteSerializer
+from kobo.apps.openrosa.libs.utils.guardian import (
+    assign_perm,
+    get_objects_for_user,
+)
+from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 
-class NoteViewSet(ModelViewSet):
-    """## Add Notes to a submission
+class NoteViewSet(OpenRosaModelViewSet):
+    """
+    ## Add Notes to a submission
 
-A `POST` payload of parameters:
+    A `POST` payload of parameters:
 
-    `note` - the note string to add to a data point
-    `instance` - the data point id
+        `note` - the note string to add to a data point
+        `instance` - the data point id
 
- <pre class="prettyprint">
-  <b>POST</b> /api/v1/notes</pre>
+     <pre class="prettyprint">
+      <b>POST</b> /api/v1/notes</pre>
 
-Payload
+    Payload
 
-    {"instance": 1, "note": "This is a note."}
+        {"instance": 1, "note": "This is a note."}
 
-  > Response
-  >
-  >     {
-  >          "id": 1,
-  >          "instance": 1,
-  >          "note": "This is a note."
-  >          ...
-  >     }
-  >
-  >     HTTP 201 OK
+      > Response
+      >
+      >     {
+      >          "id": 1,
+      >          "instance": 1,
+      >          "note": "This is a note."
+      >          ...
+      >     }
+      >
+      >     HTTP 201 OK
 
-# Get List of notes for a data point
+    # Get List of notes for a data point
 
-A `GET` request will return the list of notes applied to a data point.
+    A `GET` request will return the list of notes applied to a data point.
 
- <pre class="prettyprint">
-  <b>GET</b> /api/v1/notes</pre>
+     <pre class="prettyprint">
+      <b>GET</b> /api/v1/notes</pre>
 
 
-  > Response
-  >
-  >     [{
-  >          "id": 1,
-  >          "instance": 1,
-  >          "note": "This is a note."
-  >          ...
-  >     }, ...]
-  >
-  >
-  >        HTTP 200 OK
-"""
+      > Response
+      >
+      >     [{
+      >          "id": 1,
+      >          "instance": 1,
+      >          "note": "This is a note."
+      >          ...
+      >     }, ...]
+      >
+      >
+      >        HTTP 200 OK
+    """
     serializer_class = NoteSerializer
     permission_classes = [NoteObjectPermissions]
 

@@ -25,13 +25,9 @@ urlpatterns = [
     re_path(r'^', include('kobo.apps.subsequences.urls')),
     re_path(r'^', include('kpi.urls')),
     re_path(r'^markdownx/', include('markdownx.urls')),
-    # re_path(r'^markitup/', include('markitup.urls')),
     re_path(r'^markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
     re_path(r'^help/', include('kobo.apps.help.urls')),
-    re_path(
-        r'kobocat/',
-        RedirectView.as_view(url=settings.KOBOCAT_URL, permanent=True),
-    ),
+    re_path(r'kobocat/', include('kobo.apps.openrosa.apps.main.urls')),
 ]
 
 if settings.ENABLE_METRICS:

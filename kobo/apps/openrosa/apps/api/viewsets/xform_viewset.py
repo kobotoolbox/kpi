@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 import os
-from datetime import datetime
 
 from kobo.apps.kobo_auth.shortcuts import User
 from django.core.exceptions import ValidationError
@@ -16,7 +15,6 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
-from rest_framework.viewsets import ModelViewSet
 
 from kobo.apps.openrosa.apps.api import tools as utils
 from kobo.apps.openrosa.apps.api.permissions import XFormPermissions
@@ -42,6 +40,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_an
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 from kobo.apps.openrosa.libs.utils.string import str2bool
 from kobo.apps.openrosa.libs.utils.viewer_tools import format_date_for_mongo
+from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 EXPORT_EXT = {
     'xls': Export.XLS_EXPORT,
@@ -214,373 +213,375 @@ def custom_response_handler(request, xform, query, export_type):
     return response
 
 
-class XFormViewSet(AnonymousUserPublicFormsMixin, LabelsMixin, ModelViewSet):
+class XFormViewSet(
+    AnonymousUserPublicFormsMixin, LabelsMixin, OpenRosaModelViewSet
+):
 
     """
-Publish XLSForms, List, Retrieve Published Forms.
-
-Where:
-
-- `pk` - is the form unique identifier
-
-## Upload XLSForm
-
-To publish and xlsform, you need to provide either the xlsform via `xls_file` \
-parameter or a link to the xlsform via the `xls_url` parameter.
-Optionally, you can specify the target account where the xlsform should be \
-published using the `owner` parameter, which specifies the username to the
-account.
-
-- `xls_file`: the xlsform file.
-- `owner`: username to the target account (Optional)
-
-<pre class="prettyprint">
-<b>POST</b> /api/v1/forms</pre>
-> Example
->
->       curl -X POST -F xls_file=@/path/to/form.xls \
-https://example.com/api/v1/forms
->
-
-> Response
->
->       {
->           "url": "https://example.com/api/v1/forms/28058",
->           "formid": 28058,
->           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
->           "id_string": "Birds",
->           "title": "Birds",
->           "description": "",
->           "downloadable": true,
->           "encrypted": false,
->           "owner": "ona",
->           "public": false,
->           "public_data": false,
->           "date_created": "2013-07-25T14:14:22.892Z",
->           "date_modified": "2013-07-25T14:14:22.892Z"
->       }
-
-## Get list of forms
-
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms</pre>
-
-> Request
->
->       curl -X GET https://example.com/api/v1/forms
-
-
-## Get list of forms filter by owner
-
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms?<code>owner</code>=<code>owner_username</code></pre>
-
-> Request
->
->       curl -X GET https://example.com/api/v1/forms?owner=ona
-
-## Get list of forms filtered by id_string
-
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms?<code>id_string</code>=<code>form_id_string</code></pre>
-
-> Request
->
->       curl -X GET https://example.com/api/v1/forms?id_string=Birds
-
-## Get Form Information
-
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms/<code>{pk}</code></pre>
-
-> Example
->
->       curl -X GET https://example.com/api/v1/forms/28058
-
-> Response
->
->       {
->           "url": "https://example.com/api/v1/forms/28058",
->           "formid": 28058,
->           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
->           "id_string": "Birds",
->           "title": "Birds",
->           "description": "",
->           "downloadable": true,
->           "encrypted": false,
->           "owner": "https://example.com/api/v1/users/ona",
->           "public": false,
->           "public_data": false,
->           "require_auth": false,
->           "date_created": "2013-07-25T14:14:22.892Z",
->           "date_modified": "2013-07-25T14:14:22.892Z"
->       }
-
-## Set Form Information
-
-You can use `PUT` or `PATCH` http methods to update or set form data elements.
-If you are using `PUT`, you have to provide the `uuid, description,
-downloadable, owner, public, public_data, title` fields. With `PATCH` you only
-need provide at least one of the fields.
-
-<pre class="prettyprint">
-<b>PATCH</b> /api/v1/forms/<code>{pk}</code></pre>
-
-> Example
->
->       curl -X PATCH -d "public=True" -d "description=Le description"\
-https://example.com/api/v1/forms/28058
-
-> Response
->
->       {
->           "url": "https://example.com/api/v1/forms/28058",
->           "formid": 28058,
->           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
->           "id_string": "Birds",
->           "title": "Birds",
->           "description": "Le description",
->           "downloadable": true,
->           "encrypted": false,
->           "owner": "https://example.com/api/v1/users/ona",
->           "public": true,
->           "public_data": false,
->           "date_created": "2013-07-25T14:14:22.892Z",
->           "date_modified": "2013-07-25T14:14:22.892Z"
->       }
-
-## Update Form
-
-You may overwrite the form's contents while preserving its submitted data,
-`id_string` and all other attributes, by sending a `PATCH` that includes
-`xls_file`. Use with caution, as this may compromise the
-methodology of your study!
-
-<pre class="prettyprint">
-<b>PATCH</b> /api/v1/forms/<code>{pk}</code></pre>
-
-> Example
->
->       curl -X PATCH -F xls_file=@/path/to/form.xls \
-https://example.com/api/v1/forms/28058
-
-## Delete Form
-
-<pre class="prettyprint">
-<b>DELETE</b> /api/v1/forms/<code>{pk}</code></pre>
-> Example
->
->       curl -X DELETE https://example.com/api/v1/forms/28058
->
-> Response
->
->       HTTP 204 NO CONTENT
-
-## List Forms
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms
-</pre>
-> Example
->
->       curl -X GET https://example.com/api/v1/forms
-
-> Response
->
->       [{
->           "url": "https://example.com/api/v1/forms/28058",
->           "formid": 28058,
->           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
->           "id_string": "Birds",
->           "title": "Birds",
->           ...
->       }, ...]
-
-## Get `JSON` | `XML` | `XLS` Form Representation
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms/<code>{pk}</code>/form.\
-<code>{format}</code></pre>
-> JSON Example
->
->       curl -X GET https://example.com/api/v1/forms/28058/form.json
-
-> Response
->
->        {
->            "name": "Birds",
->            "title": "Birds",
->            "default_language": "default",
->            "id_string": "Birds",
->            "type": "survey",
->            "children": [
->                {
->                    "type": "text",
->                    "name": "name",
->                    "label": "1. What is your name?"
->                },
->                ...
->                ]
->        }
-
-> XML Example
->
->       curl -X GET https://example.com/api/v1/forms/28058/form.xml
-
-> Response
->
->        <?xml version="1.0" encoding="utf-8"?>
->        <h:html xmlns="http://www.w3.org/2002/xforms" ...>
->          <h:head>
->            <h:title>Birds</h:title>
->            <model>
->              <itext>
->                 .....
->          </h:body>
->        </h:html>
-
-> XLS Example
->
->       curl -X GET https://example.com/api/v1/forms/28058/form.xls
-
-> Response
->
->       Xls file downloaded
-
-## Get list of forms with specific tag(s)
-
-Use the `tags` query parameter to filter the list of forms, `tags` should be a
-comma separated list of tags.
-
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms?<code>tags</code>=<code>tag1,tag2</code></pre>
-
-List forms tagged `smart` or `brand new` or both.
-> Request
->
->       curl -X GET https://example.com/api/v1/forms?tag=smart,brand+new
-
-> Response
->        HTTP 200 OK
->
->       [{
->           "url": "https://example.com/api/v1/forms/28058",
->           "formid": 28058,
->           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
->           "id_string": "Birds",
->           "title": "Birds",
->           ...
->       }, ...]
-
-
-## Get list of Tags for a specific Form
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms/<code>{pk}</code>/labels
-</pre>
-> Request
->
->       curl -X GET https://example.com/api/v1/forms/28058/labels
-
-> Response
->
->       ["old", "smart", "clean house"]
-
-## Tag forms
-
-A `POST` payload of parameter `tags` with a comma separated list of tags.
-
-Examples
-
-- `animal fruit denim` - space delimited, no commas
-- `animal, fruit denim` - comma delimited
-
-<pre class="prettyprint">
-<b>POST</b> /api/v1/forms/<code>{pk}</code>/labels
-</pre>
-
-Payload
-
-    {"tags": "tag1, tag2"}
-
-## Delete a specific tag
-
-<pre class="prettyprint">
-<b>DELETE</b> /api/v1/forms/<code>{pk}</code>/labels/<code>tag_name</code>
-</pre>
-
-> Request
->
->       curl -X DELETE \
-https://example.com/api/v1/forms/28058/labels/tag1
->
-> or to delete the tag "hello world"
->
->       curl -X DELETE \
-https://example.com/api/v1/forms/28058/labels/hello%20world
->
-> Response
->
->        HTTP 200 OK
-
-## Get webform/enketo link
-
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms/<code>{pk}</code>/enketo</pre>
-
-> Request
->
->       curl -X GET \
-https://example.com/api/v1/forms/28058/enketo
->
-> Response
->
->       {"enketo_url": "https://h6ic6.enketo.org/webform"}
->
->        HTTP 200 OK
-
-## Get form data in xls, csv format.
-
-Get form data exported as xls, csv, csv zip, sav zip format.
-
-Where:
-
-- `pk` - is the form unique identifier
-- `format` - is the data export format i.e csv, xls, csvzip, savzip
-
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms/{pk}.{format}</code>
-</pre>
-> Example
->
->       curl -X GET https://example.com/api/v1/forms/28058.xls
-
-> Binary file export of the format specified is returned as the response for
->the download.
->
-> Response
->
->        HTTP 200 OK
-
-## Import CSV data to existing form
-
-- `csv_file` a valid csv file with exported \
-data (instance/submission per row)
-
-<pre class="prettyprint">
-<b>GET</b> /api/v1/forms/<code>{pk}</code>/csv_import
-</pre>
-
-> Example
->
->       curl -X POST https://example.com/api/v1/forms/123/csv_import \
--F csv_file=@/path/to/csv_import.csv
->
-> Response
->
->        HTTP 200 OK
->       {
->           "additions": 9,
->           "updates": 0
->       }
-"""
+    Publish XLSForms, List, Retrieve Published Forms.
+
+    Where:
+
+    - `pk` - is the form unique identifier
+
+    ## Upload XLSForm
+
+    To publish and xlsform, you need to provide either the xlsform via `xls_file` \
+    parameter or a link to the xlsform via the `xls_url` parameter.
+    Optionally, you can specify the target account where the xlsform should be \
+    published using the `owner` parameter, which specifies the username to the
+    account.
+
+    - `xls_file`: the xlsform file.
+    - `owner`: username to the target account (Optional)
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v1/forms</pre>
+    > Example
+    >
+    >       curl -X POST -F xls_file=@/path/to/form.xls \
+    https://example.com/api/v1/forms
+    >
+
+    > Response
+    >
+    >       {
+    >           "url": "https://example.com/api/v1/forms/28058",
+    >           "formid": 28058,
+    >           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
+    >           "id_string": "Birds",
+    >           "title": "Birds",
+    >           "description": "",
+    >           "downloadable": true,
+    >           "encrypted": false,
+    >           "owner": "ona",
+    >           "public": false,
+    >           "public_data": false,
+    >           "date_created": "2013-07-25T14:14:22.892Z",
+    >           "date_modified": "2013-07-25T14:14:22.892Z"
+    >       }
+
+    ## Get list of forms
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms</pre>
+
+    > Request
+    >
+    >       curl -X GET https://example.com/api/v1/forms
+
+
+    ## Get list of forms filter by owner
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms?<code>owner</code>=<code>owner_username</code></pre>
+
+    > Request
+    >
+    >       curl -X GET https://example.com/api/v1/forms?owner=ona
+
+    ## Get list of forms filtered by id_string
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms?<code>id_string</code>=<code>form_id_string</code></pre>
+
+    > Request
+    >
+    >       curl -X GET https://example.com/api/v1/forms?id_string=Birds
+
+    ## Get Form Information
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms/<code>{pk}</code></pre>
+
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/forms/28058
+
+    > Response
+    >
+    >       {
+    >           "url": "https://example.com/api/v1/forms/28058",
+    >           "formid": 28058,
+    >           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
+    >           "id_string": "Birds",
+    >           "title": "Birds",
+    >           "description": "",
+    >           "downloadable": true,
+    >           "encrypted": false,
+    >           "owner": "https://example.com/api/v1/users/ona",
+    >           "public": false,
+    >           "public_data": false,
+    >           "require_auth": false,
+    >           "date_created": "2013-07-25T14:14:22.892Z",
+    >           "date_modified": "2013-07-25T14:14:22.892Z"
+    >       }
+
+    ## Set Form Information
+
+    You can use `PUT` or `PATCH` http methods to update or set form data elements.
+    If you are using `PUT`, you have to provide the `uuid, description,
+    downloadable, owner, public, public_data, title` fields. With `PATCH` you only
+    need provide at least one of the fields.
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v1/forms/<code>{pk}</code></pre>
+
+    > Example
+    >
+    >       curl -X PATCH -d "public=True" -d "description=Le description"\
+    https://example.com/api/v1/forms/28058
+
+    > Response
+    >
+    >       {
+    >           "url": "https://example.com/api/v1/forms/28058",
+    >           "formid": 28058,
+    >           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
+    >           "id_string": "Birds",
+    >           "title": "Birds",
+    >           "description": "Le description",
+    >           "downloadable": true,
+    >           "encrypted": false,
+    >           "owner": "https://example.com/api/v1/users/ona",
+    >           "public": true,
+    >           "public_data": false,
+    >           "date_created": "2013-07-25T14:14:22.892Z",
+    >           "date_modified": "2013-07-25T14:14:22.892Z"
+    >       }
+
+    ## Update Form
+
+    You may overwrite the form's contents while preserving its submitted data,
+    `id_string` and all other attributes, by sending a `PATCH` that includes
+    `xls_file`. Use with caution, as this may compromise the
+    methodology of your study!
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v1/forms/<code>{pk}</code></pre>
+
+    > Example
+    >
+    >       curl -X PATCH -F xls_file=@/path/to/form.xls \
+    https://example.com/api/v1/forms/28058
+
+    ## Delete Form
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v1/forms/<code>{pk}</code></pre>
+    > Example
+    >
+    >       curl -X DELETE https://example.com/api/v1/forms/28058
+    >
+    > Response
+    >
+    >       HTTP 204 NO CONTENT
+
+    ## List Forms
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms
+    </pre>
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/forms
+
+    > Response
+    >
+    >       [{
+    >           "url": "https://example.com/api/v1/forms/28058",
+    >           "formid": 28058,
+    >           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
+    >           "id_string": "Birds",
+    >           "title": "Birds",
+    >           ...
+    >       }, ...]
+
+    ## Get `JSON` | `XML` | `XLS` Form Representation
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms/<code>{pk}</code>/form.\
+    <code>{format}</code></pre>
+    > JSON Example
+    >
+    >       curl -X GET https://example.com/api/v1/forms/28058/form.json
+
+    > Response
+    >
+    >        {
+    >            "name": "Birds",
+    >            "title": "Birds",
+    >            "default_language": "default",
+    >            "id_string": "Birds",
+    >            "type": "survey",
+    >            "children": [
+    >                {
+    >                    "type": "text",
+    >                    "name": "name",
+    >                    "label": "1. What is your name?"
+    >                },
+    >                ...
+    >                ]
+    >        }
+
+    > XML Example
+    >
+    >       curl -X GET https://example.com/api/v1/forms/28058/form.xml
+
+    > Response
+    >
+    >        <?xml version="1.0" encoding="utf-8"?>
+    >        <h:html xmlns="http://www.w3.org/2002/xforms" ...>
+    >          <h:head>
+    >            <h:title>Birds</h:title>
+    >            <model>
+    >              <itext>
+    >                 .....
+    >          </h:body>
+    >        </h:html>
+
+    > XLS Example
+    >
+    >       curl -X GET https://example.com/api/v1/forms/28058/form.xls
+
+    > Response
+    >
+    >       Xls file downloaded
+
+    ## Get list of forms with specific tag(s)
+
+    Use the `tags` query parameter to filter the list of forms, `tags` should be a
+    comma separated list of tags.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms?<code>tags</code>=<code>tag1,tag2</code></pre>
+
+    List forms tagged `smart` or `brand new` or both.
+    > Request
+    >
+    >       curl -X GET https://example.com/api/v1/forms?tag=smart,brand+new
+
+    > Response
+    >        HTTP 200 OK
+    >
+    >       [{
+    >           "url": "https://example.com/api/v1/forms/28058",
+    >           "formid": 28058,
+    >           "uuid": "853196d7d0a74bca9ecfadbf7e2f5c1f",
+    >           "id_string": "Birds",
+    >           "title": "Birds",
+    >           ...
+    >       }, ...]
+
+
+    ## Get list of Tags for a specific Form
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms/<code>{pk}</code>/labels
+    </pre>
+    > Request
+    >
+    >       curl -X GET https://example.com/api/v1/forms/28058/labels
+
+    > Response
+    >
+    >       ["old", "smart", "clean house"]
+
+    ## Tag forms
+
+    A `POST` payload of parameter `tags` with a comma separated list of tags.
+
+    Examples
+
+    - `animal fruit denim` - space delimited, no commas
+    - `animal, fruit denim` - comma delimited
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v1/forms/<code>{pk}</code>/labels
+    </pre>
+
+    Payload
+
+        {"tags": "tag1, tag2"}
+
+    ## Delete a specific tag
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v1/forms/<code>{pk}</code>/labels/<code>tag_name</code>
+    </pre>
+
+    > Request
+    >
+    >       curl -X DELETE \
+    https://example.com/api/v1/forms/28058/labels/tag1
+    >
+    > or to delete the tag "hello world"
+    >
+    >       curl -X DELETE \
+    https://example.com/api/v1/forms/28058/labels/hello%20world
+    >
+    > Response
+    >
+    >        HTTP 200 OK
+
+    ## Get webform/enketo link
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms/<code>{pk}</code>/enketo</pre>
+
+    > Request
+    >
+    >       curl -X GET \
+    https://example.com/api/v1/forms/28058/enketo
+    >
+    > Response
+    >
+    >       {"enketo_url": "https://h6ic6.enketo.org/webform"}
+    >
+    >        HTTP 200 OK
+
+    ## Get form data in xls, csv format.
+
+    Get form data exported as xls, csv, csv zip, sav zip format.
+
+    Where:
+
+    - `pk` - is the form unique identifier
+    - `format` - is the data export format i.e csv, xls, csvzip, savzip
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms/{pk}.{format}</code>
+    </pre>
+    > Example
+    >
+    >       curl -X GET https://example.com/api/v1/forms/28058.xls
+
+    > Binary file export of the format specified is returned as the response for
+    >the download.
+    >
+    > Response
+    >
+    >        HTTP 200 OK
+
+    ## Import CSV data to existing form
+
+    - `csv_file` a valid csv file with exported \
+    data (instance/submission per row)
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v1/forms/<code>{pk}</code>/csv_import
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://example.com/api/v1/forms/123/csv_import \
+    -F csv_file=@/path/to/csv_import.csv
+    >
+    > Response
+    >
+    >        HTTP 200 OK
+    >       {
+    >           "additions": 9,
+    >           "updates": 0
+    >       }
+    """
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [
         renderers.XLSRenderer,
         renderers.XLSXRenderer,
@@ -592,10 +593,12 @@ data (instance/submission per row)
     lookup_field = 'pk'
     extra_lookup_fields = None
     permission_classes = [XFormPermissions, ]
-    filter_backends = (filters.AnonDjangoObjectPermissionFilter,
-                       filters.TagFilter,
-                       filters.XFormOwnerFilter,
-                       filters.XFormIdStringFilter)
+    filter_backends = (
+        filters.AnonDjangoObjectPermissionFilter,
+        filters.TagFilter,
+        filters.XFormOwnerFilter,
+        filters.XFormIdStringFilter,
+    )
 
     def create(self, request, *args, **kwargs):
         owner = _get_owner(request)
@@ -617,8 +620,9 @@ data (instance/submission per row)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED,
-                            headers=headers)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
 
         return Response(survey, status=status.HTTP_400_BAD_REQUEST)
 
@@ -640,7 +644,8 @@ data (instance/submission per row)
             owner = existing_xform.user
             if not get_real_user(request) == owner:
                 raise exceptions.PermissionDenied(
-                    detail=t("Only a form's owner can overwrite its contents"))
+                    detail=t("Only a form's owner can overwrite its contents")
+                )
             survey = utils.publish_xlsform(request, owner, existing_xform)
             if not isinstance(survey, XForm):
                 if isinstance(survey, dict) and 'text' in survey:
@@ -675,10 +680,7 @@ data (instance/submission per row)
             # perform default viewset retrieve, no data export
             return super().retrieve(request, *args, **kwargs)
 
-        return custom_response_handler(request,
-                                       xform,
-                                       query,
-                                       export_type)
+        return custom_response_handler(request, xform, query, export_type)
 
     @action(detail=True, methods=['POST'])
     def csv_import(self, request, *args, **kwargs):

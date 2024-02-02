@@ -7,9 +7,6 @@ except ImportError:
 
 from django.conf import settings
 
-# 10,000,000 bytes
-DEFAULT_CONTENT_LENGTH = getattr(settings, 'DEFAULT_CONTENT_LENGTH', 10000000)
-
 
 class OpenRosaHeadersMixin:
     def get_openrosa_headers(self, request, location=True):
@@ -18,7 +15,7 @@ class OpenRosaHeadersMixin:
         data = {
             'Date': dt,
             'X-OpenRosa-Version': '1.0',
-            'X-OpenRosa-Accept-Content-Length': DEFAULT_CONTENT_LENGTH
+            'X-OpenRosa-Accept-Content-Length': settings.OPENROSA_DEFAULT_CONTENT_LENGTH
         }
 
         if location:

@@ -620,7 +620,7 @@ def query_mongo(username, id_string, query=None):
         if query else {}
     query = MongoHelper.to_safe_dict(query)
     query[USERFORM_ID] = '{0}_{1}'.format(username, id_string)
-    return xform_instances.find(query, max_time_ms=settings.MONGO_DB_MAX_TIME_MS)
+    return xform_instances.find(query, max_time_ms=settings.MONGO_QUERY_TIMEOUT)
 
 
 def should_create_new_export(xform, export_type):
