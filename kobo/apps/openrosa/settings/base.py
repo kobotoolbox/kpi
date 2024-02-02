@@ -25,7 +25,7 @@ def skip_suspicious_operations(record):
             return False
     return True
 
-# FIXME Still valid ?
+# FIXME Kobocat migration: Still valid ?
 # BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # kobo.apps.open_rosa_server_DIR = BASE_DIR
 # PROJECT_ROOT = os.path.abspath(os.path.join(kobo.apps.open_rosa_server_DIR, '..'))
@@ -77,7 +77,7 @@ def skip_suspicious_operations(record):
 MEDIA_URL = f"/{env.str('KOBOCAT_MEDIA_URL', 'media').strip('/')}/"
 
 
-# FIXME Validate path with Nginx
+# FIXME Kobocat migration: Validate path with Nginx
 # # Absolute path to the directory static files should be collected to.
 # # Don't put anything in this directory yourself; store your static files
 # # in apps' "static/" subdirectories and in STATICFILES_DIRS.
@@ -88,22 +88,22 @@ MEDIA_URL = f"/{env.str('KOBOCAT_MEDIA_URL', 'media').strip('/')}/"
 # Example: "http://media.lawrence.com/static/"
 # STATIC_URL = '/static/'
 
-# FIXME Let's stop support it!
+# FIXME Kobocat migration: Let's stop support it!
 # if os.environ.get('KOBOCAT_ROOT_URI_PREFIX'):
 #     KOBOCAT_ROOT_URI_PREFIX = '/' + os.environ['KOBOCAT_ROOT_URI_PREFIX'].strip('/') + '/'
 #     MEDIA_URL = KOBOCAT_ROOT_URI_PREFIX + MEDIA_URL.lstrip('/')
 #     STATIC_URL = KOBOCAT_ROOT_URI_PREFIX + STATIC_URL.lstrip('/')
 #
-# FIXME Conflict with KPI?
+# FIXME Kobocat migration: Conflict with KPI?
 # MEDIA_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.lstrip('/'))
 
-# FIXME Deprecated
+# FIXME Kobocat migration: Deprecated
 # # URL prefix for admin static files -- CSS, JavaScript and images.
 # # Make sure to use a trailing slash.
 # # Examples: "http://foo.com/static/admin/", "/static/admin/".
 # ADMIN_MEDIA_PREFIX = '/static/admin/'
 
-# FIXME Use main base.py
+# FIXME Kobocat migration: Deprecated - Used in main base.py
 # # List of finder classes that know how to find static files in
 # # various locations.
 # STATICFILES_FINDERS = [
@@ -112,7 +112,7 @@ MEDIA_URL = f"/{env.str('KOBOCAT_MEDIA_URL', 'media').strip('/')}/"
 # ]
 
 
-# FIXME Merged
+# FIXME Kobocat migration: Merged
 # MIDDLEWARE = [
 #     # 'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
 #     'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
@@ -132,10 +132,10 @@ MEDIA_URL = f"/{env.str('KOBOCAT_MEDIA_URL', 'media').strip('/')}/"
 # ]
 
 
-# FIXME To be merged
+# FIXME Kobocat migration: Deprecated - Used main base.py value
 # ROOT_URLCONF = 'kobo.apps.openrosa.apps.main.urls'
 
-# FIXME Use main base.py
+# FIXME Kobocat migration: Deprecated - Used main base.py value
 # # specify the root folder which may contain a templates folder and a static
 # # folder used to override templates for site specific details
 # # include the kobocat-template directory
@@ -191,7 +191,7 @@ MEDIA_URL = f"/{env.str('KOBOCAT_MEDIA_URL', 'media').strip('/')}/"
 #     os.path.join(TEMPLATE_OVERRIDE_ROOT_DIR, 'static')
 # ]
 
-# FIXME merged
+# FIXME Kobocat migration: Merged
 # INSTALLED_APPS = [
 #     # 'django.contrib.contenttypes',
 #     # # Always put `contenttypes` before `auth`; see
@@ -226,12 +226,12 @@ MEDIA_URL = f"/{env.str('KOBOCAT_MEDIA_URL', 'media').strip('/')}/"
 #     'kobo.apps.openrosa.apps.form_disclaimer.FormDisclaimerAppConfig',
 # ]
 
-# FIXME Does it break KPI ?
+# FIXME Kobocat migration: Does it break KPI to keep it?
 USE_THOUSAND_SEPARATOR = True
 
 # COMPRESS = True
 
-# FIXME duplicate, To be merged
+# FIXME Kobocat migration: Duplicate, To be merged
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error.
@@ -297,17 +297,17 @@ LOGGING = {
     }
 }
 
-# FIXME Deprecated
+# FIXME Kobocat migration: Deprecated, Not used anymore
 # extra data stored with users
 # AUTH_PROFILE_MODULE = 'kobo.apps.openrosa.apps.main.UserProfile'
 
-# FIXME Merged
+# FIXME Kobocat migration: Merged
 # AUTHENTICATION_BACKENDS = (
 #     'django.contrib.auth.backends.ModelBackend',
 #     'guardian.backends.ObjectPermissionBackend',
 # )
 
-# FIXME duplicate
+# FIXME Kobocat migration: Duplicate
 # # Make Django use NGINX $host. Useful when running with ./manage.py runserver_plus
 # # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
 # if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
@@ -341,7 +341,7 @@ LOGGING = {
 #
 # DEBUG = env.bool('DJANGO_DEBUG', True)
 
-# FIXME Replace by main base.py
+# FIXME Kobocat migration: Replaced by main base.py
 # # Database (i.e. PostgreSQL)
 # DATABASES = {
 #     'default': env.db_url(
@@ -350,11 +350,11 @@ LOGGING = {
 #     ),
 # }
 
-# FIXME Behaviour change. Should we include `ATOMIC_REQUEST` in Kobocat DATABASE_URL in main settings
+# FIXME Kobocat migration: Behaviour change. Should we include `ATOMIC_REQUEST` in Kobocat DATABASE_URL in main settings
 # Replacement for TransactionMiddleware
 # DATABASES['default']['ATOMIC_REQUESTS'] = True
 
-# FIXME duplicates
+# FIXME Kobocat migration: Duplicate
 # ALLOWED_HOSTS = env.str('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 #
 # # Domain must not exclude KPI when sharing sessions
@@ -362,10 +362,10 @@ LOGGING = {
 # if SESSION_COOKIE_DOMAIN:
 #     SESSION_COOKIE_NAME = env.str('SESSION_COOKIE_NAME', 'kobonaut')
 
-# FIXME Does it break KPI
+# FIXME Kobocat migration: Does it break KPI? that's the default value. Should get rid of it?
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
-# FIXME validate if we use only one storage
+# FIXME Kobocat migration: Validate if we use only one storage
 # # If not properly overridden, leave uninitialized so Django can set the default.
 # # (see https://docs.djangoproject.com/en/1.8/ref/settings/#default-file-storage)
 # if os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE'):
@@ -378,13 +378,13 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 #     'EMAIL_BACKEND', 'django.core.mail.backends.filebased.EmailBackend'
 # )
 
-# FIXME duplicates
+# FIXME Kobocat migration: Duplicate
 # if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
 #     EMAIL_FILE_PATH = env.str('EMAIL_FILE_PATH', os.path.join(PROJECT_ROOT, 'emails'))
 #     if not os.path.isdir(EMAIL_FILE_PATH):
 #         os.mkdir(EMAIL_FILE_PATH)
 
-# FIXME duplicates
+# FIXME Kobocat migration: Duplicate
 # SESSION_ENGINE = 'redis_sessions.session'
 # # django-redis-session expects a dictionary with `url`
 # redis_session_url = env.cache_url(
@@ -404,15 +404,14 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 #     ),
 # }
 
-# FIXME does it break KPI
-
+# FIXME Kobocat migration: Does it break kpi?
 DIGEST_NONCE_BACKEND = 'kobo.apps.openrosa.apps.django_digest_backends.cache.RedisCacheNonceStorage'
 
 ###################################
 # Django Rest Framework settings  #
 ###################################
 
-# FIXME To be merged
+# FIXME Kobocat migration: To be merged
 
 REST_FRAMEWORK = {
     # Use hyperlinked styles by default.
@@ -456,7 +455,7 @@ REST_FRAMEWORK = {
 # KoBoCAT settings             #
 ################################
 
-# FIXME duplicate with TESTING
+# FIXME Kobocat migration: Duplicate with TESTING in KPI. Merge code
 TESTING_MODE = False
 
 # needed by guardian`
@@ -466,7 +465,7 @@ TESTING_MODE = False
 GUARDIAN_GET_INIT_ANONYMOUS_USER = 'kobo.apps.openrosa.apps.main.models.user_profile.get_anonymous_user_instance'  # noqa
 
 
-# FIXME duplicates, to be merged
+# FIXME Kobocat migration: Duplicate. To be merged
 KOBOCAT_URL = env.url('KOBOCAT_URL', 'http://kc.kobo.local').geturl()
 KOBOFORM_SERVER = env.str('KOBOFORM_SERVER', 'localhost')
 KOBOFORM_SERVER_PORT = env.str('KOBOFORM_SERVER_PORT', '8000')
@@ -478,7 +477,7 @@ KOBOFORM_INTERNAL_URL = env.url('KOBOFORM_INTERNAL_URL', KOBOFORM_URL).geturl()
 KPI_HOOK_ENDPOINT_PATTERN = '/api/v2/assets/{asset_uid}/hook-signal/'
 
 
-# FIXME Does it change something for KPI
+# FIXME Kobocat migration: Does it change something for KPI
 OAUTH2_PROVIDER = {
     # this is the list of available scopes
     'SCOPES': {
@@ -514,7 +513,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://kc.kobo.local',
 )
 
-# FIXME duplicate with KOBOCAT_THUMBNAILS_SUFFIX_MAPPING
+# FIXME Kobocat migration: Duplicate with KOBOCAT_THUMBNAILS_SUFFIX_MAPPING
 THUMB_CONF = {
     'large': {'size': 1280, 'suffix': '-large'},
     'medium': {'size': 640, 'suffix': '-medium'},
@@ -523,6 +522,7 @@ THUMB_CONF = {
 # order of thumbnails from largest to smallest
 THUMB_ORDER = ['large', 'medium', 'small']
 
+# FIXME Kobocat migration: Merge all AWS settings.
 # # Number of times Celery retries to send data to external rest service
 # REST_SERVICE_MAX_RETRIES = 3
 #
@@ -541,7 +541,7 @@ THUMB_ORDER = ['large', 'medium', 'small']
 # if env.str('AWS_S3_REGION_NAME', False):
 #     AWS_S3_REGION_NAME = env.str('AWS_S3_REGION_NAME')
 
-# FIXME Not used? Delete me.
+# FIXME Kobocat migration: Not used? Delete me.
 # AWS_QUERYSTRING_EXPIRE = env.int("KOBOCAT_AWS_QUERYSTRING_EXPIRE", 3600)
 # AWS_S3_USE_SSL = env.bool("KOBOCAT_AWS_S3_USE_SSL", True)
 # AWS_S3_HOST = env.str("KOBOCAT_AWS_S3_HOST", "s3.amazonaws.com")
@@ -569,8 +569,7 @@ NA_REP = 'n/a'
 
 # # Content Security Policy (CSP)
 
-# FIXME duplicates
-
+# FIXME Kobocat migration: Duplicate. Are CSP settings different from KPI?
 # # CSP should "just work" by allowing any possible configuration
 # # however CSP_EXTRA_DEFAULT_SRC is provided to allow for custom additions
 # if env.bool("ENABLE_CSP", False):
@@ -615,6 +614,7 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed'
 ]
 
+# FIXME Kobocat migration: Should get rid of complexity of this code. Color, Label have never been used.
 DEFAULT_VALIDATION_STATUSES = [
     {
         'uid': 'validation_status_not_approved',
@@ -665,7 +665,7 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 # Set the maximum number of days daily counters can be kept for
 DAILY_COUNTERS_MAX_DAYS = env.int('DAILY_COUNTERS_MAX_DAYS', 366)
 
-# FIXME duplicates
+# FIXME Kobocat migration: Duplicate (merge WHITELISTED_HOSTS env var in KPI container)
 # SERVICE_ACCOUNT = {
 #     'BACKEND': env.cache_url(
 #         'SERVICE_ACCOUNT_BACKEND_URL', default='redis://redis_cache:6380/6'
@@ -685,7 +685,7 @@ REVERSION_MIDDLEWARE_SKIPPED_URL_PATTERNS = {
 # Celery settings              #
 ################################
 
-# FIXME duplicates
+# FIXME Kobocat migration: Duplicate
 # CELERY_BROKER_URL = os.environ.get(
 #     'KOBOCAT_BROKER_URL', 'redis://localhost:6379/2')
 #
@@ -718,7 +718,7 @@ REVERSION_MIDDLEWARE_SKIPPED_URL_PATTERNS = {
 #     "visibility_timeout": 120 * (10 ** REST_SERVICE_MAX_RETRIES)  # Longest ETA for RestService
 # }
 
-# FIXME To be merged
+# FIXME Kobocat migration: To be merged
 CELERY_BEAT_SCHEDULE = {
     # Periodically mark exports stuck in the "pending" state as "failed"
     # See https://github.com/kobotoolbox/kobocat/issues/315
@@ -734,9 +734,10 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+# FIXME Kobocat migration: Remove, handle queue with CELERY_TASK_ROUTES
 CELERY_TASK_DEFAULT_QUEUE = "kobocat_queue"
 
-#
+# FIXME Kobocat migration: Duplicate
 #
 # ################################
 # # Enketo Express settings      #
@@ -823,7 +824,7 @@ CELERY_TASK_DEFAULT_QUEUE = "kobocat_queue"
 #
 
 
-# FIXME Sentry will use only one provider
+# FIXME Kobocat migration: Sentry will use only one provider
 # ################################
 # # Sentry settings              #
 # ################################
