@@ -10,7 +10,6 @@ import rest_framework.views as rest_framework_views
 from django import forms
 from django.conf import settings
 from kobo.apps.kobo_auth.shortcuts import User
-from django.contrib.sites.models import Site
 from django.core.files.storage import default_storage
 from django.http import (
     HttpResponse,
@@ -245,7 +244,7 @@ def get_view_description(view_obj, html=False):
     Replace example.com in Django REST framework's default API description
     with the domain name of the current site
     """
-    domain = Site.objects.get_current().domain
+    domain = settings.KOBOCAT_PUBLIC_HOSTNAME
     description = rest_framework_views.get_view_description(view_obj, html)
     # description might not be a plain string: e.g. it could be a SafeText
     # to prevent further HTML escaping

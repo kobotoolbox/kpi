@@ -1,15 +1,10 @@
-# coding: utf-8
-from django.conf import settings
-from django.test import TestCase
+from django.test import override_settings, TestCase
+
 from kobo.apps.openrosa.apps.main.context_processors import site_name
 
 
 class CustomContextProcessorsTest(TestCase):
+    @override_settings(KOBOCAT_PUBLIC_HOSTNAME='kc.kobotoolbox.org')
     def test_site_name(self):
         context = site_name(None)
-        self.assertEqual(context, {'SITE_NAME': 'example.com'})
-        restore_site_id = settings.SITE_ID
-        settings.SITE_ID = 100
-        context = site_name(None)
-        self.assertEqual(context, {'SITE_NAME': 'example.org'})
-        settings.SITE_ID = restore_site_id
+        self.assertEqual(context, {'SITE_NAME': 'kc.kobotoolbox.org'})
