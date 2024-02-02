@@ -94,7 +94,7 @@ INSTALLED_APPS = (
     'django_prometheus',
     'reversion',
     'private_storage',
-    'kobo.apps.kobo_auth',
+    'kobo.apps.kobo_auth.KoboAuthAppConfig',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
     'allauth',
