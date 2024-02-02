@@ -205,6 +205,10 @@ export class DataTable extends React.Component {
     const sort = [];
 
     if (filter.length) {
+      // TODO: Make this place and `onUpdateStatus` from `tableBulkOptions.es6`
+      // use the same utility functions to produce filters/queries, so that both
+      // submissions displayed in Data Table, and submissions being
+      // bulk-updated
       filterQuery = '&query={';
       filter.forEach(function (f, i) {
         if (f.id === '_id') {

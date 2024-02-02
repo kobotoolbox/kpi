@@ -62,8 +62,12 @@ class TableBulkOptions extends React.Component {
       if (this.props.fetchState.filtered.length) {
         data.query = {};
         data['validation_status.uid'] = newStatus;
+        // TODO: Make this place and `fetchSubmissions` from `table.es6` use
+        // the same utility functions to produce filters/queries, so that both
+        // submissions displayed in Data Table, and submissions being
+        // bulk-updated
         this.props.fetchState.filtered.map((filteredItem) => {
-          data.query[filteredItem.id] = filteredItem.value;
+          data.query[filteredItem.id] = {$regex: filteredItem.value, $options: 'i'};
         });
       } else {
         data.confirm = true;
