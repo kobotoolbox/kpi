@@ -12,6 +12,7 @@ import {
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {renderCheckbox} from 'utils';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
+import {buildFilterQuery} from './tableUtils';
 
 /**
  * @prop asset
@@ -56,20 +57,24 @@ class TableBulkOptions extends React.Component {
     const data = {};
     let selectedCount;
     // setting empty value requires deleting the statuses with different API call
-    const apiFn = newStatus === null ? actions.submissions.bulkDeleteStatus : actions.submissions.bulkPatchStatus;
+    const apiFn =
+      newStatus === null
+        ? actions.submissions.bulkDeleteStatus
+        : actions.submissions.bulkPatchStatus;
 
     if (this.props.selectedAllPages) {
       if (this.props.fetchState.filtered.length) {
-        data.query = {};
+        // This is the case where user selected the all pages checkbox with some
+        // data filtering
+        const filterQuery = buildFilterQuery(
+          this.props.asset.content.survey, 
+          this.props.fetchState.filtered
+        );
+        data.query = filterQuery.queryObj;
         data['validation_status.uid'] = newStatus;
-        // TODO: Make this place and `fetchSubmissions` from `table.es6` use
-        // the same utility functions to produce filters/queries, so that both
-        // submissions displayed in Data Table, and submissions being
-        // bulk-updated
-        this.props.fetchState.filtered.map((filteredItem) => {
-          data.query[filteredItem.id] = {$regex: filteredItem.value, $options: 'i'};
-        });
       } else {
+        // This is the case where user selected the all pages checkbox without
+        // any data filtering
         data.confirm = true;
         data['validation_status.uid'] = newStatus;
       }

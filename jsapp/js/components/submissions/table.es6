@@ -56,6 +56,7 @@ import {
   getColumnLabel,
   getColumnHXLTags,
   getBackgroundAudioQuestionName,
+  buildFilterQuery,
 } from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
@@ -200,33 +201,18 @@ export class DataTable extends React.Component {
     const pageSize = instance.state.pageSize;
     const page = instance.state.page * instance.state.pageSize;
     const filter = instance.state.filtered;
-    let filterQuery = '';
+    let filterQueryString = '';
     // sort comes from outside react-table
     const sort = [];
 
     if (filter.length) {
-      // TODO: Make this place and `onUpdateStatus` from `tableBulkOptions.es6`
-      // use the same utility functions to produce filters/queries, so that both
-      // submissions displayed in Data Table, and submissions being
-      // bulk-updated
-      filterQuery = '&query={';
-      filter.forEach(function (f, i) {
-        if (f.id === '_id') {
-          filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
-        } else if (f.id === VALIDATION_STATUS_ID_PROP) {
-          if (f.value === VALIDATION_STATUSES.no_status.value) {
-            filterQuery += `"${f.id}":null`;
-          } else {
-            filterQuery += `"${f.id}":"${f.value}"`;
-          }
-        } else {
-          filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
-        }
-        if (i < filter.length - 1) {
-          filterQuery += ',';
-        }
-      });
-      filterQuery += '}';
+      const filterQuery = buildFilterQuery(
+        this.props.asset.content.survey,
+        instance.state.filtered
+      );
+      if (filterQuery.queryString) {
+        filterQueryString = `&query=${filterQuery.queryString}`;
+      }
     }
 
     const sortBy = tableStore.getSortBy();
@@ -243,7 +229,7 @@ export class DataTable extends React.Component {
       page: page,
       sort: sort,
       fields: [],
-      filter: filterQuery,
+      filter: filterQueryString,
     });
   }
 
@@ -1100,18 +1086,18 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * @param {object} state
-   * @param {object} instance
+   * @param {object} tableState - state of react-table table
+   * @param {object} tableInstance - instance data of react-table table
    */
-  fetchData(state, instance) {
+  fetchData(tableState, tableInstance) {
     this.setState({
       loading: true,
-      pageSize: instance.state.pageSize,
-      currentPage: instance.state.page,
-      fetchState: state,
-      fetchInstance: instance,
+      pageSize: tableInstance.state.pageSize,
+      currentPage: tableInstance.state.page,
+      fetchState: tableState,
+      fetchInstance: tableInstance,
     });
-    this.fetchSubmissions(instance);
+    this.fetchSubmissions(tableInstance);
   }
 
   /**
