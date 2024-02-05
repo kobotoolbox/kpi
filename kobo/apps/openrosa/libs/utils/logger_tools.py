@@ -488,7 +488,7 @@ def report_exception(subject, info, exc_info=None):
     else:
         message = "%s" % info
 
-    if settings.DEBUG or settings.TESTING_MODE:
+    if settings.DEBUG or settings.TESTING:
         sys.stdout.write("Subject: %s\n" % subject)
         sys.stdout.write("Message: %s\n" % message)
     else:

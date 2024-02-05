@@ -202,7 +202,7 @@ def create_zip_export(username, id_string, export_id, query=None):
                          % details, e)
         raise
     else:
-        if not settings.TESTING_MODE:
+        if not settings.TESTING:
             delete_export.apply_async(
                 (), {'export_id': gen_export.id},
                 countdown=settings.ZIP_EXPORT_COUNTDOWN)

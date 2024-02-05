@@ -79,7 +79,7 @@ class HttpsOnlyBasicAuthentication(MFABlockerMixin, BasicAuthentication):
         # authenticators
         user_auth = super().authenticate(request)
         if (
-            settings.TESTING_MODE is False
+            settings.TESTING is False
             and user_auth is not None
             and not request.is_secure()
         ):

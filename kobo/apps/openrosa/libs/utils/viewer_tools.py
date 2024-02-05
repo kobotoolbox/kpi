@@ -224,7 +224,7 @@ def create_attachments_zipfile(attachments, output_file=None):
 
 
 def _get_form_url(username):
-    if settings.TESTING_MODE:
+    if settings.TESTING:
         http_host = 'http://{}'.format(settings.TEST_HTTP_HOST)
         username = settings.TEST_USERNAME
     else:

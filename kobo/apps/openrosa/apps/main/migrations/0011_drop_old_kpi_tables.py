@@ -52,7 +52,7 @@ DEPRECATED_TABLES = [
 
 
 def get_operations():
-    if settings.TESTING_MODE or settings.SKIP_HEAVY_MIGRATIONS:
+    if settings.TESTING or settings.SKIP_HEAVY_MIGRATIONS:
         # Skip this migration if running in test environment or because we want
         # to voluntarily skip it.
         return []
@@ -99,12 +99,12 @@ def get_operations():
 
 
 def print_migration_warning(apps, schema_editor):
-    if settings.TESTING_MODE or settings.SKIP_HEAVY_MIGRATIONS:
+    if settings.TESTING or settings.SKIP_HEAVY_MIGRATIONS:
         return
     print(
         """
-        This migration might take a while. If it is too slow, you may want to 
-        re-run migrations with SKIP_HEAVY_MIGRATIONS=True and apply this one 
+        This migration might take a while. If it is too slow, you may want to
+        re-run migrations with SKIP_HEAVY_MIGRATIONS=True and apply this one
         manually from the django shell.
         """
     )
