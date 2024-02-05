@@ -7,14 +7,17 @@ from django.contrib.auth import authenticate
 from kobo.apps.kobo_auth.shortcuts import User
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
-from kobo.apps.openrosa.libs.utils.guardian import get_perms_for_model, assign_perm
 
 from kobo.apps.openrosa.apps.logger.models import XForm, Note
+from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.openrosa.libs.utils.guardian import (
+    assign_perm,
+    get_perms_for_model,
+)
 from kobo.apps.openrosa.libs.utils.string import (
     base64_encodestring,
     base64_decodestring,
 )
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.constants import (
     CAN_DELETE_DATA_XFORM,
     CAN_CHANGE_XFORM,

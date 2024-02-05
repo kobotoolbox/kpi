@@ -1,4 +1,5 @@
 import django.contrib.auth.management
+from django.conf import settings
 from django.contrib.auth.management import (
     create_permissions as django_create_permissions,
     DEFAULT_DB_ALIAS,
@@ -15,6 +16,7 @@ def create_permissions(app_config, using=DEFAULT_DB_ALIAS, **kwargs):
     if (
         app_config.label in OPENROSA_APP_LABELS
         and using == DEFAULT_DB_ALIAS
+        and not settings.TESTING
     ):
         return
 

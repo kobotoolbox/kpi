@@ -79,6 +79,12 @@ class SingleDatabaseRouter(DefaultDatabaseRouter):
         """
         return DEFAULT_DB_ALIAS
 
+    def allow_migrate(self, db, app_label, model=None, **hints):
+        if app_label in SHADOW_MODEL_APP_LABELS:
+            return False
+
+        return True
+
 
 class TestingDatabaseRouter(SingleDatabaseRouter):
 

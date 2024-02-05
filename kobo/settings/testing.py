@@ -3,7 +3,7 @@ from mongomock import MongoClient as MockMongoClient
 
 from .base import *
 
-# For tests, don't use KoBoCAT's DB
+# For tests, don't use KoboCAT's DB
 DATABASES = {
     'default': env.db_url(
         'KPI_DATABASE_URL'

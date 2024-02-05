@@ -66,7 +66,6 @@ class Export(models.Model):
     # status
     internal_status = models.SmallIntegerField(default=PENDING)
     export_url = models.URLField(null=True, default=None)
-    dummy_field = models.BooleanField(null=True)
 
     class Meta:
         app_label = "viewer"
