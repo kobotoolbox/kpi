@@ -99,9 +99,11 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     if (!value.match(/.\../)) {
       return value;
     } // "dotless". don't change it
-    if (!value.match(/^https?:\/\/.*/)) {
-      value = 'https://' + value; // add missing protocol
+    if (!value.match(/^https?:\/?\/?.*/)) {
+      value = 'http://' + value; // add missing protocol
     }
+    // normalize '://' and trailing slash if URL is valid
+    try {value = new URL(value).toString();} catch (e) {/**/}
     return value;
   };
 
