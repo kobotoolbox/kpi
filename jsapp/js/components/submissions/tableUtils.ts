@@ -292,9 +292,9 @@ export interface TableFilterQuery {
 }
 
 /**
- * These are question types that will be filtered by the exact filter value 
- * (i.e. filter value is exactly the response). Any question type not on this 
- * list will be filtered by responses that include the value (i.e. filter value 
+ * These are question types that will be filtered by the exact filter value
+ * (i.e. filter value is exactly the response). Any question type not on this
+ * list will be filtered by responses that include the value (i.e. filter value
  * is part of the response).
  */
 const FILTER_EXACT_TYPES: AnyRowTypeName[] = [
