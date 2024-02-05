@@ -214,8 +214,13 @@ django-webpack-loader==2.0.1
 djangorestframework==3.13.1
     # via
     #   -r dependencies/pip/requirements.in
+    #   djangorestframework-csv
     #   drf-extensions
     #   kobo-service-account
+djangorestframework-csv==3.0.2
+    # via -r dependencies/pip/requirements.in
+djangorestframework-jsonp==1.0.2
+    # via -r dependencies/pip/requirements.in
 djangorestframework-xml==2.0.0
     # via -r dependencies/pip/requirements.in
 docopt==0.6.2
@@ -331,6 +336,8 @@ mock==4.0.3
     # via -r dependencies/pip/dev_requirements.in
 model-bakery==1.7.0
     # via -r dependencies/pip/dev_requirements.in
+modilabs-python-utils==0.1.5
+    # via -r dependencies/pip/requirements.in
 mongomock==4.0.0
     # via -r dependencies/pip/dev_requirements.in
 msrest==0.7.1

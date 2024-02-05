@@ -192,8 +192,13 @@ django-webpack-loader==2.0.1
 djangorestframework==3.13.1
     # via
     #   -r dependencies/pip/requirements.in
+    #   djangorestframework-csv
     #   drf-extensions
     #   kobo-service-account
+djangorestframework-csv==3.0.2
+    # via -r dependencies/pip/requirements.in
+djangorestframework-jsonp==1.0.2
+    # via -r dependencies/pip/requirements.in
 djangorestframework-xml==2.0.0
     # via -r dependencies/pip/requirements.in
 docutils==0.18.1
@@ -289,6 +294,8 @@ markdown==3.3.6
     # via
     #   -r dependencies/pip/requirements.in
     #   django-markdownx
+modilabs-python-utils==0.1.5
+    # via -r dependencies/pip/requirements.in
 msrest==0.7.1
     # via azure-storage-blob
 ndg-httpsclient==0.5.1
