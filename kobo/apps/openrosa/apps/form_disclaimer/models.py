@@ -19,7 +19,7 @@ class FormDisclaimer(models.Model):
     class Meta:
         # FIXME duplicate app with KPI
         app_label = 'openrosa_form_disclaimer'
-        db_table = 'form_disclaimer_formdisclaimer'
+        db_table = 'openrosa_form_disclaimer_formdisclaimer'
         constraints = [
             UniqueConstraint(
                 fields=['language_code', 'xform'],
