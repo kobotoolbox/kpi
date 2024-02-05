@@ -1,13 +1,19 @@
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+import boto3
+import constance
 import os
 import time
-import boto3
 
 from botocore.exceptions import ClientError
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
-from django.db.models import F, Func, Value, CharField
+from django.db.models import F, Func, Value, CharField, Q
 from django.db.models.functions import Lower
 from django.utils import timezone
+
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 
 MAX_SEND_ATTEMPTS = 3
 RETRY_WAIT_TIME = 30  # in seconds
@@ -21,49 +27,88 @@ EMAIL_HTML_FILENAME = ''
 # Path to a valid .txt file to use for the email text content
 EMAIL_TEXT_FILENAME = ''
 
-# We don't want to use all of our available email sends; some need to be reserved for other uses (password resets, etc.)
-# So we send emails until we've sent ( 24 hour sending capacity - RESERVE_EMAIL_COUNT ) emails
-RESERVE_EMAIL_COUNT = 8000
+"""
+We don't want to use all of our available email sends; some need to be reserved for other uses (password resets, etc.)
+So we send emails until we've sent ( 24 hour sending capacity - RESERVE_EMAIL_COUNT ) emails
+"""
+RESERVE_EMAIL_COUNT = 1000
 
-# Whether this is a marketing email or a transactional email.
-# Marketing emails aren't sent to addresses that have registered spam complaints
-# Transactional emails ignore spam complaints
-IS_MARKETING_EMAIL = False
+"""
+Whether this is a marketing email or a transactional email.
+Marketing emails aren't sent to addresses that have registered spam complaints
+Transactional emails ignore spam complaints
+"""
+IS_MARKETING_EMAIL = True
 
-# Maximum number of emails to send in one use of the script
-# Set to 0 to send as many emails as SES will allow
+"""
+Maximum number of emails to send in one use of the script
+Set to 0 to send as many emails as SES will allow
+"""
 MAX_SEND_LIMIT = 0
 
-# Only sends to users who have logged in since this date
-# Needs to be a Date object
+"""
+Only sends to users who have logged in since this date
+Needs to be a Date object
+"""
 ACTIVE_SINCE = timezone.now() - relativedelta(months=6)
 
+"""
+A dict containing additional queries on the User.
+Only users that match all of these queries will receive emails.
+Example:
+[
+    Q(organizations_organization__djstripe_customers__subscriptions=None) | Q(id=1),
+]
+"""
+USER_FILTERS = [
+    Q(date_joined__lte=constance.config.FREE_TIER_CUTOFF_DATE) &
+    Q(
+        organizations_organization__isnull=True,
+    ) |
+    Q(
+        organizations_organization__owner__organization_user_id=F('organizations_organizationuser__id'),
+    ),
+]
 
-# A dict containing additional queries on the User.
-# Only users that match all of these queries will receive emails.
-# Example:
-# {
-#     'organizations_organization__djstripe_customers__subscriptions': None,
-#     'id': 1,
-# }
-USER_FILTERS = {}
 
+"""
+An array of dicts containing additional queries on the User.
+Users matching any one of these queries won't receive emails.
+Example:
+[
+    {
+        'country': 'example',
+        'email__endswith': 'example.com',
+    },
+    {
+        'id': 5
+    },
+]
+"""
+USER_EXCLUDE = [
+    {
+        'organizations_organization__djstripe_customers__subscriptions__status__in': ACTIVE_STRIPE_STATUSES,
+    },
+]
 
-# An array of dicts containing additional queries on the User.
-# Users matching any one of these queries won't receive emails.
-# Example:
-# [
-#     {
-#         'country': 'example',
-#         'email__endswith': 'example.com',
-#     },
-#     {
-#         'id': 5
-#     }
-# ]
-USER_EXCLUDE = [{}]
+"""
+Key-value pairs to be substituted in the email
+Example:
+{
+    'username': 'username',
+    'email': 'email_cleaned',
+}
+"""
+PERSONALIZED_FIELDS = {'username': 'username'}
+
+CONTACT_LIST = IS_MARKETING_EMAIL and 'marketing' or 'all'
 
 start_time = time.time()
+
+aws_region_name = os.environ.get('AWS_SES_REGION_NAME') or os.environ.get(
+    'AWS_S3_REGION_NAME'
+)
+ses = boto3.client('sesv2', region_name=aws_region_name)
 
 
 def run(*args):
@@ -72,18 +117,14 @@ def run(*args):
     # Use the 'force' arg to send emails even to users that have received the email before
     force_send = 'force' in args
 
-    aws_region_name = os.environ.get('AWS_SES_REGION_NAME') or os.environ.get(
-        'AWS_S3_REGION_NAME'
-    )
-    ses = boto3.client('ses', region_name=aws_region_name)
-
-    can_send = ses.get_account_sending_enabled()
+    account = ses.get_account()
+    can_send = account.get('SendingEnabled')
     print(f'sending {"" if can_send else "not "}enabled in region {aws_region_name}')
     if not can_send and not test_mode:
         quit()
 
     remaining_sends = MAX_SEND_LIMIT
-    quota = ses.get_send_quota()
+    quota = account.get('SendQuota')
 
     # if Max24HourSend == -1, we have unlimited daily sending quota
     if quota['Max24HourSend'] >= 0:
@@ -126,35 +167,27 @@ def run(*args):
             quit("couldn't find text file")
 
         template = {
-            'TemplateName': EMAIL_TEMPLATE_NAME,
-            'SubjectPart': EMAIL_SUBJECT,
-            'TextPart': email_text,
-            'HtmlPart': email_html,
+            'Subject': EMAIL_SUBJECT,
+            'Text': email_text,
+            'Html': email_html,
         }
 
+    # if we're sending a marketing email, get/create a contact list for users to unsubscribe from
+    if IS_MARKETING_EMAIL:
         try:
-            ses.get_template(TemplateName=EMAIL_TEMPLATE_NAME)
-            print(f'updating template {EMAIL_TEMPLATE_NAME}')
-            ses.update_template(Template=template)
-        except ses.exceptions.TemplateDoesNotExistException:
-            print('creating template...')
-            response = ses.create_template(Template=template)
-            if response['ResponseMetadata']['HTTPStatusCode'] != 200:
-                print("couldn't create template - response below")
-                quit(response)
+            ses.get_contact_list(ContactListName='marketing')
+        except:
+            ses.create_contact_list(ContactListName='marketing')
 
     print('building users list...')
     user_detail_email_key = f'{EMAIL_TEMPLATE_NAME}_email_sent'
-    eligible_users = get_eligible_users(user_detail_email_key, force=force_send, test=test_mode)
+    eligible_users = get_eligible_users(user_detail_email_key, force=force_send)
 
-    active_user_count = len(eligible_users)
+    active_user_count = eligible_users.count()
     if force_send:
         print(f'found {active_user_count} users')
     else:
         print(f'found {active_user_count} users who haven\'t received emails')
-    if active_user_count <= 10:
-        for user in eligible_users:
-            print(user.email_cleaned)
 
     if test_mode:
         quit('in test mode, exiting before sending any emails')
@@ -165,22 +198,27 @@ def run(*args):
         configuration_set['ConfigurationSetName'] = 'marketing_emails'
 
     for user in eligible_users.iterator(chunk_size=500):
+        if force_send:
+            resubscribe_user(user.email_cleaned)
         for attempts in range(MAX_SEND_ATTEMPTS):
             try:
                 response = send_email(
-                    ses, user.email_cleaned, configuration=configuration_set
+                    user,
+                    configuration=configuration_set,
+                    template=template,
                 )
                 status = response['ResponseMetadata']['HTTPStatusCode']
             except ClientError as e:
                 print('error sending mail:')
                 print(e)
                 response = 'see above error'
+                status = None
             wait_time = RETRY_WAIT_TIME * (attempts + 1)
 
             match status:
                 case 200:
                     users_emailed_count += 1
-                    percent_done = users_emailed_count / active_user_count * 100
+                    percent_done = users_emailed_count / min(active_user_count, remaining_sends) * 100
                     print(
                         f'\r{round(percent_done, 2)}%',
                         end='',
@@ -236,10 +274,11 @@ def quit_with_time_elapsed(message):
     quit(quit_message)
 
 
-def get_eligible_users(user_detail_email_key, force=False, test=False):
-    # Get the list of users to email
-    # Modify this function to change which users receive emails
-
+def get_eligible_users(user_detail_email_key, force=False):
+    """
+    Get the list of users to email
+    Modify this function to change which users receive emails
+    """
     print(f'searching for users active since {ACTIVE_SINCE.date()}')
     eligible_users = (
         User.objects.select_related('extra_details')
@@ -247,7 +286,9 @@ def get_eligible_users(user_detail_email_key, force=False, test=False):
         .filter(
             last_login__gte=ACTIVE_SINCE,
             is_active=True,
-            **USER_FILTERS,
+        )
+        .filter(
+            *USER_FILTERS,
         )
         .exclude(
             email='',
@@ -276,15 +317,60 @@ def get_eligible_users(user_detail_email_key, force=False, test=False):
     )
 
 
-def send_email(ses, address, configuration={}):
-    return ses.send_templated_email(
-        Source=FROM_ADDRESS,
+def send_email(user, configuration, template):
+    message = build_message(template, user)
+    message['To'] = user.email_cleaned
+    return ses.send_email(
+        FromEmailAddress=FROM_ADDRESS,
         Destination={
             'ToAddresses': [
-                address,
+                user.email_cleaned,
             ],
         },
-        Template=EMAIL_TEMPLATE_NAME,
-        TemplateData='{}',
+        Content={
+            'Raw': {
+                'Data': message.as_string(),
+            }
+            # 'Template': {
+            #         'TemplateName': EMAIL_TEMPLATE_NAME,
+            #         'TemplateData': json.dumps(personalized_fields),
+            #     },
+        },
+        ListManagementOptions={
+            'ContactListName': CONTACT_LIST,
+        },
         **configuration,
+    )
+
+
+def build_message(template, user):
+    """
+    Build a message from its component parts
+    """
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = EMAIL_SUBJECT
+    msg['From'] = FROM_ADDRESS
+
+    msg.preamble = 'Multipart message.\n'
+    for [key, value] in PERSONALIZED_FIELDS.items():
+        if field := getattr(user, value):
+            # replaces e.g. '{{username}}' with 'myusername'
+            needle = '{{' + key + '}}'
+            template['Text'] = template['Text'].replace(needle, field)
+            template['Html'] = template['Html'].replace(needle, field)
+
+    txt = MIMEText(template['Text'], 'plain')
+    html = MIMEText(template['Html'], 'html')
+
+    msg.attach(txt)
+    msg.attach(html)
+    msg.add_header('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click')
+    return msg
+
+
+def resubscribe_user(email):
+    ses.update_contact(
+        ContactListName=CONTACT_LIST,
+        EmailAddress=email,
+        UnsubscribeAll=False,
     )
