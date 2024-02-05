@@ -298,15 +298,7 @@ export interface TableFilterQuery {
  * is part of the response).
  */
 const FILTER_EXACT_TYPES: AnyRowTypeName[] = [
-  QuestionTypeName.decimal,
-  QuestionTypeName.integer,
-  QuestionTypeName.range,
-  QuestionTypeName.rank,
-  QuestionTypeName.score,
-  QuestionTypeName.select_multiple,
-  QuestionTypeName.select_multiple_from_file,
   QuestionTypeName.select_one,
-  QuestionTypeName.select_one_from_file,
 ];
 
 /**
@@ -340,6 +332,8 @@ export function buildFilterQuery(
         }
         break;
       }
+      // Apart from few exceptions in above cases, we tend to treat all columns
+      // (`filter.id`s) with the same algorithm
       default: {
         // We assume `filter.id` is the question name (Data Table column name)
         const foundRow = survey.find((row) => getRowName(row) === filter.id);

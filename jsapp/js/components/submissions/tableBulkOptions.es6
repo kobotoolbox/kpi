@@ -67,7 +67,7 @@ class TableBulkOptions extends React.Component {
         // This is the case where user selected the all pages checkbox with some
         // data filtering
         const filterQuery = buildFilterQuery(
-          this.props.asset.content.survey, 
+          this.props.asset.content.survey,
           this.props.fetchState.filtered
         );
         data.query = filterQuery.queryObj;
