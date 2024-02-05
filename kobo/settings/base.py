@@ -141,7 +141,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
-    # FIXME same name
     'kobo.apps.openrosa.apps.form_disclaimer.FormDisclaimerAppConfig',
 )
 

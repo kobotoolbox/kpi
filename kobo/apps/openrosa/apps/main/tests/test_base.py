@@ -6,7 +6,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, User, Permission
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.test import TestCase
 from django.test.client import Client
 from django.utils import timezone
@@ -15,6 +15,7 @@ from kobo_service_account.utils import get_request_headers
 from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import MakeSubmissionMixin
@@ -79,7 +80,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
         self.user = self._create_user(username, password)
 
         # create user profile if it does not exist
-        UserProfile.objects.get_or_create(user=self.user)
+        UserProfile.objects.get_or_create(user_id=self.user.pk)
 
         self.client = self._login(username, password)
         self.anon = Client()

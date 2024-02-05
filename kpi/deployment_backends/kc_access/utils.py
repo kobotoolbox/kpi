@@ -6,13 +6,14 @@ from typing import Union
 
 import requests
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
-from django.db import ProgrammingError, transaction
+from django.db import transaction
 from django.db.models import Model
 from kobo_service_account.utils import get_request_headers
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import KobocatProfileException
 from kpi.utils.log import logging
 from kpi.utils.permissions import is_user_anonymous

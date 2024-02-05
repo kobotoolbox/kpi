@@ -22,7 +22,7 @@ def grant_model_level_perms(apps):
     """
     Grant `delete_submissions` permission to everyone at the model level
     """
-    User = apps.get_model('auth', 'User')  # noqa
+    User = apps.get_model('kobo_auth', 'User')  # noqa
     Permission = apps.get_model('auth', 'Permission')  # noqa
     ThroughModel = User.user_permissions.through  # noqa
 
@@ -53,7 +53,7 @@ def remove_model_level_perms(apps):
     """
     Remove all model-level 'delete_submissions' permission assignments
     """
-    User = apps.get_model('auth', 'User')  # noqa
+    User = apps.get_model('kobo_auth', 'User')  # noqa
     Permission = apps.get_model('auth', 'Permission')  # noqa
     ThroughModel = User.user_permissions.through  # noqa
 
@@ -70,7 +70,7 @@ def grant_object_level_perms(apps):
     At the object level, grant `delete_submissions` to anyone who already has
     `change_submissions`
     """
-    User = apps.get_model('auth', 'User')  # noqa
+    User = apps.get_model('kobo_auth', 'User')  # noqa
     Permission = apps.get_model('auth', 'Permission')  # noqa
     UserObjectPermission = apps.get_model(
         'guardian', 'UserObjectPermission'
