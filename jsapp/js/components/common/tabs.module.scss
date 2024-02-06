@@ -18,6 +18,7 @@
   font-weight: 500;
   padding: sizes.$x14 sizes.$x30 sizes.$x10;
   margin-bottom: -1px;
+  outline: none;
 
   &.active {
     color: colors.$kobo-gray-24;
