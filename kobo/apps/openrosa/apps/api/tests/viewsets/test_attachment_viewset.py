@@ -268,7 +268,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
         }
 
         path = os.path.join(
-            settings.kobo.apps.open_rosa_server_DIR,
+            settings.OPENROSA_APP_DIR,
             'apps',
             'main',
             'tests',

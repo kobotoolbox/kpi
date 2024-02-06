@@ -22,7 +22,7 @@ class TestImportingDatabase(TestBase):
         TestBase.setUp(self)
         self._publish_xls_file(
             os.path.join(
-                settings.kobo.apps.open_rosa_server_DIR, "apps", "logger", "fixtures",
+                settings.OPENROSA_APP_DIR, "apps", "logger", "fixtures",
                 "test_forms", "tutorial.xls"))
 
     def _images_count(self, instance):

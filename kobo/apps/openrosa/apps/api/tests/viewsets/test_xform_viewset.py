@@ -175,7 +175,7 @@ class TestXFormViewSet(TestAbstractViewSet):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         xml_path = os.path.join(
-            settings.kobo.apps.open_rosa_server_DIR, "apps", "main", "tests", "fixtures",
+            settings.OPENROSA_APP_DIR, "apps", "main", "tests", "fixtures",
             "transportation", "transportation.xml")
         with open(xml_path) as xml_file:
             expected_doc = minidom.parse(xml_file)
@@ -250,7 +250,7 @@ class TestXFormViewSet(TestAbstractViewSet):
 
     def test_publish_invalid_xls_form(self):
         path = os.path.join(
-            settings.kobo.apps.open_rosa_server_DIR,
+            settings.OPENROSA_APP_DIR,
             'apps',
             'main',
             'tests',
@@ -277,7 +277,7 @@ class TestXFormViewSet(TestAbstractViewSet):
 
     def test_publish_invalid_xls_form_no_choices(self):
         path = os.path.join(
-            settings.kobo.apps.open_rosa_server_DIR,
+            settings.OPENROSA_APP_DIR,
             'apps',
             'main',
             'tests',
@@ -487,7 +487,7 @@ class TestXFormViewSet(TestAbstractViewSet):
     def test_csv_import(self):
         self.publish_xls_form()
         view = XFormViewSet.as_view({'post': 'csv_import'})
-        csv_import = open(os.path.join(settings.kobo.apps.open_rosa_server_DIR, 'libs',
+        csv_import = open(os.path.join(settings.OPENROSA_APP_DIR, 'libs',
                                        'tests', 'fixtures', 'good.csv'))
         post_data = {'csv_file': csv_import}
         request = self.factory.post('/', data=post_data, **self.extra)
@@ -499,7 +499,7 @@ class TestXFormViewSet(TestAbstractViewSet):
     def test_csv_import_fail(self):
         self.publish_xls_form()
         view = XFormViewSet.as_view({'post': 'csv_import'})
-        csv_import = open(os.path.join(settings.kobo.apps.open_rosa_server_DIR, 'libs',
+        csv_import = open(os.path.join(settings.OPENROSA_APP_DIR, 'libs',
                                        'tests', 'fixtures', 'bad.csv'))
         post_data = {'csv_file': csv_import}
         request = self.factory.post('/', data=post_data, **self.extra)
@@ -513,7 +513,7 @@ class TestXFormViewSet(TestAbstractViewSet):
         """
         self.publish_xls_form()
         view = XFormViewSet.as_view({'post': 'csv_import'})
-        csv_import = open(os.path.join(settings.kobo.apps.open_rosa_server_DIR, 'libs',
+        csv_import = open(os.path.join(settings.OPENROSA_APP_DIR, 'libs',
                                        'tests', 'fixtures', 'bad.csv'))
         post_data = {'wrong_file_field': csv_import}
         request = self.factory.post('/', data=post_data, **self.extra)
@@ -524,7 +524,7 @@ class TestXFormViewSet(TestAbstractViewSet):
     def test_csv_import_fail_anonymous(self):
         self.publish_xls_form()
         view = XFormViewSet.as_view({'post': 'csv_import'})
-        csv_import = open(os.path.join(settings.kobo.apps.open_rosa_server_DIR, 'libs',
+        csv_import = open(os.path.join(settings.OPENROSA_APP_DIR, 'libs',
                                        'tests', 'fixtures', 'good.csv'))
         post_data = {'csv_file': csv_import}
         request = self.factory.post(
@@ -686,7 +686,7 @@ class TestXFormViewSet(TestAbstractViewSet):
             'title': '2011_07_25_transportation',
         }
 
-        xls_path = os.path.join(settings.kobo.apps.open_rosa_server_DIR, 'apps', 'main', 'tests',
+        xls_path = os.path.join(settings.OPENROSA_APP_DIR, 'apps', 'main', 'tests',
                                 'fixtures', 'transportation',
                                 'transportation.id_starts_with_num.xls')
         count = XForm.objects.count()

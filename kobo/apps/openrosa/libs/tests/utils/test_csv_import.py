@@ -17,7 +17,7 @@ class CSVImportTestCase(TestBase):
 
     def setUp(self):
         super().setUp()
-        self.fixtures_dir = os.path.join(settings.kobo.apps.open_rosa_server_DIR,
+        self.fixtures_dir = os.path.join(settings.OPENROSA_APP_DIR,
                                          'libs', 'tests', 'fixtures')
         self.good_csv = open(os.path.join(self.fixtures_dir, 'good.csv'), 'rb')
         self.bad_csv = open(os.path.join(self.fixtures_dir, 'bad.csv'), 'rb')

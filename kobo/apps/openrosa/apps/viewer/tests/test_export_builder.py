@@ -16,7 +16,7 @@ from kobo.apps.openrosa.libs.utils.export_tools import (
 
 
 def _logger_fixture_path(*args):
-    return os.path.join(settings.kobo.apps.open_rosa_server_DIR, 'apps', 'logger',
+    return os.path.join(settings.OPENROSA_APP_DIR, 'apps', 'logger',
                         'tests', 'fixtures', *args)
 
 

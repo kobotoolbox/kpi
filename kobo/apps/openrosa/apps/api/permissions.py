@@ -1,7 +1,6 @@
 # coding: utf-8
 from django.http import Http404
 from kobo_service_account.models import ServiceAccountUser
-from kobo_service_account.utils import get_real_user
 from rest_framework.permissions import (
     BasePermission,
     DjangoObjectPermissions,

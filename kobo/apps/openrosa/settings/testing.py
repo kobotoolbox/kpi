@@ -50,6 +50,8 @@ if not USE_POSTGRESQL:
     SPATIALITE_LIBRARY_PATH = os.environ.get('SPATIALITE_LIBRARY_PATH',
                                              'mod_spatialite')
 
+TEST_HTTP_HOST = 'testserver'
+TEST_USERNAME = 'bob'
 SERVICE_ACCOUNT['WHITELISTED_HOSTS'] = ['testserver']
 SERVICE_ACCOUNT['NAMESPACE'] = 'kobo-service-account-test'
 

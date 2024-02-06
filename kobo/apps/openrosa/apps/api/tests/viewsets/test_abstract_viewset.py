@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.models import (
     AnonymousUser,
     Permission,
-    User
 )
 from django.test import TestCase
 from django.test.client import Client
@@ -14,6 +13,7 @@ from kobo_service_account.utils import get_request_headers
 from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
 from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
@@ -68,7 +68,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
 
         if not path:
             path = os.path.join(
-                settings.kobo.apps.open_rosa_server_DIR,
+                settings.OPENROSA_APP_DIR,
                 'apps',
                 'main',
                 'tests',

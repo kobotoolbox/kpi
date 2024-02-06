@@ -38,7 +38,7 @@ AMBULANCE_KEY_DOTS = (
 
 
 def _main_fixture_path(instance_name):
-    return os.path.join(settings.kobo.apps.open_rosa_server_DIR, 'apps', 'main', 'tests',
+    return os.path.join(settings.OPENROSA_APP_DIR, 'apps', 'main', 'tests',
                         'fixtures', 'transportation', 'instances_w_uuid',
                         instance_name, instance_name + '.xml')
 

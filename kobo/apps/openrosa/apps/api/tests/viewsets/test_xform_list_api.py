@@ -31,7 +31,7 @@ class TestXFormListApiBase(TestAbstractViewSet):
         data_value = "screenshot.png"
         data_type = 'media'
         fixture_dir = os.path.join(
-            settings.kobo.apps.open_rosa_server_DIR, "apps", "main", "tests", "fixtures",
+            settings.OPENROSA_APP_DIR, "apps", "main", "tests", "fixtures",
             "transportation"
         )
         path = os.path.join(fixture_dir, data_value)
@@ -64,7 +64,7 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
         }
 
         path = os.path.join(
-            settings.kobo.apps.open_rosa_server_DIR,
+            settings.OPENROSA_APP_DIR,
             'apps',
             'main',
             'tests',
