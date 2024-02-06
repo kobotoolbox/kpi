@@ -22,15 +22,16 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     <div
       className={cx(styles.limitBannerContainer, {
         [styles.warningBanner]: props.warning,
-        [styles.usagePage]: props.usagePage
+        [styles.usagePage]: props.usagePage,
       })}
     >
       <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'red'} />
       <div className={styles.bannerContent}>
         {props.warning
           ? t('You are approaching your')
-          : t('You have reached your')}{' '}
+          : t('You have reached your')}
         <strong>
+          {' '}
           {props.interval === 'month' ? t('monthly') : t('yearly')}{' '}
           {props.limits.map((item, i) => (
             <span key={i}>
@@ -43,61 +44,33 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           {props.limits.length > 1 && 's'}
         </strong>
         {'. '}
-        {t('Please')}{' '}
         {props.warning && (
           <>
-            {!props.usagePage && (
-              <>
-                <a
-                  href={`#${ACCOUNT_ROUTES.USAGE}`}
-                  className={styles.bannerLink}
-                >
-                  {t('review your usage')}
-                </a>{' '}
-                {t('and')}{' '}
-              </>
-            )}
-            <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
-              {t('upgrade your plan')}
+            <a
+              href={'https://www.kobotoolbox.org/pricing/'}
+              className={styles.bannerLink}
+            >
+              {t('Learn more')}
             </a>{' '}
-            {props.usagePage ? t('as soon as possible') : t('if needed')}
+            {t('about upgrading your plan.')}
           </>
         )}
         {!props.warning && (
           <>
-            <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
-              {t('upgrade your plan')}
-            </a>
-            {' as soon as possible or ' /* tone down the language for now */}
-            <a
-              href='https://www.kobotoolbox.org/contact/'
-              target='_blank'
-              className={styles.bannerLink}
-            >
-              {'contact us'}
-            </a>
-            {' to speak with our team'}
-            {!props.usagePage && (
-              <>
-                {'. '}
-                <a
-                  href={`#${ACCOUNT_ROUTES.USAGE}`}
-                  className={styles.bannerLink}
-                >
-                  {t('Review your usage in account settings')}
-                </a>
-              </>
-            )}
+            <span>
+              {t(
+                'Please upgrade your plan or purchase an add-on to increase your usage limits.'
+              )}
+            </span>
           </>
         )}
-        {'.'}
       </div>
       {props.warning && !props.usagePage && (
         <Button
-          type={'frame'}
+          type={'bare'}
           color={'dark-blue'}
           endIcon='arrow-right'
-          size='s'
+          size='m'
           label={t('Monitor usage')}
           onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
           aria-label={t('monitor usage')}
@@ -106,10 +79,10 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
       )}
       {(!props.warning || props.usagePage) && (
         <Button
-          type={'frame'}
+          type={'bare'}
           color={'dark-blue'}
           endIcon='arrow-right'
-          size='s'
+          size='m'
           label={t('Upgrade now')}
           onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
           aria-label={t('upgrade now')}
