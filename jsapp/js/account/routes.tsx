@@ -9,8 +9,8 @@ const ChangePasswordRoute = React.lazy(
 const SecurityRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './security/securityRoute.component')
 );
-const PlanRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './plans/plan.component')
+const PlansRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './plans/plansRoute.component')
 );
 const AddOnsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './add-ons/addOns.component')
@@ -50,7 +50,7 @@ export default function routes() {
         path={ACCOUNT_ROUTES.PLAN}
         element={
           <RequireAuth>
-            <PlanRoute />
+            <PlansRoute />
           </RequireAuth>
         }
       />

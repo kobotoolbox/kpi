@@ -6,6 +6,7 @@ import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
+import {ProductsContext} from 'jsapp/js/account/useProducts.hook';
 
 interface SubscribedState {
   subscribedProduct: null | SubscriptionInfo;
@@ -22,6 +23,7 @@ function subscriptionReducer(state: SubscribedState, action: {prodData: any}) {
 export const useExceedingLimits = () => {
   const [state, dispatch] = useReducer(subscriptionReducer, initialState);
   const usage = useContext(UsageContext);
+  const productsContext = useContext(ProductsContext);
 
   const [exceedList, setExceedList] = useState<string[]>([]);
   const [warningList, setWarningList] = useState<string[]>([]);
@@ -42,14 +44,14 @@ export const useExceedingLimits = () => {
 
   // Get products and get default limits for community plan
   useWhenStripeIsEnabled(() => {
-    getAccountLimits().then((limits) => {
+    getAccountLimits(productsContext.products).then((limits) => {
       setSubscribedSubmissionLimit(limits.submission_limit);
       setSubscribedStorageLimit(limits.storage_bytes_limit);
       setTranscriptionMinutes(Number(limits.nlp_seconds_limit));
       setTranslationChars(Number(limits.nlp_character_limit));
       setAreLimitsLoaded(true);
     });
-  }, []);
+  }, [productsContext.products]);
 
   // Get subscription data
   useWhenStripeIsEnabled(

@@ -68,7 +68,7 @@ export function useUsage() {
           ...prevState,
           storage: data.total_storage_bytes,
           submissions:
-            data.total_submission_count[`current_${usage.trackingPeriod}`],
+            10000,
           transcriptionMinutes: Math.floor(
             truncateNumber(
               data.total_nlp_usage[
