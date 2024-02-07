@@ -780,7 +780,7 @@ class ObjectPermissionMixin:
 
     @staticmethod
     @cache_for_request
-    def __get_all_user_permissions(user_id: int, asset_ids: list = []) -> dict:
+    def __get_all_user_permissions(user_id: int, asset_ids: list = None) -> dict:
         """
         Retrieves all object permissions and builds a dict with object ids as keys.
         Useful to retrieve permissions (thanks to `@cache_for_request`)
