@@ -411,6 +411,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def update(self, asset, validated_data):
         request = self.context['request']
         user = request.user
+
+        self._set_asset_ids_cache(asset)
+
         if (
             not asset.has_perm(user, PERM_CHANGE_ASSET)
             and user_has_project_view_asset_perm(asset, user, PERM_CHANGE_METADATA_ASSET)
@@ -596,6 +599,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         # `has_perm` benefits from internal calls which use
         # `django_cache_request`. It won't hit DB multiple times
+
+        self._set_asset_ids_cache(obj)
+
         if obj.has_perm(user, PERM_VIEW_SUBMISSIONS):
             return obj.deployment.submission_count
 
@@ -656,6 +662,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         context = self.context
         request = self.context.get('request')
 
+        self._set_asset_ids_cache(obj)
+
         queryset = get_user_permission_assignments_queryset(obj, request.user)
         # Need to pass `asset` and `asset_uid` to context of
         # AssetPermissionAssignmentSerializer serializer to avoid extra queries
@@ -663,9 +671,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         context['asset'] = obj
         context['asset_uid'] = obj.uid
 
-        return AssetPermissionAssignmentSerializer(queryset.all(),
-                                                   many=True, read_only=True,
-                                                   context=context).data
+        return AssetPermissionAssignmentSerializer(
+            queryset.all(), many=True, read_only=True, context=context
+        ).data
 
     def get_exports(self, obj: Asset) -> str:
         return reverse(
@@ -882,6 +890,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
             return ASSET_STATUS_SHARED
 
+    def _set_asset_ids_cache(self, asset):
+        """
+        Set an attribute on the `asset` object for performance purposes
+        so that `ObjectPermissionMixin.__get_object_permissions()` can restrict
+        the number of objects it retrieves when calling `__get_all_user_permissions()`
+        """
+        try:
+            asset_ids = self.context['asset_ids_cache']
+        except KeyError:
+            asset_ids = [asset.pk]
+
+        setattr(asset, 'asset_ids_cache', asset_ids)
+
     def _table_url(self, obj):
         request = self.context.get('request', None)
         return reverse('asset-table-view',
@@ -930,7 +951,8 @@ class AssetListSerializer(AssetSerializer):
     def get_permissions(self, asset):
         try:
             asset_permission_assignments = self.context[
-                'object_permissions_per_asset'].get(asset.pk)
+                'object_permissions_per_asset'
+            ].get(asset.pk)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should
@@ -946,12 +968,14 @@ class AssetListSerializer(AssetSerializer):
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
+        self._set_asset_ids_cache(asset)
+
         user_assignments = get_user_permission_assignments(
             asset, request.user, asset_permission_assignments
         )
-        return AssetPermissionAssignmentSerializer(user_assignments,
-                                                   many=True, read_only=True,
-                                                   context=context).data
+        return AssetPermissionAssignmentSerializer(
+            user_assignments, many=True, read_only=True, context=context
+        ).data
 
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
@@ -1058,10 +1082,12 @@ class AssetMetadataListSerializer(AssetListSerializer):
         request = self.context['request']
         return request.parser_context['kwargs']['uid']
 
+    # FIXME Remove this method, seems to not be used anywhere
     @cache_for_request
     def _user_has_asset_perms(self, obj: Asset, perm: str) -> bool:
         request = self.context.get('request')
         user = get_database_user(request.user)
+        self._set_asset_ids_cache(obj)
         if obj.owner == user or obj.has_perm(user, perm):
             return True
         return False
