@@ -1,9 +1,8 @@
 from io import BytesIO
 
 import openpyxl
-from xlutils.copy import copy
-from xlrd import open_workbook
-
+import xlrd
+import xlutils.copy
 
 class NoFromSheetError(Exception):
     pass
@@ -22,17 +21,17 @@ def rename_xls_sheet(
     sheet names in pyxform inputs;
     see https://github.com/XLSForm/pyxform/issues/229.
     """
-    readable = open_workbook(file_contents=xls_stream.read())
-    writable = copy(readable)
-    sheet_names = readable.sheet_names()
+    read_only_book = xlrd.open_workbook(file_contents=xls_stream.read())
+    book = xlutils.copy.copy(read_only_book)
+    sheet_names = read_only_book.sheet_names()
     if from_sheet in sheet_names and to_sheet in sheet_names:
         raise ConflictSheetError()
     if from_sheet not in sheet_names:
         raise NoFromSheetError(from_sheet)
     index = sheet_names.index(from_sheet)
-    writable.get_sheet(index).name = to_sheet
+    book.get_sheet(index).name = to_sheet
     stream = BytesIO()
-    writable.save(stream)
+    book.save(stream)
     stream.seek(0)
     return stream
 
@@ -48,6 +47,6 @@ def rename_xlsx_sheet(
         raise NoFromSheetError(from_sheet)
     book[from_sheet].title = to_sheet
     stream = BytesIO()
-    writable.save(stream)
+    book.save(stream)
     stream.seek(0)
     return stream

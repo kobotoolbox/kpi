@@ -3,7 +3,7 @@ import LimitModal from 'js/components/usageLimits/overLimitModal.component';
 import React, {useContext, useState} from 'react';
 import {Cookies} from 'react-cookie';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {UsageContext} from 'js/account/useUsage.hook';
+import {UsageContext} from 'js/account/usage/useUsage.hook';
 import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
 
 const cookies = new Cookies();

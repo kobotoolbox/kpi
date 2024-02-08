@@ -14,12 +14,7 @@ def run_on_asset(asset):
     )
 
     if asset.has_advanced_features:
-        extr = dict(
-            asset.submission_extras.values_list(
-                'submission_uuid', 'content'
-            )
-        )
-        submission_stream = stream_with_extras(submission_stream, extr)
+        submission_stream = stream_with_extras(submission_stream, asset)
 
     pack, submission_stream = build_formpack(
         asset, submission_stream, True,

@@ -591,6 +591,9 @@ export const FUSE_OPTIONS = {
   ignoreLocation: true,
 };
 
+export const DND_TYPES = {
+  ANALYSIS_QUESTION: 'qualitative-analysis-question-row',
+};
 /*
   Stripe Subscription statuses that are shown as active in the UI.
   Subscriptions with a status in this array will show an option to 'Manage'.
@@ -637,5 +640,7 @@ const constants = {
   FUNCTION_TYPE,
   USAGE_WARNING_RATIO,
 };
+
+export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 export default constants;
