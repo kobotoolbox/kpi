@@ -223,6 +223,7 @@ class AssetNestedObjectPermission(
 
         if has_perm:
             # Access granted!
+            print(f'!!!! {user} is allowed !!!! ', flush=True)
             return True
 
         if not has_perm and can_view:

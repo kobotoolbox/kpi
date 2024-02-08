@@ -88,6 +88,7 @@ class EnketoSessionAuthentication(SessionAuthentication):
             request.META[settings.CSRF_HEADER_NAME] = enketo_post_data_token
             request.COOKIES[settings.CSRF_COOKIE_NAME] = enketo_cookie_token
 
+        print('EnketoSessionAuthentication', super().enforce_csrf(request, *args, **kwargs), flush=True)
         return super().enforce_csrf(request, *args, **kwargs)
 
     @staticmethod

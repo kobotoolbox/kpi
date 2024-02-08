@@ -227,8 +227,9 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             return self.get_response_for_head_request()
 
         asset_snapshot = self.get_object()
-
+        print('SUBMISSION 1', flush=True)
         xml_submission_file = request.data['xml_submission_file']
+        print('SUBMISSION 2', flush=True)
 
         # Prepare attachments even if all files are present in `request.FILES`
         # (i.e.: submission XML and attachments)
@@ -239,16 +240,19 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             attachments = {}
             for name, attachment in request.FILES.items():
                 attachments[name] = attachment
-
+        print('SUBMISSION 3', flush=True)
         try:
             xml_response = asset_snapshot.asset.deployment.edit_submission(
                 xml_submission_file, request.user, attachments
             )
+            print('SUBMISSION 4', flush=True)
         except SubmissionIntegrityError as e:
             raise serializers.ValidationError(str(e))
 
+        print('SUBMISSION 5', flush=True)
         # Add OpenRosa headers to response
         xml_response['headers'].update(self.get_headers())
+        print('SUBMISSION 6', flush=True)
         return Response(**xml_response)
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])

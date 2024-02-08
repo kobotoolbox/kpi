@@ -581,10 +581,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if attachments:
             files.update(attachments)
 
+        print('POST EDIT TO KOBOCAT', self.submission_url, flush=True)
+
         kc_request = requests.Request(
             method='POST', url=self.submission_url, files=files
         )
         kc_response = self.__kobocat_proxy_request(kc_request, user)
+        print('POSTED', flush=True)
         return self.__prepare_as_drf_response_signature(
             kc_response, expected_response_format='xml'
         )
