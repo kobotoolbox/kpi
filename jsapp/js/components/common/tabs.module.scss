@@ -27,6 +27,10 @@
     border-bottom-color: colors.$kobo-white;
     border-radius: 7px 7px 0 0;
   }
+
+  &.focus {
+    border: sizes.$x1 solid colors.$kobo-blue;
+  }
 }
 
 button {

@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import styles from './tabs.module.scss';
+import cx from 'classnames';
 
 interface Tab {
   label: string;
@@ -14,21 +15,29 @@ export interface TabsProps {
 
 export default function Tabs({tabs, selectedTab, onChange}: TabsProps) {
   const [activeTab, setActiveTab] = useState(selectedTab);
+  const [focus, setFocus] = useState(false);
 
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === 'Tab') {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault();
 
       const currentIndex = tabs.findIndex((tab) => tab.route === activeTab);
-
-      const nextIndex = (currentIndex + 1) % tabs.length;
+      const offset = event.key === 'ArrowRight' ? 1 : tabs.length - 1;
+      const nextIndex = (currentIndex + offset) % tabs.length;
 
       setActiveTab(tabs[nextIndex].route);
       onChange(tabs[nextIndex].route);
+      setFocus(true);
     }
   };
 
+  const handleTabBlur = () => {
+    setFocus(false);
+  };
+
   const renderTab = (tab: Tab) => {
+    const isActiveTab = activeTab === tab.route;
+
     return {
       key: tab.route,
       onClick: () => {
@@ -37,11 +46,13 @@ export default function Tabs({tabs, selectedTab, onChange}: TabsProps) {
       },
       onKeyDown: (event: React.KeyboardEvent<HTMLButtonElement>) =>
         handleTabKeyDown(event),
-      className: `${styles.tab} ${
-        activeTab === tab.route ? styles.active : ''
-      }`,
-      'aria-selected': activeTab === tab.route,
-      tabIndex: activeTab === tab.route ? 0 : 1,
+      onBlur: handleTabBlur,
+      className: cx(styles.tab, {
+        [styles.active]: isActiveTab,
+        [styles.focus]: focus && isActiveTab,
+      }),
+      'aria-selected': isActiveTab,
+      tabIndex: isActiveTab ? 0 : -1,
       role: 'tab',
     };
   };
