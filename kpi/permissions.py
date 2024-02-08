@@ -186,6 +186,7 @@ class AssetNestedObjectPermission(
     perms_map['DELETE'] = perms_map['POST']
 
     def has_permission(self, request, view):
+
         self.validate_password(request)
         if not request.user:
             return False
@@ -201,7 +202,6 @@ class AssetNestedObjectPermission(
         try:
             required_permissions = self.get_required_permissions(request.method)
         except exceptions.MethodNotAllowed as e:
-
             logging.error(f'##### {request.method} not allowed')
             print(f'KEY ERROR {request.method}', flush=True)
             logging.error(f'##### {view} not allowed')
@@ -211,7 +211,7 @@ class AssetNestedObjectPermission(
 
             # Only reveal the HTTP 405 if the user has view access
             if can_view:
-                raise e
+                raise
             else:
                 raise Http404
 
@@ -430,6 +430,12 @@ class EditSubmissionPermission(EditLinkSubmissionPermission):
 
     def has_permission(self, request, view):
         try:
+            logging.error(f'Method: {request.method}')
+            print(f'Method: {request.method}', flush=True)
+            logging.error(f'request.user: {request.user} not allowed')
+            print(f'request.user: {request.user}', flush=True)
+            logging.error(f'view: {view}')
+            print(f'view: {view}', flush=True)
             return super().has_permission(request, view)
         except Http404:
             # When we receive a 404, we want to force a 401 to let the user
