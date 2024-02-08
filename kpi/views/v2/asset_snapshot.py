@@ -252,7 +252,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         print('SUBMISSION 5', flush=True)
         # Add OpenRosa headers to response
         xml_response['headers'].update(self.get_headers())
-        print('SUBMISSION 6', flush=True)
+        print('SUBMISSION 6', xml_response, flush=True)
         return Response(**xml_response)
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
