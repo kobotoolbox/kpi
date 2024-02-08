@@ -1569,7 +1569,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             }
 
         prepared_drf_response['status'] = requests_response.status_code
-
+        print('KC ERSONSE', requests_response.content, flush=True)
         try:
             prepared_drf_response['data'] = json.loads(
                 requests_response.content)
