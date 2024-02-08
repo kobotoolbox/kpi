@@ -30,7 +30,7 @@ interface LimitState {
 }
 
 export default function Usage() {
-  const productContext = useProducts();
+  const productsContext = useProducts();
   const usage = useUsage();
 
   const [limits, setLimits] = useState<LimitState>({
@@ -45,8 +45,8 @@ export default function Usage() {
   const location = useLocation();
 
   const isFullyLoaded = useMemo(
-    () => usage.isLoaded && productContext.isLoaded && limits.isLoaded,
-    [usage.isLoaded, productContext.isLoaded, limits.isLoaded]
+    () => usage.isLoaded && productsContext.isLoaded && limits.isLoaded,
+    [usage.isLoaded, productsContext.isLoaded, limits.isLoaded]
   );
 
   const dateRange = useMemo(() => {
@@ -78,7 +78,7 @@ export default function Usage() {
       await when(() => envStore.isReady);
       let limits: AccountLimit;
       if (envStore.data.stripe_public_key) {
-        limits = await getAccountLimits(productContext.products);
+        limits = await getAccountLimits(productsContext.products);
       } else {
         setLimits((prevState) => {
           return {
@@ -106,7 +106,7 @@ export default function Usage() {
     };
 
     getLimits();
-  }, [productContext.isLoaded]);
+  }, [productsContext.isLoaded]);
 
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
   useWhenStripeIsEnabled(() => {
@@ -119,7 +119,7 @@ export default function Usage() {
 
   return (
     <UsageContext.Provider value={usage}>
-      <ProductsContext.Provider value={productContext}>
+      <ProductsContext.Provider value={productsContext}>
         <div className={styles.root}>
           <LimitNotifications accountPage />
           <header className={styles.header}>
