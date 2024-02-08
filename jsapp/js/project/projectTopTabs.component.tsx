@@ -31,14 +31,6 @@ export default function ProjectTopTabs() {
     assetStore.whenLoaded(assetUid, setAsset);
   }, []);
 
-  const isDataTabEnabled =
-    asset?.deployment__identifier != undefined &&
-    asset?.has_deployment &&
-    (asset?.deployment__submission_count === null ||
-      asset?.deployment__submission_count > 0) &&
-    (userCan('view_submissions', asset) ||
-      userCanPartially('view_submissions', asset));
-
   const isSettingsTabEnabled =
     sessionStore.isLoggedIn &&
     (userCan('change_asset', asset) || userCan('change_metadata_asset', asset));
@@ -77,7 +69,6 @@ export default function ProjectTopTabs() {
           onClick={() => navigate(ROUTES.FORM_DATA.replace(':uid', assetUid))}
           className={classnames({
             [styles.tab]: true,
-            [styles.disabled]: !isDataTabEnabled,
             [styles.active]: isAnyFormDataRoute(assetUid),
           })}
         >

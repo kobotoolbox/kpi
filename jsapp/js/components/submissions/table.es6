@@ -289,7 +289,18 @@ export class DataTable extends React.Component {
 
   onGetSubmissionsFailed(error) {
     if (error?.responseText) {
-      this.setState({error: error.responseText, loading: false});
+      let displayedError;
+      try {
+        displayedError = JSON.parse(error.responseText);
+      } catch {
+        displayedError = error.responseText;
+      }
+
+      if (displayedError.detail) {
+        this.setState({error: displayedError.detail, loading: false});
+      } else {
+        this.setState({error: displayedError, loading: false});
+      }
     } else if (error?.statusText) {
       this.setState({error: error.statusText, loading: false});
     } else {
@@ -810,7 +821,11 @@ export class DataTable extends React.Component {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = getMediaAttachment(row.original, row.value, q.$xpath);
+                mediaAttachment = getMediaAttachment(
+                  row.original,
+                  row.value,
+                  q.$xpath
+                );
               }
 
               if (
