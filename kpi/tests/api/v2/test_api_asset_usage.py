@@ -65,15 +65,15 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
 
         submission1 = {
             '__version__': v_uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             'q2': 'audio_conversion_test_image.jpg',
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
                     'id': 3,
-                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.mp4',
-                    'filename': 'anotheruser/audio_conversion_test_clip.mp4',
-                    'mimetype': 'video/mp4',
+                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',
+                    'filename': 'anotheruser/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
                 },
                 {
                     'id': 4,
@@ -86,15 +86,15 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         }
         submission2 = {
             '__version__': v_uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             'q2': 'audio_conversion_test_image.jpg',
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
                     'id': 5,
-                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.mp4',
-                    'filename': 'anotheruser/audio_conversion_test_clip.mp4',
-                    'mimetype': 'video/mp4',
+                    'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',
+                    'filename': 'anotheruser/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
                 },
                 {
                     'id': 6,
@@ -136,7 +136,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         Calculate the expected combined file size for the test audio clip and image
         """
         return os.path.getsize(
-            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.mp4'
+            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.3gp'
         ) + os.path.getsize(settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg')
 
     def test_anonymous_user(self):
@@ -147,7 +147,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         url = reverse(self._get_endpoint('asset-usage-list'))
         response = self.client.get(url)
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_check_api_response(self):
         """
@@ -167,7 +167,14 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_mt_characters'] == 5473
         assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_asr_seconds'] == 4728
         assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_mt_characters'] == 6726
-        assert response.data['results'][0]['storage_bytes'] == 21514156
+        assert (
+            response.data['results'][0]['storage_bytes']
+            == (
+                182255  # audio_conversion_test_clip.3gp
+                + 9387  # audio_conversion_test_image.jpg
+            )
+            * 2  # __add_submissions() adds 2 submissions
+        )
         assert response.data['results'][0]['submission_count_current_month'] == 2
         assert response.data['results'][0]['submission_count_all_time'] == 2
 

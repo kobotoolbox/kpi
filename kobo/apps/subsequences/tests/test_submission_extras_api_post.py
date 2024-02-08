@@ -84,7 +84,7 @@ class ValidateSubmissionTest(APITestCase):
         summ = tx_instance.compile_revised_record({}, edits=first_post)
         assert summ['q1']['translation']['tx1']['value'] == 'VAL1'
         assert len(summ['q1']['translation']['tx1']['revisions']) == 0
-        summ1 = deepcopy(summ)
+
         second_post = {
             'q1': {
                 'translation': {
@@ -94,6 +94,14 @@ class ValidateSubmissionTest(APITestCase):
                 }
             }
         }
+        summ1 = tx_instance.compile_revised_record(
+            deepcopy(summ), edits=second_post
+        )
+        assert summ1['q1']['translation']['tx1']['value'] == 'VAL2'
+        assert len(summ1['q1']['translation']['tx1']['revisions']) == 1
+        assert (
+            summ1['q1']['translation']['tx1']['revisions'][0]['value'] == 'VAL1'
+        )
 
     def test_transx_requires_change_asset_permission(self):
         """
@@ -399,13 +407,13 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         submission_id = 'abc123-def456'
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             '_uuid': submission_id,
             '_attachments': [
                 {
                     'id': 1,
-                    'filename': 'someuser/audio_conversion_test_clip.mp4',
-                    'mimetype': 'video/mp4',
+                    'filename': 'someuser/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
                 },
             ],
             '_submitted_by': self.user.username
@@ -436,7 +444,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         cache.set(make_async_cache_key(self.user.pk, submission_id, xpath, source), operation_name)
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             '_uuid': submission_id,
             '_attachments': [],
             '_submitted_by': self.user.username
@@ -457,7 +465,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         submission_id = 'abc123-def456'
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             '_uuid': submission_id,
             '_attachments': [],
             '_submitted_by': self.user.username

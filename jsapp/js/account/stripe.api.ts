@@ -1,83 +1,18 @@
 import {when} from 'mobx';
-import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
 import {fetchGet, fetchPost} from 'jsapp/js/api';
-
-export interface BaseProduct {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  metadata: {[key: string]: string};
-}
-
-export type RecurringInterval = 'year' | 'month';
-
-export interface BasePrice {
-  id: string;
-  nickname: string;
-  currency: string;
-  type: string;
-  unit_amount: number;
-  human_readable_price: string;
-  recurring?: {
-    interval: RecurringInterval;
-    aggregate_usage: string;
-    interval_count: number;
-    usage_type: 'metered' | 'licensed';
-  };
-  metadata: {[key: string]: string};
-  product: BaseProduct;
-}
-
-export interface BaseSubscription {
-  id: number;
-  price: Product;
-  status: string;
-  items: [{price: BasePrice}];
-}
-
-export interface Organization {
-  id: string;
-  name: string;
-  is_active: boolean;
-  created: string;
-  modified: string;
-  slug: string;
-}
-
-enum Limits {
-  'unlimited' = 'unlimited',
-}
-
-type LimitAmount = number | Limits.unlimited;
-
-export interface AccountLimit {
-  submission_limit: LimitAmount;
-  nlp_seconds_limit: LimitAmount;
-  nlp_character_limit: LimitAmount;
-  storage_bytes_limit: LimitAmount;
-}
-
-export interface Product extends BaseProduct {
-  prices: BasePrice[];
-}
-
-export interface Price extends BaseProduct {
-  prices: BasePrice;
-}
-
-export interface Checkout {
-  url: string;
-}
-
-export interface Portal {
-  url: string;
-}
+import type {
+  AccountLimit,
+  ChangePlan,
+  Checkout,
+  Organization,
+  Product,
+} from 'js/account/stripe.types';
+import {Limits} from 'js/account/stripe.types';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -87,17 +22,29 @@ const DEFAULT_LIMITS: AccountLimit = Object.freeze({
 });
 
 export async function getProducts() {
-  return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL);
+  return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL, {
+    errorMessageDisplay: t('There was an error getting the list of plans.'),
+  });
 }
 
-export async function getSubscription() {
-  return fetchGet<PaginatedResponse<BaseSubscription>>(
-    endpoints.SUBSCRIPTION_URL
+export async function changeSubscription(
+  priceId: string,
+  subscriptionId: string
+) {
+  return fetchGet<ChangePlan>(
+    `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}`,
+    {
+      errorMessageDisplay: t(
+        "We couldn't make the requested change to your plan.\nYour current plan has not been changed."
+      ),
+    }
   );
 }
 
 export async function getOrganization() {
-  return fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL);
+  return fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL, {
+    errorMessageDisplay: t("Couldn't get data for your organization."),
+  });
 }
 
 /**
@@ -106,17 +53,25 @@ export async function getOrganization() {
 export async function postCheckout(priceId: string, organizationId: string) {
   return fetchPost<Checkout>(
     `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}`,
-    {}
+    {},
+    {
+      errorMessageDisplay:
+        'There was an error creating the checkout session. Please try again later.',
+    }
   );
 }
 
 /**
  * Get the URL of the Stripe customer portal for an organization.
  */
-export async function postCustomerPortal(organizationId: string) {
-  return fetchPost<Portal>(
-    `${endpoints.PORTAL_URL}?organization_id=${organizationId}`,
-    {}
+export async function postCustomerPortal(organizationId: string, priceId?: string) {
+  return fetchPost<Checkout>(
+    `${endpoints.PORTAL_URL}?organization_id=${organizationId}&price_id=${priceId || ''}`,
+    {},
+    {
+      errorMessageDisplay:
+        'There was an error sending you to the billing portal. Please try again later.',
+    }
   );
 }
 
@@ -131,7 +86,7 @@ export async function getSubscriptionInterval() {
       subscriptionStore.fetchSubscriptionInfo();
     }
     await when(() => subscriptionStore.isInitialised);
-    const subscriptionList: SubscriptionInfo[] = subscriptionStore.planResponse;
+    const subscriptionList = subscriptionStore.planResponse;
     const activeSubscription = subscriptionList.find((sub) =>
       ACTIVE_STRIPE_STATUSES.includes(sub.status)
     );
@@ -245,7 +200,7 @@ const getStripeMetadataAndFreeTierStatus = async () => {
       const products = await getProducts();
       const freeProduct = products.results.filter((product) =>
         product.prices.filter(
-          (price: BasePrice) =>
+          (price) =>
             price.unit_amount === 0 && price.recurring?.interval === 'month'
         )
       )[0];

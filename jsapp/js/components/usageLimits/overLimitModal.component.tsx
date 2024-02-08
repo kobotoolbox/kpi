@@ -47,9 +47,9 @@ function OverLimitModal(props: OverLimitModalProps) {
 
         <KoboModalContent>
           <div>
-            <p>
+            <div className={styles.messageGreeting}>
               {t('Dear')} {accountName},
-            </p>
+            </div>
             <div>
               {t('You have reached the')}{' '}
               {props.limits.map((limit, i) => (

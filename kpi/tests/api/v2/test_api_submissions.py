@@ -1,5 +1,8 @@
 # coding: utf-8
+import copy
 import json
+import lxml
+import mock
 import random
 import string
 import time
@@ -12,6 +15,7 @@ except ImportError:
 
 import pytest
 import responses
+from dict2xml import dict2xml
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -38,6 +42,7 @@ from kpi.utils.object_permission import get_anonymous_user
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
     enketo_edit_instance_response_with_root_name_validation,
+    enketo_edit_instance_response_with_uuid_validation,
     enketo_view_instance_response,
 )
 
@@ -1243,6 +1248,94 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             submission_uuid=f"uuid:{self.submission['_uuid']}"
         )
         assert new_snapshot.pk != snapshot.pk
+
+    @responses.activate
+    def test_edit_submission_with_xml_encoding_declaration(self):
+        def dict2xml_with_encoding_declaration(*args, **kwargs):
+            return '<?xml version="1.0" encoding="utf-8"?>' + dict2xml(
+                *args, **kwargs
+            )
+
+        with mock.patch(
+            'kpi.deployment_backends.mock_backend.dict2xml'
+        ) as mock_dict2xml:
+            mock_dict2xml.side_effect = dict2xml_with_encoding_declaration
+            submission = self.submissions[-1]
+            submission_xml = self.asset.deployment.get_submissions(
+                user=self.asset.owner,
+                format_type=SUBMISSION_FORMAT_TYPE_XML,
+                submission_ids=[submission['_id']],
+            )[0]
+            assert submission_xml.startswith(
+                '<?xml version="1.0" encoding="utf-8"?>'
+            )
+
+            # Get edit endpoint
+            edit_url = reverse(
+                self._get_endpoint('submission-enketo-edit'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'pk': submission['_id'],
+                },
+            )
+
+            # Set up a mock Enketo response and attempt the edit request
+            ee_url = f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+            responses.add_callback(
+                responses.POST,
+                ee_url,
+                callback=enketo_edit_instance_response_with_uuid_validation,
+                content_type='application/json',
+            )
+            response = self.client.get(edit_url, {'format': 'json'})
+            assert response.status_code == status.HTTP_200_OK
+
+    @responses.activate
+    def test_edit_submission_with_xml_missing_uuids(self):
+        # Make a new submission without UUIDs
+        submission = copy.deepcopy(self.submissions[-1])
+        submission['_id'] += 1
+        del submission['meta/instanceID']
+        submission['find_this'] = 'hello!'
+        # The form UUID is already omitted by these tests, but fail if that
+        # changes in the future
+        assert 'formhub/uuid' not in submission.keys()
+        self.asset.deployment.mock_submissions([submission])
+
+        # Find and verify the new submission
+        submission_xml = self.asset.deployment.get_submissions(
+            user=self.asset.owner,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            find_this='hello!',
+        )[0]
+        submission_xml_root = lxml.etree.fromstring(submission_xml)
+        submission_id = int(submission_xml_root.find('./_id').text)
+        assert submission_id == submission['_id']
+        assert submission_xml_root.find('./find_this').text == 'hello!'
+        assert submission_xml_root.find('./meta/instanceID') is None
+        assert submission_xml_root.find('./formhub/uuid') is None
+
+        # Get edit endpoint
+        edit_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission_id,
+            },
+        )
+
+        # Set up a mock Enketo response and attempt the edit request
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        responses.add_callback(
+            responses.POST,
+            ee_url,
+            callback=enketo_edit_instance_response_with_uuid_validation,
+            content_type='application/json',
+        )
+        response = self.client.get(edit_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
 
     @responses.activate
     def test_get_edit_link_submission_with_latest_asset_deployment(self):

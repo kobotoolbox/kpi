@@ -1,3 +1,5 @@
+# Formatters are optional, this configuration attempts to make as many
+# tools "just work" in a way compatible with kobo code standards
 [tool.black]
 # Do not enable `verbose = true` unless Black changes their behavior to respect
 # `--quiet` on the command line properly
@@ -8,3 +10,41 @@ skip-string-normalization = true
 profile = "black"
 known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
+
+[tool.ruff]
+line-length = 80
+[tool.ruff.format]
+quote-style = "single"  # Preserve is coming soon to ruff
+[tool.ruff.lint]
+# Enable ruff isort
+extend-select = ["I"]
+[tool.ruff.lint.isort]
+known-first-party = ["kobo"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    'kobo',
+    'kpi',
+    'hub',
+]
+env = [
+    'DJANGO_SETTINGS_MODULE=kobo.settings.testing',
+]
+addopts = [
+    '-m not performance',
+]
+markers = [
+    "performance: marks test for performance that may unexpectedly fail on slower platforms (not executed by default - select with '-m \"performance\"')",
+]
+
+# Types are not enforced but are a good practice
+[tool.mypy]
+# Exclude virtual environment projects that cause mypy to error
+exclude = [
+    "src/django-digest",
+    "src/formpack",
+    "src/kobo-service-account",
+    "src/python-digest",
+]
+[tool.django-stubs]
+django_settings_module = "kobo.settings"
