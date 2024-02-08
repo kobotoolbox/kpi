@@ -22,6 +22,7 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
 )
+from kpi.utils.log import logging
 
 
 # FIXME: Move to `object_permissions` module.
@@ -109,6 +110,8 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         try:
             perm_list = self.perms_map[method]
         except KeyError:
+            logging.error(f'##### {method} not allowed')
+            print(f'KEY ERROR {method}', flush=True)
             raise exceptions.MethodNotAllowed(method)
 
         perms = [perm % kwargs for perm in perm_list]
@@ -198,6 +201,14 @@ class AssetNestedObjectPermission(
         try:
             required_permissions = self.get_required_permissions(request.method)
         except exceptions.MethodNotAllowed as e:
+
+            logging.error(f'##### {request.method} not allowed')
+            print(f'KEY ERROR {request.method}', flush=True)
+            logging.error(f'##### {view} not allowed')
+            print(f'KEY ERROR {view}', flush=True)
+            logging.error(f'##### {user} not allowed')
+            print(f'KEY ERROR {user}', flush=True)
+
             # Only reveal the HTTP 405 if the user has view access
             if can_view:
                 raise e
