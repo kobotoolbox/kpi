@@ -9,11 +9,7 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import {
-  getOrganization,
-  postCheckout,
-  postCustomerPortal,
-} from '../stripe.api';
+import {getOrganization, postCheckout, postCustomerPortal} from '../stripe.api';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -54,12 +50,12 @@ export interface PlanState {
 }
 
 interface PlanProps {
-  addOnsOnly: boolean
+  showAddOns?: boolean;
 }
 
 // An interface for our action
 type DataUpdates =
-  {
+  | {
       type: 'initialSub';
       prodData: SubscriptionInfo[];
     }
@@ -138,7 +134,11 @@ export default function Plan(props: PlanProps) {
 
   const isDataLoading = useMemo(
     (): boolean =>
-      !(productsContext.isLoaded && state.organization && state.subscribedProduct),
+      !(
+        productsContext.isLoaded &&
+        state.organization &&
+        state.subscribedProduct
+      ),
     [productsContext.isLoaded, state.organization, state.subscribedProduct]
   );
 
@@ -316,26 +316,28 @@ export default function Plan(props: PlanProps) {
   // An array of all the prices that should be displayed in the UI
   const filterPrices = useMemo((): Price[] => {
     if (productsContext.products.length) {
-      const filterAmount = productsContext.products.map((product: Product): Price => {
-        const filteredPrices = product.prices.filter((price: BasePrice) => {
-          const interval = price.recurring?.interval;
-          return (
-            // only show monthly/annual plans based on toggle value
-            interval === state.intervalFilter &&
-            // don't show recurring add-ons
-            product.metadata.product_type === 'plan' &&
-            // only show products that don't have a `plan_type` or those that match the `?type=` query param
-            (visiblePlanTypes.includes(product.metadata?.plan_type || '') ||
-              (!product.metadata?.plan_type &&
-                visiblePlanTypes.includes('default')))
-          );
-        });
+      const filterAmount = productsContext.products.map(
+        (product: Product): Price => {
+          const filteredPrices = product.prices.filter((price: BasePrice) => {
+            const interval = price.recurring?.interval;
+            return (
+              // only show monthly/annual plans based on toggle value
+              interval === state.intervalFilter &&
+              // don't show recurring add-ons
+              product.metadata.product_type === 'plan' &&
+              // only show products that don't have a `plan_type` or those that match the `?type=` query param
+              (visiblePlanTypes.includes(product.metadata?.plan_type || '') ||
+                (!product.metadata?.plan_type &&
+                  visiblePlanTypes.includes('default')))
+            );
+          });
 
-        return {
-          ...product,
-          prices: filteredPrices[0],
-        };
-      });
+          return {
+            ...product,
+            prices: filteredPrices[0],
+          };
+        }
+      );
 
       return filterAmount.filter((price) => price.prices);
     }
@@ -451,9 +453,10 @@ export default function Plan(props: PlanProps) {
             className={classnames(styles.accountPlan, {
               [styles.wait]: isBusy,
               [styles.unauthorized]: isUnauthorized,
+              [styles.showAddOns]: props.showAddOns,
             })}
           >
-            {!props.addOnsOnly && (
+            {!props.showAddOns && (
               <>
                 <div className={styles.plansSection}>
                   <form className={styles.intervalToggle}>
@@ -567,7 +570,7 @@ export default function Plan(props: PlanProps) {
                 )}
               </>
             )}
-            {shouldShowExtras && (
+            {shouldShowExtras && props.showAddOns && (
               <AddOnList
                 isBusy={isBusy}
                 setIsBusy={setIsBusy}
