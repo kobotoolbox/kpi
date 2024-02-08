@@ -195,7 +195,7 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
 /**
  * Get all metadata keys for the logged-in user's plan, or from the free tier if they have no plan.
  */
-const getStripeMetadataAndFreeTierStatus = async (products: Product[] = []) => {
+const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
   await when(() => subscriptionStore.isInitialised);
   const plans = [...subscriptionStore.planResponse];
   // only use metadata for active subscriptions
@@ -244,7 +244,7 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[] = []) => {
  *  - the `FREE_TIER_THRESHOLDS` override
  *  - the user's subscription limits
  */
-export async function getAccountLimits(products: Product[] = []) {
+export async function getAccountLimits(products: Product[]) {
   const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus(products);
 
   // initialize to unlimited

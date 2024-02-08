@@ -45,8 +45,8 @@ export default function Usage() {
   const location = useLocation();
 
   const isFullyLoaded = useMemo(
-    () => usage.isLoaded && limits.isLoaded,
-    [usage.isLoaded, limits.isLoaded]
+    () => usage.isLoaded && productContext.isLoaded && limits.isLoaded,
+    [usage.isLoaded, productContext.isLoaded, limits.isLoaded]
   );
 
   const dateRange = useMemo(() => {
@@ -78,7 +78,7 @@ export default function Usage() {
       await when(() => envStore.isReady);
       let limits: AccountLimit;
       if (envStore.data.stripe_public_key) {
-        limits = await getAccountLimits();
+        limits = await getAccountLimits(productContext.products);
       } else {
         setLimits((prevState) => {
           return {
@@ -106,7 +106,7 @@ export default function Usage() {
     };
 
     getLimits();
-  }, []);
+  }, [productContext.isLoaded]);
 
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
   useWhenStripeIsEnabled(() => {
