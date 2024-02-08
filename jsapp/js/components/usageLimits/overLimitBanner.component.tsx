@@ -10,7 +10,7 @@ interface OverLimitBannerProps {
   warning?: boolean;
   limits: string[];
   interval: string;
-  usagePage: boolean;
+  accountPage: boolean;
 }
 
 const OverLimitBanner = (props: OverLimitBannerProps) => {
@@ -22,7 +22,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     <div
       className={cx(styles.limitBannerContainer, {
         [styles.warningBanner]: props.warning,
-        [styles.usagePage]: props.usagePage
+        [styles.usagePage]: props.accountPage
       })}
     >
       <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'red'} />
@@ -46,7 +46,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         {t('Please')}{' '}
         {props.warning && (
           <>
-            {!props.usagePage && (
+            {!props.accountPage && (
               <>
                 <a
                   href={`#${ACCOUNT_ROUTES.USAGE}`}
@@ -60,7 +60,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
             <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.bannerLink}>
               {t('upgrade your plan')}
             </a>{' '}
-            {props.usagePage ? t('as soon as possible') : t('if needed')}
+            {props.accountPage ? t('as soon as possible') : t('if needed')}
           </>
         )}
         {!props.warning && (
@@ -77,7 +77,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
               {'contact us'}
             </a>
             {' to speak with our team'}
-            {!props.usagePage && (
+            {!props.accountPage && (
               <>
                 {'. '}
                 <a
@@ -92,7 +92,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         )}
         {'.'}
       </div>
-      {props.warning && !props.usagePage && (
+      {props.warning && !props.accountPage && (
         <Button
           type={'frame'}
           color={'dark-blue'}
@@ -104,7 +104,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           classNames={[styles.bannerBtn]}
         />
       )}
-      {(!props.warning || props.usagePage) && (
+      {(!props.warning || props.accountPage) && (
         <Button
           type={'frame'}
           color={'dark-blue'}

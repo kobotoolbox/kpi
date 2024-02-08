@@ -14,7 +14,7 @@ export default function addOns() {
     <div className={styles.root}>
       <UsageContext.Provider value={usage}>
         <ProductsContext.Provider value={products}>
-          <LimitNotifications usagePage />
+          <LimitNotifications accountPage />
           <header className={styles.header}>
             <h2 className={styles.headerText}>{t('Your plan')}</h2>
           </header>

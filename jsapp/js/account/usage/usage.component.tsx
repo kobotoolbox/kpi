@@ -121,7 +121,7 @@ export default function Usage() {
     <UsageContext.Provider value={usage}>
       <ProductsContext.Provider value={productContext}>
         <div className={styles.root}>
-          <LimitNotifications usagePage />
+          <LimitNotifications accountPage />
           <header className={styles.header}>
             <h2 className={styles.headerText}>{t('Your usage')}</h2>
             {typeof usage.lastUpdated === 'string' && (
