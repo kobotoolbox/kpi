@@ -43,11 +43,6 @@ interface AccountFieldsEditorProps {
    */
   values: AccountFieldsValues;
   onChange: (fields: AccountFieldsValues) => void;
-  /**
-   * Handles the require authentication checkbox. If not provided, the checkbox
-   * will be displayed.
-   */
-  isRequireAuthDisplayed?: boolean;
 }
 
 /**
@@ -99,9 +94,11 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     if (!value.match(/.\../)) {
       return value;
     } // "dotless". don't change it
-    if (!value.match(/^https?:\/\/.*/)) {
-      value = 'https://' + value; // add missing protocol
+    if (!value.match(/^https?:\/?\/?.*/)) {
+      value = 'http://' + value; // add missing protocol
     }
+    // normalize '://' and trailing slash if URL is valid
+    try {value = new URL(value).toString();} catch (e) {/**/}
     return value;
   };
 
@@ -169,23 +166,6 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
   return (
     <div>
-      <div className={styles.row}>
-        {/* Privacy */}
-        {props.isRequireAuthDisplayed !== false && (
-          <div className={styles.field}>
-            <label className={styles.checkboxLabel}>{t('Privacy')}</label>
-
-            <Checkbox
-              checked={props.values.require_auth}
-              onChange={(isChecked: boolean) =>
-                onAnyFieldChange('require_auth', isChecked)
-              }
-              label={t('Require authentication to see forms and submit data')}
-            />
-          </div>
-        )}
-      </div>
-
       <div className={styles.flexFields}>
         {/* Full name */}
         {isFieldToBeDisplayed('name') && ++count && (

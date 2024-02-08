@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 from collections import defaultdict
 
 from django.db import models
@@ -33,16 +35,21 @@ class AssetUserPartialPermission(models.Model):
     class Meta:
         unique_together = [['asset', 'user']]
 
-    asset = models.ForeignKey('Asset', related_name='asset_partial_permissions',
-                              on_delete=models.CASCADE)
-    user = models.ForeignKey('auth.User', related_name='user_partial_permissions',
-                             on_delete=models.CASCADE)
+    asset = models.ForeignKey(
+        'Asset',
+        related_name='asset_partial_permissions',
+        on_delete=models.CASCADE,
+    )
+    user = models.ForeignKey(
+        'auth.User',
+        related_name='user_partial_permissions',
+        on_delete=models.CASCADE,
+    )
     permissions = models.JSONField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
-
         if self.pk is not None:
             self.date_modified = timezone.now()
 
@@ -52,20 +59,16 @@ class AssetUserPartialPermission(models.Model):
     def update_partial_perms_to_include_implied(
         asset: 'kpi.models.Asset', partial_perms: dict
     ) -> dict:
-        new_partial_perms = defaultdict(list)
+        new_partial_perms = defaultdict(list, partial_perms)
         in_op = MongoHelper.IN_OPERATOR
 
         for partial_perm, filters in partial_perms.items():
-
-            if partial_perm not in new_partial_perms:
-                new_partial_perms[partial_perm] = filters
-
             # TODO: omit `add_submissions`? It's required at the asset
             # level for any kind of editing (e.g. partial
             # `change_submissions` requires asset-wide `add_submissions`),
             # but it doesn't make sense to restrict adding submissions
             # "only to those submissions that match some criteria"
-            implied_perms = [
+            implied_perms: list[str] = [
                 implied_perm
                 for implied_perm in asset.get_implied_perms(
                     partial_perm, for_instance=asset
@@ -74,7 +77,6 @@ class AssetUserPartialPermission(models.Model):
             ]
 
             for implied_perm in implied_perms:
-
                 if (
                     implied_perm not in new_partial_perms
                     and implied_perm in partial_perms

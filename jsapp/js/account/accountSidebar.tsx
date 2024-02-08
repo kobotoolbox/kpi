@@ -1,13 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {NavLink} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import bem from 'js/bem';
 import Icon from 'js/components/common/icon';
-import envStore from 'js/envStore';
 import {ACCOUNT_ROUTES} from './routes';
 import {IconName} from 'jsapp/fonts/k-icons';
 import './accountSidebar.scss';
-import {when} from 'mobx';
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 
 interface AccountNavLinkProps {
   iconName: IconName;
@@ -27,18 +26,10 @@ function AccountNavLink(props: AccountNavLinkProps) {
 }
 
 function AccountSidebar() {
-  const [env] = useState(() => envStore);
   const [showPlans, setShowPlans] = useState(false);
 
-  useEffect(() => {
-    const envPromise = when(() => env.isReady);
-    envPromise.then(() => {
-      if (env.data.stripe_public_key != null) {
-        setShowPlans(true);
-      }
-    });
-    // make sure to return a disposal function for when() so we don't cause a memory leak
-    return envPromise.cancel;
+  useWhenStripeIsEnabled(() => {
+    setShowPlans(true);
   }, []);
 
   return (

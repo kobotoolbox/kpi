@@ -219,7 +219,6 @@ export default function TOSForm() {
             errors={fieldsErrors}
             values={fields}
             onChange={onAccountFieldsEditorChange}
-            isRequireAuthDisplayed={false}
           />
         </section>
       )}

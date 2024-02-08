@@ -30,6 +30,8 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
     get_database_user,
     perm_parse,
+    post_assign_perm,
+    post_remove_perm,
 )
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.project_views import (
@@ -539,8 +541,15 @@ class ObjectPermissionMixin:
         if defer_recalc:
             return new_permission
 
-        self._update_partial_permissions(user_obj, perm,
-                                         partial_perms=partial_perms)
+        self._update_partial_permissions(
+            user_obj, perm, partial_perms=partial_perms
+        )
+        post_assign_perm.send(
+            sender=self.__class__,
+            instance=self,
+            user=user_obj,
+            codename=codename,
+        )
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()
@@ -700,6 +709,14 @@ class ObjectPermissionMixin:
             return
 
         self._update_partial_permissions(user_obj, perm, remove=True)
+
+        post_remove_perm.send(
+            sender=self.__class__,
+            instance=self,
+            user=user_obj,
+            codename=codename,
+        )
+
         # Recalculate all descendants
         self.recalculate_descendants_perms()
 
@@ -748,12 +765,9 @@ class ObjectPermissionMixin:
                 ]
             }
         """
-        records = ObjectPermission.objects. \
-            filter(asset_id=object_id). \
-            values('user_id',
-                   'permission_id',
-                   'permission__codename',
-                   'deny')
+        records = ObjectPermission.objects.filter(asset_id=object_id).values(
+            'user_id', 'permission_id', 'permission__codename', 'deny'
+        )
         object_permissions_per_user = defaultdict(list)
         for record in records:
             object_permissions_per_user[record['user_id']].append((
@@ -766,11 +780,13 @@ class ObjectPermissionMixin:
 
     @staticmethod
     @cache_for_request
-    def __get_all_user_permissions(user_id):
+    def __get_all_user_permissions(user_id: int, asset_ids: list = None) -> dict:
         """
-        Retrieves all object permissions and builds an dict with object ids as keys.
+        Retrieves all object permissions and builds a dict with object ids as keys.
         Useful to retrieve permissions (thanks to `@cache_for_request`)
-        for several objects in a row without fetching data from data again & again
+        for several objects in a row without fetching data from data again & again.
+
+        Query can be restricted to a list of asset ids if they are passed.
 
         Because `django_cache_request` creates its keys based on method's arguments,
         it's important to minimize their number to hit the cache as much as possible.
@@ -798,7 +814,11 @@ class ObjectPermissionMixin:
                 ]
             }
         """
-        records = ObjectPermission.objects.filter(user=user_id).values(
+        filters = {'user': user_id}
+        if asset_ids:
+            filters['asset_id__in'] = asset_ids
+
+        records = ObjectPermission.objects.filter(**filters).values(
             'asset_id', 'permission_id', 'permission__codename', 'deny'
         )
         object_permissions_per_object = defaultdict(list)
@@ -843,16 +863,39 @@ class ObjectPermissionMixin:
         if user is not None:
             # Ensuring that the user has at least anonymous permissions if they
             # have been assigned to the asset
-            all_anon_object_permissions = self.__get_all_user_permissions(
-                user_id=settings.ANONYMOUS_USER_ID
-            )
-            perms = build_dict(
-                settings.ANONYMOUS_USER_ID,
-                all_anon_object_permissions.get(self.pk),
-            )
+
+            # To restrict the number of objects to retrieve with
+            # `__get_all_user_permissions()`, check if `self` has
+            # a cached property `asset_ids_cache` (usually set in AssetSerializer)
+            # which contains the list of asset ids fetched in this context.
+            asset_ids_cache = getattr(self, 'asset_ids_cache', [])
+            if asset_ids_cache:
+                all_anon_object_permissions = self.__get_all_user_permissions(
+                    user_id=settings.ANONYMOUS_USER_ID,
+                    asset_ids=asset_ids_cache,
+                )
+
+                perms = build_dict(
+                    settings.ANONYMOUS_USER_ID,
+                    all_anon_object_permissions.get(self.pk),
+                )
+            else:
+                # Otherwise, fetch only the permissions for this particular
+                # object.
+                all_object_permissions = self.__get_all_object_permissions(
+                    object_id=self.pk
+                )
+                all_anon_object_permissions = all_object_permissions.get(
+                    settings.ANONYMOUS_USER_ID, {}
+                )
+                perms = build_dict(
+                    settings.ANONYMOUS_USER_ID, all_anon_object_permissions
+                )
+
             if not is_user_anonymous(user):
                 all_object_permissions = self.__get_all_user_permissions(
-                    user_id=user.pk
+                    user_id=user.pk,
+                    asset_ids=asset_ids_cache
                 )
                 perms += build_dict(
                     user.pk, all_object_permissions.get(self.pk)

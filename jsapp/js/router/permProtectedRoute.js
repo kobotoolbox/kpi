@@ -39,7 +39,7 @@ class PermProtectedRoute extends React.Component {
       actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted),
       actions.resources.loadAsset.failed.listen(this.onLoadAssetFailed)
     );
-    actions.resources.loadAsset({id: this.props.params.uid});
+    actions.resources.loadAsset({id: this.props.params.uid}, true);
   }
 
   componentWillUnmount() {
@@ -105,9 +105,13 @@ class PermProtectedRoute extends React.Component {
 
   getUserHasRequiredPermissions(asset, requiredPermissions, all = false) {
     if (all) {
-      return requiredPermissions.every((perm) => this.getUserHasRequiredPermission(asset, perm));
+      return requiredPermissions.every((perm) =>
+        this.getUserHasRequiredPermission(asset, perm)
+      );
     } else {
-      return requiredPermissions.some((perm) => this.getUserHasRequiredPermission(asset, perm));
+      return requiredPermissions.some((perm) =>
+        this.getUserHasRequiredPermission(asset, perm)
+      );
     }
   }
 
