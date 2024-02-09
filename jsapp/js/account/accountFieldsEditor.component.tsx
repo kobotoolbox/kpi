@@ -162,13 +162,46 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     );
   }
 
-  let count = 0; // field counter to adjust wrapping with spacers
+  /**
+   * There's a subtle aspect of this layout that is hard to achieve with CSS
+   * only. There are pairs of fields that, if they appear together, they
+   * should to start a new row so they can appear side-by-side. But, if just
+   * one of these fields appears, it should share a row with its neighbor.
+   *
+   * It's tricky:
+   *
+   *  (1) A flex child can't force a flex to wrap early, except by being too
+   *      wide to share a row. One solution is to insert a spacer the same size
+   *      as a field, only when it is preceded by an odd number of fields. We
+   *      can determine this with a JS counter in the render function, or in CSS
+   *      with an :nth- pseudo-selectors. (*CSS idea is unverified -ph)
+   *  (2) We can only tell if that spacer is needed based on fields that appear
+   *      later in the form, which rules out most CSS selectors. In JS, we can
+   *      use boolean logic in the render function. Or in CSS we can use the
+   *      newly-landed :has(), or place the spacers later in the DOM and reorder
+   *      them with flex order. (*CSS idea is unverified -ph)
+   *
+   * Both solutions are a little dicey
+   *
+   * 1. Use the newly-landed :has() along with :nth-child() to conditionally add
+   *    a spacer into the flow if it's needed. (Hypothetical solution.)
+   * 2. Increment a counter in JavaScript to count even or odd rows, and use
+   *    JS logic. (This was the first thing I tried and it works.)
+   *
+   * In the interest of keeping "presentational" concerns in CSS as much as
+   * possible and avoid weaving a counter variable in a render statement,
+   * I may try the CSS solution.
+   *   -ph
+   */
+  let fieldCount = 0; // field counter to adjust wrapping with spacers
 
   return (
     <div>
       <div className={styles.flexFields}>
         {/* Full name */}
-        {isFieldToBeDisplayed('name') && ++count && (
+        {/* Comma operator evaluates left-to-right, returns rightmost operand.
+            We increment fieldCount and ignore the result. */}
+        {isFieldToBeDisplayed('name') && (fieldCount++, (
           <div className={styles.field}>
             <TextBox
               label={getLabel('name')}
@@ -182,10 +215,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               renderFocused
             />
           </div>
-        )}
+        ))}
 
         {/* Gender */}
-        {isFieldToBeDisplayed('gender') && ++count && (
+        {isFieldToBeDisplayed('gender') && (fieldCount++, (
           <div className={styles.field}>
             <KoboSelect
               label={getLabel('gender')}
@@ -203,16 +236,20 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               error={props.errors?.gender}
             />
           </div>
-        )}
+        ))}
 
-        {/* Insert a blank spacer to start a new row for these */}
-        {!!(count % 2) &&
+
+        {/*
+          Start a new row for country and city if both are present.
+          Insert a spacer if the preceding number of rows is odd.
+        */}
+        {!!(fieldCount % 2) &&
           isFieldToBeDisplayed('country') &&
           isFieldToBeDisplayed('city') &&
-          ++count && <div className={styles.field} />}
+          fieldCount++ && <div className={styles.field} />}
 
         {/* Country */}
-        {isFieldToBeDisplayed('country') && ++count && (
+        {isFieldToBeDisplayed('country') && (fieldCount++, (
           <div className={styles.field}>
             <KoboSelect
               label={getLabel('country')}
@@ -230,10 +267,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               error={props.errors?.country}
             />
           </div>
-        )}
+        ))}
 
         {/* City */}
-        {isFieldToBeDisplayed('city') && ++count && (
+        {isFieldToBeDisplayed('city') && (fieldCount++, (
           <div className={styles.field}>
             <TextBox
               label={getLabel('city')}
@@ -243,9 +280,9 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               errors={props.errors?.city}
             />
           </div>
-        )}
+        ))}
         {/* Primary Sector */}
-        {isFieldToBeDisplayed('sector') && ++count && (
+        {isFieldToBeDisplayed('sector') && (fieldCount++, (
           <div className={styles.field}>
             <KoboSelect
               label={getLabel('sector')}
@@ -263,10 +300,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               error={props.errors?.sector}
             />
           </div>
-        )}
+        ))}
 
         {/* Organization Type */}
-        {isOrganizationTypeFieldToBeDisplayed() && ++count && (
+        {isOrganizationTypeFieldToBeDisplayed() && (fieldCount++, (
           <div className={cx(styles.field, styles.orgTypeDropdown)}>
             <KoboSelect
               label={getLabel('organization_type')}
@@ -283,15 +320,21 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               error={props.errors?.organization_type}
             />
           </div>
-        )}
+        ))}
 
-
-        {/* Insert a blank spacer to start a new row for these */}
-        {!!(count % 2) &&
+        {/*
+          Start a new row for these two organization fields if both are present.
+          Insert a spacer if the preceding number of rows is odd.
+        */}
+        {!!(fieldCount % 2) &&
           isFieldToBeDisplayed('organization') &&
           isFieldToBeDisplayed('organization_website') && (
             <div className={styles.field} />
           )}
+        {/*
+          At this point we can stop counting fields because we don't need to
+          know if we're on the even or odd side anymore.
+        */}
 
         {/* Organization */}
         {isFieldToBeDisplayed('organization') &&
