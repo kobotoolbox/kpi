@@ -52,8 +52,13 @@ $input-color: colors.$kobo-gray-24;
   &:focus {
     border-width: sizes.$x1;
     border-color: colors.$kobo-blue;
-    outline: sizes.$x3 solid colors.$kobo-alt-blue;
     transition: outline-width 20ms, border-color 20ms;
+    outline: sizes.$x3 solid colors.$kobo-alt-blue;
+  }
+  // Specificity-fighting with normalize.css in Firefox
+  &button:focus-visible,
+  &[type='button']:focus-visible {
+    outline: sizes.$x3 solid colors.$kobo-alt-blue;
   }
 
   &.hasError {
