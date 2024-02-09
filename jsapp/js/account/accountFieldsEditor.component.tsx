@@ -5,7 +5,7 @@ import {addRequiredToLabel} from 'js/textUtils';
 import envStore from '../envStore';
 import styles from './accountFieldsEditor.module.scss';
 import cx from 'classnames';
-import KoboSelect3 from 'js/components/special/koboSelect3';
+import KoboAccessibleSelect from 'js/components/special/koboAccessibleSelect';
 import type {
   UserFieldName,
   AccountFieldsValues,
@@ -220,7 +220,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Gender */}
         {isFieldToBeDisplayed('gender') && (fieldCount++, (
           <div className={styles.field}>
-            <KoboSelect3
+            <KoboAccessibleSelect
               label={getLabel('gender')}
               required={isRequired('gender')}
               name='gender'
@@ -251,7 +251,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Country */}
         {isFieldToBeDisplayed('country') && (fieldCount++, (
           <div className={styles.field}>
-            <KoboSelect3
+            <KoboAccessibleSelect
               label={getLabel('country')}
               required={isRequired('country')}
               name='country'
@@ -284,7 +284,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Primary Sector */}
         {isFieldToBeDisplayed('sector') && (fieldCount++, (
           <div className={styles.field}>
-            <KoboSelect3
+            <KoboAccessibleSelect
               label={getLabel('sector')}
               required={isRequired('sector')}
               name='sector'
@@ -305,7 +305,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Organization Type */}
         {isOrganizationTypeFieldToBeDisplayed() && (fieldCount++, (
           <div className={cx(styles.field, styles.orgTypeDropdown)}>
-            <KoboSelect3
+            <KoboAccessibleSelect
               label={getLabel('organization_type')}
               required={isRequired('organization_type')}
               name='organization_type'

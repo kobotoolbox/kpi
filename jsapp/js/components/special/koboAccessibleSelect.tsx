@@ -8,7 +8,7 @@
 
 import React, {useState, useEffect, useRef} from 'react';
 import cx from 'classnames';
-import styles from './koboSelect3.module.scss';
+import styles from './koboAccessibleSelect.module.scss';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import Icon from 'js/components/common/icon';
 
