@@ -5,7 +5,7 @@ import {addRequiredToLabel} from 'js/textUtils';
 import envStore from '../envStore';
 import styles from './accountFieldsEditor.module.scss';
 import cx from 'classnames';
-import KoboSelect from 'js/components/common/koboSelect';
+import KoboAccessibleSelect from 'js/components/special/koboAccessibleSelect';
 import type {
   UserFieldName,
   AccountFieldsValues,
@@ -220,15 +220,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Gender */}
         {isFieldToBeDisplayed('gender') && (fieldCount++, (
           <div className={styles.field}>
-            <KoboSelect
+            <KoboAccessibleSelect
               label={getLabel('gender')}
-              isRequired={isRequired('gender')}
+              required={isRequired('gender')}
               name='gender'
-              type='outline'
-              size='l'
+              // type='outline'
+              // size='l'
               isClearable={!isFieldRequired('gender')}
-              isSearchable
-              selectedOption={props.values.gender}
+              // selectedOption={props.values.gender}
+              value={props.values.gender}
               onChange={(value: string | null) =>
                 onAnyFieldChange('gender', value || '')
               }
@@ -251,15 +251,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Country */}
         {isFieldToBeDisplayed('country') && (fieldCount++, (
           <div className={styles.field}>
-            <KoboSelect
+            <KoboAccessibleSelect
               label={getLabel('country')}
-              isRequired={isRequired('country')}
+              required={isRequired('country')}
               name='country'
-              type='outline'
-              size='l'
+              // type='outline'
+              // size='l'
               isClearable={!isFieldRequired('country')}
-              isSearchable
-              selectedOption={props.values.country}
+              // isSearchable
+              value={props.values.country}
               onChange={(value: string | null) =>
                 onAnyFieldChange('country', value || '')
               }
@@ -284,15 +284,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Primary Sector */}
         {isFieldToBeDisplayed('sector') && (fieldCount++, (
           <div className={styles.field}>
-            <KoboSelect
+            <KoboAccessibleSelect
               label={getLabel('sector')}
-              isRequired={isRequired('sector')}
+              required={isRequired('sector')}
               name='sector'
-              type='outline'
-              size='l'
+              // type='outline'
+              // size='l'
               isClearable={!isFieldRequired('sector')}
-              isSearchable
-              selectedOption={props.values.sector}
+              // isSearchable
+              value={props.values.sector}
               onChange={(value: string | null) =>
                 onAnyFieldChange('sector', value || '')
               }
@@ -305,19 +305,20 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Organization Type */}
         {isOrganizationTypeFieldToBeDisplayed() && (fieldCount++, (
           <div className={cx(styles.field, styles.orgTypeDropdown)}>
-            <KoboSelect
+            <KoboAccessibleSelect
               label={getLabel('organization_type')}
-              isRequired={isRequired('organization_type')}
+              required={isRequired('organization_type')}
               name='organization_type'
-              type='outline'
-              size='l'
+              // type='outline'
+              // size='l'
               isClearable={!isFieldRequired('organization_type')}
-              selectedOption={props.values.organization_type}
+              value={props.values.organization_type}
               onChange={(value: string | null) =>
                 onAnyFieldChange('organization_type', value || '')
               }
               options={ORGANIZATION_TYPE_SELECT_OPTIONS}
               error={props.errors?.organization_type}
+              noMaxMenuHeight
             />
           </div>
         ))}
