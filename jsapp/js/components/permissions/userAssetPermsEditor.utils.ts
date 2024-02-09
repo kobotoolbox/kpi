@@ -132,14 +132,12 @@ export function applyValidityRules(stateObj: UserAssetPermsEditorState) {
     });
   }
 
-  // Step 3: Lock submission add -- OUTDATED after per project anonymous submissions
-
-  // Step 4: Apply permissions configuration rules to checkboxes
+  // Step 3: Apply permissions configuration rules to checkboxes
   for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
     output = applyValidityRulesForCheckbox(checkboxName, output);
   }
 
-  // Step 5: For each unchecked partial checkbox, clean up the data of related
+  // Step 4: For each unchecked partial checkbox, clean up the data of related
   // properties
   for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
     if (
