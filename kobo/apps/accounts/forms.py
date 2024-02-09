@@ -58,7 +58,16 @@ class KoboSignupMixin(forms.Form):
     organization_website = forms.CharField(
         label=USER_METADATA_DEFAULT_LABELS['organization_website'],
         required=False,
+        widget=forms.URLInput,
     )
+    organization_website.widget.attrs['pattern'] = (
+        # Use r'' so we can copy-paste the literal without escaping backslashes
+        r'\s*(https?:\/\/)?([^\s.:\/]+\.)+([^\s.:\/]){2,}(:\d{1,5})?(\/.*)?\s*'
+    )
+    organization_website.widget.attrs['title'] = t(
+        'Please enter a valid URL'
+    )
+
     organization_type = forms.ChoiceField(
         label=USER_METADATA_DEFAULT_LABELS['organization_type'],
         required=False,

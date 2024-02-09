@@ -172,6 +172,7 @@
   input[type=text],
   input[type=password],
   input[type=email],
+  input[type=url],
   select {
     color: $layout-text-color;
   }
@@ -201,6 +202,7 @@
 .registration input[type=password],
 .registration input[type=submit],
 .registration input[type=email],
+.registration input[type=url],
 .registration select {
   width: 100%;
   display: block;
