@@ -1,8 +1,7 @@
 // A Kobo Select that adheres closely to built-in browser <select> keyboard
 // shortcut conventions.
 
-// Name?
-// - "Select2" is already the name of a jQuery plugin used by the formbuilder.
+// Note:
 // - Common "Kobo Select" has a visual search filter that isn't implemented here
 //   (yet), as well as other styling props.
 
@@ -25,7 +24,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
   // REFS - used by event handlers.
   const indexRef = useRef(-1);
   const optionRef = useRef<KoboSelectOption>(NOTHING_SELECTED);
-  // DOM refs are for viewport scrolling
+  // DOM refs are for viewport scrolling and focus
   const triggerElRef = useRef<HTMLButtonElement>(null);
   const menuElRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +61,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
       props.onChange?.(optionRef.current.value || null);
     }
   };
+  // Commented out - the browser doesn't do this for normal <select>.
   // const scrollTriggerIntoView = () => {
   //   triggerElRef.current?.scrollIntoView({block: 'nearest'});
   // };
@@ -94,7 +94,6 @@ export default function KoboSelect3(props: KoboSelect3Props) {
       }
     }
   };
-
 
   // If there's a valid selection, indexRef and optionRef are up-to-date.
   // Otherwise, indexRef is -1 and optionRef is NOTHING_SELECTED.
@@ -288,7 +287,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
         type='button'
         // ARIA. There's room for improvement here.
         // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/combobox_role
-        aria-role='combobox'
+        role='combobox'
         aria-required={props.required}
         aria-expanded={expanded}
         aria-controls={props.name + '_dropdown'}
@@ -332,7 +331,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
             )}
             data-value={option.value}
           >
-            {/* TODO: display the option icons next to label */}
+            {/* TODO: display the icon of each option next to its label */}
             {option.label}
           </div>
         ))}
