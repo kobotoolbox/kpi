@@ -4,6 +4,7 @@ import cx from 'classnames';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
+import AriaText from 'js/components/common/ariaText';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {parseFormData, buildFormData} from './permParser';
@@ -521,7 +522,10 @@ export default class UserAssetPermsEditor extends React.Component<
               </span>
 
               {/* We display an equals character between elements here :) */}
-              <span>=</span>
+              <AriaText
+                uiText='='
+                screenReaderText={t('equals')}
+              />
 
               <span className={styles.valueInputWrapper}>
                 <TextBox

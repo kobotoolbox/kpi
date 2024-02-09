@@ -200,7 +200,7 @@ export default class SharingForm extends React.Component<
         )}
 
         {/* list of users and their permissions */}
-        <bem.FormModal__item>
+        <bem.FormModal__item m='who-has-access'>
           <h2>{t('Who has access')}</h2>
 
           {this.state.permissions.map((perm) => {

@@ -125,6 +125,12 @@ $s-gray-row-spacing: 10px;
   }
 }
 
+// We want to avoud UI jumping when question with a long name is being selected 
+// in "based on a condition" dropdown
+.modal .form-modal__item--who-has-access {
+  min-width: 600px;
+}
+
 .form-modal__item--copy-team-permissions {
   position: relative;
 
