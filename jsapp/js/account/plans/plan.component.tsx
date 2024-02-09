@@ -32,11 +32,12 @@ import {
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
 import type {
-  BasePrice,
-  Organization,
   Price,
+  Organization,
+  PriceWithProduct,
   Product,
   SubscriptionInfo,
+  FilteredPriceProduct,
 } from 'js/account/stripe.types';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
@@ -325,11 +326,11 @@ export default function Plan() {
     [visiblePlanTypes]
   );
 
-  // An array of all the prices that should be displayed in the UI
-  const filterPrices = useMemo((): Price[] => {
+  // An array of all the products that should be displayed in the UI
+  const filterProducts = useMemo((): FilteredPriceProduct[] => {
     if (state.products !== null) {
-      const filterAmount = state.products.map((product: Product): Price => {
-        const filteredPrices = product.prices.filter((price: BasePrice) => {
+      const filterAmount = state.products.map((product: Product): FilteredPriceProduct => {
+        const filteredPrices = product.prices.filter((price: Price) => {
           const interval = price.recurring?.interval;
           return (
             // only show monthly/annual plans based on toggle value
@@ -345,11 +346,11 @@ export default function Plan() {
 
         return {
           ...product,
-          prices: filteredPrices[0],
+          price: filteredPrices[0],
         };
       });
 
-      return filterAmount.filter((price) => price.prices);
+      return filterAmount.filter((price) => price.price);
     }
     return [];
   }, [state.products, state.intervalFilter, visiblePlanTypes]);
@@ -357,8 +358,8 @@ export default function Plan() {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
-    (product: Price, quantity = null) => {
-      if (!product.prices?.unit_amount && !hasActiveSubscription) {
+    (product: FilteredPriceProduct, quantity = null) => {
+      if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true;
       }
 
@@ -370,7 +371,7 @@ export default function Plan() {
       if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
           (subscription: SubscriptionInfo) =>
-            subscription.items[0].price.id === product.prices.id &&
+            subscription.items[0].price.id === product.price.id &&
             hasManageableStatus(subscription) &&
             quantity &&
             quantity === subscription.quantity
@@ -387,7 +388,7 @@ export default function Plan() {
     });
   };
 
-  const buySubscription = (price: BasePrice, quantity: number = 1) => {
+  const buySubscription = (price: Price, quantity: number = 1) => {
     if (!price.id || isDisabled || !state.organization?.id) {
       return;
     }
@@ -420,7 +421,7 @@ export default function Plan() {
   const hasMetaFeatures = () => {
     let expandBool = false;
     if (state.products && state.products.length > 0) {
-      filterPrices.map((price) => {
+      filterProducts.map((price) => {
         for (const featureItem in price.metadata) {
           if (
             featureItem.includes('feature_support_') ||
@@ -493,15 +494,15 @@ export default function Plan() {
               </form>
 
               <div className={styles.allPlans}>
-                {filterPrices.map((price: Price) => (
-                  <div className={styles.stripePlans} key={price.id}>
+                {filterProducts.map((product) => (
+                  <div className={styles.stripePlans} key={product.id}>
                     <PlanContainer
-                      key={price.prices.id}
+                      key={product.price.id}
                       freeTierOverride={freeTierOverride}
                       expandComparison={expandComparison}
                       isSubscribedProduct={isSubscribedProduct}
-                      price={price}
-                      filterPrices={filterPrices}
+                      product={product}
+                      filterPrices={filterProducts}
                       hasManageableStatus={hasManageableStatus}
                       setIsBusy={setIsBusy}
                       isDisabled={isDisabled}
