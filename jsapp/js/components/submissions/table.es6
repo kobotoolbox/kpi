@@ -64,7 +64,7 @@ import AudioCell from './audioCell';
 import {
   userCan,
   userCanPartially,
-  userCanSubmission,
+  userHasPermForSubmission,
 } from 'js/components/permissions/utils';
 
 const DEFAULT_PAGE_SIZE = 30;
@@ -478,17 +478,17 @@ export class DataTable extends React.Component {
                 onChange={this.bulkUpdateChange.bind(this, row.original._id)}
                 disabled={
                   !(
-                    userCanSubmission(
+                    userHasPermForSubmission(
                       'change_submissions',
                       this.props.asset,
                       row.original
                     ) ||
-                    userCanSubmission(
+                    userHasPermForSubmission(
                       'delete_submissions',
                       this.props.asset,
                       row.original
                     ) ||
-                    userCanSubmission(
+                    userHasPermForSubmission(
                       'validate_submissions',
                       this.props.asset,
                       row.original
@@ -508,7 +508,7 @@ export class DataTable extends React.Component {
             </button>
 
             {userCanSeeEditIcon &&
-              userCanSubmission(
+              userHasPermForSubmission(
                 'change_submissions',
                 this.props.asset,
                 row.original
@@ -587,7 +587,7 @@ export class DataTable extends React.Component {
           )}
           currentValue={this.getValidationStatusOption(row.original)}
           isDisabled={
-            !userCanSubmission(
+            !userHasPermForSubmission(
               PERMISSIONS_CODENAMES.validate_submissions,
               this.props.asset,
               row.original

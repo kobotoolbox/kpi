@@ -259,7 +259,7 @@ export function hasPartialByResponses(perm: PermissionResponse) {
  * This implementation does not use the Back End, but tries to replicate the
  * rules. So far, the Front End only supports two filters.
  */
-export function userCanSubmission(
+export function userHasPermForSubmission(
   /** Permission to check if user can do at least partially */
   permName: PermissionCodename,
   asset: AssetResponse,
