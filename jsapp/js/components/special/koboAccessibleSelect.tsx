@@ -128,7 +128,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     // Check what time it is.
     // If it's been more than a second since the last letter, we revert to
     // CYCLE mode.
-    const now = +new Date();
+    const now = Date.now(); // current time in milliseconds
     if (now - lastLetterTime.current > 1000) {cancelMatchMode();}
     lastLetterTime.current = now; // remember time of this letter keystroke
 
