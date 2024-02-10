@@ -219,7 +219,7 @@ describe('userAssetPermsEditor utils tests', () => {
         .to.equal(false);
     });
 
-    it('should be false for missing value', () => {
+    it('should be true for empty value', () => {
       const stateObj = {
         ...EMPTY_EDITOR_STATE,
         submissionsDeletePartialByResponses: true,
@@ -233,7 +233,7 @@ describe('userAssetPermsEditor utils tests', () => {
             stateObj
           )
         )
-        .to.equal(false);
+        .to.equal(true);
     });
   });
 

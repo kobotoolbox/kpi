@@ -279,9 +279,9 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
       );
       const question = data[questionProp];
       const valueProp = getPartialByResponsesValueName(byResponsesCheckboxName);
-      const value = data[valueProp];
+      const value = data[valueProp]; // this can be empty string (and it's ok)
 
-      if (question && value) {
+      if (question) {
         const filter: PartialPermissionFilter = {[question]: value};
         const permUrl = getPermUrl(permCodename);
 
@@ -440,11 +440,11 @@ export function buildFormData(
               formData[byResponsesValueName] = value;
             }
 
-            // Step 5C. Enable "by responses" checkbox (but only if both
-            // question name and value is defined - in theory should not happen)
-            formData[byResponsesCheckboxName] =
-              Boolean(formData[byResponsesQuestionName]) &&
-              Boolean(formData[byResponsesValueName]);
+            // Step 5C. Enable "by responses" checkbox (but only if question
+            // name is defined, value might be an empty string)
+            formData[byResponsesCheckboxName] = Boolean(
+              formData[byResponsesQuestionName]
+            );
           }
         }
       });

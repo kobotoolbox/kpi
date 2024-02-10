@@ -201,12 +201,12 @@ export function isPartialByResponsesValid(
   partialCheckboxName: CheckboxNamePartialByResponses,
   stateObj: UserAssetPermsEditorState
 ) {
-  // If partial checkbox is checked, we require the question and value to be
-  // present
+  // If partial checkbox is checked, we require the question to be present, and
+  // we don't check the value, as we allow empty string (meaning no response to
+  // the question)
   if (stateObj[partialCheckboxName] === true) {
     return Boolean(
-      stateObj[getPartialByResponsesQuestionName(partialCheckboxName)] &&
-        stateObj[getPartialByResponsesValueName(partialCheckboxName)]
+      stateObj[getPartialByResponsesQuestionName(partialCheckboxName)]
     );
   }
   return true;

@@ -367,6 +367,41 @@ describe('permParser', () => {
         submissionsValidatePartialByResponsesValue: 'Racoon',
       });
     });
+
+    it('should work with "by responses" permission with empty value', () => {
+      const parsed = parseBackendData(
+        [
+          {
+            url: '/api/v2/assets/abc123/permission-assignments/ghi789/',
+            user: '/api/v2/users/joe/',
+            permission: '/api/v2/permissions/manage_asset/',
+            label: 'Manage asset',
+          },
+          {
+            url: '/api/v2/assets/abc123/permission-assignments/def456/',
+            user: '/api/v2/users/gwyneth/',
+            permission: '/api/v2/permissions/partial_submissions/',
+            label: 'Partial submissions',
+            partial_permissions: [
+              {
+                url: '/api/v2/permissions/view_submissions/',
+                filters: [{What_is_up: ''}],
+              },
+            ],
+          },
+        ],
+        '/api/v2/users/joe/'
+      );
+
+      const built = buildFormData(parsed[1].permissions, 'gwyneth');
+
+      chai.expect(built).to.deep.equal({
+        username: 'gwyneth',
+        submissionsViewPartialByResponses: true,
+        submissionsViewPartialByResponsesQuestion: 'What_is_up',
+        submissionsViewPartialByResponsesValue: '',
+      });
+    });
   });
 
   describe('parseFormData', () => {
@@ -458,6 +493,31 @@ describe('permParser', () => {
             {
               url: '/api/v2/permissions/change_submissions/',
               filters: [{Where_are_you_from: 'Poland'}],
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('should allow partial "by responses" with empty value', () => {
+      const parsed = parseFormData({
+        username: 'leszek',
+        formView: true,
+        formEdit: false,
+        submissionsView: false,
+        submissionsViewPartialByResponses: true,
+        submissionsViewPartialByResponsesQuestion: 'What_is_up',
+        submissionsViewPartialByResponsesValue: '',
+      });
+
+      chai.expect(parsed).to.deep.equal([
+        {
+          user: '/api/v2/users/leszek/',
+          permission: '/api/v2/permissions/partial_submissions/',
+          partial_permissions: [
+            {
+              url: '/api/v2/permissions/view_submissions/',
+              filters: [{What_is_up: ''}],
             },
           ],
         },
