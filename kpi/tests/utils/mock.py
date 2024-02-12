@@ -69,10 +69,10 @@ def enketo_edit_instance_response_with_uuid_validation(request):
     submission = body['instance']
     submission_xml_root = lxml.etree.fromstring(submission)
     assert submission_xml_root.find(
-        './formhub/uuid'
+        'formhub/uuid'
     ).text.strip()
     assert submission_xml_root.find(
-        './meta/instanceID'
+        'meta/instanceID'
     ).text.strip()
 
     resp_body = {

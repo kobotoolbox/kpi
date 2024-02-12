@@ -475,7 +475,40 @@ class Asset(ObjectPermissionMixin,
     def analysis_form_json(self):
         additional_fields = list(self._get_additional_fields())
         engines = dict(self._get_engines())
-        return {'engines': engines, 'additional_fields': additional_fields}
+        output = {'engines': engines, 'additional_fields': additional_fields}
+        try:
+            qual_survey = self.advanced_features['qual']['qual_survey']
+        except KeyError:
+            return output
+        for qual_question in qual_survey:
+            qname = qual_question['qpath'].split('-')[-1]
+            # Surely some of this stuff is not actually used…
+            # (added to match extend_col_deets() from
+            # kobo/apps/subsequences/utils/parse_known_cols)
+            #
+            # See also injectSupplementalRowsIntoListOfRows() in
+            # assetUtils.ts
+            field = dict(
+                label=qual_question['labels']['_default'],
+                name=f"{qname}/{qual_question['uuid']}",
+                dtpath=f"{qual_question['qpath']}/{qual_question['uuid']}",
+                type=qual_question['type'],
+                # could say '_default' or the language of the transcript,
+                # but really that would be meaningless and misleading
+                language='??',
+                source=qual_question['qpath'],
+                qpath=f"{qual_question['qpath']}-{qual_question['uuid']}",
+                # seems not applicable given the transx questions describe
+                # manual vs. auto here and which engine was used
+                settings='??',
+                path=[qual_question['qpath'], qual_question['uuid']],
+            )
+            try:
+                field['choices'] = qual_question['choices']
+            except KeyError:
+                pass
+            additional_fields.append(field)
+        return output
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -550,12 +583,36 @@ class Asset(ObjectPermissionMixin,
         version = (
             self.latest_deployed_version if deployed else self.latest_version
         )
-        survey = version.to_formpack_schema()['content']['survey']
-        return [
-            q['$xpath']
-            for q in survey
-            if q['type'] in ATTACHMENT_QUESTION_TYPES
-        ]
+
+        if version:
+            content = version.to_formpack_schema()['content']
+        else:
+            content = self.content
+
+        survey = content['survey']
+
+        def _get_xpaths(survey_: dict) -> Optional[list]:
+            """
+            Returns an empty list if no questions that take attachments are
+            present. Returns `None` if XPath are missing from the survey
+            content
+            """
+            xpaths = []
+            for question in survey_:
+                if question['type'] not in ATTACHMENT_QUESTION_TYPES:
+                    continue
+                try:
+                    xpath = question['$xpath']
+                except KeyError:
+                    return None
+                xpaths.append(xpath)
+            return xpaths
+
+        if xpaths := _get_xpaths(survey):
+            return xpaths
+
+        self._insert_qpath(content)
+        return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
@@ -1121,9 +1178,13 @@ class Asset(ObjectPermissionMixin,
         return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
+        '''
+        engines are individual NLP services that can be used
+        '''
         for instance in self.get_advanced_feature_instances():
-            for key, val in instance.engines():
-                yield key, val
+            if hasattr(instance, 'engines'):
+                for key, val in instance.engines():
+                    yield key, val
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

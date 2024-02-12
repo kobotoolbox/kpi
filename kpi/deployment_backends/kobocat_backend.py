@@ -1,15 +1,13 @@
 from __future__ import annotations
-import copy
+
 import io
 import json
 import re
-import uuid
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
-from xml.etree import ElementTree as ET
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -17,6 +15,7 @@ except ImportError:
 
 import requests
 import redis.exceptions
+from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
@@ -27,7 +26,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from kobo_service_account.utils import get_request_headers
-from lxml import etree
 from rest_framework import status
 
 from kobo.apps.subsequences.utils import stream_with_extras
@@ -60,7 +58,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.xml import edit_submission_xml
+from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatAttachment,
@@ -78,7 +76,6 @@ from .kc_access.utils import (
 )
 from ..exceptions import (
     BadFormatException,
-    KobocatBulkUpdateSubmissionsClientException,
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,
 )
@@ -120,106 +117,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 if user.id == self.asset.owner_id:
                     continue
                 assign_applicable_kc_permissions(self.asset, user, perms)
-
-    def bulk_update_submissions(
-        self, data: dict, user: 'auth.User'
-    ) -> dict:
-        """
-        Allows for bulk updating of submissions proxied through KoBoCAT. A
-        `deprecatedID` for each submission is given the previous value of
-        `instanceID` and `instanceID` receives an updated uuid. For each key
-        and value within `request_data`, either a new element is created on the
-        submission's XML tree, or the existing value is replaced by the updated
-        value.
-
-        Args:
-            data (dict): must contain a list of `submission_ids` and at
-                least one other key:value field for updating the submissions
-            user (User)
-
-        Returns:
-            dict: formatted dict to be passed to a Response object
-        """
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=data['submission_ids'],
-            query=data['query'],
-        )
-
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have full access.
-        if submission_ids:
-            # Reset query, because all the submission ids have been already
-            # retrieve
-            data['query'] = {}
-        else:
-            submission_ids = data['submission_ids']
-
-        submissions = self.get_submissions(
-            user=user,
-            format_type=SUBMISSION_FORMAT_TYPE_XML,
-            submission_ids=submission_ids,
-            query=data['query'],
-        )
-
-        if not self.current_submission_count:
-            raise KobocatBulkUpdateSubmissionsClientException(
-                detail=t('No submissions match the given `submission_ids`')
-            )
-
-        update_data = self.__prepare_bulk_update_data(data['data'])
-        kc_responses = []
-        for submission in submissions:
-            xml_parsed = etree.fromstring(submission)
-
-            _uuid, uuid_formatted = self.generate_new_instance_id()
-
-            # Updating xml fields for submission. In order to update an existing
-            # submission, the current `instanceID` must be moved to the value
-            # for `deprecatedID`.
-            instance_id = xml_parsed.find('meta/instanceID')
-            # If the submission has been edited before, it will already contain
-            # a deprecatedID element - otherwise create a new element
-            deprecated_id = xml_parsed.find('meta/deprecatedID')
-            deprecated_id_or_new = (
-                deprecated_id
-                if deprecated_id is not None
-                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
-            )
-            deprecated_id_or_new.text = instance_id.text
-            instance_id.text = uuid_formatted
-
-            # If the form has been updated with new fields and earlier
-            # submissions have been selected as part of the bulk update,
-            # a new element has to be created before a value can be set.
-            # However, with this new power, arbitrary fields can be added
-            # to the XML tree through the API.
-            for path, value in update_data.items():
-                edit_submission_xml(xml_parsed, path, value)
-
-            # TODO: Might be worth refactoring this as it is also used when
-            # duplicating a submission
-            file_tuple = (_uuid, io.BytesIO(etree.tostring(xml_parsed)))
-            files = {'xml_submission_file': file_tuple}
-            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
-            kc_request = requests.Request(
-                method='POST',
-                url=self.submission_url,
-                files=files,
-            )
-            kc_response = self.__kobocat_proxy_request(
-                kc_request, user=user
-            )
-
-            kc_responses.append(
-                {
-                    'uuid': _uuid,
-                    'response': kc_response,
-                }
-            )
-
-        return self.__prepare_bulk_update_response(kc_responses)
 
     def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
         params = self.validate_submission_list_params(
@@ -460,7 +357,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # parse XML string to ET object
-        xml_parsed = ET.fromstring(submission)
+        xml_parsed = fromstring_preserve_root_xmlns(submission)
 
         # attempt to update XML fields for duplicate submission. Note that
         # `start` and `end` are not guaranteed to be included in the XML object
@@ -475,22 +372,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Rely on `meta/instanceID` being present. If it's absent, something is
         # fishy enough to warrant raising an exception instead of continuing
         # silently
-        xml_parsed.find('meta/instanceID').text = uuid_formatted
-
-        file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
-        files = {'xml_submission_file': file_tuple}
-
-        # Combine all files altogether
-        if attachments:
-            files.update(attachments)
-
-        kc_request = requests.Request(
-            method='POST', url=self.submission_url, files=files
-        )
-        kc_response = self.__kobocat_proxy_request(
-            kc_request, user=user
+        xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = (
+            uuid_formatted
         )
 
+        kc_response = self.store_submission(
+            user, xml_tostring(xml_parsed), _uuid, attachments
+        )
         if kc_response.status_code == status.HTTP_201_CREATED:
             return next(self.get_submissions(user, query={'_uuid': _uuid}))
         else:
@@ -507,8 +395,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         submission_xml = xml_submission_file.read()
         try:
-            xml_root = ET.fromstring(submission_xml)
-        except ET.ParseError:
+            xml_root = fromstring_preserve_root_xmlns(submission_xml)
+        except DET.ParseError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is malformed.')
             )
@@ -586,16 +474,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
-    @staticmethod
-    def generate_new_instance_id() -> (str, str):
-        """
-        Returns:
-            - Generated uuid
-            - Formatted uuid for OpenRosa xml
-        """
-        _uuid = str(uuid.uuid4())
-        return _uuid, f'uuid:{_uuid}'
-
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
@@ -648,18 +526,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise SubmissionNotFoundException
 
         if xpath:
-            submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
-
-            try:
-                element = submission_tree.find(xpath)
-            except KeyError:
-                raise InvalidXPathException
-
-            try:
-                attachment_filename = element.text
-            except AttributeError:
+            submission_root = fromstring_preserve_root_xmlns(submission_xml)
+            element = submission_root.find(xpath)
+            if element is None:
                 raise XPathNotFoundException
-
+            attachment_filename = element.text
             filters = {
                 'media_file_basename': attachment_filename,
             }
@@ -1212,6 +1083,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
+    def store_submission(
+        self, user, xml_submission, submission_uuid, attachments=None
+    ):
+        file_tuple = (submission_uuid, io.StringIO(xml_submission))
+        files = {'xml_submission_file': file_tuple}
+        if attachments:
+            files.update(attachments)
+        kc_request = requests.Request(
+            method='POST', url=self.submission_url, files=files
+        )
+        kc_response = self.__kobocat_proxy_request(kc_request, user=user)
+        return kc_response
+
     @property
     def submission_count(self):
         try:
@@ -1550,9 +1434,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             add_supplemental_details_to_query = False
 
         if add_supplemental_details_to_query:
-            extras_query = self.asset.submission_extras
-            extras_data = dict(extras_query.values_list('submission_uuid', 'content'))
-            mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
+            mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
         return (
             self._rewrite_json_attachment_urls(
@@ -1672,24 +1554,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return prepared_drf_response
 
-    @classmethod
-    def __prepare_bulk_update_data(cls, updates: dict) -> dict:
-        """
-        Preparing the request payload for bulk updating of submissions
-        """
-        # Sanitizing the payload of potentially destructive keys
-        sanitized_updates = copy.deepcopy(updates)
-        for key in updates:
-            if (
-                key in cls.PROTECTED_XML_FIELDS
-                or '/' in key and key.split('/')[0] in cls.PROTECTED_XML_FIELDS
-            ):
-                sanitized_updates.pop(key)
-
-        return sanitized_updates
-
     @staticmethod
-    def __prepare_bulk_update_response(kc_responses: list) -> dict:
+    def prepare_bulk_update_response(kc_responses: list) -> dict:
         """
         Formatting the response to allow for partial successes to be seen
         more explicitly.
@@ -1710,14 +1576,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # so it needs to be parsed before extracting the text
         results = []
         for response in kc_responses:
+            message = t('Something went wrong')
             try:
-                message = (
-                    ET.fromstring(response['response'].content)
-                    .find(OPEN_ROSA_XML_MESSAGE)
-                    .text
+                xml_parsed = fromstring_preserve_root_xmlns(
+                    response['response'].content
                 )
-            except ET.ParseError:
-                message = t('Something went wrong')
+            except DET.ParseError:
+                pass
+            else:
+                message_el = xml_parsed.find(OPEN_ROSA_XML_MESSAGE)
+                if message_el is not None and message_el.text.strip():
+                    message = message_el.text
 
             results.append(
                 {
@@ -1735,6 +1604,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return {
             'status': status.HTTP_200_OK
             if total_successes > 0
+            # FIXME: If KoboCAT returns something unexpected, like a 404 or a
+            # 500, then 400 is not the right response to send to the client
             else status.HTTP_400_BAD_REQUEST,
             'data': {
                 'count': total_update_attempts,

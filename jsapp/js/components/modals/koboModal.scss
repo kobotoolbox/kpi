@@ -54,6 +54,10 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   min-height: $kobo-modal-elements-height-min;
 }
 
+.kobo-modal__footer--isCentered {
+  justify-content: center !important;
+}
+
 .kobo-modal__header {
   @include mixins.centerRowFlex;
 

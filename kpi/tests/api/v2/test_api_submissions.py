@@ -47,6 +47,19 @@ from kpi.tests.utils.mock import (
 )
 
 
+def dict2xml_with_encoding_declaration(*args, **kwargs):
+    return '<?xml version="1.0" encoding="utf-8"?>' + dict2xml(
+        *args, **kwargs
+    )
+
+
+def dict2xml_with_namespace(*args, **kwargs):
+    xml_string = dict2xml(*args, **kwargs)
+    xml_root = lxml.etree.fromstring(xml_string)
+    xml_root.set('xmlns', 'http://opendatakit.org/submissions')
+    return lxml.etree.tostring(xml_root).decode()
+
+
 class BaseSubmissionTestCase(BaseTestCase):
     """
     DataViewset uses `BrowsableAPIRenderer` as the first renderer.
@@ -1251,11 +1264,6 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
 
     @responses.activate
     def test_edit_submission_with_xml_encoding_declaration(self):
-        def dict2xml_with_encoding_declaration(*args, **kwargs):
-            return '<?xml version="1.0" encoding="utf-8"?>' + dict2xml(
-                *args, **kwargs
-            )
-
         with mock.patch(
             'kpi.deployment_backends.mock_backend.dict2xml'
         ) as mock_dict2xml:
@@ -1597,6 +1605,36 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
 
+    def test_duplicate_submission_with_xml_encoding(self):
+        with mock.patch(
+            'kpi.deployment_backends.mock_backend.dict2xml'
+        ) as mock_dict2xml:
+            mock_dict2xml.side_effect = dict2xml_with_encoding_declaration
+            submission_xml = self.asset.deployment.get_submissions(
+                user=self.asset.owner,
+                format_type=SUBMISSION_FORMAT_TYPE_XML,
+                submission_ids=[self.submission['_id']],
+            )[0]
+            assert submission_xml.startswith(
+                '<?xml version="1.0" encoding="utf-8"?>'
+            )
+            self.test_duplicate_submission_as_owner_allowed()
+
+    def test_duplicate_submission_with_xml_namespace(self):
+        with mock.patch(
+            'kpi.deployment_backends.mock_backend.dict2xml'
+        ) as mock_dict2xml:
+            mock_dict2xml.side_effect = dict2xml_with_namespace
+            submission_xml = self.asset.deployment.get_submissions(
+                user=self.asset.owner,
+                format_type=SUBMISSION_FORMAT_TYPE_XML,
+                submission_ids=[self.submission['_id']],
+            )[0]
+            assert (
+                'xmlns="http://opendatakit.org/submissions"' in submission_xml
+            )
+            self.test_duplicate_submission_as_owner_allowed()
+
     def test_duplicate_submission_as_anotheruser_not_allowed(self):
         """
         someuser is the owner of the project.
@@ -1743,6 +1781,54 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
+
+    @pytest.mark.skip(
+        reason=(
+            'Useless with the current implementation of'
+            ' MockDeploymentBackend.duplicate_submission()'
+        )
+    )
+    def test_bulk_update_submissions_with_xml_encoding(self):
+        with mock.patch(
+            'kpi.deployment_backends.mock_backend.dict2xml'
+        ) as mock_dict2xml:
+            mock_dict2xml.side_effect = dict2xml_with_encoding_declaration
+            submission = self.submissions[
+                self.updated_submission_data['submission_ids'][-1]
+            ]
+            submission_xml = self.asset.deployment.get_submissions(
+                user=self.asset.owner,
+                format_type=SUBMISSION_FORMAT_TYPE_XML,
+                submission_ids=[submission['_id']],
+            )[0]
+            assert submission_xml.startswith(
+                '<?xml version="1.0" encoding="utf-8"?>'
+            )
+            self.test_bulk_update_submissions_allowed_as_owner()
+
+    @pytest.mark.skip(
+        reason=(
+            'Useless with the current implementation of'
+            ' MockDeploymentBackend.duplicate_submission()'
+        )
+    )
+    def test_bulk_update_submissions_with_xml_namespace(self):
+        with mock.patch(
+            'kpi.deployment_backends.mock_backend.dict2xml'
+        ) as mock_dict2xml:
+            mock_dict2xml.side_effect = dict2xml_with_namespace
+            submission = self.submissions[
+                self.updated_submission_data['submission_ids'][-1]
+            ]
+            submission_xml = self.asset.deployment.get_submissions(
+                user=self.asset.owner,
+                format_type=SUBMISSION_FORMAT_TYPE_XML,
+                submission_ids=[submission['_id']],
+            )[0]
+            assert (
+                'xmlns="http://opendatakit.org/submissions"' in submission_xml
+            )
+            self.test_bulk_update_submissions_allowed_as_owner()
 
     def test_cannot_bulk_update_submissions_as_anotheruser(self):
         """

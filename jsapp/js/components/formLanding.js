@@ -29,7 +29,6 @@ import permConfig from 'js/components/permissions/permConfig';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import AnonymousSubmission from './anonymousSubmission.component';
-import styles from './anonymousSubmission.module.scss';
 import NewFeatureDialog from './newFeatureDialog.component';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
@@ -61,21 +60,28 @@ class FormLanding extends React.Component {
       actions.permissions.getAssetPermissions.completed,
       this.onAssetPermissionsUpdated
     );
+    this.listenTo(
+      actions.resources.loadAsset.completed,
+      this.onAssetPermissionsUpdated
+    );
 
-    actions.permissions.getAssetPermissions(this.props.params.uid);
+    actions.resources.loadAsset({id: this.props.params.uid});
   }
 
-  onAssetPermissionsUpdated(response) {
+  onAssetPermissionsUpdated(res) {
+    let response = res;
+    if (response.permissions) {
+      response = res.permissions;
+    }
     const publicPerms = response.filter(
       (assignment) => assignment.user === buildUserUrl(ANON_USERNAME)
     );
     const anonCanAdd = publicPerms.filter(
       (perm) => perm.permission === ANON_CAN_ADD_PERM_URL
     )[0];
-
     this.setState({
       anonymousPermissions: publicPerms,
-      anonymousSubmissions: anonCanAdd ? true : false,
+      anonymousSubmissions: Boolean(anonCanAdd),
     });
   }
   updateAssetAnonymousSubmissions() {

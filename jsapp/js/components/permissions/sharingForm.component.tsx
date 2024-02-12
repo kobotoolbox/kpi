@@ -86,7 +86,6 @@ export default class SharingForm extends React.Component<
         this.onAssetPermissionsUpdated.bind(this)
       )
     );
-
     if (this.props.assetUid) {
       actions.resources.loadAsset({id: this.props.assetUid});
     }
@@ -104,8 +103,11 @@ export default class SharingForm extends React.Component<
     this.setState({allAssetsCount: Object.keys(stores.allAssets.byUid).length});
   }
 
-  onAssetPermissionsUpdated(permissionAssignments: PermissionResponse[]) {
-    const ownerUrl = this.state.asset?.owner;
+  onAssetPermissionsUpdated(
+    permissionAssignments: PermissionResponse[],
+    owner: string | null = null
+  ) {
+    const ownerUrl = owner || this.state.asset?.owner;
     if (!ownerUrl) {
       return;
     }
@@ -139,9 +141,8 @@ export default class SharingForm extends React.Component<
       assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions),
     });
 
-    // we need to fetch permissions after asset has loaded, as we need to have
-    // the owner username first to parse permissions
-    actions.permissions.getAssetPermissions(this.props.assetUid);
+    // use the asset's permissions to update the form
+    this.onAssetPermissionsUpdated(asset.permissions, asset.owner);
   }
 
   getAssignablePermsMap(backendPerms: AssignablePermission[]) {
