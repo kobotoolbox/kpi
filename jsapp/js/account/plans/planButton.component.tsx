@@ -1,6 +1,6 @@
 import BillingButton from 'js/account/plans/billingButton.component';
 import React from 'react';
-import type {Price, Organization, PriceWithProduct, FilteredPriceProduct} from 'js/account/stripe.types';
+import type {Price, Organization, FilteredPriceProduct} from 'js/account/stripe.types';
 import {postCustomerPortal} from 'js/account/stripe.api';
 import {processCheckoutResponse} from 'js/account/stripe.utils';
 

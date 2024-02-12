@@ -3,7 +3,7 @@ import styles from 'js/account/plans/plan.module.scss';
 import Icon from 'js/components/common/icon';
 import {PlanButton} from 'js/account/plans/planButton.component';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FilteredPriceProduct, Price, PriceWithProduct, Product, SubscriptionInfo} from 'js/account/stripe.types';
+import {FilteredPriceProduct, Price, SubscriptionInfo} from 'js/account/stripe.types';
 import {FreeTierOverride, PlanState} from 'js/account/plans/plan.component';
 import {
   getAdjustedQuantityForPrice,
@@ -21,7 +21,7 @@ interface PlanContainerProps {
   freeTierOverride: FreeTierOverride | null;
   expandComparison: boolean;
   state: PlanState;
-  filterPrices: FilteredPriceProduct[];
+  filteredPriceProducts: FilteredPriceProduct[];
   setIsBusy: (isBusy: boolean) => void;
   hasManageableStatus: (sub: SubscriptionInfo) => boolean;
   buySubscription: (price: Price, quantity?: number) => void;
@@ -33,7 +33,7 @@ export const PlanContainer = ({
   state,
   freeTierOverride,
   expandComparison,
-  filterPrices: filterProducts,
+  filteredPriceProducts,
   isDisabled,
   setIsBusy,
   hasManageableStatus,
@@ -146,7 +146,7 @@ export const PlanContainer = ({
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
     const listItems: Array<{icon: boolean; item: string}> = [];
-    filterProducts.map((product) =>
+    filteredPriceProducts.map((product) =>
       Object.keys(product.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);

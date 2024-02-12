@@ -88,6 +88,7 @@ export interface Product extends BaseProduct {
   prices: Price[];
 }
 
+// This is a frontend-only interface for accessing the relevant price of a product 
 export interface FilteredPriceProduct extends BaseProduct {
   price: Price;
 }
@@ -109,6 +110,7 @@ export interface Price {
   type: string;
   unit_amount: number;
   human_readable_price: string;
+  active: boolean;
   recurring?: {
     interval: RecurringInterval;
     aggregate_usage: string;
@@ -117,7 +119,6 @@ export interface Price {
   };
   metadata: {[key: string]: string};
   product: string;
-  active: boolean;
   transform_quantity: null | TransformQuantity;
 }
 

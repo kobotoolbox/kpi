@@ -34,7 +34,6 @@ import {
 import type {
   Price,
   Organization,
-  PriceWithProduct,
   Product,
   SubscriptionInfo,
   FilteredPriceProduct,
@@ -327,7 +326,7 @@ export default function Plan() {
   );
 
   // An array of all the products that should be displayed in the UI
-  const filterProducts = useMemo((): FilteredPriceProduct[] => {
+  const filteredPriceProducts = useMemo((): FilteredPriceProduct[] => {
     if (state.products !== null) {
       const filterAmount = state.products.map((product: Product): FilteredPriceProduct => {
         const filteredPrices = product.prices.filter((price: Price) => {
@@ -421,7 +420,7 @@ export default function Plan() {
   const hasMetaFeatures = () => {
     let expandBool = false;
     if (state.products && state.products.length > 0) {
-      filterProducts.map((price) => {
+      filteredPriceProducts.map((price) => {
         for (const featureItem in price.metadata) {
           if (
             featureItem.includes('feature_support_') ||
@@ -494,7 +493,7 @@ export default function Plan() {
               </form>
 
               <div className={styles.allPlans}>
-                {filterProducts.map((product) => (
+                {filteredPriceProducts.map((product) => (
                   <div className={styles.stripePlans} key={product.id}>
                     <PlanContainer
                       key={product.price.id}
@@ -502,7 +501,7 @@ export default function Plan() {
                       expandComparison={expandComparison}
                       isSubscribedProduct={isSubscribedProduct}
                       product={product}
-                      filterPrices={filterProducts}
+                      filteredPriceProducts={filteredPriceProducts}
                       hasManageableStatus={hasManageableStatus}
                       setIsBusy={setIsBusy}
                       isDisabled={isDisabled}
