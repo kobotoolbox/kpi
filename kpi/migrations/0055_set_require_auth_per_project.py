@@ -4,7 +4,11 @@ from itertools import islice
 from django.conf import settings
 from django.db import migrations
 
-from kpi.constants import PERM_ADD_SUBMISSIONS, SKIP_HEAVY_MIGRATIONS_GUIDANCE
+from kpi.constants import (
+    ASSET_TYPE_SURVEY,
+    PERM_ADD_SUBMISSIONS,
+    SKIP_HEAVY_MIGRATIONS_GUIDANCE,
+)
 from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
 
 CHUNK_SIZE = 2000
@@ -41,6 +45,7 @@ def assign_add_submissions_to_anonymous_users(apps, schema_editor):
                     inherited=False,
                 )
                 for asset_id in Asset.objects.filter(
+                    asset_type=ASSET_TYPE_SURVEY,
                     owner_id__in=owner_ids
                 ).values_list('pk', flat=True)
             ],
