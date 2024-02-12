@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from typing import Optional, Union, List
+from typing import Optional, Union
 from xml.dom import Node
 
 from defusedxml import minidom
@@ -31,6 +31,102 @@ from kobo.apps.form_disclaimer.models import FormDisclaimer
 # import:
 from defusedxml import ElementTree as DET
 from xml.etree import ElementTree as ET
+
+
+def add_xml_declaration(
+    xml_content: Union[str, bytes], newlines: bool = False
+) -> Union[str, bytes]:
+    xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
+    # Should support ̀ lmxl` and `dict2xml`
+    start_of_declaration = '<?xml'
+    use_bytes = False
+    xml_content_as_str = xml_content.strip()
+
+    if isinstance(xml_content, bytes):
+        use_bytes = True
+        xml_content_as_str = xml_content.decode()
+
+    if (
+        xml_content_as_str[:len(start_of_declaration)].lower()
+        == start_of_declaration.lower()
+    ):
+        # There's already a declaration. Don't add anything.
+        return xml_content
+
+    newlines_char = '\n' if newlines else ''
+    xml_ = f'{xml_declaration}{newlines_char}{xml_content_as_str}'
+    if use_bytes:
+        return xml_.encode()
+    return xml_
+
+
+def edit_submission_xml(
+    xml_parsed: 'xml.etree.ElementTree.Element',
+    path: str,
+    value: str,
+) -> None:
+    """
+    Edit submission XML with an XPath and new value, creating a new tree
+    element if the path doesn't yet exist.
+    """
+    element = get_or_create_element(xml_parsed, path)
+    element.text = value
+
+
+def fromstring_preserve_root_xmlns(
+    text: str,
+    forbid_dtd: bool = False,
+    forbid_entities: bool = True,
+    forbid_external: bool = True,
+) -> ET.Element:
+    """
+    Parse an XML string, but leave the default namespace in the `xmlns`
+    attribute if the root element has one, and do not use Clark notation
+    prefixes on tag names for the default namespace.
+
+    Copied from `defusedxml.common._generate_etree_functions()`, except that
+    the `target` is changed to a custom class. Necessary because
+    `defusedxml.ElementTree.fromstring()`, unlike the standard library
+    `xml.etree.ElementTree.fromstring()`, does not allow specifying a parser.
+    """
+    parser = DET.DefusedXMLParser(
+        target=OmitDefaultNamespacePrefixTreeBuilder(),
+        forbid_dtd=forbid_dtd,
+        forbid_entities=forbid_entities,
+        forbid_external=forbid_external,
+    )
+    parser.feed(text)
+    return parser.close()
+
+
+def get_or_create_element(
+    xml_parsed: ET.Element,
+    path: str,
+) -> ET.Element:
+    """
+    Return the element at the given `path`, creating it (and all necessary
+    ancestors) if it does not exist. Beware that this creation logic is VERY
+    simplistic and interpets the `path` as a simple slash-separated list of
+    tags.
+    """
+
+    el = xml_parsed.find(path)
+    if el is not None:
+        return el
+
+    # Construct the tree of elements, one node at a time
+    path_parts = path.split('/')
+    traversed_parts = []
+    parent_el = xml_parsed
+    for part in path_parts:
+        traversed_parts.append(part)
+        el = xml_parsed.find('/'.join(traversed_parts))
+        if el is None:
+            el = ET.Element(part)
+            parent_el.append(el)
+        parent_el = el
+
+    return el
 
 
 def strip_nodes(
@@ -178,31 +274,15 @@ def strip_nodes(
     ).decode()
 
 
-def add_xml_declaration(
-    xml_content: Union[str, bytes], newlines: bool = False
-) -> Union[str, bytes]:
-    xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
-    # Should support ̀ lmxl` and `dict2xml`
-    start_of_declaration = '<?xml'
-    use_bytes = False
-    xml_content_as_str = xml_content.strip()
-
-    if isinstance(xml_content, bytes):
-        use_bytes = True
-        xml_content_as_str = xml_content.decode()
-
-    if (
-        xml_content_as_str[:len(start_of_declaration)].lower()
-        == start_of_declaration.lower()
-    ):
-        # There's already a declaration. Don't add anything.
-        return xml_content
-
-    newlines_char = '\n' if newlines else ''
-    xml_ = f'{xml_declaration}{newlines_char}{xml_content_as_str}'
-    if use_bytes:
-        return xml_.encode()
-    return xml_
+def xml_tostring(el: ET.Element) -> str:
+    """
+    Thin wrapper around `ElementTree.tostring()` as a step toward a future
+    where all XML handling is done in this file
+    """
+    # "Use encoding="unicode" to generate a Unicode string (otherwise, a
+    # bytestring is generated)."
+    # https://docs.python.org/3.10/library/xml.etree.elementtree.html#xml.etree.ElementTree.tostring
+    return DET.tostring(el, encoding='unicode')
 
 
 class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):
@@ -250,86 +330,6 @@ class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):
                 tag = remove_prefix(tag, '{' + self.default_namespace_uri + '}')
 
         return super().start(tag, attrs)
-
-
-def fromstring_preserve_root_xmlns(
-    text: str,
-    forbid_dtd: bool = False,
-    forbid_entities: bool = True,
-    forbid_external: bool = True,
-) -> ET.Element:
-    """
-    Parse an XML string, but leave the default namespace in the `xmlns`
-    attribute if the root element has one, and do not use Clark notation
-    prefixes on tag names for the default namespace.
-
-    Copied from `defusedxml.common._generate_etree_functions()`, except that
-    the `target` is changed to a custom class. Necessary because
-    `defusedxml.ElementTree.fromstring()`, unlike the standard library
-    `xml.etree.ElementTree.fromstring()`, does not allow specifying a parser.
-    """
-    parser = DET.DefusedXMLParser(
-        target=OmitDefaultNamespacePrefixTreeBuilder(),
-        forbid_dtd=forbid_dtd,
-        forbid_entities=forbid_entities,
-        forbid_external=forbid_external,
-    )
-    parser.feed(text)
-    return parser.close()
-
-
-def xml_tostring(el: ET.Element) -> str:
-    """
-    Thin wrapper around `ElementTree.tostring()` as a step toward a future
-    where all XML handling is done in this file
-    """
-    # "Use encoding="unicode" to generate a Unicode string (otherwise, a
-    # bytestring is generated)."
-    # https://docs.python.org/3.10/library/xml.etree.elementtree.html#xml.etree.ElementTree.tostring
-    return DET.tostring(el, encoding='unicode')
-
-
-def get_or_create_element(
-    xml_parsed: ET.Element,
-    path: str,
-) -> ET.Element:
-    """
-    Return the element at the given `path`, creating it (and all necessary
-    ancestors) if it does not exist. Beware that this creation logic is VERY
-    simplistic and interpets the `path` as a simple slash-separated list of
-    tags.
-    """
-
-    el = xml_parsed.find(path)
-    if el is not None:
-        return el
-
-    # Construct the tree of elements, one node at a time
-    path_parts = path.split('/')
-    traversed_parts = []
-    parent_el = xml_parsed
-    for part in path_parts:
-        traversed_parts.append(part)
-        el = xml_parsed.find('/'.join(traversed_parts))
-        if el is None:
-            el = ET.Element(part)
-            parent_el.append(el)
-        parent_el = el
-
-    return el
-
-
-def edit_submission_xml(
-    xml_parsed: xml.etree.ElementTree.Element,
-    path: str,
-    value: str,
-) -> None:
-    """
-    Edit submission XML with an XPath and new value, creating a new tree
-    element if the path doesn't yet exist.
-    """
-    element = get_or_create_element(xml_parsed, path)
-    element.text = value
 
 
 class XMLFormWithDisclaimer:
