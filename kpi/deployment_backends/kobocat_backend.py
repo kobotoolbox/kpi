@@ -12,13 +12,13 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
-from xml.etree import ElementTree as ET
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import requests
+from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, SuspiciousFileOperation
 from django.core.files import File
@@ -29,7 +29,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from kobo_service_account.utils import get_request_headers
-from lxml import etree
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -59,6 +58,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatXForm,
@@ -384,7 +384,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # parse XML string to ET object
-        xml_parsed = ET.fromstring(submission)
+        xml_parsed = fromstring_preserve_root_xmlns(submission)
 
         # attempt to update XML fields for duplicate submission. Note that
         # `start` and `end` are not guaranteed to be included in the XML object
@@ -399,10 +399,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Rely on `meta/instanceID` being present. If it's absent, something is
         # fishy enough to warrant raising an exception instead of continuing
         # silently
-        xml_parsed.find('meta/instanceID').text = uuid_formatted
+        xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = (
+            uuid_formatted
+        )
 
         kc_response = self.store_submission(
-            user, ET.tostring(xml_parsed), _uuid, attachments
+            user, xml_tostring(xml_parsed), _uuid, attachments
         )
         if kc_response.status_code == status.HTTP_201_CREATED:
             return next(self.get_submissions(user, query={'_uuid': _uuid}))
@@ -420,8 +422,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         submission_xml = xml_submission_file.read()
         try:
-            xml_root = ET.fromstring(submission_xml)
-        except ET.ParseError:
+            xml_root = fromstring_preserve_root_xmlns(submission_xml)
+        except DET.ParseError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is malformed.')
             )
@@ -551,18 +553,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise SubmissionNotFoundException
 
         if xpath:
-            submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
-
-            try:
-                element = submission_tree.find(xpath)
-            except KeyError:
-                raise InvalidXPathException
-
-            try:
-                attachment_filename = element.text
-            except AttributeError:
+            submission_root = fromstring_preserve_root_xmlns(submission_xml)
+            element = submission_root.find(xpath)
+            if element is None:
                 raise XPathNotFoundException
-
+            attachment_filename = element.text
             filters = {
                 'media_file_basename': attachment_filename,
             }
@@ -1125,7 +1120,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def store_submission(
         self, user, xml_submission, submission_uuid, attachments=None
     ):
-        file_tuple = (submission_uuid, io.BytesIO(xml_submission))
+        file_tuple = (submission_uuid, io.StringIO(xml_submission))
         files = {'xml_submission_file': file_tuple}
         if attachments:
             files.update(attachments)
@@ -1555,14 +1550,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # so it needs to be parsed before extracting the text
         results = []
         for response in kc_responses:
+            message = t('Something went wrong')
             try:
-                message = (
-                    ET.fromstring(response['response'].content)
-                    .find(OPEN_ROSA_XML_MESSAGE)
-                    .text
+                xml_parsed = fromstring_preserve_root_xmlns(
+                    response['response'].content
                 )
-            except ET.ParseError:
-                message = t('Something went wrong')
+            except DET.ParseError:
+                pass
+            else:
+                message_el = xml_parsed.find(OPEN_ROSA_XML_MESSAGE)
+                if message_el is not None and message_el.text.strip():
+                    message = message_el.text
 
             results.append(
                 {
@@ -1580,6 +1578,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return {
             'status': status.HTTP_200_OK
             if total_successes > 0
+            # FIXME: If KoboCAT returns something unexpected, like a 404 or a
+            # 500, then 400 is not the right response to send to the client
             else status.HTTP_400_BAD_REQUEST,
             'data': {
                 'count': total_update_attempts,
