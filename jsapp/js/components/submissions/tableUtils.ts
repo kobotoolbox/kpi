@@ -298,6 +298,8 @@ export interface TableFilterQuery {
  * is part of the response).
  */
 const FILTER_EXACT_TYPES: AnyRowTypeName[] = [
+  QuestionTypeName.decimal,
+  QuestionTypeName.integer,
   QuestionTypeName.select_one,
 ];
 
