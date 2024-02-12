@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import useWhen from 'js/hooks/useWhen.hook';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {
-  BasePrice,
+  Price,
   Organization,
   Product,
   SubscriptionChangeType,
@@ -30,7 +30,7 @@ const AddOnList = (props: {
   organization: Organization | null;
   isBusy: boolean;
   setIsBusy: (value: boolean) => void;
-  onClickBuy: (price: BasePrice) => void;
+  onClickBuy: (price: Price) => void;
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>(
     []
@@ -87,7 +87,7 @@ const AddOnList = (props: {
   );
 
   const isSubscribedAddOnPrice = useCallback(
-    (price: BasePrice) =>
+    (price: Price) =>
       isChangeScheduled(price, activeSubscriptions) ||
       subscribedAddOns.some(
         (subscription) => subscription.items[0].price.id === price.id
@@ -99,7 +99,7 @@ const AddOnList = (props: {
     props.setIsBusy(false);
   };
 
-  const onClickManage = (price?: BasePrice) => {
+  const onClickManage = (price?: Price) => {
     if (!props.organization || props.isBusy) {
       return;
     }
@@ -109,7 +109,7 @@ const AddOnList = (props: {
       .catch(handleCheckoutError);
   };
 
-  const renderUpdateBadge = (price: BasePrice) => {
+  const renderUpdateBadge = (price: Price) => {
     if (!(subscriptionUpdate && isSubscribedAddOnPrice(price))) {
       return <></>;
     }
@@ -146,7 +146,7 @@ const AddOnList = (props: {
       if (
         subscriptionUpdate.type === SubscriptionChangeType.PRODUCT_CHANGE &&
         isSubscribedAddOnPrice(price) &&
-        currentPlan?.items[0].price.product === price.product
+        currentPlan?.items[0].price.product.id === price.product
       ) {
         color = 'light-amber';
         label = t('Ends on ##cancel_date##').replace(

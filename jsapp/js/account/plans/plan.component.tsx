@@ -28,11 +28,11 @@ import {
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
 import type {
-  BasePrice,
-  Organization,
   Price,
+  Organization,
   Product,
   SubscriptionInfo,
+  FilteredPriceProduct,
 } from 'js/account/stripe.types';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
@@ -313,33 +313,31 @@ export default function Plan(props: PlanProps) {
     [visiblePlanTypes]
   );
 
-  // An array of all the prices that should be displayed in the UI
-  const filterPrices = useMemo((): Price[] => {
-    if (productsContext.products.length) {
-      const filterAmount = productsContext.products.map(
-        (product: Product): Price => {
-          const filteredPrices = product.prices.filter((price: BasePrice) => {
-            const interval = price.recurring?.interval;
-            return (
-              // only show monthly/annual plans based on toggle value
-              interval === state.intervalFilter &&
-              // don't show recurring add-ons
-              product.metadata.product_type === 'plan' &&
-              // only show products that don't have a `plan_type` or those that match the `?type=` query param
-              (visiblePlanTypes.includes(product.metadata?.plan_type || '') ||
-                (!product.metadata?.plan_type &&
-                  visiblePlanTypes.includes('default')))
-            );
-          });
+  // An array of all the products that should be displayed in the UI
+  const filteredPriceProducts = useMemo((): FilteredPriceProduct[] => {
+     if (productsContext.products.length) {
+      const filterAmount = productsContext.products.map((product: Product): FilteredPriceProduct => {
+        const filteredPrices = product.prices.filter((price: Price) => {
+          const interval = price.recurring?.interval;
+          return (
+            // only show monthly/annual plans based on toggle value
+            interval === state.intervalFilter &&
+            // don't show recurring add-ons
+            product.metadata.product_type === 'plan' &&
+            // only show products that don't have a `plan_type` or those that match the `?type=` query param
+            (visiblePlanTypes.includes(product.metadata?.plan_type || '') ||
+              (!product.metadata?.plan_type &&
+                visiblePlanTypes.includes('default')))
+          );
+        });
 
-          return {
-            ...product,
-            prices: filteredPrices[0],
-          };
-        }
-      );
+        return {
+          ...product,
+          price: filteredPrices[0],
+        };
+      });
 
-      return filterAmount.filter((price) => price.prices);
+      return filterAmount.filter((price) => price.price);
     }
     return [];
   }, [productsContext.products, state.intervalFilter, visiblePlanTypes]);
@@ -347,8 +345,8 @@ export default function Plan(props: PlanProps) {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
-    (product: Price, quantity = null) => {
-      if (!product.prices?.unit_amount && !hasActiveSubscription) {
+    (product: FilteredPriceProduct, quantity = null) => {
+      if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true;
       }
 
@@ -360,7 +358,7 @@ export default function Plan(props: PlanProps) {
       if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
           (subscription: SubscriptionInfo) =>
-            subscription.items[0].price.id === product.prices.id &&
+            subscription.items[0].price.id === product.price.id &&
             hasManageableStatus(subscription) &&
             quantity &&
             quantity === subscription.quantity
@@ -377,7 +375,7 @@ export default function Plan(props: PlanProps) {
     });
   };
 
-  const buySubscription = (price: BasePrice, quantity: number = 1) => {
+  const buySubscription = (price: Price, quantity: number = 1) => {
     if (!price.id || isDisabled || !state.organization?.id) {
       return;
     }
@@ -410,7 +408,7 @@ export default function Plan(props: PlanProps) {
   const hasMetaFeatures = () => {
     let expandBool = false;
     if (productsContext.products.length) {
-      filterPrices.map((price) => {
+      filteredPriceProducts.map((price) => {
         for (const featureItem in price.metadata) {
           if (
             featureItem.includes('feature_support_') ||
@@ -486,15 +484,15 @@ export default function Plan(props: PlanProps) {
                   </form>
 
                   <div className={styles.allPlans}>
-                    {filterPrices.map((price: Price) => (
-                      <div className={styles.stripePlans} key={price.id}>
+                    {filteredPriceProducts.map((product: FilteredPriceProduct) => (
+                      <div className={styles.stripePlans} key={product.id}>
                         <PlanContainer
-                          key={price.prices.id}
+                          key={product.price.id}
                           freeTierOverride={freeTierOverride}
                           expandComparison={expandComparison}
                           isSubscribedProduct={isSubscribedProduct}
-                          price={price}
-                          filterPrices={filterPrices}
+                          product={product}
+                          filteredPriceProducts={filteredPriceProducts}
                           hasManageableStatus={hasManageableStatus}
                           setIsBusy={setIsBusy}
                           isDisabled={isDisabled}
