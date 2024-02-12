@@ -5,7 +5,7 @@ from kpi.utils.log import logging
 
 
 def get_attachment_filenames_and_xpaths(
-    submission: dict, attachment_xpaths: list
+    submission: dict, attachment_xpaths: list, index: int = None
 ) -> dict:
     """
     Return a dictionary of all valid attachment filenames of a submission mapped
@@ -15,11 +15,11 @@ def get_attachment_filenames_and_xpaths(
     return_dict = {}
     for key, value in submission.items():
         if isinstance(value, list):
-            for item_list in value:
+            for index, item_list in enumerate(value):
                 if isinstance(item_list, dict):
                     return_dict.update(
                         get_attachment_filenames_and_xpaths(
-                            item_list, attachment_xpaths
+                            item_list, attachment_xpaths, index
                         )
                     )
         elif isinstance(value, dict):
@@ -33,6 +33,9 @@ def get_attachment_filenames_and_xpaths(
                 except SuspiciousFileOperation:
                     logging.error(f'Could not get valid name from {value}')
                     continue
-                return_dict[value] = key
+                if isinstance(index, int):
+                    return_dict[value] = f'{key}[{index + 1}]'
+                else:
+                    return_dict[value] = key
 
     return return_dict
