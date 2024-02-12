@@ -43,7 +43,7 @@ interface GetProcessingSubmissionsCompletedDefinition extends Function {
 }
 
 interface LoadAssetDefinition extends Function {
-  (params: {id: string}): void;
+  ({id: string}, refresh?: Boolean): void;
   completed: LoadAssetCompletedDefinition;
   failed: GenericFailedDefinition;
 }
