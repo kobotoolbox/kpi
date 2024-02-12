@@ -7,29 +7,24 @@
   margin: 0 sizes.$x40;
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid colors.$kobo-gray-85;
+  border-bottom: 2px solid colors.$kobo-gray-85;
 }
 
 .tab {
   background: transparent;
   cursor: pointer;
   font-size: sizes.$x18;
-  color: colors.$kobo-gray-40;
-  font-weight: 500;
+  color: colors.$kobo-gray-55;
+  font-weight: 600;
   padding: sizes.$x14 sizes.$x30 sizes.$x10;
-  margin-bottom: -1px;
+  margin-bottom: -2px;
   outline: none;
 
   &.active {
-    color: colors.$kobo-gray-24;
-    font-weight: 700;
-    border: sizes.$x1 solid colors.$kobo-gray-85;
-    border-bottom-color: colors.$kobo-white;
+    color: colors.$kobo-dark-blue;
+    background-color: colors.$kobo-light-blue;
+    border-bottom: 2px solid colors.$kobo-dark-blue;
     border-radius: 7px 7px 0 0;
-  }
-
-  &.focus {
-    border: sizes.$x1 solid colors.$kobo-blue;
   }
 }
 
