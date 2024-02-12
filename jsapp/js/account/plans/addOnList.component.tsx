@@ -111,49 +111,43 @@ const AddOnList = (props: {
 
   const renderUpdateBadge = (price: Price) => {
     if (!(subscriptionUpdate && isSubscribedAddOnPrice(price))) {
-      return <></>;
+      return null;
     }
 
-    let color: BadgeColor = 'cloud';
-    let label = 'default';
+    let color: BadgeColor;
+    let label;
 
-    if (
-      subscriptionUpdate.type === SubscriptionChangeType.CANCELLATION &&
-      isSubscribedAddOnPrice(price)
-    ) {
+    if (subscriptionUpdate.type === SubscriptionChangeType.CANCELLATION) {
       color = 'light-red';
       label = t('Ends on ##cancel_date##').replace(
         '##cancel_date##',
         formatDate(subscriptionUpdate.date)
       );
-    }
-
-    if (
-      subscriptionUpdate.type === SubscriptionChangeType.RENEWAL &&
-      isSubscribedAddOnPrice(price)
-    )
+    } else if (subscriptionUpdate.type === SubscriptionChangeType.RENEWAL) {
+      color = 'light-blue';
       label = t('Renews on ##renewal_date##').replace(
         '##renewal_date##',
         formatDate(subscriptionUpdate.date)
       );
-    
-    if (
-      subscriptionUpdate.type === SubscriptionChangeType.PRODUCT_CHANGE &&
-      isSubscribedAddOnPrice(price)
-    )
-    {
-    }
-      if (
-        subscriptionUpdate.type === SubscriptionChangeType.PRODUCT_CHANGE &&
-        isSubscribedAddOnPrice(price) &&
-        currentPlan?.items[0].price.product.id === price.product
-      ) {
+    } else if (
+      subscriptionUpdate.type === SubscriptionChangeType.PRODUCT_CHANGE
+    ) {
+      if (currentPlan?.items[0].price.product.id === price.product) {
         color = 'light-amber';
-        label = t('Ends on ##cancel_date##').replace(
-          '##cancel_date##',
+        label = t('Ends on ##end_date##').replace(
+          '##end_date##',
+          formatDate(subscriptionUpdate.date)
+        );
+      } else {
+        color = 'light-teal';
+        label = t('Starts on ##start_date##').replace(
+          '##start_date##',
           formatDate(subscriptionUpdate.date)
         );
       }
+    } else {
+      return null;
+    }
     return <Badge size={'s'} color={color} label={label} />;
   };
 
@@ -178,7 +172,8 @@ const AddOnList = (props: {
           product.prices.map((price) => (
             <tr className={styles.row} key={price.id}>
               <td className={styles.product}>
-                {product.name} {renderUpdateBadge(price)}
+                <span className={styles.productName}>{product.name}</span>
+                {renderUpdateBadge(price)}
               </td>
               <td className={styles.price}>{price.human_readable_price}</td>
               <td>
