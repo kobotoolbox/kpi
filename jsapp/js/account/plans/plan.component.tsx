@@ -36,7 +36,7 @@ import type {
   Organization,
   Product,
   SubscriptionInfo,
-  FilteredPriceProduct,
+  SinglePricedProduct,
 } from 'js/account/stripe.types';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
@@ -326,9 +326,9 @@ export default function Plan() {
   );
 
   // An array of all the products that should be displayed in the UI
-  const filteredPriceProducts = useMemo((): FilteredPriceProduct[] => {
+  const filteredPriceProducts = useMemo((): SinglePricedProduct[] => {
     if (state.products !== null) {
-      const filterAmount = state.products.map((product: Product): FilteredPriceProduct => {
+      const filterAmount = state.products.map((product: Product): SinglePricedProduct => {
         const filteredPrices = product.prices.filter((price: Price) => {
           const interval = price.recurring?.interval;
           return (
@@ -357,7 +357,7 @@ export default function Plan() {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
-    (product: FilteredPriceProduct, quantity = null) => {
+    (product: SinglePricedProduct, quantity = null) => {
       if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true;
       }

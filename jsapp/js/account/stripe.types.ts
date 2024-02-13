@@ -89,7 +89,7 @@ export interface Product extends BaseProduct {
 }
 
 // This is a frontend-only interface for accessing the relevant price of a product 
-export interface FilteredPriceProduct extends BaseProduct {
+export interface SinglePricedProduct extends BaseProduct {
   price: Price;
 }
 
