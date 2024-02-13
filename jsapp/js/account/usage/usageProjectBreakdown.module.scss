@@ -1,0 +1,7 @@
+@use 'scss/sizes';
+
+.root {
+  width: auto;
+  padding-top: sizes.$x40;
+  margin: 0 sizes.$x40;
+}

@@ -17,6 +17,9 @@ import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import moment from 'moment';
 import {YourPlan} from 'js/account/usage/yourPlan.component';
 import cx from 'classnames';
+import Tabs from 'jsapp/js/components/common/tabs';
+import ProjectBreakdown from './usageProjectBreakdown';
+import {ACCOUNT_ROUTES} from '../routes';
 
 interface LimitState {
   storageByteLimit: LimitAmount;
@@ -69,6 +72,11 @@ export default function Usage() {
     usage.trackingPeriod,
   ]);
 
+  const [selectedTab, setSelectedTab] = useState(ACCOUNT_ROUTES.USAGE);
+  const handleTabChange = (route: string) => {
+    setSelectedTab(route);
+  };
+
   // check if stripe is enabled - if so, get limit data
   useEffect(() => {
     const getLimits = async () => {
@@ -114,79 +122,98 @@ export default function Usage() {
     return <LoadingSpinner />;
   }
 
-  return (
-    <UsageContext.Provider value={usage}>
-      <div className={styles.root}>
-        {limits.stripeEnabled && <YourPlan />}
-        <header className={styles.header}>
-          <h2 className={styles.headerText}>{t('Your usage')}</h2>
-          {typeof usage.lastUpdated === 'string' && (
-            <p className={styles.updated}>
-              {t('Last update: ##LAST_UPDATE_TIME##').replace(
-                '##LAST_UPDATE_TIME##',
-                usage.lastUpdated
-              )}
-            </p>
-          )}
-        </header>
-        <div className={styles.row}>
-          <div className={cx(styles.row, styles.subrow)}>
-            <div className={styles.box}>
-              <span>
-                <strong className={styles.title}>{t('Submissions')}</strong>
-                <time className={styles.date}>{dateRange}</time>
-              </span>
-              <UsageContainer
-                usage={usage.submissions}
-                limit={limits.submissionLimit}
-                period={usage.trackingPeriod}
-              />
-            </div>
-            <div className={styles.box}>
-              <span>
-                <strong className={styles.title}>{t('Storage')}</strong>
-                <div className={styles.date}>{t('per account')}</div>
-              </span>
-              <UsageContainer
-                usage={usage.storage}
-                limit={limits.storageByteLimit}
-                period={usage.trackingPeriod}
-                label={t('Total')}
-                type={USAGE_CONTAINER_TYPE.STORAGE}
-              />
-            </div>
+  const UsageContent = () => (
+    <div className={styles.root}>
+      {limits.stripeEnabled && <YourPlan />}
+      <header className={styles.header}>
+        <h2 className={styles.headerText}>{t('Your usage')}</h2>
+        {typeof usage.lastUpdated === 'string' && (
+          <p className={styles.updated}>
+            {t('Last update: ##LAST_UPDATE_TIME##').replace(
+              '##LAST_UPDATE_TIME##',
+              usage.lastUpdated
+            )}
+          </p>
+        )}
+      </header>
+      <div className={styles.row}>
+        <div className={cx(styles.row, styles.subrow)}>
+          <div className={styles.box}>
+            <span>
+              <strong className={styles.title}>{t('Submissions')}</strong>
+              <time className={styles.date}>{dateRange}</time>
+            </span>
+            <UsageContainer
+              usage={usage.submissions}
+              limit={limits.submissionLimit}
+              period={usage.trackingPeriod}
+            />
           </div>
-          <div className={cx(styles.row, styles.subrow)}>
-            <div className={styles.box}>
-              <span>
-                <strong className={styles.title}>
-                  {t('Transcription minutes')}
-                </strong>
-                <time className={styles.date}>{dateRange}</time>
-              </span>
-              <UsageContainer
-                usage={usage.transcriptionMinutes}
-                limit={limits.nlpMinuteLimit}
-                period={usage.trackingPeriod}
-                type={USAGE_CONTAINER_TYPE.TRANSCRIPTION}
-              />
-            </div>
-            <div className={styles.box}>
-              <span>
-                <strong className={styles.title}>
-                  {t('Translation characters')}
-                </strong>
-                <time className={styles.date}>{dateRange}</time>
-              </span>
-              <UsageContainer
-                usage={usage.translationChars}
-                limit={limits.nlpCharacterLimit}
-                period={usage.trackingPeriod}
-              />
-            </div>
+          <div className={styles.box}>
+            <span>
+              <strong className={styles.title}>{t('Storage')}</strong>
+              <div className={styles.date}>{t('per account')}</div>
+            </span>
+            <UsageContainer
+              usage={usage.storage}
+              limit={limits.storageByteLimit}
+              period={usage.trackingPeriod}
+              label={t('Total')}
+              type={USAGE_CONTAINER_TYPE.STORAGE}
+            />
+          </div>
+        </div>
+        <div className={cx(styles.row, styles.subrow)}>
+          <div className={styles.box}>
+            <span>
+              <strong className={styles.title}>
+                {t('Transcription minutes')}
+              </strong>
+              <time className={styles.date}>{dateRange}</time>
+            </span>
+            <UsageContainer
+              usage={usage.transcriptionMinutes}
+              limit={limits.nlpMinuteLimit}
+              period={usage.trackingPeriod}
+              type={USAGE_CONTAINER_TYPE.TRANSCRIPTION}
+            />
+          </div>
+          <div className={styles.box}>
+            <span>
+              <strong className={styles.title}>
+                {t('Translation characters')}
+              </strong>
+              <time className={styles.date}>{dateRange}</time>
+            </span>
+            <UsageContainer
+              usage={usage.translationChars}
+              limit={limits.nlpCharacterLimit}
+              period={usage.trackingPeriod}
+            />
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  return (
+    <UsageContext.Provider value={usage}>
+      <Tabs
+        tabs={[
+          {label: 'Account Total', route: ACCOUNT_ROUTES.USAGE},
+          {
+            label: 'Per Project Total',
+            route: ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN,
+          },
+        ]}
+        selectedTab={selectedTab}
+        onChange={handleTabChange}
+      />
+      {selectedTab === ACCOUNT_ROUTES.USAGE ? (
+        <UsageContent />
+      ) : (
+        <ProjectBreakdown />
+      )}
     </UsageContext.Provider>
   );
 }
