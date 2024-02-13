@@ -128,6 +128,8 @@ module.exports = do ->
         if typeof(value) is 'string'
           select += """<option value="#{value}">#{value}</option>"""
         else
+          # HACK FIX: we're expecting an array of this structure [['option', 'Description'], ...] in order
+          # to display the option next to some helpful text in a dropdown
           select += """<option value="#{value[0]}">#{value[0]} (#{value[1]})</option>"""
 
       select += "</select>"
@@ -471,7 +473,7 @@ module.exports = do ->
         select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
         image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
-        group: [['select', 'default, no appearance set'], ['field-list', 'Show all questions in this group on the same screen'], ['other', 'advanced']]
+        group: [['select', 'Default, no appearance set'], ['field-list', 'Show all questions in this group on the same screen'], ['other', 'Advanced']]
 
       types[@model._parent.getValue('type').split(' ')[0]]
     html: ->
