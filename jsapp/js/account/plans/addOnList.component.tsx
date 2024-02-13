@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import useWhen from 'js/hooks/useWhen.hook';
 import subscriptionStore from 'js/account/subscriptionStore';
 import type {
-  BasePrice,
+  Price,
   Organization,
   Product,
   SubscriptionInfo,
@@ -26,7 +26,7 @@ const AddOnList = (props: {
   organization: Organization | null;
   isBusy: boolean;
   setIsBusy: (value: boolean) => void;
-  onClickBuy: (price: BasePrice) => void;
+  onClickBuy: (price: Price) => void;
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>(
     []
@@ -70,7 +70,7 @@ const AddOnList = (props: {
   );
 
   const isSubscribedAddOnPrice = useCallback(
-    (price: BasePrice) =>
+    (price: Price) =>
       isChangeScheduled(price, activeSubscriptions) ||
       subscribedAddOns.some(
         (subscription) => subscription.items[0].price.id === price.id
@@ -82,7 +82,7 @@ const AddOnList = (props: {
     props.setIsBusy(false);
   };
 
-  const onClickManage = (price?: BasePrice) => {
+  const onClickManage = (price?: Price) => {
     if (!props.organization || props.isBusy) {
       return;
     }

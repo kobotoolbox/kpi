@@ -7,7 +7,8 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import type {
-  BasePrice,
+  Price,
+  PriceWithProduct,
   Product,
   SubscriptionInfo,
 } from 'js/account/stripe.types';
@@ -23,7 +24,7 @@ import BillingButton from 'js/account/plans/billingButton.component';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 
 export interface ConfirmChangeProps {
-  newPrice: BasePrice | null;
+  newPrice: Price | null;
   products: Product[] | null;
   quantity?: number;
   currentSubscription: SubscriptionInfo | null;
@@ -68,7 +69,7 @@ const ConfirmChangeModal = ({
 
   // get a translatable description of a newPrice
   const getPriceDescription = useCallback(
-    (price: BasePrice) => {
+    (price: Price) => {
       const product = getProductForPriceId(price.id);
       if (price && product) {
         if (isAddonProduct(product)) {
@@ -96,7 +97,7 @@ const ConfirmChangeModal = ({
 
   // get the product type to display as a translatable string
   const getPriceType = useCallback(
-    (price: BasePrice | null) => {
+    (price: PriceWithProduct | null) => {
       if (!price) {
         return t('plan');
       }
