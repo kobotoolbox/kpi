@@ -4,14 +4,13 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
-  QuestionTypeName,
   VALIDATION_STATUSES,
 } from 'js/constants';
-import type {AnyRowTypeName} from 'js/constants';
 import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
+  FILTER_EXACT_TYPES,
 } from 'js/components/submissions/tableConstants';
 import type {
   SubmissionResponse,
@@ -290,18 +289,6 @@ export interface TableFilterQuery {
       | {$regex: string; $options: string};
   };
 }
-
-/**
- * These are question types that will be filtered by the exact filter value
- * (i.e. filter value is exactly the response). Any question type not on this
- * list will be filtered by responses that include the value (i.e. filter value
- * is part of the response).
- */
-const FILTER_EXACT_TYPES: AnyRowTypeName[] = [
-  QuestionTypeName.decimal,
-  QuestionTypeName.integer,
-  QuestionTypeName.select_one,
-];
 
 /**
  * This function uses filters list from `react-table` output to produce queries

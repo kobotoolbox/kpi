@@ -49,6 +49,7 @@ import {
   TABLE_MEDIA_TYPES,
   DEFAULT_DATA_CELL_WIDTH,
   CELLS_WIDTH_OVERRIDES,
+  DROPDOWN_FILTER_QUESTION_TYPES,
   TEXT_FILTER_QUESTION_TYPES,
   TEXT_FILTER_QUESTION_IDS,
 } from 'js/components/submissions/tableConstants';
@@ -635,6 +636,9 @@ export class DataTable extends React.Component {
     }
 
     const survey = this.props.asset.content.survey;
+    // TODO: write some code that will get the choices for `select_x_from_file`
+    // from the file. It needs to first load the file and then parse the content
+    // so it's quite the task :)
     const choices = this.props.asset.content.choices;
     const flatPaths = getSurveyFlatPaths(survey);
     allColumns.forEach((key, columnIndex) => {
@@ -932,11 +936,7 @@ export class DataTable extends React.Component {
     const frozenColumn = tableStore.getFrozenColumn();
 
     columnsToRender.forEach(function (col) {
-      if (
-        (col.question && col.question.type === QUESTION_TYPES.select_one.id) ||
-        (col.question &&
-          col.question.type === QUESTION_TYPES.select_multiple.id)
-      ) {
+      if (DROPDOWN_FILTER_QUESTION_TYPES.includes(col.question?.type)) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <select
@@ -962,8 +962,7 @@ export class DataTable extends React.Component {
         );
       }
       if (
-        (col.question &&
-          TEXT_FILTER_QUESTION_TYPES.includes(col.question.type)) ||
+        TEXT_FILTER_QUESTION_TYPES.includes(col.question?.type) ||
         TEXT_FILTER_QUESTION_IDS.includes(col.id)
       ) {
         col.filterable = true;
