@@ -1,11 +1,3 @@
-export interface BaseProduct {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  metadata: Record<string, string>;
-}
-
 interface SubscriptionPhase {
   items: [
     {
@@ -87,13 +79,18 @@ export interface SubscriptionInfo {
 
 export interface SubscriptionItem {
   id: string;
-  price: BasePrice;
+  price: PriceWithProduct;
   quantity: number;
 }
 
 // There is probably a better way to hand the nested types
 export interface Product extends BaseProduct {
-  prices: BasePrice[];
+  prices: Price[];
+}
+
+// This is a frontend-only interface for accessing the relevant price of a product 
+export interface SinglePricedProduct extends BaseProduct {
+  price: Price;
 }
 
 export interface BaseProduct {
@@ -106,7 +103,7 @@ export interface BaseProduct {
 
 export type RecurringInterval = 'year' | 'month';
 
-export interface BasePrice {
+export interface Price {
   id: string;
   nickname: string;
   currency: string;
@@ -121,9 +118,12 @@ export interface BasePrice {
     usage_type: 'metered' | 'licensed';
   };
   metadata: {[key: string]: string};
-  product: BaseProduct;
-  billing_scheme: 'per_unit' | 'tiered' | null;
+  product: string;
   transform_quantity: null | TransformQuantity;
+}
+
+export interface PriceWithProduct extends Omit<Price, 'product'> {
+  product: BaseProduct;
 }
 
 export type PriceMetadata = Record<
@@ -167,14 +167,6 @@ export interface AccountLimit {
   nlp_seconds_limit: LimitAmount;
   nlp_character_limit: LimitAmount;
   storage_bytes_limit: LimitAmount;
-}
-
-export interface Product extends BaseProduct {
-  prices: BasePrice[];
-}
-
-export interface Price extends BaseProduct {
-  prices: BasePrice;
 }
 
 export interface Checkout {

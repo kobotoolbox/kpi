@@ -3,11 +3,10 @@ import {when} from 'mobx';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import envStore from 'js/envStore';
 import {
-  BasePrice,
+  Price,
   BaseProduct,
   ChangePlan,
   Checkout,
-  Price,
   Product,
   SubscriptionChangeType,
   SubscriptionInfo,
@@ -91,7 +90,7 @@ export async function processChangePlanResponse(data: ChangePlan) {
  * Check if any of a list of subscriptions are scheduled to change to a given price at some point.
  */
 export function isChangeScheduled(
-  price: BasePrice,
+  price: Price,
   subscriptions: SubscriptionInfo[] | null
 ) {
   return (
@@ -198,7 +197,7 @@ export const getAdjustedQuantityForPrice = (
  */
 export const isDowngrade = (
   currentSubscriptions: SubscriptionInfo[],
-  price: BasePrice,
+  price: Price,
   newQuantity: number
 ) => {
   if (!currentSubscriptions.length) {

@@ -1,9 +1,9 @@
 import {useMemo} from 'react';
-import {BasePrice} from 'js/account/stripe.types';
+import {Price} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
 
 export const useDisplayPrice = (
-  price?: BasePrice | null,
+  price?: Price | null,
   submissionQuantity = 1
 ) => {
   return useMemo(() => {

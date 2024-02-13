@@ -3,7 +3,7 @@ import styles from 'js/account/plans/plan.module.scss';
 import Icon from 'js/components/common/icon';
 import {PlanButton} from 'js/account/plans/planButton.component';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {BasePrice, Price, SubscriptionInfo} from 'js/account/stripe.types';
+import {SinglePricedProduct, Price, SubscriptionInfo} from 'js/account/stripe.types';
 import {FreeTierOverride, PlanState} from 'js/account/plans/plan.component';
 import {
   getAdjustedQuantityForPrice,
@@ -15,25 +15,25 @@ import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 
 interface PlanContainerProps {
-  price: Price;
+  product: SinglePricedProduct;
   isDisabled: boolean;
-  isSubscribedProduct: (product: Price, quantity: number) => boolean;
+  isSubscribedProduct: (product: SinglePricedProduct, quantity: number) => boolean;
   freeTierOverride: FreeTierOverride | null;
   expandComparison: boolean;
   state: PlanState;
-  filterPrices: Price[];
+  filteredPriceProducts: SinglePricedProduct[];
   setIsBusy: (isBusy: boolean) => void;
   hasManageableStatus: (sub: SubscriptionInfo) => boolean;
-  buySubscription: (price: BasePrice, quantity?: number) => void;
+  buySubscription: (price: Price, quantity?: number) => void;
   activeSubscriptions: SubscriptionInfo[];
 }
 
 export const PlanContainer = ({
-  price,
+  product,
   state,
   freeTierOverride,
   expandComparison,
-  filterPrices,
+  filteredPriceProducts,
   isDisabled,
   setIsBusy,
   hasManageableStatus,
@@ -43,9 +43,9 @@ export const PlanContainer = ({
 }: PlanContainerProps) => {
   const [submissionQuantity, setSubmissionQuantity] = useState(1);
   // display price for the plan/price/quantity we're currently displaying
-  const displayPrice = useDisplayPrice(price.prices, submissionQuantity);
+  const displayPrice = useDisplayPrice(product.price, submissionQuantity);
   const shouldShowManage = useCallback(
-    (product: Price) => {
+    (product: SinglePricedProduct) => {
       const subscriptions = getSubscriptionsForProductId(
         product.id,
         state.subscribedProduct
@@ -61,56 +61,56 @@ export const PlanContainer = ({
         return false;
       }
 
-      return isChangeScheduled(product.prices, [activeSubscription]);
+      return isChangeScheduled(product.price, [activeSubscription]);
     },
     [hasManageableStatus, state.subscribedProduct]
   );
 
   const isDowngrading = useMemo(
-    () => isDowngrade(activeSubscriptions, price.prices, submissionQuantity),
-    [activeSubscriptions, price, submissionQuantity]
+    () => isDowngrade(activeSubscriptions, product.price, submissionQuantity),
+    [activeSubscriptions, product, submissionQuantity]
   );
 
   // The adjusted quantity is the number we multiply the price by to get the total price
   const adjustedQuantity = useMemo(() => {
     return getAdjustedQuantityForPrice(
       submissionQuantity,
-      price.prices.transform_quantity
+      product.price.transform_quantity
     );
-  }, [price, submissionQuantity]);
+  }, [product, submissionQuantity]);
 
   // Populate submission dropdown with the submission quantity from the customer's plan
   // Default to this price's base submission quantity, if applicable
   useEffect(() => {
     const subscribedQuantity =
       activeSubscriptions.length && activeSubscriptions?.[0].items[0].quantity;
-    if (subscribedQuantity && isSubscribedProduct(price, subscribedQuantity)) {
+    if (subscribedQuantity && isSubscribedProduct(product, subscribedQuantity)) {
       setSubmissionQuantity(subscribedQuantity);
     } else if (
       // if there's no active subscription, check if this price has a default quantity
-      price.prices.transform_quantity &&
+      product.price.transform_quantity &&
       Boolean(
-        Number(price.metadata?.submission_limit) ||
-          Number(price.prices.metadata?.submission_limit)
+        Number(product.metadata?.submission_limit) ||
+          Number(product.price.metadata?.submission_limit)
       )
     ) {
       // prioritize the submission limit from the price over the submission limit from the product
       setSubmissionQuantity(
-        parseInt(price.prices.metadata.submission_limit) ||
-          parseInt(price.metadata.submission_limit)
+        parseInt(product.price.metadata.submission_limit) ||
+          parseInt(product.metadata.submission_limit)
       );
     }
-  }, [isSubscribedProduct, activeSubscriptions, price]);
+  }, [isSubscribedProduct, activeSubscriptions, product]);
 
-  const getFeatureMetadata = (price: Price, featureItem: string) => {
+  const getFeatureMetadata = (product: SinglePricedProduct, featureItem: string) => {
     if (
-      price.prices.unit_amount === 0 &&
+      product.price.unit_amount === 0 &&
       freeTierOverride &&
       freeTierOverride.hasOwnProperty(featureItem)
     ) {
       return freeTierOverride[featureItem as keyof FreeTierOverride];
     }
-    return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
+    return product.price.metadata?.[featureItem] || product.metadata[featureItem];
   };
 
   const renderFeaturesList = (
@@ -146,8 +146,8 @@ export const PlanContainer = ({
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
     const listItems: Array<{icon: boolean; item: string}> = [];
-    filterPrices.map((price) =>
-      Object.keys(price.metadata).map((featureItem: string) => {
+    filteredPriceProducts.map((product) =>
+      Object.keys(product.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);
 
@@ -155,14 +155,14 @@ export const PlanContainer = ({
         if (
           featureItem.includes(`feature_${listType}_`) &&
           !featureItem.includes(`feature_${listType}_check`) &&
-          price.name === plan
+          product.name === plan
         ) {
           const keyName = `feature_${listType}_${currentResult}`;
           let iconBool = false;
           const itemName: string =
-            price.prices.metadata?.[keyName] || price.metadata[keyName];
-          if (price.metadata?.[currentIcon] !== undefined) {
-            iconBool = JSON.parse(price.metadata[currentIcon]);
+            product.price.metadata?.[keyName] || product.metadata[keyName];
+          if (product.metadata?.[currentIcon] !== undefined) {
+            iconBool = JSON.parse(product.metadata[currentIcon]);
             listItems.push({icon: iconBool, item: itemName});
           }
         }
@@ -191,10 +191,10 @@ export const PlanContainer = ({
   const submissionOptions = useMemo((): KoboSelectOption[] => {
     const options = [];
     const submissionsPerUnit =
-      price.prices.metadata?.submission_limit ||
-      price.metadata?.submission_limit;
+      product.price.metadata?.submission_limit ||
+      product.metadata?.submission_limit;
     const maxPlanQuantity = parseInt(
-      price.prices.metadata?.max_purchase_quantity || '1'
+      product.price.metadata?.max_purchase_quantity || '1'
     );
     if (submissionsPerUnit) {
       for (let i = 1; i <= maxPlanQuantity; i++) {
@@ -209,7 +209,7 @@ export const PlanContainer = ({
       }
     }
     return options;
-  }, [price]);
+  }, [product]);
 
   const onSubmissionsChange = (value: string | null) => {
     if (value === null) {
@@ -223,28 +223,28 @@ export const PlanContainer = ({
 
   return (
     <>
-      {isSubscribedProduct(price, submissionQuantity) ? (
+      {isSubscribedProduct(product, submissionQuantity) ? (
         <div className={styles.currentPlan}>{t('Your plan')}</div>
-      ) : isSubscribedProduct(price, submissionQuantity) ? (
+      ) : isSubscribedProduct(product, submissionQuantity) ? (
         <div className={styles.currentPlan}>{t('Your plan')}</div>
       ) : null}
       <div
         className={classnames({
           [styles.planContainerWithBadge]: isSubscribedProduct(
-            price,
+            product,
             submissionQuantity
           ),
           [styles.planContainer]: true,
         })}
       >
         <h1 className={styles.priceName}>
-          {price.prices?.unit_amount
-            ? price.name
-            : freeTierOverride?.name || price.name}
+          {product.price?.unit_amount
+            ? product.name
+            : freeTierOverride?.name || product.name}
         </h1>
         <div className={styles.priceTitle}>{displayPrice}</div>
         <ul className={styles.featureContainer}>
-          {price.prices.transform_quantity && (
+          {product.price.transform_quantity && (
             <>
               <li className={styles.selectableFeature}>
                 <Icon name='check' size='m' color='teal' />
@@ -262,7 +262,7 @@ export const PlanContainer = ({
                   <Icon
                     name='check'
                     size='m'
-                    color={price.prices.unit_amount ? 'teal' : 'storm'}
+                    color={product.price.unit_amount ? 'teal' : 'storm'}
                   />
                 </div>
                 {t('##asr_minutes## minutes of automated transcription /month')
@@ -270,16 +270,16 @@ export const PlanContainer = ({
                     '##asr_minutes##',
                     (
                       (adjustedQuantity *
-                        (parseInt(price.metadata?.nlp_seconds_limit || '0') ||
+                        (parseInt(product.metadata?.nlp_seconds_limit || '0') ||
                           parseInt(
-                            price.prices.metadata?.nlp_seconds_limit || '0'
+                            product.price.metadata?.nlp_seconds_limit || '0'
                           ))) /
                       60
                     ).toLocaleString()
                   )
                   .replace(
                     '##plan_interval##',
-                    price.prices.recurring!.interval
+                    product.price.recurring!.interval
                   )}
               </li>
               <li>
@@ -287,7 +287,7 @@ export const PlanContainer = ({
                   <Icon
                     name='check'
                     size='m'
-                    color={price.prices.unit_amount ? 'teal' : 'storm'}
+                    color={product.price.unit_amount ? 'teal' : 'storm'}
                   />
                 </div>
                 {t(
@@ -297,20 +297,20 @@ export const PlanContainer = ({
                     '##mt_characters##',
                     (
                       adjustedQuantity *
-                      (parseInt(price.metadata?.nlp_character_limit || '0') ||
+                      (parseInt(product.metadata?.nlp_character_limit || '0') ||
                         parseInt(
-                          price.prices.metadata?.nlp_character_limit || '0'
+                          product.price.metadata?.nlp_character_limit || '0'
                         ))
                     ).toLocaleString()
                   )
                   .replace(
                     '##plan_interval##',
-                    price.prices.recurring!.interval
+                    product.price.recurring!.interval
                   )}
               </li>
             </>
           )}
-          {Object.keys(price.metadata).map(
+          {Object.keys(product.metadata).map(
             (featureItem: string) =>
               featureItem.includes('feature_list_') && (
                 <li key={featureItem}>
@@ -318,10 +318,10 @@ export const PlanContainer = ({
                     <Icon
                       name='check'
                       size='m'
-                      color={price.prices.unit_amount ? 'teal' : 'storm'}
+                      color={product.price.unit_amount ? 'teal' : 'storm'}
                     />
                   </div>
-                  {getFeatureMetadata(price, featureItem)}
+                  {getFeatureMetadata(product, featureItem)}
                 </li>
               )
           )}
@@ -330,13 +330,13 @@ export const PlanContainer = ({
           <div className={styles.expandedContainer}>
             <hr />
             {state.featureTypes.map((type, index, array) => {
-              const featureItem = getListItem(type, price.name);
+              const featureItem = getListItem(type, product.name);
               return (
                 featureItem.length > 0 && [
                   returnListItem(
                     type,
-                    price.name,
-                    price.metadata[`feature_${type}_title`]
+                    product.name,
+                    product.metadata[`feature_${type}_title`]
                   ),
                   index !== array.length - 1 && <hr key={`hr-${type}`} />,
                 ]
@@ -345,12 +345,12 @@ export const PlanContainer = ({
           </div>
         )}
         <PlanButton
-          price={price}
+          product={product}
           downgrading={isDowngrading}
           quantity={submissionQuantity}
-          isSubscribedToPlan={isSubscribedProduct(price, submissionQuantity)}
+          isSubscribedToPlan={isSubscribedProduct(product, submissionQuantity)}
           buySubscription={buySubscription}
-          showManage={shouldShowManage(price)}
+          showManage={shouldShowManage(product)}
           isBusy={isDisabled}
           setIsBusy={setIsBusy}
           organization={state.organization}

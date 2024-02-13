@@ -1,17 +1,17 @@
 import BillingButton from 'js/account/plans/billingButton.component';
 import React from 'react';
-import type {BasePrice, Organization, Price} from 'js/account/stripe.types';
+import type {Price, Organization, SinglePricedProduct} from 'js/account/stripe.types';
 import {postCustomerPortal} from 'js/account/stripe.api';
 import {processCheckoutResponse} from 'js/account/stripe.utils';
 
 interface PlanButtonProps {
-  buySubscription: (price: BasePrice, quantity?: number) => void;
+  buySubscription: (price: Price, quantity?: number) => void;
   downgrading: boolean;
   isBusy: boolean;
   isSubscribedToPlan: boolean;
   showManage: boolean;
   organization?: Organization | null;
-  price: Price;
+  product: SinglePricedProduct;
   quantity: number;
   setIsBusy: (value: boolean) => void;
 }
@@ -21,7 +21,7 @@ interface PlanButtonProps {
  * Plans need extra logic that add-ons don't, mostly to display the correct label text.
  */
 export const PlanButton = ({
-  price,
+  product,
   organization,
   downgrading,
   isBusy,
@@ -31,11 +31,11 @@ export const PlanButton = ({
   quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
-  if (!price || !organization || price.prices.unit_amount === 0) {
+  if (!product || !organization || product.price.unit_amount === 0) {
     return null;
   }
 
-  const manageSubscription = (subscriptionPrice?: BasePrice) => {
+  const manageSubscription = (subscriptionPrice?: Price) => {
     setIsBusy(true);
     postCustomerPortal(organization.id, subscriptionPrice?.id, quantity)
       .then(processCheckoutResponse)
@@ -46,8 +46,8 @@ export const PlanButton = ({
     return (
       <BillingButton
         label={t('Upgrade')}
-        onClick={() => buySubscription(price.prices, quantity)}
-        aria-label={`upgrade to ${price.name}`}
+        onClick={() => buySubscription(product.price, quantity)}
+        aria-label={`upgrade to ${product.name}`}
         isDisabled={isBusy}
       />
     );
@@ -58,7 +58,7 @@ export const PlanButton = ({
       <BillingButton
         label={t('Manage')}
         onClick={manageSubscription}
-        aria-label={`manage your ${price.name} subscription`}
+        aria-label={`manage your ${product.name} subscription`}
         isDisabled={isBusy}
       />
     );
@@ -67,8 +67,8 @@ export const PlanButton = ({
   return (
     <BillingButton
       label={t('Change plan')}
-      onClick={() => buySubscription(price.prices, quantity)}
-      aria-label={`change your subscription to ${price.name}`}
+      onClick={() => buySubscription(product.price, quantity)}
+      aria-label={`change your subscription to ${product.name}`}
       isDisabled={isBusy}
     />
   );
