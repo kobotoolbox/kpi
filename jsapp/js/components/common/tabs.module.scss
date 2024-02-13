@@ -7,7 +7,7 @@
   margin: 0 sizes.$x40;
   display: flex;
   flex-direction: row;
-  border-bottom: 2px solid colors.$kobo-gray-85;
+  border-bottom: sizes.$x2 solid colors.$kobo-gray-85;
 }
 
 .tab {
@@ -17,14 +17,14 @@
   color: colors.$kobo-gray-55;
   font-weight: 600;
   padding: sizes.$x14 sizes.$x30 sizes.$x10;
-  margin-bottom: -2px;
+  margin-bottom: -(sizes.$x2);
   outline: none;
 
   &.active {
     color: colors.$kobo-dark-blue;
     background-color: colors.$kobo-light-blue;
-    border-bottom: 2px solid colors.$kobo-dark-blue;
-    border-radius: 7px 7px 0 0;
+    border-bottom: sizes.$x2 solid colors.$kobo-dark-blue;
+    border-radius: sizes.$x8 sizes.$x8 0 0;
   }
 }
 
