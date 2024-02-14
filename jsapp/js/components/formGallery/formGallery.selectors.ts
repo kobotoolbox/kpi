@@ -1,7 +1,6 @@
 import type {FlatQuestion} from 'jsapp/js/assetUtils';
 import type {SubmissionResponse, SubmissionAttachment} from 'js/dataInterface';
 import type {Json} from 'jsapp/js/components/common/common.interfaces';
-import {findByKey} from './utils';
 
 const IMAGE_MIMETYPES = [
   'image/png',
@@ -15,7 +14,6 @@ const IMAGE_MIMETYPES = [
  * The submission shows the original filename. The attach shows it saved as done in media storage.
  * These can vary.
  */
-const normalizeFilename = (filename: string) => filename.replace(/ /g, '_');
 
 export const selectImageAttachments = (
   submissions: SubmissionResponse[],
@@ -28,11 +26,8 @@ export const selectImageAttachments = (
         IMAGE_MIMETYPES.includes(attachment.mimetype)
       );
       if (filterQuestion) {
-        const filename = findByKey(submission, filterQuestion) as string;
-        return attachments.filter(
-          (attachment) =>
-            attachment.filename.split('/').slice(-1)[0] ===
-            normalizeFilename(filename)
+        return attachments.filter((attachment) =>
+          attachment.question_xpath.includes(filterQuestion)
         );
       }
       return attachments;
