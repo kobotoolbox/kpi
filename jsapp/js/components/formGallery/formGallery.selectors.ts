@@ -27,7 +27,9 @@ export const selectImageAttachments = (
       );
       if (filterQuestion) {
         return attachments.filter((attachment) =>
-          attachment.question_xpath.includes(filterQuestion)
+        // Indices in the attachment xpath are for matching individual answer instances,
+        // so here we stripe them out
+          filterQuestion === attachment.question_xpath.replace(/\[\d*\]/g, "")
         );
       }
       return attachments;
