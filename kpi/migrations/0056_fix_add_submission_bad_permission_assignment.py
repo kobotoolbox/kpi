@@ -17,8 +17,6 @@ def remove_add_submissions_for_anonymous_user(apps, schema_editor):
     permission_id = Permission.objects.get(codename=PERM_ADD_SUBMISSIONS).pk
 
     ObjectPermission.objects.filter(
-        deny=False,
-        inherited=False,
         permission_id=permission_id,
         user_id=settings.ANONYMOUS_USER_ID,
     ).exclude(asset__asset_type=ASSET_TYPE_SURVEY).delete()
