@@ -287,11 +287,15 @@ export function getSubmissionDisplayData(
           rowListName = getRowListName(parentGroupRow);
         }
 
+        const questionXPath = repeatIndex !== null
+          ? `${flatPaths[rowName]}[${repeatIndex + 1}]`
+          : flatPaths[rowName];
+
         let rowObj = new DisplayResponse(
           row.type,
           rowLabel,
           rowName,
-          flatPaths[rowName],
+          questionXPath,
           rowListName,
           rowData
         );
@@ -690,5 +694,5 @@ export default {
 
 export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
   const flatPaths = getSurveyFlatPaths(surveyRows, true);
-  return flatPaths[rowName]
+  return flatPaths[rowName];
 }
