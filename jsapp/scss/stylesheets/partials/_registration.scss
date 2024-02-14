@@ -471,7 +471,7 @@
         flex: 1; // and when they do, they grow to occupy full available width.
       }
       > .name,
-      > .username,
+      // > .username, // Hotfix: Make this take a full row because the error feedback is wide
       > .email,
       > .country,
       > .organization,
