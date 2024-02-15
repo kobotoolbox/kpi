@@ -472,7 +472,7 @@
       }
       > .name,
       // > .username, // Hotfix: Make this take a full row because the error feedback is wide
-      > .email,
+      // > .email,    // Hotfix: This one, too.
       > .country,
       > .organization,
       > .organization_website,
@@ -480,6 +480,7 @@
       > .sector {
         min-width: 40%; // These fields can sit next to each other in pairs.
       }
+
       > .password1,
       > .password2 {
         flex: 0; // Let these be shorter to match designs
