@@ -145,6 +145,7 @@ class SingleProcessingStore extends Reflux.Store {
   public isFetchingData = false;
   public isPollingForTranscript = false;
 
+  /** Clears all data - useful before making initialisation call */
   private resetProcessingData() {
     this.isProcessingDataLoaded = false;
     this.isPollingForTranscript = false;
@@ -272,7 +273,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /** This is making sure the asset processing features are activated. */
-  onAssetLoad(asset: AssetResponse) {
+  private onAssetLoad(asset: AssetResponse) {
     if (
       isFormSingleProcessingRoute(
         this.currentAssetUid,
@@ -289,11 +290,11 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  onActivateAssetCompleted() {
+  private onActivateAssetCompleted() {
     this.fetchAllInitialDataForAsset();
   }
 
-  activateAsset() {
+  private activateAsset() {
     processingActions.activateAsset(this.currentAssetUid, true, []);
   }
 
