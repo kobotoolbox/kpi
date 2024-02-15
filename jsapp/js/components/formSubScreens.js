@@ -42,7 +42,6 @@ export class FormSubScreens extends React.Component {
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(assetStore, this.dmixAssetStoreChange);
     var uid =
       this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
