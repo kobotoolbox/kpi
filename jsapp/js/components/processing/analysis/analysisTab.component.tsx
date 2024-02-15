@@ -27,7 +27,7 @@ import type {FailResponse} from 'js/dataInterface';
  * Displays content of the "Analysis" tab. This component is handling all of
  * the Qualitative Analysis functionality.
  */
-export default function Analysis() {
+export default function AnalysisTab() {
   const [isInitialised, setIsInitialised] = useState(false);
   const [isErrored, setIsErrored] = useState(false);
 

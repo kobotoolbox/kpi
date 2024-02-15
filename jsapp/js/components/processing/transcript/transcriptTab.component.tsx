@@ -1,8 +1,8 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
 import {formatTime} from 'js/utils';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
+import singleProcessingStore from '../singleProcessingStore';
+import TransxAutomaticButton from '../transxAutomaticButton';
 import LanguageSelector, {
   resetAllLanguageSelectors,
 } from 'js/components/languages/languageSelector';
@@ -16,10 +16,10 @@ import type {
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import envStore from 'js/envStore';
-import bodyStyles from './processingBody.module.scss';
+import bodyStyles from '../processingBody.module.scss';
 import classNames from 'classnames';
 
-export default class TranscriptTabContent extends React.Component<{}> {
+export default class TranscriptTab extends React.Component<{}> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {

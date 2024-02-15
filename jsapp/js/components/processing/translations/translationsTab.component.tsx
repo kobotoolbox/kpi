@@ -1,8 +1,8 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
 import {formatTime} from 'js/utils';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
+import singleProcessingStore from '../singleProcessingStore';
+import TransxAutomaticButton from '../transxAutomaticButton';
 import LanguageSelector, {
   resetAllLanguageSelectors,
 } from 'js/components/languages/languageSelector';
@@ -15,19 +15,19 @@ import type {
   ListLanguage,
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
-import TransxSelector from './transxSelector';
+import TransxSelector from '../transxSelector';
 import envStore from 'js/envStore';
-import bodyStyles from './processingBody.module.scss';
+import bodyStyles from '../processingBody.module.scss';
 import classNames from 'classnames';
 
-interface TranslationsTabContentState {
+interface TranslationsTabState {
   /** Uses languageCode. */
   selectedTranslation?: string;
 }
 
-export default class TranslationsTabContent extends React.Component<
+export default class TranslationsTab extends React.Component<
   {},
-  TranslationsTabContentState
+  TranslationsTabState
 > {
   constructor(props: {}) {
     super(props);
