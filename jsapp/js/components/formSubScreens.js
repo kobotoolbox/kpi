@@ -4,7 +4,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {actions} from '../actions';
 import bem from 'js/bem';
-import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm.component';
@@ -44,7 +43,7 @@ export class FormSubScreens extends React.Component {
     const uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
       // We need to refresh the asset, because when user leaves Single
-      // Processing View, there might be some new Data Table columns to be 
+      // Processing View, there might be some new Data Table columns to be
       // displayed
       actions.resources.loadAsset({id: uid}, true);
     }
