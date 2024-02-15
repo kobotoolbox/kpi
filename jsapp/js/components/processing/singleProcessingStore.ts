@@ -29,6 +29,7 @@ import type {
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
+import {destroyConfirm} from 'js/alertify';
 
 export enum SingleProcessingTabs {
   Transcript = 'trc',
@@ -751,6 +752,18 @@ class SingleProcessingStore extends Reflux.Store {
   deleteTranscriptDraft() {
     this.data.transcriptDraft = undefined;
     this.trigger(this.data);
+  }
+
+  safelyDeleteTranscriptDraft() {
+    if (this.hasUnsavedTranscriptDraftValue()) {
+      destroyConfirm(
+        this.deleteTranscriptDraft.bind(this),
+        t('Discard unsaved changes?'),
+        t('Discard')
+      );
+    } else {
+      this.deleteTranscriptDraft();
+    }
   }
 
   /**
