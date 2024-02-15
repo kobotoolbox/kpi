@@ -20,7 +20,7 @@ except ImportError:
 
 import requests
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, SuspiciousFileOperation
 from django.core.files import File
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
@@ -59,7 +59,6 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
@@ -68,6 +67,7 @@ from .kc_access.shadow_models import (
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
+from .kc_access.storage import default_kobocat_storage
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
@@ -1723,10 +1723,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if not request or '_attachments' not in submission:
             return submission
 
+        submission_values = submission.values()
+        questions = list(submission)
         attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
-        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
-            submission, attachment_xpaths
-        )
 
         for attachment in submission['_attachments']:
             for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
@@ -1746,7 +1745,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             # Retrieve XPath and add it to attachment dictionary
             basename = os.path.basename(attachment['filename'])
-            attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
+            attachment['question_xpath'] = ''
+
+            for idx, value in enumerate(submission_values):
+                if not isinstance(value, str):
+                    continue
+                try:
+                    valid_name = default_kobocat_storage.get_valid_name(value)
+                except SuspiciousFileOperation:
+                    continue
+
+                if (
+                    valid_name == basename
+                    and questions[idx] in attachment_xpaths
+                ):
+                    attachment['question_xpath'] = questions[idx]
+                    break
 
         return submission
 
