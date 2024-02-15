@@ -41,10 +41,12 @@ export class FormSubScreens extends React.Component {
     autoBind(this);
   }
   componentDidMount() {
-    var uid =
-      this.props.params.assetid || this.props.uid || this.props.params.uid;
+    const uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
-      actions.resources.loadAsset({id: uid});
+      // We need to refresh the asset, because when user leaves Single
+      // Processing View, there might be some new Data Table columns to be 
+      // displayed
+      actions.resources.loadAsset({id: uid}, true);
     }
   }
   render() {
