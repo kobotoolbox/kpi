@@ -42,14 +42,7 @@ export class FormSubScreens extends React.Component {
   componentDidMount() {
     const uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
-      // TODO: remove the refresh flag, when Back-end fix for inconsistent
-      // `analysis_form_json.additional_fields` response after PATCHing is in
-      // place
-      //
-      // We need to refresh the asset, because when user leaves Single
-      // Processing View, there might be some new Data Table columns to be
-      // displayed
-      actions.resources.loadAsset({id: uid}, true);
+      actions.resources.loadAsset({id: uid});
     }
   }
   render() {
