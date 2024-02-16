@@ -116,6 +116,23 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
 
   /** Goes back to Data Table route for given project. */
   onDone() {
+    // If there are any changes to the data, we need to ensure that the latest
+    // asset is available in the Data Table, when it will rebuild itself, so
+    // that all the columns are rendered. This is needed for the case when user
+    // added/deleted transcript or translation, as editing the text value for it
+    // is already handled properly by Data Table code.
+    if (!singleProcessingStore.isPristine) {
+      // Here we delete the cached asset object from the cache, so that when
+      // `FormSubScreens` (a parent of Data Table) starts loading in a moment,
+      // it would fetch latest asset and make Data Table use it.
+
+      // JESSICA TODO: here add a line that removes the asset
+    }
+
+    this.navigateToDataTable();
+  }
+
+  navigateToDataTable() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid);
     this.props.router.navigate(newRoute);
   }
