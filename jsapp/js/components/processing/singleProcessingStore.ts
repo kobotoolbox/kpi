@@ -842,6 +842,18 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  safelyDeleteTranslationDraft() {
+    if (this.hasUnsavedTranslationDraftValue()) {
+      destroyConfirm(
+        this.deleteTranslationDraft.bind(this),
+        t('Discard unsaved changes?'),
+        t('Discard')
+      );
+    } else {
+      this.deleteTranslationDraft();
+    }
+  }
+
   /**
    * Returns a list of language codes of languages that are activated within
    * advanced_features.translated
