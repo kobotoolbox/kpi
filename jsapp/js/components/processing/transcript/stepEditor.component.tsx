@@ -18,8 +18,7 @@ export default function StepEditor() {
   }
 
   /** Changes the draft value, preserving the other draft properties. */
-  function setDraftValue(evt: React.ChangeEvent<HTMLTextAreaElement>) {
-    const newVal = evt.target.value;
+  function setDraftValue(newVal: string | undefined) {
     const newDraft =
       clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
     newDraft.value = newVal;
@@ -64,7 +63,9 @@ export default function StepEditor() {
       <textarea
         className={bodyStyles.textarea}
         value={draft?.value}
-        onChange={setDraftValue}
+        onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => {
+          setDraftValue(evt.target.value);
+        }}
         disabled={singleProcessingStore.isFetchingData}
       />
     </div>
