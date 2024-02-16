@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import HeaderLanguageAndDate from './HeaderLanguageAndDate.component';
+import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import {destroyConfirm} from 'js/alertify';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';

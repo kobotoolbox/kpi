@@ -2,7 +2,7 @@ import React from 'react';
 import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import HeaderLanguageAndDate from './HeaderLanguageAndDate.component';
+import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
 
