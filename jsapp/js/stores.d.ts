@@ -14,7 +14,14 @@ export namespace stores {
     state: {
       assetNavExpanded: boolean;
       showFixedDrawer: boolean;
-      modal?: {} | false;
+      modal?: Partial<{
+        tableInfo: {
+          filter: string;
+          sort: string;
+          pageSize: number;
+          startIndex: number;
+        };
+      }>;
     };
     toggleFixedDrawer: () => void;
     showModal: (params: PageStateModalParams) => void;

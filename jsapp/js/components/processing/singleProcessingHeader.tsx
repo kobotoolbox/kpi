@@ -17,6 +17,7 @@ import {openProcessing} from './processingUtils';
 import {withRouter} from 'jsapp/js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import classNames from 'classnames';
+import {actions} from 'js/actions';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
@@ -24,15 +25,42 @@ interface SingleProcessingHeaderProps extends WithRouterProps {
   assetContent: AssetContent;
 }
 
+interface SingleProcessingHeaderState {
+  pageSize: number;
+  startIndex: number;
+  disabled: boolean;
+  maxIndex: number;
+  minIndex: number;
+}
+
 /**
  * Component with the current question label and the UI for switching between
  * submissions and questions. It also has means of leaving Single Processing
  * via "DONE" button.
  */
-class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps> {
+class SingleProcessingHeader extends React.Component<
+  SingleProcessingHeaderProps,
+  SingleProcessingHeaderState
+> {
   private unlisteners: Function[] = [];
+  constructor(props: SingleProcessingHeaderProps) {
+    super(props);
+    this.state = {
+      pageSize: parseInt(this.props.params.pageSize || '30'),
+      startIndex: parseInt(this.props.params.startIndex || '0'),
+      maxIndex: singleProcessingStore.getSubmissionCount(),
+      minIndex: 0,
+      disabled: false,
+    };
+  }
 
   componentDidMount() {
+    singleProcessingStore.fetchEditIds(
+      this.props.params.filters,
+      this.props.params.sort,
+      this.state.pageSize,
+      this.state.startIndex
+    );
     this.unlisteners.push(
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
     );
@@ -54,8 +82,9 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
   }
 
   onQuestionSelectChange(newQpath: string | null) {
+    this.setState({...this.state, disabled: true});
     if (newQpath !== null) {
-      this.goToSubmission(newQpath, this.props.submissionEditId);
+      this.goToSubmission(newQpath, this.props.submissionEditId, '0');
     }
   }
 
@@ -121,29 +150,117 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
   }
 
   /** Goes to another submission. */
-  goToSubmission(qpath: string, targetSubmissionEditId: string) {
-    openProcessing(this.props.assetUid, qpath, targetSubmissionEditId);
-  }
+  goToSubmission = (
+    qpath: string,
+    targetSubmissionEditId: string,
+    startIndex?: string
+  ) => {
+    openProcessing(
+      this.props.assetUid,
+      qpath,
+      targetSubmissionEditId,
+      this.props.params.filters || '',
+      this.props.params.sort || [],
+      this.state.pageSize,
+      parseInt(startIndex || this.props.params.startIndex || '0')
+    );
+  };
 
   goPrev() {
+    this.setState({...this.state, disabled: true});
     const prevEditId = this.getPrevSubmissionEditId();
-    if (prevEditId !== null) {
+    const prevIndex = this.state.startIndex - this.state.pageSize;
+    const currentIndex = this.getCurrentSubmissionIndex();
+    const shouldChangePages =
+      currentIndex && currentIndex % this.state.pageSize === 0;
+    if (prevEditId !== null && !shouldChangePages) {
       this.goToSubmission(
         singleProcessingStore.currentQuestionQpath,
         prevEditId
       );
+    } else {
+      this.loadPage(prevIndex, currentIndex);
     }
   }
 
   goNext() {
+    this.setState({...this.state, disabled: true});
     const nextEditId = this.getNextSubmissionEditId();
-    if (nextEditId !== null) {
+    const nextIndex = this.state.startIndex + this.state.pageSize;
+    const currentIndex = this.getCurrentSubmissionIndex();
+    const shouldChangePages =
+      currentIndex &&
+      currentIndex % this.state.pageSize === this.state.pageSize - 1;
+    if (nextEditId !== null && !shouldChangePages) {
       this.goToSubmission(
         singleProcessingStore.currentQuestionQpath,
         nextEditId
       );
+    } else {
+      this.loadPage(nextIndex, currentIndex);
     }
   }
+
+  // load the next page of editIds from the API
+  loadPage = (nextIndex: number, currentIndex: number | null) => {
+    if (nextIndex > singleProcessingStore.getSubmissionCount()) {
+      // we've hit the final submission in the set, disable the next button and re-enable the rest of the UI
+      this.setState({
+        ...this.state,
+        disabled: false,
+        maxIndex: currentIndex!,
+      });
+      return;
+    }
+    if (nextIndex < 0) {
+      // we've hit the first submission in the set, disable the previous button and enable UI
+      this.setState({
+        ...this.state,
+        disabled: false,
+        minIndex: currentIndex!,
+      });
+      return;
+    }
+    this.unlisteners.push(
+      actions.submissions.getProcessingSubmissions.completed.listen(() => {
+        // first, remove this callback
+        const unsubscribe: Function | undefined = this.unlisteners.pop();
+        unsubscribe?.();
+        // the difference between the next and current index tells us
+        // if we're navigating backward (negative) or forwards (positive)
+        const offset = nextIndex - this.state.startIndex;
+        const editIds =
+          singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+        if (!editIds) {
+          // this page of results doesn't have any edits, try the next one
+          return this.loadPage(nextIndex + offset, currentIndex);
+        }
+        let editIndex;
+        if (offset > 1) {
+          // we're navigating forwards - go to the first element of the next page
+          editIndex = 0;
+        } else if (offset < 0) {
+          // we're navigating forwards - go to the last element of the previous page
+          editIndex = editIds.length - 1;
+        } else {
+          // we don't need to switch pages at all - bail
+          return;
+        }
+        this.goToSubmission(
+          singleProcessingStore.currentQuestionQpath,
+          editIds[editIndex].editId,
+          nextIndex.toString()
+        );
+      })
+    );
+    // get the next page of edit ids
+    singleProcessingStore.fetchEditIds(
+      this.props.params.filters || '',
+      this.props.params.sort,
+      this.state.pageSize,
+      nextIndex
+    );
+  };
 
   /** Returns index or `null` (if store is not ready yet). */
   getCurrentSubmissionIndex(): number | null {
@@ -153,7 +270,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
       const submissionEditIdIndex = editIds.findIndex(
         (item) => item.editId === this.props.submissionEditId
       );
-      return submissionEditIdIndex;
+      return submissionEditIdIndex + this.state.startIndex;
     }
     return null;
   }
@@ -236,8 +353,8 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
   }
 
   render() {
-    const editIds =
-      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const submissionCount = singleProcessingStore.getSubmissionCount();
+    const currentIndex = this.getCurrentSubmissionNumber() || 1;
 
     return (
       <header className={styles.root}>
@@ -249,6 +366,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
             options={this.getQuestionSelectorOptions()}
             selectedOption={singleProcessingStore.currentQuestionQpath}
             onChange={this.onQuestionSelectChange.bind(this)}
+            isDisabled={this.state.disabled}
           />
         </section>
 
@@ -258,14 +376,13 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
               <strong>
                 {t('Item')}
                 &nbsp;
-                {this.getCurrentSubmissionNumber()}
+                {currentIndex}
               </strong>
               &nbsp;
-              {Array.isArray(editIds) &&
-                t('of ##total_count##').replace(
-                  '##total_count##',
-                  String(editIds.length)
-                )}
+              {t('of ##total_count##').replace(
+                '##total_count##',
+                submissionCount.toString()
+              )}
             </div>
 
             <Button
@@ -274,7 +391,11 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
               color='storm'
               startIcon='arrow-up'
               onClick={this.goPrev.bind(this)}
-              isDisabled={this.getPrevSubmissionEditId() === null}
+              isDisabled={
+                this.state.disabled ||
+                currentIndex <= 1 ||
+                currentIndex <= this.state.minIndex + 1
+              }
             />
 
             <Button
@@ -283,7 +404,11 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
               color='storm'
               endIcon='arrow-down'
               onClick={this.goNext.bind(this)}
-              isDisabled={this.getNextSubmissionEditId() === null}
+              isDisabled={
+                this.state.disabled ||
+                currentIndex >= submissionCount ||
+                currentIndex > this.state.maxIndex
+              }
             />
           </nav>
         </section>

@@ -94,6 +94,8 @@ export class DataTable extends React.Component {
       selectAll: false,
       fetchState: false,
       submissionPager: false,
+      filter: '',
+      sort: [],
     };
 
     this.unlisteners = [];
@@ -241,6 +243,7 @@ export class DataTable extends React.Component {
       fields: [],
       filter: filterQuery,
     });
+    this.setState({filter: filterQuery, sort: sort});
   }
 
   /**
@@ -826,6 +829,10 @@ export class DataTable extends React.Component {
                     qpath={q.$qpath}
                     submissionEditId={submissionEditId}
                     mediaAttachment={mediaAttachment}
+                    filter={this.state.filter}
+                    sort={this.state.sort}
+                    pageSize={this.state.pageSize}
+                    startIndex={this.state.currentPage}
                   />
                 );
               }
@@ -840,6 +847,10 @@ export class DataTable extends React.Component {
                   assetUid={this.props.asset.uid}
                   qpath={q.$qpath}
                   submissionUuid={row.original._uuid}
+                  filter={this.state.filter}
+                  sort={this.state.sort}
+                  pageSize={this.state.pageSize}
+                  startIndex={this.state.currentPage}
                 />
               );
             }
@@ -1176,6 +1187,8 @@ export class DataTable extends React.Component {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,
         resultsTotal: this.state.resultsTotal,
+        filter: this.state.filter,
+        sort: this.state.sort,
       },
     });
   }

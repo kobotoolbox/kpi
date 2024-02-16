@@ -48,11 +48,22 @@ type SidebarDisplays = {
   [tabName in SingleProcessingTabs]: DisplaysList;
 };
 
-export const DefaultDisplays: Map<SingleProcessingTabs, DisplaysList> = new Map([
-  [SingleProcessingTabs.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
-  [SingleProcessingTabs.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-  [SingleProcessingTabs.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-]);
+export const DefaultDisplays: Map<SingleProcessingTabs, DisplaysList> = new Map(
+  [
+    [
+      SingleProcessingTabs.Transcript,
+      [StaticDisplays.Audio, StaticDisplays.Data],
+    ],
+    [
+      SingleProcessingTabs.Translations,
+      [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
+    ],
+    [
+      SingleProcessingTabs.Analysis,
+      [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
+    ],
+  ]
+);
 
 /** Shared interface for transcript and translations. */
 export interface Transx {
@@ -110,6 +121,7 @@ interface SingleProcessingStoreData {
   source?: string;
   activeTab: SingleProcessingTabs;
   submissionData?: SubmissionResponse;
+  submissionCount: number;
   /** A list of all submissions editIds (`meta/rootUuid` or `_uuid`). */
   submissionsEditIds?: SubmissionsEditIds;
 }
@@ -140,6 +152,7 @@ class SingleProcessingStore extends Reflux.Store {
   private data: SingleProcessingStoreData = {
     translations: [],
     activeTab: SingleProcessingTabs.Transcript,
+    submissionCount: 0,
   };
   /** Marks some backend calls being in progress. */
   public isFetchingData = false;
@@ -416,7 +429,12 @@ class SingleProcessingStore extends Reflux.Store {
    * NOTE: We only need to call this once for given asset. We assume that while
    * processing view is opened, submissions will not be deleted or added.
    */
-  private fetchEditIds(): void {
+  fetchEditIds = (
+    filters: string | null = null,
+    sort: string | null = null,
+    pageSize: number | null = null,
+    startIndex: number | null = null
+  ): void => {
     this.areEditIdsLoaded = false;
     this.data.submissionsEditIds = undefined;
     this.trigger(this.data);
@@ -448,18 +466,21 @@ class SingleProcessingStore extends Reflux.Store {
       }
     }
 
-    actions.submissions.getProcessingSubmissions(
-      this.currentAssetUid,
-      processingRowsPaths
-    );
-  }
+    actions.submissions.getProcessingSubmissions({
+      assetUid: this.currentAssetUid,
+      questionsPaths: processingRowsPaths,
+      filters,
+      sort,
+      pageSize,
+      startIndex,
+    });
+  };
 
   private onGetProcessingSubmissionsCompleted(
     response: GetProcessingSubmissionsResponse
   ) {
     const submissionsEditIds: SubmissionsEditIds = {};
     const processingRows = getAssetProcessingRows(this.currentAssetUid);
-
     const asset = assetStore.getAsset(this.currentAssetUid);
     let flatPaths: SurveyFlatPaths = {};
 
@@ -498,8 +519,11 @@ class SingleProcessingStore extends Reflux.Store {
 
     this.areEditIdsLoaded = true;
     this.data.submissionsEditIds = submissionsEditIds;
+    this.data.submissionCount = response.count;
     this.trigger(this.data);
   }
+
+  getSubmissionCount = (): number => this.data.submissionCount;
 
   private onGetProcessingSubmissionsFailed(): void {
     this.areEditIdsLoaded = true;
@@ -863,9 +887,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** NOTE: Returns editIds for current question name, not for all of them. */
   getCurrentQuestionSubmissionsEditIds() {
-    if (
-      this.data.submissionsEditIds !== undefined
-    ) {
+    if (this.data.submissionsEditIds !== undefined) {
       return this.data.submissionsEditIds[this.currentQuestionQpath];
     }
     return undefined;
@@ -921,10 +943,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** Returns available displays for given tab */
   getAvailableDisplays(tabName: SingleProcessingTabs) {
-    const outcome: DisplaysList = [
-      StaticDisplays.Audio,
-      StaticDisplays.Data,
-    ];
+    const outcome: DisplaysList = [StaticDisplays.Audio, StaticDisplays.Data];
     if (tabName !== SingleProcessingTabs.Transcript) {
       outcome.push(StaticDisplays.Transcript);
     }

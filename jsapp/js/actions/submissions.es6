@@ -6,6 +6,7 @@ import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 import {ROOT_URL} from 'js/constants';
+import {cacheAction} from "../stores/utils";
 
 const submissionsActions = Reflux.createActions({
   getSubmission: {children: ['completed', 'failed']},
@@ -57,20 +58,34 @@ submissionsActions.getSubmissions.listen((options) => {
  * This gets an array of submission uuids
  * @param {string} assetUid
  */
-submissionsActions.getProcessingSubmissions.listen((assetUid, questionsPaths) => {
-  let fields = '';
-  questionsPaths.forEach((questionPath) => {
-    fields += `,"${questionPath}"`;
-  });
+const getProcessingSubmissionUuids = ({assetUid, questionsPaths = [], filters, sort, pageSize, startIndex}) => {
+  let filterQuery = {};
+  try {
+    // try getting a JSON object from the filter query so we can insert
+    filterQuery = JSON.parse(filters.replace('&query=', ''));
+  } catch (e) {
+    // non-JSON value, use the default empty object
+    // we use the string `'none'` to indicate empty filters (so the URL is routable by react-router)
+  }
 
-  $.ajax({
-    dataType: 'json',
-    method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_uuid", "meta/rootUuid" ${fields}]`,
-  })
-    .done(submissionsActions.getProcessingSubmissions.completed)
-    .fail(submissionsActions.getProcessingSubmissions.failed);
-});
+  return dataInterface.getSubmissions(
+    assetUid,
+    pageSize ?? 30,
+    startIndex ?? 0,
+    JSON.parse(sort) ?? [],
+    questionsPaths.concat('_uuid', 'meta/rootUuid'),
+    filters === 'none' || !filters ? '' : filters,
+  )
+};
+
+submissionsActions.getProcessingSubmissions.listen(
+  cacheAction(
+    getProcessingSubmissionUuids,
+    submissionsActions.getProcessingSubmissions.completed,
+    submissionsActions.getProcessingSubmissions.failed
+  )
+);
+
 submissionsActions.getProcessingSubmissions.failed.listen(() => {
   notify(t('Failed to get submissions uuids.'), 'error');
 });

@@ -15,6 +15,11 @@ interface AudioCellProps {
   submissionEditId: string;
   /** Required by the mini player. */
   mediaAttachment: SubmissionAttachment;
+  /** Required for the Single Processing (QA) views **/
+  filter: string;
+  sort: Array<{desc: boolean; id: string}>;
+  pageSize: number;
+  startIndex: number;
 }
 
 /**
@@ -25,11 +30,11 @@ export default class AudioCell extends React.Component<AudioCellProps, {}> {
   render() {
     return (
       <bem.AudioCell>
-        {this.props.mediaAttachment?.download_url &&
+        {this.props.mediaAttachment?.download_url && (
           <MiniAudioPlayer
             mediaURL={this.props.mediaAttachment?.download_url}
           />
-        }
+        )}
         <Button
           type='full'
           size='s'
@@ -41,6 +46,10 @@ export default class AudioCell extends React.Component<AudioCellProps, {}> {
               this.props.assetUid,
               this.props.qpath,
               this.props.submissionEditId,
+              this.props.filter,
+              this.props.sort,
+              this.props.pageSize,
+              this.props.startIndex
             );
           }}
         />
