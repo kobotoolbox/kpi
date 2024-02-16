@@ -50,15 +50,19 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   openProcessing(name: string) {
     if (this.props.asset?.content) {
       const foundRow = findRow(this.props.asset?.content, name);
-      if (foundRow) {
+      const tableInfo = stores.pageState.state.modal?.tableInfo;
+      if (foundRow && tableInfo) {
         openProcessing(
           this.props.asset.uid,
           foundRow.$qpath,
           this.props.submissionData._uuid,
-          stores.pageState.state.modal?.tableInfo?.filter || '',
-          stores.pageState.state.modal?.tableInfo?.sort || '[]',
-          stores.pageState.state.modal?.tableInfo?.pageSize || 30,
-          stores.pageState.state.modal?.tableInfo?.startIndex || 0
+          tableInfo?.filter || '',
+          tableInfo?.sort || '[]',
+          tableInfo?.pageSize || 30,
+          (tableInfo?.currentPage &&
+            tableInfo?.pageSize &&
+            tableInfo?.currentPage * tableInfo?.pageSize) ||
+            0
         );
       }
     }

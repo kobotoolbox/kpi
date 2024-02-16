@@ -19,7 +19,7 @@ export namespace stores {
           filter: string;
           sort: string;
           pageSize: number;
-          startIndex: number;
+          currentPage: number;
         };
       }>;
     };
