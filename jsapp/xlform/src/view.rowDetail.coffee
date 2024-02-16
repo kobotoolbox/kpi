@@ -473,7 +473,7 @@ module.exports = do ->
         select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
         image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
-        group: [['select', 'Default, no appearance set'], ['field-list', 'Show all questions in this group on the same screen'], ['other', 'Advanced']]
+        group: ['select', ['field-list', 'Show all questions in this group on the same screen'], ['other', 'Advanced']]
 
       types[@model._parent.getValue('type').split(' ')[0]]
     html: ->
