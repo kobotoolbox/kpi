@@ -1,5 +1,5 @@
 import React, {useMemo, useReducer, useState, useEffect} from 'react';
-import bodyStyles from '../processingBody.module.scss';
+import bodyStyles from 'js/components/processing/processingBody.module.scss';
 import AnalysisContent from './analysisContent.component';
 import {
   initialState,
@@ -16,7 +16,7 @@ import {
   applyUpdateResponseToInternalQuestions,
   getQuestionsFromSchema,
 } from './utils';
-import singleProcessingStore from '../singleProcessingStore';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import {fetchGetUrl, handleApiFail} from 'js/api';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
@@ -27,7 +27,7 @@ import type {FailResponse} from 'js/dataInterface';
  * Displays content of the "Analysis" tab. This component is handling all of
  * the Qualitative Analysis functionality.
  */
-export default function Analysis() {
+export default function AnalysisTab() {
   const [isInitialised, setIsInitialised] = useState(false);
   const [isErrored, setIsErrored] = useState(false);
 
