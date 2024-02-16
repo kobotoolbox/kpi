@@ -150,6 +150,7 @@ export class DataTable extends React.Component {
       )
     );
 
+    // TODO: why this line is needed? Why not use `assetStore`?
     stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded);
   }
 
@@ -193,7 +194,7 @@ export class DataTable extends React.Component {
       // the props asset is not yet updated
       this._prepColumns(this.state.submissions);
     } else if (!isEqual(prevAdditionalFields, newAdditionalFields)) {
-      // If additional fields have changed, it means that user has added 
+      // If additional fields have changed, it means that user has added
       // transcript or translations, thus we need to display more columns.
       this._prepColumns(this.state.submissions);
     }

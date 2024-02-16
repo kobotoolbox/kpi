@@ -235,7 +235,7 @@ const mixins: MixinsObject = {
       const uid = this._getAssetUid();
       const asset = data[uid];
       if (asset) {
-        this.setState(Object.assign({}, data[uid]));
+        this.setState(Object.assign({}, asset));
       }
     },
     _getAssetUid() {
