@@ -206,13 +206,32 @@ for user in all_users_qs:
         fixup=set_assetfile_user_to_asset_owner,
     )
 
-    for mod in AssetExportSettings, AssetVersion, Hook:
+    for mod in AssetExportSettings, Hook:
         copy_related_objs(
             mod.objects.all(),
             'asset',
             asset_qs,
             ['uid'],
         )
+
+    def null_out_reversion_version_id(assetversion):
+        if assetversion._reversion_version_id:
+            csv_file_writer.writerow(
+                [
+                    'WOW! AssetVersion WITH REVERSION',
+                    '<see AssetVersion PK above>',
+                    f'_reversion_version_id: {assetversion._reversion_version_id}',
+                ]
+            )
+            assetversion._reversion_version = None
+
+    copy_related_objs(
+        AssetVersion.objects.all(),
+        'asset',
+        asset_qs,
+        ['uid'],
+        fixup=null_out_reversion_version_id,
+    )
 
     # Related to Hook
     copy_related_objs(
