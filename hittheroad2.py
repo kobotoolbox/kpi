@@ -9,10 +9,16 @@ from kpi.models import Asset
 from kpi.db_routers import HitTheRoadDatabaseRouter
 route_to_dest = HitTheRoadDatabaseRouter.route_to_destination
 
-all_users_qs = KobocatUser.objects.filter(username__startswith='moveme')
+# all_users_qs = KobocatUser.objects.filter(username__in=('tinok', 'tinok3', 'tino', 'jamesld_test'))
+usernames = [x.strip() for x in open('../kf-usernames.txt').readlines()]
+all_users_qs = KobocatUser.objects.filter(username__in=usernames)
 
-URL_FIND = 'http://10.6.6.1:9001'
-URL_REPLACE = 'http://kc.kobo.local:8999'
+URL_FIND_REPLACE = (
+    ('https://kc.kobotoolbox.org/', 'https://kobo-kc.nrc.no/'),
+    ('https://kc-eu.kobotoolbox.org/', 'https://kobo-kc.nrc.no/'),
+    ('http://hhi-kobo-kobocat/', 'http://nrc-kobo-kobocat/'),
+    ('http://ocha-kobo-kobocat/', 'http://nrc-kobo-kobocat/'),
+)
 
 ''' things to fix in _deployment_data
  'identifier': 'http://10.6.6.1:9001/moveme1/forms/a6S3QEvE7d4Wqva3im9eYM',
@@ -49,7 +55,10 @@ with route_to_dest():
 
         # Could use a smaller hammer, but there could be a bunch of URLs like one
         # for each `metadata`
-        dep_dat = json.loads(json.dumps(dep_dat).replace(URL_FIND, URL_REPLACE))
+        dep_dat_str = json.dumps(dep_dat)
+        for find, replace in URL_FIND_REPLACE:
+            dep_dat_str = dep_dat_str.replace(find, replace)
+        dep_dat = json.loads(dep_dat_str)
 
         Asset.objects.filter(uid=xform.kpi_asset_uid).update(
             _deployment_data=dep_dat

@@ -49,7 +49,11 @@ from kpi.models.asset import UserAssetSubscription
 
 
 # to be replaced by reading usernames from a file
-all_users_qs = User.objects.filter(username__startswith='moveme')
+# all_users_qs = User.objects.filter(username__in=('tinok', 'tinok3', 'tino', 'jamesld_test'))
+
+usernames = [x.strip() for x in open('../kf-usernames.txt').readlines()]
+all_users_qs = User.objects.filter(username__in=usernames)
+csv_file_writer = csv.writer(open('/home/ubuntu/jnm-work/log/kf-kpi.log', 'w'))
 
 
 CHUNK_SIZE = 2000
@@ -61,6 +65,7 @@ csv_writer = csv.writer(sys.stdout)
 
 def print_csv(*args):
     csv_writer.writerow(args)
+    csv_file_writer.writerow(args)
 
 
 def legible_class(cls):
@@ -288,17 +293,27 @@ with route_to_dest():
     )
 source_to_dest_pks[Permission] = {}
 for p in dest_permissions:
-    source_to_dest_pks[Permission][
-        source_permissions_xref[
+    try:
+        source_pk = source_permissions_xref[
             (p.content_type.app_label, p.content_type.model, p.codename)
         ]
-    ] = p.pk
+    except KeyError:
+        # Databases are weirdly inconsistent about the presence of permissions
+        # for things like `shadow_model` and `gis`
+        continue
+    source_to_dest_pks[Permission][source_pk] = p.pk
 
 
 def update_permission_pk(obj_related_to_permission):
-    obj_related_to_permission.permission_id = source_to_dest_pks[Permission][
-        obj_related_to_permission.permission_id
-    ]
+    try:
+        obj_related_to_permission.permission_id = source_to_dest_pks[Permission][
+            obj_related_to_permission.permission_id
+        ]
+    except KeyError:
+        # See comment above; likely would be cleaner to consider only a list of
+        # permissions that matter instead of whatever happens to be in each
+        # database
+        raise SkipObject
 
 
 def update_permission_and_asset_pk(obj):
