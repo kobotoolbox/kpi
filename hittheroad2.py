@@ -10,7 +10,7 @@ from kpi.db_routers import HitTheRoadDatabaseRouter
 route_to_dest = HitTheRoadDatabaseRouter.route_to_destination
 
 # all_users_qs = KobocatUser.objects.filter(username__in=('tinok', 'tinok3', 'tino', 'jamesld_test'))
-usernames = [x.strip() for x in open('../kf-usernames.txt').readlines()]
+usernames = [x.strip() for x in open('../eu-usernames.txt').readlines()]
 all_users_qs = KobocatUser.objects.filter(username__in=usernames)
 
 URL_FIND_REPLACE = (
