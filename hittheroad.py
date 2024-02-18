@@ -51,9 +51,9 @@ from kpi.models.asset import UserAssetSubscription
 # to be replaced by reading usernames from a file
 # all_users_qs = User.objects.filter(username__in=('tinok', 'tinok3', 'tino', 'jamesld_test'))
 
-usernames = [x.strip() for x in open('../kf-usernames.txt').readlines()]
+usernames = [x.strip() for x in open('../eu-usernames.txt').readlines()]
 all_users_qs = User.objects.filter(username__in=usernames)
-csv_file_writer = csv.writer(open('/home/ubuntu/jnm-work/log/kf-kpi.log', 'w'))
+csv_file_writer = csv.writer(open('/home/ubuntu/jnm-work/log/eu-kpi.log', 'w'))
 
 
 CHUNK_SIZE = 2000
