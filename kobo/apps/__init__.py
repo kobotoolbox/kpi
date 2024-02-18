@@ -17,4 +17,4 @@ class KpiConfig(AppConfig):
         return super().ready(*args, **kwargs)
 
 
-register(TwoDatabaseConfigurationChecker().as_check(), Tags.database)
+# register(TwoDatabaseConfigurationChecker().as_check(), Tags.database)

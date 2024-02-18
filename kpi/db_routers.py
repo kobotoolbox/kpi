@@ -1,4 +1,7 @@
 # coding: utf-8
+
+from contextlib import contextmanager
+
 from .constants import SHADOW_MODEL_APP_LABELS
 from .exceptions import ReadOnlyModelError
 
@@ -59,3 +62,30 @@ class SingleDatabaseRouter(DefaultDatabaseRouter):
 class TestingDatabaseRouter(SingleDatabaseRouter):
 
     pass
+
+
+class HitTheRoadDatabaseRouter(DefaultDatabaseRouter):
+    _use_dest_db = False
+
+    @classmethod
+    @contextmanager
+    def route_to_destination(cls):
+        cls._use_dest_db = True
+        yield
+        cls._use_dest_db = False
+
+    @classmethod
+    def get_suffix(cls):
+        if cls._use_dest_db:
+             # print('orm → dest db', flush=True)
+            return '_destination'
+        # print('orm → source db', flush=True)
+        return ''
+
+    def db_for_read(self, *args, **kwargs):
+        return super().db_for_read(*args, **kwargs) + self.get_suffix()
+
+    def db_for_write(self, *args, **kwargs):
+        return super().db_for_write(*args, **kwargs) + self.get_suffix()
+
+
