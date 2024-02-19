@@ -215,8 +215,7 @@ class Transfer(TimeStampedModel):
             'Please note that the ownership of the project **##project_name##** '
             'has been transferred from **##previous_owner##** to **##new_owner##**.\n\n'
             'Note: You will continue to have the same project permissions until '
-            'they are changed.\n\n'
-            ' — Kobotoolbox'
+            'they are changed.'
         )
 
         exclusions = [
@@ -234,8 +233,8 @@ class Transfer(TimeStampedModel):
         if len(message_recipient_ids):
             in_app_message = InAppMessage.objects.create(
                 #  … save raw strings into DB to let them be translated in
-                # the users' language in the API response, i.e. when front end expose
-                # the message in the UI.
+                # the users' language in the API response, i.e. when front end
+                # exposes the message in the UI.
                 title=title._proxy____args[0],  # noqa
                 snippet=snippet._proxy____args[0],  # noqa
                 body=body._proxy____args[0],  # noqa
