@@ -14,8 +14,9 @@ import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import styles from './singleProcessingHeader.module.scss';
 import {openProcessing} from './processingUtils';
-import {withRouter} from 'jsapp/js/router/legacy';
-import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import {withRouter} from 'js/router/legacy';
+import type {WithRouterProps} from 'js/router/legacy';
+import {actions} from 'js/actions';
 import classNames from 'classnames';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
@@ -24,12 +25,19 @@ interface SingleProcessingHeaderProps extends WithRouterProps {
   assetContent: AssetContent;
 }
 
+interface SingleProcessingHeaderState {
+  isDoneButtonPending: boolean;
+}
+
 /**
  * Component with the current question label and the UI for switching between
  * submissions and questions. It also has means of leaving Single Processing
  * via "DONE" button.
  */
-class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps> {
+class SingleProcessingHeader extends React.Component<
+  SingleProcessingHeaderProps,
+  SingleProcessingHeaderState
+> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
@@ -116,20 +124,36 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
 
   /** Goes back to Data Table route for given project. */
   onDone() {
-    // If there are any changes to the data, we need to ensure that the latest
-    // asset is available in the Data Table, when it will rebuild itself, so
-    // that all the columns are rendered. This is needed for the case when user
-    // added/deleted transcript or translation, as editing the text value for it
-    // is already handled properly by Data Table code.
+    // HACK: If there are any changes to the data, we need to ensure that
+    // the latest asset is available in the Data Table, when it will rebuild
+    // itself, so that all the columns are rendered. This is needed for the case
+    // when user added/deleted transcript or translation (editing the text
+    // value for it is already handled properly by Data Table code).
     if (!singleProcessingStore.isPristine) {
-      // Here we delete the cached asset object from the cache, so that when
+      // Mark button as pending to let user know we wait for stuff.
+      this.setState({isDoneButtonPending: true});
+
+      // We don't need to add these listeners prior to this moment, and we don't
+      // need to cancel them, as regardless of outcome, we will navigate out of
+      // current view.
+      actions.resources.loadAsset.completed.listen(
+        this.navigateToDataTable.bind(this)
+      );
+
+      // For failed load we still navigate to Data Table, as this is not
+      // something that would cause a massive disruption or data loss
+      actions.resources.loadAsset.failed.listen(
+        this.navigateToDataTable.bind(this)
+      );
+
+      // We force load asset to overwrite the cache, so that when
       // `FormSubScreens` (a parent of Data Table) starts loading in a moment,
-      // it would fetch latest asset and make Data Table use it.
-
-      // JESSICA TODO: here add a line that removes the asset
+      // it would fetch latest asset and make Data Table use it. To avoid
+      // race conditions we wait until it loads to leave.
+      actions.resources.loadAsset({id: this.props.assetUid}, true);
+    } else {
+      this.navigateToDataTable();
     }
-
-    this.navigateToDataTable();
   }
 
   navigateToDataTable() {
@@ -311,6 +335,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
             size='l'
             color='blue'
             label={t('DONE')}
+            isPending={this.state?.isDoneButtonPending}
             onClick={this.onDone.bind(this)}
           />
         </section>
