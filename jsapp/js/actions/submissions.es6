@@ -59,15 +59,6 @@ submissionsActions.getSubmissions.listen((options) => {
  * @param {string} assetUid
  */
 const getProcessingSubmissionUuids = ({assetUid, questionsPaths = [], filters, sort, pageSize, startIndex}) => {
-  let filterQuery = {};
-  try {
-    // try getting a JSON object from the filter query so we can insert
-    filterQuery = JSON.parse(filters.replace('&query=', ''));
-  } catch (e) {
-    // non-JSON value, use the default empty object
-    // we use the string `'none'` to indicate empty filters (so the URL is routable by react-router)
-  }
-
   return dataInterface.getSubmissions(
     assetUid,
     pageSize ?? 30,
