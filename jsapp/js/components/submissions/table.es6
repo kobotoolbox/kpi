@@ -832,7 +832,7 @@ export class DataTable extends React.Component {
                     filter={this.state.filter}
                     sort={this.state.sort}
                     pageSize={this.state.pageSize}
-                    startIndex={this.state.currentPage}
+                    startIndex={this.state.currentPage * this.state.pageSize}
                   />
                 );
               }
@@ -850,7 +850,7 @@ export class DataTable extends React.Component {
                   filter={this.state.filter}
                   sort={this.state.sort}
                   pageSize={this.state.pageSize}
-                  startIndex={this.state.currentPage}
+                  startIndex={this.state.currentPage * this.state.pageSize}
                 />
               );
             }

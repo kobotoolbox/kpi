@@ -437,7 +437,11 @@ class SingleProcessingStore extends Reflux.Store {
   ): void => {
     this.areEditIdsLoaded = false;
     this.data.submissionsEditIds = undefined;
-    this.trigger(this.data);
+    // we want to avoid triggering a re-render here, which prevents us from unmounting
+    // singleProcessingHeader and losing a pending callback
+    if (startIndex == null) {
+      this.trigger(this.data);
+    }
 
     const processingRows = getAssetProcessingRows(this.currentAssetUid);
     const asset = assetStore.getAsset(this.currentAssetUid);

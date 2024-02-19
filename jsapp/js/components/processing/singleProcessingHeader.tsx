@@ -18,6 +18,7 @@ import {withRouter} from 'jsapp/js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import classNames from 'classnames';
 import {actions} from 'js/actions';
+import AriaText from 'js/components/common/ariaText';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
@@ -172,7 +173,7 @@ class SingleProcessingHeader extends React.Component<
     const prevIndex = this.state.startIndex - this.state.pageSize;
     const currentIndex = this.getCurrentSubmissionIndex();
     const shouldChangePages =
-      currentIndex && currentIndex % this.state.pageSize === 0;
+      currentIndex !== null && currentIndex % this.state.pageSize === 0;
     if (prevEditId !== null && !shouldChangePages) {
       this.goToSubmission(
         singleProcessingStore.currentQuestionQpath,
@@ -189,7 +190,7 @@ class SingleProcessingHeader extends React.Component<
     const nextIndex = this.state.startIndex + this.state.pageSize;
     const currentIndex = this.getCurrentSubmissionIndex();
     const shouldChangePages =
-      currentIndex &&
+      currentIndex !== null &&
       currentIndex % this.state.pageSize === this.state.pageSize - 1;
     if (nextEditId !== null && !shouldChangePages) {
       this.goToSubmission(
@@ -201,7 +202,7 @@ class SingleProcessingHeader extends React.Component<
     }
   }
 
-  // load the next page of editIds from the API
+  // load the next page non-empty page of editIds from the API
   loadPage = (nextIndex: number, currentIndex: number | null) => {
     if (nextIndex > singleProcessingStore.getSubmissionCount()) {
       // we've hit the final submission in the set, disable the next button and re-enable the rest of the UI
@@ -253,7 +254,6 @@ class SingleProcessingHeader extends React.Component<
         );
       })
     );
-    // get the next page of edit ids
     singleProcessingStore.fetchEditIds(
       this.props.params.filters || '',
       this.props.params.sort,
@@ -354,7 +354,7 @@ class SingleProcessingHeader extends React.Component<
 
   render() {
     const submissionCount = singleProcessingStore.getSubmissionCount();
-    const currentIndex = this.getCurrentSubmissionNumber() || 1;
+    const currentIndex = this.getCurrentSubmissionNumber() || -1;
 
     return (
       <header className={styles.root}>
@@ -373,15 +373,19 @@ class SingleProcessingHeader extends React.Component<
         <section className={styles.column}>
           <nav className={styles.submissions}>
             <div className={styles.count}>
-              <strong>
-                {t('Item')}
-                &nbsp;
-                {currentIndex}
-              </strong>
-              &nbsp;
-              {t('of ##total_count##').replace(
-                '##total_count##',
-                submissionCount.toString()
+              {currentIndex >= 0 && (
+                <>
+                  <strong>
+                    {t('Item')}
+                    &nbsp;
+                    {currentIndex}
+                  </strong>
+                  &nbsp;
+                  {t('of ##total_count##').replace(
+                    '##total_count##',
+                    submissionCount.toString()
+                  )}
+                </>
               )}
             </div>
 

@@ -64,8 +64,8 @@ export function openProcessing(
   submissionEditId: string,
   filters: string,
   sort: string | Array<{desc: boolean; id: string}>,
-  pageSize: number,
-  startIndex: number
+  pageSize: number | string,
+  startIndex: number | string
 ) {
   let route = ROUTES.FORM_PROCESSING.replace(':uid', assetUid)
     .replace(':qpath', qpath)
