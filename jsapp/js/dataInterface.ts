@@ -198,6 +198,13 @@ interface AssignablePermissionRegular {
   label: string;
 }
 
+/**
+ * A list of labels for partial permissions.
+ *
+ * WARNING: it only includes labels for `…PartialByUsers` type ("…only from
+ * specific users"), so please use `CHECKBOX_LABELS` from `permConstants` file
+ * instead.
+ */
 export interface AssignablePermissionPartialLabel {
   default: string;
   view_submissions: string;
