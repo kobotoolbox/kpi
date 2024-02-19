@@ -41,7 +41,7 @@ interface GetProcessingSubmissionsArgs {
 }
 
 interface GetProcessingSubmissionsDefinition extends Function {
-  (args: GetProcessingSubmissionsArgs): void;
+  (args: GetProcessingSubmissionsArgs, refresh?: boolean): void;
   completed: GetProcessingSubmissionsCompletedDefinition;
   failed: GenericFailedDefinition;
 }

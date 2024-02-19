@@ -62,8 +62,8 @@ export function openProcessing(
   assetUid: string,
   qpath: string,
   submissionEditId: string,
-  filters: string,
-  sort: string | Array<{desc: boolean; id: string}>,
+  filters: string | undefined,
+  sort: string | Array<{desc: boolean; id: string}> | undefined,
   pageSize: number | string,
   startIndex: number | string
 ) {
@@ -76,8 +76,10 @@ export function openProcessing(
     .replace(':startIndex', startIndex.toString());
   if (typeof sort === 'string') {
     route = route.replace(':sort', sort);
-  } else {
+  } else if (sort) {
     route = route.replace(':sort', JSON.stringify(sort));
+  } else {
+    route = route.replace(':sort', '[]');
   }
   router!.navigate(route);
 }

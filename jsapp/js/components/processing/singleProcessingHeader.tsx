@@ -18,7 +18,6 @@ import {withRouter} from 'jsapp/js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import classNames from 'classnames';
 import {actions} from 'js/actions';
-import AriaText from 'js/components/common/ariaText';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
@@ -85,7 +84,11 @@ class SingleProcessingHeader extends React.Component<
   onQuestionSelectChange(newQpath: string | null) {
     this.setState({...this.state, disabled: true});
     if (newQpath !== null) {
-      this.goToSubmission(newQpath, this.props.submissionEditId, '0');
+      this.goToSubmission(
+        newQpath,
+        this.props.submissionEditId,
+        this.state.startIndex.toString()
+      );
     }
   }
 
@@ -160,8 +163,8 @@ class SingleProcessingHeader extends React.Component<
       this.props.assetUid,
       qpath,
       targetSubmissionEditId,
-      this.props.params.filters || '',
-      this.props.params.sort || [],
+      this.props.params.filters,
+      this.props.params.sort,
       this.state.pageSize,
       parseInt(startIndex || this.props.params.startIndex || '0')
     );
@@ -202,7 +205,7 @@ class SingleProcessingHeader extends React.Component<
     }
   }
 
-  // load the next page non-empty page of editIds from the API
+  // load the next/previous page of non-empty page of editIds from the API
   loadPage = (nextIndex: number, currentIndex: number | null) => {
     if (nextIndex > singleProcessingStore.getSubmissionCount()) {
       // we've hit the final submission in the set, disable the next button and re-enable the rest of the UI
@@ -222,6 +225,7 @@ class SingleProcessingHeader extends React.Component<
       });
       return;
     }
+    // first, let's attach the listener that will navigate to the next valid submission
     this.unlisteners.push(
       actions.submissions.getProcessingSubmissions.completed.listen(() => {
         // first, remove this callback
@@ -254,6 +258,7 @@ class SingleProcessingHeader extends React.Component<
         );
       })
     );
+    // finally, fetch the next batch of edit IDs so we can construct the absolute URL for the next/previous page
     singleProcessingStore.fetchEditIds(
       this.props.params.filters || '',
       this.props.params.sort,

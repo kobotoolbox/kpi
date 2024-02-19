@@ -1,5 +1,3 @@
-import SparkMD5 from 'spark-md5';
-
 /**
  * A higher-order function that returns a cached listener function
  * Cached function will only execute once per page load, or when `refresh` is true
@@ -9,8 +7,8 @@ export const cacheAction = (callback, onDone, onFail) => {
   // we initialize the cache here so it gets stored as a closure with the returned function
   const responseCache = {};
   const cachedCallback = (params, refresh = false) => {
-    // get a hash of the parameters so we can construct a fixed-length cache key
-    const paramsHash = SparkMD5.hash(JSON.stringify(params));
+    // get a hash of the parameters so we can construct a bounded-length cache key
+    const paramsHash = JSON.stringify(params);
     if (refresh || !(paramsHash in responseCache)) {
       // initialize the cache entry with an empty value, or evict stale cached entry for this asset
       // we use a string instead of null/undefined to distinguish from null responses from the server, etc.
