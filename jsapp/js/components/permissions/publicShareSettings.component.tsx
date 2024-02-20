@@ -8,6 +8,15 @@ import {ANON_USERNAME_URL} from 'js/users/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PermissionCodename} from './permConstants';
 import type {PermissionResponse} from 'jsapp/js/dataInterface';
+import envStore from 'js/envStore';
+import Icon from 'js/components/common/icon';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
+import AnonymousSubmission from '../anonymousSubmission.component';
+import styles from 'js/components/anonymousSubmission.module.scss';
+import {stores} from 'js/stores';
+import NewFeatureDialog from 'js/components/newFeatureDialog.component';
+
+const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 interface PublicShareSettingsProps {
   publicPerms: PermissionResponse[];
@@ -41,6 +50,8 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
 
     const anonCanViewPermUrl =
       permConfig.getPermissionByCodename('view_asset')?.url;
+    const anonCanAddPermUrl =
+      permConfig.getPermissionByCodename('add_submissions')?.url;
     const anonCanViewDataPermUrl =
       permConfig.getPermissionByCodename('view_submissions')?.url;
 
@@ -54,9 +65,35 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
         (perm) => perm.permission === anonCanViewDataPermUrl
       )[0]
     );
+    const anonCanAddData = Boolean(
+      this.props.publicPerms.filter(
+        (perm) => perm.permission === anonCanAddPermUrl
+      )[0]
+    );
 
     return (
       <bem.FormModal__item m='permissions'>
+        <bem.FormModal__item m='anonymous-submissions'>
+          <NewFeatureDialog
+            content={t(
+              'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.'
+            )}
+            supportArticle={
+              envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
+            }
+            featureKey='anonymousSubmissions'
+          >
+            <AnonymousSubmission
+              checked={anonCanAddData}
+              onChange={this.togglePerms.bind(this, 'add_submissions')}
+            />
+          </NewFeatureDialog>
+        </bem.FormModal__item>
+
+        <bem.FormModal__item m='permissions-header'>
+          {t('Share publicly by link')}
+        </bem.FormModal__item>
+
         <bem.FormModal__item>
           <Checkbox
             checked={anonCanView}

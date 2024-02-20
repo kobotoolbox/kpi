@@ -4,7 +4,7 @@ from typing import Callable, Optional, Tuple
 
 import requests
 from django.conf import settings
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django.http import HttpResponse
 
 from kobo.celery import celery_app
@@ -75,6 +75,7 @@ def service_health(request):
         'Enketo': lambda: requests.get(
             settings.ENKETO_INTERNAL_URL, timeout=10
         ).raise_for_status(),
+        'Enketo Redis (main)': lambda: caches['enketo_redis_main'].set('a', True, 1),
     }
 
     check_results = []

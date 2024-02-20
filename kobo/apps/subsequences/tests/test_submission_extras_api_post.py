@@ -407,13 +407,13 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         submission_id = 'abc123-def456'
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             '_uuid': submission_id,
             '_attachments': [
                 {
                     'id': 1,
-                    'filename': 'someuser/audio_conversion_test_clip.mp4',
-                    'mimetype': 'video/mp4',
+                    'filename': 'someuser/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
                 },
             ],
             '_submitted_by': self.user.username
@@ -444,7 +444,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         cache.set(make_async_cache_key(self.user.pk, submission_id, xpath, source), operation_name)
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             '_uuid': submission_id,
             '_attachments': [],
             '_submitted_by': self.user.username
@@ -465,7 +465,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         submission_id = 'abc123-def456'
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'audio_conversion_test_clip.mp4',
+            'q1': 'audio_conversion_test_clip.3gp',
             '_uuid': submission_id,
             '_attachments': [],
             '_submitted_by': self.user.username

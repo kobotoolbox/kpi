@@ -14,7 +14,7 @@ except ImportError:
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.files.storage import get_storage_class
+from django.core.files.storage import default_storage
 from django.db.models import (
     CharField,
     Count,
@@ -77,7 +77,6 @@ def generate_country_report(
         'Count',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output_file:
         writer = csv.writer(output_file)
         writer.writerow(columns)
@@ -170,7 +169,6 @@ def generate_continued_usage_report(output_filename: str, end_date: str):
         'Submissions 12M',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(headers)
@@ -221,7 +219,6 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
     # create the CSV file
     columns = ['Email Domain', 'Users', 'Projects', 'Submissions']
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(columns)
@@ -294,7 +291,6 @@ def generate_forms_count_by_submission_range(output_filename: str):
     headers = ['Range', 'Count']
 
     # Crate a csv with output filename
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(headers)
@@ -318,7 +314,6 @@ def generate_media_storage_report(output_filename: str):
 
     headers = ['Username', 'Storage Used (Bytes)']
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(headers)
@@ -355,7 +350,6 @@ def generate_user_count_by_organization(output_filename: str):
     # write data to a csv file
     columns = ['Organization', 'Count']
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output_file:
         writer = csv.writer(output_file)
         writer.writerow(columns)
@@ -440,7 +434,6 @@ def generate_user_report(output_filename: str):
         'last_login',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output_file:
         writer = csv.writer(output_file)
         writer.writerow(columns)
@@ -561,7 +554,6 @@ def generate_user_statistics_report(
         'Google MT Seconds',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(columns)
@@ -596,7 +588,6 @@ def generate_user_details_report(
         'city',
         'bio',
         'organization',
-        'require_auth',
         'primarySector',
         'organization_website',
         'twitter',
@@ -644,7 +635,6 @@ def generate_user_details_report(
         .order_by('id')
     )
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as f:
         columns = USER_COLS + EXTRA_DETAILS_COLS
         writer = csv.writer(f)

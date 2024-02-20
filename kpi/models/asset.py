@@ -381,7 +381,6 @@ class Asset(ObjectPermissionMixin,
                 if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
             )
         ),
-        PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (
@@ -417,6 +416,7 @@ class Asset(ObjectPermissionMixin,
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
+        PERM_ADD_SUBMISSIONS: {'require_auth': False},
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 

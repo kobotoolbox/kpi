@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.db.models import F
+if settings.STRIPE_ENABLED:
+   from djstripe.models import Customer, Subscription
 from functools import partial
 
 from organizations.abstract import (
@@ -50,7 +52,31 @@ class Organization(AbstractOrganization):
 
 
 class OrganizationUser(AbstractOrganizationUser):
-    pass
+    @property
+    def active_subscription_statuses(self):
+        """
+        Return a list of unique active subscriptions for the organization user.
+        """
+        try:
+            customer = Customer.objects.get(subscriber=self.organization.id)
+            subscriptions = Subscription.objects.filter(
+                customer=customer, status="active"
+            )
+
+            unique_plans = set()
+            for subscription in subscriptions:
+                unique_plans.add(str(subscription.plan))
+
+            return list(unique_plans)
+        except (Customer.DoesNotExist, Subscription.DoesNotExist):
+            return []
+
+    @property
+    def active_subscription_status(self):
+        """
+        Return a comma-separated string of active subscriptions for the organization user.
+        """
+        return ", ".join(self.active_subscription_statuses)
 
 
 class OrganizationOwner(AbstractOrganizationOwner):

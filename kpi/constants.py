@@ -118,3 +118,11 @@ ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
     'tags__name__icontains',
     'uid__icontains',
 ]
+
+SKIP_HEAVY_MIGRATIONS_GUIDANCE = (
+    """
+    This migration might take a while. If it is too slow, you may want to
+    re-run migrations with SKIP_HEAVY_MIGRATIONS=True and apply this one
+    manually from the django shell.
+    """
+)
