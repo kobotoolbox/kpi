@@ -1,19 +1,23 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import bem, {makeBem} from 'js/bem';
-import {
-  KEY_CODES,
-  KeyNames,
-} from 'js/constants';
+import {KEY_CODES, KeyNames} from 'js/constants';
 import koboDropdownActions from './koboDropdownActions';
 import './koboDropdown.scss';
 
-export type KoboDropdownPlacement = 'down-center' | 'down-left' | 'down-right' | 'up-center' | 'up-left' | 'up-right';
+export type KoboDropdownPlacement =
+  | 'down-center'
+  | 'down-left'
+  | 'down-right'
+  | 'up-center'
+  | 'up-left'
+  | 'up-right';
 
 const DEFAULT_PLACEMENT: KoboDropdownPlacement = 'down-center';
 
 interface KoboDropdownProps {
   placement: KoboDropdownPlacement;
+  isRequired?: boolean;
   /** Disables the dropdowns trigger, thus disallowing opening dropdown. */
   isDisabled?: boolean;
   /** Hides menu whenever user clicks inside it, useful for simple menu with a list of actions. */
@@ -65,20 +69,26 @@ export default class KoboDropdown extends React.Component<
     this.state = {isMenuVisible: false};
   }
 
-  private checkOutsideClickBound: (evt: MouseEvent | TouchEvent) => void = this.checkOutsideClick.bind(this);
+  private checkOutsideClickBound: (evt: MouseEvent | TouchEvent) => void =
+    this.checkOutsideClick.bind(this);
 
-  private onAnyKeyWhileOpenBound: (evt: KeyboardEvent) => void = this.onAnyKeyWhileOpen.bind(this);
+  private onAnyKeyWhileOpenBound: (evt: KeyboardEvent) => void =
+    this.onAnyKeyWhileOpen.bind(this);
 
   private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
-      koboDropdownActions.hideAnyDropdown.requested.listen(this.hideMenu.bind(this))
+      koboDropdownActions.hideAnyDropdown.requested.listen(
+        this.hideMenu.bind(this)
+      )
     );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
     this.cancelEscKeyListener();
     this.cancelOutsideClickListener();
   }
@@ -90,7 +100,10 @@ export default class KoboDropdown extends React.Component<
 
   /** When trigger is focused, this handles the keyboard navigation */
   onTriggerKeyDown(evt: React.KeyboardEvent<Node>) {
-    if (evt.key === KeyNames.Enter) {
+    if (
+      evt.key === KeyNames.Enter ||
+      (evt.key === KeyNames.Space && !this.state.isMenuVisible)
+    ) {
       evt.preventDefault();
       this.toggleMenu();
     }
@@ -171,7 +184,9 @@ export default class KoboDropdown extends React.Component<
     // assume it is not a dropdown.
     let parentsLookupLimit = 10;
     while (loopEl.parentNode !== null) {
-      if (--parentsLookupLimit === 0) {break;}
+      if (--parentsLookupLimit === 0) {
+        break;
+      }
       loopEl = loopEl.parentNode;
       if (
         loopEl &&
@@ -191,9 +206,7 @@ export default class KoboDropdown extends React.Component<
   getWrapperModifiers() {
     const wrapperMods = [];
 
-    if (
-      this.props.placement
-    ) {
+    if (this.props.placement) {
       wrapperMods.push(this.props.placement);
     } else {
       wrapperMods.push(DEFAULT_PLACEMENT);
@@ -227,7 +240,12 @@ export default class KoboDropdown extends React.Component<
     }
 
     return (
-      <bem.KoboDropdown m={this.getWrapperModifiers()} {...additionalWrapperAttributes}>
+      <bem.KoboDropdown
+        m={this.getWrapperModifiers()}
+        {...additionalWrapperAttributes}
+        aria-role='combobox'
+        aria-required={this.props.isRequired}
+      >
         <bem.KoboDropdown__trigger
           onClick={this.onTriggerClick.bind(this)}
           tabIndex='0'
@@ -236,11 +254,14 @@ export default class KoboDropdown extends React.Component<
           {this.props.triggerContent}
         </bem.KoboDropdown__trigger>
 
-        {this.state.isMenuVisible &&
-          <bem.KoboDropdown__menu onClick={this.onMenuClick.bind(this)}>
+        {this.state.isMenuVisible && (
+          <bem.KoboDropdown__menu
+            onClick={this.onMenuClick.bind(this)}
+            aria-role='listbox'
+          >
             {this.props.menuContent}
           </bem.KoboDropdown__menu>
-        }
+        )}
       </bem.KoboDropdown>
     );
   }
