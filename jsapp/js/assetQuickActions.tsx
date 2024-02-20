@@ -405,17 +405,19 @@ export function removeAssetSharing(uid: string) {
    * "most basic" permission to remove.
    */
   const asset = stores.allAssets.byUid[uid];
-  const userViewAssetPerm = asset.permissions.find((perm: PermissionResponse) => {
-    // Get permissions url related to current user
-    const permUserUrl = perm.user.split('/');
-    return (
-      permUserUrl[permUserUrl.length - 2] ===
-        sessionStore.currentAccount.username &&
-      perm.permission ===
-        permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)
-          ?.url
-    );
-  });
+  const userViewAssetPerm = asset.permissions.find(
+    (perm: PermissionResponse) => {
+      // Get permissions url related to current user
+      const permUserUrl = perm.user.split('/');
+      return (
+        permUserUrl[permUserUrl.length - 2] ===
+          sessionStore.currentAccount.username &&
+        perm.permission ===
+          permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)
+            ?.url
+      );
+    }
+  );
 
   const dialog = alertify.dialog('confirm');
   const opts = {
@@ -489,10 +491,8 @@ function _redeployAsset(
       actions.resources.deployAsset(asset, true, {
         onDone: (response: DeploymentResponse) => {
           notify(t('redeployed form'));
-          // TODO: this ensures that after deploying an asset, we get the fresh
-          // data for it. But this also causes duplicated calls in some cases.
-          // It needs some investigation.
-          actions.resources.loadAsset({id: asset.uid});
+          // this ensures that after deploying an asset, we get the fresh data for it
+          actions.resources.loadAsset({id: asset.uid}, true);
           if (dialog && typeof dialog.destroy === 'function') {
             dialog.destroy();
           }
