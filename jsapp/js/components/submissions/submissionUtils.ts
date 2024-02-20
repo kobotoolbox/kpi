@@ -47,19 +47,33 @@ export const DISPLAY_GROUP_TYPES = createEnum([
   DisplayGroupTypeName.group_matrix_row,
 ]) as {[P in DisplayGroupTypeName]: DisplayGroupTypeName};
 
+// To match the media attachment xpath provided by the backend,
+// each display group needs to keep track of its own place in its parent group's
+// array of children. Note that indices in the attachment path are 1-, rather than 0-based.
+// The childrenAreRepeatable bool is used when creating the final xpath and is needed for adding an
+// index in cases where a repeatable group is not actually repeated.
+interface xpathNode {
+  path: string;
+  childIndex: number | null;
+  childrenAreRepeatable: boolean;
+}
+
 export class DisplayGroup {
   public type: DisplayGroupTypeName;
   /** Localized display label */
   public label: string | null = null;
   /** Unique identifier */
   public name: string | null = null;
+  /** For aligning with attachment xpath */
+  public xpathNodes: xpathNode[] = [];
   /** List of groups and responses */
   public children: Array<DisplayResponse | DisplayGroup> = [];
 
   constructor(
     type: DisplayGroupTypeName,
     label?: string | null,
-    name?: string | null
+    name?: string | null,
+    xpathNodes?: xpathNode[] | null
   ) {
     this.type = type;
     if (label) {
@@ -67,6 +81,9 @@ export class DisplayGroup {
     }
     if (name) {
       this.name = name;
+    }
+    if (xpathNodes) {
+      this.xpathNodes = xpathNodes;
     }
   }
 
@@ -129,6 +146,26 @@ export function sortAnalysisFormJsonKeys(
     sortedBySource[afParams.source].push(expandedPath);
   });
   return sortedBySource;
+}
+
+function addXpathNode(
+  parentGroup: DisplayGroup,
+  repeatIndex: number | null,
+  currentRowData: any
+) {
+  let nodePath = [];
+  let childIndex = null;
+  if (repeatIndex !== null) {
+    childIndex = repeatIndex + 1;
+  }
+  if (parentGroup.name) {
+    nodePath.push({
+      path: parentGroup.name,
+      childIndex,
+      childrenAreRepeatable: Array.isArray(currentRowData),
+    });
+  }
+  return parentGroup.xpathNodes.concat(nodePath);
 }
 
 /**
@@ -206,10 +243,13 @@ export function getSubmissionDisplayData(
       if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
+            let nodePath = addXpathNode(parentGroup, repeatIndex, rowData);
+
             let itemObj = new DisplayGroup(
               DISPLAY_GROUP_TYPES.group_repeat,
               rowLabel,
-              rowName
+              rowName,
+              nodePath
             );
             parentGroup.addChild(itemObj);
             /*
@@ -257,10 +297,13 @@ export function getSubmissionDisplayData(
         row.type === GROUP_TYPES_BEGIN.begin_score ||
         row.type === GROUP_TYPES_BEGIN.begin_rank
       ) {
+        let nodePath = addXpathNode(parentGroup, repeatIndex, rowData);
+
         let rowObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_regular,
           rowLabel,
-          rowName
+          rowName,
+          nodePath
         );
         parentGroup.addChild(rowObj);
         /*
@@ -287,15 +330,34 @@ export function getSubmissionDisplayData(
           rowListName = getRowListName(parentGroupRow);
         }
 
-        const questionXPath = repeatIndex !== null
-          ? `${flatPaths[rowName]}[${repeatIndex + 1}]`
-          : flatPaths[rowName];
+        // Begin constructing xpath for matching media attachments
+        let xpath: string[] = [];
+
+        // Build xpath array from existing nodes in parent group
+        parentGroup.xpathNodes.forEach((node) => {
+          let nodeCount =
+            node.childIndex !== null ? `[${node.childIndex}]` : '';
+          xpath.push(`${node.path}` + nodeCount);
+        });
+
+        // add repeat count to parent group before adding to array
+        if (parentGroup.name) {
+          let index = '';
+          if (parentGroup.type === DISPLAY_GROUP_TYPES.group_repeat) {
+            index = `[${(repeatIndex ?? 0) + 1}]`;
+          } else if (parentGroup.xpathNodes.at(-1)?.childrenAreRepeatable) {
+            index = '[1]';
+          }
+          xpath.push(`${parentGroup.name}` + index);
+        }
+        // add current rowname to end
+        xpath.push(rowName);
 
         let rowObj = new DisplayResponse(
           row.type,
           rowLabel,
           rowName,
-          questionXPath,
+          xpath.join('/'),
           rowListName,
           rowData
         );
@@ -551,7 +613,6 @@ export function getMediaAttachment(
   ).replace('##fileName##', fileName);
 
   submission._attachments.forEach((attachment) => {
-
     if (attachment.question_xpath === questionXPath) {
       // Check if the audio filetype is of type not supported by player and send it to format to mp3
       if (
@@ -561,7 +622,6 @@ export function getMediaAttachment(
         !attachment.mimetype.includes('/wav') &&
         !attachment.mimetype.includes('ogg')
       ) {
-
         const newAudioURL = attachment.download_url + '?format=mp3';
         const newAttachment = {
           ...attachment,
