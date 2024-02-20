@@ -1,6 +1,7 @@
 import {createContext, useEffect, useState} from 'react';
 import type {Product} from 'js/account/stripe.types';
 import {getProducts} from 'js/account/stripe.api';
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 
 export interface ProductsState {
   products: Product[];
@@ -18,7 +19,7 @@ export function useProducts() {
   );
 
   // get list of products
-  useEffect(() => {
+  useWhenStripeIsEnabled(() => {
     getProducts().then((products) => {
       setProducts(() => {
         return {

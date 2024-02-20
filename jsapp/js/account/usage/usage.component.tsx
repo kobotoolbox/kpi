@@ -45,7 +45,10 @@ export default function Usage() {
   const location = useLocation();
 
   const isFullyLoaded = useMemo(
-    () => usage.isLoaded && productsContext.isLoaded && limits.isLoaded,
+    () =>
+      usage.isLoaded &&
+      (productsContext.isLoaded || !limits.stripeEnabled) &&
+      limits.isLoaded,
     [usage.isLoaded, productsContext.isLoaded, limits.isLoaded]
   );
 
