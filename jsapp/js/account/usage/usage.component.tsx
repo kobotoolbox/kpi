@@ -49,7 +49,12 @@ export default function Usage() {
       usage.isLoaded &&
       (productsContext.isLoaded || !limits.stripeEnabled) &&
       limits.isLoaded,
-    [usage.isLoaded, productsContext.isLoaded, limits.isLoaded]
+    [
+      usage.isLoaded,
+      productsContext.isLoaded,
+      limits.isLoaded,
+      limits.stripeEnabled,
+    ]
   );
 
   const dateRange = useMemo(() => {
