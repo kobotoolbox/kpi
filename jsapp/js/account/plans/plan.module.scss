@@ -15,6 +15,10 @@
   row-gap: sizes.$x20;
 }
 
+.accountPlan.showAddOns {
+  padding: sizes.$x15 0 0 0;
+}
+
 .wait {
   cursor: wait;
 }

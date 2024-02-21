@@ -1,5 +1,5 @@
 import styles from 'js/account/usage/yourPlan.module.scss';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {formatDate} from 'js/utils';
 import Badge, {BadgeColor} from 'js/components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
@@ -12,9 +12,8 @@ import {
   Product,
   SubscriptionChangeType,
 } from 'js/account/stripe.types';
-import {getProducts} from '../stripe.api';
+import { ProductsContext } from '../useProducts.hook';
 import {getSubscriptionChangeDetails} from '../stripe.utils';
-import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 
 const BADGE_COLOR_KEYS: {[key in SubscriptionChangeType]: BadgeColor} = {
   [SubscriptionChangeType.RENEWAL]: 'light-blue',
@@ -32,16 +31,7 @@ export const YourPlan = () => {
   const [subscriptions] = useState(() => subscriptionStore);
   const [env] = useState(() => envStore);
   const [session] = useState(() => sessionStore);
-  const [productsState, setProductsState] = useState<Product[]>([]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      await getProducts().then((productResponse) => {
-        setProductsState(productResponse.results);
-      });
-    };
-    fetchProducts();
-  }, []);
+  const productsContext = useContext(ProductsContext)
 
   /*
    * The plan name displayed to the user. This will display, in order of precedence:
@@ -76,15 +66,12 @@ export const YourPlan = () => {
   }, [env.isReady, subscriptions.isInitialised]);
 
   const subscriptionUpdate = useMemo(() => {
-    return getSubscriptionChangeDetails(currentPlan, productsState);
-  }, [currentPlan, productsState]);
+      return getSubscriptionChangeDetails(currentPlan, productsContext.products);
+  }, [currentPlan, productsContext.isLoaded]);
 
   return (
     <article>
       <section className={styles.section}>
-        <div className={styles.banner}>
-          <LimitNotifications usagePage />
-        </div>
         <div className={styles.planInfo}>
           <p className={styles.plan}>
             <strong>

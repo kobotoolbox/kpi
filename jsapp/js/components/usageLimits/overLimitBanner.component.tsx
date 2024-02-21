@@ -10,7 +10,7 @@ interface OverLimitBannerProps {
   warning?: boolean;
   limits: string[];
   interval: string;
-  usagePage: boolean;
+  accountPage: boolean;
 }
 
 const OverLimitBanner = (props: OverLimitBannerProps) => {
@@ -22,7 +22,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     <div
       className={cx(styles.limitBannerContainer, {
         [styles.warningBanner]: props.warning,
-        [styles.usagePage]: props.usagePage,
+        [styles.accountPage]: props.accountPage
       })}
     >
       <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'red'} />
@@ -65,7 +65,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           </>
         )}
       </div>
-      {props.warning && !props.usagePage && (
+      {props.warning && !props.accountPage && (
         <Button
           type={'bare'}
           color={'dark-blue'}
@@ -77,7 +77,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           classNames={[styles.bannerBtn]}
         />
       )}
-      {(!props.warning || props.usagePage) && (
+      {(!props.warning || props.accountPage) && (
         <Button
           type={'bare'}
           color={'dark-blue'}

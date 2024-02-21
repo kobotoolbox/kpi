@@ -195,7 +195,7 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
 /**
  * Get all metadata keys for the logged-in user's plan, or from the free tier if they have no plan.
  */
-const getStripeMetadataAndFreeTierStatus = async () => {
+const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
   await when(() => subscriptionStore.isInitialised);
   const plans = [...subscriptionStore.planResponse];
   // only use metadata for active subscriptions
@@ -214,26 +214,21 @@ const getStripeMetadataAndFreeTierStatus = async () => {
       quantity: activeSubscriptions[0].quantity.toString(),
     };
   } else {
+    await when(() => !!products.length);
     // the user has no subscription, so get limits from the free monthly product
     hasFreeTier = true;
-    try {
-      const products = await getProducts();
-      const freeProduct = products.results.filter((product) =>
-        product.prices.filter(
-          (price) =>
-            price.unit_amount === 0 && price.recurring?.interval === 'month'
-        )
-      )[0];
-      metadata = {
-        ...freeProduct.metadata,
-        ...freeProduct.prices[0].metadata,
-        transform_quantity: null,
-        quantity: '1',
-      };
-    } catch (error) {
-      // couldn't find the free monthly product, continue in case we have limits to display from the free tier override
-      metadata = {transform_quantity: null, quantity: '1'};
-    }
+    const freeProduct = products.filter((product) =>
+      product.prices.filter(
+        (price) =>
+          price.unit_amount === 0 && price.recurring?.interval === 'month'
+      )
+    )[0];
+    metadata = {
+      ...freeProduct.metadata,
+      ...freeProduct.prices[0].metadata,
+      transform_quantity: null,
+      quantity: '1',
+    };
   }
   return {metadata, hasFreeTier};
 };
@@ -245,8 +240,10 @@ const getStripeMetadataAndFreeTierStatus = async () => {
  *  - the `FREE_TIER_THRESHOLDS` override
  *  - the user's subscription limits
  */
-export async function getAccountLimits() {
-  const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus();
+export async function getAccountLimits(products: Product[]) {
+  const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus(
+    products
+  );
 
   // initialize to unlimited
   let limits: AccountLimit = {...DEFAULT_LIMITS};
