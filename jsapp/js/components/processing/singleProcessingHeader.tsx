@@ -136,14 +136,18 @@ class SingleProcessingHeader extends React.Component<
       // We don't need to add these listeners prior to this moment, and we don't
       // need to cancel them, as regardless of outcome, we will navigate out of
       // current view.
-      actions.resources.loadAsset.completed.listen(
-        this.navigateToDataTable.bind(this)
+      this.unlisteners.push(
+        actions.resources.loadAsset.completed.listen(
+          this.navigateToDataTable.bind(this)
+        )
       );
 
       // For failed load we still navigate to Data Table, as this is not
       // something that would cause a massive disruption or data loss
-      actions.resources.loadAsset.failed.listen(
-        this.navigateToDataTable.bind(this)
+      this.unlisteners.push(
+        actions.resources.loadAsset.failed.listen(
+          this.navigateToDataTable.bind(this)
+        )
       );
 
       // We force load asset to overwrite the cache, so that when
