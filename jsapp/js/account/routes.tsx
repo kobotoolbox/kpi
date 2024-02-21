@@ -1,7 +1,9 @@
 import React from 'react';
-import {Navigate, Route} from 'react-router-dom';
+import {Navigate, Outlet, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
 import {ROUTES} from 'js/router/routerConstants';
+import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
+import {ProductsContext, useProducts} from './useProducts.hook';
 
 const ChangePasswordRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './changePasswordRoute.component')
@@ -10,7 +12,7 @@ const SecurityRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './security/securityRoute.component')
 );
 const PlansRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './plans/plansRoute.component')
+  () => import(/* webpackPrefetch: true */ './plans/plan.component')
 );
 const AddOnsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './add-ons/addOns.component')
@@ -31,6 +33,20 @@ export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
   CHANGE_PASSWORD: ROUTES.ACCOUNT_ROOT + '/change-password',
 };
 
+const BillingOutlet = () => {
+  const usage = useUsage();
+  const products = useProducts();
+  return (
+    <RequireAuth>
+      <UsageContext.Provider value={usage}>
+        <ProductsContext.Provider value={products}>
+          <Outlet />
+        </ProductsContext.Provider>
+      </UsageContext.Provider>
+    </RequireAuth>
+  );
+};
+
 export default function routes() {
   return (
     <>
@@ -46,30 +62,15 @@ export default function routes() {
           </RequireAuth>
         }
       />
-      <Route
-        path={ACCOUNT_ROUTES.PLAN}
-        element={
-          <RequireAuth>
-            <PlansRoute />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={ACCOUNT_ROUTES.ADD_ONS}
-        element={
-          <RequireAuth>
-            <AddOnsRoute />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={ACCOUNT_ROUTES.USAGE}
-        element={
-          <RequireAuth>
-            <DataStorage />
-          </RequireAuth>
-        }
-      />
+      <Route path={ACCOUNT_ROUTES.PLAN} element={<BillingOutlet />}>
+        <Route index element={<PlansRoute />} />
+      </Route>
+      <Route path={ACCOUNT_ROUTES.ADD_ONS} element={<BillingOutlet />}>
+        <Route index element={<AddOnsRoute />} />
+      </Route>
+      <Route path={ACCOUNT_ROUTES.USAGE} element={<BillingOutlet />}>
+        <Route index element={<DataStorage />} />
+      </Route>
       <Route
         path={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
         element={

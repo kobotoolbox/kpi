@@ -3,7 +3,7 @@ import styles from 'js/account/plans/plan.module.scss';
 import Icon from 'js/components/common/icon';
 import {PlanButton} from 'js/account/plans/planButton.component';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FilteredPriceProduct, Price, SubscriptionInfo} from 'js/account/stripe.types';
+import {SinglePricedProduct, Price, SubscriptionInfo} from 'js/account/stripe.types';
 import {FreeTierOverride, PlanState} from 'js/account/plans/plan.component';
 import {
   getAdjustedQuantityForPrice,
@@ -15,13 +15,13 @@ import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 
 interface PlanContainerProps {
-  product: FilteredPriceProduct;
+  product: SinglePricedProduct;
   isDisabled: boolean;
-  isSubscribedProduct: (product: FilteredPriceProduct, quantity: number) => boolean;
+  isSubscribedProduct: (product: SinglePricedProduct, quantity: number) => boolean;
   freeTierOverride: FreeTierOverride | null;
   expandComparison: boolean;
   state: PlanState;
-  filteredPriceProducts: FilteredPriceProduct[];
+  filteredPriceProducts: SinglePricedProduct[];
   setIsBusy: (isBusy: boolean) => void;
   hasManageableStatus: (sub: SubscriptionInfo) => boolean;
   buySubscription: (price: Price, quantity?: number) => void;
@@ -45,7 +45,7 @@ export const PlanContainer = ({
   // display price for the plan/price/quantity we're currently displaying
   const displayPrice = useDisplayPrice(product.price, submissionQuantity);
   const shouldShowManage = useCallback(
-    (product: FilteredPriceProduct) => {
+    (product: SinglePricedProduct) => {
       const subscriptions = getSubscriptionsForProductId(
         product.id,
         state.subscribedProduct
@@ -102,7 +102,7 @@ export const PlanContainer = ({
     }
   }, [isSubscribedProduct, activeSubscriptions, product]);
 
-  const getFeatureMetadata = (product: FilteredPriceProduct, featureItem: string) => {
+  const getFeatureMetadata = (product: SinglePricedProduct, featureItem: string) => {
     if (
       product.price.unit_amount === 0 &&
       freeTierOverride &&

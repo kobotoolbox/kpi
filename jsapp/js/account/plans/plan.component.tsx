@@ -32,7 +32,7 @@ import type {
   Organization,
   Product,
   SubscriptionInfo,
-  FilteredPriceProduct,
+  SinglePricedProduct,
 } from 'js/account/stripe.types';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
@@ -313,29 +313,31 @@ export default function Plan(props: PlanProps) {
     [visiblePlanTypes]
   );
 
-  // An array of all the products that should be displayed in the UI
-  const filteredPriceProducts = useMemo((): FilteredPriceProduct[] => {
-     if (productsContext.products.length) {
-      const filterAmount = productsContext.products.map((product: Product): FilteredPriceProduct => {
-        const filteredPrices = product.prices.filter((price: Price) => {
-          const interval = price.recurring?.interval;
-          return (
-            // only show monthly/annual plans based on toggle value
-            interval === state.intervalFilter &&
-            // don't show recurring add-ons
-            product.metadata.product_type === 'plan' &&
-            // only show products that don't have a `plan_type` or those that match the `?type=` query param
-            (visiblePlanTypes.includes(product.metadata?.plan_type || '') ||
-              (!product.metadata?.plan_type &&
-                visiblePlanTypes.includes('default')))
-          );
-        });
+  // An array of all the prices that should be displayed in the UI
+  const filteredPriceProducts = useMemo((): SinglePricedProduct[] => {
+    if (productsContext.products.length) {
+      const filterAmount = productsContext.products.map(
+        (product: Product): SinglePricedProduct => {
+          const filteredPrices = product.prices.filter((price: Price) => {
+            const interval = price.recurring?.interval;
+            return (
+              // only show monthly/annual plans based on toggle value
+              interval === state.intervalFilter &&
+              // don't show recurring add-ons
+              product.metadata.product_type === 'plan' &&
+              // only show products that don't have a `plan_type` or those that match the `?type=` query param
+              (visiblePlanTypes.includes(product.metadata?.plan_type || '') ||
+                (!product.metadata?.plan_type &&
+                  visiblePlanTypes.includes('default')))
+            );
+          });
 
-        return {
-          ...product,
-          price: filteredPrices[0],
-        };
-      });
+          return {
+            ...product,
+            price: filteredPrices[0],
+          };
+        }
+      );
 
       return filterAmount.filter((price) => price.price);
     }
@@ -345,7 +347,7 @@ export default function Plan(props: PlanProps) {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
-    (product: FilteredPriceProduct, quantity = null) => {
+    (product: SinglePricedProduct, quantity = null) => {
       if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true;
       }
@@ -408,8 +410,8 @@ export default function Plan(props: PlanProps) {
   const hasMetaFeatures = () => {
     let expandBool = false;
     if (productsContext.products.length) {
-      filteredPriceProducts.map((price) => {
-        for (const featureItem in price.metadata) {
+      filteredPriceProducts.map((product) => {
+        for (const featureItem in product.metadata) {
           if (
             featureItem.includes('feature_support_') ||
             featureItem.includes('feature_advanced_') ||
@@ -484,24 +486,26 @@ export default function Plan(props: PlanProps) {
                   </form>
 
                   <div className={styles.allPlans}>
-                    {filteredPriceProducts.map((product: FilteredPriceProduct) => (
-                      <div className={styles.stripePlans} key={product.id}>
-                        <PlanContainer
-                          key={product.price.id}
-                          freeTierOverride={freeTierOverride}
-                          expandComparison={expandComparison}
-                          isSubscribedProduct={isSubscribedProduct}
-                          product={product}
-                          filteredPriceProducts={filteredPriceProducts}
-                          hasManageableStatus={hasManageableStatus}
-                          setIsBusy={setIsBusy}
-                          isDisabled={isDisabled}
-                          state={state}
-                          buySubscription={buySubscription}
-                          activeSubscriptions={activeSubscriptions}
-                        />
-                      </div>
-                    ))}
+                    {filteredPriceProducts.map(
+                      (product: SinglePricedProduct) => (
+                        <div className={styles.stripePlans} key={product.id}>
+                          <PlanContainer
+                            key={product.price.id}
+                            freeTierOverride={freeTierOverride}
+                            expandComparison={expandComparison}
+                            isSubscribedProduct={isSubscribedProduct}
+                            product={product}
+                            filteredPriceProducts={filteredPriceProducts}
+                            hasManageableStatus={hasManageableStatus}
+                            setIsBusy={setIsBusy}
+                            isDisabled={isDisabled}
+                            state={state}
+                            buySubscription={buySubscription}
+                            activeSubscriptions={activeSubscriptions}
+                          />
+                        </div>
+                      )
+                    )}
                     {shouldShowExtras && (
                       <div className={styles.enterprisePlanContainer}>
                         <div className={styles.enterprisePlan}>
