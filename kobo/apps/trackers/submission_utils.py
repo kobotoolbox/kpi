@@ -50,7 +50,7 @@ def expected_file_size(submissions: int = 1):
     Calculate the expected combined file size for the test audio clip and image
     """
     return (os.path.getsize(
-        settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.mp4'
+        settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.3gp'
     ) + os.path.getsize(
         settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
     )) * submissions
@@ -111,15 +111,15 @@ def add_mock_submissions(assets: list, submissions_per_asset: int = 1):
         for x in range(submissions_per_asset):
             submission = {
                 '__version__': asset.latest_deployed_version.uid,
-                'q1': 'audio_conversion_test_clip.mp4',
+                'q1': 'audio_conversion_test_clip.3gp',
                 'q2': 'audio_conversion_test_image.jpg',
                 '_uuid': str(uuid.uuid4()),
                 '_attachments': [
                     {
                         'id': 1,
-                        'download_url': f'http://testserver/{asset.owner.username}/audio_conversion_test_clip.mp4',
-                        'filename': f'{asset.owner.username}/audio_conversion_test_clip.mp4',
-                        'mimetype': 'video/mp4',
+                        'download_url': f'http://testserver/{asset.owner.username}/audio_conversion_test_clip.3gp',
+                        'filename': f'{asset.owner.username}/audio_conversion_test_clip.3gp',
+                        'mimetype': 'video/3gpp',
                     },
                     {
                         'id': 2,

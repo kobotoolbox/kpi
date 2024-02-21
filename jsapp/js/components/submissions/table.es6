@@ -647,7 +647,7 @@ export class DataTable extends React.Component {
     const survey = this.props.asset.content.survey;
     const choices = this.props.asset.content.choices;
     const flatPaths = getSurveyFlatPaths(survey);
-    allColumns.forEach((key) => {
+    allColumns.forEach((key, columnIndex) => {
       let q;
       if (key.includes('/')) {
         const qParentG = key.split('/');
@@ -739,10 +739,11 @@ export class DataTable extends React.Component {
               (column) => column.id === flatPaths[sourceCleaned]
             );
             if (sourceColumn) {
-              // This way if we have a source column with index `2`, we will set
-              // the supplemental details column to `2__supplementalDetails/…`
+              // This way if we have a source column with index `2`, and
+              // the supplemental column with index `5`, we will set
+              // the supplemental details column to `2_5_supplementalDetails/…`
               // to make sure it keeps the correct order.
-              index = `${sourceColumn.index}_${key}`;
+              index = `${sourceColumn.index}_${columnIndex}_${key}`;
             }
           }
       }
@@ -809,7 +810,7 @@ export class DataTable extends React.Component {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = getMediaAttachment(row.original, row.value);
+                mediaAttachment = getMediaAttachment(row.original, row.value, q.$xpath);
               }
 
               if (
@@ -906,6 +907,7 @@ export class DataTable extends React.Component {
               row.original,
               key
             );
+
             return (
               <span className='trimmed-text'>{supplementalDetailsContent}</span>
             );
@@ -990,7 +992,9 @@ export class DataTable extends React.Component {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
           : 'is-frozen is-last-frozen';
-        col.headerClassName = 'is-frozen is-last-frozen';
+        col.headerClassName = col.headerClassName
+          ? `is-frozen is-last-frozen ${col.headerClassName}`
+          : 'is-frozen is-last-frozen';
       }
     });
 

@@ -126,4 +126,4 @@ class TestChangePlanAPITestCase(BaseTestCase):
     def test_anonymous_user(self):
         self.client.logout()
         response = self._modify_price(self.high_price, 1, self.low_price, 1)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

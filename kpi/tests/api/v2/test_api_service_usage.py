@@ -124,15 +124,15 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
         for x in range(count):
             submission = {
                 '__version__': v_uid,
-                'q1': 'audio_conversion_test_clip.mp4',
+                'q1': 'audio_conversion_test_clip.3gp',
                 'q2': 'audio_conversion_test_image.jpg',
                 '_uuid': str(uuid.uuid4()),
                 '_attachments': [
                     {
                         'id': self.attachment_id,
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.mp4',
-                        'filename': 'anotheruser/audio_conversion_test_clip.mp4',
-                        'mimetype': 'video/mp4',
+                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',
+                        'filename': 'anotheruser/audio_conversion_test_clip.3gp',
+                        'mimetype': 'video/3gpp',
                     },
                     {
                         'id': self.attachment_id + 1,
@@ -191,7 +191,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
         Calculate the expected combined file size for the test audio clip and image
         """
         return os.path.getsize(
-            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.mp4'
+            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.3gp'
         ) + os.path.getsize(
             settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
         )
@@ -206,7 +206,7 @@ class ServiceUsageAPITestCase(ServiceUsageAPIBase):
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_check_api_response(self):
         """

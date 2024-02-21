@@ -6,12 +6,6 @@
  */
 
 import {ROOT_URL, COMMON_QUERIES} from './constants';
-import type {
-  EnvStoreFieldItem,
-  FreeTierDisplay,
-  FreeTierThresholds,
-  SocialApp
-} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AnyRowTypeName,
@@ -22,6 +16,11 @@ import type {
 import type {PermissionCodename} from 'js/components/permissions/permConstants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
+import type {
+  AnalysisQuestionSchema,
+  SubmissionAnalysisResponse,
+} from './components/processing/analysis/constants';
+import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
 import type {ReportsResponse} from 'js/components/reports/reportsConstants';
 
@@ -151,6 +150,7 @@ export interface SubmissionAttachment {
   download_small_url: string;
   mimetype: string;
   filename: string;
+  question_xpath: string;
   instance: number;
   xform: number;
   id: number;
@@ -158,34 +158,11 @@ export interface SubmissionAttachment {
 
 interface SubmissionSupplementalDetails {
   [questionName: string]: {
-    transcript?: {
-      languageCode: LanguageCode;
-      value: string;
-      dateCreated: string;
-      dateModified: string;
-      engine?: string;
-      revisions?: Array<{
-        dateModified: string;
-        engine?: string;
-        languageCode: LanguageCode;
-        value: string;
-      }>;
+    transcript?: TransxObject;
+    translation?: {
+      [languageCode: LanguageCode]: TransxObject;
     };
-    translated?: {
-      [languageCode: LanguageCode]: {
-        languageCode: LanguageCode;
-        value: string;
-        dateCreated: string;
-        dateModified: string;
-        engine?: string;
-        revisions?: Array<{
-          dateModified: string;
-          engine?: string;
-          languageCode: LanguageCode;
-          value: string;
-        }>;
-      };
-    };
+    qual?: SubmissionAnalysisResponse[];
   };
 }
 
@@ -220,6 +197,13 @@ interface AssignablePermissionRegular {
   label: string;
 }
 
+/**
+ * A list of labels for partial permissions.
+ *
+ * WARNING: it only includes labels for `…PartialByUsers` type ("…only from
+ * specific users"), so please use `CHECKBOX_LABELS` from `permConstants` file
+ * instead.
+ */
 export interface AssignablePermissionPartialLabel {
   default: string;
   view_submissions: string;
@@ -422,6 +406,9 @@ export interface AssetAdvancedFeatures {
     /** List of translations enabled languages. */
     languages?: string[];
   };
+  qual?: {
+    qual_survey?: AnalysisQuestionSchema[];
+  };
 }
 
 interface AdvancedSubmissionSchemaDefinition {
@@ -503,6 +490,21 @@ export type AssetDownloads = Array<{
   url: string;
 }>;
 
+export interface AnalysisFormJsonField {
+  label: string;
+  name: string;
+  dtpath: string;
+  type: string;
+  language: string;
+  source: string;
+  qpath: string;
+  settings: {
+    mode: string;
+    engine: string;
+  };
+  path: string[];
+}
+
 /**
  * This is the complete asset object we use throught the Frontend code. It is
  * built upon the object we get from Backend responses (i.e. we extend a few
@@ -521,7 +523,12 @@ export interface AssetResponse extends AssetRequestObject {
   version_count?: number;
   has_deployment: boolean;
   deployed_version_id: string | null;
-  analysis_form_json?: any;
+  analysis_form_json?: {
+    engines: {
+      [engingeName: string]: {details: string};
+    };
+    additional_fields: AnalysisFormJsonField[];
+  };
   deployed_versions?: {
     count: number;
     next: string | null;

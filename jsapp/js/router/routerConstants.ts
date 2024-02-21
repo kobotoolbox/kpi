@@ -47,3 +47,8 @@ export const ROUTES = Object.freeze({
   FORM_REST_HOOK: '/forms/:uid/settings/rest/:hookUid',
   FORM_RESET: '/forms/:uid/reset',
 });
+
+export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
+  MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
+  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
+};

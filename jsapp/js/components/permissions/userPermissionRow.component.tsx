@@ -9,6 +9,7 @@ import permConfig from './permConfig';
 import type {UserPerm} from './permParser';
 import type {PermissionBase} from 'js/dataInterface';
 import type {AssignablePermsMap} from './sharingForm.component';
+import {getPermLabel, getFriendlyPermName} from './utils';
 
 interface UserPermissionRowProps {
   assetUid: string;
@@ -65,7 +66,8 @@ export default class UserPermissionRow extends React.Component<
 
   /**
    * Note: we remove "view_asset" permission, as it is the most basic one,
-   * so removing it will in fact remove all permissions
+   * so removing it will in fact remove every permission except `add_submissions`.
+   * That permission will be removed seprately.
    */
   removeAllPermissions() {
     this.setState({isBeingDeleted: true});
@@ -74,10 +76,25 @@ export default class UserPermissionRow extends React.Component<
         perm.permission ===
         permConfig.getPermissionByCodename('view_asset')?.url
     );
+
+    const userAddSubmissionsPerm = this.props.permissions.find(
+      (perm) =>
+        perm.permission ===
+        permConfig.getPermissionByCodename('add_submissions')?.url
+    );
     if (userViewAssetPerm) {
       actions.permissions.removeAssetPermission(
         this.props.assetUid,
         userViewAssetPerm.url
+      );
+    }
+
+    // We have to remove this permission seprately as it can be granted without
+    // `view_asset`.
+    if (userAddSubmissionsPerm) {
+      actions.permissions.removeAssetPermission(
+        this.props.assetUid,
+        userAddSubmissionsPerm.url
       );
     }
   }
@@ -92,72 +109,17 @@ export default class UserPermissionRow extends React.Component<
     this.setState({isEditFormVisible: !this.state.isEditFormVisible});
   }
 
-  // TODO: This doesn't display `partial_permissions` in a nice way, as it
-  // assumes that there can be only "view" in them, but this is partially
-  // backend's fault for giving a non universal label to "partial_permissions".
-  // See: https://github.com/kobotoolbox/kpi/issues/4641
+  /**
+   * Note that this renders partial permission using a general label with a list
+   * of related conditions.
+   */
   renderPermissions(permissions: UserPerm[]) {
-    const maxParentheticalUsernames = 3;
     return (
       <bem.UserRow__perms>
         {permissions.map((perm) => {
-          let permUsers: string[] = [];
+          const permLabel = getPermLabel(perm);
 
-          if (perm.partial_permissions) {
-            perm.partial_permissions.forEach((partial) => {
-              partial.filters.forEach((filter) => {
-                if (filter._submitted_by) {
-                  permUsers = permUsers.concat(filter._submitted_by.$in);
-                }
-              });
-            });
-          }
-
-          // Keep only unique values
-          permUsers = [...new Set(permUsers)];
-
-          // We fallback to "???" so it's clear when some error happens
-          let permLabel: string = '???';
-          if (this.props.assignablePerms.has(perm.permission)) {
-            const assignablePerm = this.props.assignablePerms.get(
-              perm.permission
-            );
-            if (typeof assignablePerm === 'object') {
-              // let's assume back end always returns a `default` property with
-              // nested permissions
-              permLabel = assignablePerm.default;
-            } else if (assignablePerm) {
-              permLabel = assignablePerm;
-            }
-          }
-
-          // Hopefully this is friendly to translators of RTL languages
-          let permNameTemplate;
-          if (permUsers.length === 0) {
-            permNameTemplate = '##permission_label##';
-          } else if (permUsers.length <= maxParentheticalUsernames) {
-            permNameTemplate = t('##permission_label## (##username_list##)');
-          } else if (permUsers.length === maxParentheticalUsernames + 1) {
-            permNameTemplate = t(
-              '##permission_label## (##username_list## and 1 other)'
-            );
-          } else {
-            permNameTemplate = t(
-              '##permission_label## (##username_list## and ' +
-                '##hidden_username_count## others)'
-            );
-          }
-
-          const friendlyPermName = permNameTemplate
-            .replace('##permission_label##', permLabel)
-            .replace(
-              '##username_list##',
-              permUsers.slice(0, maxParentheticalUsernames).join(', ')
-            )
-            .replace(
-              '##hidden_username_count##',
-              String(permUsers.length - maxParentheticalUsernames)
-            );
+          const friendlyPermName = getFriendlyPermName(perm);
 
           return (
             <bem.UserRow__perm key={permLabel}>

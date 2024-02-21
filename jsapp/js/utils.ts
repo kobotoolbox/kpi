@@ -419,15 +419,25 @@ export function generateAutoname(
     .replace(/(\ |\.)/g, '_');
 }
 
-/** Simple unique ID generator. */
-export function generateUid() {
-  return String(
-    Math.random().toString(16) +
-      '_' +
-      Date.now().toString(32) +
-      '_' +
-      Math.random().toString(16)
-  ).replace(/\./g, '');
+/**
+ * Generates UUID string. Uses native crypto with a smart fallback function for
+ * insecure contexts.
+ */
+export function generateUuid() {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  // That `randomUUID` function only exists in secure contexts, so locally
+  // we need an alternative solution. This comes from a very educational
+  // discussions at SO, see: https://stackoverflow.com/a/61011303/2311247
+  return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (s) => {
+    const c = Number.parseInt(s, 10);
+    return (
+      c ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+    ).toString(16);
+  });
 }
 
 export function csrfSafeMethod(method: string) {
@@ -442,4 +452,20 @@ export function downloadUrl(url: string) {
   aEl.href = url;
   aEl.setAttribute('download', fileName);
   aEl.click();
+}
+
+/**
+ * An immutable function that removes element from index and inserts it at
+ * another one.
+ */
+export function moveArrayElementToIndex(
+  arr: any[],
+  fromIndex: number,
+  toIndex: number
+) {
+  const copiedArr = [...arr];
+  const element = copiedArr[fromIndex];
+  copiedArr.splice(fromIndex, 1);
+  copiedArr.splice(toIndex, 0, element);
+  return copiedArr;
 }

@@ -97,4 +97,4 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
     def test_anonymous_user(self):
         self.client.logout()
         response = self.generate_url({})
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

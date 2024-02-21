@@ -147,7 +147,7 @@ const mixins: MixinsObject = {
             {
               onComplete: (asset: AssetResponse) => {
                 dialog.destroy();
-                router!.navigate(`/forms/${asset.uid}`);
+                router!.navigate(ROUTES.FORM.replace(':uid', asset.uid));
               },
             }
           );
@@ -340,7 +340,7 @@ const mixins: MixinsObject = {
     _forEachDroppedFile(params: CreateImportRequest = {}) {
       const totalFiles = params.totalFiles || 1;
 
-      const isLibrary = routerIsActive('library');
+      const isLibrary = routerIsActive(ROUTES.LIBRARY);
       const multipleFiles = params.totalFiles && totalFiles > 1 ? true : false;
       params = Object.assign({library: isLibrary}, params);
 
@@ -391,16 +391,16 @@ const mixins: MixinsObject = {
                       )
                     );
                     if (params.assetUid) {
-                      router!.navigate(`/forms/${params.assetUid}`);
+                      router!.navigate(ROUTES.FORM.replace(':uid', params.assetUid));
                     }
                   } else {
                     if (
                       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-                      routerIsActive('forms')
+                      routerIsActive(ROUTES.FORMS)
                     ) {
                       actions.resources.loadAsset({id: assetUid});
                     } else if (!isLibrary) {
-                      router!.navigate(`/forms/${assetUid}`);
+                      router!.navigate(ROUTES.FORM.replace(':uid', assetUid));
                     }
                     notify(t('XLS Import completed'));
                   }
