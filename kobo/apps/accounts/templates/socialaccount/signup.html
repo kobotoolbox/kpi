@@ -36,6 +36,7 @@
   {% if redirect_field_value %}
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
   {% endif %}
+  <script src="{% static 'js/organization_type_skiplogic.js' %}"></script>
   <button
     type="submit"
     class="kobo-button kobo-button--blue kobo-button--fullwidth"
