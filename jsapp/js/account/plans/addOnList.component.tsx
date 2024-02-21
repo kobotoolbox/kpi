@@ -72,8 +72,7 @@ const AddOnList = (props: {
   }, [subscriptionStore.isInitialised]);
 
   const subscriptionUpdate = useMemo(() => {
-    let something = getSubscriptionChangeDetails(currentPlan, props.products);
-    return something;
+    return getSubscriptionChangeDetails(currentPlan, props.products);
   }, [currentPlan, props.products]);
 
   useWhen(
