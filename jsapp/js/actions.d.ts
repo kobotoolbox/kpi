@@ -103,12 +103,8 @@ interface GetExportCompletedDefinition extends Function {
 // NOTE: as you use more actions in your ts files, please extend this namespace,
 // for now we are defining only the ones we need.
 export namespace actions {
-  const navigation: {
-    routeUpdate: GenericCallbackDefinition;
-  };
-  const auth: {
-    verifyLogin: {
-      loggedin: GenericCallbackDefinition;
+    const navigation: {
+      routeUpdate: GenericCallbackDefinition;
     };
     const auth: {
       verifyLogin: {
