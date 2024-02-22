@@ -110,63 +110,66 @@ export namespace actions {
     verifyLogin: {
       loggedin: GenericCallbackDefinition;
     };
-    logout: GenericDefinition;
-    changePassword: GenericDefinition;
-  };
-  const survey: object;
-  const search: object;
-  const resources: {
-    createImport: GenericDefinition;
-    loadAsset: LoadAssetDefinition;
-    deployAsset: GenericDefinition;
-    setDeploymentActive: GenericDefinition;
-    createSnapshot: GenericDefinition;
-    cloneAsset: GenericDefinition;
-    deleteAsset: DeleteAssetDefinition;
-    listTags: GenericDefinition;
-    createResource: GenericDefinition;
-    updateAsset: UpdateAssetDefinition;
-    updateSubmissionValidationStatus: GenericDefinition;
-    removeSubmissionValidationStatus: GenericDefinition;
-    deleteSubmission: GenericDefinition;
-    duplicateSubmission: GenericDefinition;
-    refreshTableSubmissions: GenericDefinition;
-    getAssetFiles: GenericDefinition;
-  };
-  const hooks: object;
-  const misc: object;
-  const reports: object;
-  const table: {
-    updateSettings: (assetUid: string, newSettings: object) => void;
-  };
-  const map: object;
-  const permissions: {
-    getConfig: GenericDefinition;
-    copyPermissionsFrom: GenericDefinition;
-    removeAssetPermission: GenericDefinition;
-    assignAssetPermission: GenericDefinition;
-    bulkSetAssetPermissions: GenericDefinition;
-    getAssetPermissions: GenericDefinition;
-  };
-  const help: {
-    getInAppMessages: GenericDefinition;
-    setMessageAcknowledged: GenericDefinition;
-    setMessageReadTime: GenericDefinition;
-  };
-  const library: any;
-  const submissions: {
-    getSubmission: GetSubmissionDefinition;
-    getSubmissionByUuid: GetSubmissionDefinition;
-    getSubmissions: GenericDefinition;
-    getProcessingSubmissions: GetProcessingSubmissionsDefinition;
-    bulkDeleteStatus: GenericDefinition;
-    bulkPatchStatus: GenericDefinition;
-    bulkPatchValues: GenericDefinition;
-    bulkDelete: GenericDefinition;
-  };
-  const media: object;
-  const exports: {
-    getExport: GetExportDefinition;
-  };
-  const dataShare: object;
+    const auth: {
+      verifyLogin: {
+        loggedin: GenericCallbackDefinition;
+      };
+      changePassword: GenericDefinition;
+    };
+    const survey: object;
+    const search: object;
+    const resources: {
+      createImport: GenericDefinition;
+      loadAsset: LoadAssetDefinition;
+      deployAsset: GenericDefinition;
+      setDeploymentActive: GenericDefinition;
+      createSnapshot: GenericDefinition;
+      cloneAsset: GenericDefinition;
+      deleteAsset: DeleteAssetDefinition;
+      listTags: GenericDefinition;
+      createResource: GenericDefinition;
+      updateAsset: UpdateAssetDefinition;
+      updateSubmissionValidationStatus: GenericDefinition;
+      removeSubmissionValidationStatus: GenericDefinition;
+      deleteSubmission: GenericDefinition;
+      duplicateSubmission: GenericDefinition;
+      refreshTableSubmissions: GenericDefinition;
+      getAssetFiles: GenericDefinition;
+    };
+    const hooks: object;
+    const misc: object;
+    const reports: object;
+    const table: {
+      updateSettings: (assetUid: string, newSettings: object) => void;
+    };
+    const map: object;
+    const permissions: {
+      getConfig: GenericDefinition;
+      copyPermissionsFrom: GenericDefinition;
+      removeAssetPermission: GenericDefinition;
+      assignAssetPermission: GenericDefinition;
+      bulkSetAssetPermissions: GenericDefinition;
+      getAssetPermissions: GenericDefinition;
+    };
+    const help: {
+      getInAppMessages: GenericDefinition;
+      setMessageAcknowledged: GenericDefinition;
+      setMessageReadTime: GenericDefinition;
+    };
+    const library: any;
+    const submissions: {
+      getSubmission: GetSubmissionDefinition;
+      getSubmissionByUuid: GetSubmissionDefinition;
+      getSubmissions: GenericDefinition;
+      getProcessingSubmissions: GetProcessingSubmissionsDefinition;
+      bulkDeleteStatus: GenericDefinition;
+      bulkPatchStatus: GenericDefinition;
+      bulkPatchValues: GenericDefinition;
+      bulkDelete: GenericDefinition;
+    };
+    const media: object;
+    const exports: {
+      getExport: GetExportDefinition;
+    };
+    const dataShare: object;
 }

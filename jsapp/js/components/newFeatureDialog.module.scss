@@ -3,7 +3,6 @@
 
 .root {
 	position: relative;
-  z-index: 1100; // 1 index lower than a modal
 }
 
 .wrapper {
@@ -17,6 +16,7 @@
   padding: sizes.$x12;
   color: colors.$kobo-white;
   background: colors.$kobo-dark-blue;
+  z-index: 1100; // 1 index lower than a modal
 }
 
 .dialog::before {
@@ -28,7 +28,7 @@
   position: absolute;
   pointer-events: none;
   border-width: sizes.$x6;
-  margin-left: calc(sizes.$x6 * -1);
+  margin-left: -(sizes.$x6);
   bottom: 100%;
   border-bottom-color: colors.$kobo-dark-blue;
 }

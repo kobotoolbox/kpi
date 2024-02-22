@@ -42,7 +42,6 @@ actions.navigation = Reflux.createActions([
 
 actions.auth = Reflux.createActions({
   verifyLogin: {children: ['loggedin', 'anonymous', 'failed']},
-  logout: {children: ['completed', 'failed']},
   changePassword: {children: ['completed', 'failed']},
   getApiToken: {children: ['completed', 'failed']},
 });
@@ -386,18 +385,6 @@ actions.search.assets.listen(function(searchData, params = {}){
     });
 });
 
-// reload so a new csrf token is issued
-actions.auth.logout.completed.listen(function(){
-  window.setTimeout(function(){
-    window.location.replace('', '');
-  }, 1);
-});
-
-actions.auth.logout.listen(function(){
-  dataInterface.logout().done(actions.auth.logout.completed).fail(function(){
-    console.error('logout failed for some reason. what should happen now?');
-  });
-});
 actions.auth.verifyLogin.listen(function(){
     dataInterface.selfProfile()
         .done((data/*, msg, req*/)=>{

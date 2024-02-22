@@ -16,7 +16,7 @@ export type PermissionCodename =
   | 'view_submissions';
 
 /**
- * BAD CODE™ A hardcoded list of permissions codenames.
+ * A hardcoded list of permissions codenames.
  *
  * All of them are really defined on backend, and we get them through the
  * permissions config endpoint, but as we need these names to reference them in
@@ -71,7 +71,7 @@ export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
  * these constants in a detail to not cause confusion by a future reader.
  */
 
-/** Checkboxes for non-partial permissions. */
+/** Names of checkboxes for non-partial permissions. */
 type CheckboxNameRegular =
   | 'formView'
   | 'formEdit'
@@ -81,20 +81,20 @@ type CheckboxNameRegular =
   | 'submissionsEdit'
   | 'submissionsValidate'
   | 'submissionsDelete';
-/** Checkboxes for partial permissions (the counterparts). */
-export type CheckboxNamePartial =
-  | 'submissionsViewPartial'
-  | 'submissionsEditPartial'
-  | 'submissionsValidatePartial'
-  | 'submissionsDeletePartial';
-/** All checkboxes combined. */
-export type CheckboxNameAll = CheckboxNameRegular | CheckboxNamePartial;
-/** List of usernames for a partial permission checkbox. */
-export type CheckboxNameListPartial =
-  | 'submissionsViewPartialUsers'
-  | 'submissionsEditPartialUsers'
-  | 'submissionsDeletePartialUsers'
-  | 'submissionsValidatePartialUsers';
+/** Names of checkboxes for partial permissions (the counterparts). */
+export type CheckboxNamePartialByUsers =
+  | 'submissionsViewPartialByUsers'
+  | 'submissionsEditPartialByUsers'
+  | 'submissionsValidatePartialByUsers'
+  | 'submissionsDeletePartialByUsers';
+/** All checkboxes names combined. */
+export type CheckboxNameAll = CheckboxNameRegular | CheckboxNamePartialByUsers;
+/** Name of lists of usernames for a partial permissions checkboxes. */
+export type PartialByUsersListName =
+  | 'submissionsViewPartialByUsersList'
+  | 'submissionsEditPartialByUsersList'
+  | 'submissionsDeletePartialByUsersList'
+  | 'submissionsValidatePartialByUsersList';
 
 /**
  * This list contains the names of all the checkboxes in userAssetPermsEditor.
@@ -107,13 +107,13 @@ export const CHECKBOX_NAMES = createEnum([
   'formManage',
   'submissionsAdd',
   'submissionsView',
-  'submissionsViewPartial',
+  'submissionsViewPartialByUsers',
   'submissionsEdit',
-  'submissionsEditPartial',
+  'submissionsEditPartialByUsers',
   'submissionsValidate',
-  'submissionsValidatePartial',
+  'submissionsValidatePartialByUsers',
   'submissionsDelete',
-  'submissionsDeletePartial',
+  'submissionsDeletePartialByUsers',
 ]) as {[P in CheckboxNameAll]: CheckboxNameAll};
 Object.freeze(CHECKBOX_NAMES);
 
@@ -121,20 +121,24 @@ Object.freeze(CHECKBOX_NAMES);
  * This is a map of pairs that connects a partial checkbox to a permission.
  *
  * NOTE: a partial checkbox is using a "partial_submissions" permission, but
- * in the array of de facto permissions it is using these ones.
+ * in the array of de facto permissions it is using these ones. So for example
+ * imagine it being something like this: we give a partial_submissions
+ * permission to Joe, and inside of this permission we define a list of users,
+ * and a view_submissions permission - meaning that "Joe can view submissions,
+ * but only for this limited list of users".
  */
 export const PARTIAL_PERM_PAIRS: {
-  [key in CheckboxNamePartial]: PermissionCodename;
+  [key in CheckboxNamePartialByUsers]: PermissionCodename;
 } = {
-  submissionsViewPartial: 'view_submissions',
-  submissionsEditPartial: 'change_submissions',
-  submissionsValidatePartial: 'validate_submissions',
-  submissionsDeletePartial: 'delete_submissions',
+  submissionsViewPartialByUsers: 'view_submissions',
+  submissionsEditPartialByUsers: 'change_submissions',
+  submissionsValidatePartialByUsers: 'validate_submissions',
+  submissionsDeletePartialByUsers: 'delete_submissions',
 };
 Object.freeze(PARTIAL_PERM_PAIRS);
 
 /**
- * This is a map of pairs that connect a checkbox to a permission.
+ * This is a map of pairs that connect a checkbox name to a permission name.
  */
 export const CHECKBOX_PERM_PAIRS: {
   [key in CheckboxNameAll]: PermissionCodename;
@@ -144,13 +148,13 @@ export const CHECKBOX_PERM_PAIRS: {
   formManage: 'manage_asset',
   submissionsAdd: 'add_submissions',
   submissionsView: 'view_submissions',
-  submissionsViewPartial: 'partial_submissions',
+  submissionsViewPartialByUsers: 'partial_submissions',
   submissionsEdit: 'change_submissions',
-  submissionsEditPartial: 'partial_submissions',
+  submissionsEditPartialByUsers: 'partial_submissions',
   submissionsValidate: 'validate_submissions',
-  submissionsValidatePartial: 'partial_submissions',
+  submissionsValidatePartialByUsers: 'partial_submissions',
   submissionsDelete: 'delete_submissions',
-  submissionsDeletePartial: 'partial_submissions',
+  submissionsDeletePartialByUsers: 'partial_submissions',
 };
 Object.freeze(CHECKBOX_PERM_PAIRS);
 
@@ -159,6 +163,36 @@ Object.freeze(CHECKBOX_PERM_PAIRS);
  * a regular permission
  */
 export const PARTIAL_IMPLIED_CHECKBOX_PAIRS = {
-  [CHECKBOX_NAMES.submissionsEditPartial]: CHECKBOX_NAMES.submissionsAdd,
+  [CHECKBOX_NAMES.submissionsEditPartialByUsers]: CHECKBOX_NAMES.submissionsAdd,
 };
 Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS);
+
+/**
+ * Most of these labels are also available from `api/v2/assets/<uid>/` endpoint
+ * in the `assignable_permissions` property. Unfortunately due to how the data
+ * is architectured, the labels for partial permissions are not going to be
+ * available for multiple types.
+ */
+export const CHECKBOX_LABELS: {[key in CheckboxNameAll]: string} = {
+  formView: t('View form'),
+  formEdit: t('Edit form'),
+  formManage: t('Manage project'),
+  submissionsAdd: t('Add submissions'),
+  submissionsView: t('View submissions'),
+  submissionsViewPartialByUsers: t('View submissions only from specific users'),
+  submissionsEdit: t('Edit submissions'),
+  submissionsEditPartialByUsers: t('Edit submissions only from specific users'),
+  submissionsValidate: t('Validate submissions'),
+  submissionsValidatePartialByUsers: t(
+    'Validate submissions only from specific users'
+  ),
+  submissionsDelete: t('Delete submissions'),
+  submissionsDeletePartialByUsers: t(
+    'Delete submissions only from specific users'
+  ),
+};
+Object.freeze(CHECKBOX_LABELS);
+
+export const PARTIAL_BY_USERS_DEFAULT_LABEL = t(
+  'Act on submissions only from specific users'
+);

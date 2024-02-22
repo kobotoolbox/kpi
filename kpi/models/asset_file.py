@@ -3,7 +3,6 @@ import posixpath
 from mimetypes import guess_type
 from typing import Optional
 
-from django.core.files.storage import get_storage_class
 from django.db import models
 from django.utils import timezone
 from private_storage.fields import PrivateFileField

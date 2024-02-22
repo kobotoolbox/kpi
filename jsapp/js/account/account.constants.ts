@@ -6,6 +6,7 @@ export interface AccountFieldsValues {
   name: string;
   organization: string;
   organization_website: string;
+  organization_type: string;
   sector: string;
   gender: string;
   bio: string;
@@ -15,6 +16,7 @@ export interface AccountFieldsValues {
   twitter: string;
   linkedin: string;
   instagram: string;
+  newsletter_subscription: boolean;
 }
 
 export type AccountFieldsErrors = {[name in UserFieldName]?: string};
@@ -25,6 +27,7 @@ export const USER_FIELD_NAMES: Record<UserFieldName, UserFieldName> = {
   name: 'name',
   organization: 'organization',
   organization_website: 'organization_website',
+  organization_type: 'organization_type',
   sector: 'sector',
   gender: 'gender',
   bio: 'bio',
@@ -34,4 +37,5 @@ export const USER_FIELD_NAMES: Record<UserFieldName, UserFieldName> = {
   twitter: 'twitter',
   linkedin: 'linkedin',
   instagram: 'instagram',
+  newsletter_subscription: 'newsletter_subscription',
 };
