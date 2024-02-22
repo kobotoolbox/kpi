@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import annotations
+
 import copy
 import os
 import time
@@ -7,12 +8,6 @@ import uuid
 from collections import defaultdict
 from datetime import date, datetime
 from typing import Optional, Union
-from xml.etree import ElementTree as ET
-
-from django.db.models import Sum
-from django.db.models.functions import Coalesce
-from lxml import etree
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -21,8 +16,9 @@ except ImportError:
 from deepmerge import always_merger
 from dict2xml import dict2xml as dict2xml_real
 from django.conf import settings
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.urls import reverse
-from lxml import etree
 from rest_framework import status
 
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -43,6 +39,7 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.tests.utils.mock import MockAttachment
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 from .base_backend import BaseDeploymentBackend
 
 
@@ -233,14 +230,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             sub['_id']
             for sub in self.get_submissions(self.asset.owner, fields=['_id'])
         )) + 1
-        duplicated_submission.update({
-            '_id': next_id,
-            'start': updated_time,
-            'end': updated_time,
-            'meta/instanceID': f'uuid:{uuid.uuid4()}',
-            'meta/deprecatedID': submission['meta/instanceID'],
-            '_attachments': dup_att,
-        })
+        duplicated_submission.update(
+            {
+                '_id': next_id,
+                'start': updated_time,
+                'end': updated_time,
+                self.SUBMISSION_CURRENT_UUID_XPATH: f'uuid:{uuid.uuid4()}',
+                self.SUBMISSION_DEPRECATED_UUID_XPATH: submission[
+                    self.SUBMISSION_CURRENT_UUID_XPATH
+                ],
+                '_attachments': dup_att,
+            }
+        )
 
         self.asset.deployment.mock_submissions([duplicated_submission])
         return duplicated_submission
@@ -283,11 +284,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
 
         if xpath:
-            submission_tree = ET.ElementTree(
-                ET.fromstring(submission_xml)
-            )
+            submission_root = fromstring_preserve_root_xmlns(submission_xml)
             try:
-                element = submission_tree.find(xpath)
+                element = submission_root.find(xpath)
             except KeyError:
                 raise InvalidXPathException
 
@@ -589,6 +588,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         Return a mock response without actually storing anything
         """
+
         return {
             'uuid': submission_uuid,
             'status_code': status.HTTP_201_CREATED,

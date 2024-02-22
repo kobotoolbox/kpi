@@ -13,7 +13,6 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django.core.exceptions import PermissionDenied
-from lxml import etree
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
@@ -29,7 +28,12 @@ from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
-from kpi.utils.xml import edit_submission_xml
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    get_or_create_element,
+    xml_tostring,
+)
 
 
 class BaseDeploymentBackend(abc.ABC):
@@ -44,9 +48,9 @@ class BaseDeploymentBackend(abc.ABC):
     ]
 
     # XPaths are relative to the root node
-    SUBMISSION_CURRENT_UUID_XPATH = './meta/instanceID'
-    SUBMISSION_DEPRECATED_UUID_XPATH = './meta/deprecatedID'
-    FORM_UUID_XPATH = './formhub/uuid'
+    SUBMISSION_CURRENT_UUID_XPATH = 'meta/instanceID'
+    SUBMISSION_DEPRECATED_UUID_XPATH = 'meta/deprecatedID'
+    FORM_UUID_XPATH = 'formhub/uuid'
 
     def __init__(self, asset):
         self.asset = asset
@@ -136,23 +140,22 @@ class BaseDeploymentBackend(abc.ABC):
 
         kc_responses = []
         for submission in submissions:
-            xml_parsed = etree.fromstring(submission)
+            xml_parsed = fromstring_preserve_root_xmlns(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
             # Updating xml fields for submission. In order to update an existing
             # submission, the current `instanceID` must be moved to the value
             # for `deprecatedID`.
-            instance_id = xml_parsed.find('meta/instanceID')
+            instance_id = get_or_create_element(
+                xml_parsed, self.SUBMISSION_CURRENT_UUID_XPATH
+            )
             # If the submission has been edited before, it will already contain
             # a deprecatedID element - otherwise create a new element
-            deprecated_id = xml_parsed.find('meta/deprecatedID')
-            deprecated_id_or_new = (
-                deprecated_id
-                if deprecated_id is not None
-                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
+            deprecated_id = get_or_create_element(
+                xml_parsed, self.SUBMISSION_DEPRECATED_UUID_XPATH
             )
-            deprecated_id_or_new.text = instance_id.text
+            deprecated_id.text = instance_id.text
             instance_id.text = uuid_formatted
 
             # If the form has been updated with new fields and earlier
@@ -164,7 +167,7 @@ class BaseDeploymentBackend(abc.ABC):
                 edit_submission_xml(xml_parsed, path, value)
 
             kc_response = self.store_submission(
-                user, etree.tostring(xml_parsed), _uuid
+                user, xml_tostring(xml_parsed), _uuid
             )
             kc_responses.append(
                 {
