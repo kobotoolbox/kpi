@@ -1,5 +1,5 @@
 import styles from 'js/account/usage/yourPlan.module.scss';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import {formatDate} from 'js/utils';
 import Badge, {BadgeColor} from 'js/components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
