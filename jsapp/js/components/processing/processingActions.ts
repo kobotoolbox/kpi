@@ -421,7 +421,8 @@ processingActions.deleteTranscript.failed.listen(() => {
  * take a long time.
  *
  * Note: if user sends the same request multiple times, Back end will respond
- * with initial request status instead of making a completely new call.
+ * with initial request (telling what the current status is) instead of making
+ * a completely new call.
  */
 interface RequestAutoTranscriptionFn {
   (

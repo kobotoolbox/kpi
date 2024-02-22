@@ -604,6 +604,12 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  /**
+   * Checks if given event (coming from POSTing a request for automatic
+   * transcription) is applicable to what is currently being displayed in
+   * the UI. So if the same question, submission and transcript language is now
+   * selected.
+   */
   private isAutoTranscriptionEventApplicable(event: AutoTranscriptionEvent) {
     // Note: previously initiated automatic transcriptions may no longer be
     // applicable to the current route
@@ -638,8 +644,8 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onRequestAutoTranscriptionInProgress(event: AutoTranscriptionEvent) {
     setTimeout(() => {
-      // make sure to check for applicability *after* the timeout fires, not
-      // before. someone can do a lot of navigating in 5 seconds
+      // Make sure to check for applicability *after* the timeout fires, not
+      // before. Someone can do a lot of navigating in 5 seconds.
       if (this.isAutoTranscriptionEventApplicable(event)) {
         this.isPollingForTranscript = true;
         this.requestAutoTranscription();
