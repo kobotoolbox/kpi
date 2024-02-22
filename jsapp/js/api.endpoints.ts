@@ -1,4 +1,5 @@
 export const endpoints = {
+  ASSET_URL: '/api/v2/assets/:uid/',
   ME_URL: '/me/',
   PRODUCTS_URL: '/api/v2/stripe/products/',
   SUBSCRIPTION_URL: '/api/v2/stripe/subscriptions/',

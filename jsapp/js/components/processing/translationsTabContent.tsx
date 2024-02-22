@@ -309,6 +309,8 @@ export default class TranslationsTabContent extends React.Component<
             onChange={(newSelectedOption: LanguageCode | null) => {
               this.selectTranslation(newSelectedOption || undefined);
             }}
+            size='s'
+            type='blue'
           />
         </label>
       );
@@ -330,6 +332,7 @@ export default class TranslationsTabContent extends React.Component<
           size='l'
           label={t('begin')}
           onClick={this.begin.bind(this)}
+          isDisabled={singleProcessingStore.getTranscript() === undefined}
         />
       </div>
     );
@@ -345,7 +348,6 @@ export default class TranslationsTabContent extends React.Component<
             'Please select the language you want to translate to'
           )}
           onLanguageChange={this.onLanguageChange.bind(this)}
-          sourceLanguage={singleProcessingStore.getSourceData()?.languageCode}
           hiddenLanguages={this.getTranslationsLanguages()}
           suggestedLanguages={singleProcessingStore.getAssetTranslatableLanguages()}
           isDisabled={singleProcessingStore.isFetchingData}

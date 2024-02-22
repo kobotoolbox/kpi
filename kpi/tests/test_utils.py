@@ -2,7 +2,6 @@
 import os
 import re
 from copy import deepcopy
-from lxml import etree
 
 import pytest
 from django.conf import settings
@@ -21,7 +20,13 @@ from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
-from kpi.utils.xml import strip_nodes, edit_submission_xml
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    get_or_create_element,
+    strip_nodes,
+    xml_tostring,
+)
 
 
 class UtilsTestCase(TestCase):
@@ -565,8 +570,60 @@ class XmlUtilsTestCase(TestCase):
 
         )
 
+    def test_get_or_create_element(self):
+        initial_xml_with_ns = '''
+            <hello xmlns="http://opendatakit.org/submissions">
+                <meta>
+                    <instanceID>uuid:abc-123</instanceID>
+                </meta>
+            </hello>
+        '''
+        expected_xml_with_ns_after_modification = '''
+            <hello xmlns="http://opendatakit.org/submissions">
+                <meta>
+                    <instanceID>uuid:def-456</instanceID>
+                    <deprecatedID>uuid:abc-123</deprecatedID>
+                </meta>
+            </hello>
+        '''
+
+        initial_xml_without_ns = initial_xml_with_ns.replace(
+            ' xmlns="http://opendatakit.org/submissions"', ''
+        )
+        expected_xml_without_ns_after_modification = (
+            expected_xml_with_ns_after_modification.replace(
+                ' xmlns="http://opendatakit.org/submissions"', ''
+            )
+        )
+
+        for initial, expected in (
+            (initial_xml_with_ns, expected_xml_with_ns_after_modification),
+            (
+                initial_xml_without_ns,
+                expected_xml_without_ns_after_modification,
+            ),
+        ):
+            root = fromstring_preserve_root_xmlns(initial)
+            assert root.tag == 'hello'
+
+            initial_e = get_or_create_element(root, 'meta/instanceID')
+            assert (
+                initial_e.text == 'uuid:abc-123'
+            )
+            initial_e.text = 'uuid:def-456'
+
+            new_e = get_or_create_element(root, 'meta/deprecatedID')
+            assert new_e.tag == 'deprecatedID'
+            assert new_e.text is None
+            new_e.text = 'uuid:abc-123'
+
+            self.__compare_xml(
+                xml_tostring(root),
+                expected,
+            )
+
     def test_edit_submission_xml(self):
-        xml_parsed = etree.fromstring(self.__submission)
+        xml_parsed = fromstring_preserve_root_xmlns(self.__submission)
         update_data = {
             'group1/subgroup1/question_1': 'Edit 1',
             'group1/subgroup11/question_3': 'Edit 2',
@@ -623,7 +680,7 @@ class XmlUtilsTestCase(TestCase):
                 </a>
             </root>
         '''
-        self.__compare_xml(etree.tostring(xml_parsed).decode(), xml_expected)
+        self.__compare_xml(xml_tostring(xml_parsed), xml_expected)
 
     def __compare_xml(self, source: str, target: str) -> bool:
         """ Attempts to standardize XML by removing whitespace between tags """

@@ -17,8 +17,7 @@ def run():
     submission_stream = asset.deployment.get_submissions(
         user=user,
     )
-    extras_data = dict(asset.submission_extras.values_list('uuid', 'content'))
-    submission_stream = stream_with_extras(submission_stream, extras_data)
+    submission_stream = stream_with_extras(submission_stream, asset)
     _fields_from_all_versions = False #?
     pack, submission_stream = build_formpack(
         asset, submission_stream, _fields_from_all_versions

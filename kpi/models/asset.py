@@ -474,7 +474,40 @@ class Asset(ObjectPermissionMixin,
     def analysis_form_json(self):
         additional_fields = list(self._get_additional_fields())
         engines = dict(self._get_engines())
-        return {'engines': engines, 'additional_fields': additional_fields}
+        output = {'engines': engines, 'additional_fields': additional_fields}
+        try:
+            qual_survey = self.advanced_features['qual']['qual_survey']
+        except KeyError:
+            return output
+        for qual_question in qual_survey:
+            qname = qual_question['qpath'].split('-')[-1]
+            # Surely some of this stuff is not actually used…
+            # (added to match extend_col_deets() from
+            # kobo/apps/subsequences/utils/parse_known_cols)
+            #
+            # See also injectSupplementalRowsIntoListOfRows() in
+            # assetUtils.ts
+            field = dict(
+                label=qual_question['labels']['_default'],
+                name=f"{qname}/{qual_question['uuid']}",
+                dtpath=f"{qual_question['qpath']}/{qual_question['uuid']}",
+                type=qual_question['type'],
+                # could say '_default' or the language of the transcript,
+                # but really that would be meaningless and misleading
+                language='??',
+                source=qual_question['qpath'],
+                qpath=f"{qual_question['qpath']}-{qual_question['uuid']}",
+                # seems not applicable given the transx questions describe
+                # manual vs. auto here and which engine was used
+                settings='??',
+                path=[qual_question['qpath'], qual_question['uuid']],
+            )
+            try:
+                field['choices'] = qual_question['choices']
+            except KeyError:
+                pass
+            additional_fields.append(field)
+        return output
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -545,7 +578,7 @@ class Asset(ObjectPermissionMixin,
         )
 
     @cache_for_request
-    def get_attachment_xpaths(self, deployed: bool = True) -> Optional[list]:
+    def get_attachment_xpaths(self, deployed: bool = True) -> list:
         version = (
             self.latest_deployed_version if deployed else self.latest_version
         )
@@ -1144,9 +1177,13 @@ class Asset(ObjectPermissionMixin,
         return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
+        '''
+        engines are individual NLP services that can be used
+        '''
         for instance in self.get_advanced_feature_instances():
-            for key, val in instance.engines():
-                yield key, val
+            if hasattr(instance, 'engines'):
+                for key, val in instance.engines():
+                    yield key, val
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
