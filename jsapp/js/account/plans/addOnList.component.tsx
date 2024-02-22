@@ -63,7 +63,7 @@ const AddOnList = (props: {
     setAddOnProducts(addonProducts);
   }, [props.products]);
 
-  const currentPlan = useMemo(() => {
+  const currentAddon = useMemo(() => {
     if (subscriptionStore.addOnsResponse.length) {
       return subscriptionStore.addOnsResponse[0];
     } else {
@@ -72,8 +72,8 @@ const AddOnList = (props: {
   }, [subscriptionStore.isInitialised]);
 
   const subscriptionUpdate = useMemo(() => {
-    return getSubscriptionChangeDetails(currentPlan, props.products);
-  }, [currentPlan, props.products]);
+    return getSubscriptionChangeDetails(currentAddon, props.products);
+  }, [currentAddon, props.products]);
 
   useWhen(
     () => subscriptionStore.isInitialised,
@@ -115,37 +115,38 @@ const AddOnList = (props: {
 
     let color: BadgeColor;
     let label;
-
-    if (subscriptionUpdate.type === SubscriptionChangeType.CANCELLATION) {
-      color = 'light-red';
-      label = t('Ends on ##cancel_date##').replace(
-        '##cancel_date##',
-        formatDate(subscriptionUpdate.date)
-      );
-    } else if (subscriptionUpdate.type === SubscriptionChangeType.RENEWAL) {
-      color = 'light-blue';
-      label = t('Renews on ##renewal_date##').replace(
-        '##renewal_date##',
-        formatDate(subscriptionUpdate.date)
-      );
-    } else if (
-      subscriptionUpdate.type === SubscriptionChangeType.PRODUCT_CHANGE
-    ) {
-      if (currentPlan?.items[0].price.product.id === price.product) {
-        color = 'light-amber';
-        label = t('Ends on ##end_date##').replace(
-          '##end_date##',
+    switch (subscriptionUpdate.type) {
+      case SubscriptionChangeType.CANCELLATION:
+        color = 'light-red';
+        label = t('Ends on ##cancel_date##').replace(
+          '##cancel_date##',
           formatDate(subscriptionUpdate.date)
         );
-      } else {
-        color = 'light-teal';
-        label = t('Starts on ##start_date##').replace(
-          '##start_date##',
+        break;
+      case SubscriptionChangeType.RENEWAL:
+        color = 'light-blue';
+        label = t('Renews on ##renewal_date##').replace(
+          '##renewal_date##',
           formatDate(subscriptionUpdate.date)
         );
-      }
-    } else {
-      return null;
+        break;
+      case SubscriptionChangeType.PRODUCT_CHANGE:
+        if (currentAddon?.items[0].price.product.id === price.product) {
+          color = 'light-amber';
+          label = t('Ends on ##end_date##').replace(
+            '##end_date##',
+            formatDate(subscriptionUpdate.date)
+          );
+        } else {
+          color = 'light-teal';
+          label = t('Starts on ##start_date##').replace(
+            '##start_date##',
+            formatDate(subscriptionUpdate.date)
+          );
+        }
+        break;
+      default:
+        return null;
     }
     return <Badge size={'s'} color={color} label={label} />;
   };
