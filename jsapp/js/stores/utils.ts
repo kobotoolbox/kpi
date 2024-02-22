@@ -1,17 +1,17 @@
 /**
- * A higher-order function that returns a cached listener function
+ * A higher-order function that takes a jQuery XHR request callback and returns a cached function
  * Cached function will only execute once per page load, or when `refresh` is true
  * Prevents multiple copies of a listener from firing at the same time for the same arguments
  **/
-export const cacheAction = (
+export const cacheDataInterface = (
   callback: (params: Record<string, any>) => JQuery.jqXHR<any>,
-  onDone: Function,
-  onFail: Function
+  onCallbackDone: Function,
+  onCallbackFail: Function
 ) => {
   // we initialize the cache here so that it gets stored as a closure with the returned function
   const responseCache: Record<string, any> = {};
   const cachedCallback = (params: Record<string, any>, refresh = false) => {
-    // get a hash of the parameters so we can construct a bounded-length cache key
+    // turn the params object into a string to use it as the cache key
     const cacheKey = JSON.stringify(params);
     if (refresh || !(cacheKey in responseCache)) {
       // initialize the cache entry with an empty value, or evict stale cached entry for this asset
@@ -21,12 +21,12 @@ export const cacheAction = (
         .done((res) => {
           // save the fully loaded response to the cache
           responseCache[cacheKey] = res;
-          onDone(res);
+          onCallbackDone(res);
         })
-        .fail((res) => onFail(res));
+        .fail((res) => onCallbackFail(res));
     } else if (responseCache[cacheKey] !== 'pending') {
       // we have a cache entry, use it
-      onDone(responseCache[cacheKey]);
+      onCallbackDone(responseCache[cacheKey]);
     }
     // the cache entry for this action is currently pending, do nothing
   };

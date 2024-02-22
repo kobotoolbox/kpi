@@ -19,7 +19,7 @@ import exportsActions from './actions/exportsActions';
 import dataShareActions from './actions/dataShareActions';
 import {notify} from 'js/utils';
 import {replaceSupportEmail} from 'js/textUtils';
-import {cacheAction} from "./stores/utils";
+import {cacheDataInterface} from "./stores/utils";
 
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
@@ -423,7 +423,7 @@ actions.auth.getApiToken.failed.listen(() => {
   notify(t('failed to load API token'), 'error');
 });
 
-const loadAsset = cacheAction(
+const loadAsset = cacheDataInterface(
   dataInterface.getAsset,
   actions.resources.loadAsset.completed,
   actions.resources.loadAsset.failed

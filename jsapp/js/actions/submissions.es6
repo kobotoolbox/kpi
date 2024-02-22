@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 import {ROOT_URL} from 'js/constants';
-import {cacheAction} from "../stores/utils";
+import {cacheDataInterface} from "../stores/utils";
 
 const submissionsActions = Reflux.createActions({
   getSubmission: {children: ['completed', 'failed']},
@@ -70,7 +70,7 @@ const getProcessingSubmissionUuids = ({assetUid, questionsPaths = [], filters, s
 };
 
 submissionsActions.getProcessingSubmissions.listen(
-  cacheAction(
+  cacheDataInterface(
     getProcessingSubmissionUuids,
     submissionsActions.getProcessingSubmissions.completed,
     submissionsActions.getProcessingSubmissions.failed
