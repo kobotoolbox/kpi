@@ -46,7 +46,7 @@ class DataAttachmentColumnsForm extends React.Component {
     // TODO: See if we can simplify this to only call this if props does not
     // have any connected questions
     // See: https://github.com/kobotoolbox/kpi/issues/3912
-    actions.resources.loadAsset({id: this.props.source.uid});
+    actions.resources.loadAsset({id: this.props.source.uid}, true);
 
     this.unlisteners.push(
       actions.dataShare.attachToSource.started.listen(
