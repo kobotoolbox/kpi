@@ -925,7 +925,7 @@ class SingleProcessingStore extends Reflux.Store {
       StaticDisplays.Audio,
       StaticDisplays.Data,
     ];
-    if (tabName !== SingleProcessingTabs.Transcript) {
+    if (tabName !== SingleProcessingTabs.Transcript && this.data.transcript) {
       outcome.push(StaticDisplays.Transcript);
     }
     this.getTranslations().forEach((translation) => {

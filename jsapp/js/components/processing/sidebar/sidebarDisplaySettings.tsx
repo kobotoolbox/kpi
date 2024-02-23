@@ -94,10 +94,6 @@ export default function SidebarDisplaySettings() {
 
               if (entry in StaticDisplays) {
                 const staticDisplay = entry as StaticDisplays;
-                const staticDisplayText = getStaticDisplayText(staticDisplay);
-                if (staticDisplayText === null) {
-                  return null;
-                }
                 return (
                   <li className={styles.display} key={entry}>
                     <ToggleSwitch
@@ -109,7 +105,7 @@ export default function SidebarDisplaySettings() {
                         }
                       }}
                       checked={isEnabled}
-                      label={staticDisplayText}
+                      label={getStaticDisplayText(staticDisplay)}
                     />
                   </li>
                 );
