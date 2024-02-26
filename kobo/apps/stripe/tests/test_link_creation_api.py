@@ -20,7 +20,9 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
         self.client.force_login(self.someuser)
-        product = baker.prepare(Product, active=True)
+        product = baker.prepare(
+            Product, metadata={'product_type': 'plan'}, active=True
+        )
         product.save()
         self.price = baker.make(
             Price,
