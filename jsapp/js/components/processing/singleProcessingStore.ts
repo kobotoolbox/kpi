@@ -245,6 +245,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.getProcessingData.failed.listen(
       this.onAnyCallFailed.bind(this)
     );
+
     processingActions.setTranscript.completed.listen(
       this.onSetTranscriptCompleted.bind(this)
     );
@@ -266,15 +267,15 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.requestAutoTranscription.failed.listen(
       this.onAnyCallFailed.bind(this)
     );
+
     processingActions.setTranslation.completed.listen(
       this.onSetTranslationCompleted.bind(this)
     );
     processingActions.setTranslation.failed.listen(
       this.onAnyCallFailed.bind(this)
     );
-    // NOTE: deleteTranslation endpoint is sending whole processing data in response.
     processingActions.deleteTranslation.completed.listen(
-      this.onFetchProcessingDataCompleted.bind(this)
+      this.onDeleteTranslationCompleted.bind(this)
     );
     processingActions.deleteTranslation.failed.listen(
       this.onAnyCallFailed.bind(this)
@@ -285,6 +286,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.requestAutoTranslation.failed.listen(
       this.onAnyCallFailed.bind(this)
     );
+
     processingActions.activateAsset.completed.listen(
       this.onActivateAssetCompleted.bind(this)
     );
@@ -687,6 +689,34 @@ class SingleProcessingStore extends Reflux.Store {
     // discard draft after saving (exit the editor)
     this.data.translationDraft = undefined;
     this.data.source = undefined;
+    this.setNotPristine();
+    this.trigger(this.data);
+  }
+
+  private getTranslationsFromResponse(response: ProcessingDataResponse) {
+    const translationsResponse = response[this.currentQuestionQpath]?.translation;
+    const translationsArray: Transx[] = [];
+    if (translationsResponse) {
+      Object.keys(translationsResponse).forEach(
+        (languageCode: LanguageCode) => {
+          const translation = translationsResponse[languageCode];
+          if (translation.languageCode) {
+            translationsArray.push({
+              value: translation.value,
+              languageCode: translation.languageCode,
+              dateModified: translation.dateModified,
+              dateCreated: translation.dateCreated,
+            });
+          }
+        }
+      );
+    }
+    return translationsArray;
+  }
+
+  private onDeleteTranslationCompleted(response: ProcessingDataResponse) {
+    this.isFetchingData = false;
+    this.data.translations = this.getTranslationsFromResponse(response);
     this.setNotPristine();
     this.trigger(this.data);
   }
