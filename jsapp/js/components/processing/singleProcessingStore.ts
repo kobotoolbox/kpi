@@ -20,7 +20,10 @@ import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
-import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
+import type {
+  ProcessingDataResponse,
+  GoogleTsResponse,
+} from 'js/components/processing/processingActions';
 import type {
   FailResponse,
   SubmissionResponse,

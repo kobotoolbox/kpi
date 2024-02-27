@@ -32,7 +32,7 @@ export const NO_FEATURE_ERROR = t(
 const DELETE_CHAR = '⌫';
 
 /** Response from Google for automated transcript. */
-interface GoogleTsResponse {
+export interface GoogleTsResponse {
   status: 'requested' | 'in_progress' | 'complete';
   /** Full transcript text. */
   value: string;
