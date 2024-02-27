@@ -15,6 +15,7 @@ from markdown import markdown
 from model_bakery import baker
 from rest_framework import status
 
+from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
@@ -117,6 +118,7 @@ class EnvironmentTests(BaseTestCase):
                 I18nUtils.get_custom_password_help_text()
             ),
             'open_rosa_server': settings.KOBOCAT_URL,
+            'terms_of_service__sitewidemessage__exists': False,
         }
 
     def _check_response_dict(self, response_dict):
@@ -306,3 +308,18 @@ class EnvironmentTests(BaseTestCase):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
+
+    def test_tos_sitewide_message(self):
+        # Check that fixtures properly stores terms of service
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert not response.data['terms_of_service__sitewidemessage__exists']
+
+        # Create SitewideMessage object and check that it properly updates terms of service
+        SitewideMessage.objects.create(
+            slug='terms_of_service',
+            body='tos agreement',
+        )
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['terms_of_service__sitewidemessage__exists']

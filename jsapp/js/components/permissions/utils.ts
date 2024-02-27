@@ -1,7 +1,6 @@
 import sessionStore from 'js/stores/session';
 import permConfig from './permConfig';
 import {buildUserUrl, ANON_USERNAME_URL} from 'js/users/utils';
-import type {PermissionCodename} from './permConstants';
 import type {
   AssetResponse,
   PermissionResponse,
@@ -10,11 +9,17 @@ import type {
 } from 'js/dataInterface';
 import {isSelfOwned} from 'jsapp/js/assetUtils';
 import type {
+  PermissionCodename,
   CheckboxNameAll,
-  CheckboxNamePartial,
-  CheckboxNameListPartial,
+  CheckboxNamePartialByUsers,
+  PartialByUsersListName,
 } from './permConstants';
-import {CHECKBOX_PERM_PAIRS} from './permConstants';
+import {
+  CHECKBOX_PERM_PAIRS,
+  CHECKBOX_LABELS,
+  PARTIAL_BY_USERS_DEFAULT_LABEL,
+} from './permConstants';
+import type {UserPerm} from './permParser';
 
 /** For `.find`-ing the permissions */
 function _doesPermMatch(
@@ -193,41 +198,41 @@ export function isSubmissionWritable(
 }
 
 /**
- * For given checkbox name, it returns its partial counterpart (another checkbox
- * name) if it has one.
+ * For given checkbox name, it returns its partial "by users" counterpart -
+ * another checkbox name (if there is one).
  */
-export function getPartialCheckboxName(
+export function getPartialByUsersCheckboxName(
   checkboxName: CheckboxNameAll
-): CheckboxNamePartial | undefined {
+): CheckboxNamePartialByUsers | undefined {
   switch (checkboxName) {
     case 'submissionsView':
-      return 'submissionsViewPartial';
+      return 'submissionsViewPartialByUsers';
     case 'submissionsEdit':
-      return 'submissionsEditPartial';
+      return 'submissionsEditPartialByUsers';
     case 'submissionsValidate':
-      return 'submissionsValidatePartial';
+      return 'submissionsValidatePartialByUsers';
     case 'submissionsDelete':
-      return 'submissionsDeletePartial';
+      return 'submissionsDeletePartialByUsers';
     default:
       return undefined;
   }
 }
 
 /**
- * Matches given partial checkbox name with the list name
+ * Matches given partial "by users" checkbox name with the list name
  */
-export function getPartialCheckboxListName(
-  checkboxName: CheckboxNamePartial
-): CheckboxNameListPartial {
+export function getPartialByUsersListName(
+  checkboxName: CheckboxNamePartialByUsers
+): PartialByUsersListName {
   switch (checkboxName) {
-    case 'submissionsViewPartial':
-      return 'submissionsViewPartialUsers';
-    case 'submissionsEditPartial':
-      return 'submissionsEditPartialUsers';
-    case 'submissionsDeletePartial':
-      return 'submissionsDeletePartialUsers';
-    case 'submissionsValidatePartial':
-      return 'submissionsValidatePartialUsers';
+    case 'submissionsViewPartialByUsers':
+      return 'submissionsViewPartialByUsersList';
+    case 'submissionsEditPartialByUsers':
+      return 'submissionsEditPartialByUsersList';
+    case 'submissionsDeletePartialByUsers':
+      return 'submissionsDeletePartialByUsersList';
+    case 'submissionsValidatePartialByUsers':
+      return 'submissionsValidatePartialByUsersList';
   }
 }
 
@@ -249,4 +254,101 @@ export function getCheckboxNameByPermission(
     }
   }
   return found;
+}
+
+/** Detects if partial permissions is of "by users" kind */
+export function isPartialByUsers(perm: UserPerm) {
+  // TODO for now this only checks if this is partial permission, as there is
+  // only one type (more to come). In future this would need some smart way
+  // to recognize what Django filter is being used in the `partial_permissions`
+  // object.
+  return (
+    'partial_permissions' in perm && perm.partial_permissions !== undefined
+  );
+}
+
+/**
+ * Returns a human readable permission label, has to do some juggling for
+ * partial permissions. Fallback is permission codename.
+ */
+export function getPermLabel(perm: UserPerm) {
+  // For partial permissions we return a general label that matches all possible
+  // partial permissions (i.e. same label for "View submissions only from
+  // specific users" and "Edit submissions only from specific users" etc.)
+  if (isPartialByUsers(perm)) {
+    return PARTIAL_BY_USERS_DEFAULT_LABEL;
+  }
+
+  // Get permission definition
+  const permDef = permConfig.getPermission(perm.permission);
+
+  if (permDef) {
+    const checkboxName = getCheckboxNameByPermission(permDef.codename);
+
+    if (checkboxName) {
+      return CHECKBOX_LABELS[checkboxName];
+    }
+  }
+
+  // If we couldn't get the definition, we will display "???", so it's clear
+  // something is terribly wrong. But this case is ~impossible to get, and we
+  // mostly have it for TS reasons.
+  return '???';
+}
+
+/**
+ * Displays a user friendly name of given permission. For partial permissions it
+ * will include the list of users (limited by `maxParentheticalUsernames`) in
+ * the name.
+ */
+export function getFriendlyPermName(
+  perm: UserPerm,
+  maxParentheticalUsernames = 3
+) {
+  const permLabel = getPermLabel(perm);
+
+  let permUsers: string[] = [];
+
+  if (perm.partial_permissions) {
+    perm.partial_permissions.forEach((partial) => {
+      partial.filters.forEach((filter) => {
+        if (filter._submitted_by) {
+          permUsers = permUsers.concat(filter._submitted_by.$in);
+        }
+      });
+    });
+  }
+
+  // Keep only unique values
+  permUsers = [...new Set(permUsers)];
+
+  // Hopefully this is friendly to translators of RTL languages
+  let permNameTemplate;
+  if (permUsers.length === 0) {
+    permNameTemplate = '##permission_label##';
+  } else if (permUsers.length <= maxParentheticalUsernames) {
+    permNameTemplate = t('##permission_label## (##username_list##)');
+  } else if (permUsers.length === maxParentheticalUsernames + 1) {
+    permNameTemplate = t(
+      '##permission_label## (##username_list## and 1 other)'
+    );
+  } else {
+    permNameTemplate = t(
+      '##permission_label## (##username_list## and ' +
+        '##hidden_username_count## others)'
+    );
+  }
+
+  const friendlyPermName = permNameTemplate
+    .replace('##permission_label##', permLabel)
+    .replace(
+      '##username_list##',
+      permUsers.slice(0, maxParentheticalUsernames).join(', ')
+    )
+    .replace(
+      '##hidden_username_count##',
+      String(permUsers.length - maxParentheticalUsernames)
+    );
+
+  return friendlyPermName;
 }
