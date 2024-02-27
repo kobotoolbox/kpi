@@ -208,6 +208,12 @@ processingActions.activateAsset.listen(
   }
 );
 
+/** And extension of `ListenableCallback` to include second argument */
+interface ListenableCallbackWithId<R, I> extends Function {
+  (response: R, submissionEditId: I): void;
+  listen: (callback: (response: R, submissionEditId: I) => void) => Function;
+}
+
 /**
  * `getProcessingData` action
  *
@@ -219,8 +225,9 @@ interface GetProcessingDataFn {
 }
 interface GetProcessingDataDefinition extends GetProcessingDataFn {
   listen: (fn: GetProcessingDataFn) => void;
+  /** Returns abort function. */
   started: ListenableCallback<() => void>;
-  completed: ListenableCallback<ProcessingDataResponse>;
+  completed: ListenableCallbackWithId<ProcessingDataResponse, string>;
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.getProcessingData.listen((assetUid, submissionEditId) => {
@@ -235,7 +242,7 @@ processingActions.getProcessingData.listen((assetUid, submissionEditId) => {
       url: processingUrl,
       data: {submission: submissionEditId},
     })
-      .done(processingActions.getProcessingData.completed)
+      .done((completedResponse: ProcessingDataResponse) => {processingActions.getProcessingData.completed(completedResponse, submissionEditId);})
       .fail(processingActions.getProcessingData.failed);
 
     processingActions.getProcessingData.started(xhr.abort);

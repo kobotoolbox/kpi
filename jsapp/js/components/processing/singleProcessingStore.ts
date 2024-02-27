@@ -551,38 +551,70 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
-    // NOTE: we treat empty transcript object same as nonexistent one
+  private onFetchProcessingDataCompleted(
+    response: ProcessingDataResponse,
+    submissionEditId: string
+  ) {
+    // Ensure this response applies to current data
+    if (submissionEditId !== this.currentSubmissionEditId) {
+      return;
+    }
+
+    const currentQuestionResponse = response[this.currentQuestionQpath];
+    if (!currentQuestionResponse) {
+      return;
+    }
+
+    // Step 1. Load transcript.
+    const transcriptResponse = currentQuestionResponse.transcript;
+    // NOTE: we treat empty transcript object same as nonexistent one, so we
+    // start with `undefined` and only apply the transcript if both `value` and
+    // `languageCode` are present.
     this.data.transcript = undefined;
     if (transcriptResponse?.value && transcriptResponse?.languageCode) {
       this.data.transcript = transcriptResponse;
     }
 
-    const translationsResponse =
-      response[this.currentQuestionQpath]?.translation;
-    const translationsArray: Transx[] = [];
-    if (translationsResponse) {
-      Object.keys(translationsResponse).forEach(
-        (languageCode: LanguageCode) => {
-          const translation = translationsResponse[languageCode];
-          if (translation.languageCode) {
-            translationsArray.push({
-              value: translation.value,
-              languageCode: translation.languageCode,
-              dateModified: translation.dateModified,
-              dateCreated: translation.dateCreated,
-            });
-          }
-        }
+    // Step 2. If there is any Google transcription response in the data, we
+    // will identify if we need to a) continue polling for pending response, or
+    // b) apply completed response to transcript (a case when user navigated out
+    // before auto process ended, and navigated back after it ended).
+    if (currentQuestionResponse.googlets) {
+      if (
+        currentQuestionResponse.googlets.status === 'requested' ||
+        currentQuestionResponse.googlets.status === 'in_progress'
+      ) {
+        // TODO: test if this reflects anything in UI, or if we need some
+        // separate "handleExistingPendingAutoTranscription" function
+        this.onRequestAutoTranscriptionInProgress({
+          response: response,
+          submissionEditId: this.currentSubmissionEditId,
+        });
+      } else if (currentQuestionResponse.googlets.status === 'complete') {
+        this.handleExistingCompletedAutoTranscription(
+          currentQuestionResponse.googlets
+        );
+      }
+    }
+
+    // Step 3. load translations
+    this.data.translations = this.getTranslationsFromResponse(response);
+
+    // Step 4. check if there is(are?) an auto translation in progress
+    if (currentQuestionResponse.googletx) {
+      // TODO write similar code to googlets above
+      console.log(
+        'xxx check auto translation',
+        currentQuestionResponse.googletx
       );
     }
-    this.data.translations = translationsArray;
 
+    // Step 5. cleanup flags and abort function
     delete this.abortFetchData;
     this.isProcessingDataLoaded = true;
     this.isFetchingData = false;
 
+    // Step 6. set up displays
     this.cleanupDisplays();
 
     this.trigger(this.data);
@@ -652,6 +684,16 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
+  private handleExistingCompletedAutoTranscription(googleTs: GoogleTsResponse) {
+    // TODO
+    // ensure status is completed
+    // and there is no draft(?)
+    // and there is no transcript(?)
+    // and there is no polling for transcript
+    // ask question if user wants to apply existing transcript?
+    console.log('xxx handleExistingCompletedAutoTranscription', googleTs);
+  }
+
   private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
     if (
       !this.currentQuestionQpath ||
@@ -694,7 +736,8 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private getTranslationsFromResponse(response: ProcessingDataResponse) {
-    const translationsResponse = response[this.currentQuestionQpath]?.translation;
+    const translationsResponse =
+      response[this.currentQuestionQpath]?.translation;
     const translationsArray: Transx[] = [];
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach(
