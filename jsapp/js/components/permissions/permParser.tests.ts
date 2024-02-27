@@ -198,8 +198,8 @@ describe('permParser', () => {
       chai.expect(built).to.deep.equal({
         username: 'tessa',
         formView: true,
-        submissionsViewPartial: true,
-        submissionsViewPartialUsers: ['john', 'olivier'],
+        submissionsViewPartialByUsers: true,
+        submissionsViewPartialByUsersList: ['john', 'olivier'],
       });
     });
 
@@ -237,8 +237,8 @@ describe('permParser', () => {
         formView: true,
         formEdit: true,
         submissionsView: true,
-        submissionsViewPartial: false,
-        submissionsViewPartialUsers: [],
+        submissionsViewPartialByUsers: false,
+        submissionsViewPartialByUsersList: [],
         submissionsAdd: false,
         submissionsEdit: false,
         submissionsValidate: true,
@@ -262,8 +262,8 @@ describe('permParser', () => {
         formView: true,
         formEdit: false,
         submissionsView: true,
-        submissionsViewPartial: true,
-        submissionsViewPartialUsers: ['john', 'olivier', 'eric'],
+        submissionsViewPartialByUsers: true,
+        submissionsViewPartialByUsersList: ['john', 'olivier', 'eric'],
         submissionsAdd: false,
         submissionsEdit: false,
         submissionsValidate: false,

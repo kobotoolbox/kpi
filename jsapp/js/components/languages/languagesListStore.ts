@@ -1,8 +1,5 @@
 import {makeAutoObservable} from 'mobx';
-import type {
-  PaginatedResponse,
-  FailResponse,
-} from 'js/dataInterface';
+import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
 import {handleApiFail} from 'js/api';
 import {ROOT_URL} from 'js/constants';
 import languagesStore from './languagesStore';
@@ -40,7 +37,9 @@ export default class LanguagesListStore {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/languages/` + (searchPhrase ? `?q=${searchPhrase}` : ''),
+      url:
+        `${ROOT_URL}/api/v2/languages/` +
+        (searchPhrase ? `?q=${searchPhrase}` : ''),
     })
       .done(this.onFetchLanguagesDone.bind(this))
       .fail(this.onAnyFail.bind(this));

@@ -37,68 +37,6 @@ export const ROOT_URL = (() => {
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
 
-export type PermissionCodename =
-  | 'add_submissions'
-  | 'change_asset'
-  | 'change_metadata_asset'
-  | 'change_submissions'
-  | 'delete_submissions'
-  | 'discover_asset'
-  | 'manage_asset'
-  | 'partial_submissions'
-  | 'validate_submissions'
-  | 'view_asset'
-  | 'view_submissions';
-
-/**
- * BAD CODE™ A hardcoded list of permissions codenames.
- *
- * All of them are really defined on backend, and we get them through the
- * permissions config endpoint, but as we need these names to reference them in
- * the code to build the UI it's a necessary evil.
- *
- * NOTE: to know what these permissions permit see `kpi/permissions.py` file,
- * where you have to match the classes with endpoints and their HTTP methods.
- */
-type PermissionsCodenames = {[P in PermissionCodename]: PermissionCodename};
-export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
-  // Is user able to view asset - mostly handled by Backend just not returning
-  // asset in the results or direct endpoint.
-  view_asset: 'view_asset',
-
-  // Is user able to edit asset, i.e. to change anything in the asset endpoint,
-  // so: editing in Form Builder, changing tags, changing settings, replace XLS,
-  // change translations, move between collection, archive, unarchive, delete…
-  change_asset: 'change_asset',
-
-  // Is asset discoverable in public lists.
-  discover_asset: 'discover_asset',
-
-  // Is user able to manage some aspects of asset (it is different from editing)
-  // such as: saving export settings, sharing asset (in future)…
-  manage_asset: 'manage_asset',
-
-  // Is user able to add submissions - handled by Backend submissions endpoint.
-  add_submissions: 'add_submissions',
-
-  // Is user able to see submissions, i.e. the Table View.
-  view_submissions: 'view_submissions',
-
-  // Used for partially permissing user actions on submissions.
-  partial_submissions: 'partial_submissions',
-
-  // Is user able to edit existing submissions.
-  change_submissions: 'change_submissions',
-
-  // Is user able to delete submissions.
-  delete_submissions: 'delete_submissions',
-
-  // Is user able to change the validation status of submissions.
-  validate_submissions: 'validate_submissions',
-
-  change_metadata_asset: 'change_metadata_asset',
-};
-
 export const ENKETO_ACTIONS = createEnum(['edit', 'view']);
 
 export const HOOK_LOG_STATUSES = {
@@ -118,6 +56,7 @@ export const KEY_CODES = Object.freeze({
 export enum KeyNames {
   Enter = 'Enter',
   Escape = 'Escape',
+  Space = ' ',
 }
 
 export const MODAL_TYPES = {
@@ -653,6 +592,9 @@ export const FUSE_OPTIONS = {
   ignoreLocation: true,
 };
 
+export const DND_TYPES = {
+  ANALYSIS_QUESTION: 'qualitative-analysis-question-row',
+};
 /*
   Stripe Subscription statuses that are shown as active in the UI.
   Subscriptions with a status in this array will show an option to 'Manage'.
@@ -671,7 +613,6 @@ export const USAGE_WARNING_RATIO = 0.8;
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
-  PERMISSIONS_CODENAMES,
   HOOK_LOG_STATUSES,
   KEY_CODES,
   MODAL_TYPES,
@@ -700,5 +641,7 @@ const constants = {
   FUNCTION_TYPE,
   USAGE_WARNING_RATIO,
 };
+
+export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 export default constants;

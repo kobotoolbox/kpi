@@ -6,9 +6,9 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom';
 import App from 'js/app';
-import {ROUTES} from './routerConstants';
+import {ROUTES, PROJECTS_ROUTES} from './routerConstants';
 import accountRoutes from 'js/account/routes';
-import projectsRoutes, {PROJECTS_ROUTES} from 'js/projects/routes';
+import projectsRoutes from 'js/projects/routes';
 import RequireAuth from './requireAuth';
 import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
@@ -16,7 +16,7 @@ import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute
 import AssetRoute from 'js/components/library/assetRoute';
 import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
-import {PERMISSIONS_CODENAMES} from '../constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {injectRouter} from './legacy';
 
 const Reports = React.lazy(

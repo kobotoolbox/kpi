@@ -6,16 +6,13 @@ except ImportError:
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
 from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
-from kpi.fields import PaginatedApiField
 from kpi.models.asset import Asset, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
-from .asset import AssetUrlListSerializer
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

@@ -19,6 +19,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
+import type {AssetStoreData} from 'js/assetStore';
 import {actions} from './actions';
 import {log, notify, escapeHtml, join} from 'js/utils';
 import type {
@@ -147,7 +148,7 @@ const mixins: MixinsObject = {
             {
               onComplete: (asset: AssetResponse) => {
                 dialog.destroy();
-                router!.navigate(`/forms/${asset.uid}`);
+                router!.navigate(ROUTES.FORM.replace(':uid', asset.uid));
               },
             }
           );
@@ -234,7 +235,7 @@ const mixins: MixinsObject = {
       const uid = this._getAssetUid();
       const asset = data[uid];
       if (asset) {
-        this.setState(Object.assign({}, data[uid]));
+        this.setState(Object.assign({}, asset));
       }
     },
     _getAssetUid() {
@@ -264,7 +265,9 @@ const mixins: MixinsObject = {
     },
 
     componentDidMount() {
-      assetStore.listen(this.dmixAssetStoreChange, this);
+      this.dmixAssetStoreCancelListener = assetStore.listen((data: AssetStoreData) => {
+        this.dmixAssetStoreChange(data);
+      }, this);
 
       // TODO 2/2
       // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -275,6 +278,12 @@ const mixins: MixinsObject = {
         this.setState(Object.assign({}, assetStore.data[uid]));
       } else if (uid) {
         actions.resources.loadAsset({id: uid});
+      }
+    },
+
+    componentWillUnmount() {
+      if (typeof this.dmixAssetStoreCancelListener === 'function') {
+        this.dmixAssetStoreCancelListener();
       }
     },
 
@@ -340,7 +349,7 @@ const mixins: MixinsObject = {
     _forEachDroppedFile(params: CreateImportRequest = {}) {
       const totalFiles = params.totalFiles || 1;
 
-      const isLibrary = routerIsActive('library');
+      const isLibrary = routerIsActive(ROUTES.LIBRARY);
       const multipleFiles = params.totalFiles && totalFiles > 1 ? true : false;
       params = Object.assign({library: isLibrary}, params);
 
@@ -391,16 +400,16 @@ const mixins: MixinsObject = {
                       )
                     );
                     if (params.assetUid) {
-                      router!.navigate(`/forms/${params.assetUid}`);
+                      router!.navigate(ROUTES.FORM.replace(':uid', params.assetUid));
                     }
                   } else {
                     if (
                       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-                      routerIsActive('forms')
+                      routerIsActive(ROUTES.FORMS)
                     ) {
                       actions.resources.loadAsset({id: assetUid});
                     } else if (!isLibrary) {
-                      router!.navigate(`/forms/${assetUid}`);
+                      router!.navigate(ROUTES.FORM.replace(':uid', assetUid));
                     }
                     notify(t('XLS Import completed'));
                   }

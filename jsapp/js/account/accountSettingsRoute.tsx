@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
+import Button from 'js/components/common/button';
 import {observer} from 'mobx-react';
+import type {Form} from 'react-router-dom';
 import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
@@ -7,6 +9,8 @@ import './accountSettings.scss';
 import {notify, stringToColor} from 'js/utils';
 import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
+import Icon from 'js/components/common/icon';
+import envStore from 'js/envStore';
 import {
   getInitialAccountFieldsValues,
   getProfilePatchData,
@@ -15,8 +19,9 @@ import type {
   AccountFieldsValues,
   AccountFieldsErrors,
 } from './account.constants';
+import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 
-bem.AccountSettings = makeBem(null, 'account-settings');
+bem.AccountSettings = makeBem(null, 'account-settings', 'form');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
@@ -64,6 +69,7 @@ const AccountSettings = observer(() => {
         isUserDataLoaded: true,
         fields: {
           name: currentAccount.extra_details.name,
+          organization_type: currentAccount.extra_details.organization_type,
           organization: currentAccount.extra_details.organization,
           organization_website:
             currentAccount.extra_details.organization_website,
@@ -76,6 +82,8 @@ const AccountSettings = observer(() => {
           twitter: currentAccount.extra_details.twitter,
           linkedin: currentAccount.extra_details.linkedin,
           instagram: currentAccount.extra_details.instagram,
+          newsletter_subscription:
+            currentAccount.extra_details.newsletter_subscription,
         },
         fieldsWithErrors: {},
       });
@@ -85,7 +93,9 @@ const AccountSettings = observer(() => {
     when: !form.isPristine,
     message: t('You have unsaved changes. Leave settings without saving?'),
   });
-  const updateProfile = () => {
+  const updateProfile = (e: React.FormEvent) => {
+    e?.preventDefault?.(); // Prevent form submission page reload
+
     const profilePatchData = getProfilePatchData(form.fields);
     dataInterface
       .patchProfile(profilePatchData)
@@ -128,16 +138,16 @@ const AccountSettings = observer(() => {
   };
 
   return (
-    <bem.AccountSettings>
+    <bem.AccountSettings onSubmit={updateProfile}>
       <bem.AccountSettings__actions>
-        <bem.KoboButton
-          className='account-settings-save'
-          onClick={updateProfile.bind(form)}
-          m={['blue']}
-        >
-          {t('Save Changes')}
-          {!form.isPristine && ' *'}
-        </bem.KoboButton>
+        <Button
+          type={'full'}
+          classNames={['account-settings-save']}
+          color={'blue'}
+          size={'l'}
+          isSubmit
+          label={t('Save Changes') + (form.isPristine ? '' : ' *')}
+        />
       </bem.AccountSettings__actions>
 
       <bem.AccountSettings__item m={'column'}>
@@ -151,6 +161,33 @@ const AccountSettings = observer(() => {
 
         {sessionStore.isInitialLoadComplete && form.isUserDataLoaded && (
           <bem.AccountSettings__item m='fields'>
+            <bem.AccountSettings__item m='anonymous-submission-notice'>
+              <Icon name='information' color='amber' size='m' />
+              <div className='anonymous-submission-notice-copy'>
+                <strong>
+                  {t(
+                    'You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.'
+                  )}
+                </strong>
+                &nbsp;
+                <div>
+                  {t(
+                    'This privacy feature is now a per-project setting. New projects will require authentication by default.'
+                  )}
+                </div>
+                &nbsp;
+                <a
+                  href={
+                    envStore.data.support_url +
+                    HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                  }
+                  target='_blank'
+                >
+                  {t('Learn more about these changes here.')}
+                </a>
+              </div>
+            </bem.AccountSettings__item>
+
             <AccountFieldsEditor
               errors={form.fieldsWithErrors.extra_details}
               values={form.fields}

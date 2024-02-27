@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import clonedeep from 'lodash.clonedeep';
+import isEqual from 'lodash.isequal';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
@@ -13,7 +14,6 @@ import ValidationStatusDropdown, {
 } from 'js/components/submissions/validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
 import {
-  PERMISSIONS_CODENAMES,
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
@@ -24,6 +24,7 @@ import {
   ENKETO_ACTIONS,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {formatTimeDateShort} from 'utils';
 import {
   getRowName,
@@ -149,6 +150,7 @@ export class DataTable extends React.Component {
       )
     );
 
+    // TODO: why this line is needed? Why not use `assetStore`?
     stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded);
   }
 
@@ -176,6 +178,9 @@ export class DataTable extends React.Component {
       newSettings = {};
     }
 
+    const prevAdditionalFields = prevProps.asset?.analysis_form_json?.additional_fields;
+    const newAdditionalFields = this.props.asset?.analysis_form_json?.additional_fields;
+
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
     if (
@@ -183,10 +188,14 @@ export class DataTable extends React.Component {
       JSON.stringify(prevSettings[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions();
+    } else if (JSON.stringify(newSettings) !== JSON.stringify(prevSettings)) {
       // If some other table settings changed, we need to fix columns using
       // existing data, as after `actions.table.updateSettings` resolves,
       // the props asset is not yet updated
-    } else if (JSON.stringify(newSettings) !== JSON.stringify(prevSettings)) {
+      this._prepColumns(this.state.submissions);
+    } else if (!isEqual(prevAdditionalFields, newAdditionalFields)) {
+      // If additional fields have changed, it means that user has added
+      // transcript or translations, thus we need to display more columns.
       this._prepColumns(this.state.submissions);
     }
   }
@@ -289,7 +298,18 @@ export class DataTable extends React.Component {
 
   onGetSubmissionsFailed(error) {
     if (error?.responseText) {
-      this.setState({error: error.responseText, loading: false});
+      let displayedError;
+      try {
+        displayedError = JSON.parse(error.responseText);
+      } catch {
+        displayedError = error.responseText;
+      }
+
+      if (displayedError.detail) {
+        this.setState({error: displayedError.detail, loading: false});
+      } else {
+        this.setState({error: displayedError, loading: false});
+      }
     } else if (error?.statusText) {
       this.setState({error: error.statusText, loading: false});
     } else {
@@ -647,7 +667,7 @@ export class DataTable extends React.Component {
     const survey = this.props.asset.content.survey;
     const choices = this.props.asset.content.choices;
     const flatPaths = getSurveyFlatPaths(survey);
-    allColumns.forEach((key) => {
+    allColumns.forEach((key, columnIndex) => {
       let q;
       if (key.includes('/')) {
         const qParentG = key.split('/');
@@ -739,10 +759,11 @@ export class DataTable extends React.Component {
               (column) => column.id === flatPaths[sourceCleaned]
             );
             if (sourceColumn) {
-              // This way if we have a source column with index `2`, we will set
-              // the supplemental details column to `2__supplementalDetails/…`
+              // This way if we have a source column with index `2`, and
+              // the supplemental column with index `5`, we will set
+              // the supplemental details column to `2_5_supplementalDetails/…`
               // to make sure it keeps the correct order.
-              index = `${sourceColumn.index}_${key}`;
+              index = `${sourceColumn.index}_${columnIndex}_${key}`;
             }
           }
       }
@@ -809,7 +830,11 @@ export class DataTable extends React.Component {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = getMediaAttachment(row.original, row.value);
+                mediaAttachment = getMediaAttachment(
+                  row.original,
+                  row.value,
+                  q.$xpath
+                );
               }
 
               if (
@@ -906,6 +931,7 @@ export class DataTable extends React.Component {
               row.original,
               key
             );
+
             return (
               <span className='trimmed-text'>{supplementalDetailsContent}</span>
             );
@@ -990,7 +1016,9 @@ export class DataTable extends React.Component {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
           : 'is-frozen is-last-frozen';
-        col.headerClassName = 'is-frozen is-last-frozen';
+        col.headerClassName = col.headerClassName
+          ? `is-frozen is-last-frozen ${col.headerClassName}`
+          : 'is-frozen is-last-frozen';
       }
     });
 
@@ -1228,17 +1256,43 @@ export class DataTable extends React.Component {
    * @param {boolean} isChecked
    */
   bulkUpdateChange(sid, isChecked) {
-    const selectedRows = this.state.selectedRows;
-    if (isChecked) {
-      selectedRows[sid] = true;
-    } else {
-      delete selectedRows[sid];
-    }
+    const {selectedRows, lastChecked, shiftSelection} = this.state;
 
-    this.setState({
-      selectedRows: selectedRows,
-      selectAll: false,
-    });
+    if (isChecked) {
+      const updatedSelectedRows = {...selectedRows, [sid]: true};
+      const updatedShiftSelection = {
+        ...shiftSelection,
+        [sid]: window.event?.shiftKey,
+      };
+
+      // Handles range selection of checkboxes if the shift key is held down
+      // for both start and end values
+      if (
+        window.event?.shiftKey &&
+        lastChecked &&
+        selectedRows[lastChecked] &&
+        shiftSelection[lastChecked]
+      ) {
+        const [start, end] = [lastChecked, sid].map(Number);
+        for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
+          updatedSelectedRows[i] = true;
+          delete updatedShiftSelection[i];
+        }
+      }
+      this.setState({
+        selectedRows: updatedSelectedRows,
+        lastChecked: isChecked ? sid : null,
+        selectAll: false,
+        shiftSelection: updatedShiftSelection,
+      });
+    } else {
+      const {[sid]: _, ...updatedSelectedRows} = selectedRows;
+      this.setState({
+        selectedRows: updatedSelectedRows,
+        lastChecked: null,
+        selectAll: false,
+      });
+    }
   }
 
   /**

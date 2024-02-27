@@ -11,9 +11,9 @@ import {actions} from 'js/actions';
 import {formatTimeDate} from 'js/utils';
 import {
   ADDITIONAL_SUBMISSION_PROPS,
-  PERMISSIONS_CODENAMES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {
   EXPORT_TYPES,
   DEFAULT_EXPORT_SETTINGS,
@@ -316,7 +316,7 @@ export default class ProjectExportsCreator extends React.Component {
     // Select custom export toggle if not all rows are selected
     // but only if at least one is selected
     const customSelectionEnabled = (
-      data.export_settings.fields.length !== 0 &&
+      data.export_settings.fields?.length &&
       this.state.selectableRowsCount !== data.export_settings.fields.length
     );
 
@@ -547,17 +547,17 @@ export default class ProjectExportsCreator extends React.Component {
       EXPORT_MULTIPLE_OPTIONS.summary,
       EXPORT_MULTIPLE_OPTIONS.both,
     ];
+    const template = t('Export ##SELECT_MANY## questions as…');
+    const [firstPart, nextPart] = template.split('##SELECT_MANY##');
 
     return (
       <bem.ProjectDownloads__advancedView>
         <bem.ProjectDownloads__column m='left'>
           <label className='project-downloads__column-row'>
             <bem.ProjectDownloads__title>
-              {t('Export')}
-              &nbsp;
+              {firstPart}
               <em>{t('Select Many')}</em>
-              &nbsp;
-              {t('questions as…')}
+              {nextPart}
             </bem.ProjectDownloads__title>
 
             <Select
@@ -627,7 +627,7 @@ export default class ProjectExportsCreator extends React.Component {
           }
 
           {(this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
-              this.state.selectedExportType.value == EXPORT_TYPES.csv.value) &&
+              this.state.selectedExportType.value === EXPORT_TYPES.csv.value) &&
             <bem.ProjectDownloads__columnRow>
               <Checkbox
                 checked={this.state.isIncludeMediaUrlEnabled}
@@ -709,7 +709,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   render() {
-    let formClassNames = ['project-downloads__exports-creator'];
+    const formClassNames = ['project-downloads__exports-creator'];
     if (!this.state.isComponentReady) {
       formClassNames.push('project-downloads__exports-creator--loading');
     }

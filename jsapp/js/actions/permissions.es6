@@ -8,7 +8,7 @@ Reflux.use(RefluxPromise(window.Promise));
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 import {ANON_USERNAME_URL} from 'js/users/utils';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import permConfig from 'js/components/permissions/permConfig';
 import {
   INVALID_PERMS_ERROR,

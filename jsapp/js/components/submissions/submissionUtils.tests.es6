@@ -28,17 +28,13 @@ import {
   matrixRepeatSurveySubmission,
   matrixRepeatSurveyDisplayData,
   submissionWithAttachmentsWithUnicode,
-  assetWithSupplementalDetails,
   submissionWithSupplementalDetails,
 } from './submissionUtils.mocks';
 import {
-  getValidFilename,
   getMediaAttachment,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
-  getRowSupplementalResponses,
 } from './submissionUtils';
-import {actions} from 'js/actions';
 
 // getSubmissionDisplayData() returns objects that have prototype chains, while
 // the simple mock objects do not. Be able to exclude __proto__ when comparing
@@ -57,7 +53,9 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 1, simpleSurveySubmission).children;
       const target = simpleSurveyDisplayData;
-      expect(test).excludingEvery('__proto__').to.deep.equal(target);
+      expect(test)
+        .excludingEvery(['__proto__', 'xpathNodes'])
+        .to.deep.equal(target);
   });
 
   it('should return a null data entries for a survey with no answers', () => {
@@ -70,7 +68,9 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, simpleSurveySubmissionEmpty).children;
       const target = simpleSurveyDisplayDataEmpty;
-      expect(test).excludingEvery('__proto__').to.deep.equal(target);
+      expect(test)
+        .excludingEvery(['__proto__', 'xpathNodes'])
+        .to.deep.equal(target);
   });
 
   it('should return a valid data for a survey with a repeat group', () => {
@@ -83,7 +83,9 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, repeatSurveySubmission).children;
       const target = repeatSurveyDisplayData;
-      expect(test).excludingEvery('__proto__').to.deep.equal(target);
+      expect(test)
+        .excludingEvery(['__proto__', 'xpathNodes'])
+        .to.deep.equal(target);
   });
 
   it('should return a valid data for a survey with nested repeat groups', () => {
@@ -96,7 +98,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, nestedRepeatSurveySubmission).children;
       const target = nestedRepeatSurveyDisplayData;
-      expect(test).excludingEvery('__proto__').to.deep.equal(target);
+      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
   });
 
   it('should return a valid data for a survey with a matrix', () => {
@@ -109,7 +111,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, matrixSurveySubmission).children;
       const target = matrixSurveyDisplayData;
-      expect(test).excludingEvery('__proto__').to.deep.equal(target);
+      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
   });
 
   it('should return a valid data for a survey with all kinds of groups', () => {
@@ -122,7 +124,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, groupsSurveySubmission).children;
       const target = groupsSurveyDisplayData;
-      expect(test).excludingEvery('__proto__').to.deep.equal(target);
+      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
   });
 
   it('should return a valid data for every possible question type', () => {
@@ -135,7 +137,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, everythingSurveySubmission).children;
       const target = everythingSurveyDisplayData;
-      expect(test).excludingEvery('__proto__').to.deep.equal(target);
+      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
   });
 
   it('should return a valid data for a matrix group inside repeat group', () => {
@@ -148,16 +150,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, matrixRepeatSurveySubmission).children;
       const target = matrixRepeatSurveyDisplayData;
-      expect(test).excludingEvery('__proto__').to.deep.equal(target);
-  });
-});
-
-describe('getValidFilename', () => {
-  it('should return a file name which matches Django renaming', () => {
-    const fileName = submissionWithAttachmentsWithUnicode.A_picture;
-    const test = getValidFilename(fileName);
-    const target = 'Un_ete_au_Quebec_Canada-19_41_32.jpg';
-    expect(test).to.equal(target);
+      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
   });
 });
 
@@ -186,47 +179,28 @@ describe('getSupplementalDetailsContent', () => {
     );
     expect(test).to.equal('This is polish translation text.');
   });
-});
 
-/*
-this test should be updated to show that an asset with analysis_form_json.additional_fields
-filters columns down to appropriate columns for table view.
-
-describe('getRowSupplementalResponses', () => {
-  it('should return display responses for existing and enabled details', () => {
-    // Populate assetsStore with data.
-    actions.resources.loadAsset.completed(assetWithSupplementalDetails);
-    const test = getRowSupplementalResponses(
-      assetWithSupplementalDetails,
+  it('should return analysis question value properly for qual_select_multiple', () => {
+    const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
-      'Secret_password_as_an_audio_file'
+      '_supplementalDetails/Secret_password_as_an_audio_file/1a89e0da-3344-4b5d-b919-ab8b072e0918'
     );
-    expect(test).to.deep.equal([
-      {
-        data: 'This is french transcript text.',
-        type: null,
-        label: 'transcript (fr) | Secret password as an audio file',
-        name: '_supplementalDetails/Secret_password_as_an_audio_file/transcript_fr',
-      },
-      {
-        data: 'N/A',
-        type: null,
-        label: 'transcript (pl) | Secret password as an audio file',
-        name: '_supplementalDetails/Secret_password_as_an_audio_file/transcript_pl',
-      },
-      {
-        data: 'This is polish translation text.',
-        type: null,
-        label: 'translation (pl) | Secret password as an audio file',
-        name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl',
-      },
-      {
-        data: 'This is german translation text.',
-        type: null,
-        label: 'translation (de) | Secret password as an audio file',
-        name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_de',
-      },
-    ]);
+    expect(test).to.equal('First, Third');
+  });
+
+  it('should return analysis question value properly for qual_tags', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithSupplementalDetails,
+      '_supplementalDetails/Secret_password_as_an_audio_file/b05f29f7-8b58-4dd7-8695-c29cb04f3f7a'
+    );
+    expect(test).to.equal('best, things, ever recorder by human, 3');
+  });
+
+  it('should return analysis question value properly for qual_integer', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithSupplementalDetails,
+      '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22'
+    );
+    expect(test).to.equal('12345');
   });
 });
-*/

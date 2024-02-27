@@ -1,0 +1,54 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+
+.root {
+	position: relative;
+}
+
+.wrapper {
+	position: relative;
+}
+
+.dialog {
+  width: 50%;
+  position: absolute;
+  border-radius: sizes.$x4;
+  padding: sizes.$x12;
+  color: colors.$kobo-white;
+  background: colors.$kobo-dark-blue;
+  z-index: 1100; // 1 index lower than a modal
+}
+
+.dialog::before {
+  content: " ";
+  left: 5%;
+  border: solid transparent;
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-width: sizes.$x6;
+  margin-left: -(sizes.$x6);
+  bottom: 100%;
+  border-bottom-color: colors.$kobo-dark-blue;
+}
+
+.header {
+  color: colors.$kobo-white;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: sizes.$x12;
+  align-items: center;
+
+  .k-button :hover {
+    background-color: transparent;
+  }
+}
+
+.support {
+  padding-top: sizes.$x8;
+  margin: 0;
+  color: lighten(colors.$kobo-blue, 20%);
+  text-decoration: underline;
+}

@@ -1,9 +1,11 @@
 import os
 import time
-
 import boto3
+
+from botocore.exceptions import ClientError
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
+from django.db.models import F, Func, Value, CharField
 from django.db.models.functions import Lower
 from django.utils import timezone
 
@@ -19,15 +21,14 @@ EMAIL_HTML_FILENAME = ''
 # Path to a valid .txt file to use for the email text content
 EMAIL_TEXT_FILENAME = ''
 
-
 # We don't want to use all of our available email sends; some need to be reserved for other uses (password resets, etc.)
 # So we send emails until we've sent ( 24 hour sending capacity - RESERVE_EMAIL_COUNT ) emails
-RESERVE_EMAIL_COUNT = 4000
+RESERVE_EMAIL_COUNT = 8000
 
 # Whether this is a marketing email or a transactional email.
 # Marketing emails aren't sent to addresses that have registered spam complaints
 # Transactional emails ignore spam complaints
-IS_MARKETING_EMAIL = True
+IS_MARKETING_EMAIL = False
 
 # Maximum number of emails to send in one use of the script
 # Set to 0 to send as many emails as SES will allow
@@ -35,7 +36,32 @@ MAX_SEND_LIMIT = 0
 
 # Only sends to users who have logged in since this date
 # Needs to be a Date object
-ACTIVE_SINCE = timezone.now() - relativedelta(years=1)
+ACTIVE_SINCE = timezone.now() - relativedelta(months=6)
+
+
+# A dict containing additional queries on the User.
+# Only users that match all of these queries will receive emails.
+# Example:
+# {
+#     'organizations_organization__djstripe_customers__subscriptions': None,
+#     'id': 1,
+# }
+USER_FILTERS = {}
+
+
+# An array of dicts containing additional queries on the User.
+# Users matching any one of these queries won't receive emails.
+# Example:
+# [
+#     {
+#         'country': 'example',
+#         'email__endswith': 'example.com',
+#     },
+#     {
+#         'id': 5
+#     }
+# ]
+USER_EXCLUDE = [{}]
 
 start_time = time.time()
 
@@ -51,8 +77,14 @@ def run(*args):
     )
     ses = boto3.client('ses', region_name=aws_region_name)
 
+    can_send = ses.get_account_sending_enabled()
+    print(f'sending {"" if can_send else "not "}enabled in region {aws_region_name}')
+    if not can_send and not test_mode:
+        quit()
+
     remaining_sends = MAX_SEND_LIMIT
     quota = ses.get_send_quota()
+
     # if Max24HourSend == -1, we have unlimited daily sending quota
     if quota['Max24HourSend'] >= 0:
         print(
@@ -63,16 +95,15 @@ def run(*args):
             - quota['SentLast24Hours']
             - RESERVE_EMAIL_COUNT
         )
-        if quota_sends <= 0:
+        if quota_sends <= 0 and not test_mode:
             quit(f'already over sending limit; exiting...')
         remaining_sends = (
             remaining_sends >= 0
             and min(quota_sends, remaining_sends)
             or quota_sends
         )
-        string_sends = remaining_sends >= 0 and remaining_sends or "unlimited"
         print(
-            f'{string_sends} emails can be sent this run ({RESERVE_EMAIL_COUNT} kept in reserve)'
+            f'{remaining_sends} emails can be sent this run ({RESERVE_EMAIL_COUNT} kept in reserve)'
         )
 
     if not test_mode:
@@ -114,10 +145,16 @@ def run(*args):
 
     print('building users list...')
     user_detail_email_key = f'{EMAIL_TEMPLATE_NAME}_email_sent'
-    eligible_users = get_eligible_users(user_detail_email_key, force=force_send)
+    eligible_users = get_eligible_users(user_detail_email_key, force=force_send, test=test_mode)
 
     active_user_count = len(eligible_users)
-    print(f"found {active_user_count} users who haven't received emails")
+    if force_send:
+        print(f'found {active_user_count} users')
+    else:
+        print(f'found {active_user_count} users who haven\'t received emails')
+    if active_user_count <= 10:
+        for user in eligible_users:
+            print(user.email_cleaned)
 
     if test_mode:
         quit('in test mode, exiting before sending any emails')
@@ -129,17 +166,23 @@ def run(*args):
 
     for user in eligible_users.iterator(chunk_size=500):
         for attempts in range(MAX_SEND_ATTEMPTS):
-            response = send_email(
-                ses, user.email, configuration=configuration_set
-            )
-            status = response['ResponseMetadata']['HTTPStatusCode']
+            try:
+                response = send_email(
+                    ses, user.email_cleaned, configuration=configuration_set
+                )
+                status = response['ResponseMetadata']['HTTPStatusCode']
+            except ClientError as e:
+                print('error sending mail:')
+                print(e)
+                response = 'see above error'
             wait_time = RETRY_WAIT_TIME * (attempts + 1)
 
             match status:
                 case 200:
                     users_emailed_count += 1
+                    percent_done = users_emailed_count / active_user_count * 100
                     print(
-                        f'\r{users_emailed_count / active_user_count * 100}%',
+                        f'\r{round(percent_done, 2)}%',
                         end='',
                         flush=True,
                     )
@@ -163,7 +206,7 @@ def run(*args):
                     print(
                         f'\nhit ses rate limit, re-sending in {wait_time} seconds'
                     )
-                case default:
+                case _:  # default case
                     if attempts + 1 == MAX_SEND_ATTEMPTS:
                         print(
                             f'\nSES keeps erroring out; {users_emailed_count} sent this run. Last response:'
@@ -193,7 +236,7 @@ def quit_with_time_elapsed(message):
     quit(quit_message)
 
 
-def get_eligible_users(user_detail_email_key, force=False):
+def get_eligible_users(user_detail_email_key, force=False, test=False):
     # Get the list of users to email
     # Modify this function to change which users receive emails
 
@@ -204,20 +247,32 @@ def get_eligible_users(user_detail_email_key, force=False):
         .filter(
             last_login__gte=ACTIVE_SINCE,
             is_active=True,
+            **USER_FILTERS,
         )
         .exclude(
             email='',
         )
-        .exclude(
-            extra_details__isnull=True,
-        )
     )
+    for query in USER_EXCLUDE:
+        eligible_users = eligible_users.exclude(**query)
     if not force:
         eligible_users = eligible_users.exclude(
+            extra_details__isnull=True,
+        ).exclude(
             extra_details__private_data__has_key=user_detail_email_key,
         )
-    return eligible_users.annotate(email_lowercase=Lower('email')).distinct(
-        'email_lowercase'
+
+    # last step: convert email to lowercase and strip any filters
+    # regex finds 'name+filter@example.com' type addresses
+    return eligible_users.annotate(email_cleaned=Func(
+            Lower(F('email')),
+            Value(r'\+\S*@'),
+            Value('@'),
+            Value(''),
+            function='REGEXP_REPLACE',
+            output_field=CharField(),
+    )).distinct(
+        'email_cleaned'
     )
 
 

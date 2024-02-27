@@ -4,6 +4,7 @@ import abc
 import copy
 import datetime
 import json
+import uuid
 from datetime import date
 from typing import Union, Iterator, Optional
 
@@ -19,18 +20,37 @@ from shortuuid import ShortUUID
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_XML,
     SUBMISSION_FORMAT_TYPE_JSON,
+    PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    get_or_create_element,
+    xml_tostring,
+)
 
 
 class BaseDeploymentBackend(abc.ABC):
     """
     Defines the interface for a deployment backend.
     """
+
+    PROTECTED_XML_FIELDS = [
+        '__version__',
+        'formhub',
+        'meta',
+    ]
+
+    # XPaths are relative to the root node
+    SUBMISSION_CURRENT_UUID_XPATH = 'meta/instanceID'
+    SUBMISSION_DEPRECATED_UUID_XPATH = 'meta/deprecatedID'
+    FORM_UUID_XPATH = 'formhub/uuid'
 
     def __init__(self, asset):
         self.asset = asset
@@ -59,14 +79,114 @@ class BaseDeploymentBackend(abc.ABC):
     def bulk_assign_mapped_perms(self):
         pass
 
-    @abc.abstractmethod
     def bulk_update_submissions(
         self, data: dict, user: 'auth.User'
     ) -> dict:
-        pass
+        """
+        Allows for bulk updating (bulk editing) of submissions. A
+        `deprecatedID` for each submission is given the previous value of
+        `instanceID` and `instanceID` receives an updated uuid. For each key
+        and value within `request_data`, either a new element is created on the
+        submission's XML tree, or the existing value is replaced by the updated
+        value.
+
+        Args:
+            data (dict): must contain a list of `submission_ids` and at
+                least one other key:value field for updating the submissions
+            user (User)
+
+        Returns:
+            dict: formatted dict to be passed to a Response object
+        """
+        submission_ids = self.validate_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=data['submission_ids'],
+            query=data['query'],
+        )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have full access.
+        if submission_ids:
+            # Reset query, because all the submission ids have been already
+            # retrieve
+            data['query'] = {}
+        else:
+            submission_ids = data['submission_ids']
+
+        submissions = self.get_submissions(
+            user=user,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            submission_ids=submission_ids,
+            query=data['query'],
+        )
+
+        if not self.current_submission_count:
+            raise BulkUpdateSubmissionsClientException(
+                detail=t('No submissions match the given `submission_ids`')
+            )
+
+        # Remove potentially destructive keys from the payload
+        update_data = copy.deepcopy(data['data'])
+        update_data = {
+            k: v
+            for k, v in update_data.items()
+            if not (
+                k in self.PROTECTED_XML_FIELDS
+                or '/' in k
+                and k.split('/')[0] in self.PROTECTED_XML_FIELDS
+            )
+        }
+
+        kc_responses = []
+        for submission in submissions:
+            xml_parsed = fromstring_preserve_root_xmlns(submission)
+
+            _uuid, uuid_formatted = self.generate_new_instance_id()
+
+            # Updating xml fields for submission. In order to update an existing
+            # submission, the current `instanceID` must be moved to the value
+            # for `deprecatedID`.
+            instance_id = get_or_create_element(
+                xml_parsed, self.SUBMISSION_CURRENT_UUID_XPATH
+            )
+            # If the submission has been edited before, it will already contain
+            # a deprecatedID element - otherwise create a new element
+            deprecated_id = get_or_create_element(
+                xml_parsed, self.SUBMISSION_DEPRECATED_UUID_XPATH
+            )
+            deprecated_id.text = instance_id.text
+            instance_id.text = uuid_formatted
+
+            # If the form has been updated with new fields and earlier
+            # submissions have been selected as part of the bulk update,
+            # a new element has to be created before a value can be set.
+            # However, with this new power, arbitrary fields can be added
+            # to the XML tree through the API.
+            for path, value in update_data.items():
+                edit_submission_xml(xml_parsed, path, value)
+
+            kc_response = self.store_submission(
+                user, xml_tostring(xml_parsed), _uuid
+            )
+            kc_responses.append(
+                {
+                    'uuid': _uuid,
+                    'response': kc_response,
+                }
+            )
+
+        return self.prepare_bulk_update_response(kc_responses)
+
 
     @abc.abstractmethod
     def calculated_submission_count(self, user: 'auth.User', **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
         pass
 
     @property
@@ -98,6 +218,21 @@ class BaseDeploymentBackend(abc.ABC):
         self, submission_id: int, user: 'auth.User'
     ) -> dict:
         pass
+
+    @property
+    @abc.abstractmethod
+    def enketo_id(self):
+        pass
+
+    @staticmethod
+    def generate_new_instance_id() -> (str, str):
+        """
+        Returns:
+            - Generated uuid
+            - Formatted uuid for OpenRosa xml
+        """
+        _uuid = str(uuid.uuid4())
+        return _uuid, f'uuid:{_uuid}'
 
     @abc.abstractmethod
     def get_attachment(
@@ -275,8 +410,12 @@ class BaseDeploymentBackend(abc.ABC):
 
         self.store_data(updates)
         self.asset.set_deployment_status()
+
+        # never save `_stored_data_key` attribute
+        updates.pop('_stored_data_key', None)
+
         self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=ReplaceValues(
+            _deployment_data=UpdateJSONFieldAttributes(
                 '_deployment_data',
                 updates=updates,
             ),
@@ -318,6 +457,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def store_data(self, values: dict):
         """ Saves in memory only; writes nothing to the database """
+        values = copy.deepcopy(values)
         self.__stored_data_key = ShortUUID().random(24)
         values['_stored_data_key'] = self.__stored_data_key
         self.asset._deployment_data.update(values)  # noqa
@@ -325,6 +465,13 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def stored_data_key(self):
         return self.__stored_data_key
+
+    @property
+    @abc.abstractmethod
+    def store_submission(
+        self, user, xml_submission, submission_uuid, attachments=None
+    ):
+        pass
 
     @property
     @abc.abstractmethod
