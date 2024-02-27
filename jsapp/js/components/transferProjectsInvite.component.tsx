@@ -5,6 +5,7 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
+import cx from 'classnames';
 
 import styles from './transferProjectsInvite.module.scss';
 import {
@@ -46,11 +47,6 @@ export default function TransferProjectsInvite(
     setIsModalOpen(!isModalOpen);
   };
 
-  let noteClass = styles.note;
-  if (isDeclined) {
-    noteClass = [noteClass, styles.declinedNote].join(' ');
-  }
-
   function decline() {
     setDeclinePending(true)
     declineInvite(props.inviteUid).then(() => {
@@ -88,44 +84,51 @@ export default function TransferProjectsInvite(
       </KoboModalHeader>
       <div>
         <section className={styles.modalBody}>
-          {isDeclined ? (
+          {isDeclined && (
             <p>
               {t(
                 'You have declined the request of transfer ownership for ##PROJECT_NAME##.'
               ).replace('##PROJECT_NAME##', asset ? asset.assetName : '')}
             </p>
-          ) : (
-            <p>
-              {t(
-                'When you accept the ownership transfer of project ##PROJECT_NAME##, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits.'
-              ).replace('##PROJECT_NAME##', asset ? asset.assetName : '')}
-            </p>
           )}
 
           {!isDeclined && (
-            <strong>
-              {t(
-                'Once you accept, the transfer might take a few minutes to complete.'
-              )}
-            </strong>
+            <>
+              <p>
+                {t(
+                  'When you accept the ownership transfer of project ##PROJECT_NAME##, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits.'
+                ).replace('##PROJECT_NAME##', asset ? asset.assetName : '')}
+              </p>
+              <strong>
+                {t(
+                  'Once you accept, the transfer might take a few minutes to complete.'
+                )}
+              </strong>
+            </>
           )}
-          <div className={noteClass}>
+          <div
+            className={cx({
+              [styles.note]: true,
+              [styles.declinedNote]: isDeclined,
+            })}
+          >
             <Icon
               name='information'
               size='s'
               color='blue'
               classNames={[styles.noteIcon]}
             />
+
             {isDeclined && asset ? (
               <div>
                 {'##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'.replace(
                   '##CURRENT_OWNER_NAME##',
-                  asset ? asset.assetOwner : ''
+                  asset ? asset.assetOwner : t('Current owner')
                 )}
                 &nbsp;
                 {'##CURRENT_OWNER_NAME## will remain the project owner.'.replace(
                   '##CURRENT_OWNER_NAME##',
-                  asset ? asset.assetOwner : ''
+                  asset ? asset.assetOwner : t('Current owner')
                 )}
               </div>
             ) : (

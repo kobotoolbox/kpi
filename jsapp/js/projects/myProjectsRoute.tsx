@@ -30,7 +30,7 @@ import LimitNotifications from 'js/components/usageLimits/limitNotifications.com
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import {useSearchParams} from 'react-router-dom';
 import TransferProjectsInvite from '../components/transferProjectsInvite.component';
-import {checkInviteUid, TransferStatuses} from 'js/components/transferProjects.api';
+import {isInviteForLoggedInUser, TransferStatuses} from 'js/components/transferProjects.api';
 import Button from '../components/common/button';
 
 interface InviteState {
@@ -64,7 +64,7 @@ function MyProjectsRoute() {
 
     const inviteParams = searchParams.get('invite');
     if (inviteParams) {
-      checkInviteUid(inviteParams).then((data) => {
+      isInviteForLoggedInUser(inviteParams).then((data) => {
         setInvite({...invite, valid: data, uid: inviteParams});
       });
     } else {
@@ -127,8 +127,8 @@ function MyProjectsRoute() {
       </UsageContext.Provider>
 
       <section className={styles.root}>
-        {invite.status && (
-          <div className={banner ? styles.banner : styles.noBanner}>
+        {invite.status && banner && (
+          <div className={styles.banner}>
             <Icon
               name='information'
               color='blue'

@@ -9,14 +9,17 @@
   border-radius: sizes.$x5;
 }
 
+.form {
+  overflow-x: auto;
+}
+
 .bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  button {
+  .transferButton {
     max-width: sizes.$x180;
-    height: sizes.$x38;
   }
 }
 
@@ -33,7 +36,7 @@
   padding: 0 sizes.$x24;
 
   p:first-of-type {
-    margin-top: 0;
+    margin: sizes.$x16 0;
   }
 }
 
@@ -41,7 +44,7 @@
   display: flex;
   padding: sizes.$x12;
   margin: sizes.$x24 0 sizes.$x24 0;
-  background-color: lighten(colors.$kobo-red, 20%);
+  background-color: colors.$kobo-light-red;;
   border-radius: sizes.$x5;
 }
 
@@ -54,7 +57,7 @@
     flex-direction: column;
     align-items: flex-start;
 
-    button {
+    .transferButton {
       margin-top: sizes.$x12;
     }
   }

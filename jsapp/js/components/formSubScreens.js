@@ -17,7 +17,6 @@ import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
-import Button from './common/button';
 import sessionStore from 'js/stores/session';
 import TransferProjects from './transferProjects.component';
 
@@ -149,9 +148,7 @@ export class FormSubScreens extends React.Component {
       <bem.FormView m='form-settings-sharing'>
         <SharingForm assetUid={uid} />
 
-        {this.state.owner__username === sessionStore.currentAccount.username && (
-          <TransferProjects asset={this.state} />
-        )}
+        <TransferProjects asset={this.state} />
       </bem.FormView>
     );
   }
