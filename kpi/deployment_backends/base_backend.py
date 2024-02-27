@@ -13,7 +13,6 @@ from typing import Union, Iterator, Optional
 
 from bson import json_util
 from django.conf import settings
-from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.storage import default_storage
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -35,13 +34,13 @@ from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
     get_or_create_element,
     xml_tostring,
 )
-
 
 class BaseDeploymentBackend(abc.ABC):
     """
@@ -770,9 +769,10 @@ class BaseDeploymentBackend(abc.ABC):
         if not request or '_attachments' not in submission:
             return submission
 
-        submission_values = submission.values()
-        questions = list(submission)
         attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            submission, attachment_xpaths
+        )
 
         for attachment in submission['_attachments']:
             for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
@@ -800,23 +800,6 @@ class BaseDeploymentBackend(abc.ABC):
 
             # Retrieve XPath and add it to attachment dictionary
             basename = os.path.basename(attachment['filename'])
-            attachment['question_xpath'] = ''
-
-            for idx, value in enumerate(submission_values):
-                if not isinstance(value, str):
-                    continue
-                try:
-                    valid_name = self._open_rosa_server_storage.get_valid_name(
-                        value
-                    )
-                except SuspiciousFileOperation:
-                    continue
-
-                if (
-                    valid_name == basename
-                    and questions[idx] in attachment_xpaths
-                ):
-                    attachment['question_xpath'] = questions[idx]
-                    break
+            attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
 
         return submission

@@ -43,7 +43,6 @@ from kpi.constants import (
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
-    InvalidXPathException,
     KobocatCommunicationError,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
@@ -68,7 +67,6 @@ from .kc_access.shadow_models import (
     KobocatXForm,
     ReadOnlyKobocatInstance,
 )
-from .kc_access.storage import default_kobocat_storage
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,

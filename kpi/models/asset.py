@@ -579,7 +579,7 @@ class Asset(ObjectPermissionMixin,
         )
 
     @cache_for_request
-    def get_attachment_xpaths(self, deployed: bool = True) -> list:
+    def get_attachment_xpaths(self, deployed: bool = True) -> Optional[list]:
         version = (
             self.latest_deployed_version if deployed else self.latest_version
         )
