@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useReducer,
@@ -8,12 +9,7 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import {
-  getOrganization,
-  getProducts,
-  postCheckout,
-  postCustomerPortal,
-} from '../stripe.api';
+import {getOrganization, postCheckout, postCustomerPortal} from '../stripe.api';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -28,36 +24,37 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
 import {
   getSubscriptionsForProductId,
+  isDowngrade,
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
 import type {
-  BasePrice,
-  Organization,
   Price,
+  Organization,
   Product,
   SubscriptionInfo,
+  SinglePricedProduct,
 } from 'js/account/stripe.types';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 import Session from 'js/stores/session';
 import InlineMessage from 'js/components/common/inlineMessage';
 import {PlanContainer} from 'js/account/plans/planContainer.component';
+import {ProductsContext} from '../useProducts.hook';
 
 export interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
   intervalFilter: string;
   filterToggle: boolean;
-  products: null | Product[];
   organization: null | Organization;
   featureTypes: string[];
 }
 
+interface PlanProps {
+  showAddOns?: boolean;
+}
+
 // An interface for our action
 type DataUpdates =
-  | {
-      type: 'initialProd';
-      prodData: Product[];
-    }
   | {
       type: 'initialSub';
       prodData: SubscriptionInfo[];
@@ -79,7 +76,6 @@ const initialState: PlanState = {
   subscribedProduct: null,
   intervalFilter: 'month',
   filterToggle: true,
-  products: null,
   organization: null,
   featureTypes: ['advanced', 'support', 'addons'],
 };
@@ -88,8 +84,6 @@ const subscriptionUpgradeMessageDuration = 8000;
 
 function planReducer(state: PlanState, action: DataUpdates): PlanState {
   switch (action.type) {
-    case 'initialProd':
-      return {...state, products: action.prodData};
     case 'initialOrg':
       return {...state, organization: action.prodData};
     case 'initialSub':
@@ -111,7 +105,7 @@ function planReducer(state: PlanState, action: DataUpdates): PlanState {
   }
 }
 
-export default function Plan() {
+export default function Plan(props: PlanProps) {
   // useReducer type defs incorrectly require an initializer arg - see https://github.com/facebook/react/issues/27052
   const [state, dispatch]: [PlanState, (arg: DataUpdates) => void] = useReducer(
     planReducer,
@@ -123,10 +117,12 @@ export default function Plan() {
   const [activeSubscriptions, setActiveSubscriptions] = useState<
     SubscriptionInfo[]
   >([]);
+  const productsContext = useContext(ProductsContext);
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
     newPrice: null,
     products: [],
     currentSubscription: null,
+    quantity: 1,
   });
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default']);
   const [session, setSession] = useState(() => Session);
@@ -138,8 +134,12 @@ export default function Plan() {
 
   const isDataLoading = useMemo(
     (): boolean =>
-      !(state.products && state.organization && state.subscribedProduct),
-    [state.products, state.organization, state.subscribedProduct]
+      !(
+        productsContext.isLoaded &&
+        state.organization &&
+        state.subscribedProduct
+      ),
+    [productsContext.isLoaded, state.organization, state.subscribedProduct]
   );
 
   const isDisabled = useMemo(
@@ -206,16 +206,6 @@ export default function Plan() {
         subscriptionStore.fetchSubscriptionInfo();
       }
 
-      fetchPromises[0] = getProducts().then((data) => {
-        // If we have no products, redirect
-        if (!data.count) {
-          navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
-        }
-        dispatch({
-          type: 'initialProd',
-          prodData: data.results,
-        });
-      });
       fetchPromises[1] = getOrganization().then((data) => {
         dispatch({
           type: 'initialOrg',
@@ -324,39 +314,41 @@ export default function Plan() {
   );
 
   // An array of all the prices that should be displayed in the UI
-  const filterPrices = useMemo((): Price[] => {
-    if (state.products !== null) {
-      const filterAmount = state.products.map((product: Product): Price => {
-        const filteredPrices = product.prices.filter((price: BasePrice) => {
-          const interval = price.recurring?.interval;
-          return (
-            // only show monthly/annual plans based on toggle value
-            interval === state.intervalFilter &&
-            // don't show recurring add-ons
-            product.metadata.product_type === 'plan' &&
-            // only show products that don't have a `plan_type` or those that match the `?type=` query param
-            (visiblePlanTypes.includes(product.metadata?.plan_type) ||
-              (!product.metadata?.plan_type &&
-                visiblePlanTypes.includes('default')))
-          );
-        });
+  const filteredPriceProducts = useMemo((): SinglePricedProduct[] => {
+    if (productsContext.products.length) {
+      const filterAmount = productsContext.products.map(
+        (product: Product): SinglePricedProduct => {
+          const filteredPrices = product.prices.filter((price: Price) => {
+            const interval = price.recurring?.interval;
+            return (
+              // only show monthly/annual plans based on toggle value
+              interval === state.intervalFilter &&
+              // don't show recurring add-ons
+              product.metadata.product_type === 'plan' &&
+              // only show products that don't have a `plan_type` or those that match the `?type=` query param
+              (visiblePlanTypes.includes(product.metadata?.plan_type || '') ||
+                (!product.metadata?.plan_type &&
+                  visiblePlanTypes.includes('default')))
+            );
+          });
 
-        return {
-          ...product,
-          prices: filteredPrices[0],
-        };
-      });
+          return {
+            ...product,
+            price: filteredPrices[0],
+          };
+        }
+      );
 
-      return filterAmount.filter((price) => price.prices);
+      return filterAmount.filter((price) => price.price);
     }
     return [];
-  }, [state.products, state.intervalFilter, visiblePlanTypes]);
+  }, [productsContext.products, state.intervalFilter, visiblePlanTypes]);
 
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
-    (product: Price) => {
-      if (!product.prices?.unit_amount && !hasActiveSubscription) {
+    (product: SinglePricedProduct, quantity = null) => {
+      if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true;
       }
 
@@ -368,13 +360,15 @@ export default function Plan() {
       if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
           (subscription: SubscriptionInfo) =>
-            subscription.items[0].price.id === product.prices.id &&
-            hasManageableStatus(subscription)
+            subscription.items[0].price.id === product.price.id &&
+            hasManageableStatus(subscription) &&
+            quantity &&
+            quantity === subscription.quantity
         );
       }
       return false;
     },
-    [state.subscribedProduct, state.intervalFilter, state.products]
+    [state.subscribedProduct, state.intervalFilter, productsContext.products]
   );
 
   const dismissConfirmModal = () => {
@@ -383,32 +377,31 @@ export default function Plan() {
     });
   };
 
-  const buySubscription = (price: BasePrice) => {
+  const buySubscription = (price: Price, quantity: number = 1) => {
     if (!price.id || isDisabled || !state.organization?.id) {
       return;
     }
     setIsBusy(true);
     if (activeSubscriptions.length) {
-      if (
-        activeSubscriptions[0].items?.[0].price.unit_amount < price.unit_amount
-      ) {
+      if (!isDowngrade(activeSubscriptions, price, quantity)) {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
-        postCustomerPortal(state.organization.id, price.id)
+        postCustomerPortal(state.organization.id, price.id, quantity)
           .then(processCheckoutResponse)
           .catch(() => setIsBusy(false));
       } else {
         // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
         // this will downgrade the subscription at the end of the current billing period
         setConfirmModal({
-          products: state.products,
+          products: productsContext.products,
           newPrice: price,
           currentSubscription: activeSubscriptions[0],
+          quantity: quantity,
         });
       }
     } else {
       // just send the user to the checkout page
-      postCheckout(price.id, state.organization.id)
+      postCheckout(price.id, state.organization.id, quantity)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false));
     }
@@ -416,9 +409,9 @@ export default function Plan() {
 
   const hasMetaFeatures = () => {
     let expandBool = false;
-    if (state.products && state.products.length > 0) {
-      filterPrices.map((price) => {
-        for (const featureItem in price.metadata) {
+    if (productsContext.products.length) {
+      filteredPriceProducts.map((product) => {
+        for (const featureItem in product.metadata) {
           if (
             featureItem.includes('feature_support_') ||
             featureItem.includes('feature_advanced_') ||
@@ -433,22 +426,11 @@ export default function Plan() {
     return expandBool;
   };
 
-  const getFeatureMetadata = (price: Price, featureItem: string) => {
-    if (
-      price.prices.unit_amount === 0 &&
-      freeTierOverride &&
-      freeTierOverride.hasOwnProperty(featureItem)
-    ) {
-      return freeTierOverride[featureItem as keyof FreeTierOverride];
-    }
-    return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
-  };
-
   useEffect(() => {
     hasMetaFeatures();
-  }, [state.products]);
+  }, [productsContext.products]);
 
-  if (!state.products?.length || !state.organization) {
+  if (!productsContext.products.length || !state.organization) {
     return null;
   }
 
@@ -471,126 +453,137 @@ export default function Plan() {
             className={classnames(styles.accountPlan, {
               [styles.wait]: isBusy,
               [styles.unauthorized]: isUnauthorized,
+              [styles.showAddOns]: props.showAddOns,
             })}
           >
-            <div className={styles.plansSection}>
-              <form className={styles.intervalToggle}>
-                <input
-                  type='radio'
-                  id='switch_left'
-                  name='switchToggle'
-                  value='month'
-                  aria-label={t('show monthly plans')}
-                  onChange={() => !isDisabled && dispatch({type: 'month'})}
-                  aria-disabled={isDisabled}
-                  checked={state.filterToggle}
-                />
-                <label htmlFor='switch_left'> {t('Monthly')}</label>
+            {!props.showAddOns && (
+              <>
+                <div className={styles.plansSection}>
+                  <form className={styles.intervalToggle}>
+                    <input
+                      type='radio'
+                      id='switch_left'
+                      name='switchToggle'
+                      value='month'
+                      aria-label={t('show monthly plans')}
+                      onChange={() => !isDisabled && dispatch({type: 'month'})}
+                      aria-disabled={isDisabled}
+                      checked={state.filterToggle}
+                    />
+                    <label htmlFor='switch_left'> {t('Monthly')}</label>
 
-                <input
-                  type='radio'
-                  id='switch_right'
-                  name='switchToggle'
-                  value='year'
-                  onChange={() => !isDisabled && dispatch({type: 'year'})}
-                  aria-disabled={isDisabled}
-                  checked={!state.filterToggle}
-                  aria-label={t('show annual plans')}
-                />
-                <label htmlFor='switch_right'>{t('Annual')}</label>
-              </form>
+                    <input
+                      type='radio'
+                      id='switch_right'
+                      name='switchToggle'
+                      value='year'
+                      onChange={() => !isDisabled && dispatch({type: 'year'})}
+                      aria-disabled={isDisabled}
+                      checked={!state.filterToggle}
+                      aria-label={t('show annual plans')}
+                    />
+                    <label htmlFor='switch_right'>{t('Annual')}</label>
+                  </form>
 
-              <div className={styles.allPlans}>
-                {filterPrices.map((price: Price) => (
-                  <div className={styles.stripePlans} key={price.id}>
-                    <PlanContainer
-                      freeTierOverride={freeTierOverride}
-                      expandComparison={expandComparison}
-                      isSubscribedProduct={isSubscribedProduct}
-                      price={price}
-                      filterPrices={filterPrices}
-                      hasManageableStatus={hasManageableStatus}
-                      setIsBusy={setIsBusy}
-                      isDisabled={isDisabled}
-                      state={state}
-                      buySubscription={buySubscription}
-                      activeSubscriptions={activeSubscriptions}
+                  <div className={styles.allPlans}>
+                    {filteredPriceProducts.map(
+                      (product: SinglePricedProduct) => (
+                        <div className={styles.stripePlans} key={product.id}>
+                          <PlanContainer
+                            key={product.price.id}
+                            freeTierOverride={freeTierOverride}
+                            expandComparison={expandComparison}
+                            isSubscribedProduct={isSubscribedProduct}
+                            product={product}
+                            filteredPriceProducts={filteredPriceProducts}
+                            hasManageableStatus={hasManageableStatus}
+                            setIsBusy={setIsBusy}
+                            isDisabled={isDisabled}
+                            state={state}
+                            buySubscription={buySubscription}
+                            activeSubscriptions={activeSubscriptions}
+                          />
+                        </div>
+                      )
+                    )}
+                    {shouldShowExtras && (
+                      <div className={styles.enterprisePlanContainer}>
+                        <div className={styles.enterprisePlan}>
+                          <h1 className={styles.enterpriseTitle}>
+                            {' '}
+                            {t('Want more?')}
+                          </h1>
+                          <div className={styles.priceTitle}>
+                            {t('Contact us')}
+                          </div>
+                          <p className={styles.enterpriseDetails}>
+                            {t(
+                              'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
+                            )}
+                            <a
+                              href='https://www.kobotoolbox.org/contact/'
+                              target='_blanks'
+                              className={styles.enterpriseLink}
+                            >
+                              {t('Enterprise Plan')}
+                            </a>
+                            .
+                          </p>
+                          <p className={styles.enterpriseDetails}>
+                            {t(
+                              'We also offer custom solutions and private servers for large organizations. '
+                            )}
+                            <br />
+                            <a
+                              href='https://www.kobotoolbox.org/contact/'
+                              target='_blanks'
+                              className={styles.enterpriseLink}
+                            >
+                              {t('Contact our team')}
+                            </a>
+                            {t(' for more information.')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {hasMetaFeatures() && (
+                  <div>
+                    <Button
+                      type='full'
+                      color='cloud'
+                      size='m'
+                      isFullWidth
+                      label={
+                        expandComparison
+                          ? t('Collapse full comparison')
+                          : t('Display full comparison')
+                      }
+                      onClick={() => setExpandComparison(!expandComparison)}
+                      aria-label={
+                        expandComparison
+                          ? t('Collapse full comparison')
+                          : t('Display full comparison')
+                      }
                     />
                   </div>
-                ))}
-                {shouldShowExtras && (
-                  <div className={styles.enterprisePlanContainer}>
-                    <div className={styles.enterprisePlan}>
-                      <h1 className={styles.enterpriseTitle}>
-                        {' '}
-                        {t('Want more?')}
-                      </h1>
-                      <div className={styles.priceTitle}>{t('Contact us')}</div>
-                      <p className={styles.enterpriseDetails}>
-                        {t(
-                          'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
-                        )}
-                        <a
-                          href='https://www.kobotoolbox.org/contact/'
-                          target='_blanks'
-                          className={styles.enterpriseLink}
-                        >
-                          {t('Enterprise Plan')}
-                        </a>
-                        .
-                      </p>
-                      <p className={styles.enterpriseDetails}>
-                        {t(
-                          'We also offer custom solutions and private servers for large organizations. '
-                        )}
-                        <br />
-                        <a
-                          href='https://www.kobotoolbox.org/contact/'
-                          target='_blanks'
-                          className={styles.enterpriseLink}
-                        >
-                          {t('Contact our team')}
-                        </a>
-                        {t(' for more information.')}
-                      </p>
-                    </div>
-                  </div>
                 )}
-              </div>
-            </div>
-
-            {hasMetaFeatures() && (
-              <div>
-                <Button
-                  type='full'
-                  color='cloud'
-                  size='m'
-                  isFullWidth
-                  label={
-                    expandComparison
-                      ? t('Collapse full comparison')
-                      : t('Display full comparison')
-                  }
-                  onClick={() => setExpandComparison(!expandComparison)}
-                  aria-label={
-                    expandComparison
-                      ? t('Collapse full comparison')
-                      : t('Display full comparison')
-                  }
-                />
-              </div>
+              </>
             )}
-            {shouldShowExtras && (
+            {shouldShowExtras && props.showAddOns && (
               <AddOnList
                 isBusy={isBusy}
                 setIsBusy={setIsBusy}
-                products={state.products}
+                products={productsContext.products}
                 organization={state.organization}
                 onClickBuy={buySubscription}
               />
             )}
             <ConfirmChangeModal
               onRequestClose={dismissConfirmModal}
+              setIsBusy={setIsBusy}
               {...confirmModal}
             />
           </div>

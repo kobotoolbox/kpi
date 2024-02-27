@@ -8,13 +8,7 @@
   align-items: center;
   justify-content: space-between;
   margin-block-end: 1.5em;
-  border-block: 1px solid colors.$kobo-gray-85
-}
-
-.banner {
-  flex-basis: 100%;
-  margin-top: 1em;
-  margin-bottom: -1em;
+  border-block: sizes.$x1 solid colors.$kobo-gray-96;
 }
 
 .plan {
@@ -26,10 +20,17 @@
   margin-block: 1.5em;
 }
 
-.renewal {
+.updateBadge {
   font-weight: bold;
   font-size: sizes.$r12;
   padding-inline: 0.25em;
+}
+
+.subscriptionChangeNotice {
+  width: 100%;
+  padding: sizes.$x12 sizes.$x16;
+  background-color: colors.$kobo-gray-96;
+  margin-bottom: 1.5em;
 }
 
 .start {

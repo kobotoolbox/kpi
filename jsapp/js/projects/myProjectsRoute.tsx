@@ -27,11 +27,13 @@ import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import {ProductsContext, useProducts} from 'js/account/useProducts.hook';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const products = useProducts();
   const usage = useUsage();
 
   useEffect(() => {
@@ -80,7 +82,9 @@ function MyProjectsRoute() {
       </div>
 
       <UsageContext.Provider value={usage}>
-        <LimitNotifications useModal />
+        <ProductsContext.Provider value={products}>
+          <LimitNotifications useModal />
+        </ProductsContext.Provider>
       </UsageContext.Provider>
 
       <section className={styles.root}>
