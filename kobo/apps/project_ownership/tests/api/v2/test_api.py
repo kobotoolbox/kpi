@@ -269,7 +269,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
 
     """
     Tests in this class use the mock library a lot because transferring a
-    deployed project implies accessing Kobocat tables. However, KPI does not
+    deployed project implies accessing KoboCAT tables. However, KPI does not
     support it.
     """
 
