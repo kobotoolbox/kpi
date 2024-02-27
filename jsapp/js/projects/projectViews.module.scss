@@ -24,7 +24,7 @@
 .banner {
   display: flex;
   justify-content: space-between;
-  margin: sizes.$x24;
+  margin: sizes.$x24 sizes.$x24 0 sizes.$x24;
   padding: sizes.$x12;
   background-color: colors.$kobo-light-blue;
   border-radius: sizes.$x5;
@@ -37,8 +37,4 @@
 
 .bannerButton {
   margin-left: auto;
-}
-
-.noBanner {
-  display: none;
 }

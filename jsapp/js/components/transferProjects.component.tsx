@@ -30,6 +30,10 @@ interface TransferProjectsState {
   submitPending: boolean;
 }
 
+/**
+ * Inline component to start the project transfer process.
+ * Also houses the modal for the transfer process.
+ */
 export default function TransferProjects(props: TransferProjectsProps) {
   const [transfer, setTransfer] = useState<TransferProjectsState>({
     isModalOpen: false,
@@ -93,13 +97,14 @@ export default function TransferProjects(props: TransferProjectsProps) {
           if (err.status === 400) {
             setTransfer({
               ...transfer,
-              submitPending: false,
-              usernameError: 'User not found. Please try again.',
+              usernameError: t('User not found. Please try again.'),
             });
           }
+
+          setTransfer({...transfer, submitPending: false});
         });
     } else {
-      setTransfer({...transfer, usernameError: 'Please enter a user name.'});
+      setTransfer({...transfer, usernameError: t('Please enter a user name.')});
     }
   }
 
@@ -114,166 +119,173 @@ export default function TransferProjects(props: TransferProjectsProps) {
           });
         }
       });
-    } else {
-      throw Error;
     }
   }
 
-  return (
-    <div className={styles.root}>
-      <div className={styles.bar}>
-        <div className={styles.description}>
-          <strong>{t('Transfer project ownership')}</strong>
-          <div className={styles.copy}>
-            {transfer.inviteStatus === TransferStatuses.Pending ? (
-              <span>
-                {t('Your transfer request is pending until')}
-                <b>
+  if (props.asset.owner__username === sessionStore.currentAccount.username) {
+    return (
+      <div className={styles.root}>
+        <div className={styles.bar}>
+          <div className={styles.description}>
+            <strong>{t('Transfer project ownership')}</strong>
+            <div className={styles.copy}>
+              {transfer.inviteStatus === TransferStatuses.Pending ? (
+                <span>
+                  {t('Your transfer request is pending until')}
+                  <b>
+                    &nbsp;
+                    {transfer.invitedUserName}
+                    &nbsp;
+                  </b>
+                  {t('has accepted or declined it.')}
+                </span>
+              ) : (
+                <span>
+                  {t(
+                    'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
+                  )}
                   &nbsp;
-                  {transfer.invitedUserName}
-                  &nbsp;
-                </b>
-                {t('has accepted or declined it.')}
-              </span>
-            ) : (
-              <span>
-                {t(
-                  'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
-                )}
-                &nbsp;
-                <a
-                  href={
-                    envStore.data.support_url +
-                    HELP_ARTICLE_ANON_SUBMISSIONS_URL
-                  }
-                  target='_blank'
-                >
-                  {t('Learn more')}
-                </a>
-                &nbsp;
-                {t('→')}
-              </span>
-            )}
+                  <a
+                    href={
+                      envStore.data.support_url +
+                      HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                    }
+                    target='_blank'
+                  >
+                    {t('Learn more →')}
+                  </a>
+                </span>
+              )}
+            </div>
           </div>
+
+          {transfer.inviteStatus === TransferStatuses.Pending && (
+            <Button
+              classNames={[styles.transferButton]}
+              label={t('Cancel transfer')}
+              isFullWidth
+              onClick={cancelCurrentInvite}
+              color='storm'
+              type='frame'
+              size='l'
+            />
+          )}
+
+          {transfer.inviteStatus !== TransferStatuses.Pending && (
+            <Button
+              classNames={[styles.transferButton]}
+              label={t('Transfer')}
+              isFullWidth
+              onClick={toggleModal}
+              color='storm'
+              type='frame'
+              size='l'
+            />
+          )}
         </div>
 
-        <Button
-          label={
-            transfer.inviteStatus === TransferStatuses.Pending
-              ? t('Cancel transfer')
-              : t('Transfer')
-          }
-          isFullWidth
-          onClick={
-            transfer.inviteStatus === TransferStatuses.Pending
-              ? cancelCurrentInvite
-              : toggleModal
-          }
-          color='storm'
-          type='frame'
-          size='l'
-        />
-      </div>
-
-      <KoboModal
-        isOpen={transfer.isModalOpen}
-        onRequestClose={toggleModal}
-        size='medium'
-      >
-        <KoboModalHeader onRequestCloseByX={toggleModal} headerColor='white'>
-          {t('Transfer ownership')}
-        </KoboModalHeader>
-        <form autoComplete='off'>
-          <section className={styles.modalBody}>
-            <p>
-              {t('This action will transfer ownership of')}
-              &nbsp;
-              {props.asset.name}
-              &nbsp;
-              {t('to another user.')}
-            </p>
-            <p>
-              {t(
-                'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.'
-              )}
-            </p>
-            <p>
-              {t(
-                'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.'
-              )}
-            </p>
-
-            <div className={styles.warning}>
-              <Icon
-                name='warning'
-                size='s'
-                color='red'
-                classNames={[styles.warningIcon]}
-              />
-
-              <div className={styles.warningCopy}>
+        <KoboModal
+          isOpen={transfer.isModalOpen}
+          onRequestClose={toggleModal}
+          size='medium'
+        >
+          <KoboModalHeader onRequestCloseByX={toggleModal} headerColor='white'>
+            {t('Transfer ownership')}
+          </KoboModalHeader>
+          {/* Auto comeplete off as the feild will be filled by your own username
+          which is who you definitely don’t want to use here */}
+          <form autoComplete='off' className={styles.form}>
+            <section className={styles.modalBody}>
+              <p>
                 {t(
-                  'You will be the owner of the project until the transfer is accepted.'
+                  'This action will transfer ownership of ##username## to another user'
+                ).replace('##username##', props.asset.name)}
+              </p>
+              <p>
+                {t(
+                  'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.'
                 )}
-                <br />
-                <strong>
-                  {t(
-                    'Once the transfer is accepted, you will not be able to undo this action.'
-                  )}
-                </strong>
-                &nbsp;
-                <a
-                  href={
-                    envStore.data.support_url +
-                    HELP_ARTICLE_ANON_SUBMISSIONS_URL
-                  }
-                  target='_blank'
-                >
-                  {t('Learn more')}
-                </a>
-              </div>
-            </div>
-            {/* Unused element to prevent firefox autocomplete
-            suggestions on username field */}
-            <input type='text' style={{display: 'none'}} />
-            <div className={styles.input}>
-              <TextBox
-                label={t(
-                  'To complete the transfer, enter the username of the new project owner'
+              </p>
+              <p>
+                {t(
+                  'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.'
                 )}
-                type='text'
-                value={transfer.usernameInput}
-                placeholder={t('Enter username here')}
-                required
-                errors={transfer.usernameError}
-                onChange={updateUsername}
-              />
-            </div>
-          </section>
+              </p>
 
-          <KoboModalFooter alignment='end'>
-            <Button
-              label={t('Cancel')}
-              onClick={toggleModal}
-              color='blue'
-              type='frame'
-              size='m'
-            />
-            <Button
-              label={t('Transfer project')}
-              onClick={(evt: React.FormEvent<HTMLFormElement>) => {
-                evt.preventDefault();
-                submitInvite(transfer.usernameInput);
-              }}
-              isPending={transfer.submitPending}
-              color='blue'
-              type='full'
-              size='m'
-              isSubmit
-            />
-          </KoboModalFooter>
-        </form>
-      </KoboModal>
-    </div>
-  );
+              <div className={styles.warning}>
+                <Icon
+                  name='warning'
+                  size='s'
+                  color='red'
+                  classNames={styles.warningIcon}
+                />
+
+                <div className={styles.warningCopy}>
+                  {t(
+                    'You will be the owner of the project until the transfer is accepted.'
+                  )}
+                  <br />
+                  <strong>
+                    {t(
+                      'Once the transfer is accepted, you will not be able to undo this action.'
+                    )}
+                  </strong>
+                  &nbsp;
+                  <a
+                    href={
+                      envStore.data.support_url +
+                      HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                    }
+                    target='_blank'
+                  >
+                    {t('Learn more')}
+                  </a>
+                </div>
+              </div>
+              {/* Unused element to prevent firefox autocomplete
+            suggestions on username field */}
+              <input type='text' style={{display: 'none'}} />
+              <div className={styles.input}>
+                <TextBox
+                  label={t(
+                    'To complete the transfer, enter the username of the new project owner'
+                  )}
+                  type='text'
+                  value={transfer.usernameInput}
+                  placeholder={t('Enter username here')}
+                  required
+                  errors={transfer.usernameError}
+                  onChange={updateUsername}
+                />
+              </div>
+            </section>
+
+            <KoboModalFooter alignment='end'>
+              <Button
+                label={t('Cancel')}
+                onClick={toggleModal}
+                color='blue'
+                type='frame'
+                size='m'
+              />
+              <Button
+                label={t('Transfer project')}
+                onClick={(evt: React.FormEvent<HTMLFormElement>) => {
+                  evt.preventDefault();
+                  submitInvite(transfer.usernameInput);
+                }}
+                isPending={transfer.submitPending}
+                color='blue'
+                type='full'
+                size='m'
+                isSubmit
+              />
+            </KoboModalFooter>
+          </form>
+        </KoboModal>
+      </div>
+    );
+  } else {
+    return null;
+  }
 }

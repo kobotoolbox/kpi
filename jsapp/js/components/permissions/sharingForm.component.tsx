@@ -163,6 +163,7 @@ export default class SharingForm extends React.Component<
     }
   }
 
+  /** Check if the recipient of the transfer is the specified user */
   isPendingOwner(username: string) {
     return this.state.asset?.project_ownership?.status ===
       TransferStatuses.Pending &&
@@ -171,7 +172,7 @@ export default class SharingForm extends React.Component<
       : false;
   }
 
-  // Display pending owner if not already included in list of user permissions
+  /** Display pending owner if not already included in list of user permissions */
   renderPendingOwner() {
     if (
       this.state.asset?.project_ownership?.status ===
