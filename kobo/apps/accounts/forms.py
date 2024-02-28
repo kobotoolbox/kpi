@@ -73,6 +73,10 @@ class KoboSignupMixin(forms.Form):
         for field_name in ['username', 'email', 'password1', 'password2']:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs['placeholder'] = ''
+        if 'password1' in self.fields:
+            # Remove `help_text` on purpose since some guidance is provided by
+            # Constance setting. Moreover it is redundant with error messages.
+            self.fields['password1'].help_text = ''
         if 'password2' in self.fields:
             self.fields['password2'].label = t('Password confirmation')
 
