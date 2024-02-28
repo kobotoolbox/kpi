@@ -285,6 +285,8 @@ grpcio==1.46.3
     #   grpcio-status
 grpcio-status==1.46.3
     # via google-api-core
+httmock==1.4.0
+    # via -r dependencies/pip/dev_requirements.in
 httplib2==0.20.4
     # via
     #   google-api-python-client
@@ -344,6 +346,8 @@ msrest==0.7.1
     # via azure-storage-blob
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
+numpy==1.26.4
+    # via pandas
 oauthlib==3.2.0
     # via
     #   -r dependencies/pip/requirements.in
@@ -358,6 +362,8 @@ packaging==21.3
     #   mongomock
     #   pytest
     #   redis
+pandas==2.2.1
+    # via -r dependencies/pip/requirements.in
 paramiko==2.10.4
     # via fabric
 parso==0.8.3
@@ -458,6 +464,7 @@ python-dateutil==2.8.2
     # via
     #   -r dependencies/pip/requirements.in
     #   botocore
+    #   pandas
     #   python-crontab
 python3-openid==3.2.0
     # via django-allauth
@@ -468,6 +475,7 @@ pytz==2022.1
     #   django-timezone-field
     #   djangorestframework
     #   flower
+    #   pandas
     #   twilio
 pyxform==1.9.0
     # via
@@ -490,6 +498,7 @@ requests==2.27.1
     #   django-oauth-toolkit
     #   google-api-core
     #   google-cloud-storage
+    #   httmock
     #   msrest
     #   requests-oauthlib
     #   responses
@@ -513,6 +522,8 @@ sentry-sdk==1.5.12
     # via -r dependencies/pip/requirements.in
 shortuuid==1.0.8
     # via -r dependencies/pip/requirements.in
+simplejson==3.19.2
+    # via -r dependencies/pip/dev_requirements.in
 six==1.16.0
     # via
     #   asttokens
@@ -561,6 +572,8 @@ twilio==7.8.2
     # via django-trench
 typing-extensions==4.2.0
     # via azure-core
+tzdata==2024.1
+    # via pandas
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==1.26.9

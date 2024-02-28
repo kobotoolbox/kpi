@@ -300,6 +300,8 @@ msrest==0.7.1
     # via azure-storage-blob
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
+numpy==1.26.4
+    # via pandas
 oauthlib==3.2.0
     # via
     #   -r dependencies/pip/requirements.in
@@ -311,6 +313,8 @@ openpyxl==3.0.9
     #   pyxform
 packaging==21.3
     # via redis
+pandas==2.2.1
+    # via -r dependencies/pip/requirements.in
 path==16.4.0
     # via path-py
 path-py==12.5.0
@@ -375,6 +379,7 @@ python-dateutil==2.8.2
     # via
     #   -r dependencies/pip/requirements.in
     #   botocore
+    #   pandas
     #   python-crontab
 python3-openid==3.2.0
     # via django-allauth
@@ -385,6 +390,7 @@ pytz==2022.1
     #   django-timezone-field
     #   djangorestframework
     #   flower
+    #   pandas
     #   twilio
 pyxform==1.9.0
     # via
@@ -460,6 +466,8 @@ twilio==7.8.2
     # via django-trench
 typing-extensions==4.2.0
     # via azure-core
+tzdata==2024.1
+    # via pandas
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==1.26.9
