@@ -32,11 +32,11 @@ from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatMonthlyXFormSubmissionCounter,
     KobocatXForm,
     KobocatUser,
     KobocatUserProfile,
     ReadOnlyKobocatInstance,
-    KobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset, AssetDeploymentStatus
 
