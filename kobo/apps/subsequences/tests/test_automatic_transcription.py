@@ -1,5 +1,5 @@
 import pytest
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+from ..actions.base import ACTION_NEEDED, PASSES
 from ..actions.automatic_transcription import (
     AutomaticTranscriptionAction,
     REQUESTED_BY_USER,
@@ -17,9 +17,10 @@ TEST_TRANSCRIPTION_SERVICES = [
 def _survey_and_submission():
     survey = {'survey': [{'type': 'audio', 'name': 'ask_a_question'}]}
     submission = {'ask_a_question': 'blah.mp3', '_attachments': [
-        {'filename': 'blah.mp3',}
+        {'filename': 'blah.mp3', }
     ]}
-    return (survey, submission)
+    return survey, submission
+
 
 def test_param_builder():
     AutomaticTranscriptionAction.TRANSCRIPTION_SERVICES = TEST_TRANSCRIPTION_SERVICES
@@ -27,6 +28,7 @@ def test_param_builder():
     built_params = AutomaticTranscriptionAction.build_params({}, survey)
     assert built_params['values'] == ['ask_a_question']
     assert 'services' in built_params
+
 
 def test_instantiate_action_with_params():
     survey = _survey_and_submission()[0]
