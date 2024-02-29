@@ -16,7 +16,7 @@ all_users_qs = KobocatUser.objects.filter(username__in=usernames)
 URL_FIND_REPLACE = (
     ('https://kc.kobotoolbox.org/', 'https://kobo-kc.nrc.no/'),
     ('https://kc-eu.kobotoolbox.org/', 'https://kobo-kc.nrc.no/'),
-    ('https://kc.humanitarianresponse.info', 'https://kobo-kc.nrc.no/')
+    ('https://kc.humanitarianresponse.info', 'https://kobo-kc.nrc.no/'),
     ('http://hhi-kobo-kobocat/', 'http://nrc-kobo-kobocat/'),
     ('http://ocha-kobo-kobocat/', 'http://nrc-kobo-kobocat/'),
 )
