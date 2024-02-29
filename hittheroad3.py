@@ -133,7 +133,7 @@ with route_to_dest():
             owner__username__in=some_usernames
         ).values_list('pk', 'uid')
     }
-for uid, dest_pk in dest_uids_to_pks:
+for uid, dest_pk in dest_uids_to_pks.items():
     try:
         source_to_dest_pks[Asset][source_uids_to_pks[uid]] = dest_pk
     except KeyError:
