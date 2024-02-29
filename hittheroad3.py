@@ -26,6 +26,25 @@ counts = defaultdict(lambda: 1)
 
 csv_writer = csv.writer(sys.stdout)
 
+def xref_all_users():
+    with route_to_dest():
+        dest_usernames_to_pks = {
+            v[0]: v[1] for v in User.objects.values_list('username', 'pk')
+        }
+    source_usernames_to_pks = {
+        v[0]: v[1]
+        for v in User.objects.filter(
+            username__in=dest_usernames_to_pks.keys()
+        ).values_list('username', 'pk')
+    }
+    source_to_dest_pks[User] = {}
+    for username, dest_pk in dest_usernames_to_pks.items():
+        try:
+            source_pk = source_usernames_to_pks[username]
+        except KeyError:
+            continue
+        source_to_dest_pks[User][source_pk] = dest_pk
+
 
 def print_csv(*args):
     csv_writer.writerow(args)
@@ -116,6 +135,7 @@ def copy_related_objs(
 
 source_to_dest_pks = {}
 source_to_dest_pks[User] = {-1: -1}  # PK for AnonymousUser doesn't change
+xref_all_users()
 
 # Cross-reference all Assets
 
