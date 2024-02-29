@@ -31,16 +31,11 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
-from kobo.apps.stripe.utils import get_total_price_for_quantity
+from kobo.apps.stripe.utils import (
+    generate_return_url,
+    get_total_price_for_quantity,
+)
 from kpi.permissions import IsAuthenticated
-
-
-def generate_return_url(product_metadata):
-    base_url = settings.KOBOFORM_URL + '/#/account/'
-    return_page = (
-        'addons' if product_metadata['product_type'] == 'addon' else 'plan'
-    )
-    return base_url + return_page
 
 
 # Lists the one-time purchases made by the organization that the logged-in user owns
