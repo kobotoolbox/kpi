@@ -16,6 +16,7 @@ all_users_qs = KobocatUser.objects.filter(username__in=usernames)
 URL_FIND_REPLACE = (
     ('https://kc.kobotoolbox.org/', 'https://kobo-kc.nrc.no/'),
     ('https://kc-eu.kobotoolbox.org/', 'https://kobo-kc.nrc.no/'),
+    ('https://kc.humanitarianresponse.info', 'https://kobo-kc.nrc.no/')
     ('http://hhi-kobo-kobocat/', 'http://nrc-kobo-kobocat/'),
     ('http://ocha-kobo-kobocat/', 'http://nrc-kobo-kobocat/'),
 )
@@ -40,6 +41,8 @@ with route_to_dest():
             print(f'!!! XForm {xform.pk} has no `kpi_asset_uid`; skipped!')
             continue
 
+        any_changes = False
+
         dep_dat = (
             Asset.objects.only('_deployment_data')
             .get(uid=xform.kpi_asset_uid)
@@ -47,6 +50,8 @@ with route_to_dest():
         )
         old_formid = dep_dat['backend_response']['formid']
         dep_dat['backend_response']['formid'] = xform.pk
+        if old_formid != xform.pk:
+            any_changes = True
 
         url_trimmed = re.sub(
             r'/[^/]+/?$', '', dep_dat['backend_response']['url']
@@ -57,14 +62,18 @@ with route_to_dest():
         # for each `metadata`
         dep_dat_str = json.dumps(dep_dat)
         for find, replace in URL_FIND_REPLACE:
+            old_dep_dat_str = dep_dat_str
             dep_dat_str = dep_dat_str.replace(find, replace)
+            if old_dep_dat_str != dep_dat_str:
+                any_changes = True
         dep_dat = json.loads(dep_dat_str)
 
-        Asset.objects.filter(uid=xform.kpi_asset_uid).update(
-            _deployment_data=dep_dat
-        )
+        if any_changes:
+            Asset.objects.filter(uid=xform.kpi_asset_uid).update(
+                _deployment_data=dep_dat
+            )
 
-        print(
-            f"{xform.kpi_asset_uid}: {old_formid} →"
-            f" {dep_dat['backend_response']['formid']}"
-        )
+            print(
+                f"{xform.kpi_asset_uid}: {old_formid} →"
+                f" {dep_dat['backend_response']['formid']}"
+            )
