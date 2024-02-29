@@ -20,10 +20,7 @@ import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
-import type {
-  ProcessingDataResponse,
-  GoogleTsResponse,
-} from 'js/components/processing/processingActions';
+import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
 import type {
   FailResponse,
   SubmissionResponse,
@@ -132,6 +129,8 @@ interface SingleProcessingStoreData {
    * View was opened (only changes saved to Back end are taken into account).
    */
   isPristine: boolean;
+  isApplyExistingGoogleTsPromptVisible?: boolean;
+  latestResponse?: ProcessingDataResponse;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -218,6 +217,10 @@ class SingleProcessingStore extends Reflux.Store {
       return foundRow?.type;
     }
     return undefined;
+  }
+
+  public get isApplyExistingGoogleTsPromptVisible(): boolean {
+    return Boolean(this.data.isApplyExistingGoogleTsPromptVisible);
   }
 
   init() {
@@ -548,6 +551,13 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
+  /** Saves the response data in the store for later use. */
+  private saveProcessingDataResponse(response: ProcessingDataResponse) {
+    if (response[this.currentQuestionQpath]) {
+      this.data.latestResponse = response;
+    }
+  }
+
   private onFetchProcessingDataStarted(abort: () => void) {
     this.abortFetchData = abort;
     this.isFetchingData = true;
@@ -563,13 +573,13 @@ class SingleProcessingStore extends Reflux.Store {
       return;
     }
 
+    // Store the response
+    this.saveProcessingDataResponse(response);
+
     const currentQuestionResponse = response[this.currentQuestionQpath];
-    if (!currentQuestionResponse) {
-      return;
-    }
 
     // Step 1. Load transcript.
-    const transcriptResponse = currentQuestionResponse.transcript;
+    const transcriptResponse = currentQuestionResponse?.transcript;
     // NOTE: we treat empty transcript object same as nonexistent one, so we
     // start with `undefined` and only apply the transcript if both `value` and
     // `languageCode` are present.
@@ -582,35 +592,14 @@ class SingleProcessingStore extends Reflux.Store {
     // will identify if we need to a) continue polling for pending response, or
     // b) apply completed response to transcript (a case when user navigated out
     // before auto process ended, and navigated back after it ended).
-    if (currentQuestionResponse.googlets) {
-      if (
-        currentQuestionResponse.googlets.status === 'requested' ||
-        currentQuestionResponse.googlets.status === 'in_progress'
-      ) {
-        // TODO: test if this reflects anything in UI, or if we need some
-        // separate "handleExistingPendingAutoTranscription" function
-        this.onRequestAutoTranscriptionInProgress({
-          response: response,
-          submissionEditId: this.currentSubmissionEditId,
-        });
-      } else if (currentQuestionResponse.googlets.status === 'complete') {
-        this.handleExistingCompletedAutoTranscription(
-          currentQuestionResponse.googlets
-        );
-      }
-    }
+    this.handleExistingAutoTranscriptionData();
 
     // Step 3. load translations
     this.data.translations = this.getTranslationsFromResponse(response);
 
-    // Step 4. check if there is(are?) an auto translation in progress
-    if (currentQuestionResponse.googletx) {
-      // TODO write similar code to googlets above
-      console.log(
-        'xxx check auto translation',
-        currentQuestionResponse.googletx
-      );
-    }
+    // Step 4. Automatic translation happens much quicker than automatic
+    // transcription does. Thus we don't need similar flow to the Step 2 above.
+    // We keep this comment here in case we forget in future :)
 
     // Step 5. cleanup flags and abort function
     delete this.abortFetchData;
@@ -687,17 +676,85 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
-  private handleExistingCompletedAutoTranscription(googleTs: GoogleTsResponse) {
-    // TODO
-    // ensure status is completed
-    // and there is no draft(?)
-    // and there is no transcript(?)
-    // and there is no polling for transcript
-    // ask question if user wants to apply existing transcript?
-    console.log('xxx handleExistingCompletedAutoTranscription', googleTs);
+  /**
+   * Function to be used in case a user navigated out and back again while
+   * waiting for the transcription process to finish. We handle all possible
+   * cases in here.
+   */
+  private handleExistingAutoTranscriptionData() {
+    // Only do things on proper tab
+    if (this.data.activeTab !== SingleProcessingTabs.Transcript) {
+      return;
+    }
+
+    const googleTsResponse =
+      this.data.latestResponse?.[this.currentQuestionQpath]?.googlets;
+    if (!googleTsResponse) {
+      return;
+    }
+
+    // Case 1. An existing complete auto transcription in our data. To ensure we
+    // don't overwrite any existing user transcript, we do all these checks:
+    if (
+      // Make sure the transcription is actually completed…
+      googleTsResponse.status === 'complete' &&
+      // and there is no existing draft…
+      !this.data.transcriptDraft &&
+      // and there is no existing transcript…
+      !this.data.transcript &&
+      // and there is no pending transcription
+      !this.isPollingForTranscript
+    ) {
+      // Ask user if they want to apply the google transcription
+      this.data.isApplyExistingGoogleTsPromptVisible = true;
+      this.trigger(this.data);
+    }
+
+    // Case 2. An existing non-complete auto transcription in our data. We start
+    // polling for response.
+    if (
+      googleTsResponse.status === 'requested' ||
+      googleTsResponse.status === 'in_progress'
+    ) {
+      if (this.data.latestResponse) {
+        // TODO: test if this does what I think it does in UI - or if we need
+        // some separate code here
+        this.onRequestAutoTranscriptionInProgress({
+          response: this.data.latestResponse,
+          submissionEditId: this.currentSubmissionEditId,
+        });
+      }
+    }
+  }
+
+  /**
+   * If google transcription response is available, creates a new transcript
+   * draft from it. it opens in edit mode allowing user to either save or
+   * discard it.
+   */
+  public applyExistingGoogleTsResponse() {
+    const googleTsResponse =
+      this.data.latestResponse?.[this.currentQuestionQpath]?.googlets;
+    if (!googleTsResponse || this.data.transcriptDraft) {
+      return;
+    }
+    const newDraft: TransxDraft = {
+      value: googleTsResponse.value,
+      languageCode: googleTsResponse.languageCode,
+    };
+    this.setTranscriptDraft(newDraft);
+    this.closeApplyExistingGoogleTsPrompt();
+  }
+
+  public closeApplyExistingGoogleTsPrompt() {
+    this.data.isApplyExistingGoogleTsPromptVisible = false;
+    this.trigger(this.data);
   }
 
   private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
+    // Store the response
+    this.saveProcessingDataResponse(event.response);
+
     if (
       !this.currentQuestionQpath ||
       !this.isPollingForTranscript ||
@@ -716,6 +773,12 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onRequestAutoTranscriptionInProgress(event: AutoTranscriptionEvent) {
+    // Store the response
+    this.saveProcessingDataResponse(event.response);
+
+    // TODO: make sure we don't do duplicated calls if user navigates out and
+    // back again multiple times
+
     setTimeout(() => {
       // Make sure to check for applicability *after* the timeout fires, not
       // before. Someone can do a lot of navigating in 5 seconds.
@@ -984,6 +1047,9 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.transcriptDraft = undefined;
     this.data.translationDraft = undefined;
     this.data.source = undefined;
+
+    // Check if automated services data applies to current tab
+    this.handleExistingAutoTranscriptionData();
 
     // When we leave Analysis tab, we need to reset the flag responsible for
     // keeping the status of unsaved changes. This way it's not blocking
