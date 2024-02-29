@@ -31,7 +31,10 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
-from kobo.apps.stripe.utils import get_total_price_for_quantity
+from kobo.apps.stripe.utils import (
+    generate_return_url,
+    get_total_price_for_quantity,
+)
 from kpi.permissions import IsAuthenticated
 
 
@@ -279,7 +282,7 @@ class CheckoutLinkView(APIView):
                 'kpi_owner_username': user.username,
             },
             mode=checkout_mode,
-            success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+            success_url=generate_return_url(price.product.metadata) + f'?checkout={price.id}',
             **kwargs,
         )
 
@@ -303,14 +306,21 @@ class CustomerPortalView(APIView):
 
     @staticmethod
     def generate_portal_link(user, organization_id, price, quantity):
-        customer = Customer.objects.filter(
-            subscriber_id=organization_id,
-            subscriber__owner__organization_user__user_id=user,
-            subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            livemode=settings.STRIPE_LIVE_MODE,
-        ).values(
-            'id', 'subscriptions__id', 'subscriptions__items__id',
-        ).first()
+        customer = (
+            Customer.objects.filter(
+                subscriber_id=organization_id,
+                subscriber__owner__organization_user__user_id=user,
+                subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                livemode=settings.STRIPE_LIVE_MODE,
+            )
+            .values(
+                'id',
+                'subscriptions__id',
+                'subscriptions__items__id',
+                'subscriptions__items__price__product__metadata',
+            )
+            .first()
+        )
 
         if not customer:
             return Response(
@@ -320,8 +330,16 @@ class CustomerPortalView(APIView):
 
         portal_kwargs = {}
 
+        return_url = generate_return_url(
+            customer['subscriptions__items__price__product__metadata']
+        )
+
         # if we're generating a portal link for a price change, find or generate a matching portal configuration
         if price:
+
+            metadata = price.product.metadata
+            return_url = generate_return_url(metadata)
+
             """
             Customers with subscription schedules can't upgrade from the portal
             So if the customer has any active subscription schedules, release them, keeping the subscription intact
@@ -349,7 +367,6 @@ class CustomerPortalView(APIView):
             Recurring add-ons and the Enterprise plan aren't included in the default billing configuration.
             This lets us hide them as an 'upgrade' option for paid plan users.
             """
-            metadata = price.product.metadata
             needs_custom_config = (
                 metadata.get('product_type') == 'addon'
                 or metadata.get('plan_type') == 'enterprise'
@@ -416,7 +433,7 @@ class CustomerPortalView(APIView):
                     'after_completion': {
                         'type': 'redirect',
                         'redirect': {
-                            'return_url': f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+                            'return_url': return_url + f'?checkout={price.id}',
                         },
                     },
                 },
@@ -425,7 +442,7 @@ class CustomerPortalView(APIView):
         stripe_response = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             customer=customer['id'],
-            return_url=f'{settings.KOBOFORM_URL}/#/account/plan',
+            return_url=return_url,
             **portal_kwargs,
         )
         return Response({'url': stripe_response['url']})

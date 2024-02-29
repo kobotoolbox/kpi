@@ -44,6 +44,7 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
                 Subscription,
                 status='active',
                 customer=self.customer,
+                items__price=self.price
             )
 
     def _get_url_for_expected_request(self, create_subscription=True, product_type='plan'):
