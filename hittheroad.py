@@ -44,6 +44,7 @@ from kpi.models.asset import UserAssetSubscription
 
 
 # LESSONS
+# `XForm.kpi_asset_uid` is NOT consistently populated!!!
 # Make the UIDs PKs!
 # EVERYTHING gets a UID. Why doesn't SubmissionExtras have one?
 
