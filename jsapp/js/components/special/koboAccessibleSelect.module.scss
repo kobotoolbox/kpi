@@ -17,6 +17,18 @@ $input-color: colors.$kobo-gray-24;
   font-size: sizes.$x12;
 }
 
+.m {
+  width: 50%;
+}
+
+.s {
+  width: 8em;
+}
+
+.fit {
+  width: min-content;
+}
+
 // Dropdown trigger.
 // A focusable input that receives keyboard shortcuts and mouse clicks
 .trigger {
@@ -63,8 +75,12 @@ $input-color: colors.$kobo-gray-24;
 
   &.hasError {
     border-color: colors.$kobo-red;
-    &:hover {border-color: colors.$kobo-dark-red;}
-    &:focus {border-color: colors.$kobo-dark-blue;}
+    &:hover {
+      border-color: colors.$kobo-dark-red;
+    }
+    &:focus {
+      border-color: colors.$kobo-dark-blue;
+    }
   }
 
   :global .k-icon {
@@ -94,7 +110,9 @@ $k-select-menu-padding: sizes.$x6;
 // Menu containing a list of options.
 .menu {
   display: none;
-  &[data-expanded='true'] {display: block;}
+  &[data-expanded='true'] {
+    display: block;
+  }
   user-select: none;
 
   position: absolute;
@@ -143,7 +161,8 @@ $k-select-menu-padding: sizes.$x6;
   font-size: sizes.$x12;
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;
-  &.label.label { // selector specificity-fighting with kobo bem
+  &.label.label {
+    // selector specificity-fighting with kobo bem
     color: colors.$kobo-gray-24;
   }
 }

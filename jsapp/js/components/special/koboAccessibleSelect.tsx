@@ -40,17 +40,21 @@ export default function KoboSelect3(props: KoboSelect3Props) {
       return NOTHING_SELECTED;
     }
   };
-  const findPropOption = () => (
-    props.options.find((o) => o.value === props.value) || NOTHING_SELECTED
-  );
-  const indexOfPropOption = () => (
-    props.options.findIndex((o) => o.value === props.value)
-  );
+  const findPropOption = () =>
+    props.options.find((o) => o.value === props.value) || NOTHING_SELECTED;
+  const indexOfPropOption = () =>
+    props.options.findIndex((o) => o.value === props.value);
   const homeIndex = () => (props.isClearable ? -1 : 0); // first or deselection
-  const endIndex = () => (props.options.length - 1);
-  const openMenu = () => {setExpanded(true);};
-  const closeMenu = () => {setExpanded(false);};
-  const toggleMenu = () => {setExpanded((b) => !b);};
+  const endIndex = () => props.options.length - 1;
+  const openMenu = () => {
+    setExpanded(true);
+  };
+  const closeMenu = () => {
+    setExpanded(false);
+  };
+  const toggleMenu = () => {
+    setExpanded((b) => !b);
+  };
   const resetRefs = () => {
     // Reset refs to prop value; we do this in more than one place
     indexRef.current = indexOfPropOption();
@@ -77,11 +81,10 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     const combining = /[\u0300-\u036F]/g;
     return str.normalize('NFKD').replace(combining, '');
   };
-  const matchesBeginningOf = (needle: string, haystack: string) => (
-    closestAscii(haystack).toLowerCase().startsWith(
-      closestAscii(needle).toLowerCase()
-    )
-  );
+  const matchesBeginningOf = (needle: string, haystack: string) =>
+    closestAscii(haystack)
+      .toLowerCase()
+      .startsWith(closestAscii(needle).toLowerCase());
   const jumpToNextPrefixMatch = (prefix: string) => {
     const start = (indexRef.current + 1) % props.options.length;
     for (let i = 0; i < props.options.length; i++) {
@@ -97,39 +100,55 @@ export default function KoboSelect3(props: KoboSelect3Props) {
 
   // If there's a valid selection, indexRef and optionRef are up-to-date.
   // Otherwise, indexRef is -1 and optionRef is NOTHING_SELECTED.
-  if (!expanded) {resetRefs();}
+  if (!expanded) {
+    resetRefs();
+  }
 
   // Do what we need to do if the options list changes
   useEffect(() => {
     resetRefs();
-    if (expanded) {scrollOptionIntoView();}
+    if (expanded) {
+      scrollOptionIntoView();
+    }
   }, [props.options]);
 
   // Ensure selected option is visible as the menu opens
   useEffect(() => {
-    if (expanded) {scrollOptionIntoView();}
+    if (expanded) {
+      scrollOptionIntoView();
+    }
   }, [expanded]);
 
   // Refs and helpers for letter cycling / prefix matching.
   const cycle = useRef(true);
   const buffer = useRef('');
   const lastLetterTime = useRef(0); // millis
-  const beginMatchMode = () => {cycle.current = false;};
-  const cancelMatchMode = () => {cycle.current = true; buffer.current = '';};
+  const beginMatchMode = () => {
+    cycle.current = false;
+  };
+  const cancelMatchMode = () => {
+    cycle.current = true;
+    buffer.current = '';
+  };
   const emulateBrowserSelectLetterMatching = (eventKey: string) => {
     // Some non-letter keys cancel MATCH mode regardless of timing
     if (/(Tab|Enter|Esc|Home|End|Arrow|Page)/.test(eventKey)) {
-      cancelMatchMode(); return;
+      cancelMatchMode();
+      return;
     }
 
     // The rest of this function deals with single-letter keystroke events.
-    if (eventKey.length > 1) {return;}
+    if (eventKey.length > 1) {
+      return;
+    }
 
     // Check what time it is.
     // If it's been more than a second since the last letter, we revert to
     // CYCLE mode.
     const now = Date.now(); // current time in milliseconds
-    if (now - lastLetterTime.current > 1000) {cancelMatchMode();}
+    if (now - lastLetterTime.current > 1000) {
+      cancelMatchMode();
+    }
     lastLetterTime.current = now; // remember time of this letter keystroke
 
     // Begin MATCH mode if encountering a new letter while in cycle mode
@@ -139,14 +158,19 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     //        ångström       (a)
     //        atom
     //        disco                                      (d)
-    if (cycle.current && buffer.current.length > 0 &&
+    if (
+      cycle.current &&
+      buffer.current.length > 0 &&
       // Compare key (e.g. 'a') with first letter of (cycled) buffer, ('aaa')
-      !matchesBeginningOf(eventKey, buffer.current)) {
+      !matchesBeginningOf(eventKey, buffer.current)
+    ) {
       beginMatchMode();
     }
 
     // Space ' ' doesn't cycle or start a buffer, but it may appear in a match
-    if (eventKey === ' ' && buffer.current.length === 0) {return;}
+    if (eventKey === ' ' && buffer.current.length === 0) {
+      return;
+    }
 
     // Append the current letter to the letter buffer.
     buffer.current += eventKey;
@@ -245,7 +269,9 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     forceUpdate();
   };
 
-  const triggerBlurHandler = () => {closeMenu();};
+  const triggerBlurHandler = () => {
+    closeMenu();
+  };
   const triggerMouseDownHandler = (e: React.MouseEvent) => {
     if (e.button === 0) {
       toggleMenu();
@@ -269,10 +295,12 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     }
     forceUpdate();
   };
-  const preventDefault = (e: React.UIEvent) => {e.preventDefault();};
+  const preventDefault = (e: React.UIEvent) => {
+    e.preventDefault();
+  };
 
   return (
-    <div className={styles.root}>
+    <div className={cx(styles.root, props.size && styles[props.size])}>
       <label className={styles.label} htmlFor={'select-' + props.name}>
         {props.label}
         {props.required && <span className={styles.redAsterisk}> * </span>}
@@ -282,7 +310,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
         className={cx(
           styles.trigger,
           props.value || styles.placeholding,
-          props.error && styles.hasError,
+          props.error && styles.hasError
         )}
         type='button'
         // ARIA. There's room for improvement here.
@@ -327,7 +355,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
             key={option.value}
             className={cx(
               styles.option,
-              optionRef.current.value === option.value && styles.selected,
+              optionRef.current.value === option.value && styles.selected
             )}
             data-value={option.value}
           >
@@ -336,11 +364,14 @@ export default function KoboSelect3(props: KoboSelect3Props) {
           </div>
         ))}
       </div>
-      <input type='hidden' name={props.name} value={props.value} required={props.required} />
+      <input
+        type='hidden'
+        name={props.name}
+        value={props.value}
+        required={props.required}
+      />
       {/* Like other input fields */}
-      {props.error && <p className={styles.error}>
-         {props.error}
-      </p>}
+      {props.error && <p className={styles.error}>{props.error}</p>}
     </div>
   );
 }
@@ -371,9 +402,9 @@ interface KoboSelect3Props {
   // isPending?: boolean; // TODO
 
   // design system
-  // size?: 'l' | 'm' | 's'; // oops, all 'l'.
+  // size?: 'l' | 'm' | 's' | 'fit'; // 'fit' uses min-content
   // type?: 'blue' | 'gray' | 'outline'; // oops, all 'outline'
-  size?: 'l';
+  size?: 'l' | 'm' | 's' | 'fit';
   type?: 'outline';
   noMaxMenuHeight?: boolean; // Override 4.5 item height limit
 

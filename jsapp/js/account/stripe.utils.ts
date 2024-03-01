@@ -43,12 +43,16 @@ export async function hasActiveSubscription() {
   );
 }
 
-export function isAddonProduct(product: Product) {
-  return product.metadata.product_type === 'addon';
+export function isOneTimeAddonProduct(product: Product) {
+  return product.metadata?.product_type === 'addon_onetime';
 }
 
 export function isRecurringAddonProduct(product: Product) {
-  return product.prices.some((price) => price?.recurring);
+  return product.metadata?.product_type === 'addon';
+}
+
+export function isAddonProduct(product: Product) {
+  return isOneTimeAddonProduct(product) || isRecurringAddonProduct(product);
 }
 
 export function processCheckoutResponse(data: Checkout) {

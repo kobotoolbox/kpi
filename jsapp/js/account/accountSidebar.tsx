@@ -39,10 +39,6 @@ function AccountSidebar() {
     setShowPlans(true);
   }, []);
 
-  const showAddOnsLink = useMemo(() => {
-    return subscriptionStore.planResponse.length ? false : true;
-  }, [subscriptionStore.isInitialised]);
-
   return (
     <bem.FormSidebar m='account'>
       <AccountNavLink
@@ -67,14 +63,12 @@ function AccountSidebar() {
             name={t('Plans')}
             to={ACCOUNT_ROUTES.PLAN}
           />
-          {showAddOnsLink && (
-            <AccountNavLink
-              iconName='plus'
-              name={t('Add-ons')}
-              to={ACCOUNT_ROUTES.ADD_ONS}
-              isNew={true}
-            />
-          )}
+          <AccountNavLink
+            iconName='plus'
+            name={t('Add-ons')}
+            to={ACCOUNT_ROUTES.ADD_ONS}
+            isNew={true}
+          />
         </>
       )}
     </bem.FormSidebar>

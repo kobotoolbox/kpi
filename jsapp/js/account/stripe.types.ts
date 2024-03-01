@@ -88,7 +88,7 @@ export interface Product extends BaseProduct {
   prices: Price[];
 }
 
-// This is a frontend-only interface for accessing the relevant price of a product 
+// This is a frontend-only interface for accessing the relevant price of a product
 export interface SinglePricedProduct extends BaseProduct {
   price: Price;
 }
@@ -201,3 +201,20 @@ export type ChangePlan =
   | {
       status: ChangePlanStatus.error;
     };
+
+export interface OneTimeAddOn {
+  id: string;
+  created: string;
+  is_available: boolean;
+  usage_limits: OneTimeUsageLimits;
+  total_usage_limits: OneTimeUsageLimits;
+  usage_limits_remaining: OneTimeUsageLimits;
+  organization: string;
+  product: string;
+}
+
+export interface OneTimeUsageLimits {
+  submission_limit: number;
+  asr_seconds_limit: number;
+  mt_characters_limit: number;
+}
