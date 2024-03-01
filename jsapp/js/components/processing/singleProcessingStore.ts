@@ -223,79 +223,38 @@ class SingleProcessingStore extends Reflux.Store {
     return Boolean(this.data.isApplyExistingGoogleTsPromptVisible);
   }
 
+  // prettier-ignore
   init() {
     this.resetProcessingData();
 
     // HACK: We add this ugly `setTimeout` to ensure router exists.
     setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
 
-    actions.submissions.getSubmissionByUuid.completed.listen(
-      this.onGetSubmissionByUuidCompleted.bind(this)
-    );
-    actions.submissions.getSubmissionByUuid.failed.listen(
-      this.onGetSubmissionByUuidFailed.bind(this)
-    );
-    actions.submissions.getProcessingSubmissions.completed.listen(
-      this.onGetProcessingSubmissionsCompleted.bind(this)
-    );
-    actions.submissions.getProcessingSubmissions.failed.listen(
-      this.onGetProcessingSubmissionsFailed.bind(this)
-    );
+    actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this));
+    actions.submissions.getSubmissionByUuid.failed.listen(this.onGetSubmissionByUuidFailed.bind(this));
+    actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this));
+    actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this));
 
-    processingActions.getProcessingData.started.listen(
-      this.onFetchProcessingDataStarted.bind(this)
-    );
-    processingActions.getProcessingData.completed.listen(
-      this.onFetchProcessingDataCompleted.bind(this)
-    );
-    processingActions.getProcessingData.failed.listen(
-      this.onAnyCallFailed.bind(this)
-    );
+    processingActions.getProcessingData.started.listen(this.onFetchProcessingDataStarted.bind(this));
+    processingActions.getProcessingData.completed.listen(this.onFetchProcessingDataCompleted.bind(this));
+    processingActions.getProcessingData.failed.listen(this.onAnyCallFailed.bind(this));
 
-    processingActions.setTranscript.completed.listen(
-      this.onSetTranscriptCompleted.bind(this)
-    );
-    processingActions.setTranscript.failed.listen(
-      this.onAnyCallFailed.bind(this)
-    );
-    processingActions.deleteTranscript.completed.listen(
-      this.onDeleteTranscriptCompleted.bind(this)
-    );
-    processingActions.deleteTranscript.failed.listen(
-      this.onAnyCallFailed.bind(this)
-    );
-    processingActions.requestAutoTranscription.completed.listen(
-      this.onRequestAutoTranscriptionCompleted.bind(this)
-    );
-    processingActions.requestAutoTranscription.in_progress.listen(
-      this.onRequestAutoTranscriptionInProgress.bind(this)
-    );
-    processingActions.requestAutoTranscription.failed.listen(
-      this.onAnyCallFailed.bind(this)
-    );
+    processingActions.setTranscript.completed.listen(this.onSetTranscriptCompleted.bind(this);
+    processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
+    processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.requestAutoTranscription.completed.listen(this.onRequestAutoTranscriptionCompleted.bind(this));
+    processingActions.requestAutoTranscription.in_progress.listen(this.onRequestAutoTranscriptionInProgress.bind(this));
+    processingActions.requestAutoTranscription.failed.listen(this.onAnyCallFailed.bind(this));
 
-    processingActions.setTranslation.completed.listen(
-      this.onSetTranslationCompleted.bind(this)
-    );
-    processingActions.setTranslation.failed.listen(
-      this.onAnyCallFailed.bind(this)
-    );
-    processingActions.deleteTranslation.completed.listen(
-      this.onDeleteTranslationCompleted.bind(this)
-    );
-    processingActions.deleteTranslation.failed.listen(
-      this.onAnyCallFailed.bind(this)
-    );
-    processingActions.requestAutoTranslation.completed.listen(
-      this.onRequestAutoTranslationCompleted.bind(this)
-    );
-    processingActions.requestAutoTranslation.failed.listen(
-      this.onAnyCallFailed.bind(this)
-    );
+    processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this));
+    processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.deleteTranslation.completed.listen(this.onDeleteTranslationCompleted.bind(this));
+    processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.requestAutoTranslation.completed.listen(this.onRequestAutoTranslationCompleted.bind(this));
+    processingActions.requestAutoTranslation.failed.listen(this.onAnyCallFailed.bind(this));
 
-    processingActions.activateAsset.completed.listen(
-      this.onActivateAssetCompleted.bind(this)
-    );
+    processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this));
 
     // We need the asset to be loaded for the store to work (we get the
     // processing endpoint url from asset JSON). We try to startup store
@@ -617,15 +576,13 @@ class SingleProcessingStore extends Reflux.Store {
    * the call was aborted due to features not being enabled. In such case we get
    * a simple string instead of response object.
    */
+  // prettier-ignore
   private onAnyCallFailed(response: FailResponse | string) {
     let errorText = t('Something went wrong');
     if (typeof response === 'string') {
       errorText = response;
     } else {
-      errorText =
-        response.responseJSON?.detail ||
-        response.responseJSON?.error ||
-        response.statusText;
+      errorText = response.responseJSON?.detail || response.responseJSON?.error || response.statusText;
     }
     alertify.notify(errorText, 'error');
     delete this.abortFetchData;
@@ -661,18 +618,19 @@ class SingleProcessingStore extends Reflux.Store {
    * the UI. So if the same question, submission and transcript language is now
    * selected.
    */
+  // prettier-ignore
   private isAutoTranscriptionEventApplicable(event: AutoTranscriptionEvent) {
     // Note: previously initiated automatic transcriptions may no longer be
     // applicable to the current route
-    const googleTsResponse =
-      event.response[this.currentQuestionQpath]?.googlets;
+    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
     return (
       event.submissionEditId === this.currentSubmissionEditId &&
       googleTsResponse &&
       this.data.transcriptDraft &&
-      (googleTsResponse.languageCode ===
-        this.data.transcriptDraft.languageCode ||
-        googleTsResponse.languageCode === this.data.transcriptDraft.regionCode)
+      (
+        googleTsResponse.languageCode === this.data.transcriptDraft.languageCode ||
+        googleTsResponse.languageCode === this.data.transcriptDraft.regionCode
+      )
     );
   }
 
@@ -732,9 +690,9 @@ class SingleProcessingStore extends Reflux.Store {
    * draft from it. it opens in edit mode allowing user to either save or
    * discard it.
    */
+  // prettier-ignore
   public applyExistingGoogleTsResponse() {
-    const googleTsResponse =
-      this.data.latestResponse?.[this.currentQuestionQpath]?.googlets;
+    const googleTsResponse = this.data.latestResponse?.[this.currentQuestionQpath]?.googlets;
     if (!googleTsResponse || this.data.transcriptDraft) {
       return;
     }
@@ -751,6 +709,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  // prettier-ignore
   private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
     // Store the response
     this.saveProcessingDataResponse(event.response);
@@ -762,9 +721,11 @@ class SingleProcessingStore extends Reflux.Store {
     ) {
       return;
     }
-    const googleTsResponse =
-      event.response[this.currentQuestionQpath]?.googlets;
-    if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
+    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
+    if (
+      googleTsResponse &&
+      this.isAutoTranscriptionEventApplicable(event)
+    ) {
       this.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
     }
@@ -801,9 +762,9 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  // prettier-ignore
   private getTranslationsFromResponse(response: ProcessingDataResponse) {
-    const translationsResponse =
-      response[this.currentQuestionQpath]?.translation;
+    const translationsResponse = response[this.currentQuestionQpath]?.translation;
     const translationsArray: Transx[] = [];
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach(
@@ -830,6 +791,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  // prettier-ignore
   private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
     const googleTxResponse = response[this.currentQuestionQpath]?.googletx;
 
@@ -837,9 +799,10 @@ class SingleProcessingStore extends Reflux.Store {
     if (
       googleTxResponse &&
       this.data.translationDraft &&
-      (googleTxResponse.languageCode ===
-        this.data.translationDraft.languageCode ||
-        googleTxResponse.languageCode === this.data.translationDraft.regionCode)
+      (
+        googleTxResponse.languageCode === this.data.translationDraft.languageCode ||
+        googleTxResponse.languageCode === this.data.translationDraft.regionCode
+      )
     ) {
       this.data.translationDraft.value = googleTxResponse.value;
     }
@@ -852,6 +815,7 @@ class SingleProcessingStore extends Reflux.Store {
    * Returns a list of selectable language codes.
    * Omits the one currently being edited.
    */
+  // prettier-ignore
   getSources(): string[] {
     const sources = [];
 
@@ -860,9 +824,7 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     this.data.translations.forEach((translation: Transx) => {
-      if (
-        translation.languageCode !== this.data.translationDraft?.languageCode
-      ) {
+      if (translation.languageCode !== this.data.translationDraft?.languageCode) {
         sources.push(translation.languageCode);
       }
     });
@@ -1079,10 +1041,12 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.activeTab;
   }
 
+  // prettier-ignore
   hasUnsavedTranscriptDraftValue() {
     const draft = this.getTranscriptDraft();
     return (
-      draft?.value !== undefined && draft.value !== this.getTranscript()?.value
+      draft?.value !== undefined &&
+      draft.value !== this.getTranscript()?.value
     );
   }
 
