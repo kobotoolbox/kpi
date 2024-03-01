@@ -25,6 +25,7 @@ import {
   MODAL_TYPES,
   QUESTION_TYPES,
   QUERY_LIMIT_DEFAULT,
+  VALIDATION_STATUSES_LIST,
 } from '../constants';
 
 import {notify, checkLatLng} from 'utils';
@@ -311,7 +312,11 @@ export class FormMap extends React.Component {
       fq.push(selectedQuestion);
     }
     if (nextViewBy) {
-      fq.push(this.nameOfFieldInGroup(nextViewBy));
+      if(nextViewBy === "validation_status") {
+        fq.push("_validation_status")
+      } else {
+        fq.push(this.nameOfFieldInGroup(nextViewBy));
+      }
     }
     const sort = [{id: '_id', desc: true}];
     dataInterface
@@ -405,6 +410,19 @@ export class FormMap extends React.Component {
         });
       });
 
+      if (viewby == "validation_status") {
+        mM = []
+        VALIDATION_STATUSES_LIST.forEach((validationStatus, index) => {
+          mM.push({
+            count: index,
+            id: index,
+            labels: [validationStatus.label],
+            value: validationStatus.value,
+            className: validationStatus.value ?? "validation_status_no_status",
+          })
+        })
+      }
+
       if (
         colorSet !== undefined &&
         colorSet !== 'a' &&
@@ -451,12 +469,34 @@ export class FormMap extends React.Component {
           if (colorSet !== undefined && colorSet !== 'a') {
             index = _this.calculateIconIndex(index, mM);
           }
+          if (viewby == "validation_status") {
+            let typeId = 0
+            if (Object.keys(item).includes("_validation_status") && item._validation_status.uid) {
+              switch(item._validation_status.uid){
+                case "validation_status_not_approved":
+                  typeId = 1
+                  break;
+                case "validation_status_approved":
+                  typeId = 2
+                  break;
+                case "validation_status_on_hold":
+                  typeId = 3
+                  break;
+              }
+            }
+            markerProps = {
+              icon: _this.buildIcon(index + 1, item._validation_status.uid || "validation_status_no_status"),
+              sId: item._id,
+              typeId: typeId,
+            };
 
-          markerProps = {
-            icon: _this.buildIcon(index + 1),
-            sId: item._id,
-            typeId: mapMarkers[itemId].id,
-          };
+          } else {
+            markerProps = {
+              icon: _this.buildIcon(index + 1),
+              sId: item._id,
+              typeId: mapMarkers[itemId].id,
+            };
+          }
         } else {
           markerProps = {
             icon: _this.buildIcon(),
@@ -543,12 +583,12 @@ export class FormMap extends React.Component {
     return Math.round(num);
   }
 
-  buildIcon(index = false) {
+  buildIcon(index = false, classOverride = "") {
     const colorSet = this.calcColorSet() || 'a';
     const iconClass = index ? `map-marker-${colorSet}${index}` : 'map-marker-a';
 
     return L.divIcon({
-      className: `map-marker ${iconClass}`,
+      className: `map-marker ${iconClass} ${classOverride}`,
       iconSize: [20, 20],
     });
   }
@@ -761,7 +801,20 @@ export class FormMap extends React.Component {
       );
     }
 
-    const fields = this.state.fields;
+    const fields = [...this.state.fields, {
+      type: "text",
+      $kuid: "validation_status",
+      label: [
+          "Validation status"
+      ],
+      $qpath: "validation_status",
+      $xpath: "validation_status",
+      required: false,
+      $autoname: "validation_status",
+      select_from_list_name: ""
+    }
+  ];
+
     const langIndex = this.state.langIndex;
     const langs =
       this.props.asset.content.translations?.length > 1
@@ -949,7 +1002,7 @@ export class FormMap extends React.Component {
                     <span
                       className={`map-marker map-marker-${colorSet}${
                         index + 1
-                      }`}
+                      } ${m.className ?? ""}`}
                     >
                       {m.count}
                     </span>
