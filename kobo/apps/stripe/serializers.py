@@ -21,7 +21,7 @@ class OneTimeAddOnSerializer(serializers.ModelSerializer):
             'quantity',
             'usage_limits',
             'total_usage_limits',
-            'limits_used',
+            'limits_remaining',
             'organization',
             'product',
         )
