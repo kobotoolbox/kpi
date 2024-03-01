@@ -206,9 +206,9 @@ export interface OneTimeAddOn {
   id: string;
   created: string;
   is_available: boolean;
-  usage_limits: OneTimeUsageLimits;
-  total_usage_limits: OneTimeUsageLimits;
-  usage_limits_remaining: OneTimeUsageLimits;
+  usage_limits: Partial<OneTimeUsageLimits>;
+  total_usage_limits: Partial<OneTimeUsageLimits>;
+  usage_limits_remaining: Partial<OneTimeUsageLimits>;
   organization: string;
   product: string;
 }
