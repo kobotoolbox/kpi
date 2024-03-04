@@ -88,7 +88,6 @@ export const OneTimeAddOnRow = ({
       </td>
       <td className={styles.price}>{displayPrice}</td>
       <td>
-        {' '}
         <BillingButton
           size={'m'}
           label={t('Buy now')}

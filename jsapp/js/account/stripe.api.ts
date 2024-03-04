@@ -9,6 +9,7 @@ import type {
   AccountLimit,
   ChangePlan,
   Checkout,
+  OneTimeAddOn,
   Organization,
   PriceMetadata,
   Product,
@@ -27,6 +28,12 @@ const DEFAULT_LIMITS: AccountLimit = Object.freeze({
 export async function getProducts() {
   return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL, {
     errorMessageDisplay: t('There was an error getting the list of plans.'),
+  });
+}
+
+export async function getOneTimeAddOns() {
+  return fetchGet<PaginatedResponse<OneTimeAddOn>>(endpoints.ADD_ONS_URL, {
+    errorMessageDisplay: t('There was an error getting one-time add-ons.'),
   });
 }
 
