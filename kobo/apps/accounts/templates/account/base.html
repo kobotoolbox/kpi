@@ -1,33 +1,61 @@
 {% extends "base.html" %}
 
-{% block head %}
-  {% load static %}
+{% load static %}
+{% load i18n %}
+
+{% block head_end %}
   <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
 
   {% if config.login_background %}
   <style>
-  .registration__bg {
-    background: url("{{ config.login_background }}");
-    background-size: cover;
-    background-repeat: no-repeat;
-  }
+    .registration__bg {
+      background: url('{{ config.login_background }}');
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
   </style>
   {% endif %}
 {% endblock %}
 
 {% block logo %}
-    {% if config.logo %}
-        <img src="{{ config.logo }}"/>
-    {% else %}
-        <img src="{% static 'kobologo.svg' %}"/>
-    {% endif %}
+  {% if config.logo %}
+    <img src="{{ config.logo }}"/>
+  {% else %}
+    <img src="{% static 'kobologo.svg' %}"/>
+  {% endif %}
+{% endblock %}
+
+{% block language_selector %}
+{# This is the language switcher dropdown #}
+<form action="{% url 'set_language' %}" method="post" class="language-switcher" data-path="{{ request.path }}">
+  {% csrf_token %}
+
+  <input name="next" type="hidden" value="{{ redirect_to }}" />
+
+  <select name="language">
+    {% get_current_language as LANGUAGE_CODE %}
+    {% get_available_languages as LANGUAGES %}
+    {% get_language_info_list for LANGUAGES as languages %}
+    {% for language in languages %}
+      <option
+        value="{{ language.code }}"
+        {% if language.code == LANGUAGE_CODE %}selected="selected"{% endif %}
+      >
+        {{ language.name_local }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <input type="submit" value="Go" class="hidden" />
+</form>
+<script src="{% static 'js/language_dropdown.js' %}"></script>
 {% endblock %}
 
 {% block content %}
 {% endblock %}
 
 {% block background_credit %}
-    {% if not config.login_background %}
+  {% if not config.login_background %}
     {# Show the background image credit only if we're using the default image #}
     <div class="registration__credit">
         <a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">
@@ -38,5 +66,5 @@
             by-nc-nd
         </a>
     </div>
-    {% endif %}
+  {% endif %}
 {% endblock %}

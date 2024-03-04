@@ -4,7 +4,6 @@ import {
   getTranslatedRowLabel,
   getSurveyFlatPaths,
   isRowSpecialLabelHolder,
-  isRowProcessingEnabled,
 } from 'js/assetUtils';
 import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import {
@@ -23,13 +22,11 @@ import type {
   SubmissionResponse,
   SubmissionAttachment,
   AssetResponse,
+  AnalysisFormJsonField,
 } from 'js/dataInterface';
-import {
-  getSupplementalPathParts,
-  getSupplementalTranscriptPath,
-  getSupplementalTranslationPath,
-} from 'js/components/processing/processingUtils';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
+import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
+import type {SubmissionAnalysisResponse} from 'js/components/processing/analysis/constants';
+import {QUAL_NOTE_TYPE} from 'js/components/processing/analysis/constants';
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -47,19 +44,33 @@ export const DISPLAY_GROUP_TYPES = createEnum([
   DisplayGroupTypeName.group_matrix_row,
 ]) as {[P in DisplayGroupTypeName]: DisplayGroupTypeName};
 
+// To match the media attachment xpath provided by the backend,
+// each display group needs to keep track of its own place in its parent group's
+// array of children. Note that indices in the attachment path are 1-, rather than 0-based.
+// The childrenAreRepeatable bool is used when creating the final xpath and is needed for adding an
+// index in cases where a repeatable group is not actually repeated.
+interface xpathNode {
+  path: string;
+  childIndex: number | null;
+  childrenAreRepeatable: boolean;
+}
+
 export class DisplayGroup {
   public type: DisplayGroupTypeName;
   /** Localized display label */
   public label: string | null = null;
   /** Unique identifier */
   public name: string | null = null;
+  /** For aligning with attachment xpath */
+  public xpathNodes: xpathNode[] = [];
   /** List of groups and responses */
-  public children: Array<DisplayResponse|DisplayGroup> = [];
+  public children: Array<DisplayResponse | DisplayGroup> = [];
 
   constructor(
     type: DisplayGroupTypeName,
     label?: string | null,
-    name?: string | null
+    name?: string | null,
+    xpathNodes?: xpathNode[] | null
   ) {
     this.type = type;
     if (label) {
@@ -68,9 +79,12 @@ export class DisplayGroup {
     if (name) {
       this.name = name;
     }
+    if (xpathNodes) {
+      this.xpathNodes = xpathNodes;
+    }
   }
 
-  addChild(child: DisplayResponse|DisplayGroup) {
+  addChild(child: DisplayResponse | DisplayGroup) {
     this.children.push(child);
   }
 }
@@ -82,6 +96,8 @@ export class DisplayResponse {
   public label: string | null;
   /** Unique identifier */
   public name: string;
+  /** XPath  */
+  public xpath: string;
   /**
    * Unique identifier of a choices list, only applicable for question types
    * that uses choices lists.
@@ -94,12 +110,14 @@ export class DisplayResponse {
     type: AnyRowTypeName | null,
     label: string | null,
     name: string,
+    xpath: string,
     listName: string | undefined,
     data?: string | null
   ) {
     this.type = type;
     this.label = label;
     this.name = name;
+    this.xpath = xpath;
     if (data) {
       this.data = data;
     }
@@ -111,22 +129,55 @@ export class DisplayResponse {
 
 /**
  * Returns a sorted object of transcript/translation keys
+ *
+ * Note: we omit returning `qual_note` questions.
  */
-export function sortAnalysisFormJsonKeys(additionalFields: {source: string, dtpath: string}[]) {
-  let sortedBySource: {[key: string]: string[]} = {};
+function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
+  const sortedBySource: {[key: string]: string[]} = {};
 
-  additionalFields?.forEach((afParams) => {
-    let expandedPath = `_supplementalDetails/${afParams.dtpath}`;
-    if (!sortedBySource[afParams.source]) {
-      sortedBySource[afParams.source] = [];
+  additionalFields.forEach((field: AnalysisFormJsonField) => {
+    // Note questions make sense only in the context of writing responses to
+    // Qualitative Analysis questions. They bear no data, so there is no point
+    // displaying them outside of Single Processing route. As this function is
+    // part of Single Submission modal, we need to hide the notes.
+    if (field.type === QUAL_NOTE_TYPE) {
+      return;
     }
-    sortedBySource[afParams.source].push(expandedPath);
+
+    const expandedPath = `_supplementalDetails/${field.dtpath}`;
+    if (!sortedBySource[field.source]) {
+      sortedBySource[field.source] = [];
+    }
+    sortedBySource[field.source].push(expandedPath);
   });
   return sortedBySource;
 }
 
+function addXpathNode(
+  parentGroup: DisplayGroup,
+  repeatIndex: number | null,
+  currentRowData: any
+) {
+  let nodePath = [];
+  let childIndex = null;
+  if (repeatIndex !== null) {
+    childIndex = repeatIndex + 1;
+  }
+  if (parentGroup.name) {
+    nodePath.push({
+      path: parentGroup.name,
+      childIndex,
+      childrenAreRepeatable: Array.isArray(currentRowData),
+    });
+  }
+  return parentGroup.xpathNodes.concat(nodePath);
+}
+
 /**
- * Returns a root group with everything inside
+ * Returns a data built for `SubmissionDataTable`, so it can easily (or at least
+ * easier than without this function) display a list of questions with their
+ * responses. Internally it builds a huge `DisplayGroup` object - a root group
+ * with everything inside.
  */
 export function getSubmissionDisplayData(
   asset: AssetResponse,
@@ -137,14 +188,15 @@ export function getSubmissionDisplayData(
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root);
 
-  const survey = asset?.content?.survey || []
-  const choices = asset?.content?.choices || []
+  const survey = asset?.content?.survey || [];
+  const choices = asset?.content?.choices || [];
 
   const flatPaths = getSurveyFlatPaths(survey, true);
 
-  let supplementalDetailKeys = sortAnalysisFormJsonKeys(
-    asset.analysis_form_json?.additional_fields
+  const supplementalDetailKeys = sortAnalysisFormJsonKeys(
+    asset.analysis_form_json?.additional_fields || []
   );
+
   /**
    * Recursively generates a nested architecture of survey with data.
    */
@@ -168,7 +220,7 @@ export function getSubmissionDisplayData(
         parentGroupPath = flatPaths[parentGroup.name];
       }
 
-      let isRowCurrentLevel = isRowFromCurrentGroupLevel(
+      const isRowCurrentLevel = isRowFromCurrentGroupLevel(
         rowName,
         parentGroupPath,
         survey
@@ -180,8 +232,7 @@ export function getSubmissionDisplayData(
       }
       // let's hide rows that don't carry any submission data
       if (
-        row.type === QUESTION_TYPES.note.id ||
-        row.type === QUESTION_TYPES.hidden.id
+        row.type === QUESTION_TYPES.note.id
       ) {
         continue;
       }
@@ -200,10 +251,12 @@ export function getSubmissionDisplayData(
       if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
+            let nodePath = addXpathNode(parentGroup, repeatIndex, rowData);
             let itemObj = new DisplayGroup(
               DISPLAY_GROUP_TYPES.group_repeat,
               rowLabel,
-              rowName
+              rowName,
+              nodePath
             );
             parentGroup.addChild(itemObj);
             /*
@@ -215,10 +268,10 @@ export function getSubmissionDisplayData(
           });
         }
       } else if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
-        let matrixGroupObj = new DisplayGroup(
+        const matrixGroupObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_matrix,
           rowLabel,
-          rowName,
+          rowName
         );
         parentGroup.addChild(matrixGroupObj);
 
@@ -251,10 +304,12 @@ export function getSubmissionDisplayData(
         row.type === GROUP_TYPES_BEGIN.begin_score ||
         row.type === GROUP_TYPES_BEGIN.begin_rank
       ) {
+        let nodePath = addXpathNode(parentGroup, repeatIndex, rowData);
         let rowObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.group_regular,
           rowLabel,
           rowName,
+          nodePath
         );
         parentGroup.addChild(rowObj);
         /*
@@ -275,39 +330,58 @@ export function getSubmissionDisplayData(
         // score and rank don't have list name on them and they need to use
         // the one of their parent
         if (row.type === SCORE_ROW_TYPE || row.type === RANK_LEVEL_TYPE) {
-          const parentGroupRow = survey.find((row) =>
-            getRowName(row) === parentGroup.name
+          const parentGroupRow = survey.find(
+            (rowItem) => getRowName(rowItem) === parentGroup.name
           );
           rowListName = getRowListName(parentGroupRow);
         }
+
+        // Begin constructing xpath for matching media attachments
+        let xpath: string[] = [];
+
+        // Build xpath array from existing nodes in parent group
+        parentGroup.xpathNodes.forEach((node) => {
+          let nodeCount =
+            node.childIndex !== null ? `[${node.childIndex}]` : '';
+          xpath.push(`${node.path}` + nodeCount);
+        });
+
+        // add repeat count to parent group before adding to array
+        if (parentGroup.name) {
+          let index = '';
+          if (parentGroup.type === DISPLAY_GROUP_TYPES.group_repeat) {
+            index = `[${(repeatIndex ?? 0) + 1}]`;
+          } else if (parentGroup.xpathNodes.at(-1)?.childrenAreRepeatable) {
+            index = '[1]';
+          }
+          xpath.push(`${parentGroup.name}` + index);
+        }
+        // add current rowname to end
+        xpath.push(rowName);
 
         let rowObj = new DisplayResponse(
           row.type,
           rowLabel,
           rowName,
+          xpath.join('/'),
           rowListName,
           rowData
         );
         parentGroup.addChild(rowObj);
 
-        /*
-        getRowSupplementalResponses(
-          asset,
-          submissionData,
-          rowName,
-        ).forEach((resp) => {parentGroup.addChild(resp)})
-        */
-        let rowqpath = flatPaths[rowName].replace(/\//g, '-');
+        const rowqpath = flatPaths[rowName].replace(/\//g, '-');
         supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
           parentGroup.addChild(
-            new DisplayResponse(null,
+            new DisplayResponse(
+              null,
               getColumnLabel(asset, sdKey, false),
               sdKey,
+              flatPaths[rowName],
               undefined,
-              getSupplementalDetailsContent(submissionData, sdKey),
+              getSupplementalDetailsContent(submissionData, sdKey)
             )
           );
-        })
+        });
       }
     }
   }
@@ -336,15 +410,19 @@ function populateMatrixData(
   // This should not happen, as the only DisplayGroup with null name will be of
   // the group_root type, but we need this for the types.
   if (matrixGroup.name === null) {
-    return
+    return;
   }
 
   // create row display group and add it to matrix group
-  const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex);
-  let matrixRowGroupObj = new DisplayGroup(
+  const matrixRowLabel = getTranslatedRowLabel(
+    matrixRowName,
+    choices,
+    translationIndex
+  );
+  const matrixRowGroupObj = new DisplayGroup(
     DISPLAY_GROUP_TYPES.group_matrix_row,
     matrixRowLabel,
-    matrixRowName,
+    matrixRowName
   );
   matrixGroup.addChild(matrixRowGroupObj);
 
@@ -358,8 +436,8 @@ function populateMatrixData(
    */
   Object.keys(flatPaths).forEach((questionName) => {
     if (flatPaths[questionName].startsWith(`${matrixGroupPath}/`)) {
-      const questionSurveyObj = survey.find((row) =>
-        getRowName(row) === questionName
+      const questionSurveyObj = survey.find(
+        (row) => getRowName(row) === questionName
       );
       // We are only interested in going further if object was found.
       if (typeof questionSurveyObj === 'undefined') {
@@ -385,10 +463,11 @@ function populateMatrixData(
         questionData = parentData[dataProp];
       }
 
-      let questionObj = new DisplayResponse(
+      const questionObj = new DisplayResponse(
         questionSurveyObj.type,
         getTranslatedRowLabel(questionName, survey, translationIndex),
         questionName,
+        flatPaths[questionName],
         getRowListName(questionSurveyObj),
         questionData
       );
@@ -439,7 +518,7 @@ export function getRowData(
 function isRowFromCurrentGroupLevel(
   rowName: string,
   /** Null for root level rows. */
-  groupPath: string|null,
+  groupPath: string | null,
   survey: SurveyRow[]
 ) {
   const flatPaths = getSurveyFlatPaths(survey, true);
@@ -454,7 +533,7 @@ function isRowFromCurrentGroupLevel(
  * Returns an array of answers
  */
 export function getRepeatGroupAnswers(
-  data: SubmissionResponse,
+  responseData: SubmissionResponse,
   /** With groups e.g. group_person/group_pets/group_pet/pet_name. */
   targetKey: string
 ) {
@@ -462,7 +541,10 @@ export function getRepeatGroupAnswers(
 
   // Goes through nested groups from key, looking for answers.
   const lookForAnswers = (data: SubmissionResponse, levelIndex: number) => {
-    const levelKey = targetKey.split('/').slice(0, levelIndex + 1).join('/');
+    const levelKey = targetKey
+      .split('/')
+      .slice(0, levelIndex + 1)
+      .join('/');
     // Each level could be an array of repeat group answers or object with questions.
     if (levelKey === targetKey) {
       if (Object.prototype.hasOwnProperty.call(data, targetKey)) {
@@ -475,7 +557,7 @@ export function getRepeatGroupAnswers(
     }
   };
 
-  lookForAnswers(data, 0);
+  lookForAnswers(responseData, 0);
 
   return answers;
 }
@@ -488,6 +570,7 @@ function getRegularGroupAnswers(
   /** With groups e.g. group_person/group_pets/group_pet. */
   targetKey: string
 ) {
+  // The response can be a lot of different things, so we use `any`.
   const answers: {[questionName: string]: any} = {};
   Object.keys(data).forEach((objKey) => {
     if (objKey.startsWith(`${targetKey}/`)) {
@@ -522,27 +605,47 @@ function getRowListName(row: SurveyRow | undefined): string | undefined {
  */
 export function getMediaAttachment(
   submission: SubmissionResponse,
-  fileName: string
+  fileName: string,
+  questionXPath: string
 ): string | SubmissionAttachment {
-  const validFileName = getValidFilename(fileName);
-  let mediaAttachment: string | SubmissionAttachment = t('Could not find ##fileName##').replace(
-    '##fileName##',
-    fileName,
-  );
+  let mediaAttachment: string | SubmissionAttachment = t(
+    'Could not find ##fileName##'
+  ).replace('##fileName##', fileName);
 
   submission._attachments.forEach((attachment) => {
-    if (attachment.filename.includes(validFileName)) {
-      mediaAttachment = attachment;
+    if (attachment.question_xpath === questionXPath) {
+      // Check if the audio filetype is of type not supported by player and send it to format to mp3
+      if (
+        attachment.mimetype.includes('audio/') &&
+        !attachment.mimetype.includes('/mp3') &&
+        !attachment.mimetype.includes('mpeg') &&
+        !attachment.mimetype.includes('/wav') &&
+        !attachment.mimetype.includes('ogg')
+      ) {
+        const newAudioURL = attachment.download_url + '?format=mp3';
+        const newAttachment = {
+          ...attachment,
+          download_url: newAudioURL,
+          download_large_url: newAudioURL,
+          download_medium_url: newAudioURL,
+          download_small_url: newAudioURL,
+          mimetype: 'audio/mp3',
+        };
+        mediaAttachment = newAttachment;
+      } else {
+        mediaAttachment = attachment;
+      }
     }
   });
-
   return mediaAttachment;
 }
 
 /**
  * Returns supplemental details for given path,
  * e.g. `_supplementalDetails/question_name/transcript_pl` or
- * e.g. `_supplementalDetails/question_name/translated_pl`.
+ * `_supplementalDetails/question_name/translated_pl` or
+ * `_supplementalDetails/question_name/a1234567-a123-123a-12a3-123aaaa45678`
+ * (a random uuid for qualitative analysis questions).
  *
  * NOTE: transcripts are actually not nested on language level (because there
  * can be only one transcript), but we need to use paths with languages in it
@@ -551,12 +654,12 @@ export function getMediaAttachment(
 export function getSupplementalDetailsContent(
   submission: SubmissionResponse,
   path: string
-) {
-  const pathArray = path.split('/');
+): string {
+  let pathArray;
   const pathParts = getSupplementalPathParts(path);
 
-  // Separate route for getting transcripts value.
-  if (pathParts.isTranscript) {
+  if (pathParts.type === 'transcript') {
+    pathArray = path.split('/');
     // There is always one transcript, not nested in language code object, thus
     // we don't need the language code in the last element of the path.
     pathArray.pop();
@@ -568,87 +671,81 @@ export function getSupplementalDetailsContent(
     ) {
       return transcriptObj.value;
     }
-    return t('N/A');
   }
 
-  // The last element is `translated_<language code>`, but we don't want
-  // the underscore to be there.
-  pathArray.pop();
-  pathArray.push('translation');
-  pathArray.push(pathParts.languageCode);
+  if (pathParts.type === 'translation') {
+    pathArray = path.split('/');
+    // The last element is `translation_<language code>`, but we don't want
+    // the underscore to be there.
+    pathArray.pop();
+    pathArray.push('translation');
+    pathArray.push(pathParts.languageCode || '??');
 
-  // Then we add one more nested level
-  pathArray.push('value');
-  // Moments like these makes you really apprecieate the beauty of lodash.
-  const value = get(submission, pathArray, '');
+    // Then we add one more nested level
+    pathArray.push('value');
+    // Moments like these makes you really apprecieate the beauty of lodash.
+    const translationText = get(submission, pathArray, '');
+
+    if (translationText) {
+      return translationText;
+    }
+  }
+
+  if (pathParts.type === 'qual') {
+    pathArray = path.split('/');
+    // The last element is some random uuid, but we look for `qual`.
+    pathArray.pop();
+    pathArray.push('qual');
+    const qualResponses: SubmissionAnalysisResponse[] = get(submission, pathArray, []);
+    const foundResponse = qualResponses.find(
+      (item: SubmissionAnalysisResponse) => item.uuid === pathParts.analysisQuestionUuid
+    );
+    if (foundResponse) {
+      // For `qual_select_one` we get object
+      if (
+        typeof foundResponse.val === 'object' &&
+        'labels' in foundResponse.val
+      ) {
+        return foundResponse.val.labels._default;
+      }
+
+      // Here we handle both `qual_select_multiple` and `qual_tags`, as both are
+      // arrays of items
+      if (
+        Array.isArray(foundResponse.val) &&
+        foundResponse.val.length > 0
+      ) {
+        const choiceLabels = foundResponse.val.map((item) => {
+          // For `qual_select_multiple` we get an array of objects
+          if (typeof item === 'object') {
+            return item.labels._default;
+          // For `qual_tags` we get an array of strings
+          } else {
+            return item;
+          }
+        });
+
+        return choiceLabels.join(', ');
+      }
+
+      if (
+        typeof foundResponse.val === 'string' &&
+        foundResponse.val !== ''
+      ) {
+        return foundResponse.val;
+      }
+
+      if (typeof foundResponse.val === 'number') {
+        return String(foundResponse.val);
+      }
+
+      return t('N/A');
+    }
+  }
+
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
-  return value || t('N/A');
-}
-
-/**
- * Returns all supplemental details (as rows) for given row. Includes transcript
- * and all translations.
- *
- * Returns empty array if row is not enabled to have supplemental details.
- *
- * If there is potential for details, then it will return a full list of
- * DisplayResponses with existing values (falling back to empty strings).
- */
-export function getRowSupplementalResponses(
-  asset: AssetResponse,
-  submissionData: SubmissionResponse,
-  rowName: string,
-): DisplayResponse[] {
-  const output: DisplayResponse[] = [];
-  if (isRowProcessingEnabled(asset.uid, rowName)) {
-    const advancedFeatures = asset.advanced_features;
-
-    if (advancedFeatures?.transcript?.languages !== undefined) {
-      advancedFeatures.transcript.languages.forEach((languageCode: LanguageCode) => {
-        const path = getSupplementalTranscriptPath(rowName, languageCode);
-        output.push(
-          new DisplayResponse(
-            null,
-            getColumnLabel(asset, path, false),
-            path,
-            undefined,
-            getSupplementalDetailsContent(submissionData, path)
-          )
-        );
-      });
-    }
-
-    if (advancedFeatures?.translation?.languages !== undefined) {
-      advancedFeatures.translation.languages.forEach((languageCode: LanguageCode) => {
-        const path = getSupplementalTranslationPath(rowName, languageCode);
-        output.push(
-          new DisplayResponse(
-            null,
-            getColumnLabel(asset, path, false),
-            path,
-            undefined,
-            getSupplementalDetailsContent(submissionData, path)
-          )
-        );
-      });
-    }
-  }
-
-  return output;
-}
-
-/**
- * Mimics Django get_valid_filename() to match back-end renaming when an
- * attachment is saved in storage.
- * See https://github.com/django/django/blob/832adb31f27cfc18ad7542c7eda5a1b6ed5f1669/django/utils/text.py#L224
- */
-export function getValidFilename(
-  fileName: string
-): string {
-  return fileName.normalize('NFD').replace(/\p{Diacritic}/gu, '')
-    .replace(/ /g, '_')
-    .replace(/[^\p{L}\p{M}\.\d_-]/gu, '');
+  return t('N/A');
 }
 
 export default {
@@ -656,3 +753,8 @@ export default {
   getSubmissionDisplayData,
   getRepeatGroupAnswers,
 };
+
+export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
+  const flatPaths = getSurveyFlatPaths(surveyRows, true);
+  return flatPaths[rowName];
+}

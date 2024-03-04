@@ -13,6 +13,7 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch, Q, F
 from django.utils.translation import gettext_lazy as t
+from django_request_cache import cache_for_request
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
@@ -42,6 +43,7 @@ from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     ASSET_TYPE_TEXT,
+    ATTACHMENT_QUESTION_TYPES,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
@@ -80,6 +82,13 @@ from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
 from kpi.tasks import remove_asset_snapshots
+
+
+class AssetDeploymentStatus(models.TextChoices):
+
+    ARCHIVED = 'archived', 'Archived'
+    DEPLOYED = 'deployed', 'Deployed'
+    DRAFT = 'draft', 'Draft'
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -200,6 +209,15 @@ class Asset(ObjectPermissionMixin,
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
     pending_delete = models.BooleanField(default=False)
+    # `_deployment_status` is calculated field, therefore should **NOT** be
+    # set directly.
+    _deployment_status = models.CharField(
+        max_length=8,
+        choices=AssetDeploymentStatus.choices,
+        null=True,
+        blank=True,
+        db_index=True
+    )
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -363,7 +381,6 @@ class Asset(ObjectPermissionMixin,
                 if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
             )
         ),
-        PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (
@@ -399,6 +416,7 @@ class Asset(ObjectPermissionMixin,
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
+        PERM_ADD_SUBMISSIONS: {'require_auth': False},
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 
@@ -456,7 +474,40 @@ class Asset(ObjectPermissionMixin,
     def analysis_form_json(self):
         additional_fields = list(self._get_additional_fields())
         engines = dict(self._get_engines())
-        return {'engines': engines, 'additional_fields': additional_fields}
+        output = {'engines': engines, 'additional_fields': additional_fields}
+        try:
+            qual_survey = self.advanced_features['qual']['qual_survey']
+        except KeyError:
+            return output
+        for qual_question in qual_survey:
+            qname = qual_question['qpath'].split('-')[-1]
+            # Surely some of this stuff is not actually used…
+            # (added to match extend_col_deets() from
+            # kobo/apps/subsequences/utils/parse_known_cols)
+            #
+            # See also injectSupplementalRowsIntoListOfRows() in
+            # assetUtils.ts
+            field = dict(
+                label=qual_question['labels']['_default'],
+                name=f"{qname}/{qual_question['uuid']}",
+                dtpath=f"{qual_question['qpath']}/{qual_question['uuid']}",
+                type=qual_question['type'],
+                # could say '_default' or the language of the transcript,
+                # but really that would be meaningless and misleading
+                language='??',
+                source=qual_question['qpath'],
+                qpath=f"{qual_question['qpath']}-{qual_question['uuid']}",
+                # seems not applicable given the transx questions describe
+                # manual vs. auto here and which engine was used
+                settings='??',
+                path=[qual_question['qpath'], qual_question['uuid']],
+            )
+            try:
+                field['choices'] = qual_question['choices']
+            except KeyError:
+                pass
+            additional_fields.append(field)
+        return output
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -486,6 +537,13 @@ class Asset(ObjectPermissionMixin,
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
+
+    @property
+    def deployment_status(self):
+        """
+        Public property for `_deployment_status`
+        """
+        return self._deployment_status
 
     @property
     def discoverable_when_public(self):
@@ -518,6 +576,42 @@ class Asset(ObjectPermissionMixin,
         return advanced_submission_jsonschema(
             content, self.advanced_features, url=url
         )
+
+    @cache_for_request
+    def get_attachment_xpaths(self, deployed: bool = True) -> Optional[list]:
+        version = (
+            self.latest_deployed_version if deployed else self.latest_version
+        )
+
+        if version:
+            content = version.to_formpack_schema()['content']
+        else:
+            content = self.content
+
+        survey = content['survey']
+
+        def _get_xpaths(survey_: dict) -> Optional[list]:
+            """
+            Returns an empty list if no questions that take attachments are
+            present. Returns `None` if XPath are missing from the survey
+            content
+            """
+            xpaths = []
+            for question in survey_:
+                if question['type'] not in ATTACHMENT_QUESTION_TYPES:
+                    continue
+                try:
+                    xpath = question['$xpath']
+                except KeyError:
+                    return None
+                xpaths.append(xpath)
+            return xpaths
+
+        if xpaths := _get_xpaths(survey):
+            return xpaths
+
+        self._insert_qpath(content)
+        return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
@@ -869,6 +963,8 @@ class Asset(ObjectPermissionMixin,
                 self._deployment_data.pop('_stored_data_key', None)
                 self.__copy_hidden_fields()
 
+        self.set_deployment_status()
+
         super().save(
             force_insert=force_insert,
             force_update=force_update,
@@ -908,6 +1004,18 @@ class Asset(ObjectPermissionMixin,
 
         if create_version:
             self.create_version()
+
+    def set_deployment_status(self):
+        if self.asset_type != ASSET_TYPE_SURVEY:
+            return
+
+        if self.has_deployment:
+            if self.deployment.active:
+                self._deployment_status = AssetDeploymentStatus.DEPLOYED
+            else:
+                self._deployment_status = AssetDeploymentStatus.ARCHIVED
+        else:
+            self._deployment_status = AssetDeploymentStatus.DRAFT
 
     @property
     def tag_string(self):
@@ -1069,9 +1177,13 @@ class Asset(ObjectPermissionMixin,
         return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
+        '''
+        engines are individual NLP services that can be used
+        '''
         for instance in self.get_advanced_feature_instances():
-            for key, val in instance.engines():
-                yield key, val
+            if hasattr(instance, 'engines'):
+                for key, val in instance.engines():
+                    yield key, val
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

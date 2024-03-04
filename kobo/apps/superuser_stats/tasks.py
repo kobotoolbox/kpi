@@ -14,11 +14,21 @@ except ImportError:
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.files.storage import get_storage_class
-from django.db.models import Sum, CharField, Count, F, Value, DateField, Q
+from django.core.files.storage import default_storage
+from django.db.models import (
+    CharField,
+    Count,
+    DateField,
+    IntegerField,
+    F,
+    Q,
+    Sum,
+    Value,
+)
 from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
+from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
@@ -28,7 +38,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
-from kpi.models.asset import Asset
+from kpi.models.asset import Asset, AssetDeploymentStatus
 
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
@@ -47,8 +57,7 @@ def generate_country_report(
             '_deployment_data__backend_response__formid', flat=True
         ).filter(
             settings__country_codes__in_array=[code_],
-            _deployment_data__active=True,
-            _deployment_data__has_key='backend',
+            _deployment_status=AssetDeploymentStatus.DEPLOYED,
             asset_type=ASSET_TYPE_SURVEY,
         )
         # Doing it this way because this report is focused on crises in
@@ -68,7 +77,6 @@ def generate_country_report(
         'Count',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output_file:
         writer = csv.writer(output_file)
         writer.writerow(columns)
@@ -161,7 +169,6 @@ def generate_continued_usage_report(output_filename: str, end_date: str):
         'Submissions 12M',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(headers)
@@ -212,7 +219,6 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
     # create the CSV file
     columns = ['Email Domain', 'Users', 'Projects', 'Submissions']
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(columns)
@@ -285,7 +291,6 @@ def generate_forms_count_by_submission_range(output_filename: str):
     headers = ['Range', 'Count']
 
     # Crate a csv with output filename
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(headers)
@@ -309,7 +314,6 @@ def generate_media_storage_report(output_filename: str):
 
     headers = ['Username', 'Storage Used (Bytes)']
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(headers)
@@ -346,7 +350,6 @@ def generate_user_count_by_organization(output_filename: str):
     # write data to a csv file
     columns = ['Organization', 'Count']
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output_file:
         writer = csv.writer(output_file)
         writer.writerow(columns)
@@ -431,7 +434,6 @@ def generate_user_report(output_filename: str):
         'last_login',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output_file:
         writer = csv.writer(output_file)
         writer.writerow(columns)
@@ -465,7 +467,9 @@ def generate_user_statistics_report(
     }
 
     # Filter the asset_queryset for active deployments
-    asset_queryset = asset_queryset.filter(_deployment_data__active=True)
+    asset_queryset = asset_queryset.filter(
+        _deployment_status=AssetDeploymentStatus.DEPLOYED
+    )
     records = asset_queryset.annotate(deployment_count=Count('pk')).order_by()
     deployment_count = {
         record['owner_id']: record['deployment_count']
@@ -487,6 +491,22 @@ def generate_user_statistics_report(
         ).order_by('user__date_joined').annotate(count_sum=Sum('counter'))
     )
 
+    # get NLP statistics
+    nlp_counters = (
+        NLPUsageCounter.objects.filter(
+            date__range=(start_date, end_date)
+        ).values(
+            'user_id',
+        ).annotate(
+            total_google_asr=Sum(
+                Cast(F('counters__google_asr_seconds'), IntegerField()),
+            ),
+            total_google_mt=Sum(
+                Cast(F('counters__google_mt_characters'), IntegerField()),
+            ),
+        )
+    )
+
     def _get_country_value(value: Union[dict, list]) -> str:
         if isinstance(value, dict):
             return value['value']
@@ -496,19 +516,30 @@ def generate_user_statistics_report(
         return value
 
     for record in records.iterator():
+        user_id = record['user_id']
         user_details, created = ExtraUserDetail.objects.get_or_create(
-            user_id=record['user_id']
+            user_id=user_id
         )
+        # Users will only have a counter if they have used NLP services in the
+        # specified period so a fallback is needed
+        try:
+            nlp_totals = nlp_counters.get(user_id=user_id)
+        except NLPUsageCounter.DoesNotExist:
+            nlp_totals = {}
         data.append([
             record['user__username'],
             user_details.data.get('name', ''),
             record['user__date_joined'],
             record['user__email'],
+            user_details.data.get('organization_type', ''),
             user_details.data.get('organization', ''),
+            user_details.data.get('organization_website', ''),
             _get_country_value(user_details.data.get('country', '')),
             record['count_sum'],
-            forms_count.get(record['user_id'], 0),
-            deployment_count.get(record['user_id'], 0)
+            forms_count.get(user_id, 0),
+            deployment_count.get(user_id, 0),
+            nlp_totals.get('total_google_asr', 0),
+            nlp_totals.get('total_google_mt', 0),
         ])
 
     columns = [
@@ -516,14 +547,17 @@ def generate_user_statistics_report(
         'Name',
         'Date Joined',
         'Email',
+        'Organization Type',
         'Organization',
+        'Organization Website',
         'Country',
         'Submissions Count',
         'Forms Count',
-        'Deployments Count'
+        'Deployments Count',
+        'Google ASR Seconds',
+        'Google MT Seconds',
     ]
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(columns)
@@ -557,13 +591,14 @@ def generate_user_details_report(
         'country',
         'city',
         'bio',
+        'organization_type',
         'organization',
-        'require_auth',
-        'primarySector',
         'organization_website',
+        'primarySector',
         'twitter',
         'linkedin',
         'instagram',
+        'newsletter_subscription',
         'metadata',
         'last_ui_language',
     ]
@@ -606,7 +641,6 @@ def generate_user_details_report(
         .order_by('id')
     )
 
-    default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as f:
         columns = USER_COLS + EXTRA_DETAILS_COLS
         writer = csv.writer(f)

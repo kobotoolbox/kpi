@@ -1,3 +1,5 @@
+@import '~normalize.css';
+
 @import "variables";
 
 @import "./libs/mdl";
@@ -27,7 +29,6 @@
 @import "./components/kobo.button";
 @import "./components/kobo.light-button";
 @import "./components/kobo.text-button";
-@import "./components/kobo.tooltips";
 @import "./components/kobo.tooltips-big";
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";
@@ -35,8 +36,6 @@
 @import "./components/kobo.form-builder";
 @import "./components/kobo.form-builder-message-box";
 @import "./components/kobo.locking";
-@import "./components/kobo.collection-asset-list";
-@import "./components/kobo.asset-row";
 @import "./components/kobo.lib-nav";
 @import "./components/kobo.lib-list";
 @import "./components/kobo.form-view";
@@ -46,6 +45,7 @@
 @import "./components/kobo.simple-table";
 @import "./components/kobo.background-audio-player";
 @import "./components/kobo.dropzone";
+@import 'jsapp/js/components/common/tooltip.scss';
 
 @import "./formbuild/kobomatrix";
 

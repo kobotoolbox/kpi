@@ -3,9 +3,10 @@ from __future__ import annotations
 
 from typing import Union
 
-from django.contrib.auth.models import User
 from django.http import Http404
+from kobo_service_account.utils import get_real_user
 from rest_framework import exceptions, permissions
+from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
 
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
@@ -14,6 +15,8 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import DeploymentNotFound
+from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
 from kpi.models.asset import Asset
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
@@ -119,7 +122,9 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         return True
 
 
-class AssetPermission(permissions.DjangoObjectPermissions):
+class AssetPermission(
+    ValidationPasswordPermissionMixin, permissions.DjangoObjectPermissions
+):
 
     # Setting this to False allows real permission checking on AnonymousUser.
     # With the default of True, anonymous requests are categorically rejected.
@@ -129,6 +134,10 @@ class AssetPermission(permissions.DjangoObjectPermissions):
     perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
     perms_map['OPTIONS'] = perms_map['GET']
     perms_map['HEAD'] = perms_map['GET']
+
+    def has_permission(self, request, view):
+        self.validate_password(request)
+        return super().has_permission(request=request, view=view)
 
     def has_object_permission(self, request, view, obj):
 
@@ -151,7 +160,9 @@ class AssetPermission(permissions.DjangoObjectPermissions):
         return super().has_object_permission(request, view, obj)
 
 
-class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
+class AssetNestedObjectPermission(
+    ValidationPasswordPermissionMixin, BaseAssetNestedObjectPermission
+):
     """
     Permissions for nested objects of Asset.
     Only owner and managers can have write access on these objects.
@@ -172,6 +183,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     perms_map['DELETE'] = perms_map['POST']
 
     def has_permission(self, request, view):
+        self.validate_password(request)
         if not request.user:
             return False
         elif request.user.is_superuser:
@@ -272,6 +284,13 @@ class AssetVersionReadOnlyPermission(AssetNestedObjectPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_asset'],
     }
+
+
+class IsAuthenticated(ValidationPasswordPermissionMixin, DRFIsAuthenticated):
+
+    def has_permission(self, request, view):
+        self.validate_password(request)
+        return super().has_permission(request=request, view=view)
 
 
 # FIXME: Name is no longer accurate.
@@ -444,20 +463,24 @@ class XMLExternalDataPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         """
         The responsibility for securing data behove to the owner of the
-        asset `obj` by requiring authentication on their form.
-        Otherwise, the paired source data may be exposed to anyone
+        asset `obj` (the child project) by requiring authentication on
+        their form.
+        Otherwise, the paired source (the parent project) data may be exposed
+        to anyone.
         """
-        # Check whether `asset` owner's account requires authentication:
+        # Check whether the project requires authentication
         try:
-            require_auth = obj.asset.owner.extra_details.data['require_auth']
-        except (User.extra_details.RelatedObjectDoesNotExist, KeyError):
-            require_auth = False
+            require_auth = obj.asset.deployment.xform.require_auth
+        except (DeploymentNotFound, AttributeError):
+            require_auth = True
+
+        real_user = get_real_user(request)
 
         # If authentication is required, `request.user` should have
         # 'add_submission' permission on `obj`
         if (
             require_auth
-            and not obj.asset.has_perm(request.user, PERM_ADD_SUBMISSIONS)
+            and not obj.asset.has_perm(real_user, PERM_ADD_SUBMISSIONS)
         ):
             raise Http404
 

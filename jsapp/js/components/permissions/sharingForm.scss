@@ -1,6 +1,7 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/_variables";
-@use "scss/libs/_mdl";
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
+@use 'scss/sizes';
 
 $s-flexed-row-button-width: 100px;
 $s-flexed-row-select-width: 200px;
@@ -28,7 +29,9 @@ $s-gray-row-spacing: 10px;
 .copy-team-permissions {
   margin-bottom: 30px;
 
-  &.copy-team-permissions--opened .copy-team-permissions-opener .k-icon::before {
+  &.copy-team-permissions--opened
+    .copy-team-permissions-opener
+    .k-icon::before {
     transform: rotate(-90deg);
   }
 
@@ -122,13 +125,16 @@ $s-gray-row-spacing: 10px;
   }
 }
 
-// -----------------------------------------------------------------------------
-// UserAssetPermsEditor
-// -----------------------------------------------------------------------------
+// We want to avoud UI jumping when question with a long name is being selected 
+// in "based on a condition" dropdown
+.modal .form-modal__item--who-has-access {
+  min-width: 600px;
+}
 
 .form-modal__item--copy-team-permissions {
   position: relative;
 
+  // The closing button is not a part of UserAssetPermsEditor
   .user-permissions-editor-closer {
     position: absolute;
     top: 5px;
@@ -136,37 +142,8 @@ $s-gray-row-spacing: 10px;
   }
 }
 
-.user-permissions-editor {
-  .react-tagsinput-input {
-    background-color: colors.$kobo-white;
-  }
-
-  .user-permissions-editor__row {
-    &:not(:last-child) {
-      margin-bottom: 10px;
-    }
-
-    &.user-permissions-editor__row--username {
-      width: calc(100% - 32px);
-    }
-  }
-
-  .user-permissions-editor__sub-row {
-    padding-left: 30px;
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 10px;
-      width: 15px;
-      height: 15px;
-      border-left: 1px solid colors.$kobo-gray-92;
-      border-bottom: 1px solid colors.$kobo-gray-92;
-      border-radius: 2px;
-    }
-  }
+.form-modal__item--permissions-header {
+  font-weight: bold;
 }
 
 // -----------------------------------------------------------------------------
@@ -197,7 +174,7 @@ $s-gray-row-spacing: 10px;
     }
   }
 
-  > input[type="text"] {
+  > input[type='text'] {
     flex: 1;
     padding: $s-gray-row-spacing;
     height: 40px;

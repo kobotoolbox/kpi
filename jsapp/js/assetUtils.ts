@@ -1,7 +1,11 @@
+/**
+ * This file contains different methods for filtering and understanding asset's
+ * data. Most of these are helpers for rendering information in UI.
+ */
+
 import React from 'react';
-import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'js/utils';
+import {ANON_USERNAME_URL} from 'js/users/utils';
 import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
 import type {
@@ -12,32 +16,28 @@ import type {
 import assetStore from 'js/assetStore';
 import {
   ASSET_TYPES,
-  MODAL_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  ANON_USERNAME,
-  PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import type {
   AssetContent,
   AssetResponse,
   ProjectViewAsset,
   SurveyRow,
   SurveyChoice,
-  Permission,
+  PermissionResponse,
+  AnalysisFormJsonField,
 } from 'js/dataInterface';
-import {
-  getSupplementalTranscriptPath,
-  getSupplementalTranslationPath,
-} from 'js/components/processing/processingUtils';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {IconName} from 'jsapp/fonts/k-icons';
+import {QUAL_NOTE_TYPE} from 'js/components/processing/analysis/constants';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -63,7 +63,7 @@ export function getAssetOwnerDisplayName(username: string) {
   }
 }
 
-export function getOrganizationDisplayString(asset: AssetResponse) {
+export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewAsset) {
   if (asset.settings.organization) {
     return asset.settings.organization;
   } else {
@@ -150,6 +150,11 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
     } else {
       countries.push(envStore.getCountryLabel(asset.settings.country.value));
     }
+
+    if (countries.length === 0) {
+      return '-';
+    }
+
     // TODO: improve for RTL?
     // See: https://github.com/kobotoolbox/kpi/issues/3903
     return countries.join(', ');
@@ -212,6 +217,12 @@ export function getQuestionOrChoiceDisplayName(
   questionOrChoice: SurveyChoice | SurveyRow,
   translationIndex = 0
 ): string {
+  // The `translationIndex` is set to `-1` when user chooses to display xml
+  // values instead of labels
+  if (translationIndex === -1) {
+    return getRowName(questionOrChoice);
+  }
+
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
@@ -240,12 +251,12 @@ export function isLibraryAsset(assetType: AssetTypeName) {
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  * Note that `view_asset` is implied when you have `discover_asset`.
  */
-export function isAssetPublic(permissions: Permission[]) {
+export function isAssetPublic(permissions?: PermissionResponse[]) {
   let isDiscoverableByAnonymous = false;
-  permissions.forEach((perm) => {
+  permissions?.forEach((perm) => {
     const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
     if (
-      perm.user === buildUserUrl(ANON_USERNAME) &&
+      perm.user === ANON_USERNAME_URL &&
       foundPerm !== undefined &&
       perm.permission === foundPerm.url
     ) {
@@ -256,104 +267,44 @@ export function isAssetPublic(permissions: Permission[]) {
 }
 
 /**
- * For getting the icon class name for given asset type. Returned string always
- * contains two class names: base `k-icon` and respective CSS class name.
+ * For getting the icon name for given asset type. Recommended to be used with
+ * the `<Icon>` component.
  */
-export function getAssetIcon(asset: AssetResponse) {
+export function getAssetIcon(asset: AssetResponse): IconName {
   switch (asset.asset_type) {
     case ASSET_TYPES.template.id:
-      if (asset.summary?.lock_any) {
-        return 'k-icon k-icon-template-locked';
+      if ('summary' in asset && asset.summary?.lock_any) {
+        return 'template-locked';
       } else {
-        return 'k-icon k-icon-template';
+        return 'template';
       }
     case ASSET_TYPES.question.id:
-      return 'k-icon k-icon-question';
+      return 'question';
     case ASSET_TYPES.block.id:
-      return 'k-icon k-icon-block';
+      return 'block';
     case ASSET_TYPES.survey.id:
-      if (asset.summary?.lock_any) {
-        return 'k-icon k-icon-project-locked';
-      } else if (asset.has_deployment && !asset.deployment__active) {
-        return 'k-icon k-icon-project-archived';
-      } else if (asset.has_deployment) {
-        return 'k-icon k-icon-project-deployed';
+      if ('summary' in asset && asset.summary?.lock_any) {
+        return 'project-locked';
+      } else if (asset.deployment_status === 'archived') {
+        return 'project-archived';
+      } else if (asset.deployment_status === 'deployed') {
+        return 'project-deployed';
       } else {
-        return 'k-icon k-icon-project-draft';
+        return 'project-draft';
       }
     case ASSET_TYPES.collection.id:
-      if (asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
-        return 'k-icon k-icon-folder-subscribed';
+      if ('access_types' in asset && asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
+        return 'folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
-        return 'k-icon k-icon-folder-public';
+        return 'folder-public';
       } else if (asset?.access_types?.includes(ACCESS_TYPES.shared)) {
-        return 'k-icon k-icon-folder-shared';
+        return 'folder-shared';
       } else {
-        return 'k-icon k-icon-folder';
+        return 'folder';
       }
     default:
-      return 'k-icon k-icon-project';
+      return 'project';
   }
-}
-
-/**
- * Opens a modal for editing asset details.
- */
-export function modifyDetails(asset: AssetResponse) {
-  let modalType;
-  if (asset.asset_type === ASSET_TYPES.template.id) {
-    modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
-  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    modalType = MODAL_TYPES.LIBRARY_COLLECTION;
-  }
-  if (modalType) {
-    stores.pageState.showModal({
-      type: modalType,
-      asset: asset,
-    });
-  } else {
-    throw new Error(`Unsupported asset type: ${asset.asset_type}.`);
-  }
-}
-
-/**
- * Opens a modal for sharing asset.
- */
-export function share(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.SHARING,
-    assetid: asset.uid,
-  });
-}
-
-/**
- * Opens a modal for modifying asset languages and translation strings.
- */
-export function editLanguages(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.FORM_LANGUAGES,
-    asset: asset,
-  });
-}
-
-/**
- * Opens a modal for modifying asset tags (also editable in Details Modal).
- */
-export function editTags(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.ASSET_TAGS,
-    asset: asset,
-  });
-}
-
-/**
- * Opens a modal for replacing an asset using a file.
- */
-export function replaceForm(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.REPLACE_PROJECT,
-    asset: asset,
-  });
 }
 
 export type SurveyFlatPaths = {
@@ -552,47 +503,10 @@ export function renderQuestionTypeIcon(
 }
 
 /**
- * This returns a list of paths for all applicable question names - we do it
- * this way to make it easier to connect the paths to the source question.
- */
-export function getSupplementalDetailsPaths(asset: AssetResponse): {
-  [questionName: string]: string[];
-} {
-  const paths: {[questionName: string]: string[]} = {};
-  const advancedFeatures = asset.advanced_features;
-
-  advancedFeatures?.transcript?.values?.forEach((questionName: string) => {
-    if (!Array.isArray(paths[questionName])) {
-      paths[questionName] = [];
-    }
-    // NOTE: the values for transcripts are not nested in submission, but we
-    // need the path to contain language for other parts of code to work.
-    advancedFeatures.transcript?.languages?.forEach((languageCode: LanguageCode) => {
-      paths[questionName].push(
-        getSupplementalTranscriptPath(questionName, languageCode)
-      );
-    });
-  });
-
-  advancedFeatures?.translation?.values?.forEach((questionName: string) => {
-    if (!Array.isArray(paths[questionName])) {
-      paths[questionName] = [];
-    }
-    advancedFeatures.translation?.languages?.forEach((languageCode: LanguageCode) => {
-      paths[questionName].push(
-        getSupplementalTranslationPath(questionName, languageCode)
-      );
-    });
-  });
-
-  return paths;
-}
-
-/**
- * Injects supplemental details columns next to (immediately after) their
- * matching rows in a given list of rows.
+ * Injects supplemental details columns next to their respective source rows in
+ * a given list of rows. Returns a new updated `rows` list.
  *
- * NOTE: it returns a new updated `rows` list.
+ * Note: we omit injecting `qual_note` questions.
  */
 export function injectSupplementalRowsIntoListOfRows(
   asset: AssetResponse,
@@ -602,48 +516,42 @@ export function injectSupplementalRowsIntoListOfRows(
     throw new Error('Asset has no content');
   }
 
+  // Step 1: clone the list
   let output = Array.from(rows);
 
-  // First filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
+  // Step 2: filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
   output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
 
-  const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
+  // Step 3: use the list of additional columns (with data), that was generated
+  // on Back end, to build a list of columns grouped by source question
+  const additionalFields = asset.analysis_form_json?.additional_fields || [];
+  const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {};
+  additionalFields.forEach((field: AnalysisFormJsonField) => {
+    // Note questions make sense only in the context of writing responses to
+    // Qualitative Analysis questions. They bear no data, so there is no point
+    // displaying them outside of Single Processing route. As this function is
+    // part of Data Table and Data Downloads, we need to hide the notes.
+    if (field.type === QUAL_NOTE_TYPE) {
+      return;
+    }
 
-  const { analysis_form_json } = asset;
-  const additional_fields: any = analysis_form_json.additional_fields;
-
-  const extraColsBySource: Record<string, any[]> = {};
-  additional_fields.forEach((add_field: any) => {
-    let sourceName: string = add_field.source;
+    const sourceName: string = field.source;
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = [];
     }
-    extraColsBySource[sourceName].push(add_field);
+    extraColsBySource[sourceName].push(field);
   });
 
+  // Step 4: Inject all the extra columns immediately after source question
   const outputWithCols: string[] = [];
   output.forEach((col: string) => {
-    let qpath = col.replace(/\//g, '-')
+    const qpath = col.replace(/\//g, '-');
     outputWithCols.push(col);
-    (extraColsBySource[qpath] || []).forEach((assetAddlField) => {
-      outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`)
+    (extraColsBySource[qpath] || []).forEach((extraCol) => {
+      outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`);
     });
   });
 
-  /*
-  revisit this before merge: (does this work with longer paths / within groups?)
-
-  Object.keys(supplementalDetailsPaths).forEach((rowName) => {
-    // In supplementalDetailsPaths we get row names, in output we already have
-    // row paths. We need to find a matching row and put all paths immediately
-    // after it.
-    const rowPath = flatPathsWithGroups[rowName];
-    const sourceRowIndex = output.indexOf(rowPath);
-    if (sourceRowIndex !== -1) {
-      output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
-    }
-  });
-  */
   return outputWithCols;
 }
 
@@ -766,10 +674,23 @@ export function getAssetAdvancedFeatures(assetUid: string) {
   return undefined;
 }
 
+// This url returns `ProcessingDataResponse`
 export function getAssetProcessingUrl(assetUid: string): string | undefined {
   const foundAsset = assetStore.getAsset(assetUid);
   if (foundAsset) {
     return foundAsset.advanced_submission_schema?.url;
+  }
+  return undefined;
+}
+
+// This url returns `SubmissionProcessingDataResponse`
+export function getAssetSubmissionProcessingUrl(
+  assetUid: string,
+  submission: string
+) {
+  const processingUrl = getAssetProcessingUrl(assetUid);
+  if (processingUrl) {
+    return processingUrl + '?submission=' + submission
   }
   return undefined;
 }
@@ -807,8 +728,6 @@ export function isAssetProcessingActivated(assetUid: string) {
 export default {
   buildAssetUrl,
   cleanupTags,
-  editLanguages,
-  editTags,
   getAssetDisplayName,
   getAssetIcon,
   getAssetOwnerDisplayName,
@@ -827,10 +746,7 @@ export default {
   isLibraryAsset,
   isRowSpecialLabelHolder,
   isSelfOwned,
-  modifyDetails,
   renderQuestionTypeIcon,
-  replaceForm,
-  share,
   removeInvalidChars,
   getAssetAdvancedFeatures,
   getAssetProcessingUrl,

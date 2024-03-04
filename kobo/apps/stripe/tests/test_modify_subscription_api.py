@@ -56,6 +56,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
     @patch("stripe.SubscriptionSchedule.create")
     @patch("stripe.SubscriptionSchedule.modify")
     def _modify_price(self, price_from, price_to, schedule_modify, subscription_schedule_create, subscription_modify):
+        subscription_modify.return_value = {'pending_update': None}
         customer, organization = self._create_customer_organization()
         organization.add_user(self.someuser, is_admin=True)
         subscription = self._subscribe_organization(organization, customer, price_from)
@@ -74,7 +75,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
             }
         ])
         subscription_schedule_create.return_value = subscription_schedule
-        return self.client.post(url)
+        return self.client.get(url)
 
     def test_upgrades_subscription(self):
         response = self._modify_price(self.low_price, self.high_price)
@@ -86,7 +87,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
 
     def test_rejects_invalid_query_params(self):
         url = self._get_url({'price_id': 'test', 'subscription_id': 'test'})
-        response = self.client.post(url)
+        response = self.client.get(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_doesnt_modify_subscription_if_not_owner(self):
@@ -98,4 +99,4 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
     def test_anonymous_user(self):
         self.client.logout()
         response = self._modify_price(self.high_price, self.low_price)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

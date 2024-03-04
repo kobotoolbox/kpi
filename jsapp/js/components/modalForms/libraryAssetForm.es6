@@ -18,7 +18,7 @@ import assetUtils from 'js/assetUtils';
 import {renderBackButton} from './modalHelpers';
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
-import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import managedCollectionsStore from 'js/components/library/managedCollectionsStore';
 import envStore from 'js/envStore';
 import {withRouter} from 'js/router/legacy';
 
@@ -152,7 +152,7 @@ export class LibraryAssetFormComponent extends React.Component {
         this.isLibrarySingle() &&
         params.asset_type !== ASSET_TYPES.collection.id
       ) {
-        const found = ownedCollectionsStore.find(this.currentAssetID());
+        const found = managedCollectionsStore.find(this.currentAssetID());
         if (found && found.asset_type === ASSET_TYPES.collection.id) {
           // when creating from within a collection page, make the new asset
           // a child of this collection
@@ -216,7 +216,6 @@ export class LibraryAssetFormComponent extends React.Component {
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               value={this.state.fields.name}
               onChange={this.onNameChange.bind(this)}
               label={t('Name')}
@@ -226,7 +225,6 @@ export class LibraryAssetFormComponent extends React.Component {
 
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               type='text-multiline'
               value={this.state.fields.description}
               onChange={this.onDescriptionChange.bind(this)}
@@ -237,7 +235,6 @@ export class LibraryAssetFormComponent extends React.Component {
 
           <bem.FormModal__item>
             <TextBox
-              customModifiers='on-white'
               value={this.state.fields.organization}
               onChange={this.onAnyFieldChange.bind(this, 'organization')}
               label={t('Organization')}

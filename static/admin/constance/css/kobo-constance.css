@@ -1,0 +1,5 @@
+#content-main.constance #changelist-form #results tr td:nth-child(2) p {
+  display: block;
+  unicode-bidi: embed;
+  white-space: break-spaces;
+}

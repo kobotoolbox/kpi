@@ -31,7 +31,7 @@ dataShareActions.attachToSource.listen((assetUid, data) => {
 });
 dataShareActions.attachToSource.failed.listen((response) => {
   notify.error(
-    response?.responseJSON?.filename[0] ||
+    response?.responseJSON?.filename?.[0] ||
       response?.responseJSON ||
       t('Failed to attach to source')
   );

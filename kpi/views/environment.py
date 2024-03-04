@@ -3,17 +3,21 @@ import json
 import logging
 
 import constance
+from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
+from hub.models.sitewide_message import SitewideMessage
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from allauth.socialaccount.models import SocialApp
 
 from hub.utils.i18n import I18nUtils
+from kobo.apps.organizations.models import OrganizationOwner
+from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from kobo.static_lists import COUNTRIES
-from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.constance_backends.utils import to_python_object
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.utils.object_permission import get_database_user
 
 
@@ -55,8 +59,6 @@ class EnvironmentView(APIView):
     JSON_CONFIGS = [
         'FREE_TIER_DISPLAY',
         'FREE_TIER_THRESHOLDS',
-        'PROJECT_METADATA_FIELDS',
-        'USER_METADATA_FIELDS',
     ]
 
     @classmethod
@@ -65,7 +67,7 @@ class EnvironmentView(APIView):
         for key in cls.JSON_CONFIGS:
             value = getattr(constance.config, key)
             try:
-                value = json.loads(value)
+                value = to_python_object(value)
             except json.JSONDecodeError:
                 logging.error(
                     f'Configuration value for `{key}` has invalid JSON'
@@ -115,36 +117,51 @@ class EnvironmentView(APIView):
         data['mfa_localized_help_text'] = markdown(
             I18nUtils.get_mfa_help_text()
         )
-        data['mfa_enabled'] = (
-            # MFA is enabled if it is enabled globally…
-            constance.config.MFA_ENABLED
-            and (
-                # but if per-user activation is enabled (i.e. at least one
-                # record in the table)…
-                not MfaAvailableToUser.objects.all().exists()
-                # global setting is overwritten by request user setting.
-                or MfaAvailableToUser.objects.filter(
-                    user=get_database_user(request.user)
-                ).exists()
-            )
-        )
+        data['mfa_enabled'] = constance.config.MFA_ENABLED
+        data['mfa_per_user_availability'] = MfaAvailableToUser.objects.filter(
+            user=get_database_user(request.user)
+        ).exists()
+        data['mfa_has_availability_list'] = MfaAvailableToUser.objects.all().exists()
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
+        return data
+
+    @staticmethod
+    def process_password_configs(request):
+        return {
+            'enable_password_entropy_meter': (
+                constance.config.ENABLE_PASSWORD_ENTROPY_METER
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
+        }
+
+    @staticmethod
+    def process_project_metadata_configs(request):
+        data = {
+            'project_metadata_fields': I18nUtils.get_metadata_fields('project')
+        }
+        return data
+
+    @staticmethod
+    def process_user_metadata_configs(request):
+        data = {
+            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
+        }
         return data
 
     @staticmethod
     def process_other_configs(request):
         data = {}
 
-        # django-allauth social apps are configured in both settings and the
-        # database. Optimize by avoiding extra DB call when unnecessary
-        social_apps = []
-        if settings.SOCIALACCOUNT_PROVIDERS:
-            social_apps = list(
-                SocialApp.objects.filter(custom_data__isnull=True).values(
-                    'provider', 'name', 'client_id'
-                )
+        data['social_apps'] = list(
+            SocialApp.objects.filter(custom_data__isnull=True).values(
+                'provider', 'name', 'client_id', 'provider_id'
             )
-        data['social_apps'] = social_apps
+        )
 
         data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
             request.user
@@ -154,6 +171,26 @@ class EnvironmentView(APIView):
             settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
         )
 
+        # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
+        if request.user.id:
+            # if the user is in an organization, use the organization owner's join date
+            owner_join_date = OrganizationOwner.objects.filter(
+                organization__organization_users__user=request.user
+            ).values_list('organization_user__user__date_joined', flat=True).first()
+            if owner_join_date:
+                date_joined = owner_join_date.date()
+            else:
+                # default to checking the user's join date
+                date_joined = request.user.date_joined.date()
+            # if they didn't register on/before FREE_TIER_CUTOFF_DATE, don't display the custom free tier
+            if date_joined > constance.config.FREE_TIER_CUTOFF_DATE:
+                data['free_tier_thresholds'] = FREE_TIER_NO_THRESHOLDS
+                data['free_tier_display'] = FREE_TIER_EMPTY_DISPLAY
+
+        data[
+            'terms_of_service__sitewidemessage__exists'
+        ] = SitewideMessage.objects.filter(slug='terms_of_service').exists()
+
         return data
 
     def get(self, request, *args, **kwargs):
@@ -162,5 +199,8 @@ class EnvironmentView(APIView):
         data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
+        data.update(self.process_password_configs(request))
+        data.update(self.process_project_metadata_configs(request))
+        data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))
         return Response(data)

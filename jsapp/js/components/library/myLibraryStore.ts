@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
-import searchBoxStore from '../header/searchBoxStore';
+import searchBoxStore from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {getCurrentPath, isAnyLibraryRoute} from 'js/router/routerUtils';
 import {actions} from 'js/actions';
@@ -19,6 +19,7 @@ import type {
   SearchAssetsPredefinedParams,
 } from 'js/dataInterface';
 import type {AssetTypeName} from 'js/constants';
+import {reaction} from 'mobx';
 
 interface MyLibraryStoreData {
   isFetchingData: boolean;
@@ -41,9 +42,9 @@ class MyLibraryStore extends Reflux.Store {
    */
   abortFetchData?: Function;
   previousPath = getCurrentPath();
-  previousSearchPhrase = searchBoxStore.getSearchPhrase();
   PAGE_SIZE = 100;
   DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified'];
+  searchContext = 'MY_LIBRARY';
 
   isInitialised = false;
 
@@ -66,15 +67,21 @@ class MyLibraryStore extends Reflux.Store {
     filterValue: null,
   };
 
-  fetchDataDebounced?: () => void;
+  fetchDataDebounced?: (needsMetadata?: boolean) => void;
 
   init() {
     this.fetchDataDebounced = debounce(this.fetchData.bind(this), 2500);
 
     this.setDefaultColumns();
 
+    // HACK: We add this ugly `setTimeout` to ensure router exists.
     setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
-    searchBoxStore.listen(this.searchBoxStoreChanged, this);
+
+    reaction(
+      () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
+      this.onSearchBoxStoreChanged.bind(this)
+    );
+
     actions.library.moveToCollection.completed.listen(
       this.onMoveToCollectionCompleted.bind(this)
     );
@@ -133,10 +140,12 @@ class MyLibraryStore extends Reflux.Store {
       isAnyLibraryRoute() &&
       !this.data.isFetchingData
     ) {
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     }
   }
 
+  /** Changes the order column to default and remove filtering. */
   setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
     this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
@@ -148,7 +157,7 @@ class MyLibraryStore extends Reflux.Store {
 
   getSearchParams() {
     const params: SearchAssetsPredefinedParams = {
-      searchPhrase: searchBoxStore.getSearchPhrase(),
+      searchPhrase: (searchBoxStore.data.searchPhrase ?? '').trim(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
       collectionsFirst: true,
@@ -196,32 +205,31 @@ class MyLibraryStore extends Reflux.Store {
       isAnyLibraryRoute() &&
       !this.data.isFetchingData
     ) {
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     } else if (
       // coming from outside of library
       (this.previousPath.split('/')[1] !== 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
         this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)) &&
+      // coming into library
       isAnyLibraryRoute()
     ) {
       // refresh data when navigating into library from other place
       this.setDefaultColumns();
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     }
     this.previousPath = data.location.pathname;
   }
 
-  searchBoxStoreChanged() {
-    if (
-      searchBoxStore.getContext() === 'MY_LIBRARY' &&
-      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
-    ) {
+  onSearchBoxStoreChanged() {
+    if (searchBoxStore.data.context === this.searchContext) {
       // reset to first page when search changes
       this.data.currentPage = 0;
       this.data.totalPages = null;
       this.data.totalSearchAssets = null;
-      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
       this.fetchData(true);
     }
   }
@@ -244,7 +252,7 @@ class MyLibraryStore extends Reflux.Store {
     // update total count for the first time and the ones that will get a full count
     if (
       this.data.totalUserAssets === null ||
-      searchBoxStore.getSearchPhrase() === ''
+      searchBoxStore.data.searchPhrase === ''
     ) {
       this.data.totalUserAssets = this.data.totalSearchAssets;
     }

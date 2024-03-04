@@ -212,6 +212,12 @@ class BulkEditSubmissionsForm extends React.Component {
     }
   }
 
+  isEditDisabled(questionType) {
+    return ['audio', 'background-audio', 'video', 'image', 'file'].includes(
+      questionType
+    );
+  }
+
   renderRow(questionData, itemIndex) {
     let question = questionData;
     if (typeof questionData.refIndex !== 'undefined') {
@@ -253,8 +259,15 @@ class BulkEditSubmissionsForm extends React.Component {
 
         <bem.SimpleTable__cell>
           <bem.KoboTextButton
-            m='blue'
-            onClick={this.selectQuestion.bind(this, question)}
+            m={this.isEditDisabled(question.type) ? 'grey' : 'blue'}
+            onClick={(event) => {
+              if (!this.isEditDisabled(question.type)) {
+                this.selectQuestion(question);
+              } else {
+                event.preventDefault();
+              }
+            }}
+            aria-disabled={this.isEditDisabled(question.type)}
           >
             {t('Edit')}
           </bem.KoboTextButton>
@@ -350,7 +363,6 @@ class BulkEditSubmissionsForm extends React.Component {
 
               <bem.SimpleTable__cell>
                 <TextBox
-                  customModifiers='on-white'
                   value={this.state.filterByName}
                   onChange={this.onFilterByNameChange}
                   placeholder={t('Type to filter')}
@@ -359,7 +371,6 @@ class BulkEditSubmissionsForm extends React.Component {
 
               <bem.SimpleTable__cell>
                 <TextBox
-                  customModifiers='on-white'
                   value={this.state.filterByValue}
                   onChange={this.onFilterByValueChange}
                   placeholder={t('Type to filter')}
@@ -552,7 +563,7 @@ class BulkEditRowForm extends React.Component {
             <h2>{this.props.question.label}</h2>
 
             <TextBox
-              customModifiers={['on-white', 'bulk-edit-response']}
+              customClassNames={['bulk-edit-response-textbox']}
               type='text-multiline'
               value={inputValue}
               onChange={this.onChange}

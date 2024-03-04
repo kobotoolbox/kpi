@@ -22,11 +22,24 @@ import {
   getRouteAssetUid,
   isAnyFormRoute,
 } from 'js/router/routerUtils';
-import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
-import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
+import managedCollectionsStore from 'js/components/library/managedCollectionsStore';
+import type {ManagedCollectionsStoreData} from 'js/components/library/managedCollectionsStore';
 import './assetActionButtons.scss';
 import {withRouter} from 'jsapp/js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import {
+  archiveAsset,
+  deleteAsset,
+  unarchiveAsset,
+  cloneAsset,
+  cloneAssetAsSurvey,
+  cloneAssetAsTemplate,
+  manageAssetSharing,
+  replaceAssetForm,
+  modifyAssetTags,
+  manageAssetLanguages,
+  manageAssetSettings
+} from 'jsapp/js/assetQuickActions';
 import {userCan} from 'js/components/permissions/utils';
 
 bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
@@ -37,8 +50,6 @@ bem.AssetActionButtons__iconButton = makeBem(
   'a'
 );
 
-const assetActions = mixins.clickAssets.click.asset;
-
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse;
   has_deployment?: boolean;
@@ -46,7 +57,7 @@ interface AssetActionButtonsProps extends WithRouterProps {
 }
 
 interface AssetActionButtonsState {
-  ownedCollections: AssetResponse[];
+  managedCollections: AssetResponse[];
   shouldHidePopover: boolean;
   isPopoverVisible: boolean;
   isSubscribePending: boolean;
@@ -66,7 +77,7 @@ class AssetActionButtons extends React.Component<
   constructor(props: AssetActionButtonsProps) {
     super(props);
     this.state = {
-      ownedCollections: ownedCollectionsStore.data.collections,
+      managedCollections: managedCollectionsStore.data.collections,
       shouldHidePopover: false,
       isPopoverVisible: false,
       isSubscribePending: false,
@@ -75,8 +86,8 @@ class AssetActionButtons extends React.Component<
   }
 
   componentDidMount() {
-    ownedCollectionsStore.listen(
-      this.onOwnedCollectionsStoreChanged.bind(this),
+    managedCollectionsStore.listen(
+      this.onManagedCollectionsStoreChanged.bind(this),
       this
     );
     this.unlisteners.push(
@@ -99,8 +110,8 @@ class AssetActionButtons extends React.Component<
     this.setState({isSubscribePending: false});
   }
 
-  onOwnedCollectionsStoreChanged(storeData: OwnedCollectionsStoreData) {
-    this.setState({ownedCollections: storeData.collections});
+  onManagedCollectionsStoreChanged(storeData: ManagedCollectionsStoreData) {
+    this.setState({managedCollections: storeData.collections});
   }
 
   // methods for inner workings of component
@@ -125,27 +136,27 @@ class AssetActionButtons extends React.Component<
   // Methods for managing the asset
 
   modifyDetails() {
-    assetUtils.modifyDetails(this.props.asset);
+    manageAssetSettings(this.props.asset);
   }
 
   editLanguages() {
-    assetUtils.editLanguages(this.props.asset);
+    manageAssetLanguages(this.props.asset.uid);
   }
 
   share() {
-    assetUtils.share(this.props.asset);
+    manageAssetSharing(this.props.asset.uid);
   }
 
   showTagsModal() {
-    assetUtils.editTags(this.props.asset);
+    modifyAssetTags(this.props.asset);
   }
 
   replace() {
-    assetUtils.replaceForm(this.props.asset);
+    replaceAssetForm(this.props.asset);
   }
 
   delete() {
-    assetActions.delete(
+    deleteAsset(
       this.props.asset,
       assetUtils.getAssetDisplayName(this.props.asset).final,
       this.onDeleteComplete.bind(this, this.props.asset.uid)
@@ -153,7 +164,7 @@ class AssetActionButtons extends React.Component<
   }
 
   /**
-   * Navigates out of nonexistent paths after asset was successfuly deleted
+   * Navigates out of nonexistent paths after asset was successfully deleted
    */
   onDeleteComplete(assetUid: string) {
     if (isAnyLibraryItemRoute() && getRouteAssetUid() === assetUid) {
@@ -169,26 +180,26 @@ class AssetActionButtons extends React.Component<
   }
 
   archive() {
-    assetActions.archive(this.props.asset);
+    archiveAsset(this.props.asset);
   }
 
   unarchive() {
-    assetActions.unarchive(this.props.asset);
+    unarchiveAsset(this.props.asset);
   }
 
   clone() {
-    assetActions.clone(this.props.asset);
+    cloneAsset(this.props.asset);
   }
 
   cloneAsSurvey() {
-    assetActions.cloneAsSurvey(
+    cloneAssetAsSurvey(
       this.props.asset.uid,
       assetUtils.getAssetDisplayName(this.props.asset).final
     );
   }
 
   cloneAsTemplate() {
-    assetActions.cloneAsTemplate(
+    cloneAssetAsTemplate(
       this.props.asset.uid,
       assetUtils.getAssetDisplayName(this.props.asset).final
     );
@@ -241,6 +252,13 @@ class AssetActionButtons extends React.Component<
   }
 
   renderMoreActionsTrigger() {
+    const assetType = this.props.asset.asset_type;
+    const userCanDelete = userCan('delete_submissions', this.props.asset);
+
+    if (assetType === ASSET_TYPES.collection.id && !userCanDelete) {
+      return null;
+    }
+
     return (
       <div className='right-tooltip' data-tip={t('More actions')}>
         <i className='k-icon k-icon-more' />
@@ -255,6 +273,7 @@ class AssetActionButtons extends React.Component<
       downloads = this.props.asset.downloads;
     }
     const userCanEdit = userCan('change_asset', this.props.asset);
+    const userCanDelete = userCan('delete_submissions', this.props.asset);
     const isDeployable =
       assetType === ASSET_TYPES.survey.id &&
       this.props.asset.deployed_version_id === null;
@@ -320,12 +339,12 @@ class AssetActionButtons extends React.Component<
         {userCanEdit &&
           assetType !== ASSET_TYPES.survey.id &&
           assetType !== ASSET_TYPES.collection.id &&
-          this.state.ownedCollections.length > 0 && [
+          this.state.managedCollections.length > 0 && [
             <bem.PopoverMenu__heading key='heading'>
               {t('Move to')}
             </bem.PopoverMenu__heading>,
             <bem.PopoverMenu__moveTo key='list'>
-              {this.state.ownedCollections.map((collection) => {
+              {this.state.managedCollections.map((collection) => {
                 const modifiers = ['move-coll-item'];
                 const isAssetParent =
                   collection.url === this.props.asset.parent;
@@ -372,7 +391,7 @@ class AssetActionButtons extends React.Component<
             </bem.PopoverMenu__link>
           )}
 
-        {userCanEdit && (
+        {userCanEdit && userCanDelete && (
           <bem.PopoverMenu__link onClick={this.delete}>
             <i className='k-icon k-icon-trash' />
             {t('Delete')}

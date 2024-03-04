@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import re
 
-
 from constance import config
 from django.conf import settings
 from django.db.models import QuerySet, F
@@ -50,8 +49,9 @@ from kpi.models import (
     AssetVersion,
     AssetExportSettings,
     ObjectPermission,
+    UserAssetSubscription,
 )
-from kpi.models.asset import UserAssetSubscription
+from kpi.models.asset import AssetDeploymentStatus
 from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
@@ -267,7 +267,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if Asset.objects.filter(
             asset_type=ASSET_TYPE_SURVEY,
             uid__in=asset_uids,
-            _deployment_data={},
+            _deployment_status=AssetDeploymentStatus.DRAFT,
         ).exists():
             raise serializers.ValidationError(
                 t('Draft projects cannot be archived')
@@ -330,6 +330,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
+    deployment_status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
 
     # Only add link instead of hooks list to avoid multiple access to DB.
@@ -366,6 +367,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__active',
                   'deployment__data_download_links',
                   'deployment__submission_count',
+                  'deployment_status',
                   'report_styles',
                   'report_custom',
                   'advanced_features',
@@ -409,6 +411,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def update(self, asset, validated_data):
         request = self.context['request']
         user = request.user
+
+        self._set_asset_ids_cache(asset)
+
         if (
             not asset.has_perm(user, PERM_CHANGE_ASSET)
             and user_has_project_view_asset_perm(asset, user, PERM_CHANGE_METADATA_ASSET)
@@ -454,6 +459,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_analysis_form_json(self, obj):
         return obj.analysis_form_json()
+
+    def get_deployment_status(self, obj: Asset) -> str:
+        if deployment_status := obj.deployment_status:
+            return deployment_status
+        return '-'
 
     def get_effective_permissions(self, obj: Asset) -> list[dict[str, str]]:
         """
@@ -580,21 +590,22 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         try:
             request = self.context['request']
-            user = request.user
-            if obj.owner_id == user.id:
-                return obj.deployment.submission_count
-
-            # `has_perm` benefits from internal calls which use
-            # `django_cache_request`. It won't hit DB multiple times
-            if obj.has_perm(user, PERM_VIEW_SUBMISSIONS):
-                return obj.deployment.submission_count
-
-            if obj.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
-                return obj.deployment.calculated_submission_count(user=user)
         except KeyError:
-            pass
+            return None
 
-        return 0
+        user = request.user
+        if obj.owner_id == user.id:
+            return obj.deployment.submission_count
+
+        # `has_perm` benefits from internal calls which use
+        # `django_cache_request`. It won't hit DB multiple times
+
+        self._set_asset_ids_cache(obj)
+
+        if obj.has_perm(user, PERM_VIEW_SUBMISSIONS):
+            return obj.deployment.submission_count
+
+        return None
 
     def get_assignable_permissions(self, asset):
         return [
@@ -651,6 +662,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         context = self.context
         request = self.context.get('request')
 
+        self._set_asset_ids_cache(obj)
+
         queryset = get_user_permission_assignments_queryset(obj, request.user)
         # Need to pass `asset` and `asset_uid` to context of
         # AssetPermissionAssignmentSerializer serializer to avoid extra queries
@@ -658,9 +671,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         context['asset'] = obj
         context['asset_uid'] = obj.uid
 
-        return AssetPermissionAssignmentSerializer(queryset.all(),
-                                                   many=True, read_only=True,
-                                                   context=context).data
+        return AssetPermissionAssignmentSerializer(
+            queryset.all(), many=True, read_only=True, context=context
+        ).data
 
     def get_exports(self, obj: Asset) -> str:
         return reverse(
@@ -877,6 +890,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
             return ASSET_STATUS_SHARED
 
+    def _set_asset_ids_cache(self, asset):
+        """
+        Set an attribute on the `asset` object for performance purposes
+        so that `ObjectPermissionMixin.__get_object_permissions()` can restrict
+        the number of objects it retrieves when calling `__get_all_user_permissions()`
+        """
+        try:
+            asset_ids = self.context['asset_ids_cache']
+        except KeyError:
+            asset_ids = [asset.pk]
+
+        setattr(asset, 'asset_ids_cache', asset_ids)
+
     def _table_url(self, obj):
         request = self.context.get('request', None)
         return reverse('asset-table-view',
@@ -910,6 +936,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployment__identifier',
                   'deployment__active',
                   'deployment__submission_count',
+                  'deployment_status',
                   'permissions',
                   'export_settings',
                   'downloads',
@@ -924,7 +951,8 @@ class AssetListSerializer(AssetSerializer):
     def get_permissions(self, asset):
         try:
             asset_permission_assignments = self.context[
-                'object_permissions_per_asset'].get(asset.pk)
+                'object_permissions_per_asset'
+            ].get(asset.pk)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should
@@ -940,12 +968,14 @@ class AssetListSerializer(AssetSerializer):
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
+        self._set_asset_ids_cache(asset)
+
         user_assignments = get_user_permission_assignments(
             asset, request.user, asset_permission_assignments
         )
-        return AssetPermissionAssignmentSerializer(user_assignments,
-                                                   many=True, read_only=True,
-                                                   context=context).data
+        return AssetPermissionAssignmentSerializer(
+            user_assignments, many=True, read_only=True, context=context
+        ).data
 
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
@@ -1017,6 +1047,9 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'has_deployment',
             'deployment__active',
             'deployment__submission_count',
+            'deployment_status',
+            'asset_type',
+            'downloads',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:
@@ -1049,10 +1082,12 @@ class AssetMetadataListSerializer(AssetListSerializer):
         request = self.context['request']
         return request.parser_context['kwargs']['uid']
 
+    # FIXME Remove this method, seems to not be used anywhere
     @cache_for_request
     def _user_has_asset_perms(self, obj: Asset, perm: str) -> bool:
         request = self.context.get('request')
         user = get_database_user(request.user)
+        self._set_asset_ids_cache(obj)
         if obj.owner == user or obj.has_perm(user, perm):
             return True
         return False

@@ -1,3 +1,5 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 
 @keyframes processing {
@@ -52,37 +54,31 @@
     }
   }
 
-  .text-box {
-    .text-box__input {
-      padding: 8px 16px;
+  .project-downloads-group-textbox {
+    @include mixins.centerRowFlex;
+    gap: sizes.$x10;
+    margin-top: sizes.$x4;
+
+    > * {
+      flex: 5;
     }
+  }
 
-    &.text-box--group-separator {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
+  .project-downloads-group-textbox__title {
+    font-size: sizes.$x12;
+    text-align: right;
 
-      .text-box__input {
-        flex: 1;
-        margin-left: 10px;
-      }
-
-      &.text-box--group-separator-disabled {
-        .text-box__label {
-          opacity: 0.5;
-        }
-      }
+    &[disabled] {
+      opacity: 0.5;
+      pointer-events: none;
     }
+  }
 
-    &.text-box--group-separator,
-    &.text-box--custom-export {
-      margin-left: 28px;
-      margin-top: 4px;
-    }
-
-    &.text-box--custom-export {
-      display: block;
-    }
+  .custom-export-name-textbox {
+    margin-left: sizes.$x28;
+    width: calc(100% - sizes.$x28);
+    margin-top: sizes.$x4;
+    display: block;
   }
 
   .project-downloads__text-button {

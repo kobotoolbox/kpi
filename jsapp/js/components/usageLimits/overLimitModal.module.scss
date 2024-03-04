@@ -1,0 +1,42 @@
+@use '~kobo-common/src/styles/colors';
+
+.link {
+  color: colors.$kobo-dark-blue;
+  text-decoration: underline;
+}
+
+.messageGreeting {
+  margin-bottom: 20px;
+}
+
+.button {
+  text-transform: uppercase;
+  gap: 1rem;
+  justify-content: center;
+
+  & span {
+    flex-shrink: 0;
+  }
+}
+
+.frame {
+  background-color: colors.$kobo-white;
+}
+
+:global(.k-button) {
+  &.button.full:hover {
+    background-color: colors.$kobo-dark-blue;
+  }
+}
+
+.consequences {
+  background-color: colors.$kobo-light-red;
+  box-sizing: border-box;
+  margin: 1em 0;
+  padding: 1em 1em;
+  gap: 1em;
+}
+
+.warningIcon {
+  align-self: flex-start;
+}

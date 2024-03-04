@@ -340,12 +340,26 @@ EXTRA_LANG_INFO = {
     },
 }
 
-MFA_DEFAULT_HELP_TEXT = t(
-    # It's terrible, but this duplicates the default value from
-    # `MFA_LOCALIZED_HELP_TEXT` in django-constance because it's impossible to
-    # use `gettext()` or `gettext_lazy()` there.
-    'If you cannot access your authenticator app, please enter one '
-    'of your backup codes instead. If you cannot access those '
-    'either, then you will need to request assistance by '
-    'contacting [##support email##](mailto:##support email##).'
-)
+PROJECT_METADATA_DEFAULT_LABELS = {
+    'sector': t('Sector'),
+    'country': t('Country'),
+    'operational_purpose': t('Operational purpose of data'),
+    'collects_pii': t('Does this project collect personally identifiable information?'),
+    'description': t('Description'),
+}
+
+USER_METADATA_DEFAULT_LABELS = {
+    'name': t('Full name'),
+    'organization': t('Organization name'),
+    'organization_type': t('Organization type'),
+    'organization_website': t('Organization website'),
+    'sector': t('Sector'),
+    'gender': t('Gender'),
+    'bio': t('Bio'),
+    'city': t('City'),
+    'country': t('Country'),
+    'twitter': t('Twitter'),
+    'linkedin': t('LinkedIn'),
+    'instagram': t('Instagram'),
+    'newsletter_subscription': t('I want to receive occasional updates about KoboToolbox'),
+}

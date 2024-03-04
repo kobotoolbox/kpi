@@ -3,6 +3,32 @@ import {actions} from 'js/actions';
 import envStore from 'js/envStore';
 
 /**
+ * Exponentially increases the returned time each time this method is being
+ * called, with some randomness included. You have to handle `callCount`
+ * increasing yourself.
+ *
+ * Returns number in milliseconds.
+ *
+ * Note: this function should end up in `utils.ts` or some other more generic
+ * place. For now I leave it here to avoid circular dependency errors.
+ */
+export function getExponentialDelayTime(callCount: number) {
+  // This magic number gives a nice grow for the delays.
+  const magicFactor = 1.666;
+
+  return Math.round(1000 * Math.max(
+    envStore.data.min_retry_time, // Bottom limit
+    Math.min(
+      envStore.data.max_retry_time, // Top limit
+      random(
+        magicFactor ** callCount,
+        magicFactor ** (callCount + 1)
+      )
+    )
+  ));
+}
+
+/**
  * Responsible for handling interval fetch calls.
  *
  * NOTE: to use it, make sure you listen to `actions.exports.getExport` and
@@ -22,40 +48,20 @@ export default class ExportFetcher {
     this.makeIntervalFetchCall();
   }
 
-  /**
-   * Exponentially increases the delay each time this method is being called,
-   * with some randomness included.
-   *
-   * @returns number in milliseconds
-   */
-  private getFetchDelay() {
-    this.callCount += 1;
-    // This magic number gives a nice grow for the delays.
-    const magicFactor = 1.666;
-
-    return Math.round(1000 * Math.max(
-      envStore.data.min_retry_time, // Bottom limit
-      Math.min(
-        envStore.data.max_retry_time, // Top limit
-        random(
-          magicFactor ** this.callCount,
-          magicFactor ** (this.callCount + 1)
-        )
-      )
-    ));
-  }
-
   // Starts making fetch calls in a growing randomized interval.
   private makeIntervalFetchCall() {
     if (this.timeoutId > 0) {
       // Make the call if we've already waited.
       actions.exports.getExport(this.assetUid, this.exportUid);
     }
+
+    this.callCount += 1;
+
     // Keep the interval alive (can't use `setInterval` with randomized value,
     // so we use `setTimout` instead).
     this.timeoutId = window.setTimeout(
       this.makeIntervalFetchCall.bind(this),
-      this.getFetchDelay()
+      getExponentialDelayTime(this.callCount)
     );
   }
 

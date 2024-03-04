@@ -7,6 +7,8 @@ from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 
+from kpi.utils.fuzzy_int import FuzzyInt
+
 
 class OrganizationTestCase(BaseTestCase):
     fixtures = ['test_data']
@@ -29,9 +31,9 @@ class OrganizationTestCase(BaseTestCase):
         self._insert_data()
         self.client.logout()
         response_list = self.client.get(self.url_list)
-        assert response_list.status_code == status.HTTP_403_FORBIDDEN
+        assert response_list.status_code == status.HTTP_401_UNAUTHORIZED
         response_detail = self.client.get(self.url_detail)
-        assert response_detail.status_code == status.HTTP_403_FORBIDDEN
+        assert response_detail.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_create(self):
         data = {'name': 'my org'}
@@ -42,7 +44,7 @@ class OrganizationTestCase(BaseTestCase):
         self._insert_data()
         organization2 = baker.make(Organization, id='org_abcd123')
         organization2.add_user(user=self.user, is_admin=True)
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(FuzzyInt(8, 10)):
             res = self.client.get(self.url_list)
         self.assertContains(res, organization2.name)
 
@@ -61,7 +63,7 @@ class OrganizationTestCase(BaseTestCase):
     def test_update(self):
         self._insert_data()
         data = {'name': 'edit'}
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(FuzzyInt(8, 10)):
             res = self.client.patch(self.url_detail, data)
         self.assertContains(res, data['name'])
 

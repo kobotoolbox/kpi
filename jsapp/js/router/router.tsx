@@ -6,7 +6,7 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom';
 import App from 'js/app';
-import {ROUTES} from './routerConstants';
+import {ROUTES, PROJECTS_ROUTES} from './routerConstants';
 import accountRoutes from 'js/account/routes';
 import projectsRoutes from 'js/projects/routes';
 import RequireAuth from './requireAuth';
@@ -14,10 +14,9 @@ import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import FormsSearchableList from 'js/lists/forms';
 import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
-import {PERMISSIONS_CODENAMES} from '../constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {injectRouter} from './legacy';
 
 const Reports = React.lazy(
@@ -129,11 +128,8 @@ export const router = createHashRouter(
       <Route path={ROUTES.FORMS}>
         <Route
           index
-          element={
-            <RequireAuth>
-              <FormsSearchableList />
-            </RequireAuth>
-          }
+          // A redirect to `/projects/home` if someone arrives at the old `/forms` route.
+          element={<Navigate to={PROJECTS_ROUTES.MY_PROJECTS} replace />}
         />
         <Route path={ROUTES.FORM}>
           <Route path='' element={<Navigate to={'./landing'} replace />} />

@@ -46,7 +46,7 @@ class DataAttachmentColumnsForm extends React.Component {
     // TODO: See if we can simplify this to only call this if props does not
     // have any connected questions
     // See: https://github.com/kobotoolbox/kpi/issues/3912
-    actions.resources.loadAsset({id: this.props.source.uid});
+    actions.resources.loadAsset({id: this.props.source.uid}, true);
 
     this.unlisteners.push(
       actions.dataShare.attachToSource.started.listen(
@@ -91,13 +91,17 @@ class DataAttachmentColumnsForm extends React.Component {
   onAttachToSourceCompleted() {
     this.props.onModalClose();
   }
-  onBulkSelect() {
+  onBulkSelect(evt) {
+    evt.preventDefault();
+
     let newList = this.state.columnsToDisplay.map((item) => {
       return {label: item.label, checked: true}
     });
     this.setState({columnsToDisplay: newList})
   }
-  onBulkDeselect() {
+  onBulkDeselect(evt) {
+    evt.preventDefault();
+
     let newList = this.state.columnsToDisplay.map((item) => {
       return {label: item.label, checked: false}
     });

@@ -2,13 +2,11 @@ import React, {Suspense} from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import {actions} from '../actions';
 import bem from 'js/bem';
-import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
-import SharingForm from './permissions/sharingForm';
+import SharingForm from './permissions/sharingForm.component';
 import ProjectSettings from './modalForms/projectSettings';
 import FormMedia from './modalForms/formMedia';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -42,9 +40,7 @@ export class FormSubScreens extends React.Component {
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(assetStore, this.dmixAssetStoreChange);
-    var uid =
-      this.props.params.assetid || this.props.uid || this.props.params.uid;
+    const uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
       actions.resources.loadAsset({id: uid});
     }
@@ -143,7 +139,7 @@ export class FormSubScreens extends React.Component {
     const uid = this.props.params.assetid || this.props.params.uid;
     return (
       <bem.FormView m='form-settings-sharing'>
-        <SharingForm uid={uid} />
+        <SharingForm assetUid={uid} />
       </bem.FormView>
     );
   }
@@ -165,7 +161,6 @@ export class FormSubScreens extends React.Component {
   }
 }
 
-reactMixin(FormSubScreens.prototype, Reflux.ListenerMixin);
 reactMixin(FormSubScreens.prototype, mixins.dmix);
 reactMixin(FormSubScreens.prototype, mixins.contextRouter);
 

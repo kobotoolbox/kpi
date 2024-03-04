@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import sessionStore from 'js/stores/session';
 import TextBox from 'js/components/common/textBox';
 import PasswordStrength from 'js/components/passwordStrength.component';
@@ -8,24 +8,41 @@ import Button from 'js/components/common/button';
 import {fetchPatch} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
 import {notify} from 'js/utils';
+import envStore from 'js/envStore';
 import type {FailResponse} from 'js/dataInterface';
+import classnames from 'classnames';
+import {when} from 'mobx';
 
 const FIELD_REQUIRED_ERROR = t('This field is required.');
 
-export default function UpdatePasswordForm() {
+interface UpdatePasswordFormProps {
+  /**
+   * Allows doing some actions when password is updated successfully. Regardless
+   * of this being used, a success toast notification will be displayed.
+   */
+  onSuccess?: () => void;
+}
+
+export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
   const [isPending, setIsPending] = useState(false);
+  const [isEnvStoreReady, setIsEnvStoreReady] = useState(envStore.isReady);
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [currentPasswordError, setCurrentPasswordError] = useState<
-    string | undefined
+    string[] | undefined
   >();
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordError, setNewPasswordError] = useState<
-    string | undefined
+    string[] | undefined
   >();
   const [verifyPassword, setVerifyPassword] = useState('');
   const [verifyPasswordError, setVerifyPasswordError] = useState<
-    string | undefined
+    string[] | undefined
   >();
+
+  useEffect(() => {
+    when(() => envStore.isReady).then(() => setIsEnvStoreReady(true));
+  }, []);
 
   async function savePassword() {
     let hasErrors = false;
@@ -35,21 +52,21 @@ export default function UpdatePasswordForm() {
 
     // Any of the three inputs can't be empty
     if (!currentPassword) {
-      setCurrentPasswordError(FIELD_REQUIRED_ERROR);
+      setCurrentPasswordError([FIELD_REQUIRED_ERROR]);
       hasErrors = true;
     }
     if (!newPassword) {
-      setNewPasswordError(FIELD_REQUIRED_ERROR);
+      setNewPasswordError([FIELD_REQUIRED_ERROR]);
       hasErrors = true;
     }
     if (!verifyPassword) {
-      setVerifyPasswordError(FIELD_REQUIRED_ERROR);
+      setVerifyPasswordError([FIELD_REQUIRED_ERROR]);
       hasErrors = true;
     }
 
     // Verify password input must match the new password
     if (newPassword !== verifyPassword) {
-      setVerifyPasswordError(t("Passwords don't match"));
+      setVerifyPasswordError([t("Passwords don't match")]);
       hasErrors = true;
     }
 
@@ -60,20 +77,31 @@ export default function UpdatePasswordForm() {
         await fetchPatch(endpoints.ME_URL, {
           current_password: currentPassword,
           new_password: newPassword,
-        });
+        }, {notifyAboutError: false});
         setIsPending(false);
         setCurrentPassword('');
         setNewPassword('');
         setVerifyPassword('');
         notify(t('changed password successfully'));
+        if (typeof props.onSuccess === 'function') {
+          props.onSuccess();
+        }
       } catch (error) {
         const errorObj = error as FailResponse;
 
         if (errorObj.responseJSON?.current_password) {
-          setCurrentPasswordError(errorObj.responseJSON.current_password[0]);
+          if (typeof errorObj.responseJSON.current_password === 'string') {
+            setCurrentPasswordError([errorObj.responseJSON.current_password]);
+          } else {
+            setCurrentPasswordError(errorObj.responseJSON.current_password);
+          }
         }
         if (errorObj.responseJSON?.new_password) {
-          setNewPasswordError(errorObj.responseJSON.new_password[0]);
+          if (typeof errorObj.responseJSON.new_password === 'string') {
+            setNewPasswordError([errorObj.responseJSON.new_password]);
+          } else {
+            setNewPasswordError(errorObj.responseJSON.new_password);
+          }
         }
 
         setIsPending(false);
@@ -87,15 +115,23 @@ export default function UpdatePasswordForm() {
     savePassword();
   }
 
-  if (!sessionStore.isLoggedIn) {
+  if (!sessionStore.isLoggedIn || !isEnvStoreReady) {
     return null;
   }
 
   return (
     <form className={styles.root} onSubmit={submitPasswordForm}>
+      {envStore.data.enable_custom_password_guidance_text && (
+        <div
+          className={classnames([styles.row, styles.guidanceText])}
+          dangerouslySetInnerHTML={{
+            __html: envStore.data.custom_password_localized_help_text,
+          }}
+        />
+      )}
+
       <div className={styles.row}>
         <TextBox
-          customModifiers='on-white'
           label={t('Current Password')}
           type='password'
           errors={currentPasswordError}
@@ -104,7 +140,7 @@ export default function UpdatePasswordForm() {
         />
 
         <a
-          className='account-settings-link'
+          className={styles.forgotLink}
           href={`${ROOT_URL}/accounts/password/reset/`}
         >
           {t('Forgot Password?')}
@@ -113,7 +149,6 @@ export default function UpdatePasswordForm() {
 
       <div className={styles.row}>
         <TextBox
-          customModifiers='on-white'
           label={t('New Password')}
           type='password'
           errors={newPasswordError}
@@ -121,12 +156,13 @@ export default function UpdatePasswordForm() {
           onChange={setNewPassword}
         />
 
-        {newPassword !== '' && <PasswordStrength password={newPassword} />}
+        {envStore.isReady &&
+          envStore.data.enable_password_entropy_meter &&
+          newPassword !== '' && <PasswordStrength password={newPassword} />}
       </div>
 
       <div className={styles.row}>
         <TextBox
-          customModifiers='on-white'
           label={t('Verify Password')}
           type='password'
           errors={verifyPasswordError}
@@ -139,7 +175,7 @@ export default function UpdatePasswordForm() {
         <Button
           type='full'
           color='blue'
-          size='m'
+          size='l'
           label={t('Save Password')}
           isSubmit
           isPending={isPending}

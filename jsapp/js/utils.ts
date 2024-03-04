@@ -11,14 +11,9 @@ import moment from 'moment';
 import type {Toast, ToastOptions} from 'react-hot-toast';
 import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
-// importing whole constants, as we override ROOT_URL in tests
-import constants from 'js/constants';
-import type {FailResponse} from './dataInterface';
 import * as Sentry from "@sentry/react";
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
-
-export const assign = require('object-assign');
 
 const cookies = new Cookies();
 
@@ -28,25 +23,28 @@ const cookies = new Cookies();
  *
  * Also log messages to browser console to help with debugging.
  */
-export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOptions): Toast['id'] {
+const notify = (
+  msg: Toast['message'],
+  atype = 'success',
+  opts?: ToastOptions
+): Toast['id'] => {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
 
   // avoid displaying a (specific) JSON structure in the notification
   if (typeof msg === 'string' && msg[0] === '{') {
     try {
-      let parsed = JSON.parse(msg);
+      const parsed = JSON.parse(msg);
       if (Object.keys(parsed).length === 1 && 'detail' in parsed) {
         msg = `${parsed.detail}`;
       }
     } catch (err) {
-      console.error('notification starts with { but is not parseable JSON.')
+      console.error('notification starts with { but is not parseable JSON.');
     }
   }
 
   /* eslint-disable no-console */
   switch (atype) {
-
     case 'success':
       console.log('[notify] ✅ ' + msg);
       return toast.success(msg, opts);
@@ -71,46 +69,17 @@ export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOpt
       return toast(msg, opts); // No icon
   }
   /* eslint-enable no-console */
-}
+};
 
 // Convenience functions for code readability, consolidated here
-notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'error', opts);
-notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'warning', opts);
-notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'success', opts);
+notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
+  notify(msg, 'error', opts);
+notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
+  notify(msg, 'warning', opts);
+notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
+  notify(msg, 'success', opts);
 
-/**
- * Useful for handling the fail responses from API. It detects if we got HTML
- * string as response and uses a generic message instead.
- */
-export function handleApiFail(response: FailResponse) {
-  // Avoid displaying toast when purposefuly aborted a request
-  if (response.status === 0 && response.statusText === 'abort') {
-    return;
-  }
-
-  let message = response.responseText;
-
-  // Detect if response is HTML code string
-  if (
-    typeof message === 'string' &&
-    message.includes('</html>') &&
-    message.includes('</body>')
-  ) {
-    // Try plucking the useful error message from the HTML string - this works
-    // for Werkzeug Debugger only. It is being used on development environment,
-    // on production this would most probably result in undefined message (and
-    // thus falling back to the generic message below).
-    const htmlDoc = (new DOMParser).parseFromString(message, 'text/html');
-    message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
-  }
-
-  if (!message) {
-    message = t('An error occurred');
-    message += ` — ${response.status} ${response.statusText}`;
-  }
-
-  notify.error(message);
-}
+export {notify};
 
 /**
  * Returns a copy of arr with separator inserted in every other place.
@@ -140,35 +109,39 @@ export function formatTime(timeStr: string): string {
 }
 
 /**
+ * Returns something like "Mar 15, 2021"
+ */
+export function formatDate(
+  timeStr: string,
+  localize = true,
+  format = 'll'
+): string {
+  let myMoment = moment.utc(timeStr);
+  if (localize) {
+    myMoment = myMoment.local();
+  }
+  return myMoment.format(format);
+}
+
+/**
  * Returns something like "March 15, 2021 4:06 PM"
  */
-export function formatTimeDate(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('LLL');
+export function formatTimeDate(timeStr: string, localize = true): string {
+  return formatDate(timeStr, localize, 'LLL');
 }
 
 /**
  * Returns something like "Sep 4, 1986 8:30 PM"
  */
-export function formatTimeDateShort(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('lll');
+export function formatTimeDateShort(timeStr: string, localize = true): string {
+  return formatDate(timeStr, localize, 'lll');
 }
 
 /**
- * Returns something like "Mar 15, 2021"
+ * Returns something like "March 2021"
  */
-export function formatDate(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('ll');
-}
-
-/**
- * Returns something like "March, 2021"
- */
-export function formatMonth(timeStr: string): string {
-  const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('MMMM YYYY');
+export function formatMonth(timeStr: string, localize = true): string {
+  return formatDate(timeStr, localize, 'MMMM YYYY');
 }
 
 /** Returns something like "07:59" */
@@ -177,16 +150,17 @@ export function formatSeconds(seconds: number) {
   const secondsRound = Math.round(seconds);
   const minutes = Math.floor(secondsRound / 60);
   const secondsLeftover = secondsRound - minutes * 60;
-  return `${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`;
+  return `${String(minutes).padStart(2, '0')}:${String(
+    secondsLeftover
+  ).padStart(2, '0')}`;
 }
 
-// works universally for v1 and v2 urls
-export function getUsernameFromUrl(userUrl: string): string | null {
-  const matched = userUrl.match(/\/users\/(.*)\//);
-  if (matched !== null) {
-    return matched[1];
+export function formatRelativeTime(timeStr: string, localize = true): string {
+  let myMoment = moment.utc(timeStr);
+  if (localize) {
+    myMoment = myMoment.local();
   }
-  return null;
+  return myMoment.fromNow();
 }
 
 // TODO: Test if works for both form and library routes, if not make it more general
@@ -197,14 +171,6 @@ export function getAssetUIDFromUrl(assetUrl: string): string | null {
     return matched[1];
   }
   return null;
-}
-
-export function buildUserUrl(username: string): string {
-  if (username.startsWith(window.location.protocol)) {
-    console.error('buildUserUrl() called with URL instead of username (incomplete v2 migration)');
-    return username;
-  }
-  return `${constants.ROOT_URL}/api/v2/users/${username}/`;
 }
 
 declare global {
@@ -223,31 +189,6 @@ export const log = (function () {
   return innerLogFn;
 })();
 window.log = log;
-
-const originalSupportEmail = 'help@kobotoolbox.org';
-
-// use this utility function to replace hardcoded email in transifex translations
-//
-// TODO: make this use environment endpoint's `support_email` property.
-// Currently no place is using this correctly.
-// See: https://github.com/kobotoolbox/kpi/issues/3910
-export function replaceSupportEmail(str: string, newEmail?: string): string {
-  if (typeof newEmail === 'string') {
-    return str.replace(originalSupportEmail, newEmail);
-  } else {
-    return str;
-  }
-}
-
-// returns an HTML string where [bracket] notation is replaced with a hyperlink
-export function replaceBracketsWithLink(str: string, url?: string): string {
-  const bracketRegex = /\[([^\]]+)\]/g;
-  if (!url) {
-    return str.replace(bracketRegex, '$1');
-  }
-  const linkHtml = `<a href="${url}" target="_blank">$1</a>`;
-  return str.replace(bracketRegex, linkHtml);
-}
 
 export function currentLang(): string {
   return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
@@ -290,14 +231,6 @@ export function getLangString(obj: LangObject): string | undefined {
   }
 }
 
-export function addRequiredToLabel(label: string, isRequired = true): string {
-  if (!isRequired) {
-    return label;
-  }
-  const requiredTemplate = t('##field_label## (required)');
-  return requiredTemplate.replace('##field_label##', label);
-}
-
 export function stringToColor(str: string, prc?: number) {
   // Higher prc = lighter color, lower = darker
   prc = typeof prc === 'number' ? prc : -15;
@@ -312,19 +245,23 @@ export function stringToColor(str: string, prc?: number) {
     const num = parseInt(color, 16);
     const amt = Math.round(2.55 * prc2);
     const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    return (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-      (B < 255 ? B < 1 ? 0 : B : 255))
+    const G = ((num >> 8) & 0x00ff) + amt;
+    const B = (num & 0x0000ff) + amt;
+    return (
+      0x1000000 +
+      (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+      (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+      (B < 255 ? (B < 1 ? 0 : B) : 255)
+    )
       .toString(16)
       .slice(1);
   };
   const intToRgba = function (i: number) {
-    const color = ((i >> 24) & 0xFF).toString(16) +
-      ((i >> 16) & 0xFF).toString(16) +
-      ((i >> 8) & 0xFF).toString(16) +
-      (i & 0xFF).toString(16);
+    const color =
+      ((i >> 24) & 0xff).toString(16) +
+      ((i >> 16) & 0xff).toString(16) +
+      ((i >> 8) & 0xff).toString(16) +
+      (i & 0xff).toString(16);
     return color;
   };
   return shade(intToRgba(hash(str)), prc);
@@ -346,7 +283,6 @@ export function checkLatLng(geolocation: any[]) {
     return false;
   }
 }
-
 
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
@@ -376,12 +312,6 @@ export function renderCheckbox(id: string, label: string, isImportant = false) {
   return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}" data-cy="checkbox"><span class="checkbox__label">${label}</span></label></div>`;
 }
 
-export function hasLongWords(text: string, limit = 25): boolean {
-  const textArr = text.split(' ');
-  const maxLength = Math.max(...(textArr.map((el) => el.length)));
-  return maxLength >= limit;
-}
-
 export function hasVerticalScrollbar(element: HTMLElement): boolean {
   return element.scrollHeight > element.offsetHeight;
 }
@@ -393,7 +323,8 @@ interface CSSStyleDeclarationForMicrosoft extends CSSStyleDeclaration {
 export function getScrollbarWidth(): number {
   // Creating invisible container
   const outer = document.createElement('div');
-  const style: CSSStyleDeclarationForMicrosoft = outer.style as CSSStyleDeclarationForMicrosoft;
+  const style: CSSStyleDeclarationForMicrosoft =
+    outer.style as CSSStyleDeclarationForMicrosoft;
   style.visibility = 'hidden';
   style.overflow = 'scroll'; // forcing scrollbar to appear
   style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
@@ -404,7 +335,7 @@ export function getScrollbarWidth(): number {
   outer.appendChild(inner);
 
   // Calculating difference between container's full width and the child width
-  const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
 
   // Removing temporary elements from the DOM
   if (outer.parentNode !== null) {
@@ -412,10 +343,6 @@ export function getScrollbarWidth(): number {
   }
 
   return scrollbarWidth;
-}
-
-export function toTitleCase(str: string): string {
-  return str.replace(/(^|\s)\S/g, (t) => t.toUpperCase());
 }
 
 export function launchPrinting() {
@@ -461,26 +388,48 @@ export function truncateFile(str: string, length: number) {
 }
 
 /**
+ * Truncates a floating point number to a fixed number of decimal places (default 2)
+ */
+export const truncateNumber = (decimal: number, decimalPlaces = 2) =>
+  parseFloat(decimal.toFixed(decimalPlaces));
+
+/**
  * Generates a simple lowercase, underscored version of a string. Useful for
  * quick filename generation
  *
  * Inspired by the way backend handles generating autonames for translations:
  * https://github.com/kobotoolbox/kpi/blob/27220c2e65b47a7f150c5bef64db97226987f8fc/kpi/utils/autoname.py#L132-L138
  */
-export function generateAutoname(str: string, startIndex = 0, endIndex: number = str.length) {
+export function generateAutoname(
+  str: string,
+  startIndex = 0,
+  endIndex: number = str.length
+) {
   return str
-  .toLowerCase()
-  .substring(startIndex, endIndex)
-  .replace(/(\ |\.)/g, '_');
+    .toLowerCase()
+    .substring(startIndex, endIndex)
+    .replace(/(\ |\.)/g, '_');
 }
 
-/** Simple unique ID generator. */
-export function generateUid() {
-  return String(
-    Math.random().toString(16) + '_' +
-    Date.now().toString(32) + '_' +
-    Math.random().toString(16)
-  ).replace(/\./g, '');
+/**
+ * Generates UUID string. Uses native crypto with a smart fallback function for
+ * insecure contexts.
+ */
+export function generateUuid() {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  // That `randomUUID` function only exists in secure contexts, so locally
+  // we need an alternative solution. This comes from a very educational
+  // discussions at SO, see: https://stackoverflow.com/a/61011303/2311247
+  return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (s) => {
+    const c = Number.parseInt(s, 10);
+    return (
+      c ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+    ).toString(16);
+  });
 }
 
 export function csrfSafeMethod(method: string) {
@@ -495,4 +444,20 @@ export function downloadUrl(url: string) {
   aEl.href = url;
   aEl.setAttribute('download', fileName);
   aEl.click();
+}
+
+/**
+ * An immutable function that removes element from index and inserts it at
+ * another one.
+ */
+export function moveArrayElementToIndex(
+  arr: any[],
+  fromIndex: number,
+  toIndex: number
+) {
+  const copiedArr = [...arr];
+  const element = copiedArr[fromIndex];
+  copiedArr.splice(fromIndex, 1);
+  copiedArr.splice(toIndex, 0, element);
+  return copiedArr;
 }

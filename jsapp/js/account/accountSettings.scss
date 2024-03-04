@@ -52,6 +52,23 @@
         font-size: 16px;
       }
     }
+
+    .form-modal__item--anonymous-submission-notice {
+      display: flex;
+      line-height: sizes.$x24;
+      background-color: colors.$kobo-light-amber;
+      margin-top: sizes.$x12;
+      padding: sizes.$x18;
+      border-radius: sizes.$x8;
+
+      .anonymous-submission-notice-copy {
+        padding-left: sizes.$x16;
+        padding-right: sizes.$x8;
+        > * {
+          display: inline;
+        }
+      }
+    }
   }
 
   .account-settings__actions {
@@ -66,10 +83,6 @@
     .account-settings-close {
       padding: 0 12px;
     }
-  }
-
-  .account-settings-link {
-    font-size: 0.85em;
   }
 
   .form-modal__item {
@@ -97,28 +110,9 @@
       width: 46%;
       float: left;
     }
-
-    &.form-modal__item--social {
-      clear: both;
-
-      > label {
-        position: relative;
-
-        &:not(:first-child) {
-          margin-top: sizes.$x5;
-        }
-
-        > i {
-          position: absolute;
-          font-size: 24px;
-          top: 4px;
-          left: 4px;
-        }
-
-        .text-box .text-box__input {
-          padding-left: 40px;
-        }
-      }
-    }
   }
+}
+
+.account-settings-social-row:not(:first-child) {
+  margin-top: sizes.$x5;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTable from 'react-table';
-import TextareaAutosize from 'react-autosize-textarea';
+import TextareaAutosize from 'react-textarea-autosize';
 import LanguageForm from 'js/components/modalForms/languageForm';
 import alertify from 'alertifyjs';
 import bem from 'js/bem';
@@ -253,7 +253,7 @@ export class TranslationTable extends React.Component {
       // reload asset on failure
       {
         onFailed: () => {
-          actions.resources.loadAsset({id: this.props.asset.uid});
+          actions.resources.loadAsset({id: this.props.asset.uid}, true);
           notify.error('failed to update translations');
         },
       }

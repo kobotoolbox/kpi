@@ -5,18 +5,8 @@ from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
-from kobo.apps.superuser_stats.views import (
-    user_report,
-    user_details_report,
-    country_report,
-    retrieve_reports,
-)
-from kobo.apps.accounts.mfa.views import (
-    MfaLoginView,
-    MfaTokenView,
-)
 from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, browser_tests, design_system, modern_browsers
+from kpi.views import home, browser_tests, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
@@ -50,7 +40,6 @@ urlpatterns = [
     ),
     path('browser_tests/', browser_tests),
     path('modern_browsers/', modern_browsers),
-    path('design-system/', design_system),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
     path('jsi18n/', JavaScriptCatalog.as_view(),

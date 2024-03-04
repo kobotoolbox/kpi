@@ -1,9 +1,132 @@
 # coding: utf-8
-from typing import Optional, Union, List
-from lxml import etree
+from __future__ import annotations
 
+import re
+from typing import Optional, Union
+from xml.dom import Node
+
+from defusedxml import minidom
+from django.db.models import F, Q
+from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
+from lxml import etree
 from shortuuid import ShortUUID
+
+from kobo.apps.form_disclaimer.models import FormDisclaimer
+
+# Goals for the future:
+#
+# 1. All XML handling is done in this file. No other files import anything from
+#    xml, lxml, etc. directly; instead, they import helpers from this file.
+#
+# 2. All XML parsing is done by defusedxml. However:
+#     The defusedxml modules are not drop-in replacements of their stdlib
+#     counterparts. The modules only provide functions and classes related to
+#     parsing and loading of XML. For all other features, use the classes,
+#     functions, and constants from the stdlib modules.
+#     (https://github.com/tiran/defusedxml)
+#
+# The imports below are those given as examples by the defusedxml
+# "documentation" (the README), except for correcting a typo in the second
+# import:
+from defusedxml import ElementTree as DET
+from xml.etree import ElementTree as ET
+
+
+def add_xml_declaration(
+    xml_content: Union[str, bytes], newlines: bool = False
+) -> Union[str, bytes]:
+    xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
+    # Should support ̀ lmxl` and `dict2xml`
+    start_of_declaration = '<?xml'
+    use_bytes = False
+    xml_content_as_str = xml_content.strip()
+
+    if isinstance(xml_content, bytes):
+        use_bytes = True
+        xml_content_as_str = xml_content.decode()
+
+    if (
+        xml_content_as_str[:len(start_of_declaration)].lower()
+        == start_of_declaration.lower()
+    ):
+        # There's already a declaration. Don't add anything.
+        return xml_content
+
+    newlines_char = '\n' if newlines else ''
+    xml_ = f'{xml_declaration}{newlines_char}{xml_content_as_str}'
+    if use_bytes:
+        return xml_.encode()
+    return xml_
+
+
+def edit_submission_xml(
+    xml_parsed: 'xml.etree.ElementTree.Element',
+    path: str,
+    value: str,
+) -> None:
+    """
+    Edit submission XML with an XPath and new value, creating a new tree
+    element if the path doesn't yet exist.
+    """
+    element = get_or_create_element(xml_parsed, path)
+    element.text = value
+
+
+def fromstring_preserve_root_xmlns(
+    text: str,
+    forbid_dtd: bool = False,
+    forbid_entities: bool = True,
+    forbid_external: bool = True,
+) -> ET.Element:
+    """
+    Parse an XML string, but leave the default namespace in the `xmlns`
+    attribute if the root element has one, and do not use Clark notation
+    prefixes on tag names for the default namespace.
+
+    Copied from `defusedxml.common._generate_etree_functions()`, except that
+    the `target` is changed to a custom class. Necessary because
+    `defusedxml.ElementTree.fromstring()`, unlike the standard library
+    `xml.etree.ElementTree.fromstring()`, does not allow specifying a parser.
+    """
+    parser = DET.DefusedXMLParser(
+        target=OmitDefaultNamespacePrefixTreeBuilder(),
+        forbid_dtd=forbid_dtd,
+        forbid_entities=forbid_entities,
+        forbid_external=forbid_external,
+    )
+    parser.feed(text)
+    return parser.close()
+
+
+def get_or_create_element(
+    xml_parsed: ET.Element,
+    path: str,
+) -> ET.Element:
+    """
+    Return the element at the given `path`, creating it (and all necessary
+    ancestors) if it does not exist. Beware that this creation logic is VERY
+    simplistic and interpets the `path` as a simple slash-separated list of
+    tags.
+    """
+
+    el = xml_parsed.find(path)
+    if el is not None:
+        return el
+
+    # Construct the tree of elements, one node at a time
+    path_parts = path.split('/')
+    traversed_parts = []
+    parent_el = xml_parsed
+    for part in path_parts:
+        traversed_parts.append(part)
+        el = xml_parsed.find('/'.join(traversed_parts))
+        if el is None:
+            el = ET.Element(part)
+            parent_el.append(el)
+        parent_el = el
+
+    return el
 
 
 def strip_nodes(
@@ -151,57 +274,229 @@ def strip_nodes(
     ).decode()
 
 
-def add_xml_declaration(
-    xml_content: Union[str, bytes], newlines: bool = False
-) -> Union[str, bytes]:
-    xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
-    # Should support ̀ lmxl` and `dict2xml`
-    start_of_declaration = '<?xml'
-    use_bytes = False
-    xml_content_as_str = xml_content.strip()
-
-    if isinstance(xml_content, bytes):
-        use_bytes = True
-        xml_content_as_str = xml_content.decode()
-
-    if (
-        xml_content_as_str[:len(start_of_declaration)].lower()
-        == start_of_declaration.lower()
-    ):
-        # There's already a declaration. Don't add anything.
-        return xml_content
-
-    newlines_char = '\n' if newlines else ''
-    xml_ = f'{xml_declaration}{newlines_char}{xml_content_as_str}'
-    if use_bytes:
-        return xml_.encode()
-    return xml_
-
-
-def get_path(parts: List[str], start: int = 0, end: int = None) -> str:
-    return '/'.join(parts[start:end])
-
-
-def edit_submission_xml(
-    xml_parsed: etree._Element,
-    path: str,
-    value: str,
-) -> None:
+def xml_tostring(el: ET.Element) -> str:
     """
-    Edit submission XML with an XPath and new value, creating a new tree
-    element if the path doesn't yet exist.
+    Thin wrapper around `ElementTree.tostring()` as a step toward a future
+    where all XML handling is done in this file
     """
-    element = xml_parsed.find(path)
-    if element is None:
-        path_parts = path.split('/')
-        # Construct the tree of elements, one node at a time
-        for i, node in enumerate(path_parts):
-            element = xml_parsed.find(get_path(path_parts, end=i + 1))
-            if element is None:
-                parent = (
-                    xml_parsed
-                    if i == 0
-                    else xml_parsed.find(get_path(path_parts, end=i))
+    # "Use encoding="unicode" to generate a Unicode string (otherwise, a
+    # bytestring is generated)."
+    # https://docs.python.org/3.10/library/xml.etree.elementtree.html#xml.etree.ElementTree.tostring
+    return DET.tostring(el, encoding='unicode')
+
+
+class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):
+    """
+    If the root element has a default namespace (`xmlns` attribute), continue
+    storing it in that attribute instead of moving it into a Clark notation
+    prefix on the tag name of the root and all children.
+    """
+    def __init__(self, *args, **kwargs):
+        self.default_namespace_uri = None
+        self.parsing_root_element = True
+        super().__init__(*args, **kwargs)
+
+    def start_ns(self, prefix, uri):
+        if (
+            self.parsing_root_element
+            and prefix == ''
+            and self.default_namespace_uri is None
+        ):
+            # The default namespace!
+            self.default_namespace_uri = uri
+        if hasattr(super(), 'start_ns'):
+            return super().start_ns(prefix, uri)
+
+    def start(self, tag, attrs):
+        # This method is called after `start_ns()`
+        if self.parsing_root_element:
+            self.parsing_root_element = False
+            if self.default_namespace_uri:
+                # Add the default namespace back to the `xmlns` attribute
+                # of the root element
+                attrs['xmlns'] = self.default_namespace_uri
+        if self.default_namespace_uri:
+            # Remove the Clark notation prefix if it matches the default
+            # namespace
+            # TODO remove try/except when Python 3.8 support is removed
+            try:
+                tag = tag.removeprefix('{' + self.default_namespace_uri + '}')
+            except AttributeError:
+                remove_prefix = (
+                    lambda text, prefix: text[len(prefix):]
+                    if text.startswith(prefix)
+                    else text
                 )
-                element = etree.SubElement(parent, node)
-    element.text = value
+                tag = remove_prefix(tag, '{' + self.default_namespace_uri + '}')
+
+        return super().start(tag, attrs)
+
+
+class XMLFormWithDisclaimer:
+
+    # TODO support XForm when Kobocat becomes a Django-app
+    def __init__(self, obj: Union['kpi.AssetSnapshot']):
+        self._object = obj
+        self._unique_id = obj.asset.uid
+        self._add_disclaimer()
+
+    def get_object(self):
+        return self._object
+
+    def _add_disclaimer(self):
+
+        asset = self._object.asset
+
+        if not (disclaimers := self._get_disclaimers(asset)):
+            return
+
+        if not (value := self._get_translations(disclaimers)):
+            return
+
+        translated, disclaimers_dict, default_language_code = value
+
+        self._root_node = minidom.parseString(self._object.xml)
+
+        if translated:
+            self._add_translation_nodes(disclaimers_dict, default_language_code)
+
+        self._add_instance_and_bind_nodes()
+        self._add_disclaimer_input(
+            translated, disclaimers_dict, default_language_code
+        )
+
+        self._object.xml = self._root_node.toxml(encoding='utf-8').decode()
+
+    def _add_instance_and_bind_nodes(self):
+        # Search for main <model> node
+        model_node = [
+            n
+            for n in self._root_node.getElementsByTagName('h:head')[0].childNodes
+            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'model'
+        ][0]
+
+        # Inject <bind nodeset /> inside <model odk:xforms-version="1.0.0">
+        bind_node = self._root_node.createElement('bind')
+        bind_node.setAttribute(
+            'nodeset', f'/{self._unique_id}/_{self._unique_id}__disclaimer'
+        )
+        bind_node.setAttribute('readonly', 'true()')
+        bind_node.setAttribute('required', 'false()')
+        bind_node.setAttribute('type', 'string')
+        bind_node.setAttribute('relevant', 'false()')
+        model_node.appendChild(bind_node)
+
+        # Inject note node inside <{self._unique_id}>
+        instance_node = model_node.getElementsByTagName('instance')[0]
+        instance_node = instance_node.getElementsByTagName(self._unique_id)[0]
+        instance_node.appendChild(
+            self._root_node.createElement(f'_{self._unique_id}__disclaimer')
+        )
+
+    def _add_disclaimer_input(
+        self,
+        translated: bool,
+        disclaimers_dict: dict,
+        default_language_code: str,
+    ):
+        """
+
+        """
+        body_node = self._root_node.getElementsByTagName('h:body')[0]
+        disclaimer_input = self._root_node.createElement('input')
+        disclaimer_input_label = self._root_node.createElement('label')
+        disclaimer_input.setAttribute('appearance', 'kobo-disclaimer')
+        disclaimer_input.setAttribute(
+            'ref', f'/{self._unique_id}/_{self._unique_id}__disclaimer'
+        )
+
+        if translated:
+            itext = f'/{self._unique_id}/_{self._unique_id}__disclaimer:label'
+            disclaimer_input_label.setAttribute(
+                'ref',
+                f"jr:itext('{itext}')",
+            )
+        else:
+            disclaimer_input_label.appendChild(
+                self._root_node.createTextNode(
+                    disclaimers_dict[default_language_code]
+                )
+            )
+
+        disclaimer_input.appendChild(disclaimer_input_label)
+        body_node.appendChild(disclaimer_input)
+
+    def _add_translation_nodes(
+        self, disclaimers_dict: dict, default_language_code: str
+    ):
+        """
+        Add <itext> nodes to <instance> if translations are detected.
+        Will add only translations that match form translations.
+        """
+
+        for n in self._root_node.getElementsByTagName('itext')[0].childNodes:
+            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'translation':
+                disclaimer_translation = self._root_node.createElement('text')
+                disclaimer_translation.setAttribute(
+                    'id',
+                    f'/{self._unique_id}/_{self._unique_id}__disclaimer:label',
+                )
+                value = self._root_node.createElement('value')
+                language = n.getAttribute('lang').lower().strip()
+                if m := re.match(r'[^\(]*\(([a-z]{2,})\)', language):
+                    language_code = m.groups()[0]
+                else:
+                    language_code = default_language_code
+
+                value.appendChild(
+                    self._root_node.createTextNode(
+                        disclaimers_dict.get(
+                            language_code,
+                            disclaimers_dict.get(default_language_code)
+                        )
+                    )
+                )
+                disclaimer_translation.appendChild(value)
+                n.appendChild(disclaimer_translation)
+
+    def _get_disclaimers(self, asset: 'kpi.Asset') -> Optional[QuerySet]:
+
+        # Order by '-asset_id' to ensure that default is overridden later if
+        # an override exists for the same language. See `_get_translations()`
+
+        disclaimers = (
+            FormDisclaimer.objects.annotate(language_code=F('language__code'))
+            .values('language_code', 'message', 'default', 'hidden')
+            .filter(Q(asset__isnull=True) | Q(asset=asset))
+            .order_by('-hidden', '-asset_id', 'language_code')
+        )
+
+        if not disclaimers:
+            return
+
+        return disclaimers
+
+    def _get_translations(
+        self, disclaimers: QuerySet
+    ) -> Optional[tuple[bool, dict, str]]:
+        """
+        Detect whether the form is translated and return its value plus a dictionary
+        of all available messages and the default language code.
+        """
+
+        # Do not go further if disclaimer must be hidden
+        if disclaimers[0]['hidden']:
+            return
+
+        translated = '<itext>' in self._object.xml
+        disclaimers_dict = {}
+        default_language_code = None
+        for d in disclaimers:
+            disclaimers_dict[d['language_code']] = d['message']
+            if d['default']:
+                default_language_code = d['language_code']
+
+        if not translated and not disclaimers_dict[default_language_code]:
+            return
+
+        return translated, disclaimers_dict, default_language_code

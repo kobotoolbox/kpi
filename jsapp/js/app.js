@@ -13,20 +13,25 @@ import 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
-import MainHeader from 'js/components/header';
+import MainHeader from 'js/components/header/mainHeader.component';
 import Drawer from 'js/components/drawer';
-import FormViewTabs from 'js/components/formViewTabs';
-import PermValidator from 'js/components/permissions/permValidator';
-import {assign} from 'utils';
+import FormViewSideTabs from 'js/components/formViewSideTabs';
+import ProjectTopTabs from 'js/project/projectTopTabs.component';
 import BigModal from 'js/components/bigModal/bigModal';
-import {Toaster} from 'react-hot-toast';
+import ToasterConfig from './toasterConfig';
 import {withRouter, routerGetAssetId, router} from './router/legacy';
 import {Tracking} from './router/useTracking';
+import InvalidatedPassword from 'js/router/invalidatedPassword.component';
+import TOSAgreement from 'js/router/tosAgreement.component';
+import {
+  isInvalidatedPasswordRouteBlockerActive,
+  isTOSAgreementRouteBlockerActive,
+} from 'js/router/routerUtils';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = assign({
+    this.state = Object.assign({
       pageState: stores.pageState.state,
     });
   }
@@ -48,6 +53,14 @@ class App extends React.Component {
   }
 
   render() {
+    if (isInvalidatedPasswordRouteBlockerActive()) {
+      return <InvalidatedPassword />;
+    }
+
+    if (isTOSAgreementRouteBlockerActive()) {
+      return <TOSAgreement />;
+    }
+
     const assetid = routerGetAssetId();
 
     const pageWrapperContentModifiers = [];
@@ -74,7 +87,7 @@ class App extends React.Component {
       <DocumentTitle title='KoboToolbox'>
         <React.Fragment>
           <Tracking />
-          <PermValidator />
+          <ToasterConfig />
           <div className='header-stretch-bg' />
           <bem.PageWrapper
             m={pageWrapperModifiers}
@@ -86,7 +99,7 @@ class App extends React.Component {
 
             {!this.isFormBuilder() && (
               <React.Fragment>
-                <MainHeader assetid={assetid} />
+                <MainHeader assetUid={assetid} />
                 <Drawer />
               </React.Fragment>
             )}
@@ -97,47 +110,13 @@ class App extends React.Component {
             >
               {!this.isFormBuilder() && (
                 <React.Fragment>
-                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
-                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
+                  {this.isFormSingle() && <ProjectTopTabs />}
+                  <FormViewSideTabs show={this.isFormSingle()} />
                 </React.Fragment>
               )}
               <Outlet />
             </bem.PageWrapper__content>
           </bem.PageWrapper>
-
-          {/* Default position of all notifications, page specific ones can be overwritten */}
-          <Toaster
-            toastOptions={{
-              // TODO: get colours from a single file: https://github.com/kobotoolbox/kobo-common/issues/1
-              style: {
-                borderRadius: '6px',
-                padding: '16px',
-                background: '#1e2129', // $kobo-gray-14
-                color: '#fff', // $kobo-white
-                maxHeight: '90vh',
-                overflow: 'hidden',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#96eb9e', // $kobo-green
-                  secondary: '#1e2129', // $kobo-gray-14
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#fe6b7d', // $kobo-red
-                  secondary: '#1e2129', // $kobo-gray-14
-                },
-              },
-              loading: {
-                iconTheme: {
-                  primary: '#979fb4', // $kobo-gray-65
-                  secondary: '#1e2129', // $kobo-gray-14
-                },
-              },
-              duration: 5000, // 5 seconds
-            }}
-          />
         </React.Fragment>
       </DocumentTitle>
     );

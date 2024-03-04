@@ -172,6 +172,7 @@
   input[type=text],
   input[type=password],
   input[type=email],
+  input[type=url],
   select {
     color: $layout-text-color;
   }
@@ -190,10 +191,18 @@
   margin-bottom: 16px;
 }
 
+.registration select,
+.registration input:not([type=radio]) {
+   // unify heights and margin
+  height: 38px;
+  margin-top: 2px;
+  margin-bottom: 0;
+}
 .registration input[type=text],
 .registration input[type=password],
 .registration input[type=submit],
 .registration input[type=email],
+.registration input[type=url],
 .registration select {
   width: 100%;
   display: block;
@@ -202,7 +211,6 @@
   border-radius: 6px;
   font-size: variables.$base-font-size;
   border-bottom: 3px solid transparent;
-  margin-top: 1px;
   background-color: colors.$kobo-cloud;
 
   &:focus {
@@ -241,7 +249,6 @@
 
 .registration {
   select {
-    margin-top: 4px;
     border-bottom: none;
   }
 
@@ -250,20 +257,6 @@
     margin-left: 3px;
   }
 
-  .sector,
-  .name {
-    width: 48%;
-    float: left;
-    margin-top: 0px;
-  }
-
-  .country,
-  .organization {
-    width: 52%;
-    float: left;
-    padding-left: 4%;
-    margin-top: 0px;
-  }
 
   .password1 {
     margin-top: 10px;
@@ -406,6 +399,24 @@
   text-align: center;
 }
 
+.registration__bg .registration__first-half,
+.registration__bg .registration--social {
+  > .newsletter_subscription,
+  > .terms_of_service,
+  > .field-social--newsletter_subscription,
+  > .field-social--terms_of_service {
+    display: flex;
+    align-items: center;
+    margin-top: 6px;
+    input[type='checkbox'] {
+      order: -1;
+      margin: 0 12px 0 2px;
+      transform: scale(1.4);
+      height: 18px;
+    }
+  }
+}
+
 @media screen and (min-width: 768px) {
   .registration__bg {
     form.registration {
@@ -418,10 +429,17 @@
     }
 
     form.registration--register,
-    form.registration--complete,
-    form.language-switcher {
+    form.registration--complete {
       width: 80%;
       max-width: 860px;
+    }
+
+    form.language-switcher {
+      max-width: 400px;
+
+      &[data-path="/accounts/signup/"] {
+        max-width: 860px;
+      }
     }
 
     form.registration--register {
@@ -440,6 +458,33 @@
     .registration__first-half {
       width: 52%;
       float: left;
+
+      // Flexbox helps us maintain a layout when some fields may be customized
+      // or removed.
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      column-gap: 4%;
+      > * {
+        min-width: 80%; // By default, rows are wide enough to get their own row,
+        flex: 1; // and when they do, they grow to occupy full available width.
+      }
+      > .name,
+      // > .username, // Hotfix: Make this take a full row because the error feedback is wide
+      // > .email,    // Hotfix: This one, too.
+      > .country,
+      > .organization,
+      > .organization_website,
+      > .organization_type,
+      > .sector {
+        min-width: 40%; // These fields can sit next to each other in pairs.
+      }
+
+      > .password1,
+      > .password2 {
+        flex: 0; // Let these be shorter to match designs
+      }
     }
 
     .registration__second-half {

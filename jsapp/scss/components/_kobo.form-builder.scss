@@ -216,10 +216,6 @@ $s-form-builder-content-width: 1024px;
         overflow: visible;
         padding: 0;
 
-        &[data-tip]::after {
-          margin-left: 30px;
-        }
-
         &:hover,
         &:focus,
         &:focus:not(:active) {
@@ -399,44 +395,6 @@ $s-form-builder-content-width: 1024px;
 
   .form-builder-aside__row:not(:first-child) {
     margin-top: 20px;
-  }
-}
-
-// FORM META
-
-.form-builder-meta {
-  .form-builder-meta__columns {
-    display: flex;
-    flex-direction: row;
-  }
-
-  .form-builder-meta__row {
-    margin-top: 10px;
-  }
-
-  .form-builder-meta__row--background-audio {
-    margin-top: 20px;
-
-    .form-builder-aside__header {
-      margin-bottom: 0;
-    }
-
-    .toggle-switch {
-      margin-top: 10px;
-    }
-
-    label {
-      font-weight: 500;
-    }
-  }
-
-  .form-builder-meta__column {
-    flex: 1;
-    margin-right: 10px;
-
-    .checkbox:not(:last-of-type) {
-      margin-bottom: 10px;
-    }
   }
 }
 

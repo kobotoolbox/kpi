@@ -49,7 +49,7 @@ from kpi.renderers import (
     XFormRenderer,
     XlsRenderer,
 )
-from kpi.serializers import DeploymentSerializer
+from kpi.serializers.v2.deployment import DeploymentSerializer
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListSerializer,
@@ -369,11 +369,7 @@ class AssetViewSet(
     lookup_field = 'uid'
     pagination_class = AssetPagination
     permission_classes = (AssetPermission,)
-    ordering_fields = [
-        'asset_type',
-        'date_modified',
-        'name',
-        'owner__username',
+    ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS + [
         'subscribers_count',
     ]
     filter_backends = [
@@ -679,6 +675,7 @@ class AssetViewSet(
             context_[
                 'object_permissions_per_asset'
             ] = self.cache_all_assets_perms(asset_ids)
+            context_['asset_ids_cache'] = asset_ids
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (

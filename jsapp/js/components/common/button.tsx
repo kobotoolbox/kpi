@@ -3,6 +3,9 @@ import type {IconName} from 'jsapp/fonts/k-icons';
 import type {IconSize} from 'js/components/common/icon';
 import Icon from 'js/components/common/icon';
 import './button.scss';
+import type {TooltipAlignment} from './tooltip';
+import Tooltip from './tooltip';
+import {useId} from 'js/hooks/useId.hook';
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't
@@ -16,7 +19,15 @@ import './button.scss';
  * 3. full - no border, background, hover dims background
  */
 export type ButtonType = 'bare' | 'frame' | 'full';
-export type ButtonColor = 'blue' | 'light-blue' | 'red' | 'storm' | 'cloud';
+export type ButtonColor =
+  | 'blue'
+  | 'light-blue'
+  | 'red'
+  | 'storm'
+  | 'cloud'
+  | 'dark-red'
+  | 'dark-blue';
+
 /**
  * The size is the height of the button, but it also influences the paddings.
  * Check out `button.scss` file for exact pixel values.
@@ -35,7 +46,7 @@ ButtonToIconAloneMap.set('s', 'm');
 ButtonToIconAloneMap.set('m', 'l');
 ButtonToIconAloneMap.set('l', 'l');
 
-interface ButtonProps {
+export interface ButtonProps {
   type: ButtonType;
   color: ButtonColor;
   /** Note: this size will also be carried over to the icon. */
@@ -53,6 +64,8 @@ interface ButtonProps {
    * for icon-only buttons.
    */
   tooltip?: string;
+  /** Sets the alignment of the tooltip */
+  tooltipPosition?: TooltipAlignment;
   isDisabled?: boolean;
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
@@ -76,6 +89,7 @@ interface AdditionalButtonAttributes {
  * A button component.
  */
 const Button = (props: ButtonProps) => {
+  const labelId = useId();
   // Note: both icon(s) and label are optional, but in reality the button
   // needs at least one of them to work.
   if (!props.startIcon && !props.endIcon && !props.label) {
@@ -126,24 +140,39 @@ const Button = (props: ButtonProps) => {
 
   // For the attributes that don't have a falsy value.
   const additionalButtonAttributes: AdditionalButtonAttributes = {};
-  if (props.tooltip) {
-    additionalButtonAttributes['data-tip'] = props.tooltip;
-  }
   if (props['data-cy']) {
     additionalButtonAttributes['data-cy'] = props['data-cy'];
   }
 
-  return (
+  const handleClick = (event: React.BaseSyntheticEvent) => {
+    if (!props.isDisabled && props.onClick) {
+      props.onClick(event);
+    }
+  };
+
+  const onKeyUp = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event?.key === 'space' || event?.key === 'enter') {
+      handleClick(event);
+    }
+  };
+
+  const renderButton = () => (
     <button
       className={classNames.join(' ')}
       type={props.isSubmit ? 'submit' : 'button'}
-      disabled={props.isDisabled}
-      onClick={props.onClick}
+      aria-disabled={props.isDisabled}
+      onClick={handleClick}
+      onKeyUp={onKeyUp}
+      aria-labelledby={props.label ? `k-button__label--${labelId}` : undefined}
       {...additionalButtonAttributes}
     >
       {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
 
-      {props.label && <span className='k-button__label'>{props.label}</span>}
+      {props.label && (
+        <label id={`k-button__label--${labelId}`} className='k-button__label'>
+          {props.label}
+        </label>
+      )}
 
       {/* Ensures only one icon is being displayed.*/}
       {!props.startIcon && props.endIcon && (
@@ -154,6 +183,22 @@ const Button = (props: ButtonProps) => {
         <Icon name='spinner' size={iconSize} classNames={['k-spin']} />
       )}
     </button>
+  );
+
+  return (
+    <>
+      {props.tooltip !== undefined ? (
+        <Tooltip
+          text={props.tooltip}
+          ariaLabel={props.tooltip}
+          alignment={props.tooltipPosition}
+        >
+          {renderButton()}
+        </Tooltip>
+      ) : (
+        renderButton()
+      )}
+    </>
   );
 };
 

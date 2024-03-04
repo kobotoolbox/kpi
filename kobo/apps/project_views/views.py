@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -17,6 +16,7 @@ from kpi.filters import (
 )
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
+from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.utils.object_permission import get_database_user
@@ -41,21 +41,7 @@ class ProjectViewViewSet(
         'name__icontains',
     ]
     min_search_characters = 2
-    ordering_fields = [
-        'date_modified',
-        'date_deployed',
-        'date_modified__date',
-        'date_deployed__date',
-        'name',
-        'settings__sector',
-        'settings__sector__value',
-        'settings__description',
-        '_deployment_data__active',
-        'owner__username',
-        'owner__extra_details__data__name',
-        'owner__extra_details__data__organization',
-        'owner__email',
-    ]
+    ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS
     queryset = ProjectView.objects.all()
 
     def get_queryset(self, *args, **kwargs):

@@ -2,6 +2,7 @@
 from collections import defaultdict
 from typing import Union
 
+import django.dispatch
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User, Permission, AnonymousUser
@@ -79,6 +80,7 @@ def get_anonymous_user():
     return user
 
 
+@cache_for_request
 def get_database_user(user: Union[User, AnonymousUser]) -> User:
     """
     Returns a real `User` object if `user` is an `AnonymousUser`, otherwise
@@ -281,3 +283,7 @@ def perm_parse(perm, obj=None):
         app_label = obj_app_label
         codename = perm
     return app_label, codename
+
+
+post_assign_perm = django.dispatch.Signal()
+post_remove_perm = django.dispatch.Signal()

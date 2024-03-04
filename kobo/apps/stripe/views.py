@@ -2,6 +2,10 @@ import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django_dont_vary_on.decorators import only_vary_on
+from djstripe import enums
 from djstripe.models import (
     Customer,
     Price,
@@ -14,11 +18,11 @@ from djstripe.models import (
 from djstripe.settings import djstripe_settings
 from organizations.utils import create_organization
 from rest_framework import mixins, status, viewsets
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.serializers import (
     ChangePlanSerializer,
     CheckoutLinkSerializer,
@@ -27,6 +31,7 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
+from kpi.permissions import IsAuthenticated
 
 
 # Lists the one-time purchases made by the organization that the logged-in user owns
@@ -52,12 +57,12 @@ class ChangePlanView(APIView):
     If the user is downgrading to a lower price, it will schedule the change at the end of the current billing period.
 
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
+    <b>GET</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/stripe/change-plan/
+    >       curl -X GET https://[kpi]/api/v2/stripe/change-plan/
 
     > **Payload**
     >
@@ -81,15 +86,15 @@ class ChangePlanView(APIView):
         # Exit immediately if the price we're changing to is the same as the price they're currently paying
         if price.id == subscription_item.price.id:
             return Response(
-                {'status': 'already subscribed to plan'},
+                {'status': 'already subscribed'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # If we're upgrading their plan or moving to a plan with the same price, change the subscription immediately
         if price.unit_amount >= subscription_item.price.unit_amount:
-            stripe.Subscription.modify(
+            stripe_response = stripe.Subscription.modify(
                 subscription.id,
-                cancel_at_period_end=False,
-                proration_behavior='create_prorations',
+                payment_behavior='pending_if_incomplete',
+                proration_behavior='always_invoice',
                 items=[
                     {
                         'id': subscription_item.id,
@@ -97,7 +102,18 @@ class ChangePlanView(APIView):
                     }
                 ],
             )
-            return Response({'status': 'upgraded'})
+            # If there are pending updates, there was a problem scheduling the change to their plan
+            if stripe_response['pending_update']:
+                return Response({
+                    'status': 'pending',
+                })
+            # Upgraded successfully!
+            else:
+                return Response({
+                    'price_id': price.id,
+                    'status': 'success',
+                })
+
         # We're downgrading the subscription, schedule a subscription change at the end of the current period
         return ChangePlanView.schedule_subscription_change(
             subscription, subscription_item, price.id
@@ -108,12 +124,13 @@ class ChangePlanView(APIView):
         # First, try getting the existing schedule for the user's subscription
         try:
             schedule = SubscriptionSchedule.objects.get(
-                subscription=subscription
+                subscription=subscription,
+                status=enums.SubscriptionScheduleStatus.active,
             )
             # If the subscription is already scheduled to change to the given price, quit
             if schedule.phases[-1]['items'][0]['price'] == price_id:
                 return Response(
-                    {'status': 'already scheduled to change to given price'},
+                    {'status': 'already scheduled to change to price'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         # If we couldn't find a schedule, make a new one
@@ -147,7 +164,7 @@ class ChangePlanView(APIView):
         )
         return Response({'status': 'scheduled'})
 
-    def post(self, request):
+    def get(self, request):
         serializer = ChangePlanSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         price = serializer.validated_data.get('price_id')
@@ -190,30 +207,51 @@ class CheckoutLinkView(APIView):
         customer, _ = Customer.get_or_create(
             subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
         )
-        # Add the name and organization to the customer if not present.
+        # Update the customer's name and organization name in Stripe.
         # djstripe doesn't let us do this on customer creation, so modify the customer on Stripe and then fetch locally.
-        if not customer.name and user.extra_details.data['name']:
-            stripe_customer = stripe.Customer.modify(
-                customer.id,
-                name=user.extra_details.data['name'],
-                description=organization.name,
-                api_key=djstripe_settings.STRIPE_SECRET_KEY,
-            )
-            customer.sync_from_stripe_data(stripe_customer)
+        stripe_customer = stripe.Customer.modify(
+            customer.id,
+            name=customer.name or user.extra_details.data.get('name', user.username),
+            description=organization.name,
+            api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            metadata={
+                'kpi_owner_username': user.username,
+                'kpi_owner_user_id': user.id,
+                'request_url': settings.KOBOFORM_URL,
+                'organization_id': organization_id,
+            },
+        )
+        customer.sync_from_stripe_data(stripe_customer)
         session = CheckoutLinkView.start_checkout_session(
-            customer.id, price, organization.id
+            customer.id, price, organization.id, user,
         )
         return session['url']
 
     @staticmethod
-    def start_checkout_session(customer_id, price, organization_id):
+    def start_checkout_session(customer_id, price, organization_id, user):
         checkout_mode = (
             'payment' if price.type == 'one_time' else 'subscription'
         )
+        kwargs = {}
+        if checkout_mode == 'subscription':
+            kwargs['subscription_data'] = {
+                'metadata': {
+                    'kpi_owner_username': user.username,
+                    'kpi_owner_user_id': user.id,
+                    'request_url': settings.KOBOFORM_URL,
+                    'organization_id': organization_id,
+                },
+            }
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            allow_promotion_codes=True,
             automatic_tax={'enabled': False},
+            billing_address_collection='required',
             customer=customer_id,
+            customer_update={
+                'address': 'auto',
+                'name': 'auto',
+            },
             line_items=[
                 {
                     'price': price.id,
@@ -223,9 +261,11 @@ class CheckoutLinkView(APIView):
             metadata={
                 'organization_id': organization_id,
                 'price_id': price.id,
+                'kpi_owner_username': user.username,
             },
             mode=checkout_mode,
             success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+            **kwargs,
         )
 
     def post(self, request):
@@ -241,26 +281,137 @@ class CustomerPortalView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @staticmethod
-    def generate_portal_link(user, organization_id):
-        organization = Organization.objects.get(
-            id=organization_id, owner__organization_user__user_id=user
-        )
-        customer = Customer.objects.get(
-            subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
-        )
-        session = stripe.billing_portal.Session.create(
+    def generate_portal_link(user, organization_id, price):
+        customer = Customer.objects.filter(
+            subscriber_id=organization_id,
+            subscriber__owner__organization_user__user_id=user,
+            subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+            livemode=settings.STRIPE_LIVE_MODE,
+        ).values(
+            'id', 'subscriptions__id', 'subscriptions__items__id',
+        ).first()
+
+        if not customer:
+            return Response(
+                {'error': f"Couldn't find customer with organization id {organization_id}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        portal_kwargs = {}
+
+        # if we're generating a portal link for a price change, find or generate a matching portal configuration
+        if price:
+            """
+            Customers with subscription schedules can't upgrade from the portal
+            So if the customer has any active subscription schedules, release them, keeping the subscription intact
+            """
+            schedules = SubscriptionSchedule.objects.filter(
+                customer__id=customer['id'],
+            ).exclude(status__in=['released', 'canceled']).values('status', 'id')
+            for schedule in schedules:
+                stripe.SubscriptionSchedule.release(
+                    schedule['id'],
+                    api_key=djstripe_settings.STRIPE_SECRET_KEY,
+                    preserve_cancel_date=False
+                )
+
+            current_config = None
+            all_configs = stripe.billing_portal.Configuration.list(
+                api_key=djstripe_settings.STRIPE_SECRET_KEY,
+                limit=100,
+            )
+
+            if not len(all_configs):
+                return Response({'error': "Missing Stripe billing configuration."}, status=status.HTTP_502_BAD_GATEWAY)
+
+            """
+            Recurring add-ons and the Enterprise plan aren't included in the default billing configuration.
+            This lets us hide them as an 'upgrade' option for paid plan users.
+            """
+            metadata = price.product.metadata
+            needs_custom_config = (
+                metadata.get('product_type') == 'addon'
+                or metadata.get('plan_type') == 'enterprise'
+            )
+            if needs_custom_config:
+                # Try getting the portal configuration that lets us switch to the provided price
+                current_config = next(
+                    (config for config in all_configs if (
+                            config['active'] and
+                            config['livemode'] == settings.STRIPE_LIVE_MODE and
+                            config['metadata'].get('portal_price', '') == price.id
+                    )), None
+                )
+
+            if not current_config:
+                # get the active default configuration - we'll use this if our product is a 'plan'
+                current_config = next(
+                    (config for config in all_configs if (
+                        config['is_default'] and
+                        config['active'] and
+                        config['livemode'] == settings.STRIPE_LIVE_MODE
+                    )), None
+                )
+
+                if needs_custom_config:
+                    """
+                    we couldn't find a custom configuration, let's try making a new one
+                    add the price we're switching into to the list of prices that allow subscription updates
+                    """
+                    new_products = [
+                        {
+                            'prices': [price.id],
+                            'product': price.product.id,
+                        },
+                    ]
+                    current_config['features']['subscription_update']['products'] = new_products
+                    # create the billing configuration on Stripe, so it's ready when we send the customer to check out
+                    current_config = stripe.billing_portal.Configuration.create(
+                        api_key=djstripe_settings.STRIPE_SECRET_KEY,
+                        business_profile=current_config['business_profile'],
+                        features=current_config['features'],
+                        metadata={
+                            'portal_price': price.id,
+                        }
+                    )
+
+            portal_kwargs = {
+                'configuration': current_config['id'],
+                'flow_data': {
+                    'type': 'subscription_update_confirm',
+                    'subscription_update_confirm': {
+                        'items': [
+                            {
+                                'id': customer['subscriptions__items__id'],
+                                'price': price.id,
+                            },
+                        ],
+                        'subscription': customer['subscriptions__id'],
+                    },
+                    'after_completion': {
+                        'type': 'redirect',
+                        'redirect': {
+                            'return_url': f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+                        },
+                    },
+                },
+            }
+
+        stripe_response = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
-            customer=customer.id,
+            customer=customer['id'],
             return_url=f'{settings.KOBOFORM_URL}/#/account/plan',
+            **portal_kwargs,
         )
-        return session
+        return Response({'url': stripe_response['url']})
 
     def post(self, request):
         serializer = CustomerPortalSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        organization_id = serializer.validated_data['organization_id']
-        session = self.generate_portal_link(request.user, organization_id)
-        return Response({'url': session['url']})
+        organization_id = serializer.validated_data.get('organization_id', None)
+        price = serializer.validated_data.get('price_id', None)
+        response = self.generate_portal_link(request.user, organization_id, price)
+        return response
 
 
 class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
@@ -273,6 +424,8 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(
             livemode=settings.STRIPE_LIVE_MODE,
             customer__subscriber__users=self.request.user,
+        ).select_related(
+            'schedule'
         ).prefetch_related(
             Prefetch(
                 'items',
@@ -283,9 +436,12 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
+@method_decorator(only_vary_on('Origin'), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
     Returns Product and Price Lists, sorted from the product with the lowest price to highest
+    <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/stripe/products/
@@ -321,7 +477,10 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     >                           },
     >                           "unit_amount": int (cents),
     >                           "human_readable_price": string,
-    >                           "metadata": {}
+    >                           "metadata": {},
+    >                           "active": bool,
+    >                           "product": string,
+    >                           "transform_quantity": null | {'round': 'up'|'down', 'divide_by': int}
     >                       },
     >                       ...
     >                   ],

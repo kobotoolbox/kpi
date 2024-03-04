@@ -2,7 +2,7 @@
  * This file lists all different processing related Reflux actions. Some of
  * these are simple API calls, but few requires chain calls.
  *
- * TODO: in future, this should be moved to MobX.
+ * TODO: in future, this should be moved to MobX or a reducer.
  */
 
 import Reflux from 'reflux';
@@ -21,7 +21,7 @@ import type {LanguageCode} from 'js/components/languages/languagesStore';
  * A safety check error message for calls made with assets that don't have
  * the processing enabled.
  */
-const NO_FEATURE_ERROR = t(
+export const NO_FEATURE_ERROR = t(
   'Asset seems to not have the processing feature enabled!'
 );
 
@@ -63,7 +63,7 @@ interface TransxRequestObject {
 /**
  * An object we are receiving from Back end for a transcript or a translation.
  */
-interface TransxObject extends TransxRequestObject {
+export interface TransxObject extends TransxRequestObject {
   dateCreated: string;
   dateModified: string;
   /** The source of the `value` text. */

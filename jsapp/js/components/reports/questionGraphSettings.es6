@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
-import ChartTypePicker from './chartTypePicker';
+import ChartTypePicker from './chartTypePicker.component';
 import ChartColorsPicker from './chartColorsPicker';
 
 export default class QuestionGraphSettings extends React.Component {

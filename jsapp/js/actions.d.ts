@@ -42,19 +42,8 @@ interface GetProcessingSubmissionsCompletedDefinition extends Function {
   listen: (callback: (response: GetProcessingSubmissionsResponse) => void) => Function;
 }
 
-interface GetEnvironmentDefinition extends Function {
-  (): void;
-  completed: GetEnvironmentCompletedDefinition;
-  failed: GenericFailedDefinition;
-}
-
-interface GetEnvironmentCompletedDefinition extends Function {
-  (response: EnvironmentResponse): void;
-  listen: (callback: (response: EnvironmentResponse) => void) => Function;
-}
-
 interface LoadAssetDefinition extends Function {
-  (params: {id: string}): void;
+  ({id: string}, refresh?: Boolean): void;
   completed: LoadAssetCompletedDefinition;
   failed: GenericFailedDefinition;
 }
@@ -107,11 +96,9 @@ export namespace actions {
       routeUpdate: GenericCallbackDefinition;
     };
     const auth: {
-      getEnvironment: GetEnvironmentDefinition;
       verifyLogin: {
         loggedin: GenericCallbackDefinition;
       };
-      logout: GenericDefinition;
       changePassword: GenericDefinition;
     };
     const survey: object;
@@ -143,7 +130,11 @@ export namespace actions {
     const map: object;
     const permissions: {
       getConfig: GenericDefinition;
+      copyPermissionsFrom: GenericDefinition;
       removeAssetPermission: GenericDefinition;
+      assignAssetPermission: GenericDefinition;
+      bulkSetAssetPermissions: GenericDefinition;
+      getAssetPermissions: GenericDefinition;
     };
     const help: {
       getInAppMessages: GenericDefinition;
