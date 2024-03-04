@@ -95,7 +95,7 @@ interface FetchDataOptions {
    */
   notifyAboutError?: boolean;
   /**
-   * Override the default error toast message text. Raven will still receive the
+   * Override the default error toast message text. Sentry will still receive the
    * default error message, for debugging purposes.
    *
    * Only applies when `notifyAboutError` is `true`.

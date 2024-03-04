@@ -176,7 +176,9 @@ export function getAssetUIDFromUrl(assetUrl: string): string | null {
 declare global {
   interface Window {
     log: () => void;
-    Raven?: Sentry.BrowserClient;  // For legacy use, import Sentry instead of this.
+
+    // For legacy use. Instead, use `import * as Sentry from '@sentry/react';`.
+    Raven?: Sentry.BrowserClient;
   }
 }
 
