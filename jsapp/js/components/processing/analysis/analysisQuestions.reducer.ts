@@ -96,6 +96,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: true,
+        hasUnsavedWork: true,
         // Here we immediately mark the question as `deleted` and wait for
         // a successful API call that will return new questions list (to ensure
         // the deletion went as expected).
@@ -180,6 +181,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: true,
+        hasUnsavedWork: true,
       };
     }
     case 'updateResponseCompleted': {
@@ -216,12 +218,14 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       return {
         ...state,
         isPending: true,
+        hasUnsavedWork: true,
       };
     }
     case 'applyQuestionsOrderCompleted': {
       return {
         ...state,
         isPending: false,
+        hasUnsavedWork: false,
         questions: action.payload.questions,
       };
     }
