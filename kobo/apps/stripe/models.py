@@ -82,7 +82,7 @@ class PlanAddOn(models.Model):
         Will return 0 if limit_type does not apply to this add-on.
         """
         if limit_type in self.usage_limits.keys():
-            limit_available = self.limits_available[limit_type]
+            limit_available = self.limits_remaining.get(limit_type)
             amount_to_use = min(amount_used, limit_available)
             self.limits_remaining[limit_type] -= amount_to_use
             self.save()
@@ -90,7 +90,7 @@ class PlanAddOn(models.Model):
         return 0
 
     @staticmethod
-    def create_or_update_one_time_add_on(charge):
+    def create_or_update_one_time_add_on(charge: Charge):
         """
         Create a PlanAddOn object from a Charge object, if the Charge is for a one-time add-on.
         Returns True if a PlanAddOn was created, false otherwise.
@@ -108,7 +108,7 @@ class PlanAddOn(models.Model):
             # no product/price/org/subscription, just bail
             return False
 
-        if product.metadata.get('product_type', '') != 'addon':
+        if product.metadata.get('product_type', '') != 'addon_onetime':
             # might be some other type of payment
             return False
 
@@ -120,19 +120,20 @@ class PlanAddOn(models.Model):
             # this user doesn't have the subscription level they need for this addon, bail
             return False
 
+        quantity = int(charge.metadata['quantity'])
         usage_limits = {}
         limits_remaining = {}
         for limit_type in get_default_add_on_limits().keys():
             limit_value = charge.metadata.get(limit_type, None)
             if limit_value is not None:
                 usage_limits[limit_type] = int(limit_value)
-                limits_remaining[limit_type] = int(limit_value)
+                limits_remaining[limit_type] = int(limit_value) * quantity
 
         if not len(usage_limits):
             # not a valid plan add-on
             return False
 
-        add_on, add_on_created = PlanAddOn.objects.get_or_create(charge=charge, created=charge.created)
+        add_on, add_on_created = PlanAddOn.objects.get_or_create(charge=charge, created=charge.djstripe_created)
         if add_on_created:
             add_on.product = product
             add_on.quantity = int(charge.metadata['quantity'])
