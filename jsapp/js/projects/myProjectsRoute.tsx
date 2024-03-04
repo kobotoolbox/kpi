@@ -29,8 +29,8 @@ import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import {useSearchParams} from 'react-router-dom';
-import TransferProjectsInvite from '../components/transferProjectsInvite.component';
-import {isInviteForLoggedInUser, TransferStatuses} from 'js/components/transferProjects.api';
+import TransferProjectsInvite from 'js/components/permissions/transferProjects/transferProjectsInvite.component';
+import {isInviteForLoggedInUser, TransferStatuses} from 'js/components/permissions/transferProjects/transferProjects.api';
 import Button from '../components/common/button';
 
 interface InviteState {

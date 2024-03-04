@@ -23,7 +23,7 @@ import type {
 import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
 import type {ReportsResponse} from 'js/components/reports/reportsConstants';
-import type {ProjectTransferAssetDetail} from 'js/components/transferProjects.api';
+import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 
 interface AssetsRequestData {
   q?: string;

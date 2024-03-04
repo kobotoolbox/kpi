@@ -12,7 +12,7 @@ import {replaceBracketsWithLink} from 'js/textUtils';
 import {ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
 import {ASSET_TYPES} from 'js/constants';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
-import {TransferStatuses} from '../transferProjects.api';
+import {TransferStatuses} from 'js/components/permissions/transferProjects/transferProjects.api';
 import './sharingForm.scss';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions.component';

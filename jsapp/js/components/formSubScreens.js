@@ -18,7 +18,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
 import sessionStore from 'js/stores/session';
-import TransferProjects from './transferProjects.component';
+import TransferProjects from 'js/components/permissions/transferProjects/transferProjects.component';
 
 const ConnectProjects = React.lazy(() =>
   import(
