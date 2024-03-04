@@ -239,7 +239,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.getProcessingData.completed.listen(this.onFetchProcessingDataCompleted.bind(this));
     processingActions.getProcessingData.failed.listen(this.onAnyCallFailed.bind(this));
 
-    processingActions.setTranscript.completed.listen(this.onSetTranscriptCompleted.bind(this);
+    processingActions.setTranscript.completed.listen(this.onSetTranscriptCompleted.bind(this));
     processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
     processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
