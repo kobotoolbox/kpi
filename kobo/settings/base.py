@@ -931,9 +931,8 @@ if GOOGLE_ANALYTICS_TOKEN:
     CSP_IMG_SRC.extend(['https://*.google-analytics.com', 'https://*.googletagmanager.com'])
 if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme:
     sentry_js_url = SENTRY_JS_DSN_URL.scheme + '://' + SENTRY_JS_DSN_URL.hostname
-    CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
-    CSP_SCRIPT_SRC.append(raven_js_url)
-    CSP_CONNECT_SRC.append(raven_js_url)
+    CSP_SCRIPT_SRC.append(sentry_js_url)
+    CSP_CONNECT_SRC.append(sentry_js_url)
 if STRIPE_ENABLED:
     stripe_domain = "https://js.stripe.com"
     CSP_SCRIPT_SRC.append(stripe_domain)
