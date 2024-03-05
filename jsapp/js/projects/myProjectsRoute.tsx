@@ -27,6 +27,7 @@ import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import { OneTimeAddOnsContext, useOneTimeAddOns } from '../account/useOneTimeAddonList.hook';
 import {ProductsContext, useProducts} from 'js/account/useProducts.hook';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
@@ -35,6 +36,7 @@ function MyProjectsRoute() {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const products = useProducts();
   const usage = useUsage();
+  const oneTimeAddons = useOneTimeAddOns();
 
   useEffect(() => {
     customView.setUp(
@@ -83,7 +85,9 @@ function MyProjectsRoute() {
 
       <UsageContext.Provider value={usage}>
         <ProductsContext.Provider value={products}>
-          <LimitNotifications useModal />
+          <OneTimeAddOnsContext.Provider value={oneTimeAddons}>
+            <LimitNotifications useModal />
+          </OneTimeAddOnsContext.Provider>
         </ProductsContext.Provider>
       </UsageContext.Provider>
 

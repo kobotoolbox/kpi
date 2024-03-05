@@ -26,6 +26,7 @@ import ProjectQuickActions from './projectsTable/projectQuickActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 import {ProductsContext, useProducts} from 'js/account/useProducts.hook';
+import {OneTimeAddOnsContext, useOneTimeAddOns} from '../account/useOneTimeAddonList.hook';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
 function CustomViewRoute() {
@@ -38,6 +39,7 @@ function CustomViewRoute() {
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const oneTimeAddOns = useOneTimeAddOns();
   const products = useProducts();
   const usage = useUsage();
 
@@ -127,7 +129,9 @@ function CustomViewRoute() {
       </header>
       <UsageContext.Provider value={usage}>
         <ProductsContext.Provider value={products}>
-          <LimitNotifications useModal />
+          <OneTimeAddOnsContext.Provider value={oneTimeAddOns}>
+            <LimitNotifications useModal />
+          </OneTimeAddOnsContext.Provider>
         </ProductsContext.Provider>
       </UsageContext.Provider>
       <ProjectsTable

@@ -200,6 +200,37 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
 };
 
 /**
+ * Add one-time addon limits to already calculated account limits
+ */
+const addOneTimeAddOnLimits = (
+  limits: AccountLimit,
+  oneTimeAddOns: OneTimeAddOn[]
+) => {
+  oneTimeAddOns.forEach((addon) => {
+    if (
+      addon.total_usage_limits.submission_limit &&
+      limits.submission_limit !== Limits.unlimited
+    ) {
+      limits.submission_limit += addon.total_usage_limits.submission_limit;
+    }
+    if (
+      addon.total_usage_limits.asr_seconds_limit &&
+      limits.nlp_seconds_limit !== Limits.unlimited
+    ) {
+      limits.nlp_seconds_limit += addon.total_usage_limits.asr_seconds_limit;
+    }
+    if (
+      addon.total_usage_limits.mt_characters_limit &&
+      limits.nlp_character_limit !== Limits.unlimited
+    ) {
+      limits.nlp_character_limit +=
+        addon.total_usage_limits.mt_characters_limit;
+    }
+  });
+  return limits
+};
+
+/**
  * Get all metadata keys for the logged-in user's plan, or from the free tier if they have no plan.
  */
 const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
@@ -247,7 +278,10 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
  *  - the `FREE_TIER_THRESHOLDS` override
  *  - the user's subscription limits
  */
-export async function getAccountLimits(products: Product[]) {
+export async function getAccountLimits(
+  products: Product[],
+  oneTimeAddOns: OneTimeAddOn[]
+) {
   const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus(
     products
   );
@@ -265,6 +299,8 @@ export async function getAccountLimits(products: Product[]) {
     // if the user has active recurring add-ons, use those as the final say on their limits
     limits = getRecurringAddOnLimits(limits);
   }
-
+  if (oneTimeAddOns.length) {
+    limits = addOneTimeAddOnLimits(limits, oneTimeAddOns)
+  }
   return limits;
 }
