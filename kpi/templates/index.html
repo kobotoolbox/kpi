@@ -16,7 +16,7 @@
 {% block head_scripts %}
   <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
 
-  <!-- Raven setup -->
+  <!-- Sentry setup -->
   {% if sentry_js_dsn %}
     <meta name="sentry-dsn" content="{{ sentry_js_dsn }}">
   {% endif %}
