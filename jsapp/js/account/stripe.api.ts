@@ -208,23 +208,23 @@ const addOneTimeAddOnLimits = (
 ) => {
   oneTimeAddOns.forEach((addon) => {
     if (
-      addon.total_usage_limits.submission_limit &&
+      addon.limits_remaining.submission_limit &&
       limits.submission_limit !== Limits.unlimited
     ) {
-      limits.submission_limit += addon.total_usage_limits.submission_limit;
+      limits.submission_limit += addon.limits_remaining.submission_limit;
     }
     if (
-      addon.total_usage_limits.asr_seconds_limit &&
+      addon.limits_remaining.asr_seconds_limit &&
       limits.nlp_seconds_limit !== Limits.unlimited
     ) {
-      limits.nlp_seconds_limit += addon.total_usage_limits.asr_seconds_limit;
+      limits.nlp_seconds_limit += addon.limits_remaining.asr_seconds_limit;
     }
     if (
-      addon.total_usage_limits.mt_characters_limit &&
+      addon.limits_remaining.mt_characters_limit &&
       limits.nlp_character_limit !== Limits.unlimited
     ) {
       limits.nlp_character_limit +=
-        addon.total_usage_limits.mt_characters_limit;
+        addon.limits_remaining.mt_characters_limit;
     }
   });
   return limits
@@ -296,9 +296,11 @@ export async function getAccountLimits(
     // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
     limits = await getFreeTierLimits(limits);
 
-    // if the user has active recurring add-ons, use those as the final say on their limits
+    // if the user has active recurring add-ons, use those as their limits
     limits = getRecurringAddOnLimits(limits);
   }
+
+  // finally, add one-time addon limits to the limits calculated so far
   if (oneTimeAddOns.length) {
     limits = addOneTimeAddOnLimits(limits, oneTimeAddOns)
   }
