@@ -21,6 +21,8 @@ if (sentryDsnEl !== null) {
   Sentry.init({
     dsn: sentryDsnEl.content,
     tracesSampleRate: 0.0,
+    sendClientReports: false,
+    autoSessionTracking: false,
   })
   window.Raven = Sentry;
 }
