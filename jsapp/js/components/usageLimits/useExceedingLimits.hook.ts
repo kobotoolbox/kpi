@@ -7,7 +7,7 @@ import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
 import {ProductsContext} from 'jsapp/js/account/useProducts.hook';
-import { OneTimeAddOnsContext } from 'jsapp/js/account/useOneTimeAddonList.hook';
+import {OneTimeAddOnsContext} from 'jsapp/js/account/useOneTimeAddonList.hook';
 
 interface SubscribedState {
   subscribedProduct: null | SubscriptionInfo;
@@ -58,7 +58,12 @@ export const useExceedingLimits = () => {
         setAreLimitsLoaded(true);
       });
     }
-  }, [productsContext, oneTimeAddOnsContext]);
+  }, [
+    productsContext.isLoaded,
+    productsContext.products,
+    oneTimeAddOnsContext.isLoaded,
+    oneTimeAddOnsContext.addons,
+  ]);
 
   // Get subscription data
   useWhenStripeIsEnabled(
