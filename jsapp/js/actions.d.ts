@@ -99,7 +99,6 @@ export namespace actions {
       verifyLogin: {
         loggedin: GenericCallbackDefinition;
       };
-      logout: GenericDefinition;
       changePassword: GenericDefinition;
     };
     const survey: object;

@@ -1,7 +1,6 @@
 # coding: utf-8
 from copy import deepcopy
 
-import pytest
 from django.contrib.auth.models import Permission, User
 from django.urls import reverse
 from rest_framework import status
@@ -573,12 +572,9 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             user__username='simone'
         ).permissions == {
             PERM_VIEW_SUBMISSIONS: [
-                # TODO: Avoid this (harmless) duplication (which was already
-                # present in b30644e1c, before any optimization work)
-                [{'_submitted_by': 'simone'}],
-                [{'_submitted_by': {'$in': ['simone', 'zariah']}}],
-                # This extra duplication was *not* present before optimization
-                [{'_submitted_by': 'simone'}],
+                # Duplication of simone is intentional, as one is from the implied perm
+                {'_submitted_by': {'$in': ['simone', 'zariah']}},
+                {'_submitted_by': 'simone'},
             ],
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'simone'}],
         }
@@ -714,7 +710,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             self.asset.has_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         )
 
-    @pytest.mark.skip(reason="TODO")
     def test_partial_permission_no_duplicate_with_simple_filter(self):
         assignments = [
             {
@@ -756,23 +751,26 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_VIEW_SUBMISSIONS}/',
                 'filters': [
-                    [{'_submitted_by': 'someuser'}],
-                    [{'my_question': 'my_response1'}],
+                    {
+                        '_submitted_by': 'someuser',
+                    },
+                    {
+                        'my_question': 'my_response1',
+                    },
                 ],
             },
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_DELETE_SUBMISSIONS}/',
-                'filters': [[{'my_question': 'my_response1'}]],
+                'filters': [{'my_question': 'my_response1'}],
             },
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_VALIDATE_SUBMISSIONS}/',
-                'filters': [[{'my_question': 'my_response1'}]],
+                'filters': [{'my_question': 'my_response1'}],
             },
         ]
 
         assert expected == returned_partial_perms
 
-    @pytest.mark.skip(reason="TODO")
     def test_partial_permission_no_duplicate_with_complex_OR_filters(self):
         assignments = [
             {
@@ -781,15 +779,15 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
                 'partial_permissions': [
                     {
                         'url': PERM_VIEW_SUBMISSIONS,
-                        'filters': [[{'_submitted_by': 'someuser'}]],
+                        'filters': [{'_submitted_by': 'someuser'}],
                     },
                     {
                         'url': PERM_VALIDATE_SUBMISSIONS,
-                        'filters': [[{'my_question': 'my_response1'}]],
+                        'filters': [{'my_question': 'my_response1'}],
                     },
                     {
                         'url': PERM_DELETE_SUBMISSIONS,
-                        'filters': [[{'my_question': 'my_response1'}]],
+                        'filters': [{'my_question': 'my_response1'}],
                     },
                 ],
             }
@@ -814,23 +812,26 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_VIEW_SUBMISSIONS}/',
                 'filters': [
-                    [{'_submitted_by': 'someuser'}],
-                    [{'my_question': 'my_response1'}],
+                    {
+                        '_submitted_by': 'someuser',
+                    },
+                    {
+                        'my_question': 'my_response1',
+                    },
                 ],
             },
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_DELETE_SUBMISSIONS}/',
-                'filters': [[{'my_question': 'my_response1'}]],
+                'filters': [{'my_question': 'my_response1'}],
             },
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_VALIDATE_SUBMISSIONS}/',
-                'filters': [[{'my_question': 'my_response1'}]],
+                'filters': [{'my_question': 'my_response1'}],
             },
         ]
 
         assert expected == returned_partial_perms
 
-    @pytest.mark.skip(reason="TODO")
     def test_partial_permission_no_duplicate_with_complex_AND_filters(self):
         assignments = [
             {
@@ -839,24 +840,24 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
                 'partial_permissions': [
                     {
                         'url': PERM_VIEW_SUBMISSIONS,
-                        'filters': [[{'_submitted_by': 'someuser'}]],
+                        'filters': [{'_submitted_by': 'someuser'}],
                     },
                     {
                         'url': PERM_VALIDATE_SUBMISSIONS,
                         'filters': [
-                            [
-                                {'my_question': 'my_response1'},
-                                {'my_question2': 'my_response2'},
-                            ]
+                            {
+                                'my_question': 'my_response1',
+                                'my_question2': 'my_response2',
+                            },
                         ],
                     },
                     {
                         'url': PERM_DELETE_SUBMISSIONS,
                         'filters': [
-                            [
-                                {'my_question': 'my_response1'},
-                                {'my_question2': 'my_response2'},
-                            ]
+                            {
+                                'my_question': 'my_response1',
+                                'my_question2': 'my_response2',
+                            },
                         ],
                     },
                 ],
@@ -882,29 +883,29 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_VIEW_SUBMISSIONS}/',
                 'filters': [
-                    [{'_submitted_by': 'someuser'}],
-                    [
-                        {'my_question': 'my_response1'},
-                        {'my_question2': 'my_response2'},
-                    ],
+                    {'_submitted_by': 'someuser'},
+                    {
+                        'my_question': 'my_response1',
+                        'my_question2': 'my_response2',
+                    },
                 ],
             },
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_DELETE_SUBMISSIONS}/',
                 'filters': [
-                    [
-                        {'my_question': 'my_response1'},
-                        {'my_question2': 'my_response2'},
-                    ],
+                    {
+                        'my_question': 'my_response1',
+                        'my_question2': 'my_response2',
+                    },
                 ],
             },
             {
                 'url': f'http://testserver/api/v2/permissions/{PERM_VALIDATE_SUBMISSIONS}/',
                 'filters': [
-                    [
-                        {'my_question': 'my_response1'},
-                        {'my_question2': 'my_response2'},
-                    ],
+                    {
+                        'my_question': 'my_response1',
+                        'my_question2': 'my_response2',
+                    },
                 ],
             },
         ]
@@ -921,7 +922,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
                 'partial_permissions': [
                     {
                         'url': PERM_VIEW_SUBMISSIONS,
-                        'filteraaa': [[{'lol': perm_user.username}]],
+                        'filteraaa': [{'lol': perm_user.username}],
                     },
                 ],
             }

@@ -797,7 +797,7 @@ export default class ProjectExportsCreator extends React.Component {
                 type='submit'
                 onClick={this.onSubmit}
                 disabled={
-                  this.state.selectedRows.size === 0 ||
+                  (this.state.isCustomSelectionEnabled && this.state.selectedRows.size === 0) ||
                   this.state.isPending
                 }
               >

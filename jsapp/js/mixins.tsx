@@ -19,6 +19,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
+import type {AssetStoreData} from 'js/assetStore';
 import {actions} from './actions';
 import {log, notify, escapeHtml, join} from 'js/utils';
 import type {
@@ -234,7 +235,7 @@ const mixins: MixinsObject = {
       const uid = this._getAssetUid();
       const asset = data[uid];
       if (asset) {
-        this.setState(Object.assign({}, data[uid]));
+        this.setState(Object.assign({}, asset));
       }
     },
     _getAssetUid() {
@@ -264,7 +265,9 @@ const mixins: MixinsObject = {
     },
 
     componentDidMount() {
-      assetStore.listen(this.dmixAssetStoreChange, this);
+      this.dmixAssetStoreCancelListener = assetStore.listen((data: AssetStoreData) => {
+        this.dmixAssetStoreChange(data);
+      }, this);
 
       // TODO 2/2
       // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -275,6 +278,12 @@ const mixins: MixinsObject = {
         this.setState(Object.assign({}, assetStore.data[uid]));
       } else if (uid) {
         actions.resources.loadAsset({id: uid});
+      }
+    },
+
+    componentWillUnmount() {
+      if (typeof this.dmixAssetStoreCancelListener === 'function') {
+        this.dmixAssetStoreCancelListener();
       }
     },
 

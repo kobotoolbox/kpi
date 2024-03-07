@@ -56,6 +56,7 @@ export const KEY_CODES = Object.freeze({
 export enum KeyNames {
   Enter = 'Enter',
   Escape = 'Escape',
+  Space = ' ',
 }
 
 export const MODAL_TYPES = {

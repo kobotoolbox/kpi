@@ -26,7 +26,7 @@ export interface AnalysisQuestionsState {
    *
    * When user is not reordering questions, this list doesn't exist. The purpose
    * of it is to avoid unnecessary API calls during reordering - we make single
-   * call on reordering end.
+   * call on reordering end (see `applyQuestionsOrderCompleted` action).
    */
   draftQuestionsOrder?: string[];
 }

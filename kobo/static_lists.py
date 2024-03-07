@@ -350,7 +350,8 @@ PROJECT_METADATA_DEFAULT_LABELS = {
 
 USER_METADATA_DEFAULT_LABELS = {
     'name': t('Full name'),
-    'organization': t('Organization'),
+    'organization': t('Organization name'),
+    'organization_type': t('Organization type'),
     'organization_website': t('Organization website'),
     'sector': t('Sector'),
     'gender': t('Gender'),
@@ -360,4 +361,5 @@ USER_METADATA_DEFAULT_LABELS = {
     'twitter': t('Twitter'),
     'linkedin': t('LinkedIn'),
     'instagram': t('Instagram'),
+    'newsletter_subscription': t('I want to receive occasional updates about KoboToolbox'),
 }

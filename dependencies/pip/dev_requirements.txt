@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@b1003f55a0d931c719f7bb885e00b233d2f536a8#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@z3b6c89a00c77693a775ef91b68d6965678a7e4fe#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
     # via -r dependencies/pip/requirements.in
@@ -134,7 +134,6 @@ django==3.2.15
     #   django-dont-vary-on
     #   django-extensions
     #   django-filter
-    #   django-js-asset
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-organizations
@@ -170,13 +169,9 @@ django-extensions==3.1.5
     # via -r dependencies/pip/requirements.in
 django-filter==21.1
     # via -r dependencies/pip/requirements.in
-django-js-asset==2.0.0
-    # via django-mptt
 django-loginas==0.3.10
     # via -r dependencies/pip/requirements.in
 django-markdownx==4.0.2
-    # via -r dependencies/pip/requirements.in
-django-mptt==0.13.4
     # via -r dependencies/pip/requirements.in
 django-oauth-toolkit==2.0.0
     # via -r dependencies/pip/requirements.in
