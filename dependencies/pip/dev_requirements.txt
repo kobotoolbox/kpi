@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@z3b6c89a00c77693a775ef91b68d6965678a7e4fe#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@3b6c89a00c77693a775ef91b68d6965678a7e4fe#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
     # via -r dependencies/pip/requirements.in
