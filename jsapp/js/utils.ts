@@ -11,7 +11,7 @@ import moment from 'moment';
 import type {Toast, ToastOptions} from 'react-hot-toast';
 import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
-import * as Sentry from "@sentry/react";
+import * as Sentry from '@sentry/react';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -178,6 +178,7 @@ declare global {
     log: () => void;
 
     // For legacy use. Instead, use `import * as Sentry from '@sentry/react';`.
+    // See note on window.Raven in main.es6
     Raven?: Sentry.BrowserClient;
   }
 }

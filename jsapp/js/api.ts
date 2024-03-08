@@ -3,11 +3,11 @@ import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
 import {notify} from 'js/utils';
-import * as Sentry from "@sentry/react";
+import * as Sentry from '@sentry/react';
 
 /**
  * Useful for handling the fail responses from API. Its main goal is to display
- * a helpful error toast notification and to pass the error message to Raven.
+ * a helpful error toast notification and to pass the error message to Sentry.
  *
  * It can detect if we got HTML string as response and uses a generic message
  * instead of spitting it out. The error message displayed to the user can be
