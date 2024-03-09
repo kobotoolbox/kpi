@@ -1,3 +1,4 @@
+import datetime
 import json
 import re
 from django.contrib.auth.models import User
@@ -9,8 +10,7 @@ from kpi.models import Asset
 from kpi.db_routers import HitTheRoadDatabaseRouter
 route_to_dest = HitTheRoadDatabaseRouter.route_to_destination
 
-# all_users_qs = KobocatUser.objects.filter(username__in=('tinok', 'tinok3', 'tino', 'jamesld_test'))
-usernames = [x.strip() for x in open('../eu-usernames.txt').readlines()]
+usernames = [x.strip() for x in open('htr-usernames.txt').readlines()]
 all_users_qs = KobocatUser.objects.filter(username__in=usernames)
 
 URL_FIND_REPLACE = (
@@ -31,6 +31,11 @@ URL_FIND_REPLACE = (
   PLUS metadata stuff
 '''
 
+log_file_writer = open(f'kpi-hittheroad2-{datetime.datetime.now()}.log', 'w')
+def print_and_log(s):
+    print(s)
+    log_file_writer.write(s + '\n')
+
 with route_to_dest():
     for xform in (
         KobocatXForm.objects.filter(user__in=all_users_qs)
@@ -38,7 +43,9 @@ with route_to_dest():
         .iterator()
     ):
         if not xform.kpi_asset_uid:
-            print(f'!!! XForm {xform.pk} has no `kpi_asset_uid`; skipped!')
+            print_and_log(
+                f'!!! XForm {xform.pk} has no `kpi_asset_uid`; skipped!'
+            )
             continue
 
         any_changes = False
@@ -73,7 +80,7 @@ with route_to_dest():
                 _deployment_data=dep_dat
             )
 
-            print(
+            print_and_log(
                 f"{xform.kpi_asset_uid}: {old_formid} →"
                 f" {dep_dat['backend_response']['formid']}"
             )
