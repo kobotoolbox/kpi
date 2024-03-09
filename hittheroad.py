@@ -47,8 +47,13 @@ Steps:
 What to do next?
 
 1. Run code in KoboCAT's `hittheroad.py`
-2. Come back to KPI and run code in `hittheroad2.py` to update
+2. Don't forget (!) to run code in KoboCAT's `hittheroad2.py` to copy
+   `Instance`s (submissions)
+3. Come back to KPI and run code in `hittheroad2.py` to update
    `Asset._deployment_data` to match newly-copied KoboCAT `XForm`s
+   (could be done prior to or while copying `Instance`s)
+4. Run KoboCAT's `./manage.py sync_mongo --remongo` for all copied users
+5. Use `aws s3 sync` to copy all storage files for all copied users
 
 """
 
