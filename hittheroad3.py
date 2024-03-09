@@ -1,4 +1,5 @@
 import csv
+import datetime
 import sys
 from collections import defaultdict
 from itertools import islice
@@ -15,9 +16,9 @@ route_to_dest = HitTheRoadDatabaseRouter.route_to_destination
 
 
 some_usernames = []
-usernames = [x.strip() for x in open('../eu-usernames.txt').readlines()]
+usernames = [x.strip() for x in open('htr-usernames.txt').readlines()]
 all_users_qs = User.objects.filter(username__in=usernames)
-csv_file_writer = csv.writer(open('/dev/null', 'w'))
+log_file_writer = open(f'kpi-hittheroad3-{datetime.datetime.now()}.log', 'w')
 
 
 CHUNK_SIZE = 2000

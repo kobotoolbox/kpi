@@ -52,9 +52,10 @@ from kpi.models.asset import UserAssetSubscription
 # to be replaced by reading usernames from a file
 # all_users_qs = User.objects.filter(username__in=('tinok', 'tinok3', 'tino', 'jamesld_test'))
 
-usernames = [x.strip() for x in open('../eu-usernames.txt').readlines()]
+usernames = [x.strip() for x in open('htr-usernames.txt').readlines()]
 all_users_qs = User.objects.filter(username__in=usernames)
-csv_file_writer = csv.writer(open('/home/ubuntu/jnm-work/log/eu-kpi.log', 'w'))
+csv_file_writer = csv.writer(
+    open(f'kpi-hittheroad-{datetime.datetime.now()}.log', 'w')
 
 
 CHUNK_SIZE = 2000
@@ -65,8 +66,8 @@ csv_writer = csv.writer(sys.stdout)
 
 
 def print_csv(*args):
-    csv_writer.writerow(args)
-    csv_file_writer.writerow(args)
+    csv_writer.writerow((datetime.datetime.now(),) + args)
+    csv_file_writer.writerow((datetime.datetime.now(),) + args)
 
 
 def legible_class(cls):
