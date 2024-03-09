@@ -18,7 +18,9 @@ route_to_dest = HitTheRoadDatabaseRouter.route_to_destination
 some_usernames = []
 usernames = [x.strip() for x in open('htr-usernames.txt').readlines()]
 all_users_qs = User.objects.filter(username__in=usernames)
-log_file_writer = open(f'kpi-hittheroad3-{datetime.datetime.now()}.log', 'w')
+csv_file_writer = csv.writer(
+    open(f'kpi-hittheroad3-{datetime.datetime.now()}.log', 'w')
+)
 
 
 CHUNK_SIZE = 2000
@@ -48,8 +50,8 @@ def xref_all_users():
 
 
 def print_csv(*args):
-    csv_writer.writerow(args)
-    csv_file_writer.writerow(args)
+    csv_writer.writerow((datetime.datetime.now(),) + args)
+    csv_file_writer.writerow((datetime.datetime.now(),) + args)
 
 
 def legible_class(cls):
