@@ -1,7 +1,14 @@
+"""
+What does this do?
+
+You must have already completed `hittheroad.py` here in KPI and also in
+KoboCAT. Once that is done, this will update `Asset._deployment_data` as
+necessary.
+"""
+
 import datetime
 import json
 import re
-from django.contrib.auth.models import User
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
     KobocatUser,

@@ -1,11 +1,65 @@
+"""
+What does this do?
+
+Assumptions:
+
+* Environment variables `KPI_DATABASE_URL` and `KC_DATABASE_URL` specify the
+  **SOURCE** database
+* Env. vars. `KPI_DATABASE_URL_DESTINATION` and `KC_DATABASE_URL_DESTINATION`
+  specify the destination database
+* `htr-usernames.txt` in the current directory is the list of usernames to copy
+
+Limitations:
+
+This expects `htr-usernames.txt` to include a *complete* list of usernames for
+a migration. Things like asset subscriptions and permission assignments require
+having a complete cross-reference of all users and assets being migrated; doing
+small batches of usernames will cause subscriptions and permission assignments
+that point outside the batch to be discarded (e.g. Alice gave Bob permission to
+access her project, but Bob's assignment won't be copied if he is not in the
+same batch as Alice).
+
+Steps:
+
+1. Copies all `User` objects identified by `htr-usernames.txt`
+2. Synchronizes each to KoboCAT
+3. Copies all related:
+    1. `EmailAddress`es
+    2. `Token`s
+    3. `PartialDigest`s
+4. Copies all non-child `Asset`s owned by these users, and then related:
+    1. `AssetFile`s
+    2. `SubmissionExtra`s
+    3. `AssetExportSetting`s
+    4. `Hook`s and `HookLog`s
+    5. `AssetVersion`s
+    6. `Tag`s
+5. Copies all child `Asset`s owned by these users, now that the parents must
+   already exist. These are library items inside collections.
+   FIXME: `Tag`s should be copied for these as well, but they are not. The
+   other related models do not apply to library items, but something like
+   `AssetFile` might apply in the future
+6. Copies things depending on all users and assets having been copied already:
+    1. `UserAssetSubscription`s
+    2. `AssetUserPartialPermission`s
+    3. `ObjectPermission`s
+
+What to do next?
+
+1. Run code in KoboCAT's `hittheroad.py`
+2. Come back to KPI and run code in `hittheroad2.py` to update
+   `Asset._deployment_data` to match newly-copied KoboCAT `XForm`s
+
+"""
+
+
+import datetime
 import csv
 import sys
 from collections import defaultdict
-from copy import deepcopy
 from itertools import islice
 
 from django.db.models import Prefetch
-from django.contrib.contenttypes.models import ContentType
 
 from kpi.db_routers import HitTheRoadDatabaseRouter
 route_to_dest = HitTheRoadDatabaseRouter.route_to_destination
@@ -49,13 +103,11 @@ from kpi.models.asset import UserAssetSubscription
 # EVERYTHING gets a UID. Why doesn't SubmissionExtras have one?
 
 
-# to be replaced by reading usernames from a file
-# all_users_qs = User.objects.filter(username__in=('tinok', 'tinok3', 'tino', 'jamesld_test'))
-
 usernames = [x.strip() for x in open('htr-usernames.txt').readlines()]
 all_users_qs = User.objects.filter(username__in=usernames)
 csv_file_writer = csv.writer(
     open(f'kpi-hittheroad-{datetime.datetime.now()}.log', 'w')
+)
 
 
 CHUNK_SIZE = 2000
