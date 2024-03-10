@@ -8,3 +8,8 @@ DATABASES = {
     'kobocat_destination': env.db_url('KC_DATABASE_URL_DESTINATION'),
 }
 DATABASE_ROUTERS = ['kpi.db_routers.HitTheRoadDatabaseRouter']
+
+for db in 'default', 'kobocat':
+    DATABASES[db]['OPTIONS'] = {
+        'options': '-c default_transaction_read_only=on'
+    }
