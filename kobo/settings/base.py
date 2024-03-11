@@ -285,6 +285,7 @@ CONSTANCE_CONFIG = {
         LazyJSONSerializable([
             {'name': 'name', 'required': True},
             {'name': 'organization', 'required': False},
+            {'name': 'organization_type', 'required': False},
             {'name': 'organization_website', 'required': False},
             {'name': 'sector', 'required': False},
             {'name': 'bio', 'required': False},
@@ -293,12 +294,13 @@ CONSTANCE_CONFIG = {
             {'name': 'twitter', 'required': False},
             {'name': 'linkedin', 'required': False},
             {'name': 'instagram', 'required': False},
+            {'name': 'newsletter_subscription', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
         "Possible fields are:\n"
-        "'organization', 'organization_website', 'sector', 'gender', 'bio', "
-        "'city', 'country', 'twitter', 'linkedin', and 'instagram'.\n\n"
+        "'organization', 'organization_type', 'organization_website', 'sector', 'gender', 'bio', "
+        "'city', 'country', 'twitter', 'linkedin', 'instagram', and 'newsletter_subscription'.\n\n"
         'To add another language, follow the example below.\n\n'
         '{"name": "name", "required": False, "label": '
         '{"default": "Full Name", "fr": "Nom Complet"}}\n'
@@ -816,10 +818,12 @@ TEMPLATES = [
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
-RAVEN_JS_DSN = None
-if RAVEN_JS_DSN_URL:
-    RAVEN_JS_DSN = RAVEN_JS_DSN_URL.geturl()
+SENTRY_JS_DSN = None
+if SENTRY_JS_DSN_URL := env.url(
+        'SENTRY_JS_DSN',
+        default=env.url('RAVEN_JS_DSN', default=None)
+    ):
+    SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
@@ -925,11 +929,10 @@ if GOOGLE_ANALYTICS_TOKEN:
     CSP_SCRIPT_SRC.append('https://*.googletagmanager.com')
     CSP_CONNECT_SRC.extend(['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'])
     CSP_IMG_SRC.extend(['https://*.google-analytics.com', 'https://*.googletagmanager.com'])
-if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
-    raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
-    CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
-    CSP_SCRIPT_SRC.append(raven_js_url)
-    CSP_CONNECT_SRC.append(raven_js_url)
+if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme:
+    sentry_js_url = SENTRY_JS_DSN_URL.scheme + '://' + SENTRY_JS_DSN_URL.hostname
+    CSP_SCRIPT_SRC.append(sentry_js_url)
+    CSP_CONNECT_SRC.append(sentry_js_url)
 if STRIPE_ENABLED:
     stripe_domain = "https://js.stripe.com"
     CSP_SCRIPT_SRC.append(stripe_domain)

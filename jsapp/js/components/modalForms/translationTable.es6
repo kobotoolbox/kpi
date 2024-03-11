@@ -253,7 +253,7 @@ export class TranslationTable extends React.Component {
       // reload asset on failure
       {
         onFailed: () => {
-          actions.resources.loadAsset({id: this.props.asset.uid});
+          actions.resources.loadAsset({id: this.props.asset.uid}, true);
           notify.error('failed to update translations');
         },
       }

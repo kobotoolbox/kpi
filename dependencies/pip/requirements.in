@@ -50,8 +50,6 @@ django-loginas
 django-markdownx
 django-prometheus
 
-django-mptt
-
 django-reversion
 django-taggit
 django-private-storage
