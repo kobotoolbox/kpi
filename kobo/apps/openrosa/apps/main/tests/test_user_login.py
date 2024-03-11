@@ -13,7 +13,7 @@ class TestUserLogin(TestBase):
         # kobocat login are now case sensitive so you must lowercase BOB
         self._login('bob', password)
 
-    @pytest.marks.skip(reason='Login is handled by KPI')
+    @pytest.mark.skip(reason='Login is handled by KPI')
     def test_redirect_if_logged_in(self):
         self._create_user_and_login()
         response = self.client.get('')
