@@ -41,7 +41,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'description':
         return props.asset.settings.description;
       case 'status':
-        return <AssetStatusBadge asset={props.asset} />;
+        return <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />;
       case 'ownerUsername':
         if (isSelfOwned(props.asset)) {
           return t('me');

@@ -7,6 +7,7 @@ import {ROUTES} from 'jsapp/js/router/routerConstants';
 import AssetStatusBadge from 'jsapp/js/components/common/assetStatusBadge';
 import type {ProjectViewAsset} from 'jsapp/js/dataInterface';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
+import prettyBytes from 'pretty-bytes';
 
 interface Project {
   count: string;
@@ -170,12 +171,12 @@ const ProjectBreakdown = () => {
                   {project.asset__name}
                 </Link>
               </td>
-              <td>{project.submission_count_all_time}</td>
-              <td className={styles.currentMonth}>{project.submission_count_current_month}</td>
-              <td>{project.storage_bytes}</td>
-              <td>{project.nlp_usage_current_month.total_nlp_asr_seconds}</td>
-              <td>{project.nlp_usage_current_month.total_nlp_mt_characters}</td>
-              <td className={styles.badge}>{<AssetStatusBadge asset={project.assets} deploymentStatus={project.deployment_status}/>}</td>
+              <td>{project.submission_count_all_time.toLocaleString()}</td>
+              <td className={styles.currentMonth}>{project.submission_count_current_month.toLocaleString()}</td>
+              <td>{prettyBytes(project.storage_bytes)}</td>
+              <td>{project.nlp_usage_current_month.total_nlp_asr_seconds.toLocaleString()}</td>
+              <td>{project.nlp_usage_current_month.total_nlp_mt_characters.toLocaleString()}</td>
+              <td className={styles.badge}>{<AssetStatusBadge deploymentStatus={project.deployment_status}/>}</td>
             </tr>
           ))}
         </tbody>
