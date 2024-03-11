@@ -32,11 +32,11 @@ from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatMonthlyXFormSubmissionCounter,
     KobocatXForm,
     KobocatUser,
     KobocatUserProfile,
     ReadOnlyKobocatInstance,
-    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset, AssetDeploymentStatus
 
@@ -111,7 +111,7 @@ def generate_continued_usage_report(output_filename: str, end_date: str):
             date_created__date__range=(twelve_months_time, end_date),
         )
         submissions_count = (
-            ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.annotate(
+            KobocatMonthlyXFormSubmissionCounter.objects.annotate(
                 date=Cast(
                     Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                     DateField(),
@@ -201,7 +201,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 
     # get a count of the submissions
     domain_submissions = {
-        domain: ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.annotate(
+        domain: KobocatMonthlyXFormSubmissionCounter.objects.annotate(
             date=Cast(
                 Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                 DateField(),
@@ -478,7 +478,7 @@ def generate_user_statistics_report(
 
     # Get records from SubmissionCounter
     records = (
-        ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.annotate(
+        KobocatMonthlyXFormSubmissionCounter.objects.annotate(
             date=Cast(
                 Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                 DateField(),
