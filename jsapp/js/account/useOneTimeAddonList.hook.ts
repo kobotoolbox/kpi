@@ -31,5 +31,5 @@ export function useOneTimeAddOns() {
   return addons;
 }
 
-export const AddOnsContext =
+export const OneTimeAddOnsContext =
   createContext<OneTimeAddOnState>(INITIAL_ADDONS_STATE);

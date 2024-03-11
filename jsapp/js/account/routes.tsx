@@ -4,6 +4,10 @@ import RequireAuth from 'js/router/requireAuth';
 import {ROUTES} from 'js/router/routerConstants';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import {ProductsContext, useProducts} from './useProducts.hook';
+import {
+  OneTimeAddOnsContext,
+  useOneTimeAddOns,
+} from './useOneTimeAddonList.hook';
 
 const ChangePasswordRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './changePasswordRoute.component')
@@ -36,11 +40,14 @@ export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
 const BillingOutlet = () => {
   const usage = useUsage();
   const products = useProducts();
+  const oneTimeAddOns = useOneTimeAddOns();
   return (
     <RequireAuth>
       <UsageContext.Provider value={usage}>
         <ProductsContext.Provider value={products}>
-          <Outlet />
+          <OneTimeAddOnsContext.Provider value={oneTimeAddOns}>
+            <Outlet />
+          </OneTimeAddOnsContext.Provider>
         </ProductsContext.Provider>
       </UsageContext.Provider>
     </RequireAuth>

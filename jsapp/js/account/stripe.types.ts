@@ -208,7 +208,7 @@ export interface OneTimeAddOn {
   is_available: boolean;
   usage_limits: Partial<OneTimeUsageLimits>;
   total_usage_limits: Partial<OneTimeUsageLimits>;
-  usage_limits_remaining: Partial<OneTimeUsageLimits>;
+  limits_remaining: Partial<OneTimeUsageLimits>;
   organization: string;
   product: string;
 }

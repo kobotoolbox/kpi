@@ -15,6 +15,7 @@ import styles from './usage.module.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {ProductsContext} from '../useProducts.hook';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
+import {OneTimeAddOnsContext} from '../useOneTimeAddonList.hook';
 import moment from 'moment';
 import {YourPlan} from 'js/account/usage/yourPlan.component';
 import cx from 'classnames';
@@ -32,6 +33,7 @@ interface LimitState {
 export default function Usage() {
   const productsContext = useContext(ProductsContext);
   const usage = useContext(UsageContext);
+  const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext);
 
   const [limits, setLimits] = useState<LimitState>({
     storageByteLimit: Limits.unlimited,
@@ -86,7 +88,10 @@ export default function Usage() {
       await when(() => envStore.isReady);
       let limits: AccountLimit;
       if (envStore.data.stripe_public_key) {
-        limits = await getAccountLimits(productsContext.products);
+        limits = await getAccountLimits(
+          productsContext.products,
+          oneTimeAddOnsContext.addons
+        );
       } else {
         setLimits((prevState) => {
           return {
@@ -114,7 +119,7 @@ export default function Usage() {
     };
 
     getLimits();
-  }, [productsContext.isLoaded]);
+  }, [productsContext.isLoaded, oneTimeAddOnsContext.isLoaded]);
 
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
   useWhenStripeIsEnabled(() => {

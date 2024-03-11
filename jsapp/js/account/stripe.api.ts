@@ -200,6 +200,39 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
 };
 
 /**
+ * Add one-time addon limits to already calculated account limits
+ */
+const addOneTimeAddOnLimits = (
+  limits: AccountLimit,
+  oneTimeAddOns: OneTimeAddOn[]
+) => {
+  oneTimeAddOns
+    .filter((addon) => addon.is_available)
+    .forEach((addon) => {
+      if (
+        addon.limits_remaining.submission_limit &&
+        limits.submission_limit !== Limits.unlimited
+      ) {
+        limits.submission_limit += addon.limits_remaining.submission_limit;
+      }
+      if (
+        addon.limits_remaining.asr_seconds_limit &&
+        limits.nlp_seconds_limit !== Limits.unlimited
+      ) {
+        limits.nlp_seconds_limit += addon.limits_remaining.asr_seconds_limit;
+      }
+      if (
+        addon.limits_remaining.mt_characters_limit &&
+        limits.nlp_character_limit !== Limits.unlimited
+      ) {
+        limits.nlp_character_limit +=
+          addon.limits_remaining.mt_characters_limit;
+      }
+    });
+  return limits;
+};
+
+/**
  * Get all metadata keys for the logged-in user's plan, or from the free tier if they have no plan.
  */
 const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
@@ -247,7 +280,10 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
  *  - the `FREE_TIER_THRESHOLDS` override
  *  - the user's subscription limits
  */
-export async function getAccountLimits(products: Product[]) {
+export async function getAccountLimits(
+  products: Product[],
+  oneTimeAddOns: OneTimeAddOn[]
+) {
   const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus(
     products
   );
@@ -262,9 +298,13 @@ export async function getAccountLimits(products: Product[]) {
     // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
     limits = await getFreeTierLimits(limits);
 
-    // if the user has active recurring add-ons, use those as the final say on their limits
+    // if the user has active recurring add-ons, use those as their limits
     limits = getRecurringAddOnLimits(limits);
   }
 
+  // finally, add one-time addon limits to the limits calculated so far
+  if (oneTimeAddOns.length) {
+    limits = addOneTimeAddOnLimits(limits, oneTimeAddOns);
+  }
   return limits;
 }
