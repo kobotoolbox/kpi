@@ -6,8 +6,7 @@ import bem from 'js/bem';
 import {stringToColor, escapeHtml} from 'js/utils';
 import UserAssetPermsEditor from './userAssetPermsEditor.component';
 import permConfig from './permConfig';
-import type {UserPerm} from './permParser';
-import type {PermissionBase} from 'js/dataInterface';
+import type {PermissionBase, PermissionResponse} from 'js/dataInterface';
 import type {AssignablePermsMap} from './sharingForm.component';
 import {getPermLabel, getFriendlyPermName} from './utils';
 
@@ -15,7 +14,7 @@ interface UserPermissionRowProps {
   assetUid: string;
   nonOwnerPerms: PermissionBase[];
   assignablePerms: AssignablePermsMap;
-  permissions: UserPerm[];
+  permissions: PermissionResponse[];
   isUserOwner: boolean;
   isPendingOwner: boolean;
   username: string;
@@ -48,7 +47,7 @@ export default class UserPermissionRow extends React.Component<
     this.setState({isBeingDeleted: false});
   }
 
-  removePermissions() {
+  showRemovePermissionsPrompt() {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Remove permissions?'),
@@ -114,7 +113,7 @@ export default class UserPermissionRow extends React.Component<
    * Note that this renders partial permission using a general label with a list
    * of related conditions.
    */
-  renderPermissions(permissions: UserPerm[]) {
+  renderPermissions(permissions: PermissionResponse[]) {
     return (
       <bem.UserRow__perms>
         {permissions.map((perm) => {
@@ -177,7 +176,10 @@ export default class UserPermissionRow extends React.Component<
                 )}
               </bem.Button>
 
-              <bem.Button m='icon' onClick={this.removePermissions.bind(this)}>
+              <bem.Button
+                m='icon'
+                onClick={this.showRemovePermissionsPrompt.bind(this)}
+              >
                 <i className='k-icon k-icon-trash' />
               </bem.Button>
             </React.Fragment>

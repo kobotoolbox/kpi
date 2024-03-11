@@ -58,11 +58,15 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
 )
+
+from .asset_file import AssetFileSerializer
+
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
     view_has_perm,
 )
+
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
@@ -295,6 +299,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     map_custom = WritableJSONField(required=False)
     advanced_features = WritableJSONField(required=False)
     advanced_submission_schema = serializers.SerializerMethodField()
+    files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
@@ -352,6 +357,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'parent',
                   'settings',
                   'asset_type',
+                  'files',
                   'summary',
                   'date_created',
                   'date_modified',
@@ -451,6 +457,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             if exclude in fields:
                 fields.pop(exclude)
         return fields
+
+    def get_files(self, obj):
+        return AssetFileSerializer(
+            obj.asset_files.all(),
+            many=True,
+            read_only=True,
+            context=self.context,
+        ).data
 
     def get_advanced_submission_schema(self, obj):
         req = self.context.get('request')

@@ -764,6 +764,10 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertDictEqual(expected_partial_perms, partial_perms)
 
     def test_merged_implied_partial_submission_permission(self):
+        """
+        Mongo operators like $in are allowed, however they should not be simplified
+        when processing implied permissions.
+        """
         asset = self.admin_asset
         grantee = self.someuser
         partial_perms = {
@@ -783,8 +787,20 @@ class PermissionsTestCase(BasePermissionsTestCase):
                     '_submitted_by': {
                         '$in': [
                             self.admin.username,
-                            self.someuser.username,
+                        ]
+                    }
+                },
+                {
+                    '_submitted_by': {
+                        '$in': [
                             self.anotheruser.username,
+                        ]
+                    }
+                },
+                {
+                    '_submitted_by': {
+                        '$in': [
+                            self.someuser.username,
                         ]
                     }
                 },
@@ -815,23 +831,16 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 {'_submitted_by': self.someuser.username},
             ],
             PERM_DELETE_SUBMISSIONS: [
-                {'_submission_date': {'$lte': '2021-01-01'}},
-                {'_submission_date': {'$gte': '2020-01-01'}},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ]
         }
         expected_partial_perms = {
             PERM_VIEW_SUBMISSIONS: [
-                [
-                    {'_submission_date': {'$lte': '2021-01-01'}},
-                    {'_submission_date': {'$gte': '2020-01-01'}},
-                ],
-                [
-                    {'_submitted_by': self.someuser.username},
-                ],
+                {'_submitted_by': self.someuser.username},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ],
             PERM_DELETE_SUBMISSIONS: [
-                {'_submission_date': {'$lte': '2021-01-01'}},
-                {'_submission_date': {'$gte': '2020-01-01'}},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ]
         }
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,

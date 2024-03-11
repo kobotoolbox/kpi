@@ -21,6 +21,4 @@ router.register(
     basename='translation_service',
 )
 
-urlpatterns = [
-    path('', include(router.urls)),
-]
+urlpatterns = []
