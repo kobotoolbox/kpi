@@ -91,4 +91,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             get_database_user(request.user),
             context=context,
         )
-        return Response(data=serializer.data)
+        response = Response(data=serializer.data)
+        if (response.status_code == 200) and (organization := serializer._organization):
+            organization.update_usage_cache(serializer.data)
+        return response

@@ -20,7 +20,7 @@ class OwnerInline(BaseOwnerInline):
 
 class OrgUserInline(admin.StackedInline):
     model = OrganizationUser
-    raw_id_fields = ("user",)
+    raw_id_fields = ('user',)
     view_on_site = False
     extra = 0
 
