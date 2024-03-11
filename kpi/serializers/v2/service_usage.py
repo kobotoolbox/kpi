@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db.models import Sum, Q, OuterRef, Subquery, QuerySet
+from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework import serializers
@@ -118,7 +118,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._period_start = None
         self._period_end = None
         self._subscription_interval = None
-        self._now = timezone.now().date()
+        self._now = timezone.now()
         self._get_per_asset_usage(instance)
 
     def get_total_nlp_usage(self, user):
@@ -131,13 +131,15 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._total_storage_bytes
 
     def get_current_month_start(self, user):
-        return self._current_month_start
+        return self._current_month_start.isoformat()
 
     def get_current_year_start(self, user):
-        return self._current_year_start
+        return self._current_year_start.isoformat()
 
     def get_billing_period_end(self, user):
-        return self._period_end
+        if self._period_end is None:
+            return None
+        return self._period_end.isoformat()
 
     def _get_current_month_start_date(self):
         # No subscription info, just use the first day of current month
@@ -224,9 +226,9 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
         if billing_details := organization.active_subscription_billing_details:
-            self._anchor_date = billing_details['billing_cycle_anchor'].date()
-            self._period_start = billing_details['current_period_start'].date()
-            self._period_end = billing_details['current_period_end'].date()
+            self._anchor_date = billing_details['billing_cycle_anchor']
+            self._period_start = billing_details['current_period_start']
+            self._period_end = billing_details['current_period_end']
             self._subscription_interval = billing_details['recurring_interval']
 
         if settings.STRIPE_ENABLED:
