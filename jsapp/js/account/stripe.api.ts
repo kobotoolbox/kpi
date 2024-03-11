@@ -206,28 +206,30 @@ const addOneTimeAddOnLimits = (
   limits: AccountLimit,
   oneTimeAddOns: OneTimeAddOn[]
 ) => {
-  oneTimeAddOns.forEach((addon) => {
-    if (
-      addon.limits_remaining.submission_limit &&
-      limits.submission_limit !== Limits.unlimited
-    ) {
-      limits.submission_limit += addon.limits_remaining.submission_limit;
-    }
-    if (
-      addon.limits_remaining.asr_seconds_limit &&
-      limits.nlp_seconds_limit !== Limits.unlimited
-    ) {
-      limits.nlp_seconds_limit += addon.limits_remaining.asr_seconds_limit;
-    }
-    if (
-      addon.limits_remaining.mt_characters_limit &&
-      limits.nlp_character_limit !== Limits.unlimited
-    ) {
-      limits.nlp_character_limit +=
-        addon.limits_remaining.mt_characters_limit;
-    }
-  });
-  return limits
+  oneTimeAddOns
+    .filter((addon) => addon.is_available)
+    .forEach((addon) => {
+      if (
+        addon.limits_remaining.submission_limit &&
+        limits.submission_limit !== Limits.unlimited
+      ) {
+        limits.submission_limit += addon.limits_remaining.submission_limit;
+      }
+      if (
+        addon.limits_remaining.asr_seconds_limit &&
+        limits.nlp_seconds_limit !== Limits.unlimited
+      ) {
+        limits.nlp_seconds_limit += addon.limits_remaining.asr_seconds_limit;
+      }
+      if (
+        addon.limits_remaining.mt_characters_limit &&
+        limits.nlp_character_limit !== Limits.unlimited
+      ) {
+        limits.nlp_character_limit +=
+          addon.limits_remaining.mt_characters_limit;
+      }
+    });
+  return limits;
 };
 
 /**
@@ -302,7 +304,7 @@ export async function getAccountLimits(
 
   // finally, add one-time addon limits to the limits calculated so far
   if (oneTimeAddOns.length) {
-    limits = addOneTimeAddOnLimits(limits, oneTimeAddOns)
+    limits = addOneTimeAddOnLimits(limits, oneTimeAddOns);
   }
   return limits;
 }

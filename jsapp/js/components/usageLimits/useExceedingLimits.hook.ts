@@ -53,8 +53,8 @@ export const useExceedingLimits = () => {
       ).then((limits) => {
         setSubscribedSubmissionLimit(limits.submission_limit);
         setSubscribedStorageLimit(limits.storage_bytes_limit);
-        setTranscriptionMinutes(Number(limits.nlp_seconds_limit));
-        setTranslationChars(Number(limits.nlp_character_limit));
+        setTranscriptionMinutes(limits.nlp_seconds_limit);
+        setTranslationChars(limits.nlp_character_limit);
         setAreLimitsLoaded(true);
       });
     }
