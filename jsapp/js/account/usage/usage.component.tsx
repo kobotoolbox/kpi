@@ -61,7 +61,9 @@ export default function Usage() {
     let startDate: string;
     const endDate = usage.billingPeriodEnd
       ? formatDate(usage.billingPeriodEnd)
-      : formatDate(moment().endOf('month').toISOString());
+      : formatDate(
+          moment(usage.currentMonthStart).add(1, 'month').toISOString()
+        );
     switch (usage.trackingPeriod) {
       case 'year':
         startDate = formatDate(usage.currentYearStart);
