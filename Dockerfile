@@ -63,7 +63,7 @@ RUN apt-get -qq update && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" \
         | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get -qq update && \
-    apt-get -qq -y install openjdk-17-jre && \\
+    apt-get -qq -y install openjdk-17-jre && \
     apt-get -qq -y install --no-install-recommends \
         ffmpeg \
         gdal-bin \
