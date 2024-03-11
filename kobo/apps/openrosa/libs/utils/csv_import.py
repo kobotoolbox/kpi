@@ -6,6 +6,8 @@ import csv
 from datetime import datetime
 from typing import TextIO, Union
 
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xml, safe_create_instance
 
@@ -69,6 +71,9 @@ def submit_csv(
     :py:func:`kobo.apps.openrosa.libs.utils.logger_tools.safe_create_instance`
 
     """
+    if isinstance(csv_file, InMemoryUploadedFile):
+        csv_file = csv_file.read().decode()
+
     if isinstance(csv_file, str):
         csv_file = io.StringIO(csv_file)
     elif csv_file is None or not hasattr(csv_file, 'read'):

@@ -3,7 +3,6 @@ import os
 from io import StringIO, BytesIO
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import reverse
 
@@ -19,8 +18,8 @@ class CSVImportTestCase(TestBase):
         super().setUp()
         self.fixtures_dir = os.path.join(settings.OPENROSA_APP_DIR,
                                          'libs', 'tests', 'fixtures')
-        self.good_csv = open(os.path.join(self.fixtures_dir, 'good.csv'), 'rb')
-        self.bad_csv = open(os.path.join(self.fixtures_dir, 'bad.csv'), 'rb')
+        self.good_csv = open(os.path.join(self.fixtures_dir, 'good.csv'), 'r')
+        self.bad_csv = open(os.path.join(self.fixtures_dir, 'bad.csv'), 'r')
         xls_file_path = os.path.join(self.fixtures_dir, 'tutorial.xls')
         self._publish_xls_file(xls_file_path)
         self.xform = XForm.objects.get()
@@ -63,8 +62,11 @@ class CSVImportTestCase(TestBase):
         edit_csv = open(os.path.join(self.fixtures_dir, 'edit.csv'), 'rb')
         edit_csv_str = edit_csv.read().decode()
 
-        edit_csv = BytesIO(edit_csv_str.format(
-            *[x.get('uuid') for x in Instance.objects.values('uuid')]).encode())
+        edit_csv = StringIO(
+            edit_csv_str.format(
+                *[x.get('uuid') for x in Instance.objects.values('uuid')]
+            )
+        )
 
         count = Instance.objects.count()
         csv_import.submit_csv(self.request, self.xform, edit_csv)
