@@ -113,16 +113,10 @@ def enketo_url(
     action=None,
 ):
 
-    if (
-        not hasattr(settings, 'ENKETO_URL')
-        and not hasattr(settings, 'ENKETO_API_SURVEY_PATH')
-    ):
-        return False
-
     if instance_attachments is None:
         instance_attachments = {}
 
-    url = settings.ENKETO_URL + settings.ENKETO_API_SURVEY_PATH
+    url = f'{settings.ENKETO_URL}/{settings.OPENROSA_ENKETO_SURVEY_ENDPOINT}'
 
     values = {
         'form_id': id_string,
@@ -130,7 +124,7 @@ def enketo_url(
     }
 
     if instance_id is not None and instance_xml is not None:
-        url = settings.ENKETO_URL + settings.ENKETO_API_INSTANCE_PATH
+        url = f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
         values.update({
             'instance': instance_xml,
             'instance_id': instance_id,
