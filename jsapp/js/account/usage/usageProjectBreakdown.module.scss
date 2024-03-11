@@ -17,7 +17,7 @@ table {
 
 .projects {
   padding-right: 15%;
-  padding-left: 0%;
+  padding-left: sizes.$x8;
   white-space: nowrap;
 }
 
@@ -30,7 +30,7 @@ th {
   font-size: sizes.$x14;
   color: colors.$kobo-gray-40;
   text-align: left;
-  padding: 1.5%;
+  padding-block: 1.5%;
 }
 
 tr {
