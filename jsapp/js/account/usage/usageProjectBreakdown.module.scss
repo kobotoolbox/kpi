@@ -6,7 +6,7 @@
   padding-bottom: sizes.$x40;
   padding-top: sizes.$x20;
   margin: 0 sizes.$x40;
-  height: auto;
+  height: 100%;
   overflow-x: auto;
 }
 
@@ -21,13 +21,16 @@ table {
   white-space: nowrap;
 }
 
+.wrap {
+  width: sizes.$x120;
+}
+
 th {
   font-weight: 700;
   font-size: sizes.$x14;
   color: colors.$kobo-gray-40;
   text-align: left;
   padding: 1.5%;
-  white-space: break-spaces;
 }
 
 tr {
@@ -70,6 +73,7 @@ th {
 
 button {
   background: transparent;
+  border: none;
   padding: 0 sizes.$x8 0 sizes.$x8;
   color: colors.$kobo-gray-85;
   cursor: pointer;
@@ -90,8 +94,6 @@ button {
   letter-spacing: sizes.$x2;
 }
 
-.loading {
-  position: fixed;
-  top: 50%;
-  left: 55%;
+.badge {
+  width: sizes.$x120;
 }

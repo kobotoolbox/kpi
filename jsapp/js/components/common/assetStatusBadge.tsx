@@ -4,6 +4,7 @@ import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 
 interface AssetStatusBadgeProps {
   asset: AssetResponse | ProjectViewAsset;
+  deploymentStatus?: string;
 }
 
 /**
@@ -11,7 +12,9 @@ interface AssetStatusBadgeProps {
  * the project is draft, deployed, or archived.
  */
 export default function AssetStatusBadge(props: AssetStatusBadgeProps) {
-  if (props.asset.deployment_status === 'archived') {
+  const deployStatus = props.asset.deployment_status ?? props.deploymentStatus;
+
+  if (deployStatus === 'archived') {
     return (
       <Badge
         color='light-amber'
@@ -20,7 +23,7 @@ export default function AssetStatusBadge(props: AssetStatusBadgeProps) {
         label={t('archived')}
       />
     );
-  } else if (props.asset.deployment_status === 'deployed') {
+  } else if (deployStatus === 'deployed') {
     return (
       <Badge
         color='light-blue'

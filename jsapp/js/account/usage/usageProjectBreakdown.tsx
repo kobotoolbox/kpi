@@ -31,6 +31,7 @@ interface ProjectResult {
   submission_count_current_month: number;
   submission_count_all_time: number;
   assets: ProjectViewAsset;
+  deployment_status: string;
 }
 
 type ButtonType = 'back' | 'forward';
@@ -71,9 +72,18 @@ const ProjectBreakdown = () => {
     }
   };
 
-  const onFetchAssetsDataDone = (assetsData: any, updatedResults: ProjectResult[]) => {
-    if (isComponentMounted) {
-      const updatedData = updatedResults.map((projectResult) => {
+ const onFetchAssetsDataDone = (assetsData: any, updatedResults: ProjectResult[]) => {
+  if (isComponentMounted) {
+    const updatedData = updatedResults
+      .filter((projectResult) => {
+        const matchingAsset = assetsData.results.find(
+          (asset: ProjectViewAsset) => asset.uid === projectResult.uid
+        );
+
+        // Include the asset in the updatedData only if it is a survery
+        return matchingAsset?.asset_type === 'survey';
+      })
+      .map((projectResult) => {
         const matchingAsset = assetsData.results.find(
           (asset: ProjectViewAsset) => asset.uid === projectResult.uid
         );
@@ -82,20 +92,23 @@ const ProjectBreakdown = () => {
           return {
             ...projectResult,
             assets: [matchingAsset],
+            deployment_status: matchingAsset.deployment_status,
           };
         }
         return projectResult;
       });
 
-      setProjectData((prevData: Project) => {
-        return {
-          ...prevData,
-          results: updatedData as ProjectResult[],
-        };
-      });
-    }
-  };
+    setProjectData((prevData: Project) => {
+      return {
+        ...prevData,
+        results: updatedData as ProjectResult[],
+      };
+    });
+  }
+};
 
+  // This code will be updated to only have one api call when the asset_usage api is updated
+  // Right now, you may need to refresh or re-navigate to the page multiple times as the Loading Spinner can be shown indefinitely
   useEffect(() => {
     const usageUrl = `${ROOT_URL}/api/v2/asset_usage`;
 
@@ -130,17 +143,18 @@ const ProjectBreakdown = () => {
   }, [projectData.results]);
 
   if (projectData.results.length === 0 || projectData.results.some((result) => !result.assets)) {
-    return <div className={styles.loading}>{<LoadingSpinner/>}</div>;
+    return <LoadingSpinner/>;
   }
 
   return (
     <div className={styles.root}>
       <table>
         <thead>
-            <tr>
+          <tr>
+            {/* Note: the projectData count will be 0 for now as the api needs to be updated */}
             <th className={styles.projects}>{t('##count## Projects').replace('##count##', projectData.count)}</th>
-            <th>{t('Submissions (Total)')}</th>
-            <th>{t('Submissions (This billing period)')}</th>
+            <th className={styles.wrap}>{t('Submissions (Total)')}</th>
+            <th className={styles.wrap}>{t('Submissions (This billing period)')}</th>
             <th>{t('Data Storage')}</th>
             <th>{t('Transcript Minutes')}</th>
             <th>{t('Translation characters')}</th>
@@ -161,7 +175,7 @@ const ProjectBreakdown = () => {
               <td>{project.storage_bytes}</td>
               <td>{project.nlp_usage_current_month.total_nlp_asr_seconds}</td>
               <td>{project.nlp_usage_current_month.total_nlp_mt_characters}</td>
-              {/* <td>{<AssetStatusBadge asset={project.assets}>}</td> */}
+              <td className={styles.badge}>{<AssetStatusBadge asset={project.assets} deploymentStatus={project.deployment_status}/>}</td>
             </tr>
           ))}
         </tbody>
@@ -170,7 +184,7 @@ const ProjectBreakdown = () => {
             <button className={`${isActiveBack ? styles.active : ''}`} onClick={(e) => handleClick(e, 'back')}>
              <i className='k-icon k-icon-arrow-left' />
             </button>
-            <span className={styles.range}>{'1-8 of 57'}</span>
+            <span className={styles.range}>{'1-8 of 57'}</span> {/* Placeholder until pagination is added to the api*/ }
             <button className={`${isActiveForward ? styles.active : ''}`} onClick={(e) => handleClick(e, 'forward')}>
               <i className='k-icon k-icon-arrow-right' />
             </button>
