@@ -664,6 +664,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
+        'sw '  # Swahili
         'th '  # Thai
         'tr '  # Turkish
         'uk '  # Ukrainian
