@@ -26,17 +26,15 @@ class ConditionalRedirects(MiddlewareMixin):
         if request.user.is_anonymous:
             helper_auth_helper(request)
         is_logged_in = request.user.is_authenticated
-        login_url = reverse('login')
-        if koboform.active and koboform.autoredirect:
-            login_url = koboform.redirect_url(login_url)
-            if view_name == 'login':
-                return HttpResponseRedirect(
-                    koboform.login_url(next_kobocat_url='/')
-                )
-            if view_name == 'logout':
-                return HttpResponseRedirect(
-                    koboform.redirect_url('/accounts/logout/')
-                )
+        login_url = koboform.redirect_url(reverse('account_login'))
+        if view_name == 'login':
+            return HttpResponseRedirect(
+                koboform.login_url(next_kobocat_url='/')
+            )
+        if view_name == 'logout':
+            return HttpResponseRedirect(
+                koboform.redirect_url(reverse('account_logout'))
+            )
 
         if not is_logged_in and (view_name in REDIRECT_IF_NOT_LOGGED_IN):
             return HttpResponseRedirect(login_url)

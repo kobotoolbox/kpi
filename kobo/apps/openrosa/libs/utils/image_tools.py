@@ -41,7 +41,7 @@ def _save_thumbnails(image, original_path, size, suffix):
     nm = NamedTemporaryFile(suffix='.%s' % image.format)
     try:
         # Ensure conversion to float in operations
-        image.thumbnail(get_dimensions(image.size, float(size)), Image.ANTIALIAS)
+        image.thumbnail(get_dimensions(image.size, float(size)), Image.LANCZOS)
     except ZeroDivisionError:
         pass
     try:

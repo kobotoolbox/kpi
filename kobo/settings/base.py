@@ -163,6 +163,7 @@ INSTALLED_APPS = (
 # ]
 
 MIDDLEWARE = [
+    'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
     'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -176,8 +177,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # FIXME ref to request.user.profile
-    # 'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
+    'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -868,7 +868,6 @@ OPENROSA_REST_FRAMEWORK = {
     'VIEW_DESCRIPTION_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_description',
 }
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -1466,6 +1465,7 @@ TRENCH_AUTH = {
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
+    'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
 ]
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
@@ -1518,3 +1518,5 @@ OPENROSA_ENKETO_SURVEY_ENDPOINT = (
     if ENKETO_OFFLINE_SURVEYS
     else ENKETO_ONLINE_SURVEY_ENDPOINT
 )
+OPENROSA_APP_DIR = os.path.join(BASE_DIR, 'kobo', 'apps', 'openrosa')
+DEFAULT_SESSION_EXPIRY_TIME = 21600  # 6 hours

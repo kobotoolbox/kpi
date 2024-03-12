@@ -159,11 +159,24 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
     def _submit_transport_instance_w_attachment(self, survey_at=0):
         s = self.surveys[survey_at]
         media_file = "1335783522563.jpg"
-        self._make_submission_w_attachment(os.path.join(
-            self.this_directory, 'fixtures',
-            'transportation', 'instances', s, s + '.xml'),
-            os.path.join(self.this_directory, 'fixtures',
-                         'transportation', 'instances', s, media_file))
+        self._make_submission_w_attachment(
+            os.path.join(
+                self.this_directory,
+                'fixtures',
+                'transportation',
+                'instances',
+                s,
+                s + '.xml',
+            ),
+            os.path.join(
+                self.this_directory,
+                'fixtures',
+                'transportation',
+                'instances',
+                s,
+                media_file,
+            ),
+        )
         self.attachment = Attachment.objects.all().reverse()[0]
         self.attachment_media_file = str(self.attachment.media_file)
 

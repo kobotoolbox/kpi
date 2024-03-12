@@ -149,9 +149,9 @@ def bulksubmission_form(request, username=None):
 
 
 def download_xlsform(request, username, id_string):
-    xform = get_object_or_404(XForm,
-                              user__username__iexact=username,
-                              id_string__exact=id_string)
+    xform = get_object_or_404(
+        XForm, user__username__iexact=username, id_string__exact=id_string
+    )
     owner = User.objects.get(username__iexact=username)
     helper_auth_helper(request)
 
@@ -161,23 +161,27 @@ def download_xlsform(request, username, id_string):
     file_path = xform.xls.name
 
     if file_path != '' and default_storage.exists(file_path):
-        audit = {
-            "xform": xform.id_string
-        }
+        audit = {"xform": xform.id_string}
         audit_log(
-            Actions.FORM_XLS_DOWNLOADED, request.user, xform.user,
-            t("Downloaded XLS file for form '%(id_string)s'.") %
-            {
-                "id_string": xform.id_string
-            }, audit, request)
+            Actions.FORM_XLS_DOWNLOADED,
+            request.user,
+            xform.user,
+            t("Downloaded XLS file for form '%(id_string)s'.")
+            % {"id_string": xform.id_string},
+            audit,
+            request,
+        )
 
         if file_path.endswith('.csv'):
             with default_storage.open(file_path) as ff:
                 xls_io = convert_csv_to_xls(ff.read())
                 response = StreamingHttpResponse(
-                    xls_io, content_type='application/vnd.ms-excel; charset=utf-8')
-                response[
-                    'Content-Disposition'] = 'attachment; filename=%s.xls' % xform.id_string
+                    xls_io,
+                    content_type='application/vnd.ms-excel; charset=utf-8',
+                )
+                response['Content-Disposition'] = (
+                    'attachment; filename=%s.xls' % xform.id_string
+                )
                 return response
 
         split_path = file_path.split(os.extsep)
@@ -187,8 +191,12 @@ def download_xlsform(request, username, id_string):
             extension = split_path[len(split_path) - 1]
 
         response = response_with_mimetype_and_name(
-            'vnd.ms-excel', id_string, show_date=False, extension=extension,
-            file_path=file_path)
+            'vnd.ms-excel',
+            id_string,
+            show_date=False,
+            extension=extension,
+            file_path=file_path,
+        )
 
         return response
 

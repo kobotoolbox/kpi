@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load static %}
+
+<header class="header-bar">
+  <div class="container__wide">
+    <span class="header-bar__top-logo pull-right"></span>
+    <a href="http://support.kobotoolbox.org/" class="header-bar__support pull-right" target="_blank" title="Visit our self-help pages or ask a support question (opens in new tab)">Support</a>
+    {% if user.is_authenticated %}
+      <span class="header-bar__top-level-menu-button">
+        <i class="fa fa-bars fa-lg fa-inverse"></i>
+      </span>
+    {% endif %}
+  </div>
+</header>
+
+{% if user.is_authenticated %}
+<section class="top-level-menu">
+  <ul>
+    <li class="top-level-menu__item">
+      <a href="{{ koboform_url }}#/forms">
+        <i class="header-bar__page-icon fa fa-fw fa-file-text-o"></i>
+        {% trans "Projects" %}
+      </a>
+    </li>
+    <li class="top-level-menu__item">
+      <a href="{{ koboform_url }}#/library">
+        <i class="header-bar__page-icon  fa  fa-fw  fa-folder"></i>
+        {% trans "Question Library" %}
+      </a>
+    </li>
+
+    <li class="top-level-menu__item">
+      <a href="{% url "logout" %}">
+        <i class="header-bar__page-icon  fa  fa-fw  fa-sign-out"></i>
+        {% trans "Sign out" %}
+      </a>
+    </li>
+
+  </ul>
+</section>
+{% endif %}

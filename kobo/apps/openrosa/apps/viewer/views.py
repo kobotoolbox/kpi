@@ -39,6 +39,7 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
     helper_auth_helper,
 )
 from kobo.apps.openrosa.libs.utils.viewer_tools import export_def_from_filename
+from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
 
 media_file_logger = logging.getLogger('media_files')
 
@@ -284,7 +285,7 @@ def attachment_url(request, size='medium'):
             # `TokenAuthentication`. Let's try all the DRF authentication
             # classes before giving up
             drf_request = rest_framework.request.Request(request)
-            for auth_class in api_settings.DEFAULT_AUTHENTICATION_CLASSES:
+            for auth_class in openrosa_drf_settings.DEFAULT_AUTHENTICATION_CLASSES:
                 try:
                     # `authenticate()` will:
                     #   * return `None` if no applicable authentication attempt

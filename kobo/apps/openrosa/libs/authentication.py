@@ -50,7 +50,6 @@ class DigestAuthentication(MFABlockerMixin, BaseAuthentication):
                 raise AuthenticationFailed()
 
             self.validate_mfa_not_active(request.user)
-
             return request.user, None
         else:
             raise AuthenticationFailed(t('Invalid username/password'))

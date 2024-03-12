@@ -52,4 +52,3 @@ TEST_HTTP_HOST = 'testserver'
 TEST_USERNAME = 'bob'
 SERVICE_ACCOUNT['WHITELISTED_HOSTS'] = ['testserver']
 SERVICE_ACCOUNT['NAMESPACE'] = 'kobo-service-account-test'
-OPENROSA_APP_DIR = os.path.join(BASE_DIR, 'kobo', 'apps', 'openrosa')

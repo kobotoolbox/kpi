@@ -390,15 +390,15 @@ class TestPandasMongoBridge(TestBase):
     def test_unicode_export(self):
         unicode_char = chr(40960)
         # fake data
-        data = [{"key": unicode_char}]
-        columns = ["key"]
+        data = [{'key': unicode_char}]
+        columns = ['key']
         # test xls
         xls_df_writer = XLSDataFrameWriter(data, columns)
-        temp_file = NamedTemporaryFile(suffix='.xls', mode='w')
+        temp_file = NamedTemporaryFile(suffix='.xlsx', mode='w')
         excel_writer = ExcelWriter(temp_file.name)
         passed = False
         try:
-            xls_df_writer.write_to_excel(excel_writer, "default")
+            xls_df_writer.write_to_excel(excel_writer, 'default')
             passed = True
         except UnicodeEncodeError:
             pass

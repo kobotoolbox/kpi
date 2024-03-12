@@ -1,8 +1,8 @@
 # coding: utf-8
+import csv
 import io
 import json
 import uuid
-import csv
 from datetime import datetime
 from typing import TextIO, Union
 

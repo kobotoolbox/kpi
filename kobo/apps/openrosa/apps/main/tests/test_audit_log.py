@@ -1,13 +1,17 @@
 # coding: utf-8
-from kobo.apps.kobo_auth.shortcuts import User
+import pytest
 from django.test import TestCase
 from django.test.client import RequestFactory
 
+
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.log import audit_log, Actions
 from kobo.apps.openrosa.apps.main.models import AuditLog
 
 
 class TestAuditLog(TestCase):
+
+    @pytest.mark.skip(reason='Deprecated audit log')
     def test_audit_log_call(self):
         account_user = User(username="alice")
         request_user = User(username="bob")

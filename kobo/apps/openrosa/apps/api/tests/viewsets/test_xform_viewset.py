@@ -487,8 +487,15 @@ class TestXFormViewSet(TestAbstractViewSet):
     def test_csv_import(self):
         self.publish_xls_form()
         view = XFormViewSet.as_view({'post': 'csv_import'})
-        csv_import = open(os.path.join(settings.OPENROSA_APP_DIR, 'libs',
-                                       'tests', 'fixtures', 'good.csv'))
+        csv_import = open(
+            os.path.join(
+                settings.OPENROSA_APP_DIR,
+                'libs',
+                'tests',
+                'fixtures',
+                'good.csv',
+            )
+        )
         post_data = {'csv_file': csv_import}
         request = self.factory.post('/', data=post_data, **self.extra)
         response = view(request, pk=self.xform.id)

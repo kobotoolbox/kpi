@@ -130,17 +130,20 @@ class TestTokenAuthentication(TestAuthBase):
             'HTTP_AUTHORIZATION': f'Token {token}'
         }
 
+    # FIXME, the name of the test is wrong. should be test_token_auth_success_with_mfa_active
     def test_token_auth_failed_with_mfa_active(self):
         # headers with valid token
-        response = self.client.get(self.api_url,
-                                   **self._set_auth_headers(self.user.auth_token))
+        response = self.client.get(
+            self.api_url, **self._set_auth_headers(self.user.auth_token)
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Activate MFA, token auth is allowed with MFA by default
         self.user.profile.is_mfa_active = True
         self.user.profile.save()
-        response = self.client.get(self.api_url,
-                                   **self._set_auth_headers(self.user.auth_token))
+        response = self.client.get(
+            self.api_url, **self._set_auth_headers(self.user.auth_token)
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_token_auth_with_mfa_active_with_exception(self):
@@ -150,11 +153,13 @@ class TestTokenAuthentication(TestAuthBase):
 
         # Forbid token auth with MFA (it's allowed by default)
         with override_settings(MFA_SUPPORTED_AUTH_CLASSES=[]):
-            response = self.client.get(self.api_url,
-                                       **self._set_auth_headers(self.user.auth_token))
+            response = self.client.get(
+                self.api_url, **self._set_auth_headers(self.user.auth_token)
+            )
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         # Default settings, allow token Auth with MFA
-        response = self.client.get(self.api_url,
-                                   **self._set_auth_headers(self.user.auth_token))
+        response = self.client.get(
+            self.api_url, **self._set_auth_headers(self.user.auth_token)
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

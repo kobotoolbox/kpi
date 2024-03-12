@@ -658,10 +658,11 @@ SUPPORT_BRIEFCASE_SUBMISSION_DATE = (
     os.environ.get('SUPPORT_BRIEFCASE_SUBMISSION_DATE') != 'True'
 )
 
+# FIXME Merged in main
 # Session Authentication is supported by default, no need to add it to supported classes
-MFA_SUPPORTED_AUTH_CLASSES = [
-    'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
-]
+#MFA_SUPPORTED_AUTH_CLASSES = [
+#    'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
+#]
 
 # Set the maximum number of days daily counters can be kept for
 DAILY_COUNTERS_MAX_DAYS = env.int('DAILY_COUNTERS_MAX_DAYS', 366)
