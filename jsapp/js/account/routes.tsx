@@ -62,14 +62,10 @@ export default function routes() {
           </RequireAuth>
         }
       />
-      <Route path={ACCOUNT_ROUTES.PLAN} element={<BillingOutlet />}>
-        <Route index element={<PlansRoute />} />
-      </Route>
-      <Route path={ACCOUNT_ROUTES.ADD_ONS} element={<BillingOutlet />}>
-        <Route index element={<AddOnsRoute />} />
-      </Route>
-      <Route path={ACCOUNT_ROUTES.USAGE} element={<BillingOutlet />}>
-        <Route index element={<DataStorage />} />
+      <Route element={<BillingOutlet />}>
+        <Route path={ACCOUNT_ROUTES.PLAN} index element={<PlansRoute />} />
+        <Route path={ACCOUNT_ROUTES.ADD_ONS} index element={<AddOnsRoute />} />
+        <Route path={ACCOUNT_ROUTES.USAGE} index element={<DataStorage />} />
       </Route>
       <Route
         path={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
