@@ -1,13 +1,42 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import cx from 'classnames';
 import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import RegionSelector from 'js/components/languages/regionSelector';
+import BigSpinner from 'js/components/common/bigSpinner.component';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import {
+  getAttachmentForProcessing,
+  secondsToTranscriptionEstimate,
+} from 'js/components/processing/transcript/transcript.utils';
+import assetStore from 'js/assetStore';
+import {getAudioDuration} from 'js/utils';
+
+/** Until the estimate is loaded we display dot dot dot. */
+const NO_ESTIMATED_MINUTES = '…';
 
 export default function StepConfigAuto() {
+  const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES);
+
+  // When polling for transcript, we need to calculate the estimated time
+  useEffect(() => {
+    if (singleProcessingStore.isPollingForTranscript) {
+      const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+      if (asset?.content) {
+        const attachment = getAttachmentForProcessing(asset.content);
+        if (typeof attachment !== 'string') {
+          getAudioDuration(attachment.download_url).then((length: number) => {
+            setEstimate(secondsToTranscriptionEstimate(length));
+          });
+        }
+      }
+    } else {
+      setEstimate(NO_ESTIMATED_MINUTES);
+    }
+  }, [singleProcessingStore.isPollingForTranscript]);
+
   /** Changes the draft region, preserving the other draft properties. */
   function onRegionChange(newVal: LanguageCode | null | undefined) {
     const newDraft =
@@ -29,6 +58,25 @@ export default function StepConfigAuto() {
 
   if (draft?.languageCode === undefined) {
     return null;
+  }
+
+  if (singleProcessingStore.isPollingForTranscript) {
+    return (
+      <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
+        <BigSpinner />
+
+        <header className={bodyStyles.header}>
+          {t('Automatic transcription in progress')}
+        </header>
+
+        <p>
+          {t('Estimated time for completion: ##estimate##').replace(
+            '##estimate##',
+            estimate
+          )}
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -70,26 +118,16 @@ export default function StepConfigAuto() {
             size='m'
             label={t('cancel')}
             onClick={cancelAuto}
-            isDisabled={
-              singleProcessingStore.isFetchingData ||
-              singleProcessingStore.isPollingForTranscript
-            }
+            isDisabled={singleProcessingStore.isFetchingData}
           />
 
           <Button
             type='full'
             color='blue'
             size='m'
-            label={
-              singleProcessingStore.isPollingForTranscript
-                ? t('in progress')
-                : t('create transcript')
-            }
+            label={t('create transcript')}
             onClick={requestAutoTranscription}
-            isDisabled={
-              singleProcessingStore.isFetchingData ||
-              singleProcessingStore.isPollingForTranscript
-            }
+            isDisabled={singleProcessingStore.isFetchingData}
           />
         </div>
       </footer>
