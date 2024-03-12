@@ -1,13 +1,11 @@
 # coding: utf-8
 from __future__ import annotations
 
-import copy
 import io
 import json
 import os.path
 import posixpath
 import re
-import uuid
 from collections import defaultdict
 from datetime import date, datetime
 from typing import Generator, Optional, Union
@@ -20,7 +18,7 @@ except ImportError:
 import requests
 from defusedxml import ElementTree as DET
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured, SuspiciousFileOperation
+from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
@@ -45,7 +43,6 @@ from kpi.constants import (
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
-    InvalidXPathException,
     KobocatCommunicationError,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
@@ -58,15 +55,15 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
+    KobocatDailyXFormSubmissionCounter,
     KobocatXForm,
-    ReadOnlyKobocatAttachment,
+    KobocatAttachment,
     ReadOnlyKobocatInstance,
-    ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
-from .kc_access.storage import default_kobocat_storage
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
@@ -242,10 +239,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             # Note: this is replicating the functionality that was formerly in `current_month_submission_count`
             # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
-            total_submissions = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
+            total_submissions = KobocatDailyXFormSubmissionCounter.objects.only(
                 'date', 'counter'
             ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
-        except ReadOnlyKobocatDailyXFormSubmissionCounter.DoesNotExist:
+        except KobocatDailyXFormSubmissionCounter.DoesNotExist:
             return 0
         else:
             return total_submissions['count_sum']
@@ -374,7 +371,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # Get attachments for the duplicated submission if there are any
-        attachment_objects = ReadOnlyKobocatAttachment.objects.filter(
+        attachment_objects = KobocatAttachment.objects.filter(
             instance_id=submission_id
         )
         attachments = (
@@ -507,7 +504,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         user: 'auth.User',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
-    ) -> ReadOnlyKobocatAttachment:
+    ) -> KobocatAttachment:
         """
         Return an object which can be retrieved by its primary key or by XPath.
         An exception is raised when the submission or the attachment is not found.
@@ -571,8 +568,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         filters['instance__xform_id'] = self.xform_id
 
         try:
-            attachment = ReadOnlyKobocatAttachment.objects.get(**filters)
-        except ReadOnlyKobocatAttachment.DoesNotExist:
+            attachment = KobocatAttachment.objects.get(**filters)
+        except KobocatAttachment.DoesNotExist:
             raise AttachmentNotFoundException
 
         return attachment
@@ -594,7 +591,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # ToDo What about adding the original basename and the question
         #  name in Mongo to avoid another DB query?
-        return ReadOnlyKobocatAttachment.objects.filter(
+        return KobocatAttachment.objects.filter(
             instance_id=submission['_id']
         )
 
@@ -654,7 +651,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Trivial case, user has 'view_permissions'
         daily_counts = (
-            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+            KobocatDailyXFormSubmissionCounter.objects.values(
                 'date', 'counter'
             ).filter(
                 xform_id=self.xform_id,
@@ -1595,9 +1592,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if not request or '_attachments' not in submission:
             return submission
 
-        submission_values = submission.values()
-        questions = list(submission)
         attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            submission, attachment_xpaths
+        )
 
         for attachment in submission['_attachments']:
             for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
@@ -1617,22 +1615,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             # Retrieve XPath and add it to attachment dictionary
             basename = os.path.basename(attachment['filename'])
-            attachment['question_xpath'] = ''
-
-            for idx, value in enumerate(submission_values):
-                if not isinstance(value, str):
-                    continue
-                try:
-                    valid_name = default_kobocat_storage.get_valid_name(value)
-                except SuspiciousFileOperation:
-                    continue
-
-                if (
-                    valid_name == basename
-                    and questions[idx] in attachment_xpaths
-                ):
-                    attachment['question_xpath'] = questions[idx]
-                    break
+            attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
 
         return submission
 

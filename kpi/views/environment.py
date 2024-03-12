@@ -7,6 +7,7 @@ from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
+from hub.models.sitewide_message import SitewideMessage
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -185,6 +186,10 @@ class EnvironmentView(APIView):
             if date_joined > constance.config.FREE_TIER_CUTOFF_DATE:
                 data['free_tier_thresholds'] = FREE_TIER_NO_THRESHOLDS
                 data['free_tier_display'] = FREE_TIER_EMPTY_DISPLAY
+
+        data[
+            'terms_of_service__sitewidemessage__exists'
+        ] = SitewideMessage.objects.filter(slug='terms_of_service').exists()
 
         return data
 

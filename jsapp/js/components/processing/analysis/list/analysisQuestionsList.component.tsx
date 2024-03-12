@@ -17,11 +17,6 @@ export default function AnalysisQuestionsList() {
     return null;
   }
 
-  // We only want to display analysis questions for this survey question
-  const filteredQuestions = analysisQuestions.state.questions.filter(
-    (question) => question.qpath === singleProcessingStore.currentQuestionQpath
-  );
-
   const moveRow = useCallback(
     (uuid: string, oldIndex: number, newIndex: number) => {
       analysisQuestions.dispatch({
@@ -35,7 +30,15 @@ export default function AnalysisQuestionsList() {
   return (
     <DndProvider backend={HTML5Backend}>
       <ul className={styles.root}>
-        {filteredQuestions.map((question, index: number) => {
+        {analysisQuestions.state.questions.map((question, index: number) => {
+          // We hide analysis questions for other survey questions. We need to
+          // hide them at this point (not filtering the whole list beforehand),
+          // because we need the indexes to match the whole list. And FYI all
+          // analysis questions live on a single list :)
+          if (question.qpath !== singleProcessingStore.currentQuestionQpath) {
+            return null;
+          }
+
           // TODO: we temporarily hide Keyword Search from the UI until
           // https://github.com/kobotoolbox/kpi/issues/4594 is done
           if (question.type === 'qual_auto_keyword_count') {

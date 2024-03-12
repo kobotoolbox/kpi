@@ -23,6 +23,7 @@ import type {Json} from '../../common/common.interfaces';
 import assetStore from 'js/assetStore';
 import singleProcessingStore from '../singleProcessingStore';
 import {userCan} from 'js/components/permissions/utils';
+import * as Sentry from '@sentry/react';
 
 /** Finds given question in state */
 export function findQuestion(uuid: string, state: AnalysisQuestionsState) {
@@ -269,7 +270,7 @@ export async function updateResponseAndReducer(
     } else {
       if (String(response) !== '') {
         // This really shouldn't happen!
-        window.Raven?.captureMessage(`Invalid qual_integer response: "${response}"`);
+        Sentry.captureMessage(`Invalid qual_integer response: "${response}"`);
       }
       // An empty response should be represented as `null`. For continuity with
       // existing code, invalid responses are also transformed to `null` before

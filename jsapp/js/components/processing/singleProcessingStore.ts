@@ -29,6 +29,7 @@ import type {
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
+import {destroyConfirm} from 'js/alertify';
 
 export enum SingleProcessingTabs {
   Transcript = 'trc',
@@ -48,11 +49,22 @@ type SidebarDisplays = {
   [tabName in SingleProcessingTabs]: DisplaysList;
 };
 
-export const DefaultDisplays: Map<SingleProcessingTabs, DisplaysList> = new Map([
-  [SingleProcessingTabs.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
-  [SingleProcessingTabs.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-  [SingleProcessingTabs.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-]);
+export const DefaultDisplays: Map<SingleProcessingTabs, DisplaysList> = new Map(
+  [
+    [
+      SingleProcessingTabs.Transcript,
+      [StaticDisplays.Audio, StaticDisplays.Data],
+    ],
+    [
+      SingleProcessingTabs.Translations,
+      [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
+    ],
+    [
+      SingleProcessingTabs.Analysis,
+      [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
+    ],
+  ]
+);
 
 /** Shared interface for transcript and translations. */
 export interface Transx {
@@ -112,6 +124,11 @@ interface SingleProcessingStoreData {
   submissionData?: SubmissionResponse;
   /** A list of all submissions editIds (`meta/rootUuid` or `_uuid`). */
   submissionsEditIds?: SubmissionsEditIds;
+  /**
+   * Whether any changes were made to the data by user after Single Processing
+   * View was opened (only changes saved to Back end are taken into account).
+   */
+  isPristine: boolean;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -140,11 +157,13 @@ class SingleProcessingStore extends Reflux.Store {
   private data: SingleProcessingStoreData = {
     translations: [],
     activeTab: SingleProcessingTabs.Transcript,
+    isPristine: true,
   };
   /** Marks some backend calls being in progress. */
   public isFetchingData = false;
   public isPollingForTranscript = false;
 
+  /** Clears all data - useful before making initialisation call */
   private resetProcessingData() {
     this.isProcessingDataLoaded = false;
     this.isPollingForTranscript = false;
@@ -155,6 +174,11 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.data.activeTab = SingleProcessingTabs.Transcript;
+    this.data.isPristine = true;
+  }
+
+  public get isPristine() {
+    return this.data.isPristine;
   }
 
   public get currentAssetUid() {
@@ -272,7 +296,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /** This is making sure the asset processing features are activated. */
-  onAssetLoad(asset: AssetResponse) {
+  private onAssetLoad(asset: AssetResponse) {
     if (
       isFormSingleProcessingRoute(
         this.currentAssetUid,
@@ -289,11 +313,11 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  onActivateAssetCompleted() {
+  private onActivateAssetCompleted() {
     this.fetchAllInitialDataForAsset();
   }
 
-  activateAsset() {
+  private activateAsset() {
     processingActions.activateAsset(this.currentAssetUid, true, []);
   }
 
@@ -594,12 +618,14 @@ class SingleProcessingStore extends Reflux.Store {
     }
     // discard draft after saving (exit the editor)
     this.data.transcriptDraft = undefined;
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
   private onDeleteTranscriptCompleted() {
     this.isFetchingData = false;
     this.data.transcript = undefined;
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
@@ -632,6 +658,7 @@ class SingleProcessingStore extends Reflux.Store {
       this.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
     }
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
@@ -654,6 +681,7 @@ class SingleProcessingStore extends Reflux.Store {
     // discard draft after saving (exit the editor)
     this.data.translationDraft = undefined;
     this.data.source = undefined;
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
@@ -670,6 +698,8 @@ class SingleProcessingStore extends Reflux.Store {
     ) {
       this.data.translationDraft.value = googleTxResponse.value;
     }
+
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
@@ -753,6 +783,18 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  safelyDeleteTranscriptDraft() {
+    if (this.hasUnsavedTranscriptDraftValue()) {
+      destroyConfirm(
+        this.deleteTranscriptDraft.bind(this),
+        t('Discard unsaved changes?'),
+        t('Discard')
+      );
+    } else {
+      this.deleteTranscriptDraft();
+    }
+  }
+
   /**
    * Returns a list of language codes of languages that are activated within
    * advanced_features.transcript, i.e. languages that were already used for
@@ -829,6 +871,18 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  safelyDeleteTranslationDraft() {
+    if (this.hasUnsavedTranslationDraftValue()) {
+      destroyConfirm(
+        this.deleteTranslationDraft.bind(this),
+        t('Discard unsaved changes?'),
+        t('Discard')
+      );
+    } else {
+      this.deleteTranslationDraft();
+    }
+  }
+
   /**
    * Returns a list of language codes of languages that are activated within
    * advanced_features.translated
@@ -863,9 +917,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** NOTE: Returns editIds for current question name, not for all of them. */
   getCurrentQuestionSubmissionsEditIds() {
-    if (
-      this.data.submissionsEditIds !== undefined
-    ) {
+    if (this.data.submissionsEditIds !== undefined) {
       return this.data.submissionsEditIds[this.currentQuestionQpath];
     }
     return undefined;
@@ -974,7 +1026,21 @@ class SingleProcessingStore extends Reflux.Store {
   /** Updates store with the unsaved changes state from the analysis reducer. */
   setAnalysisTabHasUnsavedChanges(hasUnsavedWork: boolean) {
     this.analysisTabHasUnsavedWork = hasUnsavedWork;
+    if (hasUnsavedWork) {
+      this.setNotPristine();
+    }
     this.trigger(this.data);
+  }
+
+  /**
+   * Marks the data as having some changes being made (both saved and unsaved).
+   * There is no need to set it back to pristine, as it happens only after
+   */
+  setNotPristine() {
+    if (this.data.isPristine) {
+      this.data.isPristine = false;
+      this.trigger(this.data);
+    }
   }
 }
 

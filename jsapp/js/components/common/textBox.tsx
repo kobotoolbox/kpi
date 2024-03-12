@@ -208,6 +208,7 @@ export default function TextBox(props: TextBoxProps) {
         {props.type === 'text-multiline' && (
           <TextareaAutosize
             className={styles.input}
+            aria-required={props.required}
             ref={textareaReference}
             onChange={(evt: React.FormEvent<HTMLTextAreaElement>) => {
               onValueChange(evt.currentTarget.value);
@@ -218,6 +219,7 @@ export default function TextBox(props: TextBoxProps) {
         {props.type !== 'text-multiline' && (
           <input
             className={styles.input}
+            aria-required={props.required}
             type={type}
             ref={inputReference}
             // We use `onInput` instead of `onChange` here, because (for some

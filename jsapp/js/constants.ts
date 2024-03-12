@@ -56,6 +56,7 @@ export const KEY_CODES = Object.freeze({
 export enum KeyNames {
   Enter = 'Enter',
   Escape = 'Escape',
+  Space = ' ',
 }
 
 export const MODAL_TYPES = {
@@ -360,6 +361,7 @@ export enum MetaQuestionTypeName {
   phonenumber = 'phonenumber',
   audit = 'audit',
   'background-audio' = 'background-audio',
+  'start-geopoint' = 'start-geopoint',
 }
 
 export const META_QUESTION_TYPES = createEnum([
@@ -371,6 +373,7 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName.phonenumber,
   MetaQuestionTypeName.audit,
   MetaQuestionTypeName['background-audio'],
+  MetaQuestionTypeName['start-geopoint'],
 ]) as {[P in MetaQuestionTypeName]: MetaQuestionTypeName};
 
 // submission data extras being added by backend. see both of these:

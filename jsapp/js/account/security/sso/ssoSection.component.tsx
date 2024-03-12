@@ -23,7 +23,7 @@ const SsoSection = observer(() => {
     }
   };
 
-  if (socialApps.length === 0) {
+  if (socialApps.length === 0 && socialAccounts.length === 0) {
     return <></>;
   }
 
