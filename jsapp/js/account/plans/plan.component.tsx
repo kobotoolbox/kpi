@@ -126,7 +126,6 @@ export default function Plan(props: PlanProps) {
   });
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default']);
   const [session, setSession] = useState(() => Session);
-  const [isUnauthorized, setIsUnauthorized] = useState(false);
 
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
@@ -142,10 +141,7 @@ export default function Plan(props: PlanProps) {
     [productsContext.isLoaded, state.organization, state.subscribedProduct]
   );
 
-  const isDisabled = useMemo(
-    () => isBusy || isUnauthorized,
-    [isBusy, isUnauthorized]
-  );
+  const isDisabled = useMemo(() => isBusy, [isBusy]);
 
   const hasManageableStatus = useCallback(
     (subscription: SubscriptionInfo) =>
@@ -228,13 +224,13 @@ export default function Plan(props: PlanProps) {
     [searchParams, shouldRevalidate]
   );
 
-  // we need to show a message and disable the page if the user is not the owner of their org
+  // if the user is not the owner of their org, send them back to the settings page
   useEffect(() => {
     if (
       state.organization &&
       state.organization.owner_username !== session.currentAccount.username
     ) {
-      setIsUnauthorized(true);
+      navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
   }, [state.organization]);
 
@@ -440,19 +436,9 @@ export default function Plan(props: PlanProps) {
         <LoadingSpinner />
       ) : (
         <>
-          {isUnauthorized && (
-            <InlineMessage
-              classNames={[styles.sticky]}
-              message={t(
-                'Please contact your organization owner for any changes to your plan or add-ons.'
-              )}
-              type={'warning'}
-            />
-          )}
           <div
             className={classnames(styles.accountPlan, {
               [styles.wait]: isBusy,
-              [styles.unauthorized]: isUnauthorized,
               [styles.showAddOns]: props.showAddOns,
             })}
           >

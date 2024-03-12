@@ -40,7 +40,7 @@ function AccountSidebar() {
   }, []);
 
   const showAddOnsLink = useMemo(() => {
-    return subscriptionStore.planResponse.length ? false : true;
+    return !subscriptionStore.planResponse.length;
   }, [subscriptionStore.isInitialised]);
 
   return (
