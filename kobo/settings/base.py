@@ -36,7 +36,9 @@ SECRET_KEY = env.str('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#
 # SECURITY WARNING: If enabled, outer web server must filter out the `X-Forwarded-Proto` header.
 SECURE_PROXY_SSL_HEADER = env.tuple("SECURE_PROXY_SSL_HEADER", str, None)
 
-if env.str('PUBLIC_REQUEST_SCHEME', '').lower() == 'https' or SECURE_PROXY_SSL_HEADER:
+public_request_scheme = env.str('PUBLIC_REQUEST_SCHEME', 'https').lower()
+
+if public_request_scheme == 'https' or SECURE_PROXY_SSL_HEADER:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
@@ -54,7 +56,10 @@ if SESSION_COOKIE_DOMAIN:
     SESSION_COOKIE_NAME = env.str('SESSION_COOKIE_NAME', 'kobonaut')
     # The trusted CSRF origins must encompass Enketo's subdomain. See
     # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
-    CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
+    trusted_domains = [
+        f'{public_request_scheme}://*{SESSION_COOKIE_DOMAIN}',
+    ]
+    CSRF_TRUSTED_ORIGINS = trusted_domains
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
@@ -684,8 +689,6 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
@@ -1091,14 +1094,15 @@ if env.str('AWS_ACCESS_KEY_ID', False):
     if region := env.str('AWS_S3_REGION_NAME', False):
         AWS_S3_REGION_NAME = region
 
-
 ''' Storage configuration '''
+default_file_storage = 'django.core.files.storage.FileSystemStorage'
+
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
     # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
-    DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
-    if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
+    default_file_storage = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
+    if default_file_storage == 'storages.backends.s3boto3.S3Boto3Storage':
         # Force usage of custom S3 tellable Storage
-        DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
+        default_file_storage = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
@@ -1110,7 +1114,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-    if DEFAULT_FILE_STORAGE.endswith("AzureStorage"):
+    if default_file_storage.endswith('AzureStorage'):
         PRIVATE_STORAGE_CLASS = \
             'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
@@ -1128,6 +1132,16 @@ if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
 else:
     KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
+
+
+STORAGES = {
+    'default': {
+        'BACKEND': default_file_storage,
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
 
 
 # Google Cloud Storage
