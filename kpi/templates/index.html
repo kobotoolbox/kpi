@@ -16,11 +16,9 @@
 {% block head_scripts %}
   <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
 
-  <!-- Raven setup -->
-  {% if raven_js_dsn %}
-    <meta name="sentry-dsn" content="{{ raven_js_dsn }}">
-    <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
-    <script src="{% static 'js/sentry.js' %}"></script>
+  <!-- Sentry setup -->
+  {% if sentry_js_dsn %}
+    <meta name="sentry-dsn" content="{{ sentry_js_dsn }}">
   {% endif %}
 {% endblock %}
 
