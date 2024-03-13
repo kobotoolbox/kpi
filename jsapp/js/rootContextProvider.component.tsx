@@ -1,4 +1,4 @@
-import React, {PropsWithChildren} from 'react';
+import React, {ReactNode} from 'react';
 import {OrganizationWrapper} from 'js/account/organizations/useOrganization.hook';
 
 /* This is a context provider that wraps the root element (in ./app.js)
@@ -6,6 +6,6 @@ import {OrganizationWrapper} from 'js/account/organizations/useOrganization.hook
  * *Don't* use this as a catch-all for context providers - make sure to wrap them around
  * the closest common parent component/route
  */
-export const RootContextProvider = ({children}: PropsWithChildren<never>) => {
-  return <OrganizationWrapper>{children}</OrganizationWrapper>;
+export const RootContextProvider = (props: {children: ReactNode}) => {
+  return <OrganizationWrapper>{props.children}</OrganizationWrapper>;
 };
