@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
 
 
@@ -39,7 +38,16 @@ class Migration(migrations.Migration):
                 ('user_uid', models.CharField(db_index=True, default='', max_length=22)),
             ],
             options={
-                'index_together': {('app_label', 'model_name'), ('app_label', 'model_name', 'action')},
+                'indexes': [
+                    models.Index(
+                        fields=['app_label', 'model_name', 'action'],
+                        name='audit_log_a_app_lab_330cca_idx',
+                    ),
+                    models.Index(
+                        fields=['app_label', 'model_name'],
+                        name='audit_log_a_app_lab_2076fe_idx',
+                    ),
+                ],
             },
         ),
         migrations.RunSQL(
@@ -50,15 +58,5 @@ class Migration(migrations.Migration):
             model_name='auditlog',
             name='user_uid',
             field=models.CharField(db_index=True, max_length=22),
-        ),
-        migrations.RenameIndex(
-            model_name='auditlog',
-            new_name='audit_log_a_app_lab_2076fe_idx',
-            old_fields=('app_label', 'model_name'),
-        ),
-        migrations.RenameIndex(
-            model_name='auditlog',
-            new_name='audit_log_a_app_lab_330cca_idx',
-            old_fields=('app_label', 'model_name', 'action'),
         ),
     ]
