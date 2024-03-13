@@ -3,7 +3,11 @@ import styles from 'js/account/plans/plan.module.scss';
 import Icon from 'js/components/common/icon';
 import {PlanButton} from 'js/account/plans/planButton.component';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {SinglePricedProduct, Price, SubscriptionInfo} from 'js/account/stripe.types';
+import {
+  SinglePricedProduct,
+  Price,
+  SubscriptionInfo,
+} from 'js/account/stripe.types';
 import {FreeTierOverride, PlanState} from 'js/account/plans/plan.component';
 import {
   getAdjustedQuantityForPrice,
@@ -17,7 +21,10 @@ import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 interface PlanContainerProps {
   product: SinglePricedProduct;
   isDisabled: boolean;
-  isSubscribedProduct: (product: SinglePricedProduct, quantity: number) => boolean;
+  isSubscribedProduct: (
+    product: SinglePricedProduct,
+    quantity: number
+  ) => boolean;
   freeTierOverride: FreeTierOverride | null;
   expandComparison: boolean;
   state: PlanState;
@@ -84,7 +91,10 @@ export const PlanContainer = ({
   useEffect(() => {
     const subscribedQuantity =
       activeSubscriptions.length && activeSubscriptions?.[0].items[0].quantity;
-    if (subscribedQuantity && isSubscribedProduct(product, subscribedQuantity)) {
+    if (
+      subscribedQuantity &&
+      isSubscribedProduct(product, subscribedQuantity)
+    ) {
       setSubmissionQuantity(subscribedQuantity);
     } else if (
       // if there's no active subscription, check if this price has a default quantity
@@ -102,7 +112,10 @@ export const PlanContainer = ({
     }
   }, [isSubscribedProduct, activeSubscriptions, product]);
 
-  const getFeatureMetadata = (product: SinglePricedProduct, featureItem: string) => {
+  const getFeatureMetadata = (
+    product: SinglePricedProduct,
+    featureItem: string
+  ) => {
     if (
       product.price.unit_amount === 0 &&
       freeTierOverride &&
@@ -110,7 +123,9 @@ export const PlanContainer = ({
     ) {
       return freeTierOverride[featureItem as keyof FreeTierOverride];
     }
-    return product.price.metadata?.[featureItem] || product.metadata[featureItem];
+    return (
+      product.price.metadata?.[featureItem] || product.metadata[featureItem]
+    );
   };
 
   const renderFeaturesList = (
@@ -353,7 +368,6 @@ export const PlanContainer = ({
           showManage={shouldShowManage(product)}
           isBusy={isDisabled}
           setIsBusy={setIsBusy}
-          organization={state.organization}
         />
       </div>
     </>

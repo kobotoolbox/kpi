@@ -1,8 +1,13 @@
 import BillingButton from 'js/account/plans/billingButton.component';
-import React from 'react';
-import type {Price, Organization, SinglePricedProduct} from 'js/account/stripe.types';
+import React, {useContext} from 'react';
+import type {
+  Price,
+  Organization,
+  SinglePricedProduct,
+} from 'js/account/stripe.types';
 import {postCustomerPortal} from 'js/account/stripe.api';
 import {processCheckoutResponse} from 'js/account/stripe.utils';
+import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 
 interface PlanButtonProps {
   buySubscription: (price: Price, quantity?: number) => void;
@@ -10,7 +15,6 @@ interface PlanButtonProps {
   isBusy: boolean;
   isSubscribedToPlan: boolean;
   showManage: boolean;
-  organization?: Organization | null;
   product: SinglePricedProduct;
   quantity: number;
   setIsBusy: (value: boolean) => void;
@@ -22,7 +26,6 @@ interface PlanButtonProps {
  */
 export const PlanButton = ({
   product,
-  organization,
   downgrading,
   isBusy,
   setIsBusy,
@@ -31,6 +34,8 @@ export const PlanButton = ({
   quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
+  const organization = useContext(OrganizationContext);
+
   if (!product || !organization || product.price.unit_amount === 0) {
     return null;
   }

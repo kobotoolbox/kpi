@@ -88,7 +88,7 @@ export interface Product extends BaseProduct {
   prices: Price[];
 }
 
-// This is a frontend-only interface for accessing the relevant price of a product 
+// This is a frontend-only interface for accessing the relevant price of a product
 export interface SinglePricedProduct extends BaseProduct {
   price: Price;
 }
@@ -146,7 +146,7 @@ export interface Organization {
   created: string;
   modified: string;
   slug: string;
-  owner_username: string;
+  is_owner: boolean;
 }
 
 export enum PlanNames {

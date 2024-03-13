@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import {getOrganization, postCheckout, postCustomerPortal} from '../stripe.api';
+import {postCheckout, postCustomerPortal} from '../stripe.api';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -36,16 +36,14 @@ import type {
 } from 'js/account/stripe.types';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
-import Session from 'js/stores/session';
-import InlineMessage from 'js/components/common/inlineMessage';
 import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
+import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 
 export interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
   intervalFilter: string;
   filterToggle: boolean;
-  organization: null | Organization;
   featureTypes: string[];
 }
 
@@ -76,7 +74,6 @@ const initialState: PlanState = {
   subscribedProduct: null,
   intervalFilter: 'month',
   filterToggle: true,
-  organization: null,
   featureTypes: ['advanced', 'support', 'addons'],
 };
 
@@ -84,8 +81,6 @@ const subscriptionUpgradeMessageDuration = 8000;
 
 function planReducer(state: PlanState, action: DataUpdates): PlanState {
   switch (action.type) {
-    case 'initialOrg':
-      return {...state, organization: action.prodData};
     case 'initialSub':
       return {...state, subscribedProduct: action.prodData};
     case 'month':
@@ -118,6 +113,7 @@ export default function Plan(props: PlanProps) {
     SubscriptionInfo[]
   >([]);
   const productsContext = useContext(ProductsContext);
+  const organization = useContext(OrganizationContext);
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
     newPrice: null,
     products: [],
@@ -125,7 +121,6 @@ export default function Plan(props: PlanProps) {
     quantity: 1,
   });
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default']);
-  const [session, setSession] = useState(() => Session);
 
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
@@ -133,12 +128,8 @@ export default function Plan(props: PlanProps) {
 
   const isDataLoading = useMemo(
     (): boolean =>
-      !(
-        productsContext.isLoaded &&
-        state.organization &&
-        state.subscribedProduct
-      ),
-    [productsContext.isLoaded, state.organization, state.subscribedProduct]
+      !(productsContext.isLoaded && organization && state.subscribedProduct),
+    [productsContext.isLoaded, organization, state.subscribedProduct]
   );
 
   const isDisabled = useMemo(() => isBusy, [isBusy]);
@@ -196,28 +187,17 @@ export default function Plan(props: PlanProps) {
         navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
         return;
       }
-      const fetchPromises = [];
 
-      if (!subscriptionStore.isInitialised || !subscriptionStore.isPending) {
+      if (!subscriptionStore.isInitialised) {
         subscriptionStore.fetchSubscriptionInfo();
       }
 
-      fetchPromises[1] = getOrganization().then((data) => {
+      when(() => subscriptionStore.isInitialised).then(() => {
         dispatch({
-          type: 'initialOrg',
-          prodData: data.results[0],
+          type: 'initialSub',
+          prodData: subscriptionStore.planResponse,
         });
-      });
-      fetchPromises[2] = when(() => subscriptionStore.isInitialised).then(
-        () => {
-          dispatch({
-            type: 'initialSub',
-            prodData: subscriptionStore.planResponse,
-          });
-          setActiveSubscriptions(subscriptionStore.activeSubscriptions);
-        }
-      );
-      Promise.all(fetchPromises).then(() => {
+        setActiveSubscriptions(subscriptionStore.activeSubscriptions);
         setIsBusy(false);
       });
     },
@@ -226,13 +206,10 @@ export default function Plan(props: PlanProps) {
 
   // if the user is not the owner of their org, send them back to the settings page
   useEffect(() => {
-    if (
-      state.organization &&
-      state.organization.owner_username !== session.currentAccount.username
-    ) {
+    if (!organization?.is_owner) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
-  }, [state.organization]);
+  }, [organization]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {
@@ -374,7 +351,7 @@ export default function Plan(props: PlanProps) {
   };
 
   const buySubscription = (price: Price, quantity: number = 1) => {
-    if (!price.id || isDisabled || !state.organization?.id) {
+    if (!price.id || isDisabled || !organization?.id) {
       return;
     }
     setIsBusy(true);
@@ -382,7 +359,7 @@ export default function Plan(props: PlanProps) {
       if (!isDowngrade(activeSubscriptions, price, quantity)) {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
-        postCustomerPortal(state.organization.id, price.id, quantity)
+        postCustomerPortal(organization.id, price.id, quantity)
           .then(processCheckoutResponse)
           .catch(() => setIsBusy(false));
       } else {
@@ -397,7 +374,7 @@ export default function Plan(props: PlanProps) {
       }
     } else {
       // just send the user to the checkout page
-      postCheckout(price.id, state.organization.id, quantity)
+      postCheckout(price.id, organization.id, quantity)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false));
     }
@@ -426,7 +403,7 @@ export default function Plan(props: PlanProps) {
     hasMetaFeatures();
   }, [productsContext.products]);
 
-  if (!productsContext.products.length || !state.organization) {
+  if (!productsContext.products.length || !organization) {
     return null;
   }
 
@@ -563,7 +540,7 @@ export default function Plan(props: PlanProps) {
                 isBusy={isBusy}
                 setIsBusy={setIsBusy}
                 products={productsContext.products}
-                organization={state.organization}
+                organization={organization}
                 onClickBuy={buySubscription}
               />
             )}
