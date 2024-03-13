@@ -49,6 +49,8 @@ azure-core==1.30.1
     #   django-storages
 azure-storage-blob==12.19.1
     # via django-storages
+backcall==0.2.0
+    # via ipython
 bcrypt==4.1.2
     # via paramiko
 begins==0.9
@@ -234,9 +236,7 @@ drf-extensions==0.7.1
 et-xmlfile==1.1.0
     # via openpyxl
 exceptiongroup==1.2.0
-    # via
-    #   ipython
-    #   pytest
+    # via pytest
 executing==2.0.1
     # via stack-data
 fabric==3.2.2
@@ -313,7 +313,7 @@ iniconfig==2.0.0
     # via pytest
 invoke==2.2.0
     # via fabric
-ipython==8.22.2
+ipython==8.12.3
     # via -r dependencies/pip/dev_requirements.in
 isodate==0.6.1
     # via azure-storage-blob
@@ -384,6 +384,8 @@ path==16.10.0
 path-py==12.5.0
     # via formpack
 pexpect==4.9.0
+    # via ipython
+pickleshare==0.7.5
     # via ipython
 pillow==10.2.0
     # via django-markdownx
