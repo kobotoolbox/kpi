@@ -8,7 +8,7 @@ import envStore from 'js/envStore';
 import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
-import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
 
 /**
  * UI element that display things only for logged-in user. An avatar that gives
@@ -83,10 +83,9 @@ export default function AccountMenu() {
     </bem.AccountBox__initials>
   );
 
-  const isInvalidatedPasswordUser = (
+  const isInvalidatedPasswordUser =
     'validated_password' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.validated_password === false
-  );
+    sessionStore.currentAccount.validated_password === false;
 
   return (
     <bem.AccountBox>
@@ -106,7 +105,7 @@ export default function AccountMenu() {
               There is no UI we can show to a user with invalidated password, so
               we don't allow any in-app navigation.
             */}
-            {!isInvalidatedPasswordUser &&
+            {!isInvalidatedPasswordUser && (
               <bem.AccountBox__menuItem m={'settings'}>
                 <bem.KoboButton
                   onClick={openAccountSettings}
@@ -115,7 +114,7 @@ export default function AccountMenu() {
                   {t('Account Settings')}
                 </bem.KoboButton>
               </bem.AccountBox__menuItem>
-            }
+            )}
           </bem.AccountBox__menuLI>
 
           {shouldDisplayUrls && (

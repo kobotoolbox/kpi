@@ -5,15 +5,15 @@ import Badge, {BadgeColor} from 'js/components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
 import sessionStore from 'js/stores/session';
 import BillingButton from 'js/account/plans/billingButton.component';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import envStore from 'js/envStore';
 import {
   PlanNames,
   Product,
   SubscriptionChangeType,
 } from 'js/account/stripe.types';
-import { ProductsContext } from '../useProducts.hook';
+import {ProductsContext} from '../useProducts.hook';
 import {getSubscriptionChangeDetails} from '../stripe.utils';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
 
 const BADGE_COLOR_KEYS: {[key in SubscriptionChangeType]: BadgeColor} = {
   [SubscriptionChangeType.RENEWAL]: 'light-blue',
@@ -31,7 +31,7 @@ export const YourPlan = () => {
   const [subscriptions] = useState(() => subscriptionStore);
   const [env] = useState(() => envStore);
   const [session] = useState(() => sessionStore);
-  const productsContext = useContext(ProductsContext)
+  const productsContext = useContext(ProductsContext);
 
   /*
    * The plan name displayed to the user. This will display, in order of precedence:
@@ -66,7 +66,7 @@ export const YourPlan = () => {
   }, [env.isReady, subscriptions.isInitialised]);
 
   const subscriptionUpdate = useMemo(() => {
-      return getSubscriptionChangeDetails(currentPlan, productsContext.products);
+    return getSubscriptionChangeDetails(currentPlan, productsContext.products);
   }, [currentPlan, productsContext.isLoaded]);
 
   return (

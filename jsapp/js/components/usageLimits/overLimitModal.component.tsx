@@ -5,12 +5,12 @@ import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import Button from 'js/components/common/button';
 import sessionStore from 'js/stores/session';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
 import Icon from 'js/components/common/icon';
 import {limitBannerContainer} from './overLimitBanner.module.scss';
 import cx from 'classnames';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
 
 interface OverLimitModalProps {
   show: boolean;

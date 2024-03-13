@@ -11,7 +11,6 @@ import InlineMessage from 'js/components/common/inlineMessage';
 import {replaceBracketsWithLink} from 'js/textUtils';
 import {ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
 import {ASSET_TYPES} from 'js/constants';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import './sharingForm.scss';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions.component';
@@ -27,6 +26,7 @@ import type {
   PermissionResponse,
   AssignablePermissionPartialLabel,
 } from 'js/dataInterface';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
 
 interface SharingFormProps {
   assetUid: string;

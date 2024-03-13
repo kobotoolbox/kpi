@@ -3,13 +3,13 @@ import {NavLink} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import bem from 'js/bem';
 import Icon from 'js/components/common/icon';
-import {ACCOUNT_ROUTES} from './routes';
 import {IconName} from 'jsapp/fonts/k-icons';
 import Badge from '../components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
 import './accountSidebar.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
 
 interface AccountNavLinkProps {
   iconName: IconName;

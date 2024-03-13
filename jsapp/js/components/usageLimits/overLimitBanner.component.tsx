@@ -1,10 +1,10 @@
 import React from 'react';
 import cx from 'classnames';
 import Button from 'js/components/common/button';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitBanner.module.scss';
 import Icon from 'js/components/common/icon';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
 
 interface OverLimitBannerProps {
   warning?: boolean;

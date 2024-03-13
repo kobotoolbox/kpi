@@ -17,7 +17,6 @@ import {notify} from 'js/utils';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import useWhen from 'js/hooks/useWhen.hook';
 import AddOnList from 'js/account/plans/addOnList.component';
 import subscriptionStore from 'js/account/subscriptionStore';
@@ -39,6 +38,7 @@ import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
 
 export interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
