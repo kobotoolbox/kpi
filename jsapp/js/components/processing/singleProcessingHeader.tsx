@@ -18,7 +18,6 @@ import {withRouter} from 'js/router/legacy';
 import type {WithRouterProps} from 'js/router/legacy';
 import {actions} from 'js/actions';
 import classNames from 'classnames';
-import {actions} from 'js/actions';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
@@ -53,6 +52,7 @@ class SingleProcessingHeader extends React.Component<
       maxIndex: singleProcessingStore.getSubmissionCount(),
       minIndex: 0,
       disabled: false,
+      isDoneButtonPending: false,
     };
   }
 
@@ -467,7 +467,7 @@ class SingleProcessingHeader extends React.Component<
             size='l'
             color='blue'
             label={t('DONE')}
-            isPending={this.state?.isDoneButtonPending}
+            isPending={this.state.isDoneButtonPending}
             onClick={this.onDone.bind(this)}
           />
         </section>
