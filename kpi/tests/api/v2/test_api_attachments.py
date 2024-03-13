@@ -1,11 +1,6 @@
 # coding: utf-8
-import json
-import os
-import random
-import string
 import uuid
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import QueryDict
 from django.urls import reverse

@@ -1,4 +1,8 @@
-import type {PermissionsConfigResponse} from 'js/dataInterface';
+import type {
+  PermissionsConfigResponse,
+  PaginatedResponse,
+  PermissionResponse,
+} from 'js/dataInterface';
 
 /**
  * Mock permissions endpoints responses for tests.
@@ -111,7 +115,7 @@ const permissions: PermissionsConfigResponse = {
 };
 
 // /api/v2/assets/<uid>/permission-assignments/
-const assetWithAnonymousUser = {
+const assetWithAnonymousUser: PaginatedResponse<PermissionResponse> = {
   count: 7,
   next: null,
   previous: null,
@@ -162,7 +166,7 @@ const assetWithAnonymousUser = {
 };
 
 // /api/v2/assets/<uid>/permission-assignments/
-const assetWithMultipleUsers = {
+const assetWithMultipleUsers: PaginatedResponse<PermissionResponse> = {
   count: 9,
   next: null,
   previous: null,
@@ -231,7 +235,7 @@ const assetWithMultipleUsers = {
 };
 
 // /api/v2/assets/<uid>/permission-assignments/
-const assetWithPartial = {
+const assetWithPartial: PaginatedResponse<PermissionResponse> = {
   count: 8,
   next: null,
   previous: null,
@@ -288,7 +292,74 @@ const assetWithPartial = {
           url: '/api/v2/permissions/view_submissions/',
           filters: [{_submitted_by: {$in: ['john', 'olivier']}}],
         },
+        {
+          url: '/api/v2/permissions/change_submissions/',
+          filters: [{Where_are_you_from: 'Poland'}],
+        },
       ],
+    },
+  ],
+};
+
+// /api/v2/assets/<uid>/permission-assignments/
+const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
+  count: 3,
+  next: null,
+  previous: null,
+  results: [
+    {
+      url: '/api/v2/assets/abc123/permission-assignments/asd123/',
+      user: '/api/v2/users/gwyneth/',
+      permission: '/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: '/api/v2/assets/abc123/permission-assignments/vbn123/',
+      user: '/api/v2/users/gwyneth/',
+      permission: '/api/v2/permissions/partial_submissions/',
+      partial_permissions: [
+        // This permission is the AND one, which is the only case supported by
+        // Front-end code
+        {
+          url: '/api/v2/permissions/view_submissions/',
+          filters: [
+            {
+              Where_are_you_from: 'Poland',
+              _submitted_by: {$in: ['dave', 'krzysztof']},
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/change_submissions/',
+          filters: [{Your_color: 'blue'}],
+        },
+        {
+          url: '/api/v2/permissions/delete_submissions/',
+          filters: [{_submitted_by: {$in: ['kate', 'joshua']}}],
+        },
+        // This permission is the OR one, which is not supported by Front-end
+        // code and should be treated as AND
+        {
+          url: '/api/v2/permissions/validate_submissions/',
+          filters: [
+            {What_is_your_fav_animal: 'Racoon'},
+            {_submitted_by: 'zachary'},
+          ],
+        },
+      ],
+      label: {
+        default: 'Act on submissions only from specific users',
+        view_submissions: 'View submissions only from specific users',
+        change_submissions: 'Edit submissions only from specific users',
+        delete_submissions: 'Delete submissions only from specific users',
+        validate_submissions: 'Validate submissions only from specific users',
+      },
+    },
+    {
+      url: '/api/v2/assets/abc123/permission-assignments/zxc123/',
+      user: '/api/v2/users/gwyneth/',
+      permission: '/api/v2/permissions/view_asset/',
+      label: 'View form',
     },
   ],
 };
@@ -298,4 +369,5 @@ export const endpoints = {
   assetWithAnonymousUser,
   assetWithMultipleUsers,
   assetWithPartial,
+  assetWithMultiplePartial,
 };

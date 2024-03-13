@@ -818,10 +818,12 @@ TEMPLATES = [
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
-RAVEN_JS_DSN = None
-if RAVEN_JS_DSN_URL:
-    RAVEN_JS_DSN = RAVEN_JS_DSN_URL.geturl()
+SENTRY_JS_DSN = None
+if SENTRY_JS_DSN_URL := env.url(
+        'SENTRY_JS_DSN',
+        default=env.url('RAVEN_JS_DSN', default=None)
+    ):
+    SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
@@ -927,11 +929,10 @@ if GOOGLE_ANALYTICS_TOKEN:
     CSP_SCRIPT_SRC.append('https://*.googletagmanager.com')
     CSP_CONNECT_SRC.extend(['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'])
     CSP_IMG_SRC.extend(['https://*.google-analytics.com', 'https://*.googletagmanager.com'])
-if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
-    raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
-    CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
-    CSP_SCRIPT_SRC.append(raven_js_url)
-    CSP_CONNECT_SRC.append(raven_js_url)
+if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme:
+    sentry_js_url = SENTRY_JS_DSN_URL.scheme + '://' + SENTRY_JS_DSN_URL.hostname
+    CSP_SCRIPT_SRC.append(sentry_js_url)
+    CSP_CONNECT_SRC.append(sentry_js_url)
 if STRIPE_ENABLED:
     stripe_domain = "https://js.stripe.com"
     CSP_SCRIPT_SRC.append(stripe_domain)

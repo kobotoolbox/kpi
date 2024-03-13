@@ -14,8 +14,9 @@ import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import styles from './singleProcessingHeader.module.scss';
 import {openProcessing} from './processingUtils';
-import {withRouter} from 'jsapp/js/router/legacy';
-import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import {withRouter} from 'js/router/legacy';
+import type {WithRouterProps} from 'js/router/legacy';
+import {actions} from 'js/actions';
 import classNames from 'classnames';
 import {actions} from 'js/actions';
 
@@ -31,6 +32,7 @@ interface SingleProcessingHeaderState {
   disabled: boolean;
   maxIndex: number;
   minIndex: number;
+  isDoneButtonPending: boolean;
 }
 
 /**
@@ -149,6 +151,43 @@ class SingleProcessingHeader extends React.Component<
 
   /** Goes back to Data Table route for given project. */
   onDone() {
+    // HACK: If there are any changes to the data, we need to ensure that
+    // the latest asset is available in the Data Table, when it will rebuild
+    // itself, so that all the columns are rendered. This is needed for the case
+    // when user added/deleted transcript or translation (editing the text
+    // value for it is already handled properly by Data Table code).
+    if (!singleProcessingStore.isPristine) {
+      // Mark button as pending to let user know we wait for stuff.
+      this.setState({isDoneButtonPending: true});
+
+      // We don't need to add these listeners prior to this moment, and we don't
+      // need to cancel them, as regardless of outcome, we will navigate out of
+      // current view.
+      this.unlisteners.push(
+        actions.resources.loadAsset.completed.listen(
+          this.navigateToDataTable.bind(this)
+        )
+      );
+
+      // For failed load we still navigate to Data Table, as this is not
+      // something that would cause a massive disruption or data loss
+      this.unlisteners.push(
+        actions.resources.loadAsset.failed.listen(
+          this.navigateToDataTable.bind(this)
+        )
+      );
+
+      // We force load asset to overwrite the cache, so that when
+      // `FormSubScreens` (a parent of Data Table) starts loading in a moment,
+      // it would fetch latest asset and make Data Table use it. To avoid
+      // race conditions we wait until it loads to leave.
+      actions.resources.loadAsset({id: this.props.assetUid}, true);
+    } else {
+      this.navigateToDataTable();
+    }
+  }
+
+  navigateToDataTable() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid);
     this.props.router.navigate(newRoute);
   }
@@ -428,6 +467,7 @@ class SingleProcessingHeader extends React.Component<
             size='l'
             color='blue'
             label={t('DONE')}
+            isPending={this.state?.isDoneButtonPending}
             onClick={this.onDone.bind(this)}
           />
         </section>

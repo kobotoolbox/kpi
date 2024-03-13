@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import clonedeep from 'lodash.clonedeep';
+import isEqual from 'lodash.isequal';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
@@ -64,7 +65,7 @@ import AudioCell from './audioCell';
 import {
   userCan,
   userCanPartially,
-  isSubmissionWritable,
+  userHasPermForSubmission,
 } from 'js/components/permissions/utils';
 
 const DEFAULT_PAGE_SIZE = 30;
@@ -151,6 +152,7 @@ export class DataTable extends React.Component {
       )
     );
 
+    // TODO: why this line is needed? Why not use `assetStore`?
     stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded);
   }
 
@@ -178,6 +180,9 @@ export class DataTable extends React.Component {
       newSettings = {};
     }
 
+    const prevAdditionalFields = prevProps.asset?.analysis_form_json?.additional_fields;
+    const newAdditionalFields = this.props.asset?.analysis_form_json?.additional_fields;
+
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
     if (
@@ -185,10 +190,14 @@ export class DataTable extends React.Component {
       JSON.stringify(prevSettings[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions();
+    } else if (JSON.stringify(newSettings) !== JSON.stringify(prevSettings)) {
       // If some other table settings changed, we need to fix columns using
       // existing data, as after `actions.table.updateSettings` resolves,
       // the props asset is not yet updated
-    } else if (JSON.stringify(newSettings) !== JSON.stringify(prevSettings)) {
+      this._prepColumns(this.state.submissions);
+    } else if (!isEqual(prevAdditionalFields, newAdditionalFields)) {
+      // If additional fields have changed, it means that user has added
+      // transcript or translations, thus we need to display more columns.
       this._prepColumns(this.state.submissions);
     }
   }
@@ -292,7 +301,18 @@ export class DataTable extends React.Component {
 
   onGetSubmissionsFailed(error) {
     if (error?.responseText) {
-      this.setState({error: error.responseText, loading: false});
+      let displayedError;
+      try {
+        displayedError = JSON.parse(error.responseText);
+      } catch {
+        displayedError = error.responseText;
+      }
+
+      if (displayedError.detail) {
+        this.setState({error: displayedError.detail, loading: false});
+      } else {
+        this.setState({error: displayedError, loading: false});
+      }
     } else if (error?.statusText) {
       this.setState({error: error.statusText, loading: false});
     } else {
@@ -481,17 +501,17 @@ export class DataTable extends React.Component {
                 onChange={this.bulkUpdateChange.bind(this, row.original._id)}
                 disabled={
                   !(
-                    isSubmissionWritable(
+                    userHasPermForSubmission(
                       'change_submissions',
                       this.props.asset,
                       row.original
                     ) ||
-                    isSubmissionWritable(
+                    userHasPermForSubmission(
                       'delete_submissions',
                       this.props.asset,
                       row.original
                     ) ||
-                    isSubmissionWritable(
+                    userHasPermForSubmission(
                       'validate_submissions',
                       this.props.asset,
                       row.original
@@ -511,7 +531,7 @@ export class DataTable extends React.Component {
             </button>
 
             {userCanSeeEditIcon &&
-              isSubmissionWritable(
+              userHasPermForSubmission(
                 'change_submissions',
                 this.props.asset,
                 row.original
@@ -590,7 +610,7 @@ export class DataTable extends React.Component {
           )}
           currentValue={this.getValidationStatusOption(row.original)}
           isDisabled={
-            !isSubmissionWritable(
+            !userHasPermForSubmission(
               PERMISSIONS_CODENAMES.validate_submissions,
               this.props.asset,
               row.original
@@ -813,7 +833,11 @@ export class DataTable extends React.Component {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = getMediaAttachment(row.original, row.value, q.$xpath);
+                mediaAttachment = getMediaAttachment(
+                  row.original,
+                  row.value,
+                  q.$xpath
+                );
               }
 
               if (
