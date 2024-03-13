@@ -1,5 +1,5 @@
 import React, {ReactNode} from 'react';
-import {OrganizationWrapper} from 'js/account/organizations/useOrganization.hook';
+import {BillingContext} from 'js/account/billingContext.component';
 
 /* This is a context provider that wraps the root element (in ./app.js)
  * Use this if you need to share context between, for example, the sidebar and the main page
@@ -7,5 +7,5 @@ import {OrganizationWrapper} from 'js/account/organizations/useOrganization.hook
  * the closest common parent component/route
  */
 export const RootContextProvider = (props: {children: ReactNode}) => {
-  return <OrganizationWrapper>{props.children}</OrganizationWrapper>;
+  return <BillingContext>{props.children}</BillingContext>;
 };

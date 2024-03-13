@@ -51,15 +51,3 @@ export async function getUsage(organization_id: string | null = null) {
     errorMessageDisplay: t('There was an error fetching usage data.'),
   });
 }
-
-export async function getUsageForOrganization() {
-  let organizations;
-  try {
-    organizations = await getOrganization();
-  } catch (error) {
-    // if we can't get the organizations, just get usage for the current user
-    return await getUsage();
-  }
-
-  return await getUsage(organizations.results?.[0].id);
-}

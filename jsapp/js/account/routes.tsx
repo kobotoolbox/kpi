@@ -1,9 +1,7 @@
 import React from 'react';
-import {Navigate, Outlet, Route} from 'react-router-dom';
+import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
 import {ROUTES} from 'js/router/routerConstants';
-import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
-import {ProductsContext, useProducts} from './useProducts.hook';
 
 const ChangePasswordRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './changePasswordRoute.component')
@@ -33,20 +31,6 @@ export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
   CHANGE_PASSWORD: ROUTES.ACCOUNT_ROOT + '/change-password',
 };
 
-const BillingOutlet = () => {
-  const usage = useUsage();
-  const products = useProducts();
-  return (
-    <RequireAuth>
-      <UsageContext.Provider value={usage}>
-        <ProductsContext.Provider value={products}>
-          <Outlet />
-        </ProductsContext.Provider>
-      </UsageContext.Provider>
-    </RequireAuth>
-  );
-};
-
 export default function routes() {
   return (
     <>
@@ -62,11 +46,33 @@ export default function routes() {
           </RequireAuth>
         }
       />
-      <Route element={<BillingOutlet />}>
-        <Route path={ACCOUNT_ROUTES.PLAN} index element={<PlansRoute />} />
-        <Route path={ACCOUNT_ROUTES.ADD_ONS} index element={<AddOnsRoute />} />
-        <Route path={ACCOUNT_ROUTES.USAGE} index element={<DataStorage />} />
-      </Route>
+      <Route
+        path={ACCOUNT_ROUTES.PLAN}
+        index
+        element={
+          <RequireAuth>
+            <PlansRoute />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.ADD_ONS}
+        index
+        element={
+          <RequireAuth>
+            <AddOnsRoute />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.USAGE}
+        index
+        element={
+          <RequireAuth>
+            <DataStorage />
+          </RequireAuth>
+        }
+      />
       <Route
         path={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
         element={
