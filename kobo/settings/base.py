@@ -985,7 +985,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Schedule every monday at 00:30
     'markdown-images-garbage-collector': {
-        'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
+        'task': 'kobo.apps.markdownx_uploader.tasks.remove_unused_markdown_files',
         'schedule': crontab(hour=0, minute=30, day_of_week=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
