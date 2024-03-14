@@ -6,7 +6,7 @@ import {
   useOrganization,
 } from 'js/account/organizations/useOrganization.hook';
 
-export const BillingContext = (props: {children: ReactNode}) => {
+export const BillingContextProvider = (props: {children: ReactNode}) => {
   const organization = useOrganization();
   const usage = useUsage(organization);
   const products = useProducts();
