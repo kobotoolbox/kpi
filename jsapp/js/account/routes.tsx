@@ -10,7 +10,7 @@ import {
   DataStorage,
   PlansRoute,
   SecurityRoute,
-} from 'js/account/routes.constants.';
+} from 'js/account/routes.constants';
 
 export default function routes() {
   return (

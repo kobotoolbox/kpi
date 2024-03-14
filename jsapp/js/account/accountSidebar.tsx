@@ -9,7 +9,7 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import './accountSidebar.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface AccountNavLinkProps {
   iconName: IconName;

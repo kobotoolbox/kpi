@@ -10,7 +10,7 @@ import styles from './overLimitModal.module.scss';
 import Icon from 'js/components/common/icon';
 import {limitBannerContainer} from './overLimitBanner.module.scss';
 import cx from 'classnames';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface OverLimitModalProps {
   show: boolean;

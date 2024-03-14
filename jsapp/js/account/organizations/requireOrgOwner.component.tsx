@@ -8,7 +8,7 @@ import React, {
 import {RouteObject, useNavigate} from 'react-router-dom';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface Props {
   children: RouteObject[] | undefined | ReactElement;

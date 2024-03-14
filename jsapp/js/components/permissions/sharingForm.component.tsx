@@ -26,7 +26,7 @@ import type {
   PermissionResponse,
   AssignablePermissionPartialLabel,
 } from 'js/dataInterface';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface SharingFormProps {
   assetUid: string;

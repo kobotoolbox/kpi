@@ -13,7 +13,7 @@ import {
 } from 'js/account/stripe.types';
 import {ProductsContext} from '../useProducts.hook';
 import {getSubscriptionChangeDetails} from '../stripe.utils';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 const BADGE_COLOR_KEYS: {[key in SubscriptionChangeType]: BadgeColor} = {
   [SubscriptionChangeType.RENEWAL]: 'light-blue',

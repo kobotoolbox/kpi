@@ -8,7 +8,7 @@ import envStore from 'js/envStore';
 import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 /**
  * UI element that display things only for logged-in user. An avatar that gives

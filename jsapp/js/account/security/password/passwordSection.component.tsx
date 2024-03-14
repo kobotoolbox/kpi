@@ -3,7 +3,7 @@ import {PATHS} from 'js/router/routerConstants';
 import Button from 'jsapp/js/components/common/button';
 import styles from './passwordSection.module.scss';
 import {NavLink} from 'react-router-dom';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 const HIDDEN_TOKEN_VALUE = '● '.repeat(10);
 

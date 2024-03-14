@@ -4,7 +4,7 @@ import Button from 'js/components/common/button';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitBanner.module.scss';
 import Icon from 'js/components/common/icon';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface OverLimitBannerProps {
   warning?: boolean;

@@ -38,7 +38,7 @@ import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants.';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 export interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
