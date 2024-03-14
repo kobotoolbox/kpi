@@ -154,7 +154,7 @@ django-braces==1.15.0
     # via -r dependencies/pip/requirements.in
 django-celery-beat==2.6.0
     # via -r dependencies/pip/requirements.in
-django-constance[database]==3.1.0
+django-constance==3.1.0
     # via -r dependencies/pip/requirements.in
 django-cors-headers==4.3.1
     # via -r dependencies/pip/requirements.in

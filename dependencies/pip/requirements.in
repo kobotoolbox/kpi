@@ -33,7 +33,7 @@ dj-stripe
 django-allauth
 django-braces
 django-celery-beat
-django-constance[database]
+django-constance
 django-cors-headers
 django-csp
 django-debug-toolbar
