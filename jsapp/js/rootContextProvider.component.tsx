@@ -1,5 +1,5 @@
 import React, {ReactNode} from 'react';
-import {BillingContextProvider} from 'js/account/billingContext.component';
+import {BillingContextProvider} from 'js/account/billingContextProvider.component';
 
 /* This is a context provider that wraps the root element (in ./app.js)
  * Use this if you need to share context between, for example, the sidebar and the main page
