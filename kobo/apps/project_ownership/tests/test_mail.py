@@ -44,7 +44,7 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
         )
 
         self.client.login(username='anotheruser', password='anotheruser')
-        payload = {'status': InviteStatusChoices.ACCEPTED.value}
+        payload = {'status': InviteStatusChoices.ACCEPTED}
         self.client.patch(invite_detail_url, data=payload, format='json')
 
         self.assertEqual(mail.outbox[0].to[0], self.someuser.email)
@@ -59,7 +59,7 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
         )
 
         self.client.login(username='anotheruser', password='anotheruser')
-        payload = {'status': InviteStatusChoices.DECLINED.value}
+        payload = {'status': InviteStatusChoices.DECLINED}
         self.client.patch(invite_detail_url, data=payload, format='json')
 
         self.assertEqual(mail.outbox[0].to[0], self.someuser.email)
@@ -82,7 +82,7 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
         invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
         transfer = Transfer.objects.create(invite=invite, asset=asset)
 
-        transfer.status = TransferStatusChoices.FAILED.value
+        transfer.status = TransferStatusChoices.FAILED
         transfer.save()
 
         self.assertEqual(mail.outbox[0].to[0], 'admin@admin.com')

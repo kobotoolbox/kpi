@@ -51,4 +51,4 @@ class InAppMessageViewSet(viewsets.ModelViewSet):
             Q(inappmessageusers__isnull=True) | Q(inappmessageusers__user=user),
             valid_from__lte=timezone.now(),
             valid_until__gte=timezone.now(),
-        ).select_related('project_ownership_transfer').order_by('-pk')
+        ).order_by('-pk')

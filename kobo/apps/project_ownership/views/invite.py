@@ -233,4 +233,5 @@ class InviteViewSet(viewsets.ModelViewSet):
             .select_related('sender')
             .select_related('recipient')
         )
+
         return queryset

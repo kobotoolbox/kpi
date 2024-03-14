@@ -25,7 +25,6 @@ from .utils import (
 
 
 @celery_app.task(
-    acks_late=True,
     autoretry_for=(
         SoftTimeLimitExceeded,
         TimeLimitExceeded,
@@ -44,24 +43,24 @@ def async_task(transfer_id: int, async_task_type: str):
 
     transfer = Transfer.objects.get(pk=transfer_id)
 
-    if transfer.status != TransferStatusChoices.IN_PROGRESS.value:
+    if transfer.status != TransferStatusChoices.IN_PROGRESS:
         raise AsyncTaskException(f'`{transfer}` is not in progress')
 
     TransferStatus.update_status(
         transfer_id=transfer_id,
-        status=TransferStatusChoices.IN_PROGRESS.value,
+        status=TransferStatusChoices.IN_PROGRESS,
         status_type=async_task_type,
     )
 
-    if async_task_type == TransferStatusTypeChoices.ATTACHMENTS.value:
+    if async_task_type == TransferStatusTypeChoices.ATTACHMENTS:
         move_attachments(transfer)
-    elif async_task_type == TransferStatusTypeChoices.MEDIA_FILES.value:
+    elif async_task_type == TransferStatusTypeChoices.MEDIA_FILES:
         move_media_files(transfer)
-    elif async_task_type == TransferStatusTypeChoices.SUBMISSIONS.value:
+    elif async_task_type == TransferStatusTypeChoices.SUBMISSIONS:
         rewrite_mongo_userform_id(transfer)
         # Attachments cannot be moved before `_userform_id` is updated for
         # each submission
-        async_task.delay(transfer_id, TransferStatusTypeChoices.ATTACHMENTS.value)
+        async_task.delay(transfer_id, TransferStatusTypeChoices.ATTACHMENTS)
     else:
         raise NotImplementedError(f'`{async_task_type}` is not supported')
 
@@ -79,14 +78,14 @@ def async_task_failure(sender=None, **kwargs):
         # We want the process to recover if it is killed
         TransferStatus.update_status(
             transfer_id=transfer_id,
-            status=TransferStatusChoices.IN_PROGRESS.value,
+            status=TransferStatusChoices.IN_PROGRESS,
             status_type=async_task_type,
             error=error,
         )
     else:
         TransferStatus.update_status(
             transfer_id=transfer_id,
-            status=TransferStatusChoices.FAILED.value,
+            status=TransferStatusChoices.FAILED,
             status_type=async_task_type,
             error=error,
         )
@@ -105,7 +104,7 @@ def async_task_retry(sender=None, **kwargs):
     transfer_id = kwargs['request'].get('args')[0]
 
     TransferStatus.update_status(
-       transfer_id, TransferStatusChoices.FAILED.value, async_task_type, error
+       transfer_id, TransferStatusChoices.FAILED, async_task_type, error
     )
 
 
@@ -122,7 +121,7 @@ def garbage_collector():
         days=config.PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION
     )
     Invite.objects.filter(date_created__lte=deletion_threshold).exclude(
-        status=InviteStatusChoices.FAILED.value
+        status=InviteStatusChoices.FAILED
     ).delete()
 
 
@@ -141,9 +140,9 @@ def mark_as_expired():
     invites_to_update = []
     for invite in Invite.objects.filter(
         date_created__lte=expiry_threshold,
-        status=InviteStatusChoices.PENDING.value,
+        status=InviteStatusChoices.PENDING,
     ):
-        invite.status = InviteStatusChoices.EXPIRED.value
+        invite.status = InviteStatusChoices.EXPIRED
         invites_to_update.append(invite)
 
     if not invites_to_update:
@@ -193,11 +192,11 @@ def mark_stuck_tasks_as_failed():
 
     for transfer_status in TransferStatus.objects.filter(
         date_created__lte=stuck_threshold,
-        status=TransferStatusChoices.IN_PROGRESS.value,
-    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL.value):
+        status=TransferStatusChoices.IN_PROGRESS,
+    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL):
         TransferStatus.update_status(
             transfer_id=transfer_status.transfer.pk,
-            status=TransferStatusChoices.FAILED.value,
+            status=TransferStatusChoices.FAILED,
             status_type=transfer_status.status_type,
             error=(
                 f'Task has been stuck for more than {stuck_threshold} minutes',
@@ -242,7 +241,6 @@ def task_rescheduler():
         Unfortunately, it does not seem to work as a parameter of @celery_app.task
         decorator (it is ignored), but as a global setting - which would have
         affect all celery tasks across the app.
-    TODO Use username to detect uncompleted tasks
     """
     # Avoid circular import
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
@@ -257,8 +255,8 @@ def task_rescheduler():
     for transfer_status in TransferStatus.objects.filter(
         date_modified__lte=resume_threshold,
         date_created__gt=stuck_threshold,
-        status=TransferStatusChoices.IN_PROGRESS.value,
-    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL.value):
+        status=TransferStatusChoices.IN_PROGRESS,
+    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL):
         async_task.delay(
             transfer_status.transfer.pk, transfer_status.status_type
         )

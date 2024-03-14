@@ -20,6 +20,7 @@ class TransferListSerializer(serializers.ModelSerializer):
     asset__name = serializers.SerializerMethodField()
     error = serializers.SerializerMethodField()
     date_modified = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = Transfer
@@ -40,8 +41,26 @@ class TransferListSerializer(serializers.ModelSerializer):
 
     def get_error(self, transfer: Transfer) -> str:
         return transfer.statuses.get(
-            status_type=TransferStatusTypeChoices.GLOBAL.value
+            status_type=TransferStatusTypeChoices.GLOBAL
         ).error
+
+    def get_status(self, transfer: Transfer) -> str:
+
+        # Use prefetched attributes if they are present instead of querying the
+        # DB one more time.
+
+        # From the invite endpoints
+        if hasattr(transfer, 'prefetched_status'):
+            # return the first one because we only fetch GLOBAL status,
+            return transfer.prefetched_status[0].status
+
+        # From the transfer detail endpoint
+        if hasattr(transfer, 'prefetched_statuses'):
+            for status in transfer.prefetched_statuses:
+                if status.status_type == TransferStatusTypeChoices.GLOBAL:
+                    return status.status
+
+        return transfer.status
 
     def get_url(self, transfer: Transfer) -> str:
         return reverse(
@@ -57,6 +76,7 @@ class TransferListSerializer(serializers.ModelSerializer):
 class TransferDetailSerializer(TransferListSerializer):
 
     statuses = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     class Meta(TransferListSerializer.Meta):
         fields = (

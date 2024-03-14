@@ -83,7 +83,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
         if config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
             instance = self.update(
-                instance, {'status': InviteStatusChoices.ACCEPTED.value}
+                instance, {'status': InviteStatusChoices.ACCEPTED}
             )
         else:
             self._send_invite_email(instance)
@@ -98,7 +98,7 @@ class InviteSerializer(serializers.ModelSerializer):
                 Prefetch(
                     'statuses',
                     queryset=TransferStatus.objects.filter(
-                        status_type=TransferStatusTypeChoices.GLOBAL.value
+                        status_type=TransferStatusTypeChoices.GLOBAL
                     ),
                     to_attr='prefetched_status',
                 ),
@@ -164,9 +164,9 @@ class InviteSerializer(serializers.ModelSerializer):
         # the invitation was declined or cancelled.
         for transfer in queryset:
             if transfer.invite.status not in [
-                InviteStatusChoices.DECLINED.value,
-                InviteStatusChoices.CANCELLED.value,
-                InviteStatusChoices.EXPIRED.value,
+                InviteStatusChoices.DECLINED,
+                InviteStatusChoices.CANCELLED,
+                InviteStatusChoices.EXPIRED,
             ]:
                 errors.append(
                     t(
@@ -193,7 +193,7 @@ class InviteSerializer(serializers.ModelSerializer):
     def validate_status(self, status: str) -> str:
         if (
             self.instance is None and status
-            or self.instance.status != InviteStatusChoices.PENDING.value
+            or self.instance.status != InviteStatusChoices.PENDING
         ):
             raise serializers.ValidationError(t(
                 'This field cannot be modified'
@@ -205,12 +205,12 @@ class InviteSerializer(serializers.ModelSerializer):
             request.user == self.instance.recipient
             and status
             in [
-                InviteStatusChoices.DECLINED.value,
-                InviteStatusChoices.ACCEPTED.value,
+                InviteStatusChoices.DECLINED,
+                InviteStatusChoices.ACCEPTED,
             ]
             or (
                 request.user == self.instance.sender
-                and status == InviteStatusChoices.CANCELLED.value
+                and status == InviteStatusChoices.CANCELLED
             )
         ):
             raise exceptions.PermissionDenied()
@@ -223,24 +223,24 @@ class InviteSerializer(serializers.ModelSerializer):
 
         # Keep `status` value to email condition below
         instance.status = (
-            InviteStatusChoices.IN_PROGRESS.value
-            if status == InviteStatusChoices.ACCEPTED.value
+            InviteStatusChoices.IN_PROGRESS
+            if status == InviteStatusChoices.ACCEPTED
             else status
         )
         instance.save(update_fields=['status', 'date_modified'])
 
         for transfer in instance.transfers.all():
-            if instance.status != InviteStatusChoices.IN_PROGRESS.value:
+            if instance.status != InviteStatusChoices.IN_PROGRESS:
                 transfer.statuses.update(
-                    status=TransferStatusChoices.CANCELLED.value
+                    status=TransferStatusChoices.CANCELLED
                 )
             else:
-                transfer.process()
+                transfer.transfer_project()
 
         if not config.PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES:
-            if status == InviteStatusChoices.DECLINED.value:
+            if status == InviteStatusChoices.DECLINED:
                 self._send_refusal_email(instance)
-            elif status == InviteStatusChoices.ACCEPTED.value:
+            elif status == InviteStatusChoices.ACCEPTED:
                 self._send_acceptance_email(instance)
 
         return instance
@@ -269,8 +269,6 @@ class InviteSerializer(serializers.ModelSerializer):
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 
-        # TODO Should we return a failure notification in API response if
-        #  something failed?
         Mailer.send(email_message)
 
     def _send_invite_email(self, invite: Invite):
@@ -300,8 +298,6 @@ class InviteSerializer(serializers.ModelSerializer):
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 
-        # TODO Should we return a failure notification in API response if
-        #  something failed?
         Mailer.send(email_message)
 
     def _send_refusal_email(self, invite: Invite):
@@ -328,6 +324,4 @@ class InviteSerializer(serializers.ModelSerializer):
             language=invite.recipient.extra_details.data.get('last_ui_language')
         )
 
-        # TODO Should we return a failure notification in API response if
-        #  something failed?
         Mailer.send(email_message)

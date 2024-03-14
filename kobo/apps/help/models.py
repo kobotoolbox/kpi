@@ -43,12 +43,9 @@ class InAppMessage(AbstractMarkdownxModel):
     valid_from = models.DateTimeField(default=EPOCH_BEGINNING)
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
     last_editor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    project_ownership_transfer = models.ForeignKey(
-        'project_ownership.Transfer',
-        null=True,
-        default=None,
-        on_delete=models.CASCADE,
-    )
+    # We do not want to use a generic foreign key or tightly couple this model
+    # with another one, so we use JSONField to store related object name and pk
+    generic_related_objects = models.JSONField(default=dict)
 
     markdown_fields = ['snippet', 'body']
 

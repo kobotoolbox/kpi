@@ -29,13 +29,13 @@ def get_target_folder(
 
 def move_attachments(transfer: 'project_ownership.Transfer'):
 
-    async_task_type = TransferStatusTypeChoices.ATTACHMENTS.value
+    async_task_type = TransferStatusTypeChoices.ATTACHMENTS
 
     # Attachments cannot be moved until `_userform_id` is updated successfully
     if not (
         transfer.statuses.filter(
-            status_type=TransferStatusTypeChoices.SUBMISSIONS.value,
-            status=TransferStatusChoices.SUCCESS.value,
+            status_type=TransferStatusTypeChoices.SUBMISSIONS,
+            status=TransferStatusChoices.SUCCESS,
         ).exists()
     ):
         raise AsyncTaskException(
@@ -87,7 +87,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
 
 def move_media_files(transfer: 'project_ownership.Transfer'):
 
-    async_task_type = TransferStatusTypeChoices.MEDIA_FILES.value
+    async_task_type = TransferStatusTypeChoices.MEDIA_FILES
     media_files = transfer.asset.asset_files.filter(
         file_type=AssetFile.FORM_MEDIA
     ).exclude(content__startswith=f'{transfer.asset.owner.username}/')
@@ -155,7 +155,7 @@ def rewrite_mongo_userform_id(transfer: 'project_ownership.Transfer'):
         )
 
     _mark_task_as_successful(
-        transfer, TransferStatusTypeChoices.SUBMISSIONS.value
+        transfer, TransferStatusTypeChoices.SUBMISSIONS
     )
 
 
@@ -164,5 +164,5 @@ def _mark_task_as_successful(
 ):
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
     TransferStatus.update_status(
-        transfer.pk, TransferStatusChoices.SUCCESS.value, async_task_type
+        transfer.pk, TransferStatusChoices.SUCCESS, async_task_type
     )
