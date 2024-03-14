@@ -115,7 +115,6 @@ INSTALLED_APPS = (
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
     'constance',
-    'constance.backends.database',
     'kobo.apps.hook',
     'django_celery_beat',
     'corsheaders',
