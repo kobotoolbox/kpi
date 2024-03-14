@@ -129,7 +129,7 @@ class SingleProcessingHeader extends React.Component<
     // itself, so that all the columns are rendered. This is needed for the case
     // when user added/deleted transcript or translation (editing the text
     // value for it is already handled properly by Data Table code).
-    if (!singleProcessingStore.isPristine) {
+    if (!singleProcessingStore.data.isPristine) {
       // Mark button as pending to let user know we wait for stuff.
       this.setState({isDoneButtonPending: true});
 
