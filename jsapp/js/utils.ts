@@ -127,8 +127,8 @@ export function formatDate(
  * Takes a Unix timestamp. Returns a UTC string
  */
 export function convertUnixTimestampToUtc(time: number): string {
-  let myMoment = moment.unix(time);
-  return myMoment.utc().toISOString();
+  const date = new Date(time * 1000); //seconds to milliseconds
+  return date.toISOString();
 }
 
 /**
