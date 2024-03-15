@@ -1,10 +1,10 @@
 import React, {ReactNode} from 'react';
 import {BillingContextProvider} from 'js/account/billingContextProvider.component';
 
-/* This is a context provider that wraps the root element (in ./app.js)
- * Use this if you need to share context between, for example, the sidebar and the main page
- * *Don't* use this as a catch-all for context providers - make sure to wrap them around
- * the closest common parent component/route
+/* This context provider that wraps the root element (in ./app.js)
+ * *Avoid* adding additional providers here unless you *truly* need global state
+ * If the components consuming the context have a common parent element lower in the
+ * render tree, the context providers should live there
  */
 export const RootContextProvider = (props: {children: ReactNode}) => {
   return <BillingContextProvider>{props.children}</BillingContextProvider>;
