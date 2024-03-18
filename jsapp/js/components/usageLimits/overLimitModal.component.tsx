@@ -7,9 +7,6 @@ import Button from 'js/components/common/button';
 import sessionStore from 'js/stores/session';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
-import Icon from 'js/components/common/icon';
-import {limitBannerContainer} from './overLimitBanner.module.scss';
-import cx from 'classnames';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface OverLimitModalProps {
@@ -81,22 +78,6 @@ function OverLimitModal(props: OverLimitModalProps) {
               </a>
               {'.'}
             </div>
-            {
-              // removed to make the message less scary
-              /* <p className={cx(limitBannerContainer, styles.consequences)}>
-              <Icon
-                name='warning'
-                size='m'
-                color='red'
-                classNames={[styles.warningIcon]}
-              />
-              <span>
-                {t(
-                  'Users who have exceeded their submission or storage limits may be temporarily blocked from collecting data. Repeatedly exceeding usage limits may result in account suspension.'
-                )}
-              </span>
-            </p> */
-            }
           </div>
         </KoboModalContent>
 
