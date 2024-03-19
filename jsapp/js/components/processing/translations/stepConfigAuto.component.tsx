@@ -45,7 +45,7 @@ export default function StepConfigAuto() {
       </header>
 
       <RegionSelector
-        isDisabled={singleProcessingStore.isFetchingData}
+        isDisabled={singleProcessingStore.data.isFetchingData}
         serviceCode='goog'
         serviceType='translation'
         rootLanguage={draft.languageCode}
@@ -73,7 +73,7 @@ export default function StepConfigAuto() {
             size='m'
             label={t('cancel')}
             onClick={cancelAuto}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
 
           <Button
@@ -82,7 +82,7 @@ export default function StepConfigAuto() {
             size='m'
             label={t('create translation')}
             onClick={requestAutoTranslation}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
         </div>
       </footer>

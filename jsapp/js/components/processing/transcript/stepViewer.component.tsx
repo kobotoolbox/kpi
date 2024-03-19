@@ -34,7 +34,7 @@ export default function StepViewer() {
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
 
           <Button
@@ -44,7 +44,7 @@ export default function StepViewer() {
             startIcon='trash'
             onClick={deleteTranscript}
             tooltip={t('Delete')}
-            isPending={singleProcessingStore.isFetchingData}
+            isPending={singleProcessingStore.data.isFetchingData}
           />
         </nav>
       </header>
