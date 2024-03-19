@@ -2,6 +2,7 @@
 import os
 from datetime import datetime, timedelta, date
 
+from django.conf import settings
 from mock import patch
 
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
@@ -72,9 +73,18 @@ class TestTools(TestBase):
         first_xform = self.xform
         self.xform = self.user.xforms.all().order_by('-pk')[0]
 
-        self._make_submission(os.path.join(
-            'kobo.apps.openrosa', 'apps', 'main', 'tests', 'fixtures', 'gps',
-            'instances', 'gps_1980-01-23_20-52-08.xml'))
+        self._make_submission(
+            os.path.join(
+                settings.OPENROSA_APP_DIR,
+                'apps',
+                'main',
+                'tests',
+                'fixtures',
+                'gps',
+                'instances',
+                'gps_1980-01-23_20-52-08.xml',
+            )
+        )
 
         count_key = 'count'
         fields = ['_submission_time', '_xform_id_string']
@@ -170,7 +180,8 @@ class TestTools(TestBase):
 
     def test_get_date_fields_includes_start_end(self):
         path = os.path.join(
-            os.path.dirname(__file__), "fixtures", "tutorial", "tutorial.xls")
+            os.path.dirname(__file__), 'fixtures', 'tutorial', 'tutorial.xls'
+        )
         self._publish_xls_file_and_set_xform(path)
         fields = get_date_fields(self.xform)
         expected_fields = sorted(
@@ -181,13 +192,24 @@ class TestTools(TestBase):
     def test_get_field_records_when_some_responses_are_empty(self):
         submissions = ['1', '2', '3', 'no_age']
         path = os.path.join(
-            os.path.dirname(__file__), "fixtures", "tutorial", "tutorial.xls")
+            os.path.dirname(__file__), 'fixtures', 'tutorial', 'tutorial.xls'
+        )
         self._publish_xls_file_and_set_xform(path)
 
         for i in submissions:
-            self._make_submission(os.path.join(
-                'kobo.apps.openrosa', 'apps', 'api', 'tests', 'fixtures', 'forms',
-                'tutorial', 'instances', '{}.xml'.format(i)))
+            self._make_submission(
+                os.path.join(
+                    settings.OPENROSA_APP_DIR,
+                    'apps',
+                    'api',
+                    'tests',
+                    'fixtures',
+                    'forms',
+                    'tutorial',
+                    'instances',
+                    '{}.xml'.format(i),
+                )
+            )
 
         field = 'age'
         records = get_field_records(field, self.xform)
