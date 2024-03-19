@@ -34,7 +34,7 @@ function AccountNavLink(props: AccountNavLinkProps) {
 
 function AccountSidebar() {
   const [showPlans, setShowPlans] = useState(false);
-  const organization = useContext(OrganizationContext);
+  const [organization, _] = useContext(OrganizationContext);
 
   const isOrgOwner = useMemo(() => organization?.is_owner, [organization]);
 

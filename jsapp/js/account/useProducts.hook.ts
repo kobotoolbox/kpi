@@ -14,6 +14,7 @@ const INITIAL_PRODUCTS_STATE: ProductsState = Object.freeze({
 });
 
 export function useProducts() {
+  const [revalidateFlag, setRevalidateFlag] = useState(false);
   const [products, setProducts] = useState<ProductsState>(
     INITIAL_PRODUCTS_STATE
   );
@@ -28,7 +29,11 @@ export function useProducts() {
         };
       });
     });
-  }, []);
+  }, [revalidateFlag]);
+
+  const reload = () => {
+    setRevalidateFlag(!revalidateFlag);
+  };
 
   return products;
 }

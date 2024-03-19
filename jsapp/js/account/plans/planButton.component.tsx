@@ -34,7 +34,7 @@ export const PlanButton = ({
   quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
-  const organization = useContext(OrganizationContext);
+  const [organization] = useContext(OrganizationContext);
 
   if (!product || !organization || product.price.unit_amount === 0) {
     return null;

@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const RequireOrgOwner = ({children, redirect = true}: Props) => {
-  const organization = useContext(OrganizationContext);
+  const [organization] = useContext(OrganizationContext);
   const navigate = useNavigate();
 
   useEffect(() => {

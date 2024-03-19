@@ -113,7 +113,7 @@ export default function Plan(props: PlanProps) {
     SubscriptionInfo[]
   >([]);
   const productsContext = useContext(ProductsContext);
-  const organization = useContext(OrganizationContext);
+  const [organization] = useContext(OrganizationContext);
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
     newPrice: null,
     products: [],
