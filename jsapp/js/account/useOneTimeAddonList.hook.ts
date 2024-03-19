@@ -1,5 +1,7 @@
 import {createContext, useState} from 'react';
-import type {OneTimeAddOn} from 'js/account/stripe.types';
+import type {
+  OneTimeAddOn,
+} from 'js/account/stripe.types';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {getOneTimeAddOns} from 'js/account/stripe.api';
 
@@ -18,10 +20,10 @@ export function useOneTimeAddOns() {
 
   // get list of products
   useWhenStripeIsEnabled(() => {
-    getOneTimeAddOns().then((products) => {
+    getOneTimeAddOns().then((addons) => {
       setAddons(() => {
         return {
-          addons: products.results,
+          addons: addons.results,
           isLoaded: true,
         };
       });

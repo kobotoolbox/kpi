@@ -51,10 +51,10 @@ export const useExceedingLimits = () => {
         productsContext.products,
         oneTimeAddOnsContext.addons
       ).then((limits) => {
-        setSubscribedSubmissionLimit(limits.submission_limit);
-        setSubscribedStorageLimit(limits.storage_bytes_limit);
-        setTranscriptionMinutes(limits.nlp_seconds_limit);
-        setTranslationChars(limits.nlp_character_limit);
+        setSubscribedSubmissionLimit(limits.remainingLimits.submission_limit);
+        setSubscribedStorageLimit(limits.remainingLimits.storage_bytes_limit);
+        setTranscriptionMinutes(limits.remainingLimits.nlp_seconds_limit);
+        setTranslationChars(limits.remainingLimits.nlp_character_limit);
         setAreLimitsLoaded(true);
       });
     }
