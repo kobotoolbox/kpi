@@ -102,9 +102,16 @@ class Transfer(models.Model):
             if not self.asset.has_deployment:
                 with transaction.atomic():
                     self._reassign_project_permissions(update_deployment=False)
-                    self._sent_app_in_messages()
-                    # FIXME - Draft stay in queue forever
-                    # Set async tasks to done for submissions and attachments.
+                    self._sent_in_app_messages()
+                    # Draft projects do not have submissions or attachments to
+                    # sync, set them to success right away
+                    status_types = [
+                        TransferStatusTypeChoices.SUBMISSIONS,
+                        TransferStatusTypeChoices.ATTACHMENTS,
+                    ]
+                    self.statuses.filter(status_type__in=status_types).update(
+                        status=TransferStatusChoices.SUCCESS
+                    )
             else:
                 with transaction.atomic():
                     with kc_transaction_atomic():
@@ -120,7 +127,7 @@ class Transfer(models.Model):
                             )
                             deployment.rename_enketo_id_key(previous_owner_username)
 
-                        self._sent_app_in_messages()
+                        self._sent_in_app_messages()
 
                 # Move submissions, media files and attachments in background
                 # tasks because it can take a while to complete on big projects
@@ -204,7 +211,7 @@ class Transfer(models.Model):
             self.invite.sender, PERM_MANAGE_ASSET
         )
 
-    def _sent_app_in_messages(self):
+    def _sent_in_app_messages(self):
 
         # Use translatable strings here to let Transifex detect them but …
         title = t('Project ownership transferred')

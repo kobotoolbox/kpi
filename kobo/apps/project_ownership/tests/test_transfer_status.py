@@ -103,3 +103,14 @@ class ProjectOwnershipTransferStatusTestCase(TestCase):
         # Same as the invite
         self.invite.refresh_from_db()
         assert self.invite.status == InviteStatusChoices.FAILED
+
+    def test_draft_project_transfer(self):
+        # when project is a draft, there are no celery tasks called to move
+        # submissions (and related attachments).
+        self.transfer.transfer_project()
+        assert self.transfer.status == TransferStatusChoices.SUCCESS
+
+        # However, the status of each async task should still be updated to
+        # 'success'.
+        for transfer_status in self.transfer.statuses.all():
+            assert transfer_status.status == TransferStatusChoices.SUCCESS
