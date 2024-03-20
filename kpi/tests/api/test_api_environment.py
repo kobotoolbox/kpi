@@ -222,7 +222,7 @@ class EnvironmentTests(BaseTestCase):
         self,
     ):
         user = baker.make(
-            'User',
+            'kobo_auth.User',
             username='thresholds_test',
             date_joined=self.today
         )
@@ -261,12 +261,12 @@ class EnvironmentTests(BaseTestCase):
         """ If the user is in an organization, the custom free tier should only
         be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE """
         org_user = baker.make(
-            'User',
+            'kobo_auth.User',
             username='org_user',
             date_joined=self.today + datetime.timedelta(days=1),
         )
         org_owner = baker.make(
-            'User',
+            'kobo_auth.User',
             username='org_owner',
             date_joined=self.today,
         )

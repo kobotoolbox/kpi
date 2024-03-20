@@ -32,7 +32,7 @@ ALLOWED_VIEWS_WITH_WEAK_PASSWORD = {
     },
     'XFormSubmissionApi': {
        'POST': ['create'],
-    },
+    }
 }
 
 
@@ -82,12 +82,16 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         super().__init__(get_response)
         self._allowed_view = None
+        self._skipped_view = False
 
     def process_response(self, request, response):
         if not request.user.is_authenticated:
             return response
 
         if isinstance(request.user, ServiceAccountUser):
+            return response
+
+        if self._skipped_view:
             return response
 
         try:
@@ -116,6 +120,23 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
         takes places after this method call. Thus, `request.user` is always
         anonymous if user is authenticated with something else than the session.
         """
+        # This middleware should handle only Kobocat endpoints. Otherwise, grant
+        # the request and let KPI handle it with permission classes.
+        # See kpi/mixins/validation_password_permission.py
+        if (
+            hasattr(view, 'cls')
+            and not view.cls.__module__.startswith('kobo.apps.openrosa')
+        ):
+            self._skipped_view = True
+            return
+
+        if (
+            hasattr(view, 'view_class')
+            and not view.view_class.__module__.startswith('kobo.apps.openrosa')
+        ):
+            self._skipped_view = True
+            return
+
         view_name = view.__name__
 
         # Reset boolean for each processed view

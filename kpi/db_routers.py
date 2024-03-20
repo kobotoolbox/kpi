@@ -1,8 +1,8 @@
+from django.conf import settings
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
 
 from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
-    OPENROSA_DB_ALIAS,
 )
 from kpi.utils.database import get_thread_local
 from .constants import SHADOW_MODEL_APP_LABELS
@@ -19,7 +19,7 @@ class DefaultDatabaseRouter:
             model._meta.app_label in SHADOW_MODEL_APP_LABELS
             or model._meta.app_label in OPENROSA_APP_LABELS
         ):
-            return OPENROSA_DB_ALIAS
+            return settings.OPENROSA_DB_ALIAS
 
         return get_thread_local('DB_ALIAS', DEFAULT_DB_ALIAS)
 
@@ -35,7 +35,7 @@ class DefaultDatabaseRouter:
             model._meta.app_label in SHADOW_MODEL_APP_LABELS
             or model._meta.app_label in OPENROSA_APP_LABELS
         ):
-            return OPENROSA_DB_ALIAS
+            return settings.OPENROSA_DB_ALIAS
 
         return get_thread_local('DB_ALIAS', DEFAULT_DB_ALIAS)
 

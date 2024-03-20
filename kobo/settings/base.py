@@ -21,7 +21,6 @@ from kobo.apps.stripe.constants import (
 )
 # FIXME Remove import when everything is merged
 from kobo.apps.openrosa.settings.base import *
-from kobo.apps.openrosa.libs.constants import OPENROSA_DB_ALIAS
 from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
@@ -163,7 +162,8 @@ INSTALLED_APPS = (
 # ]
 
 MIDDLEWARE = [
-    'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
+    # FIXME Needed for kobocat login redirection but breaks KPI MFA with basic auth
+    #   'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
     'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -668,6 +668,8 @@ DATABASES = {
         default='sqlite:///%s/db.sqlite3' % BASE_DIR
     ),
 }
+
+OPENROSA_DB_ALIAS = 'kobocat'
 
 if 'KC_DATABASE_URL' in os.environ:
     DATABASES[OPENROSA_DB_ALIAS] = env.db_url('KC_DATABASE_URL')

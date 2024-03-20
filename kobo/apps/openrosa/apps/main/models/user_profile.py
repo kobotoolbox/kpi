@@ -1,18 +1,22 @@
 # coding: utf-8
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.db import models
 from django.db.models.signals import post_save
-from django.utils import timezone
-from django.utils.translation import gettext_lazy
 from guardian.conf import settings as guardian_settings
-from kobo.apps.openrosa.libs.utils.guardian import get_perms_for_model, assign_perm
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.libs.utils.guardian import (
+    get_perms_for_model,
+    assign_perm,
+)
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
 from kobo.apps.openrosa.apps.main.signals import set_api_permissions
 from kobo.apps.openrosa.libs.utils.country_field import COUNTRIES
-from kobo.apps.openrosa.libs.utils.gravatar import get_gravatar_img_link, gravatar_exists
+from kobo.apps.openrosa.libs.utils.gravatar import (
+    get_gravatar_img_link,
+    gravatar_exists,
+)
 
 
 class UserProfile(models.Model):
@@ -65,13 +69,14 @@ class UserProfile(models.Model):
 
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
-        Token.objects.create(user=instance)
+        Token.objects.get_or_create(user=instance)
 
 
 post_save.connect(create_auth_token, sender=User, dispatch_uid='auth_token')
 
-post_save.connect(set_api_permissions, sender=User,
-                  dispatch_uid='set_api_permissions')
+post_save.connect(
+    set_api_permissions, sender=User, dispatch_uid='set_api_permissions'
+)
 
 
 def set_object_permissions(sender, instance=None, created=False, **kwargs):
@@ -84,12 +89,12 @@ post_save.connect(set_object_permissions, sender=UserProfile,
                   dispatch_uid='set_object_permissions')
 
 
-def get_anonymous_user_instance(User):
+def get_anonymous_user_instance(user_class: User):
     """
     Force `AnonymousUser` to be saved with `pk` == `ANONYMOUS_USER_ID`
-    :param User: User class
-    :return: User instance
     """
 
-    return User(pk=settings.ANONYMOUS_USER_ID,
-                username=guardian_settings.ANONYMOUS_USER_NAME)
+    return user_class(
+        pk=settings.ANONYMOUS_USER_ID,
+        username=guardian_settings.ANONYMOUS_USER_NAME,
+    )

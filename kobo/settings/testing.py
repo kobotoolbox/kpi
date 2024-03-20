@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from mongomock import MongoClient as MockMongoClient
 
 from .base import *
@@ -52,3 +53,5 @@ TEST_HTTP_HOST = 'testserver'
 TEST_USERNAME = 'bob'
 SERVICE_ACCOUNT['WHITELISTED_HOSTS'] = ['testserver']
 SERVICE_ACCOUNT['NAMESPACE'] = 'kobo-service-account-test'
+
+OPENROSA_DB_ALIAS = DEFAULT_DB_ALIAS

@@ -19,7 +19,6 @@ from rest_framework import serializers
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kobo.apps.constance_backends.utils import to_python_object
-from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
 from kpi.fields import WritableJSONField
 from kpi.utils.gravatar_url import gravatar_url
 

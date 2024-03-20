@@ -1,8 +1,8 @@
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django_request_cache import cache_for_request
 
 from kobo.apps.openrosa.libs.utils.guardian import get_users_with_perms
-from .constants import OPENROSA_DB_ALIAS
 
 
 def get_object_users_with_permissions(obj, exclude=None, serializable=False):
@@ -27,6 +27,6 @@ def get_object_users_with_permissions(obj, exclude=None, serializable=False):
 
 @cache_for_request
 def get_model_permission_codenames():
-    return Permission.objects.using(OPENROSA_DB_ALIAS).values_list(
+    return Permission.objects.using(settings.OPENROSA_DB_ALIAS).values_list(
         'codename', flat=True
     )

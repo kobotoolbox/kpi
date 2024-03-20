@@ -12,6 +12,7 @@ from django.test.client import Client
 from django.utils import timezone
 from django_digest.test import Client as DigestClient
 from kobo_service_account.utils import get_request_headers
+from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 

@@ -292,7 +292,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         json_response = self._kobocat_request(
-            'POST', url, data=payload, files=files)
+            'POST', url, data=payload, files=files
+        )
         self.store_data({
             'backend': 'kobocat',
             'identifier': self.internal_to_external_url(identifier),
@@ -1803,10 +1804,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )
             }
 
-        self._kobocat_request('POST',
-                              url=metadata_url,
-                              expect_formid=False,
-                              **kwargs)
+        self._kobocat_request(
+            'POST', url=metadata_url, expect_formid=False, **kwargs
+        )
 
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
@@ -1824,10 +1824,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         data = {'file_hash': file_.md5_hash}
-        self._kobocat_request('PATCH',
-                              url=metadata_detail_url,
-                              expect_formid=False,
-                              data=data)
+        self._kobocat_request(
+            'PATCH', url=metadata_detail_url, expect_formid=False, data=data
+        )
 
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
