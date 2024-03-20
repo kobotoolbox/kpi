@@ -815,6 +815,13 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
+.anonymousSubmissionDialog {
+  margin-top: 3px;
+}
+.anonymousSubmissionPointer {
+  left: 1em;
+}
+
 // Compensate for when sidebar(s) messes up modal a bit
 @media
   (min-width: 770px) and (max-width: 1020px),

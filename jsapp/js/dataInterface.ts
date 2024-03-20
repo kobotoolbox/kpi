@@ -197,6 +197,13 @@ interface AssignablePermissionRegular {
   label: string;
 }
 
+/**
+ * A list of labels for partial permissions.
+ *
+ * WARNING: it only includes labels for `…PartialByUsers` type ("…only from
+ * specific users"), so please use `CHECKBOX_LABELS` from `permConstants` file
+ * instead.
+ */
 export interface AssignablePermissionPartialLabel {
   default: string;
   view_submissions: string;
@@ -218,28 +225,70 @@ export interface LabelValuePair {
   value: string;
 }
 
-export interface PartialPermission {
-  url: string;
-  filters: Array<{_submitted_by: {$in: string[]}}>;
+export interface PartialPermissionFilterByUsers {
+  _submitted_by?: string | {$in: string[]};
 }
 
+export interface PartialPermissionFilterByResponses {
+  [questionName: string]: string;
+}
+
+/**
+ * Filter can have properties of both of these interfaces, thus we use union
+ * type here.
+ */
+export type PartialPermissionFilter =
+  | PartialPermissionFilterByUsers
+  | PartialPermissionFilterByResponses;
+
+export interface PartialPermission {
+  url: string;
+  /**
+   * An array of filters (objects). Multiple objects means "OR", multiple
+   * properties within the same filter mean "AND".
+   *
+   * There are much more possible cases here, but Front End is supporting only
+   * a single filter object, i.e. the code will ignore `filters[1]`,
+   * `filters[2]` etc. So the cases supported by current UI are:
+   *
+   * 1. single user:
+   *    `filters: [{_submitted_by: 'joe'}]`
+   * 2. single user alternative (equivalent to point above):
+   *    `filters: [{_submitted_by: {$in: ['joe']}}]`
+   * 3. multiple users:
+   *    `filters: [{_submitted_by: {$in: ['bob', 'adam']}}]`
+   * 4. single question response:
+   *    `filters: [{question_one: 'answer'}]`
+   * 5. user AND single question response:
+   *    `filters: [{_submitted_by: 'joe', question_one: 'answer'}]`
+   * 6. multiple users AND single question response:
+   *    `filters: [{_submitted_by: {$in: ['bob', 'adam']}, question_one: 'answer'}]`
+   */
+  filters: PartialPermissionFilter[];
+}
 
 /** Permission object to be used when making API requests. */
 export interface PermissionBase {
   /** User URL */
   user: string;
-  /** Permission URL */
+  /** URL of given permission type. */
   permission: string;
   partial_permissions?: PartialPermission[];
 }
 
+interface PartialPermissionLabel {
+  default: string;
+  view_submissions: string;
+  change_submissions: string;
+  delete_submissions: string;
+  validate_submissions: string;
+}
+
 /** A single permission instance for a given user coming from API endpoint. */
 export interface PermissionResponse extends PermissionBase {
+  /** URL of given permission instance (permission x user). */
   url: string;
-  user: string;
-  permission: string;
-  label: string;
-  partial_permissions?: PartialPermission[];
+  label?: string | PartialPermissionLabel;
 }
 
 /**
@@ -681,11 +730,17 @@ export interface AccountResponse {
    * sensitive. The default value is `true`.
    */
   validated_password: boolean;
+  /**
+   * This will be `true` for user who accepted the latest TOS. If it's missing
+   * or `false`, it means that the latest TOS was not accepted.
+   */
+  accepted_tos?: boolean;
   extra_details: {
     name: string;
     gender: string;
     sector: string;
     country: string;
+    organization_type: string;
     organization: string;
     organization_website: string;
     bio: string;
@@ -694,6 +749,7 @@ export interface AccountResponse {
     twitter: string;
     linkedin: string;
     instagram: string;
+    newsletter_subscription: boolean;
     project_views_settings: ProjectViewsSettings;
     /** We store this for usage statistics only. */
     last_ui_language?: string;

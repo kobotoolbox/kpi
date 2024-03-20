@@ -6,8 +6,8 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatDailyXFormSubmissionCounter,
     KobocatXForm,
-    ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -102,7 +102,7 @@ def update_xform_counters(
         )
         xform.save()
 
-    counter = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
+    counter = KobocatDailyXFormSubmissionCounter.objects.filter(
         date=today.date(),
         user_id=asset.owner.id,
     ).first()

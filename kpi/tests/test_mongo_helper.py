@@ -60,3 +60,90 @@ class MongoHelperTestCase(TestCase):
             ),
             0,
         )
+
+    def test_get_instances_permission_filters(self):
+        user = baker.make('auth.User')
+        asset = baker.make('kpi.Asset', owner=user)
+        asset.deploy(backend='mock', active=True)
+        userform_id = asset.deployment.mongo_userform_id
+        submissions = [
+            {
+                'q1': 'a1',
+                '_submitted_by': 'bob',
+            },
+            {
+                'q2': 'a2',
+                '_submitted_by': 'alice',
+            },
+        ]
+        self.add_submissions(asset, submissions)
+
+        self.assert_instances_count(
+            MongoHelper.get_instances(
+                userform_id, permission_filters=None
+            ),
+            2
+        )
+        self.assert_instances_count(
+            MongoHelper.get_instances(
+                userform_id, permission_filters=[{'_submitted_by': 'noone'}]
+            ),
+            0,
+        )
+        self.assert_instances_count(
+            MongoHelper.get_instances(
+                userform_id, permission_filters=[{'_submitted_by': 'bob'}]
+            ),
+            1,
+        )
+        self.assert_instances_count(
+            MongoHelper.get_instances(
+                userform_id,
+                permission_filters=[
+                    {'_submitted_by': 'bob'},
+                    {'q1': 'a1'},
+                ],
+            ),
+            1,
+        )
+        self.assert_instances_count(
+            MongoHelper.get_instances(
+                userform_id,
+                permission_filters=[
+                    {'_submitted_by': 'bob'},
+                    {'_submitted_by': 'alice'},
+                ],
+            ),
+            2,
+        )
+        self.assert_instances_count(
+            MongoHelper.get_instances(
+                userform_id,
+                permission_filters=[
+                    {
+                        '_submitted_by': {'$in': ['bob', 'alice']},
+                        'q1': {'$in': ['a1', 'a2']},
+                    },
+                ],
+            ),
+            1,
+        )
+        self.assert_instances_count(
+            MongoHelper.get_instances(
+                userform_id,
+                permission_filters=[
+                    {'_submitted_by': '/a/'},
+                ],
+            ),
+            0,
+        )
+        self.assert_instances_count(
+            MongoHelper.get_instances(
+                userform_id,
+                permission_filters=[
+                    {'_submitted_by': {'$regex': 'a'}},
+                ],
+            ),
+            1,
+        )
+

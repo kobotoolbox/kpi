@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@9333ae04b29d15b23fca184d9ee7e8d7354109c4#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@3b6c89a00c77693a775ef91b68d6965678a7e4fe#egg=formpack
 
 # service-account
 -e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
@@ -49,8 +49,6 @@ django-webpack-loader
 django-loginas
 django-markdownx
 django-prometheus
-
-django-mptt
 
 django-reversion
 django-taggit

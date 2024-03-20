@@ -69,10 +69,10 @@ def enketo_edit_instance_response_with_uuid_validation(request):
     submission = body['instance']
     submission_xml_root = lxml.etree.fromstring(submission)
     assert submission_xml_root.find(
-        './formhub/uuid'
+        'formhub/uuid'
     ).text.strip()
     assert submission_xml_root.find(
-        './meta/instanceID'
+        'meta/instanceID'
     ).text.strip()
 
     resp_body = {
@@ -102,7 +102,7 @@ def enketo_view_instance_response(request):
 
 class MockAttachment(AudioTranscodingMixin):
     """
-    Mock object to simulate ReadOnlyKobocatAttachment.
+    Mock object to simulate KobocatAttachment.
     Relationship with ReadOnlyKobocatInstance is ignored but could be implemented
     """
     def __init__(self, pk: int, filename: str, mimetype: str = None, **kwargs):

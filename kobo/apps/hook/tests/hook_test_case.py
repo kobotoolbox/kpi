@@ -14,7 +14,7 @@ from ..constants import HOOK_LOG_FAILED
 from ..models import HookLog, Hook
 
 
-class MockSSRFProtect(object):
+class MockSSRFProtect:
 
     @staticmethod
     def _get_ip_address(url):

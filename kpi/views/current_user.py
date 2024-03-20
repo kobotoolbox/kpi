@@ -45,7 +45,8 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "instagram": string,
     >               "organization": string,
     >               "last_ui_language": string,
-    >               "organization_website": sting,
+    >               "organization_website": string,
+    >               "newsletter_subscription": boolean,
     >           },
     >           "git_rev": {
     >               "short": boolean,
@@ -54,6 +55,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "tag": boolean,
     >           },
     >           "social_accounts": []
+    >           "accepted_tos": boolean,
     >       }
 
     Update account details

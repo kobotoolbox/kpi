@@ -174,11 +174,14 @@ RUN ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" "${SERVICES_DIR}/uwsgi/run" && 
 
 
 # Add/Restore `UWSGI_USER`'s permissions
+# chown of `${TMP_DIR}/.npm` is a hack needed for kobo-install-based staging deployments;
+# see internal discussion at https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/Unu.2C.20du.2C.20tri.2C.20kvar.20deployments/near/322075
 RUN chown -R ":${UWSGI_GROUP}" ${CELERY_PID_DIR} && \
     chmod g+w ${CELERY_PID_DIR} && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_LOGS_DIR} && \
-    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR}
+    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR} && \
+    chown -R root:root "${TMP_DIR}/.npm"
 
 
 EXPOSE 8000

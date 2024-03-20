@@ -1,12 +1,8 @@
 # coding: utf-8
-import json
-import os
-import random
-import string
 import uuid
 
-from django.conf import settings
 from kobo.apps.kobo_auth.shortcuts import User
+from django.contrib.auth.models import User
 from django.http import QueryDict
 from django.urls import reverse
 from rest_framework import status

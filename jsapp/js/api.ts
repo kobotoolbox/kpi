@@ -3,10 +3,11 @@ import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
 import {notify} from 'js/utils';
+import * as Sentry from '@sentry/react';
 
 /**
  * Useful for handling the fail responses from API. Its main goal is to display
- * a helpful error toast notification and to pass the error message to Raven.
+ * a helpful error toast notification and to pass the error message to Sentry.
  *
  * It can detect if we got HTML string as response and uses a generic message
  * instead of spitting it out. The error message displayed to the user can be
@@ -65,8 +66,8 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   // show the error message to the user
   notify.error(displayMessage);
 
-  // send the message to our error tracker (if Raven is available)
-  window.Raven?.captureMessage(message || displayMessage);
+  // send the message to our error tracker
+  Sentry.captureMessage(message || displayMessage);
 }
 
 const JSON_HEADER = 'application/json';
@@ -94,7 +95,7 @@ interface FetchDataOptions {
    */
   notifyAboutError?: boolean;
   /**
-   * Override the default error toast message text. Raven will still receive the
+   * Override the default error toast message text. Sentry will still receive the
    * default error message, for debugging purposes.
    *
    * Only applies when `notifyAboutError` is `true`.
@@ -213,8 +214,11 @@ const fetchData = async <T>(
 export const fetchGet = async <T>(path: string, options?: FetchDataOptions) =>
   fetchData<T>(path, 'GET', undefined, options);
 
-/** GET Kobo API at url */
-export const fetchGetUrl = async <T>(url: string, options?: FetchDataOptions) => {
+/** GET data from Kobo API at url */
+export const fetchGetUrl = async <T>(
+  url: string,
+  options?: FetchDataOptions
+) => {
   options = Object.assign({}, options, {prependRootUrl: false});
   return fetchData<T>(url, 'GET', undefined, options);
 };

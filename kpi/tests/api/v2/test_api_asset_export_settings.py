@@ -1,10 +1,8 @@
-# coding: utf-8
-import json
-
-from kobo.apps.kobo_auth.shortcuts import User
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_MANAGE_ASSET,

@@ -71,6 +71,18 @@ class AccountAdapter(DefaultAccountAdapter):
         with transaction.atomic():
             user = super().save_user(request, user, form, commit)
             extra_data = {k: form.cleaned_data[k] for k in extra_fields}
+
+            # If the form contains a Terms of Service checkbox (checked)
+            if (extra_data.pop('terms_of_service', None)):
+                # We 'pop' because we don't want to save 'terms_of_service':true
+                # in extra_details.data. Instead, save a now() date string as
+                # the last ToS acceptance time in private_data.
+                # See also: TOSView.post() in apps/accounts/tos.py, which
+                # lets the frontend accept ToS on behalf of existing users.
+                user.extra_details.private_data[
+                    'last_tos_accept_time'
+                ] = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+
             user.extra_details.data.update(extra_data)
             if commit:
                 user.extra_details.save()

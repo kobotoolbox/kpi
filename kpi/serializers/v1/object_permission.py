@@ -1,11 +1,8 @@
 # coding: utf-8
 from django.contrib.auth.models import Permission
-from kobo.apps.kobo_auth.shortcuts import User
-from django.contrib.contenttypes.models import ContentType
-from django.db import transaction
 from rest_framework import serializers
 
-from kpi.constants import PERM_FROM_KC_ONLY
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset, ObjectPermission
 

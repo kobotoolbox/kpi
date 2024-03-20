@@ -32,10 +32,6 @@ export default function ProjectTopTabs() {
   }, []);
 
   const isDataTabEnabled =
-    asset?.deployment__identifier != undefined &&
-    asset?.has_deployment &&
-    (asset?.deployment__submission_count === null ||
-      asset?.deployment__submission_count > 0) &&
     (userCan('view_submissions', asset) ||
       userCanPartially('view_submissions', asset));
 

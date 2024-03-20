@@ -27,10 +27,6 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
-    #unmanaged_models = [
-    #    ReadOnlyKobocatDailyXFormSubmissionCounter,
-    #    KobocatXForm,
-    #]
     xform = None
     counter = None
     attachment_id = 0
@@ -40,9 +36,6 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
         super().setUpTestData()
         cls.anotheruser = User.objects.get(username='anotheruser')
         cls.someuser = User.objects.get(username='someuser')
-        #with connection.schema_editor() as schema_editor:
-        #    for unmanaged_model in cls.unmanaged_models:
-        #        schema_editor.create_model(unmanaged_model)
 
     def setUp(self):
         super().setUp()

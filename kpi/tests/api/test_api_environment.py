@@ -12,6 +12,7 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from markdown import markdown
+from hub.models.sitewide_message import SitewideMessage
 from model_bakery import baker
 from rest_framework import status
 
@@ -116,6 +117,7 @@ class EnvironmentTests(BaseTestCase):
             'custom_password_localized_help_text': markdown(
                 I18nUtils.get_custom_password_help_text()
             ),
+            'terms_of_service__sitewidemessage__exists': False,
         }
 
     def _check_response_dict(self, response_dict):
@@ -305,3 +307,18 @@ class EnvironmentTests(BaseTestCase):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
+
+    def test_tos_sitewide_message(self):
+        # Check that fixtures properly stores terms of service
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert not response.data['terms_of_service__sitewidemessage__exists']
+
+        # Create SitewideMessage object and check that it properly updates terms of service
+        SitewideMessage.objects.create(
+            slug='terms_of_service',
+            body='tos agreement',
+        )
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['terms_of_service__sitewidemessage__exists']

@@ -1,13 +1,12 @@
 # coding: utf-8
 import unittest
-from mock import patch, MagicMock, PropertyMock
+from mock import patch, MagicMock
 
 from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from hub.models import ExtraUserDetail
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
