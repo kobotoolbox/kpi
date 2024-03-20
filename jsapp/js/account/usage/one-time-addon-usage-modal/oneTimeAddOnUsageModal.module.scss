@@ -1,0 +1,36 @@
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+.addonModalTrigger {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.addonUsageDetails {
+  ul + .addonTypeHeader {
+    margin-top: sizes.$x20;
+  }
+}
+
+.addonTypeHeader {
+  font-weight: 600;
+  font-size: sizes.$x12;
+  color: colors.$kobo-gray-55;
+}
+
+.usageBreakdown {
+  margin-top: sizes.$x8;
+  
+  & > li {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  li + li {
+    margin-top: sizes.$x8;
+  }
+
+  li:last-of-type {
+    margin-top: sizes.$x14;
+  }
+}

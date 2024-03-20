@@ -113,6 +113,7 @@ const UsageContainer = ({
           type={type}
           recurringLimit={recurringLimit as number}
           remainingLimit={remainingLimit as number}
+          period={period}
           oneTimeAddons={oneTimeAddons}
           usage={usage}
         />

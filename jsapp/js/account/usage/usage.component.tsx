@@ -142,7 +142,9 @@ export default function Usage() {
     const availableAddons = oneTimeAddOnsContext.addons.filter(
       (addon) => addon.is_available
     );
-
+    
+    // Find the relevant addons, but first check and make sure add-on
+    // limits aren't superceded by an "unlimited" usage limit.
     switch (type) {
       case USAGE_TYPE.SUBMISSIONS:
         return limits.submissionsRecurringLimit !== Limits.unlimited

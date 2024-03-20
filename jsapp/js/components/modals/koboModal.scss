@@ -73,6 +73,7 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   }
   &.kobo-modal__header--white {
     background-color: colors.$kobo-white;
+    padding-bottom: 0;
   }
 
   h1 {
