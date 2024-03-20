@@ -705,7 +705,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         for username in [self.asset.owner.username, self.anon.username]:
             user_urls.append(
                 self.absolute_reverse(
-                    self._get_endpoint('user-detail'),
+                    self._get_endpoint('user-kpi-detail'),
                     kwargs={'username': username},
                 )
             )

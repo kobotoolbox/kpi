@@ -18,7 +18,7 @@ from kpi.models.object_permission import ObjectPermission
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     url = HyperlinkedIdentityField(
-        lookup_field='username', view_name='user-detail')
+        lookup_field='username', view_name='user-kpi-detail')
     date_joined = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()

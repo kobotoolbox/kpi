@@ -13,7 +13,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         view_name='objectpermission-detail'
     )
     user = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail',
+        view_name='user-kpi-detail',
         lookup_field='username',
         queryset=User.objects.all(),
         style={'base_template': 'input.html'}  # Render as a simple text box

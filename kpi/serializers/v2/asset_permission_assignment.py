@@ -35,7 +35,7 @@ ASSIGN_OWNER_ERROR_MESSAGE = "Owner's permissions cannot be assigned explicitly"
 class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     user = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail',
+        view_name='user-kpi-detail',
         lookup_field='username',
         queryset=User.objects.all(),
         style={'base_template': 'input.html'},  # Render as a simple text box

@@ -1343,12 +1343,16 @@ class AssetFileTest(BaseTestCase):
         response_dict = json.loads(response.content)
         self.assertEqual(
             response_dict['asset'],
-            self.absolute_reverse(self._get_endpoint('asset-detail'), args=[self.asset.uid])
+            self.absolute_reverse(
+                self._get_endpoint('asset-detail'), args=[self.asset.uid]
+            ),
         )
         self.assertEqual(
             response_dict['user'],
-            self.absolute_reverse(self._get_endpoint('user-detail'),
-                                  args=[self.current_username])
+            self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.current_username],
+            ),
         )
         self.assertEqual(
             response_dict['user__username'],

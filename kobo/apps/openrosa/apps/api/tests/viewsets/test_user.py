@@ -50,13 +50,13 @@ class TestUserViewSet(TestAbstractViewSet):
         self.bob = bob_profile.user
 
     def test_no_access_to_users_list(self):
-        response = self.client.get(reverse('user-list'))
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-        # with anonymous
-        self.client.logout()
-        response = self.client.get(reverse('user-list'))
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        # anonymous user
+        pattern = (
+            r"^Reverse for 'user-list' not found. 'user-list' is not a valid view "
+            "function or pattern name.$"
+        )
+        with pytest.raises(NoReverseMatch, match=pattern) as e:
+            reverse('user-list')
 
     def test_no_access_to_user_detail(self):
         # anonymous user
