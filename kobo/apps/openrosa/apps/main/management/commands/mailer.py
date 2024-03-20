@@ -1,9 +1,9 @@
 # coding: utf-8
 from django.core.management.base import BaseCommand, CommandError
-from kobo.apps.kobo_auth.shortcuts import User
 from django.template.loader import get_template
-
 from templated_email import send_templated_mail
+
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class Command(BaseCommand):

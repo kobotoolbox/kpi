@@ -5,13 +5,13 @@ from collections import defaultdict
 from datetime import timedelta
 
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Count, Value, F, DateField
 from django.db.models.functions import Cast, Concat
 from django.utils import timezone
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import (
     DailyXFormSubmissionCounter,
     MonthlyXFormSubmissionCounter,

@@ -5,11 +5,11 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
 from kpi.models.asset import Asset, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission

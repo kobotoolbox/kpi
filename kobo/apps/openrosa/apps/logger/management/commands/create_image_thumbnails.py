@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4 fileencoding=utf-8
 # coding: utf-8
-from kobo.apps.kobo_auth.shortcuts import User
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.files.storage import default_storage
 from django.conf import settings
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.image_tools import resize

@@ -7,7 +7,6 @@ import re
 import rest_framework.request
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.files.storage import default_storage, FileSystemStorage
 from django.urls import reverse
 from django.db.models import Q
@@ -24,8 +23,8 @@ from django.utils.http import urlquote
 from django.utils.translation import gettext as t
 from django.views.decorators.http import require_POST
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.settings import api_settings
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.tasks import create_async_export

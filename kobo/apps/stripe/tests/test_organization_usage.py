@@ -2,7 +2,6 @@ import timeit
 
 import pytest
 from dateutil.relativedelta import relativedelta
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
@@ -10,6 +9,7 @@ from django.utils import timezone
 from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
 from model_bakery import baker
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase

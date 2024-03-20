@@ -1,11 +1,11 @@
-from kobo.apps.kobo_auth.shortcuts import User
 from django.conf import settings
-from django.db.models import Sum, Q, OuterRef, Subquery, QuerySet
+from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import empty
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter

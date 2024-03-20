@@ -5,7 +5,6 @@ import datetime
 import constance
 from constance.test import override_config
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.http import HttpRequest
 from django.template import RequestContext, Template
 from django.test import override_settings
@@ -20,6 +19,7 @@ from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt

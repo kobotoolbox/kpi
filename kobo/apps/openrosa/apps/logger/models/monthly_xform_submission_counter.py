@@ -1,8 +1,9 @@
 # coding: utf-8
-from kobo.apps.kobo_auth.shortcuts import User
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.constraints import UniqueConstraint
+
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class MonthlyXFormSubmissionCounter(models.Model):

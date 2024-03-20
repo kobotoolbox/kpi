@@ -1,9 +1,9 @@
 # coding: utf-8
 from django.core.validators import ValidationError
-from kobo.apps.kobo_auth.shortcuts import User
 from django.utils.translation import gettext as t
-
 from rest_framework import serializers
+
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.models.clone_xform import CloneXForm
 from kobo.apps.openrosa.libs.serializers.fields.xform_field import XFormField
 

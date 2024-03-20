@@ -1,8 +1,8 @@
 # coding: utf-8
-from kobo.apps.kobo_auth.shortcuts import User
 from django.test import TestCase
 from taggit.models import Tag
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models.asset import Asset
 
 

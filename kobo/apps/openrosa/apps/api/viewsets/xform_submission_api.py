@@ -2,7 +2,6 @@
 import re
 import io
 
-from kobo.apps.kobo_auth.shortcuts import User
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from kobo_service_account.utils import get_real_user
@@ -17,6 +16,7 @@ from rest_framework.exceptions import NotAuthenticated
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.authentication import DigestAuthentication

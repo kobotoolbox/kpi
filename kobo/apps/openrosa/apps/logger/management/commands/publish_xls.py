@@ -1,10 +1,10 @@
 # coding: utf-8
 import os
 
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.management.base import BaseCommand, CommandError
 from pyxform.builder import create_survey_from_xls
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import django_file

@@ -1,15 +1,14 @@
 from copy import deepcopy
 from unittest.mock import patch
 
-from kobo.apps.kobo_auth.shortcuts import User
+from constance.test import override_config
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
-
-from constance.test import override_config
 from jsonschema import validate
 from rest_framework.test import APITestCase
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.languages.models.language import Language, LanguageRegion
 from kobo.apps.languages.models.transcription import (
     TranscriptionService, TranscriptionServiceLanguageM2M)

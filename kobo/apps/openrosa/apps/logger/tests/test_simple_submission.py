@@ -1,8 +1,8 @@
 # coding: utf-8
-from kobo.apps.kobo_auth.shortcuts import User
 from django.test import TestCase, RequestFactory
 from pyxform import SurveyElementBuilder
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import DuplicateInstance
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary

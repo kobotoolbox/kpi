@@ -2,9 +2,10 @@
 import sys
 import os
 
-from django.db.utils import ProgrammingError
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.management.base import BaseCommand
+from django.db.utils import ProgrammingError
+
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class Command(BaseCommand):

@@ -2,12 +2,8 @@
 import json
 import os
 import tempfile
-import re
-from datetime import datetime, date
 
-from django.contrib.auth.decorators import login_required, user_passes_test
-from kobo.apps.kobo_auth.shortcuts import User
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
 from django.http import (
     HttpResponse,
@@ -16,7 +12,6 @@ from django.http import (
     HttpResponseNotFound,
     HttpResponseRedirect,
     StreamingHttpResponse,
-    Http404,
 )
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -25,10 +20,9 @@ from django.utils.translation import gettext as t
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
-from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.libs.authentication import digest_authentication
 from kobo.apps.openrosa.libs.utils.log import audit_log, Actions
 from kobo.apps.openrosa.libs.utils.logger_tools import BaseOpenRosaResponse
 from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_and_name
@@ -37,7 +31,6 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
     has_permission,
     add_cors_headers,
 )
-from .tasks import generate_stats_zip
 from ...koboform.pyxform_utils import convert_csv_to_xls
 
 IO_ERROR_STRINGS = [
@@ -76,9 +69,9 @@ def _submission_response(request, instance):
         'markedAsCompleteDate': instance.date_modified.isoformat()
     }
 
-    t = loader.get_template('submission.xml')
+    template_ = loader.get_template('submission.xml')
 
-    return BaseOpenRosaResponse(t.render(data, request=request))
+    return BaseOpenRosaResponse(template_.render(data, request=request))
 
 
 @require_POST

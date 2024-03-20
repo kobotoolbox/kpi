@@ -9,7 +9,6 @@ import requests
 import rest_framework.views as rest_framework_views
 from django import forms
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.files.storage import default_storage
 from django.http import (
     HttpResponse,
@@ -22,6 +21,7 @@ from rest_framework import exceptions
 from rest_framework.request import Request
 from taggit.forms import TagField
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.forms import QuickConverterForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData

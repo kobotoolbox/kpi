@@ -1,9 +1,8 @@
 # coding: utf-8
-from kobo.apps.kobo_auth.shortcuts import User
-
 from trench.utils import get_mfa_model
 
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import BaseTestCase
 
 

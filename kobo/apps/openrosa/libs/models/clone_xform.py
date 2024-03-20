@@ -1,9 +1,12 @@
 # coding: utf-8
-from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.viewer.models.data_dictionary import \
-    DataDictionary, upload_to
 from django.core.files.storage import default_storage
+
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kobo.apps.openrosa.apps.viewer.models.data_dictionary import (
+    DataDictionary,
+    upload_to,
+)
 
 
 class CloneXForm:

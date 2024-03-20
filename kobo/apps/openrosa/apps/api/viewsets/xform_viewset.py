@@ -2,7 +2,6 @@
 import json
 import os
 
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.http import Http404, HttpResponseBadRequest
@@ -16,6 +15,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api import tools as utils
 from kobo.apps.openrosa.apps.api.permissions import XFormPermissions
 from kobo.apps.openrosa.apps.logger.models.xform import XForm

@@ -6,11 +6,11 @@ import json
 import os
 from io import StringIO
 
-from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,

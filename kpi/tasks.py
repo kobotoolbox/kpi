@@ -2,10 +2,10 @@
 import constance
 import requests
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.management import call_command
 from django.core.mail import send_mail
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.celery import celery_app
 
 

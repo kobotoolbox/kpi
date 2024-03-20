@@ -1,12 +1,12 @@
 # coding: utf-8
 import uuid
 
-from kobo.apps.kobo_auth.shortcuts import User
 from django.contrib.auth.models import User
 from django.http import QueryDict
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE

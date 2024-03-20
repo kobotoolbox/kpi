@@ -9,11 +9,11 @@ from io import StringIO
 from celery import shared_task
 from dateutil import relativedelta
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.utils import timezone
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.celery import app
 from .models.daily_xform_submission_counter import DailyXFormSubmissionCounter
 from .models import Instance, XForm

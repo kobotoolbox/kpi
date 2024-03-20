@@ -17,12 +17,12 @@ import pytest
 import responses
 from dict2xml import dict2xml
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,

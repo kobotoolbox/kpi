@@ -4,10 +4,10 @@ from functools import wraps
 
 from django.conf import settings
 from django.contrib.auth import authenticate
-from kobo.apps.kobo_auth.shortcuts import User
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm, Note
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.utils.guardian import (

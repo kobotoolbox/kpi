@@ -7,10 +7,9 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import reversion
-from kobo.apps.kobo_auth.shortcuts import User
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
-from django.db import models as django_models, transaction
+from django.db import transaction
 from django.db.models import Case, F, When
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
@@ -19,6 +18,7 @@ from django.utils.encoding import smart_str
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import (
     FormInactiveError,
     TemporarilyUnavailableError,

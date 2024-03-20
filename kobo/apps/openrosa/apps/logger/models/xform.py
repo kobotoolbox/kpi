@@ -7,7 +7,6 @@ from io import BytesIO
 from xml.sax.saxutils import escape as xml_escape
 
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import default_storage
 from django.urls import reverse
@@ -15,12 +14,9 @@ from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext_lazy as t
-from kobo.apps.openrosa.libs.utils.guardian import (
-    assign_perm,
-    get_perms_for_model
-)
 from taggit.managers import TaggableManager
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
 from kobo.apps.openrosa.apps.logger.models.daily_xform_submission_counter import DailyXFormSubmissionCounter
 from kobo.apps.openrosa.apps.logger.models.monthly_xform_submission_counter import (
@@ -28,14 +24,18 @@ from kobo.apps.openrosa.apps.logger.models.monthly_xform_submission_counter impo
 )
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
+from kobo.apps.openrosa.libs.models.base_model import BaseModel
 from kobo.apps.openrosa.libs.constants import (
     CAN_ADD_SUBMISSIONS,
     CAN_VALIDATE_XFORM,
     CAN_DELETE_DATA_XFORM,
     CAN_TRANSFER_OWNERSHIP,
 )
+from kobo.apps.openrosa.libs.utils.guardian import (
+    assign_perm,
+    get_perms_for_model
+)
 from kobo.apps.openrosa.libs.utils.xml import XMLFormWithDisclaimer
-from kobo.apps.openrosa.libs.models.base_model import BaseModel
 from kobo.apps.openrosa.libs.utils.hash import get_hash
 
 XFORM_TITLE_LENGTH = 255

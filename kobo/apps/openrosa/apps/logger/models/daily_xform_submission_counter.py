@@ -1,8 +1,7 @@
-# coding: utf-8
-
-from kobo.apps.kobo_auth.shortcuts import User
 from django.db import models
 from django.db.models import UniqueConstraint, Q, F
+
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class DailyXFormSubmissionCounter(models.Model):

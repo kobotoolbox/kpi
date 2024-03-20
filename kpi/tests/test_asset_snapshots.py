@@ -3,10 +3,10 @@ import json
 from datetime import timedelta
 
 from constance.test import override_config
-from kobo.apps.kobo_auth.shortcuts import User
 from django.test import TestCase
 from django.utils.timezone import now
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.api.v2 import test_api_asset_snapshots
 from ..models import Asset
 from ..models import AssetSnapshot

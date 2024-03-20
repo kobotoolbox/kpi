@@ -10,7 +10,7 @@ class TOSTestCase(BaseTestCase):
     def setUp(self) -> None:
         self.url = reverse(self._get_endpoint('tos'))
         self.user = baker.make(
-            'auth.User', username='spongebob', email='me@sponge.bob'
+            'kobo_auth.User', username='spongebob', email='me@sponge.bob'
         )
         self.client.force_login(self.user)
 

@@ -2,9 +2,9 @@
 import os
 import sys
 
-from kobo.apps.kobo_auth.shortcuts import User
 from django.core.management.base import BaseCommand, CommandError
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.backup_tools import restore_backup_from_zip
 
 

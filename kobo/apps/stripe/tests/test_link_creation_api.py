@@ -1,5 +1,4 @@
 import stripe
-
 from kobo.apps.kobo_auth.shortcuts import User
 from django.urls import reverse
 

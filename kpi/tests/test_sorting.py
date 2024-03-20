@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.test import TestCase
-from kobo.apps.kobo_auth.shortcuts import User
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.utils.object_permission import get_anonymous_user
 
 

@@ -1,7 +1,7 @@
 # coding: utf-8
-from kobo.apps.kobo_auth.shortcuts import User
 from django.db import models
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 
 

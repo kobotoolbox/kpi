@@ -2,9 +2,9 @@
 from datetime import timedelta
 
 from django.conf import settings
-from kobo.apps.kobo_auth.shortcuts import User
 from django.utils import timezone
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.models.daily_xform_submission_counter import DailyXFormSubmissionCounter
 from kobo.apps.openrosa.apps.logger.models.monthly_xform_submission_counter import MonthlyXFormSubmissionCounter
