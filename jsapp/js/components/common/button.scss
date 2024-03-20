@@ -221,7 +221,7 @@ $button-border-radius: sizes.$x6;
 .k-button.k-button--color-light-blue {
   &.k-button--type-bare {@include button-bare(colors.$kobo-dark-blue);}
   &.k-button--type-frame {@include button-frame(colors.$kobo-dark-blue);}
-  &.k-button--type-full {@include button-full(colors.$kobo-light-blue, colors.$kobo-dark-blue);}
+  &.k-button--type-full {@include button-full(colors.$kobo-bg-blue, colors.$kobo-dark-blue);}
 }
 
 .k-button.k-button--color-red {
@@ -243,15 +243,15 @@ $button-border-radius: sizes.$x6;
 }
 
 .k-button.k-button--color-cloud {
-  &.k-button--type-bare {@include button-bare(colors.$kobo-cloud);}
-  &.k-button--type-frame {@include button-frame(colors.$kobo-cloud);}
-  &.k-button--type-full {@include button-full(colors.$kobo-cloud, colors.$kobo-dark-blue);}
+  &.k-button--type-bare {@include button-bare(colors.$kobo-light-storm);}
+  &.k-button--type-frame {@include button-frame(colors.$kobo-light-storm);}
+  &.k-button--type-full {@include button-full(colors.$kobo-light-storm, colors.$kobo-dark-blue);}
 }
 
 .k-button.k-button--color-dark-blue {
   &.k-button--type-bare {@include button-bare(colors.$kobo-dark-blue);}
   &.k-button--type-frame {@include button-frame(colors.$kobo-dark-blue);}
-  &.k-button--type-full {@include button-full(colors.$kobo-dark-blue, colors.$kobo-cloud);}
+  &.k-button--type-full {@include button-full(colors.$kobo-dark-blue, colors.$kobo-light-storm);}
 }
 
 .k-button.k-button--size-s {
