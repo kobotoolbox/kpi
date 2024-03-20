@@ -10,6 +10,8 @@
   ul + .addonTypeHeader {
     margin-top: sizes.$x20;
   }
+
+  margin-bottom: sizes.$x20;
 }
 
 .addonTypeHeader {
@@ -33,4 +35,11 @@
   li:last-of-type {
     margin-top: sizes.$x14;
   }
+}
+
+.listHeaderText {
+  font-size: sizes.$r18;
+  font-weight: 700;
+  color: colors.$kobo-storm;
+  text-transform: uppercase;
 }

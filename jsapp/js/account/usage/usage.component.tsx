@@ -1,7 +1,7 @@
 import {when} from 'mobx';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {useLocation} from 'react-router-dom';
-import type {AccountLimitDetail, LimitAmount} from 'js/account/stripe.types';
+import type {AccountLimitDetail, LimitAmount, OneTimeAddOn} from 'js/account/stripe.types';
 import {Limits, USAGE_TYPE} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import subscriptionStore from 'js/account/subscriptionStore';

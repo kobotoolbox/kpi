@@ -44,7 +44,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
       </li>
       <KoboModal isOpen={showModal} onRequestClose={toggleModal} size='medium'>
         <KoboModalHeader headerColor='white' onRequestCloseByX={toggleModal}>
-          {t('Addon details')}
+          {t('Add-on details')}
         </KoboModalHeader>
         <KoboModalContent>
           <div className={styles.addonUsageDetails}>
@@ -61,7 +61,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
               </li>
               <li>
                 <label>
-                  {t('Addons this ##PERIOD##').replace(
+                  {t('Add-ons this ##PERIOD##').replace(
                     '##PERIOD##',
                     props.period
                   )}
@@ -90,7 +90,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
                 <data>{limitDisplay(props.type, recurringUsage)}</data>
               </li>
               <li>
-                <label>{t('Addons')}</label>
+                <label>{t('Add-ons')}</label>
                 {/* TODO: Get correct figure when period calculations are available */}
                 <data>0</data>
               </li>
@@ -122,7 +122,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
                 </data>
               </li>
               <li>
-                <label>{t('Addons')}</label>
+                <label>{t('Add-ons')}</label>
                 <data>
                   {limitDisplay(
                     props.type,
@@ -147,7 +147,8 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
               </li>
             </ul>
           </div>
-          < OneTimeAddOnList oneTimeAddons={props.oneTimeAddons} type={props.type} />
+          <h2 className={styles.listHeaderText}>{t('Purchased add-ons')}</h2>
+          < OneTimeAddOnList oneTimeAddOns={props.oneTimeAddons} type={props.type} />
         </KoboModalContent>
       </KoboModal>
     </>

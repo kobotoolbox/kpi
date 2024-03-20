@@ -2,3 +2,21 @@
 @use '~kobo-common/src/styles/colors';
 
 
+.oneTimeAddOnListContainer {
+  .oneTimeAddOnListEntry + .oneTimeAddOnListEntry {
+    margin-top: sizes.$x8;
+  }
+}
+
+.oneTimeAddOnListEntry {
+  display: flex;
+  justify-content: space-between;
+  padding: sizes.$x16;
+  border: sizes.$x1 solid colors.$kobo-gray-92;
+  border-radius: sizes.$x6;
+
+  label {
+    margin-right: sizes.$x30;
+    font-weight: 600;
+  }
+}

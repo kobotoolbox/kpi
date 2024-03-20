@@ -1,25 +1,56 @@
 import React, {useContext, useMemo, useState} from 'react';
-import styles from './oneTimeAddOnUsageModal.module.scss';
-import {
-  OneTimeAddOn,
-  USAGE_TYPE,
-} from 'jsapp/js/account/stripe.types';
-import { ProductsContext } from 'jsapp/js/account/useProducts.hook';
+import styles from './oneTimeAddOnList.module.scss';
+import {OneTimeAddOn, USAGE_TYPE} from 'jsapp/js/account/stripe.types';
+import {limitDisplay} from 'jsapp/js/account/stripe.utils';
+import {ProductsContext} from 'jsapp/js/account/useProducts.hook';
 
 interface OneTimeAddOnList {
   type: USAGE_TYPE;
-  oneTimeAddons: OneTimeAddOn[];
+  oneTimeAddOns: OneTimeAddOn[];
 }
 
 function OneTimeAddOnList(props: OneTimeAddOnList) {
   const productsContext = useContext(ProductsContext);
 
+  const formattedAddOns = useMemo(() => {
+    return props.oneTimeAddOns.map((addon) => {
+      let productName =
+        productsContext.products.find((product) => product.id === addon.product)
+          ?.name ?? 'One-Time Addon';
+
+      let remainingLimit = 0;
+      switch (props.type) {
+        case USAGE_TYPE.SUBMISSIONS:
+          remainingLimit = addon.limits_remaining.submission_limit ?? 0;
+          break;
+        case USAGE_TYPE.TRANSCRIPTION:
+          remainingLimit = addon.limits_remaining.asr_seconds_limit ?? 0;
+          remainingLimit = remainingLimit / 60;
+          break;
+        case USAGE_TYPE.TRANSLATION:
+          remainingLimit = addon.limits_remaining.mt_characters_limit ?? 0;
+          break;
+        default:
+          break;
+      }
+      return {
+        productName,
+        remainingLimit,
+      };
+    });
+  }, [props.oneTimeAddOns, props.type, productsContext.isLoaded]);
+
   return (
-    <div>
-      {props.oneTimeAddons.map((addon, i) => (
-        <div key={i}>
-          {addon.product}
-          {addon.limits_remaining.mt_characters_limit}
+    <div className={styles.oneTimeAddOnListContainer}>
+      {formattedAddOns.map((addon, i) => (
+        <div className={styles.oneTimeAddOnListEntry} key={i}>
+          <label className={styles.productName}>{addon.productName}</label>
+          <div>
+            {t('##REMAINING## remaining').replace(
+              '##REMAINING##',
+              limitDisplay(props.type, addon.remainingLimit)
+            )}
+          </div>
         </div>
       ))}
     </div>
