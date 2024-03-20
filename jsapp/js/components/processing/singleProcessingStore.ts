@@ -173,8 +173,8 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translations = [];
     this.data.translationDraft = undefined;
     this.data.source = undefined;
-    this.data.activeTab = SingleProcessingTabs.Transcript;
     this.data.isPristine = true;
+    // We don't reset active tab here on purpose
   }
 
   public get currentAssetUid() {
@@ -364,6 +364,8 @@ class SingleProcessingStore extends Reflux.Store {
     if (!isAssetProcessingActivated(this.currentAssetUid)) {
       this.activateAsset();
     } else {
+      // When opening processing view we want always to land on Transcript tab
+      this.data.activeTab = SingleProcessingTabs.Transcript;
       this.fetchSubmissionData();
       this.fetchEditIds();
       this.fetchProcessingData();
@@ -380,20 +382,18 @@ class SingleProcessingStore extends Reflux.Store {
       this.currentAssetUid
     );
 
-    // Case 1: switching from a processing route to a processing route.
-    // This means that we are changing either the question and the submission
-    // or just the submission.
     if (
       this.previousPath !== data.location.pathname &&
       this.previousPath !== undefined &&
       this.previousPath.startsWith(baseProcessingRoute) &&
       data.location.pathname.startsWith(baseProcessingRoute)
     ) {
+      // Case 1: switching from a processing route to a processing route.
+      // This means that we are changing either the question and the submission
+      // or just the submission.
       this.fetchProcessingData();
       this.fetchSubmissionData();
     } else if (
-      // Case 2: switching into processing route out of other place (most
-      // probably from assets data table route).
       this.previousPath !== data.location.pathname &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
@@ -401,6 +401,8 @@ class SingleProcessingStore extends Reflux.Store {
         this.currentSubmissionEditId
       )
     ) {
+      // Case 2: switching into processing route out of other place (most
+      // probably from assets data table route).
       this.fetchAllInitialDataForAsset();
       // Each time user visits Processing View from some different route we want
       // to present the same default displays.
