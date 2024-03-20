@@ -1075,7 +1075,18 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=30, day_of_week=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    'log-stuck-exports-and-mark-failed': {
+        'task': 'kobo.apps.openrosa.apps.viewer.tasks.log_stuck_exports_and_mark_failed',
+        'schedule': timedelta(hours=6),
+        'options': {'queue': 'kobocat_queue'}
+    },
+    'delete-daily-xform-submissions-counter': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_daily_counters',
+        'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kobocat_queue'}
+    }
 }
+
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     "fanout_patterns": True,
@@ -1510,11 +1521,15 @@ CONSTANCE_DBS = [
 
 AUTH_USER_MODEL = 'kobo_auth.User'
 
-
-# Kobocat
+####################################
+#         KoboCAT settings         #
+####################################
 KOBOCAT_PUBLIC_HOSTNAME = (
     f"{env.str('KOBOCAT_PUBLIC_SUBDOMAIN')}.{env.str('PUBLIC_DOMAIN_NAME')}"
 )
+
+KOBOFORM_INTERNAL_URL = env.url('KOBOFORM_INTERNAL_URL', KOBOFORM_URL).geturl()
+
 ENKETO_OFFLINE_SURVEYS = env.bool('ENKETO_OFFLINE_SURVEYS', True)
 ENKETO_ONLINE_SURVEY_ENDPOINT = 'api/v2/survey'
 ENKETO_OFFLINE_SURVEY_ENDPOINT = 'api/v2/survey/offline'
@@ -1525,3 +1540,57 @@ OPENROSA_ENKETO_SURVEY_ENDPOINT = (
 )
 OPENROSA_APP_DIR = os.path.join(BASE_DIR, 'kobo', 'apps', 'openrosa')
 DEFAULT_SESSION_EXPIRY_TIME = 21600  # 6 hours
+
+CELERY_TASK_ROUTES = {
+    'kobo.apps.openrosa.*': 'kobocat_queue',
+}
+USE_THOUSAND_SEPARATOR = True
+
+DIGEST_NONCE_BACKEND = 'kobo.apps.openrosa.apps.django_digest_backends.cache.RedisCacheNonceStorage'
+
+# Needed to get ANONYMOUS_USER = -1
+GUARDIAN_GET_INIT_ANONYMOUS_USER = 'kobo.apps.openrosa.apps.main.models.user_profile.get_anonymous_user_instance'
+
+KPI_HOOK_ENDPOINT_PATTERN = '/api/v2/assets/{asset_uid}/hook-signal/'
+
+# TODO Validate if `'PKCE_REQUIRED': False` is required in KPI
+OAUTH2_PROVIDER = {
+    # this is the list of available scopes
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+        'groups': 'Access to your groups'
+    },
+    'PKCE_REQUIRED': False,
+}
+
+REVERSION_MIDDLEWARE_SKIPPED_URL_PATTERNS = {
+    r'/api/v1/users/(.*)': ['DELETE']
+}
+DAILY_COUNTERS_MAX_DAYS = env.int('DAILY_COUNTERS_MAX_DAYS', 366)
+
+USE_POSTGRESQL = True
+
+# Added this because of https://github.com/onaio/kobo.apps.open_rosa_server/pull/2139
+# Should bring support to ODK v1.17+
+SUPPORT_BRIEFCASE_SUBMISSION_DATE = (
+    os.environ.get('SUPPORT_BRIEFCASE_SUBMISSION_DATE') != 'True'
+)
+
+DEFAULT_VALIDATION_STATUSES = [
+    {
+        'uid': 'validation_status_not_approved',
+        'color': '#ff0000',
+        'label': 'Not Approved'
+    },
+    {
+        'uid': 'validation_status_approved',
+        'color': '#00ff00',
+        'label': 'Approved'
+    },
+    {
+        'uid': 'validation_status_on_hold',
+        'color': '#0000ff',
+        'label': 'On Hold'
+    },
+]
