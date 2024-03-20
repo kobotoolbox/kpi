@@ -6,7 +6,7 @@ export const PATHS = Object.freeze({
 });
 
 /** Needed for easier detecting if a processing route. */
-export const FORM_PROCESSING_BASE = '/forms/:uid/data/processing'
+export const FORM_PROCESSING_BASE = '/forms/:uid/data/processing';
 
 // List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
@@ -39,6 +39,9 @@ export const ROUTES = Object.freeze({
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
   /** Has: :uid, :qpath, :submissionEditId */
   FORM_PROCESSING: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId`,
+  FORM_PROCESSING_TRANSCRIPT: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId/transcript`,
+  FORM_PROCESSING_TRANSLATIONS: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId/translations`,
+  FORM_PROCESSING_ANALYSIS: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId/analysis`,
   FORM_SETTINGS: '/forms/:uid/settings',
   FORM_MEDIA: '/forms/:uid/settings/media',
   FORM_SHARING: '/forms/:uid/settings/sharing',

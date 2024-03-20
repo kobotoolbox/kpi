@@ -219,6 +219,33 @@ export const router = createHashRouter(
                 />
               }
             />
+            <Route
+              path={ROUTES.FORM_PROCESSING_TRANSCRIPT}
+              element={
+                <PermProtectedRoute
+                  requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
+                  protectedComponent={SingleProcessingRoute}
+                />
+              }
+            />
+            <Route
+              path={ROUTES.FORM_PROCESSING_TRANSLATIONS}
+              element={
+                <PermProtectedRoute
+                  requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
+                  protectedComponent={SingleProcessingRoute}
+                />
+              }
+            />
+            <Route
+              path={ROUTES.FORM_PROCESSING_ANALYSIS}
+              element={
+                <PermProtectedRoute
+                  requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
+                  protectedComponent={SingleProcessingRoute}
+                />
+              }
+            />
           </Route>
 
           <Route path={ROUTES.FORM_SETTINGS}>
