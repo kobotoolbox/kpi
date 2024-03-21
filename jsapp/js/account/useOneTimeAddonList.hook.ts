@@ -18,7 +18,7 @@ const INITIAL_ADDONS_STATE: OneTimeAddOnState = Object.freeze({
 export function useOneTimeAddOns() {
   const [addons, setAddons] = useState<OneTimeAddOnState>(INITIAL_ADDONS_STATE);
 
-  // get list of products
+  // get list of addons
   useWhenStripeIsEnabled(() => {
     getOneTimeAddOns().then((addons) => {
       setAddons(() => {
