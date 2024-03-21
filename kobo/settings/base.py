@@ -138,7 +138,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
-    'kobo.apps.openrosa.apps.form_disclaimer.FormDisclaimerAppConfig',
 )
 
 # BEFORE KOBOCAT migration

@@ -35,8 +35,9 @@ from kobo.apps.openrosa.libs.utils.guardian import (
     assign_perm,
     get_perms_for_model
 )
-from kobo.apps.openrosa.libs.utils.xml import XMLFormWithDisclaimer
 from kobo.apps.openrosa.libs.utils.hash import get_hash
+from kpi.utils.xml import XMLFormWithDisclaimer
+from kpi.models.asset import Asset
 
 XFORM_TITLE_LENGTH = 255
 title_pattern = re.compile(r"<h:title>([^<]+)</h:title>")
@@ -122,7 +123,30 @@ class XForm(BaseModel):
     all_objects = XFormAllManager()
 
     def file_name(self):
-        return self.id_string + ".xml"
+        return self.id_string + '.xml'
+
+    @property
+    def asset(self):
+        """
+        Retrieve related asset object easily from XForm instance.
+
+        Useful to display form disclaimer in Enketo.
+        See kpi.utils.xml.XMLFormWithDisclaimer for more details.
+        """
+        if not hasattr(self, '_cache_asset'):
+            try:
+                asset = Asset.objects.get(uid=self.kpi_asset_uid)
+            except Asset.DoesNotExist:
+                try:
+                    asset = Asset.objects.get(_deployment_data__formid=self.pk)
+                except Asset.DoesNotExist:
+                    # An `Asset` object needs to be returned to avoid 500 while
+                    # Enketo is fetching for project XML (e.g: /formList, /manifest)
+                    asset = Asset(uid=self.id_string)
+
+            setattr(self, '_cache_asset', asset)
+
+        return getattr(self, '_cache_asset')
 
     def url(self):
         return reverse(
