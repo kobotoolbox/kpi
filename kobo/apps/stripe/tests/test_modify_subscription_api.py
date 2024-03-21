@@ -13,7 +13,7 @@ from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
-class TestCheckoutLinkAPITestCase(BaseTestCase):
+class TestChangePlanAPITestCase(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
@@ -27,6 +27,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
             id='price_1LsSOSAR39rDI89svTKog9Hq',
             product=product,
             unit_amount=1000,
+            transform_quantity=None,
         )
         self.high_price = baker.make(
             Price,
@@ -34,6 +35,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
             id='price_sfmOFe33rfsfd36685657',
             product=product,
             unit_amount=2000,
+            transform_quantity=None,
         )
 
     @staticmethod
@@ -48,20 +50,20 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         customer = baker.make(Customer, subscriber=organization)
         return customer, organization
 
-    def _subscribe_organization(self, organization, customer, price):
-        subscription_item = baker.make(SubscriptionItem, price=price, quantity=1, livemode=False)
+    def _subscribe_organization(self, customer, price, quantity=1):
+        subscription_item = baker.make(SubscriptionItem, price=price, quantity=quantity, livemode=False)
         return baker.make(Subscription, customer=customer, status='active', items=[subscription_item], livemode=False)
 
     @patch("stripe.Subscription.modify")
     @patch("stripe.SubscriptionSchedule.create")
     @patch("stripe.SubscriptionSchedule.modify")
-    def _modify_price(self, price_from, price_to, schedule_modify, subscription_schedule_create, subscription_modify):
+    def _modify_price(self, price_from, quantity_from, price_to, quantity_to, schedule_modify, subscription_schedule_create, subscription_modify):
         subscription_modify.return_value = {'pending_update': None}
         customer, organization = self._create_customer_organization()
         organization.add_user(self.someuser, is_admin=True)
-        subscription = self._subscribe_organization(organization, customer, price_from)
+        subscription = self._subscribe_organization(customer, price_from, quantity_from)
         url = self._get_url(
-            {'price_id': price_to.id, 'subscription_id': subscription.id}
+            {'price_id': price_to.id, 'subscription_id': subscription.id, 'quantity': quantity_to}
         )
         subscription_schedule = baker.make(SubscriptionSchedule, customer=customer, phases=[
             {
@@ -69,7 +71,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
                 'items': [
                     {
                         'price': price_from.id,
-                        'quantity': 1,
+                        'quantity': quantity_to,
                     }
                 ],
             }
@@ -78,12 +80,37 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         return self.client.get(url)
 
     def test_upgrades_subscription(self):
-        response = self._modify_price(self.low_price, self.high_price)
+        response = self._modify_price(self.low_price, 1, self.high_price, 1)
         assert response.status_code == status.HTTP_200_OK
+        assert response.data['status'] == 'success'
 
     def test_downgrades_subscription(self):
-        response = self._modify_price(self.high_price, self.low_price)
+        response = self._modify_price(self.high_price, 1, self.low_price, 1)
         assert response.status_code == status.HTTP_200_OK
+        assert response.data['status'] == 'scheduled'
+
+    def test_rejects_changing_to_same_price_and_quantity(self):
+        response = self._modify_price(self.low_price, 1, self.low_price, 1)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['status'] == 'already subscribed'
+
+    def test_upgrades_subscription_with_quantity(self):
+        """
+        If the user switches from a price with a higher unit amount to a lower unit amount with a greater
+        quantity/overall cost, make sure that they're immediately upgraded
+        """
+        response = self._modify_price(self.high_price, 1, self.low_price, 10000)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['status'] == 'success'
+
+    def test_downgrades_subscription_with_quantity(self):
+        """
+        If the user switches from a price with a lower unit amount to a higher unit amount with a lower
+        quantity/overall cost, the change should be scheduled in the future
+        """
+        response = self._modify_price(self.low_price, 100000, self.low_price, 1)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['status'] == 'scheduled'
 
     def test_rejects_invalid_query_params(self):
         url = self._get_url({'price_id': 'test', 'subscription_id': 'test'})
@@ -93,10 +120,10 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
     def test_doesnt_modify_subscription_if_not_owner(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.client.force_login(anotheruser)
-        response = self._modify_price(self.high_price, self.low_price)
+        response = self._modify_price(self.high_price, 1, self.low_price, 1)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_anonymous_user(self):
         self.client.logout()
-        response = self._modify_price(self.high_price, self.low_price)
+        response = self._modify_price(self.high_price, 1, self.low_price, 1)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED

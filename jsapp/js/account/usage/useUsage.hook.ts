@@ -1,8 +1,8 @@
 import {createContext, useEffect, useState} from 'react';
-import type {RecurringInterval} from 'js/account/stripe.types';
+import type {Organization, RecurringInterval} from 'js/account/stripe.types';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
 import {formatRelativeTime, truncateNumber} from 'js/utils';
-import {getUsageForOrganization} from 'js/account/usage/usage.api';
+import {getUsage} from 'js/account/usage/usage.api';
 
 export interface UsageState {
   storage: number;
@@ -32,7 +32,7 @@ const INITIAL_USAGE_STATE: UsageState = Object.freeze({
   isLoaded: false,
 });
 
-export function useUsage() {
+export function useUsage(organization: Organization | null) {
   const [usage, setUsage] = useState<UsageState>(INITIAL_USAGE_STATE);
 
   // get subscription interval (monthly, yearly) from the subscriptionStore when ready
@@ -49,10 +49,10 @@ export function useUsage() {
   }, []);
 
   useEffect(() => {
-    if (!usage.isPeriodLoaded) {
+    if (!usage.isPeriodLoaded || !organization?.id) {
       return;
     }
-    getUsageForOrganization().then((data) => {
+    getUsage(organization.id).then((data) => {
       if (!data) {
         return;
       }
@@ -88,7 +88,7 @@ export function useUsage() {
         };
       });
     });
-  }, [usage.isPeriodLoaded]);
+  }, [usage.isPeriodLoaded, organization]);
 
   return usage;
 }

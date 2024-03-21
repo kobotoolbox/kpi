@@ -6,7 +6,7 @@ import type {IconName} from 'jsapp/fonts/k-icons';
 import Icon from './icon';
 import type {IconSize} from './icon';
 
-export type BadgeColor = 'cloud' | 'light-amber' | 'light-blue' | 'light-teal';
+export type BadgeColor = 'cloud' | 'light-amber' | 'light-blue' | 'light-red' |'light-teal';
 export type BadgeSize = 'l' | 'm' | 's';
 
 export const BadgeToIconMap: Map<BadgeSize, IconSize> = new Map();

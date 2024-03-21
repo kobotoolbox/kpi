@@ -1,0 +1,29 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+@use 'scss/sizes';
+
+.root {
+  padding: sizes.$x40;
+}
+
+.headerText {
+  font-size: sizes.$r18;
+  font-weight: 700;
+  color: hsl(225, 33%, 59%);
+  padding: 0.5em 0;
+  text-transform: uppercase;
+}
+
+.article {
+  p {
+    display: inline;
+  }
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+

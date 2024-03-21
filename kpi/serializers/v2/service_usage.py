@@ -1,6 +1,7 @@
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db.models import Sum, Q, OuterRef, Subquery, QuerySet
+from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework import serializers
@@ -118,7 +119,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._period_start = None
         self._period_end = None
         self._subscription_interval = None
-        self._now = timezone.now().date()
+        self._now = timezone.now()
         self._get_per_asset_usage(instance)
 
     def get_total_nlp_usage(self, user):
@@ -131,13 +132,15 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._total_storage_bytes
 
     def get_current_month_start(self, user):
-        return self._current_month_start
+        return self._current_month_start.isoformat()
 
     def get_current_year_start(self, user):
-        return self._current_year_start
+        return self._current_year_start.isoformat()
 
     def get_billing_period_end(self, user):
-        return self._period_end
+        if self._period_end is None:
+            return None
+        return self._period_end.isoformat()
 
     def _get_current_month_start_date(self):
         # No subscription info, just use the first day of current month
@@ -148,18 +151,10 @@ class ServiceUsageSerializer(serializers.Serializer):
         if self._subscription_interval == 'month':
             return self._period_start
 
-        # Subscription is yearly, calculate the start date based on the anchor day
-        anchor_day = self._anchor_date.day
-        if self._now.day > anchor_day:
-            return self._now.replace(day=anchor_day)
-        start_year = self._now.year
-        start_month = self._now.month - 1
-        if start_month == 0:
-            start_month = 12
-            start_year -= 1
-        return self._now.replace(
-            day=anchor_day, month=start_month, year=start_year
-        )
+        month_start = self._period_end
+        while month_start > self._now():
+            month_start -= relativedelta(months=1)
+        return month_start
 
     def _get_current_year_start_date(self):
         # No subscription info, just use the first day of current year
@@ -171,9 +166,10 @@ class ServiceUsageSerializer(serializers.Serializer):
             return self._period_start
 
         # Subscription is monthly, calculate this year's start based on anchor date
-        if self._anchor_date.replace(year=self._now.year) > self._now:
-            return self._anchor_date.replace(year=self._now.year - 1)
-        return self._anchor_date.replace(year=self._now.year)
+        year_start = self._anchor_date
+        while year_start + relativedelta(years=1) < self._now:
+            year_start += relativedelta(years=1)
+        return year_start
 
     def _filter_by_user(self, user_ids: list) -> Q:
         """
@@ -224,9 +220,9 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
         if billing_details := organization.active_subscription_billing_details:
-            self._anchor_date = billing_details['billing_cycle_anchor'].date()
-            self._period_start = billing_details['current_period_start'].date()
-            self._period_end = billing_details['current_period_end'].date()
+            self._anchor_date = billing_details['billing_cycle_anchor']
+            self._period_start = billing_details['current_period_start']
+            self._period_end = billing_details['current_period_end']
             self._subscription_interval = billing_details['recurring_interval']
 
         if settings.STRIPE_ENABLED:

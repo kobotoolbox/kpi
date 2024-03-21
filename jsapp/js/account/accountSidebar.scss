@@ -15,6 +15,10 @@
     opacity: 0.5;
   }
 
+  .form-sidebar__label-text.form-sidebar__label-text--isNew {
+    flex: 0.75;
+  }
+
   a.active {
     .form-sidebar__label {
       border-left: sizes.$x3 solid colors.$kobo-teal;

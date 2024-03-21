@@ -7,7 +7,8 @@ import {currentLang, stringToColor} from 'js/utils';
 import envStore from 'js/envStore';
 import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
-import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
+import {actions} from 'js/actions';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {isAnyRouteBlockerActive} from 'js/router/routerUtils';
 
 /**

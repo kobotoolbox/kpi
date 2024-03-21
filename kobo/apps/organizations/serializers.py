@@ -24,12 +24,16 @@ class OrganizationOwnerSerializer(serializers.ModelSerializer):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-    owner_username = serializers.CharField(source='owner.organization_user.user.username', read_only=True)
+    is_owner = serializers.SerializerMethodField('_is_owner')
+
+    def _is_owner(self, instance):
+        user = self.context['request'].user
+        return instance.owner.organization_user.user.id == user.id
 
     class Meta:
         model = Organization
-        fields = ['id', 'name', 'is_active', 'created', 'modified', 'slug', 'owner_username']
-        read_only_fields = ['id', 'slug', 'owner_username']
+        fields = ['id', 'name', 'is_active', 'created', 'modified', 'slug', 'is_owner']
+        read_only_fields = ['id', 'slug']
 
     def create(self, validated_data):
         user = self.context['request'].user

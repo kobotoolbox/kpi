@@ -7,7 +7,8 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import type {
-  BasePrice,
+  Price,
+  PriceWithProduct,
   Product,
   SubscriptionInfo,
 } from 'js/account/stripe.types';
@@ -17,18 +18,21 @@ import {
   isAddonProduct,
   processChangePlanResponse,
 } from 'js/account/stripe.utils';
-import {formatDate} from 'js/utils';
+import {formatDate, notify} from 'js/utils';
 import styles from './confirmChangeModal.module.scss';
 import BillingButton from 'js/account/plans/billingButton.component';
+import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 
 export interface ConfirmChangeProps {
-  newPrice: BasePrice | null;
+  newPrice: Price | null;
   products: Product[] | null;
+  quantity?: number;
   currentSubscription: SubscriptionInfo | null;
 }
 
 interface ConfirmChangeModalProps extends ConfirmChangeProps {
   onRequestClose: () => void;
+  setIsBusy: (isBusy: boolean) => void;
 }
 
 /**
@@ -41,9 +45,12 @@ const ConfirmChangeModal = ({
   products,
   currentSubscription,
   onRequestClose,
+  setIsBusy,
+  quantity = 1,
 }: ConfirmChangeModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingChange, setPendingChange] = useState(false);
+  const displayPrice = useDisplayPrice(newPrice, quantity);
 
   const shouldShow = useMemo(
     () => !!(currentSubscription && newPrice),
@@ -62,7 +69,7 @@ const ConfirmChangeModal = ({
 
   // get a translatable description of a newPrice
   const getPriceDescription = useCallback(
-    (price: BasePrice) => {
+    (price: Price) => {
       const product = getProductForPriceId(price.id);
       if (price && product) {
         if (isAddonProduct(product)) {
@@ -90,9 +97,12 @@ const ConfirmChangeModal = ({
 
   // get the product type to display as a translatable string
   const getPriceType = useCallback(
-    (price: BasePrice) => {
+    (price: PriceWithProduct | null) => {
+      if (!price) {
+        return t('plan');
+      }
       const product = getProductForPriceId(price.id);
-      if (price && product) {
+      if (product) {
         if (isAddonProduct(product)) {
           return t('add-on');
         } else {
@@ -110,22 +120,36 @@ const ConfirmChangeModal = ({
     }
   }, [shouldShow && pendingChange]);
 
+  const onClickCancel = () => {
+    onRequestClose();
+    setIsBusy(false);
+  };
+
   const submitChange = () => {
     if (isLoading || !newPrice || !currentSubscription) {
       return;
     }
     setIsLoading(true);
     setPendingChange(true);
-    changeSubscription(newPrice.id, currentSubscription.id)
+    changeSubscription(newPrice.id, currentSubscription.id, quantity)
       .then((data) => {
-        processChangePlanResponse(data).then((status) => {
-          if (status !== ChangePlanStatus.success) {
-            onRequestClose();
-          }
-        });
+        processChangePlanResponse(data);
+        setPendingChange(false);
+        onClickCancel();
       })
-      .catch(onRequestClose)
-      .finally(() => setPendingChange(false));
+      .catch(() => {
+        notify.error(
+          t(
+            'There was an error processing your plan change. Your previous plan has not been changed. Please try again later.'
+          ),
+          {
+            duration: 10000,
+          }
+        );
+        setIsBusy(false);
+        setPendingChange(false);
+        onClickCancel();
+      });
   };
 
   return (
@@ -156,7 +180,7 @@ const ConfirmChangeModal = ({
                   ) + ' '}
                 {t(
                   `Your current ##product_type## will remain in effect until ##billing_end_date##.
-                    Starting on ##billing_end_date## and until you cancel, we will bill you ##new_price## per ##interval##.`
+                    Starting on ##billing_end_date## and until you cancel, we will bill you ##new_price##.`
                 )
                   .replace(
                     /##product_type##/g,
@@ -166,11 +190,7 @@ const ConfirmChangeModal = ({
                     /##billing_end_date##/g,
                     formatDate(currentSubscription.current_period_end)
                   )
-                  .replace(
-                    '##new_price##',
-                    newPrice.human_readable_price.split('/')[0]
-                  )
-                  .replace('##interval##', newPrice.recurring.interval)}
+                  .replace('##new_price##', displayPrice)}
               </p>
             )}
         </section>
@@ -184,7 +204,7 @@ const ConfirmChangeModal = ({
         <BillingButton
           color='red'
           isDisabled={isLoading}
-          onClick={onRequestClose}
+          onClick={onClickCancel}
           label={t('Cancel')}
         />
       </KoboModalFooter>

@@ -25,7 +25,6 @@ import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
-import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -37,7 +36,6 @@ function CustomViewRoute() {
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const usage = useUsage();
 
   useEffect(() => {
     customView.setUp(
@@ -123,9 +121,7 @@ function CustomViewRoute() {
           </div>
         )}
       </header>
-      <UsageContext.Provider value={usage}>
-        <LimitNotifications useModal />
-      </UsageContext.Provider>
+      <LimitNotifications useModal />
       <ProjectsTable
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}

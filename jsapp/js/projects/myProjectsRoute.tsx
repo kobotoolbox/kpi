@@ -27,12 +27,10 @@ import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
-import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const usage = useUsage();
 
   useEffect(() => {
     customView.setUp(
@@ -79,9 +77,7 @@ function MyProjectsRoute() {
         <h1>{t('Drop files to upload')}</h1>
       </div>
 
-      <UsageContext.Provider value={usage}>
-        <LimitNotifications useModal />
-      </UsageContext.Provider>
+      <LimitNotifications useModal />
 
       <section className={styles.root}>
         <header className={styles.header}>

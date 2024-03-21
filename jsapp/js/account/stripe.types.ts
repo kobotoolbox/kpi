@@ -1,37 +1,3 @@
-export interface BaseProduct {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  metadata: Record<string, string>;
-}
-
-export interface PlanInfo {
-  product: BaseProduct;
-  djstripe_created: string;
-  djstripe_updated: string;
-  id: string;
-  livemode: boolean;
-  created: string;
-  metadata: {};
-  description: string;
-  active: boolean;
-  aggregate_usage: string;
-  amount: string;
-  amount_decimal: string;
-  billing_scheme: string;
-  currency: string;
-  interval: string;
-  interval_count: 1;
-  nickname: string;
-  tiers: any;
-  tiers_mode: string;
-  transform_usage: any;
-  trial_period_days: any;
-  usage_type: string;
-  djstripe_owner_account: string;
-}
-
 interface SubscriptionPhase {
   items: [
     {
@@ -72,7 +38,7 @@ interface SubscriptionSchedule {
 }
 
 export interface SubscriptionInfo {
-  plan: PlanInfo;
+  plan: number;
   djstripe_created: string;
   djstripe_updated: string;
   id: string;
@@ -83,7 +49,7 @@ export interface SubscriptionInfo {
   application_fee_percent: any;
   billing_cycle_anchor: string;
   billing_thresholds: any;
-  cancel_at: any;
+  cancel_at: string | null;
   cancel_at_period_end: boolean;
   canceled_at: any;
   collection_method: string;
@@ -95,7 +61,7 @@ export interface SubscriptionInfo {
   next_pending_invoice_item_invoice: any;
   pending_invoice_item_interval: any;
   pending_update: any;
-  quantity: 1;
+  quantity: number;
   start_date: string;
   status: string;
   trial_end: any;
@@ -108,12 +74,23 @@ export interface SubscriptionInfo {
   pending_setup_intent: any;
   schedule: SubscriptionSchedule;
   default_tax_rates: [];
-  items: Array<{price: BasePrice}>;
+  items: SubscriptionItem[];
+}
+
+export interface SubscriptionItem {
+  id: string;
+  price: PriceWithProduct;
+  quantity: number;
 }
 
 // There is probably a better way to hand the nested types
 export interface Product extends BaseProduct {
-  prices: BasePrice[];
+  prices: Price[];
+}
+
+// This is a frontend-only interface for accessing the relevant price of a product
+export interface SinglePricedProduct extends BaseProduct {
+  price: Price;
 }
 
 export interface BaseProduct {
@@ -126,7 +103,7 @@ export interface BaseProduct {
 
 export type RecurringInterval = 'year' | 'month';
 
-export interface BasePrice {
+export interface Price {
   id: string;
   nickname: string;
   currency: string;
@@ -141,19 +118,25 @@ export interface BasePrice {
     usage_type: 'metered' | 'licensed';
   };
   metadata: {[key: string]: string};
-  product: BaseProduct;
-  billing_scheme: 'per_unit' | 'tiered' | null;
-  transform_quantity: null | {
-    round: 'up' | 'down';
-    divide_by: number;
-  };
+  product: string;
+  transform_quantity: null | TransformQuantity;
 }
 
-export interface BaseSubscription {
-  id: number;
-  price: Product;
-  status: string;
-  items: [{price: BasePrice}];
+export interface PriceWithProduct extends Omit<Price, 'product'> {
+  product: BaseProduct;
+}
+
+export type PriceMetadata = Record<
+  string,
+  string | TransformQuantity | null
+> & {
+  quantity: string;
+  transform_quantity: null | TransformQuantity;
+};
+
+export interface TransformQuantity {
+  divide_by: number;
+  round: 'up' | 'down';
 }
 
 export interface Organization {
@@ -163,7 +146,7 @@ export interface Organization {
   created: string;
   modified: string;
   slug: string;
-  owner_username: string;
+  is_owner: boolean;
 }
 
 export enum PlanNames {
@@ -186,14 +169,6 @@ export interface AccountLimit {
   storage_bytes_limit: LimitAmount;
 }
 
-export interface Product extends BaseProduct {
-  prices: BasePrice[];
-}
-
-export interface Price extends BaseProduct {
-  prices: BasePrice;
-}
-
 export interface Checkout {
   url: string;
 }
@@ -203,6 +178,15 @@ export enum ChangePlanStatus {
   'scheduled' = 'scheduled',
   'pending' = 'pending',
   'error' = 'error',
+}
+
+export enum SubscriptionChangeType {
+  CANCELLATION,
+  RENEWAL,
+  PRODUCT_CHANGE,
+  PRICE_CHANGE,
+  QUANTITY_CHANGE,
+  NO_CHANGE,
 }
 
 export type ChangePlan =
