@@ -10,7 +10,7 @@ from urllib.parse import quote_plus
 import django.conf.locale
 import environ
 from celery.schedules import crontab
-from django.conf.global_settings import LOGIN_URL
+from django.conf import global_settings
 from django.urls import reverse_lazy
 from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
@@ -748,7 +748,7 @@ else:
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = KPI_PREFIX + '/' + STATIC_URL.lstrip('/')
     MEDIA_URL = KPI_PREFIX + '/' + MEDIA_URL.lstrip('/')
-    LOGIN_URL = KPI_PREFIX + '/' + LOGIN_URL.lstrip('/')
+    LOGIN_URL = KPI_PREFIX + '/' + global_settings.LOGIN_URL.lstrip('/')
     LOGIN_REDIRECT_URL = KPI_PREFIX + '/' + LOGIN_REDIRECT_URL.lstrip('/')
 
 STATICFILES_DIRS = (
@@ -1093,15 +1093,34 @@ if env.str('AWS_ACCESS_KEY_ID', False):
     if region := env.str('AWS_S3_REGION_NAME', False):
         AWS_S3_REGION_NAME = region
 
-''' Storage configuration '''
-default_file_storage = 'django.core.files.storage.FileSystemStorage'
+# Storage configuration
+STORAGES = global_settings.STORAGES
 
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
-    default_file_storage = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
-    if default_file_storage == 'storages.backends.s3boto3.S3Boto3Storage':
-        # Force usage of custom S3 tellable Storage
-        default_file_storage = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
+
+    global_default_file_storage = STORAGES['default']['BACKEND']
+    default_file_storage = STORAGES['default']['BACKEND'] = env.str(
+        'KPI_DEFAULT_FILE_STORAGE'
+    )
+    if default_file_storage != global_default_file_storage:
+        if default_file_storage.endswith('S3Boto3Storage'):
+            # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
+            # Force usage of custom S3 tellable Storage
+            STORAGES['default']['BACKEND'] = (
+                'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
+            )
+        elif default_file_storage.endswith('AzureStorage'):
+            PRIVATE_STORAGE_CLASS = (
+                'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
+            )
+            PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
+            AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
+            AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
+            AZURE_CONTAINER = env.str('AZURE_CONTAINER')
+            AZURE_URL_EXPIRATION_SECS = env.int(
+                'AZURE_URL_EXPIRATION_SECS', None
+            )
+
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
@@ -1113,14 +1132,6 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-    if default_file_storage.endswith('AzureStorage'):
-        PRIVATE_STORAGE_CLASS = \
-            'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
-        PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
-        AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
-        AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
-        AZURE_CONTAINER = env.str('AZURE_CONTAINER')
-        AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
@@ -1129,18 +1140,8 @@ if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
     if 'KOBOCAT_AWS_STORAGE_BUCKET_NAME' in os.environ:
         KOBOCAT_AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
 else:
-    KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    KOBOCAT_DEFAULT_FILE_STORAGE = global_settings.STORAGES['default']['BACKEND']
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
-
-
-STORAGES = {
-    'default': {
-        'BACKEND': default_file_storage,
-    },
-    'staticfiles': {
-        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
-    },
-}
 
 
 # Google Cloud Storage
