@@ -43,7 +43,8 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
     mkdir -p "${TMP_DIR}" && \
     mkdir -p ${CELERY_PID_DIR} && \
     mkdir -p ${SERVICES_DIR}/uwsgi && \
-    mkdir -p ${SERVICES_DIR}/celery && \
+    mkdir -p ${SERVICES_DIR}/celery_kpi && \
+    mkdir -p ${SERVICES_DIR}/celery_kobocat && \
     mkdir -p ${SERVICES_DIR}/celery_low_priority && \
     mkdir -p ${SERVICES_DIR}/celery_beat && \
     mkdir -p "${INIT_PATH}"
@@ -168,7 +169,8 @@ RUN rm -rf /etc/runit/runsvdir/default/getty-tty*
 
 # Create symlinks for runsv services
 RUN ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" "${SERVICES_DIR}/uwsgi/run" && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery.bash" "${SERVICES_DIR}/celery/run" && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery_kpi.bash" "${SERVICES_DIR}/celery_kpi/run" && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery_kobocat.bash" "${SERVICES_DIR}/celery_kobocat/run" && \
     ln -s "${KPI_SRC_DIR}/docker/run_celery_low_priority.bash" "${SERVICES_DIR}/celery_low_priority/run" && \
     ln -s "${KPI_SRC_DIR}/docker/run_celery_beat.bash" "${SERVICES_DIR}/celery_beat/run"
 
