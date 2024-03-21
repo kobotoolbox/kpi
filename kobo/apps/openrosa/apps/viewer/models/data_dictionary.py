@@ -431,5 +431,9 @@ def set_object_permissions(sender, instance=None, created=False, **kwargs):
     if created:
         for perm in get_perms_for_model(XForm):
             assign_perm(perm.codename, instance.user, instance)
-post_save.connect(set_object_permissions, sender=DataDictionary,
-                  dispatch_uid='xform_object_permissions')
+
+post_save.connect(
+    set_object_permissions,
+    sender=DataDictionary,
+    dispatch_uid='xform_object_permissions',
+)

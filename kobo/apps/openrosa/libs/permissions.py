@@ -14,7 +14,8 @@ def get_object_users_with_permissions(obj, exclude=None, serializable=False):
 
     if obj:
         users_with_perms = get_users_with_perms(
-            obj, attach_perms=True, with_group_users=False).items()
+            obj, attach_perms=True, with_group_users=False
+        ).items()
 
         result = [{
             'user': user if not serializable else user.username,
