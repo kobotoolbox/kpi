@@ -25,7 +25,6 @@ export type ButtonColor =
   | 'red'
   | 'storm'
   | 'light-storm'
-  | 'dark-red'
   | 'dark-blue';
 
 /**
