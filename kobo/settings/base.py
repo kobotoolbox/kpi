@@ -3,7 +3,7 @@ import logging
 import os
 import string
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
@@ -19,8 +19,6 @@ from kobo.apps.stripe.constants import (
     FREE_TIER_NO_THRESHOLDS,
     FREE_TIER_EMPTY_DISPLAY,
 )
-# FIXME Remove import when everything is merged
-from kobo.apps.openrosa.settings.base import *
 from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 

@@ -12,7 +12,6 @@ from celery import shared_task
 from django.conf import settings
 from django.core.mail import mail_admins
 
-from kobo.apps.openrosa.celery import app
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs.exceptions import NoRecordsFoundError
 from kobo.apps.openrosa.libs.utils.export_tools import (
@@ -21,6 +20,7 @@ from kobo.apps.openrosa.libs.utils.export_tools import (
     generate_kml_export
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import mongo_sync_status, report_exception
+from kobo.celery import celery_app
 
 
 def create_async_export(xform, export_type, query, force_xlsx, options=None):
@@ -79,7 +79,7 @@ def create_async_export(xform, export_type, query, force_xlsx, options=None):
     return None
 
 
-@app.task()
+@celery_app.task()
 def create_xls_export(username, id_string, export_id, query=None,
                       force_xlsx=True, group_delimiter='/',
                       split_select_multiples=True,
@@ -119,7 +119,7 @@ def create_xls_export(username, id_string, export_id, query=None,
         return gen_export.id
 
 
-@app.task()
+@celery_app.task()
 def create_csv_export(username, id_string, export_id, query=None,
                       group_delimiter='/', split_select_multiples=True,
                       binary_select_multiples=False):
@@ -154,7 +154,7 @@ def create_csv_export(username, id_string, export_id, query=None,
         return gen_export.id
 
 
-@app.task()
+@celery_app.task()
 def create_kml_export(username, id_string, export_id, query=None):
     # we re-query the db instead of passing model objects according to
     # http://docs.celeryproject.org/en/latest/userguide/tasks.html#state
@@ -182,7 +182,7 @@ def create_kml_export(username, id_string, export_id, query=None):
         return gen_export.id
 
 
-@app.task()
+@celery_app.task()
 def create_zip_export(username, id_string, export_id, query=None):
     export = Export.objects.get(id=export_id)
     try:
@@ -209,7 +209,7 @@ def create_zip_export(username, id_string, export_id, query=None):
         return gen_export.id
 
 
-@app.task()
+@celery_app.task()
 def delete_export(export_id):
     try:
         export = Export.objects.get(id=export_id)
@@ -237,7 +237,7 @@ REMONGO_PATTERN = re.compile(r'Total # of records to remongo: -?[1-9]+',
                              re.IGNORECASE)
 
 
-@app.task()
+@celery_app.task()
 def email_mongo_sync_status():
     """Check the status of records in the mysql db versus mongodb, and, if
     necessary, invoke the command to re-sync the two databases, sending an

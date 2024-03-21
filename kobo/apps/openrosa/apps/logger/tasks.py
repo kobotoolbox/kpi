@@ -14,12 +14,12 @@ from django.core.management import call_command
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.celery import app
+from kobo.celery import celery_app
 from .models.daily_xform_submission_counter import DailyXFormSubmissionCounter
 from .models import Instance, XForm
 
 
-@app.task()
+@celery_app.task()
 def delete_daily_counters():
     today = timezone.now().date()
     delta = timedelta(days=settings.DAILY_COUNTERS_MAX_DAYS)
@@ -119,6 +119,6 @@ def generate_stats_zip(output_filename):
         zip_file.close()
 
 
-@app.task()
+@celery_app.task()
 def sync_storage_counters():
     call_command('update_attachment_storage_bytes', verbosity=3, sync=True)

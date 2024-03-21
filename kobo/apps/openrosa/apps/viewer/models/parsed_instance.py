@@ -9,7 +9,7 @@ from django.db.models.signals import pre_delete
 from django.utils.translation import gettext as t
 from pymongo.errors import PyMongoError
 
-from kobo.apps.openrosa.celery import app
+from kobo.celery import celery_app
 from kobo.apps.openrosa.apps.api.mongo_helper import MongoHelper
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.models import Note
@@ -50,7 +50,7 @@ def datetime_from_str(text):
     return dt
 
 
-@app.task
+@celery_app.task
 def update_mongo_instance(record):
     # since our dict always has an id, save will always result in an upsert op
     # - so we dont need to worry whether its an edit or not
