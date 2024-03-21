@@ -4,15 +4,15 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import styles from './oneTimeAddOnUsageModal.module.scss';
 import {OneTimeAddOn, RecurringInterval, USAGE_TYPE} from '../../stripe.types';
-import {limitDisplay} from '../../stripe.utils';
-import OneTimeAddOnList from './one-time-addon-list/oneTimeAddOnList.component';
+import {useLimitDisplay} from '../../stripe.utils';
+import OneTimeAddOnList from './one-time-add-on-list/oneTimeAddOnList.component';
 
 interface OneTimeAddOnUsageModalProps {
   type: USAGE_TYPE;
   recurringLimit: number;
   remainingLimit: number;
   period: RecurringInterval;
-  oneTimeAddons: OneTimeAddOn[];
+  oneTimeAddOns: OneTimeAddOn[];
   usage: number;
 }
 
@@ -21,12 +21,13 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
   const toggleModal = () => {
     setShowModal(!showModal);
   };
+  const {limitDisplay} = useLimitDisplay();
 
   const typeTitles: {[key in USAGE_TYPE]: string} = {
-    [USAGE_TYPE.STORAGE]: 'STORAGE GB',
-    [USAGE_TYPE.SUBMISSIONS]: 'SUBMISSIONS',
-    [USAGE_TYPE.TRANSCRIPTION]: 'TRANSCRIPTION MINUTES',
-    [USAGE_TYPE.TRANSLATION]: 'TRANSLATION CHARACTERS',
+    [USAGE_TYPE.STORAGE]: 'Storage GB',
+    [USAGE_TYPE.SUBMISSIONS]: 'Submissions',
+    [USAGE_TYPE.TRANSCRIPTION]: 'Transcription minutes',
+    [USAGE_TYPE.TRANSLATION]: 'Translation characters',
   };
 
   const recurringUsage = useMemo(
@@ -49,7 +50,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
         <KoboModalContent>
           <div className={styles.addonUsageDetails}>
             <div className={styles.addonTypeHeader}>
-              {t('##TYPE## AVAILABLE').replace(
+              {t('##TYPE## available').replace(
                 '##TYPE##',
                 typeTitles[props.type]
               )}
@@ -82,7 +83,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
             </ul>
 
             <div className={styles.addonTypeHeader}>
-              {t('##TYPE## USED').replace('##TYPE##', typeTitles[props.type])}
+              {t('##TYPE## used').replace('##TYPE##', typeTitles[props.type])}
             </div>
             <ul className={styles.usageBreakdown}>
               <li>
@@ -105,7 +106,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
             </ul>
 
             <div className={styles.addonTypeHeader}>
-              {t('##TYPE## BALANCE').replace(
+              {t('##TYPE## balance').replace(
                 '##TYPE##',
                 typeTitles[props.type]
               )}
@@ -148,7 +149,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
             </ul>
           </div>
           <h2 className={styles.listHeaderText}>{t('Purchased add-ons')}</h2>
-          < OneTimeAddOnList oneTimeAddOns={props.oneTimeAddons} type={props.type} />
+          < OneTimeAddOnList oneTimeAddOns={props.oneTimeAddOns} type={props.type} />
         </KoboModalContent>
       </KoboModal>
     </>

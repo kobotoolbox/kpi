@@ -169,6 +169,9 @@ export default function Usage() {
     }
   }
 
+  // Find out if any usage type has one-time addons so we can
+  // adjust the formatting of the usage containers to accommodate
+  // a detail link.
   const useAddonsLayout = useMemo(() => {
     let result = false;
     for (const type of [
@@ -220,7 +223,7 @@ export default function Usage() {
               usage={usage.submissions}
               remainingLimit={limits.submissionsRemainingLimit}
               recurringLimit={limits.submissionsRecurringLimit}
-              oneTimeAddons={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
               useAddonLayout={useAddonsLayout}
               period={usage.trackingPeriod}
               type={USAGE_TYPE.SUBMISSIONS}
@@ -235,7 +238,7 @@ export default function Usage() {
               usage={usage.storage}
               remainingLimit={limits.storageByteRemainingLimit}
               recurringLimit={limits.storageByteRecurringLimit}
-              oneTimeAddons={filterAddOns(USAGE_TYPE.STORAGE)}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
               useAddonLayout={useAddonsLayout}
               period={usage.trackingPeriod}
               label={t('Total')}
@@ -255,7 +258,7 @@ export default function Usage() {
               usage={usage.transcriptionMinutes}
               remainingLimit={limits.nlpMinuteRemainingLimit}
               recurringLimit={limits.nlpMinuteRecurringLimit}
-              oneTimeAddons={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
               useAddonLayout={useAddonsLayout}
               period={usage.trackingPeriod}
               type={USAGE_TYPE.TRANSCRIPTION}
@@ -272,7 +275,7 @@ export default function Usage() {
               usage={usage.translationChars}
               remainingLimit={limits.nlpCharacterRemainingLimit}
               recurringLimit={limits.nlpCharacterRecurringLimit}
-              oneTimeAddons={filterAddOns(USAGE_TYPE.TRANSLATION)}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
               useAddonLayout={useAddonsLayout}
               period={usage.trackingPeriod}
               type={USAGE_TYPE.TRANSLATION}

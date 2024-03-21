@@ -232,24 +232,30 @@ export const isDowngrade = (
  * @param {number|'unlimited'|null} [available=null] - If we're showing a balance,
  * `amount` takes the usage amount and this takes the limit amount
  */
-export const limitDisplay = (
-  type: USAGE_TYPE,
-  amount: LimitAmount,
-  available: LimitAmount | null = null
-) => {
-  if (amount === Limits.unlimited || available === Limits.unlimited) {
-    return t('Unlimited');
-  }
-  const total = available ? available - amount : amount;
-  switch (type) {
-    case USAGE_TYPE.STORAGE:
-      return prettyBytes(total);
-    case USAGE_TYPE.TRANSCRIPTION:
-      return t('##minutes## mins').replace(
-        '##minutes##',
-        total.toLocaleString()
-      );
-    default:
-      return total.toLocaleString();
-  }
+export const useLimitDisplay = () => {
+  const limitDisplay = useCallback(
+    (
+      type: USAGE_TYPE,
+      amount: LimitAmount,
+      available: LimitAmount | null = null
+    ) => {
+      if (amount === Limits.unlimited || available === Limits.unlimited) {
+        return t('Unlimited');
+      }
+      const total = available ? available - amount : amount;
+      switch (type) {
+        case USAGE_TYPE.STORAGE:
+          return prettyBytes(total);
+        case USAGE_TYPE.TRANSCRIPTION:
+          return t('##minutes## mins').replace(
+            '##minutes##',
+            total.toLocaleString()
+          );
+        default:
+          return total.toLocaleString();
+      }
+    },
+    []
+  );
+  return {limitDisplay};
 };

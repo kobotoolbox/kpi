@@ -1,7 +1,7 @@
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useContext, useMemo} from 'react';
 import styles from './oneTimeAddOnList.module.scss';
 import {OneTimeAddOn, USAGE_TYPE} from 'jsapp/js/account/stripe.types';
-import {limitDisplay} from 'jsapp/js/account/stripe.utils';
+import {useLimitDisplay} from 'jsapp/js/account/stripe.utils';
 import {ProductsContext} from 'jsapp/js/account/useProducts.hook';
 
 interface OneTimeAddOnList {
@@ -11,6 +11,7 @@ interface OneTimeAddOnList {
 
 function OneTimeAddOnList(props: OneTimeAddOnList) {
   const productsContext = useContext(ProductsContext);
+  const {limitDisplay} = useLimitDisplay();
 
   const formattedAddOns = useMemo(() => {
     return props.oneTimeAddOns.map((addon) => {

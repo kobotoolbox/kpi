@@ -1,5 +1,4 @@
-import prettyBytes from 'pretty-bytes';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {
   LimitAmount,
   OneTimeAddOn,
@@ -9,18 +8,18 @@ import Icon from 'js/components/common/icon';
 import styles from 'js/account/usage/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 import {Limits, USAGE_TYPE} from 'js/account/stripe.types';
-import { limitDisplay } from '../stripe.utils';
+import {useLimitDisplay} from '../stripe.utils';
 import cx from 'classnames';
 import subscriptionStore from 'js/account/subscriptionStore';
 import Badge from 'js/components/common/badge';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import OneTimeAddOnUsageModal from './one-time-addon-usage-modal/oneTimeAddOnUsageModal.component';
+import OneTimeAddOnUsageModal from './one-time-add-on-usage-modal/oneTimeAddOnUsageModal.component';
 
 interface UsageContainerProps {
   usage: number;
   remainingLimit: LimitAmount;
   recurringLimit: LimitAmount;
-  oneTimeAddons: OneTimeAddOn[];
+  oneTimeAddOns: OneTimeAddOn[];
   useAddonLayout: boolean;
   period: RecurringInterval;
   label?: string;
@@ -31,7 +30,7 @@ const UsageContainer = ({
   usage,
   remainingLimit,
   recurringLimit,
-  oneTimeAddons,
+  oneTimeAddOns,
   useAddonLayout,
   period,
   type,
@@ -45,9 +44,11 @@ const UsageContainer = ({
   );
 
   const displayOneTimeAddons = useMemo(
-    () => oneTimeAddons.length > 0,
-    [oneTimeAddons]
+    () => oneTimeAddOns.length > 0,
+    [oneTimeAddOns]
   );
+
+  const {limitDisplay} = useLimitDisplay();
 
   useWhenStripeIsEnabled(() => setIsStripeEnabled(true), []);
   let limitRatio = 0;
@@ -66,7 +67,9 @@ const UsageContainer = ({
       {isStripeEnabled && (
         <li>
           <label>{t('Available')}</label>
-          <data value={remainingLimit}>{limitDisplay(type, remainingLimit)}</data>
+          <data value={remainingLimit}>
+            {limitDisplay(type, remainingLimit)}
+          </data>
         </li>
       )}
       <li>
@@ -107,14 +110,14 @@ const UsageContainer = ({
         </li>
       )}
       {displayOneTimeAddons && (
-        // We have already checked for "unlimited" limit amounts when filtering the addons, 
+        // We have already checked for "unlimited" limit amounts when filtering the addons,
         // so we can now cast limits as numbers
         <OneTimeAddOnUsageModal
           type={type}
           recurringLimit={recurringLimit as number}
           remainingLimit={remainingLimit as number}
           period={period}
-          oneTimeAddons={oneTimeAddons}
+          oneTimeAddOns={oneTimeAddOns}
           usage={usage}
         />
       )}
