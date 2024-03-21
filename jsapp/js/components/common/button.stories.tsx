@@ -12,7 +12,7 @@ const buttonColors: ButtonColor[] = [
   'light-blue',
   'red',
   'storm',
-  'cloud',
+  'light-storm',
   'dark-red',
   'dark-blue',
 ];
