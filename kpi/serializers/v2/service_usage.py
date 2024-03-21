@@ -1,3 +1,4 @@
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Sum, Q, OuterRef, Subquery, QuerySet
@@ -158,18 +159,10 @@ class ServiceUsageSerializer(serializers.Serializer):
         if self._subscription_interval == 'month':
             return self._period_start
 
-        # Subscription is yearly, calculate the start date based on the anchor day
-        anchor_day = self._anchor_date.day
-        if self._now.day > anchor_day:
-            return self._now.replace(day=anchor_day)
-        start_year = self._now.year
-        start_month = self._now.month - 1
-        if start_month == 0:
-            start_month = 12
-            start_year -= 1
-        return self._now.replace(
-            day=anchor_day, month=start_month, year=start_year
-        )
+        month_start = self._period_end
+        while month_start > self._now():
+            month_start -= relativedelta(months=1)
+        return month_start
 
     def _get_current_year_start_date(self):
         # No subscription info, just use the first day of current year
@@ -181,9 +174,10 @@ class ServiceUsageSerializer(serializers.Serializer):
             return self._period_start
 
         # Subscription is monthly, calculate this year's start based on anchor date
-        if self._anchor_date.replace(year=self._now.year) > self._now:
-            return self._anchor_date.replace(year=self._now.year - 1)
-        return self._anchor_date.replace(year=self._now.year)
+        year_start = self._anchor_date
+        while year_start + relativedelta(years=1) < self._now:
+            year_start += relativedelta(years=1)
+        return year_start
 
     def _filter_by_user(self, user_ids: list) -> Q:
         """
