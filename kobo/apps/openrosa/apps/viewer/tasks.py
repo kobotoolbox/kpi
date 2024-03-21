@@ -19,7 +19,10 @@ from kobo.apps.openrosa.libs.utils.export_tools import (
     generate_attachments_zip_export,
     generate_kml_export
 )
-from kobo.apps.openrosa.libs.utils.logger_tools import mongo_sync_status, report_exception
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    mongo_sync_status,
+    report_exception,
+)
 from kobo.celery import celery_app
 
 

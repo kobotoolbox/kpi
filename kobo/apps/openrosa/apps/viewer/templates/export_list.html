@@ -1,24 +1,36 @@
-{% extends 'base.html' %}
+{% extends 'kobocat_base.html' %}
+{% load static %}
+
+
+{% block before-content %}
+{% load i18n %}
+
+<header class="data-page__header">
+    <hgroup class="container">
+      <h1>{{ export_type_name|upper }} {% blocktrans %}Exports{% endblocktrans %}</h1>
+    </hgroup>
+</header>
+
+{% endblock %}
 
 {% block content %}
-
 {% load i18n %}
 
 <section id="export-downloads">
-  <div class="page-header">
-    <h1>{{ export_type_name|upper }} {% blocktrans %}Exports{% endblocktrans %}</h1>
-  </div>
 
     {% if user.is_authenticated %}
     <form action="{% url "create_export" username xform.id_string export_type %}" method="post" enctype="application/x-www-form-urlencoded">
         {% csrf_token %}
             <span style='float:middle;'>
               <div>
-                <input type="submit" class="btn large btn-primary" value="{% trans 'New Export' %}" />
-                <a href="#advanced-export-modal" role="button" class="btn" data-toggle="modal">{% trans "Advanced Export" %}</a>
+                <input type="submit" class="btn btn-primary" value="{% trans 'New Export' %}" />
+                {% if export_type == 'xls' or export_type == 'csv' %}
+                  <a href="#advanced-export-modal" role="button" class="btn" data-toggle="modal">{% trans "Advanced Export" %}</a>
+                {% endif %}
             </div>
             </span>
     </form>
+    <p>{% trans "Note: exports include only questions that remain in the most recent version of the form." %}</p>
     {% endif %}
 
     <div id="advanced-export-modal" class="modal hide fade">
@@ -28,16 +40,6 @@
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
           <h3>{% trans "Advanced Export" %}</h3>
         </div>
-        {% if export_type == 'external' %}
-            <div class="modal-body">
-              <label>{% trans "Template to use for the export" %}</label>
-              <select id="external_export_metadata" name="meta" class="span2">
-                {% for meta in metas %}
-                <option value="{{ meta.id }}">{% trans meta.data_value %}</option>
-                {% endfor %}
-              </select>
-        </div>
-        {% else %}
         <div class="modal-body">
           <label>{% trans "Delimiter to use to separate group names from field names" %}</label>
           <select id="options-group_delimiter" name="options[group_delimiter]" class="span2">
@@ -49,7 +51,6 @@
             {% trans "DONT split select multiple choice answers into separate columns" %}
           </label>
         </div>
-        {% endif %}
         <div class="modal-footer">
           <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
           <input type="submit" class="btn large btn-primary" value="{% trans "Create Export" %}" />
@@ -73,7 +74,7 @@
         <td>
             {% if not export.is_pending %}
                 {% if export.is_successful %}
-                    <a href="{% url "export_download" username xform.id_string export.export_type export.filename %}">{{ export.filename }}</a>
+                    <a href="{% url "export_download" username xform.id_string export.export_type export.filename %}" target="_blank">{{ export.filename }}</a>
                 {% else %}
                     Failed
                 {% endif %}
@@ -100,10 +101,10 @@
                     </div>
                 </div>
               <span style="float:middle;">
-	            <div>
+              <div>
                   <input type="hidden" name="export_id" value="{{ export.id|stringformat:"d" }}">
-                  <a data-toggle="modal" href="#delete-{{ export.id|stringformat:"d" }}" data-backdrop="true" data-keyboard="true" class="btn">
-                      <i class="icon-trash"></i>
+                  <a data-toggle="modal" href="#delete-{{ export.id|stringformat:"d" }}" data-backdrop="true" data-keyboard="true">
+                      <i class="fa fa-trash-o"></i>
                   </a>
                 </div>
               </span>
@@ -119,11 +120,11 @@
 
 {% block javascript %}
 {{ block.super }}
-<script type="text/javascript" src="{{STATIC_URL}}js/jquery.dataTables.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/jquery.dataTables.pagination.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/form_actions.js"></script>
-<script type="text/javascript" charset="utf-8" src="{{STATIC_URL}}js/underscore-min.js"></script>
-<script type="text/javascript" charset="utf-8" src="{{STATIC_URL}}js/export_list.js"></script>
+<script type="text/javascript" src="{% static "kobocat/js/jquery.dataTables.js" %}"></script>
+<script type="text/javascript" src="{% static "kobocat/js/jquery.dataTables.pagination.js" %}"></script>
+<script type="text/javascript" src="{% static "kobocat/js/form_actions.js" %}"></script>
+<script type="text/javascript" charset="utf-8" src="{% static "kobocat/js/underscore-min.js" %}"></script>
+<script type="text/javascript" charset="utf-8" src="{% static "kobocat/js/export_list.js" %}"></script>
 <script type="text/javascript">
     var progress_url = '{% url "export_progress" username xform.id_string export_type %}';
 </script>
