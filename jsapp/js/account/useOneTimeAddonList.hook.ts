@@ -1,5 +1,7 @@
 import {createContext, useState} from 'react';
-import type {OneTimeAddOn} from 'js/account/stripe.types';
+import type {
+  OneTimeAddOn,
+} from 'js/account/stripe.types';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {getOneTimeAddOns} from 'js/account/stripe.api';
 
@@ -16,12 +18,12 @@ const INITIAL_ADDONS_STATE: OneTimeAddOnState = Object.freeze({
 export function useOneTimeAddOns() {
   const [addons, setAddons] = useState<OneTimeAddOnState>(INITIAL_ADDONS_STATE);
 
-  // get list of products
+  // get list of addons
   useWhenStripeIsEnabled(() => {
-    getOneTimeAddOns().then((products) => {
+    getOneTimeAddOns().then((addons) => {
       setAddons(() => {
         return {
-          addons: products.results,
+          addons: addons.results,
           isLoaded: true,
         };
       });

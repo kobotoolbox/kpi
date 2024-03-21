@@ -13,7 +13,6 @@ import type {
   Organization,
   PriceMetadata,
   Product,
-  TransformQuantity,
 } from 'js/account/stripe.types';
 import {Limits} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
@@ -202,10 +201,12 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
 /**
  * Add one-time addon limits to already calculated account limits
  */
-const addOneTimeAddOnLimits = (
+const addRemainingOneTimeAddOnLimits = (
   limits: AccountLimit,
   oneTimeAddOns: OneTimeAddOn[]
 ) => {
+  // This yields a separate object, so we need to make a copy
+  limits = {...limits}
   oneTimeAddOns
     .filter((addon) => addon.is_available)
     .forEach((addon) => {
@@ -289,22 +290,24 @@ export async function getAccountLimits(
   );
 
   // initialize to unlimited
-  let limits: AccountLimit = {...DEFAULT_LIMITS};
+  let recurringLimits: AccountLimit = {...DEFAULT_LIMITS};
 
   // apply any limits from the metadata
-  limits = {...limits, ...getLimitsForMetadata(metadata)};
+  recurringLimits = {...recurringLimits, ...getLimitsForMetadata(metadata)};
 
   if (hasFreeTier) {
     // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
-    limits = await getFreeTierLimits(limits);
+    recurringLimits = await getFreeTierLimits(recurringLimits);
 
     // if the user has active recurring add-ons, use those as their limits
-    limits = getRecurringAddOnLimits(limits);
+    recurringLimits = getRecurringAddOnLimits(recurringLimits);
   }
 
-  // finally, add one-time addon limits to the limits calculated so far
-  if (oneTimeAddOns.length) {
-    limits = addOneTimeAddOnLimits(limits, oneTimeAddOns);
-  }
-  return limits;
+  // create separate object with one-time addon limits added to the limits calculated so far
+  let remainingLimits = addRemainingOneTimeAddOnLimits(
+    recurringLimits,
+    oneTimeAddOns
+  );
+
+  return {recurringLimits, remainingLimits};
 }

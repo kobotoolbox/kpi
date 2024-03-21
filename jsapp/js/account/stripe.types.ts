@@ -169,6 +169,11 @@ export interface AccountLimit {
   storage_bytes_limit: LimitAmount;
 }
 
+export interface AccountLimitDetail {
+  recurringLimits: AccountLimit;
+  remainingLimits: AccountLimit;
+}
+
 export interface Checkout {
   url: string;
 }
@@ -217,4 +222,11 @@ export interface OneTimeUsageLimits {
   submission_limit: number;
   asr_seconds_limit: number;
   mt_characters_limit: number;
+}
+
+export enum USAGE_TYPE {
+  'SUBMISSIONS',
+  'TRANSCRIPTION',
+  'TRANSLATION',
+  'STORAGE',
 }
