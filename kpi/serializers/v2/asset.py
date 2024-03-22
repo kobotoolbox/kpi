@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Optional
 
 from constance import config
 from django.conf import settings
@@ -329,7 +330,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # request more than the first page
         default_limit=100
     )
-    deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
@@ -346,6 +346,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     access_types = serializers.SerializerMethodField()
     data_sharing = WritableJSONField(required=False)
     paired_data = serializers.SerializerMethodField()
+    project_ownership = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -367,7 +368,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'has_deployment',
                   'deployed_version_id',
                   'deployed_versions',
-                  'deployment__identifier',
                   'deployment__links',
                   'deployment__active',
                   'deployment__data_download_links',
@@ -403,6 +403,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'access_types',
                   'data_sharing',
                   'paired_data',
+                  'project_ownership',
                   )
         extra_kwargs = {
             'parent': {
@@ -578,10 +579,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return obj.deployment.version_id
 
-    def get_deployment__identifier(self, obj):
-        if obj.has_deployment:
-            return obj.deployment.identifier
-
     def get_deployment__active(self, obj):
         return obj.has_deployment and obj.deployment.active
 
@@ -687,6 +684,34 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return AssetPermissionAssignmentSerializer(
             queryset.all(), many=True, read_only=True, context=context
         ).data
+
+    def get_project_ownership(self, asset) -> Optional[dict]:
+        pass
+
+    def get_project_ownership(self, asset) -> Optional[dict]:
+        if not (transfer := asset.transfers.order_by('-date_created').first()):
+            return
+
+        request = self.context.get('request')
+        user = get_database_user(request.user)
+
+        # Do not provide info if user is not concerned by last invite
+        if not (
+            transfer.invite.sender_id == user.pk
+            or transfer.invite.recipient_id == user.pk
+        ):
+            return
+
+        return {
+            'invite': reverse(
+                'project-ownership-invite-detail',
+                args=(transfer.invite.uid,),
+                request=self.context.get('request', None),
+            ),
+            'sender': transfer.invite.sender.username,
+            'recipient': transfer.invite.recipient.username,
+            'status': transfer.status
+        }
 
     def get_exports(self, obj: Asset) -> str:
         return reverse(
@@ -946,7 +971,6 @@ class AssetListSerializer(AssetSerializer):
                   'version_id',
                   'has_deployment',
                   'deployed_version_id',
-                  'deployment__identifier',
                   'deployment__active',
                   'deployment__submission_count',
                   'deployment_status',

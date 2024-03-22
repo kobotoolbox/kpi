@@ -1,0 +1,31 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Projects:" as projects_label %}
+
+<p>{% trans "Dear" %} {{ username }},</p>
+
+{% if transfers|length == 1 %}
+  <p>{% blocktrans with asset_uid=transfers.0.asset_uid asset_name=transfers.0.asset_name  %}{{ sender_username }} ({{ sender_email }}) has requested to transfer ownership of the project <a href="{{ base_url }}/#/forms/{{ asset_uid }}/landing">{{ asset_name }}</a> to you.{% endblocktrans %}</p>
+
+  <p>{% trans "When you accept the ownership transfer, all of the submissions, data storage, and transcription and translation usage for these projects will be transferred to you and count against your plan limits." %}</p>
+{% else %}
+  <p>{% blocktrans %}{{ sender_username }} ({{ sender_email }}) has requested to transfer ownership of the following projects to you:{% endblocktrans %}
+    <ul>
+    {% for transfer in transfers %}
+      <li><a href="{{ base_url }}/#/forms/{{ transfer.asset_uid }}/landing">{{ transfer.asset_name }}</a></li>
+    {% endfor %}
+    </ul>
+  </p>
+
+  <p>{% trans "When you accept the ownership transfer, all of the submissions, data storage, and transcription and translation usage for these projects will be transferred to you and count against your plan limits." %}</p>
+{% endif %}
+
+<p>{% trans "If you are unsure, please contact the current owner." %}</p>
+
+<p>{% blocktrans %}This transfer request will expire in {{ invite_expiry }} days.{% endblocktrans %}</p>
+
+<p>{% blocktrans %}To respond to this transfer request, please use the following link: {{ base_url }}/#/projects/home?invite={{ invite_uid }}{% endblocktrans %}</p>
+
+<p>
+&nbsp;-&nbsp;KoboToolbox
+</p>

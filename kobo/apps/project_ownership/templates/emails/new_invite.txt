@@ -1,0 +1,25 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Projects:" as projects_label %}
+
+{% trans "Dear" %} {{ username }},
+{% if transfers|length == 1 %}
+{% blocktrans with asset_uid=transfers.0.asset_uid asset_name=transfers.0.asset_name  %}{{ sender_username }} ({{ sender_email }}) has requested to transfer ownership of the project {{ asset_name }} ({{ base_url }}/#/forms/{{ asset_uid }}/landing) to you.{% endblocktrans %}
+
+{% trans "When you accept the ownership transfer, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits." %}
+{% else %}
+{% blocktrans %}{{ sender_username }} ({{ sender_email }}) has requested to transfer ownership of the following projects to you:{% endblocktrans %}
+    {% for transfer in transfers %}
+    * {{ transfer.asset_name }} - [{{ base_url }}/#/forms/{{ asset_uid }}/landing]
+    {% endfor %}
+
+{% trans "When you accept the ownership transfer, all of the submissions, data storage, and transcription and translation usage for these projects will be transferred to you and count against your plan limits." %}
+{% endif %}
+
+{% trans "If you are unsure, please contact the current owner." %}
+
+{% blocktrans %}This transfer request will expire in {{ invite_expiry }} days.{% endblocktrans %}
+
+{% blocktrans %}To respond to this transfer request, please use the following link: {{ base_url }}/#/projects/home?invite={{ invite_uid }}{% endblocktrans %}
+
+- KoboToolbox
