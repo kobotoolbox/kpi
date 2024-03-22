@@ -5,17 +5,21 @@ import abc
 import copy
 import datetime
 import json
+import os
 import uuid
 from datetime import date
+from contextlib import contextmanager
 from typing import Union, Iterator, Optional
 
 from bson import json_util
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
@@ -30,13 +34,13 @@ from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
     get_or_create_element,
     xml_tostring,
 )
-
 
 class BaseDeploymentBackend(abc.ABC):
     """
@@ -183,17 +187,6 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
-        pass
-
-    @abc.abstractmethod
-    def set_enketo_open_rosa_server(
-        self, require_auth: bool, enketo_id: str = None
-    ):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def submission_count_since_date(self, start_date: Optional[datetime.date] = None):
         pass
 
     @abc.abstractmethod
@@ -376,10 +369,6 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @property
-    def identifier(self):
-        return self.get_data('identifier')
-
-    @property
     def last_submission_time(self):
         return self._last_submission_time()
 
@@ -398,6 +387,10 @@ class BaseDeploymentBackend(abc.ABC):
 
         # Do nothing, without complaint, so that callers don't have to worry
         # about whether the back end is KoBoCAT or something else
+        pass
+
+    @abc.abstractmethod
+    def rename_enketo_id_key(self, previous_owner_username: str):
         pass
 
     def save_to_db(self, updates: dict):
@@ -432,6 +425,12 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def set_asset_uid(self, **kwargs) -> bool:
+        pass
+
+    @abc.abstractmethod
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
         pass
 
     @abc.abstractmethod
@@ -482,6 +481,13 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def submission_count_since_date(
+        self, start_date: Optional[datetime.date] = None
+    ):
+        pass
+
+    @property
+    @abc.abstractmethod
     def submission_list_url(self):
         pass
 
@@ -490,8 +496,24 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_model(self):
         pass
 
+    @staticmethod
+    @abc.abstractmethod
+    @contextmanager
+    def suspend_submissions(user_ids: list[int]):
+        pass
+
     @abc.abstractmethod
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
+        pass
+
+    @abc.abstractmethod
+    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+        pass
+
+    @abc.abstractmethod
+    def transfer_submissions_ownership(
+        self, previous_owner_username: str
+    ) -> bool:
         pass
 
     def validate_submission_list_params(
@@ -721,6 +743,10 @@ class BaseDeploymentBackend(abc.ABC):
     def version_id(self):
         return self.get_data('version')
 
+    @property
+    def _open_rosa_server_storage(self):
+        return default_storage
+
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
         """
         Returns a list of objects, or a QuerySet to pass to Celery to
@@ -736,3 +762,44 @@ class BaseDeploymentBackend(abc.ABC):
         else:
             queryset = PairedData.objects(self.asset).values()
             return queryset
+
+    def _rewrite_json_attachment_urls(
+        self, submission: dict, request
+    ) -> dict:
+        if not request or '_attachments' not in submission:
+            return submission
+
+        attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            submission, attachment_xpaths
+        )
+
+        for attachment in submission['_attachments']:
+            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
+                # We should use 'attachment-list' with `?xpath=` but we do not
+                # know what the XPath is here. Since the primary key is already
+                # exposed, let's use it to build the url with 'attachment-detail'
+                kpi_url = reverse(
+                    'attachment-detail',
+                    args=(self.asset.uid, submission['_id'], attachment['id']),
+                    request=request,
+                )
+                key = f'download{suffix}_url'
+                try:
+                    attachment[key] = kpi_url
+                except KeyError:
+                    continue
+            filename = attachment['filename']
+            attachment['filename'] = os.path.join(
+                self.asset.owner.username,
+                'attachments',
+                submission['formhub/uuid'],
+                submission['_uuid'],
+                os.path.basename(filename)
+            )
+
+            # Retrieve XPath and add it to attachment dictionary
+            basename = os.path.basename(attachment['filename'])
+            attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
+
+        return submission

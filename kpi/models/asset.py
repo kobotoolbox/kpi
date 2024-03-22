@@ -412,6 +412,7 @@ class Asset(ObjectPermissionMixin,
         PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell
         PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell
         PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell
+        PERM_DELETE_ASSET: 'delete_xform',  # "Can delete XForm" in KC shell
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`

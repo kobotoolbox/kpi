@@ -11,10 +11,10 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from markdown import markdown
-from hub.models.sitewide_message import SitewideMessage
 from model_bakery import baker
 from rest_framework import status
 
+from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
@@ -117,6 +117,7 @@ class EnvironmentTests(BaseTestCase):
             'custom_password_localized_help_text': markdown(
                 I18nUtils.get_custom_password_help_text()
             ),
+            'open_rosa_server': settings.KOBOCAT_URL,
             'terms_of_service__sitewidemessage__exists': False,
         }
 

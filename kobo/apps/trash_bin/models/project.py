@@ -4,6 +4,11 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils.timezone import now
 
+from kobo.apps.project_ownership.models import (
+    Invite,
+    InviteStatusChoices,
+    Transfer,
+)
 from kpi.deployment_backends.kc_access.shadow_models import KobocatUser, KobocatXForm
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
@@ -75,6 +80,15 @@ class ProjectTrash(BaseTrash):
                 updated = queryset.update(
                     **update_params
                 )
+
+                if toggle_delete and not active:
+                    Invite.objects.filter(
+                        pk__in=Transfer.objects.filter(
+                            asset_id__in=queryset.values_list('pk', flat=True),
+                            invite__status=InviteStatusChoices.PENDING,
+                        ).values_list('invite_id', flat=True)
+                    ).update(status=InviteStatusChoices.CANCELLED)
+
                 if not settings.TESTING:
                     kc_updated = KobocatXForm.objects.filter(
                         **kc_filter_params
