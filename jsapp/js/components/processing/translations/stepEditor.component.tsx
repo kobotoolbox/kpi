@@ -58,7 +58,7 @@ export default function StepEditor(props: StepEditorProps) {
             size='s'
             label={discardLabel}
             onClick={discardDraft}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
 
           <Button
@@ -67,7 +67,7 @@ export default function StepEditor(props: StepEditorProps) {
             size='s'
             label={t('Save')}
             onClick={saveDraft}
-            isPending={singleProcessingStore.isFetchingData}
+            isPending={singleProcessingStore.data.isFetchingData}
             isDisabled={
               !singleProcessingStore.hasUnsavedTranslationDraftValue()
             }
@@ -81,7 +81,7 @@ export default function StepEditor(props: StepEditorProps) {
         onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => {
           setDraftValue(evt.target.value);
         }}
-        disabled={singleProcessingStore.isFetchingData}
+        disabled={singleProcessingStore.data.isFetchingData}
       />
     </div>
   );

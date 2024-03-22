@@ -453,6 +453,8 @@ class FormLanding extends React.Component {
                 }
                 featureKey='anonymousSubmissions'
                 disabled={stores.pageState.state?.modal}
+                pointerClass='anonymousSubmissionPointer'
+                dialogClass='anonymousSubmissionDialog'
               >
                 <AnonymousSubmission
                   checked={this.state.anonymousSubmissions}

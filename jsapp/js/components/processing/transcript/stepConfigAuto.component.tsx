@@ -39,8 +39,8 @@ export default function StepConfigAuto() {
 
       <RegionSelector
         isDisabled={
-          singleProcessingStore.isFetchingData ||
-          singleProcessingStore.isPollingForTranscript
+          singleProcessingStore.data.isFetchingData ||
+          singleProcessingStore.data.isPollingForTranscript
         }
         serviceCode='goog'
         serviceType='transcription'
@@ -71,8 +71,8 @@ export default function StepConfigAuto() {
             label={t('cancel')}
             onClick={cancelAuto}
             isDisabled={
-              singleProcessingStore.isFetchingData ||
-              singleProcessingStore.isPollingForTranscript
+              singleProcessingStore.data.isFetchingData ||
+              singleProcessingStore.data.isPollingForTranscript
             }
           />
 
@@ -81,14 +81,14 @@ export default function StepConfigAuto() {
             color='blue'
             size='m'
             label={
-              singleProcessingStore.isPollingForTranscript
+              singleProcessingStore.data.isPollingForTranscript
                 ? t('in progress')
                 : t('create transcript')
             }
             onClick={requestAutoTranscription}
             isDisabled={
-              singleProcessingStore.isFetchingData ||
-              singleProcessingStore.isPollingForTranscript
+              singleProcessingStore.data.isFetchingData ||
+              singleProcessingStore.data.isPollingForTranscript
             }
           />
         </div>

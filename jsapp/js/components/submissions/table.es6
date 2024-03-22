@@ -1150,7 +1150,8 @@ export class DataTable extends React.Component {
       ) {
         const backgroundAudioUrl = getMediaAttachment(
           row.original,
-          row.original[backgroundAudioName]
+          row.original[backgroundAudioName],
+          META_QUESTION_TYPES['background-audio'],
         )?.download_medium_url;
 
         this.submissionModalProcessing(

@@ -73,13 +73,13 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           return props.asset.settings.country.map((country) => (
             <Badge
               key={country.value}
-              color='cloud'
+              color='light-storm'
               size='m'
               label={country.label}
             />
           ));
         } else if (typeof props.asset.settings.country === 'string') {
-          <Badge color='cloud' size='m' label={props.asset.settings.country} />;
+          <Badge color='light-storm' size='m' label={props.asset.settings.country} />;
         }
         return null;
       case 'languages':
@@ -90,7 +90,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         }
         return (
           <Badge
-            color='cloud'
+            color='light-storm'
             size='m'
             label={props.asset.deployment__submission_count}
           />

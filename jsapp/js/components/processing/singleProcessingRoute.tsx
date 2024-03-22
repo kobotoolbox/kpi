@@ -162,7 +162,7 @@ export default class SingleProcessingRoute extends React.Component<
       <DocumentTitle title={pageTitle}>
         <section className={styles.root}>
           {(singleProcessingStore.hasAnyUnsavedWork() ||
-            singleProcessingStore.isPollingForTranscript) && <Prompt />}
+            singleProcessingStore.data.isPollingForTranscript) && <Prompt />}
           <section className={styles.top}>
             <SingleProcessingHeader
               submissionEditId={this.props.params.submissionEditId}
