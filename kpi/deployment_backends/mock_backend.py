@@ -65,12 +65,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             )
         return storage_bytes
 
-    @property
-    def backend_response(self):
-        backend_response_ = self.get_data('backend_response', {})
-        backend_response_['formid'] = self.asset.uid
-        return backend_response_
-
     def bulk_assign_mapped_perms(self):
         pass
 
@@ -90,13 +84,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data(
             {
                 'backend': 'mock',
-                'identifier': 'mock://%s' % self.asset.uid,
                 'active': active,
                 'backend_response': {
                     'downloadable': active,
                     'has_kpi_hook': self.asset.has_active_hooks,
                     'kpi_asset_uid': self.asset.uid,
                     'uuid': generate_uuid_for_form(),
+                    # TODO use XForm object and get its primary key
+                    'formid': self.asset.pk
                 },
                 'version': self.asset.version_id,
             }

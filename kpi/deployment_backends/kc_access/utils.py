@@ -237,8 +237,9 @@ def grant_kc_model_level_perms(user):
     ])
 
 
-def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
-                                             remove=False):
+def set_kc_anonymous_permissions_xform_flags(
+    obj, kpi_codenames, xform_id, remove=False
+):
     r"""
         Given a KPI object, one or more KPI permission codenames and the PK of
         a KC `XForm`, assume the KPI permisisons have been assigned to or
@@ -311,7 +312,8 @@ def assign_applicable_kc_permissions(
 
     if user_id == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
-            obj, kpi_codenames, xform_id)
+            obj, kpi_codenames, xform_id
+        )
 
     xform_content_type = KobocatContentType.objects.get(
         **obj.KC_CONTENT_TYPE_KWARGS)
