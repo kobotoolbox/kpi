@@ -1,9 +1,7 @@
 # coding: utf-8
 from django.conf import settings
-# FIXME Kobocat migration: Remove
-# from django.contrib import admin
 
-from django.urls import include, re_path
+from django.urls import include, re_path, path
 from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
@@ -12,7 +10,10 @@ from kobo.apps.openrosa.apps.api.urls import BriefcaseApi
 from kobo.apps.openrosa.apps.api.urls import XFormListApi
 from kobo.apps.openrosa.apps.api.urls import XFormSubmissionApi
 from kobo.apps.openrosa.apps.api.urls import router, router_with_patch_list
-from kobo.apps.openrosa.apps.main.service_health import service_health
+from kobo.apps.openrosa.apps.main.service_health import (
+    service_health,
+    service_health_minimal,
+)
 
 # exporting stuff
 from kobo.apps.openrosa.apps.viewer.views import (
@@ -30,25 +31,24 @@ from kobo.apps.openrosa.apps.logger.views import (
     download_jsonform,
 )
 
-# FIXME Kobocat migration: Deactivate
-# admin.autodiscover()
 
 urlpatterns = [
     # change Language
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     re_path('^api/v1/', include(router.urls)),
     re_path('^api/v1/', include(router_with_patch_list.urls)),
-    re_path(r'^service_health/$', service_health),
-    re_path(r'^api/', RedirectView.as_view(url='/api/v1foo/')),
-    re_path(r'^api/v1', RedirectView.as_view(url='/api/v1bar/')),
+    re_path(r'^legacy/service_health/$', service_health, name='legacy-service-health'),
+    path(
+        'legacy/service_health/minimal/',
+        service_health_minimal,
+        name='legacy-service-health-minimal',
+    ),
+    re_path(r'^api/', RedirectView.as_view(url='/api/v1/')),
+    re_path(r'^api/v1', RedirectView.as_view(url='/api/v1/')),
 
-    # FIXME Kobocat migration: Deactivate
-    # django default stuff
-    # re_path(r'^accounts/', include('django.contrib.auth.urls')),
-    # re_path(r'^admin/', admin.site.urls),
-
+    # FIXME conflicts with KPI
     # oath2_provider
-    re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    # re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
     # main website views
     re_path(
@@ -63,13 +63,11 @@ urlpatterns = [
             attachment_url, name='attachment_url'),
     re_path(r'^jsi18n/$', JavaScriptCatalog.as_view(packages=['kobo.apps.openrosa.apps.main', 'kobo.apps.openrosa.apps.viewer']),
             name='javascript-catalog'),
-    # FIXME Kobocat migration: Deactivate
-    #re_path(
-    #    r'^(?P<username>[^/]+)/$',
-    #    RedirectView.as_view(url=koboform.redirect_url('/')),
-    #    name='user_profile',
-    #),
-
+    re_path(
+       r'^(?P<username>[^/]+)/$',
+       RedirectView.as_view(url=koboform.redirect_url('/')),
+       name='user_profile',
+    ),
     # briefcase api urls
     re_path(r"^view/submissionList$",
             BriefcaseApi.as_view({'get': 'list', 'head': 'list'}),

@@ -32,7 +32,13 @@ ALLOWED_VIEWS_WITH_WEAK_PASSWORD = {
     },
     'XFormSubmissionApi': {
        'POST': ['create'],
-    }
+    },
+    'service_health': {
+        'GET': []
+    },
+    'service_health_minimal': {
+        'GET': []
+    },
 }
 
 

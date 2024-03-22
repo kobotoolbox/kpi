@@ -49,7 +49,7 @@ def restore_open_rosa_server_in_redis(apps, schema_editor):
         lua_script = f"""
             local keys = {{"{lua_keys}"}}
             for _, key in ipairs(keys) do
-                local redis_real_key = string.sub(key, 1, string.find(key, '|') - 1) 
+                local redis_real_key = string.sub(key, 1, string.find(key, '|') - 1)
                 local username = string.sub(key, string.find(key, '|') + 1, string.len(key))
                 local ee_id = redis.call('get', redis_real_key)
                 if ee_id then
@@ -67,24 +67,33 @@ def restore_require_auth_at_profile_level(apps, schema_editor):
 
     print(
         """
-        Restoring authentication at the profile level cannot be done 
-        automatically. 
-        
-        This is an example of what can be done:
-        ⚠️ WARNING ⚠️ The example below makes all projects publicly 
-        accessible when profile level is restored even if, at least, one project
-        was publicly accessible at project level.
-        
-        ```python
-        UserProfile.objects.filter(
-            user_id__in=XForm.objects.filter(require_auth=False).values_list(
-                'user_id'
-            )
-        ).update(require_auth=False)
-        XForm.objects.filter(require_auth=True).update(require_auth=False)
-        ```
+        You are migrating backwards from project-level control of anonymous
+        submissions to account-level control.
+
+        If you want to allow anonymous submissions again for existing accounts,
+        you must enable that manually, either in the user profile settings UI
+        of the KPI application, or by running commands in the KoboCAT Django
+        shell to set `require_auth=False` on the `UserProfile` instances
+        belonging to the desired accounts.
         """
     )
+
+    # For those savvy enough to read the code here, offer an example of how to
+    # set `require_auth=False` for all accounts having at least one *project*
+    # that allowed anonymous submissions.
+    # ⚠️ This is DANGEROUS because it potentially allows anonymous submissions
+    # (and anonymous viewing of the form) for projects where it was *not*
+    # previously allowed, e.g. an owner having 1 anonymous-allowed project and
+    # 99 private ones would have all 100 projects exposed.
+    #
+    #     UserProfile.objects.filter(
+    #         user_id__in=XForm.objects.filter(require_auth=False).values_list(
+    #             'user_id'
+    #         )
+    #     ).update(require_auth=False)
+    #     # Since `require_auth` at project level no longer does anything,
+    #     # remove misleading values
+    #     XForm.objects.filter(require_auth=True).update(require_auth=False)
 
 
 def set_require_auth_at_project_level(apps, schema_editor):
@@ -122,7 +131,7 @@ def update_open_rosa_server_in_redis(apps, schema_editor):
     server_url = settings.KOBOCAT_URL.strip('/')
 
     xforms_iter = (
-        XForm.objects.filter(user__profile__require_auth=False)
+        XForm.objects.filter(require_auth=True)
         .values('id_string', 'user__username')
         .iterator(chunk_size=CHUNK_SIZE)
     )
