@@ -4,7 +4,6 @@ import logging
 import os
 import re
 
-import rest_framework.request
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage, FileSystemStorage
@@ -22,7 +21,6 @@ from django.shortcuts import render
 from django.utils.http import urlquote
 from django.utils.translation import gettext as t
 from django.views.decorators.http import require_POST
-from rest_framework.exceptions import AuthenticationFailed
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
@@ -30,15 +28,12 @@ from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.tasks import create_async_export
 from kobo.apps.openrosa.libs.authentication import digest_authentication
 from kobo.apps.openrosa.libs.utils.image_tools import image_url
-from kobo.apps.openrosa.libs.utils.log import audit_log, Actions
 from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_and_name
 from kobo.apps.openrosa.libs.utils.user_auth import (
-    HttpResponseNotAuthorized,
     has_permission,
     helper_auth_helper,
 )
 from kobo.apps.openrosa.libs.utils.viewer_tools import export_def_from_filename
-from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
 
 media_file_logger = logging.getLogger('media_files')
 
@@ -79,17 +74,6 @@ def create_export(request, username, id_string, export_type):
         return HttpResponseBadRequest(
             t("%s is not a valid export type" % export_type))
     else:
-        audit = {
-            "xform": xform.id_string,
-            "export_type": export_type
-        }
-        audit_log(
-            Actions.EXPORT_CREATED, request.user, owner,
-            t("Created %(export_type)s export on '%(id_string)s'.") %
-            {
-                'export_type': export_type.upper(),
-                'id_string': xform.id_string,
-            }, audit, request)
         return HttpResponseRedirect(reverse(
             export_list,
             kwargs={
@@ -174,20 +158,6 @@ def export_download(request, username, id_string, export_type, filename):
 
     ext, mime_type = export_def_from_filename(export.filename)
 
-    audit = {
-        "xform": xform.id_string,
-        "export_type": export.export_type
-    }
-    audit_log(
-        Actions.EXPORT_DOWNLOADED, request.user, owner,
-        t("Downloaded %(export_type)s export '%(filename)s' "
-          "on '%(id_string)s'.") %
-        {
-            'export_type': export.export_type.upper(),
-            'filename': export.filename,
-            'id_string': xform.id_string,
-        }, audit, request)
-
     if not isinstance(default_storage, FileSystemStorage):
         return HttpResponseRedirect(default_storage.url(export.filepath))
 
@@ -214,21 +184,8 @@ def delete_export(request, username, id_string, export_type):
 
     # find the export entry in the db
     export = get_object_or_404(Export, id=export_id)
-
     export.delete()
-    audit = {
-        "xform": xform.id_string,
-        "export_type": export.export_type
-    }
-    audit_log(
-        Actions.EXPORT_DOWNLOADED, request.user, owner,
-        t("Deleted %(export_type)s export '%(filename)s'"
-          " on '%(id_string)s'.") %
-        {
-            'export_type': export.export_type.upper(),
-            'filename': export.filename,
-            'id_string': xform.id_string,
-        }, audit, request)
+
     return HttpResponseRedirect(reverse(
         export_list,
         kwargs={
