@@ -21,6 +21,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa import koboform
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.log import audit_log, Actions
@@ -142,11 +143,15 @@ def bulksubmission_form(request, username=None):
 
 
 def download_xlsform(request, username, id_string):
+
+    helper_auth_helper(request)
+    if request.user.is_anonymous:
+        return HttpResponseRedirect(koboform.login_url())
+
     xform = get_object_or_404(
         XForm, user__username__iexact=username, id_string__exact=id_string
     )
     owner = User.objects.get(username__iexact=username)
-    helper_auth_helper(request)
 
     if not has_permission(xform, owner, request, xform.shared):
         return HttpResponseForbidden('Not shared.')
@@ -200,20 +205,25 @@ def download_xlsform(request, username, id_string):
 
 
 def download_jsonform(request, username, id_string):
+
+    helper_auth_helper(request)
+
     owner = get_object_or_404(User, username__iexact=username)
-    xform = get_object_or_404(XForm, user__username__iexact=username,
-                              id_string__exact=id_string)
-    if request.method == "OPTIONS":
+    xform = get_object_or_404(
+        XForm, user__username__iexact=username, id_string__exact=id_string
+    )
+    if request.method == 'OPTIONS':
         response = HttpResponse()
         add_cors_headers(response)
         return response
-    helper_auth_helper(request)
+
     if not has_permission(xform, owner, request, xform.shared):
         response = HttpResponseForbidden(t('Not shared.'))
         add_cors_headers(response)
         return response
-    response = response_with_mimetype_and_name('json', id_string,
-                                               show_date=False)
+    response = response_with_mimetype_and_name(
+        'json', id_string, show_date=False
+    )
     if 'callback' in request.GET and request.GET.get('callback') != '':
         callback = request.GET.get('callback')
         response.content = "%s(%s)" % (callback, xform.json)

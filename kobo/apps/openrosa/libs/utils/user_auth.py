@@ -1,13 +1,14 @@
 # coding: utf-8
 import re
-from functools import wraps
 
 from django.conf import settings
-from django.contrib.auth import authenticate
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.request import Request as DRFRequest
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
 from kobo.apps.openrosa.apps.logger.models import XForm, Note
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.utils.guardian import (
@@ -16,7 +17,6 @@ from kobo.apps.openrosa.libs.utils.guardian import (
 )
 from kobo.apps.openrosa.libs.utils.string import (
     base64_encodestring,
-    base64_decodestring,
 )
 from kobo.apps.openrosa.libs.constants import (
     CAN_DELETE_DATA_XFORM,
@@ -145,31 +145,34 @@ def get_xform_and_perms(username, id_string, request):
 
 
 def helper_auth_helper(request):
+
     if request.user and request.user.is_authenticated:
-        return None
-        # source, http://djangosnippets.org/snippets/243/
-    if 'HTTP_AUTHORIZATION' in request.META:
-        auth = request.META['HTTP_AUTHORIZATION'].split()
-        if len(auth) == 2 and auth[0].lower() == "basic":
-            uname, passwd = base64_decodestring(auth[1].encode()).split(':')
-            user = authenticate(username=uname, password=passwd)
-            if user:
-                request.user = user
-                return None
-    response = HttpResponseNotAuthorized()
-    return response
+        return
 
-
-def basic_http_auth(func):
-    @wraps(func)
-    def inner(request, *args, **kwargs):
-        result = helper_auth_helper(request)
-        if result is not None:
-            return result
-        return func(request, *args, **kwargs)
-
-    return inner
-
+    if not request.user.is_authenticated:
+        # This is not a DRF view, but we need to honor things like
+        # `DigestAuthentication` (ODK Briefcase uses it!) and
+        # `TokenAuthentication`. Let's try all the DRF authentication
+        # classes before giving up
+        drf_request = DRFRequest(request)
+        for auth_class in openrosa_drf_settings.DEFAULT_AUTHENTICATION_CLASSES:
+            try:
+                # `authenticate()` will:
+                #   * return `None` if no applicable authentication attempt
+                #     was found in the request
+                #   * raise `AuthenticationFailed` if an attempt _was_
+                #     found but it failed
+                #   * return a tuple if authentication succeeded
+                auth_tuple = auth_class().authenticate(drf_request)
+            except AuthenticationFailed:
+                return HttpResponseNotAuthorized()
+            if auth_tuple is not None:
+                # Is it kosher to modify `request`? Let's do it anyway
+                # since that's what `has_permission()` requires...
+                request.user = auth_tuple[0]
+                # `DEFAULT_AUTHENTICATION_CLASSES` are ordered and the
+                # first match wins; don't look any further
+                break
 
 def http_auth_string(username, password):
     credentials = base64_encodestring('%s:%s' % (username, password)).strip()

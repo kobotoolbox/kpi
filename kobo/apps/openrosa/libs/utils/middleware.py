@@ -41,7 +41,8 @@ class HTTPResponseNotAllowedMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         if isinstance(response, HttpResponseNotAllowed):
             response.content = loader.render_to_string(
-                "405.html", request=request)
+                '405.html', request=request
+            )
 
         return response
 
@@ -57,24 +58,14 @@ class LocaleMiddlewareWithTweaks(LocaleMiddleware):
         try:
             codes = [code for code, r in parse_accept_lang_header(accept)]
             if 'km' in codes and 'km-kh' not in codes:
-                request.META['HTTP_ACCEPT_LANGUAGE'] = accept.replace('km',
-                                                                      'km-kh')
+                request.META['HTTP_ACCEPT_LANGUAGE'] = accept.replace(
+                    'km', 'km-kh'
+                )
         except:
             # this might fail if i18n is disabled.
             pass
 
         super().process_request(request)
-
-
-class SqlLogging(MiddlewareMixin):
-    def process_response(self, request, response):
-        from sys import stdout
-        if stdout.isatty():
-            for query in connection.queries:
-                print("\033[1;31m[%s]\033[0m \033[1m%s\033[0m" % (
-                    query['time'], " ".join(query['sql'].split())))
-
-        return response
 
 
 class RestrictedAccessMiddleware(MiddlewareMixin):

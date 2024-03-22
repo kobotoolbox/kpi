@@ -160,9 +160,12 @@ def export_progress(request, username, id_string, export_type):
 
 
 def export_download(request, username, id_string, export_type, filename):
+
+    helper_auth_helper(request)
+
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
-    helper_auth_helper(request)
+
     if not has_permission(xform, owner, request):
         return HttpResponseForbidden(t('Not shared.'))
 
@@ -278,30 +281,7 @@ def attachment_url(request, size='medium'):
         # the url
         xform = attachment.instance.xform
 
-        if not request.user.is_authenticated:
-            # This is not a DRF view, but we need to honor things like
-            # `DigestAuthentication` (ODK Briefcase uses it!) and
-            # `TokenAuthentication`. Let's try all the DRF authentication
-            # classes before giving up
-            drf_request = rest_framework.request.Request(request)
-            for auth_class in openrosa_drf_settings.DEFAULT_AUTHENTICATION_CLASSES:
-                try:
-                    # `authenticate()` will:
-                    #   * return `None` if no applicable authentication attempt
-                    #     was found in the request
-                    #   * raise `AuthenticationFailed` if an attempt _was_
-                    #     found but it failed
-                    #   * return a tuple if authentication succeded
-                    auth_tuple = auth_class().authenticate(drf_request)
-                except AuthenticationFailed:
-                    return HttpResponseNotAuthorized()
-                if auth_tuple is not None:
-                    # Is it kosher to modify `request`? Let's do it anyway
-                    # since that's what `has_permission()` requires...
-                    request.user = auth_tuple[0]
-                    # `DEFAULT_AUTHENTICATION_CLASSES` are ordered and the
-                    # first match wins; don't look any further
-                    break
+        helper_auth_helper(request)
 
         if (
             not request.user.is_superuser
