@@ -380,6 +380,13 @@ class SingleProcessingStore extends Reflux.Store {
       this.currentAssetUid
     );
 
+    if (this.analysisTabHasUnsavedWork) {
+      // When we navigate, we need to reset the flag responsible for keeping
+      // the status of unsaved changes. This way it's not blocking navigation
+      // unnecessarily.
+      this.setAnalysisTabHasUnsavedChanges(false);
+    }
+
     // Case 1: switching from a processing route to a processing route.
     // This means that we are changing either the question and the submission
     // or just the submission.
