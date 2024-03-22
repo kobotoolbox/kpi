@@ -159,8 +159,7 @@ INSTALLED_APPS = (
 # ]
 
 MIDDLEWARE = [
-    # FIXME Needed for kobocat login redirection but breaks KPI MFA with basic auth
-    #   'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
+    'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
     'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -1589,4 +1588,38 @@ DEFAULT_VALIDATION_STATUSES = [
         'color': '#0000ff',
         'label': 'On Hold'
     },
+]
+
+THUMB_CONF = {
+    'large': {'size': 1280, 'suffix': '-large'},
+    'medium': {'size': 640, 'suffix': '-medium'},
+    'small': {'size': 240, 'suffix': '-small'},
+}
+# order of thumbnails from largest to smallest
+THUMB_ORDER = ['large', 'medium', 'small']
+
+SUPPORTED_MEDIA_UPLOAD_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/svg+xml',
+    'video/3gpp',
+    'video/mp4',
+    'video/quicktime',
+    'video/ogg',
+    'video/webm',
+    'audio/aac',
+    'audio/aacp',
+    'audio/flac',
+    'audio/mp3',
+    'audio/mp4',
+    'audio/mpeg',
+    'audio/ogg',
+    'audio/wav',
+    'audio/x-wav',
+    'audio/webm',
+    'audio/x-m4a',
+    'text/csv',
+    'application/xml',
+    'application/zip',
+    'application/x-zip-compressed'
 ]
