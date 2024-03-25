@@ -1,9 +1,7 @@
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from private_storage import appconfig
 from storages.backends.azure_storage import AzureStorage
-from storages.utils import setting
 
 
 @deconstructible

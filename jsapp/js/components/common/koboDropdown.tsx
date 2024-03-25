@@ -243,7 +243,7 @@ export default class KoboDropdown extends React.Component<
       <bem.KoboDropdown
         m={this.getWrapperModifiers()}
         {...additionalWrapperAttributes}
-        aria-role='combobox'
+        role='combobox'
         aria-required={this.props.isRequired}
       >
         <bem.KoboDropdown__trigger
@@ -257,7 +257,7 @@ export default class KoboDropdown extends React.Component<
         {this.state.isMenuVisible && (
           <bem.KoboDropdown__menu
             onClick={this.onMenuClick.bind(this)}
-            aria-role='listbox'
+            role='listbox'
           >
             {this.props.menuContent}
           </bem.KoboDropdown__menu>

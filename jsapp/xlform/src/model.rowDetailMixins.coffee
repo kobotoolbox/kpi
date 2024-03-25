@@ -64,6 +64,14 @@ module.exports = do ->
   rowDetailMixins =
     relevant: SkipLogicDetailMixin
     constraint: ValidationLogicMixin
+    file:
+      postInitialize: ()->
+        available_files = @getSurvey().availableFiles || []
+        first_file = available_files[0]
+        if first_file
+          if @attributes.value is 'DEFAULT_CHOICES_FILE'
+            first_file_name = first_file.metadata.filename
+            @set('value', first_file_name)
     label:
       postInitialize: ()->
         # When the row's name changes, trigger the row's [finalize] function.
