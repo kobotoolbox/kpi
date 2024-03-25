@@ -25,7 +25,7 @@ const ProjectBreakdown = () => {
     async function fetchData() {
       try {
         const data = await getAssetUsageForOrganization();
-        console.error(data);
+
         const updatedResults = data.results.map((projectResult) => {
           const assetParts = projectResult.asset.split('/');
           const uid = assetParts[assetParts.length - 2];
@@ -107,7 +107,7 @@ const handleClick = async (
 
         <tbody>
              {projectData.results.map((project) => (
-           <tr key={project.asset}>
+               <tr key={project.asset}>
               <td>
                 <Link className={styles.link} to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}>
                   {project.asset__name}

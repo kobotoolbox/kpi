@@ -4,7 +4,7 @@
 .root {
   width: auto;
   padding-bottom: sizes.$x40;
-  padding-top: sizes.$x20;
+  padding-top: sizes.$x15;
   margin: 0 sizes.$x40;
   height: 100%;
   overflow-x: auto;
@@ -13,6 +13,10 @@
 table {
   width: 100%;
   border-collapse: collapse;
+}
+
+table th {
+  padding: 0 sizes.$x8;
 }
 
 .projects {
@@ -61,7 +65,7 @@ th {
   font-weight: 400;
   font-size: sizes.$x14;
   color: colors.$kobo-gray-24;
-  margin-top: sizes.$x50;
+  margin-top: sizes.$x30;
   border: sizes.$x1 solid colors.$kobo-gray-85;
   width: sizes.$x150;
   border-radius: sizes.$x4;
