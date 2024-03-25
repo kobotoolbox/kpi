@@ -461,13 +461,6 @@ iframe {
     &:not(.inline) {
       display: block;
     }
-
-    &.next-to-checkbox {
-      display: inline-block !important;
-      margin-left: 10px;
-      max-width: 90%;
-      vertical-align: top;
-    }
   }
 
   input[type='text'],
