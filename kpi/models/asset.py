@@ -407,11 +407,11 @@ class Asset(ObjectPermissionMixin,
 
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
-        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
-        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
-        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
-        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can Delete Data" in KC UI
-        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can Validate" in KC UI
+        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can change XForm" in KC shell
+        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can view XForm" in KC shell
+        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell
+        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell
+        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`

@@ -22,7 +22,7 @@ export default function StepConfigAuto() {
 
   // When polling for transcript, we need to calculate the estimated time
   useEffect(() => {
-    if (singleProcessingStore.isPollingForTranscript) {
+    if (singleProcessingStore.data.isPollingForTranscript) {
       const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
       if (asset?.content) {
         const attachment = getAttachmentForProcessing(asset.content);
@@ -35,7 +35,7 @@ export default function StepConfigAuto() {
     } else {
       setEstimate(NO_ESTIMATED_MINUTES);
     }
-  }, [singleProcessingStore.isPollingForTranscript]);
+  }, [singleProcessingStore.data.isPollingForTranscript]);
 
   /** Changes the draft region, preserving the other draft properties. */
   function onRegionChange(newVal: LanguageCode | null | undefined) {
@@ -60,7 +60,7 @@ export default function StepConfigAuto() {
     return null;
   }
 
-  if (singleProcessingStore.isPollingForTranscript) {
+  if (singleProcessingStore.data.isPollingForTranscript) {
     return (
       <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
         <BigSpinner />
@@ -87,8 +87,8 @@ export default function StepConfigAuto() {
 
       <RegionSelector
         isDisabled={
-          singleProcessingStore.isFetchingData ||
-          singleProcessingStore.isPollingForTranscript
+          singleProcessingStore.data.isFetchingData ||
+          singleProcessingStore.data.isPollingForTranscript
         }
         serviceCode='goog'
         serviceType='transcription'
@@ -118,7 +118,7 @@ export default function StepConfigAuto() {
             size='m'
             label={t('cancel')}
             onClick={cancelAuto}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
 
           <Button
@@ -127,7 +127,7 @@ export default function StepConfigAuto() {
             size='m'
             label={t('create transcript')}
             onClick={requestAutoTranscription}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
         </div>
       </footer>

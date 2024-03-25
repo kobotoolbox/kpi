@@ -194,6 +194,7 @@ export default class MetadataEditor extends React.Component {
       META_QUESTION_TYPES.username,
       META_QUESTION_TYPES.phonenumber,
       META_QUESTION_TYPES.deviceid,
+      META_QUESTION_TYPES['start-geopoint'],
     ];
 
     let backgroundAudioProp = this.getMetaProperty(

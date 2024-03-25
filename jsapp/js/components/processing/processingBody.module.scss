@@ -73,7 +73,7 @@
 .transxHeaderDate {
   @include mixins.textEllipsis;
 
-  background-color: colors.$kobo-cloud;
+  background-color: colors.$kobo-light-storm;
   height: sizes.$x28;
   line-height: sizes.$x28;
   border-radius: sizes.$x14;

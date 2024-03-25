@@ -10,7 +10,7 @@
 }
 
 .dialog {
-  width: 50%;
+  max-width: 30rem;
   position: absolute;
   border-radius: sizes.$x4;
   padding: sizes.$x12;
@@ -19,9 +19,8 @@
   z-index: 1100; // 1 index lower than a modal
 }
 
-.dialog::before {
+.pointer {
   content: " ";
-  left: 5%;
   border: solid transparent;
   height: 0;
   width: 0;
@@ -38,7 +37,7 @@
   font-weight: 600;
   display: flex;
   justify-content: space-between;
-  padding-bottom: sizes.$x12;
+  padding-bottom: sizes.$x6;
   align-items: center;
 
   .k-button :hover {

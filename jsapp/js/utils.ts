@@ -11,7 +11,7 @@ import moment from 'moment';
 import type {Toast, ToastOptions} from 'react-hot-toast';
 import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
-import type Raven from 'raven';
+import * as Sentry from '@sentry/react';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -176,7 +176,10 @@ export function getAssetUIDFromUrl(assetUrl: string): string | null {
 declare global {
   interface Window {
     log: () => void;
-    Raven?: Raven.Client;
+
+    // For legacy use. Instead, use `import * as Sentry from '@sentry/react';`.
+    // See note on window.Raven in main.es6
+    Raven?: Sentry.BrowserClient;
   }
 }
 
