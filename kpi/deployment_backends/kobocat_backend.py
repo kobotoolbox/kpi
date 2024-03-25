@@ -164,7 +164,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             if path_head != '/':
                 raise Exception('The identifier is not properly formatted.')
 
-        url = self.external_to_internal_url('{}/api/v1/forms'.format(kc_server))
+        url = self.normalize_internal_url('{}/api/v1/forms'.format(kc_server))
         xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
                 'settings': {
@@ -188,6 +188,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         json_response = self._kobocat_request(
             'POST', url, data=payload, files=files)
+        # Store only path
+        json_response["url"] = urlparse(json_response["url"]).path
         self.store_data({
             'backend': 'kobocat',
             'identifier': self.internal_to_external_url(identifier),
@@ -266,7 +268,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         WARNING! Deletes all submitted data!
         """
-        url = self.external_to_internal_url(self.backend_response['url'])
+        url = self.normalize_internal_url(self.backend_response['url'])
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
@@ -481,22 +483,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return enketo_id
 
     @staticmethod
-    def external_to_internal_url(url):
+    def normalize_internal_url(url: str) -> str:
         """
-        Replace the value of `settings.KOBOCAT_URL` with that of
-        `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
-        `url`
+        Normalize url to ensure KOBOCAT_INTERNAL_URL is used
         """
-        kobocat_url = settings.KOBOCAT_URL
-        # If old domain name is detected, use it for search&replace below
-        if settings.KOBOCAT_OLD_URL and settings.KOBOCAT_OLD_URL in url:
-            kobocat_url = settings.KOBOCAT_OLD_URL
-
-        return re.sub(
-            pattern='^{}'.format(re.escape(kobocat_url)),
-            repl=settings.KOBOCAT_INTERNAL_URL,
-            string=url
-        )
+        parsed_url = urlparse(url)
+        return f'{settings.KOBOCAT_INTERNAL_URL}{parsed_url.path}'
 
     def get_attachment(
         self,
@@ -877,7 +869,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         if active is None:
             active = self.active
-        url = self.external_to_internal_url(self.backend_response['url'])
+        url = self.normalize_internal_url(self.backend_response['url'])
         id_string = self.backend_response['id_string']
         xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
@@ -907,7 +899,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # is gone! Try a standard deployment instead
                 return self.connect(self.identifier, active)
             raise
-
         self.set_asset_uid()
 
     def remove_from_kc_only_flag(self,
@@ -949,7 +940,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         # self.store_data is an alias for
         # self.asset._deployment_data.update(...)
-        url = self.external_to_internal_url(
+        url = self.normalize_internal_url(
             self.backend_response['url'])
         payload = {
             'downloadable': bool(active)
@@ -979,7 +970,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if is_synchronized:
             return False
 
-        url = self.external_to_internal_url(self.backend_response['url'])
+        url = self.normalize_internal_url(self.backend_response['url'])
         payload = {
             'kpi_asset_uid': self.asset.uid
         }
@@ -1024,7 +1015,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Store results in deployment data
         """
         has_active_hooks = self.asset.has_active_hooks
-        url = self.external_to_internal_url(
+        url = self.normalize_internal_url(
             self.backend_response['url'])
         payload = {
             'has_kpi_hooks': has_active_hooks,
@@ -1157,7 +1148,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
 
-        url = self.external_to_internal_url(self.backend_response['url'])
+        url = self.normalize_internal_url(self.backend_response['url'])
         response = self._kobocat_request('GET', url)
         kc_files = defaultdict(dict)
 
@@ -1363,7 +1354,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         # Delete file in KC
 
-        delete_url = self.external_to_internal_url(kc_file_['url'])
+        delete_url = self.normalize_internal_url(kc_file_['url'])
         self._kobocat_request('DELETE', url=delete_url, expect_formid=False)
 
         if file_ is None:
@@ -1626,7 +1617,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         identifier = self.identifier
         server, path_ = self.__parse_identifier(identifier)
-        metadata_url = self.external_to_internal_url(f'{server}/api/v1/metadata')
+        metadata_url = self.normalize_internal_url(f'{server}/api/v1/metadata')
 
         kwargs = {
             'data': {
@@ -1665,7 +1656,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         identifier = self.identifier
         server, path_ = self.__parse_identifier(identifier)
-        metadata_detail_url = self.external_to_internal_url(
+        metadata_detail_url = self.normalize_internal_url(
             f'{server}/api/v1/metadata/{kc_metadata_id}'
         )
 
