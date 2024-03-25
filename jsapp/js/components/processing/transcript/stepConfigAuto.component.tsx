@@ -5,7 +5,7 @@ import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import RegionSelector from 'js/components/languages/regionSelector';
-import BigSpinner from 'js/components/common/bigSpinner.component';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
 import {
   getAttachmentForProcessing,
@@ -63,7 +63,7 @@ export default function StepConfigAuto() {
   if (singleProcessingStore.data.isPollingForTranscript) {
     return (
       <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-        <BigSpinner />
+        <LoadingSpinner type='big' hideMessage />
 
         <header className={bodyStyles.header}>
           {t('Automatic transcription in progress')}
