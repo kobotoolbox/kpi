@@ -1,9 +1,12 @@
 import React from 'react';
-import bem from 'js/bem';
-import './loadingSpinner.scss';
+import cx from 'classnames';
+import styles from './loadingSpinner.module.scss';
 import Icon from 'js/components/common/icon';
 
+export type LoadingSpinnerType = 'regular' | 'big';
+
 interface LoadingSpinnerProps {
+  type?: LoadingSpinnerType;
   message?: string;
   /**
    * Most of the times we want a message, either custom or default one, but
@@ -11,26 +14,38 @@ interface LoadingSpinnerProps {
    * component has a fallback message.
    */
   hideMessage?: boolean;
+  // should we remove it?
   hideSpinner?: boolean;
   'data-cy'?: string;
 }
 
-export default class LoadingSpinner extends React.Component<
-  LoadingSpinnerProps,
-  {}
-> {
-  render() {
-    const message = this.props.message || t('loading…');
+export default function LoadingSpinner(props: LoadingSpinnerProps) {
+  const spinnerType: LoadingSpinnerType = props.type || 'regular';
 
-    return (
-      <bem.Loading data-cy={this.props['data-cy']}>
-        <bem.Loading__inner>
-          {!this.props.hideSpinner && (
-            <Icon name='spinner' size='xl' classNames={['k-spin']} />
-          )}
-          {!this.props.hideMessage && message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
+  const message = props.message || t('loading…');
+
+  return (
+    <div
+      className={cx({
+        [styles.loading]: true,
+        [styles.loadingTypeRegular]: spinnerType === 'regular',
+        [styles.loadingHasDefaultMessage]: !props.hideMessage && !props.message,
+      })}
+      data-cy={props['data-cy']}
+    >
+      <div className={styles.loadingInner}>
+        {!props.hideSpinner && spinnerType === 'regular' && (
+          <Icon name='spinner' size='xl' classNames={['k-spin']} />
+        )}
+
+        {!props.hideSpinner && spinnerType === 'big' && (
+          <span className={styles.bigSpinner} />
+        )}
+
+        {!props.hideMessage && (
+          <span className={styles.loadingMessage}>{message}</span>
+        )}
+      </div>
+    </div>
+  );
 }
