@@ -23,10 +23,6 @@ export default {
       description: 'Hides the message (both custom and deafault)',
       control: 'boolean',
     },
-    hideSpinner: {
-      description: 'Hides the spinner',
-      control: 'boolean',
-    },
   },
 } as ComponentMeta<typeof LoadingSpinner>;
 

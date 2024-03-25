@@ -14,8 +14,6 @@ interface LoadingSpinnerProps {
    * component has a fallback message.
    */
   hideMessage?: boolean;
-  // should we remove it?
-  hideSpinner?: boolean;
   'data-cy'?: string;
 }
 
@@ -34,11 +32,11 @@ export default function LoadingSpinner(props: LoadingSpinnerProps) {
       data-cy={props['data-cy']}
     >
       <div className={styles.loadingInner}>
-        {!props.hideSpinner && spinnerType === 'regular' && (
+        {spinnerType === 'regular' && (
           <Icon name='spinner' size='xl' classNames={['k-spin']} />
         )}
 
-        {!props.hideSpinner && spinnerType === 'big' && (
+        {spinnerType === 'big' && (
           <span className={styles.bigSpinner} />
         )}
 

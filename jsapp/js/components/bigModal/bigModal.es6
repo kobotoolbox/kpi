@@ -4,7 +4,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {actions} from 'js/actions';
-import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
 import {stores} from 'js/stores';
@@ -386,11 +385,7 @@ class BigModal extends React.Component {
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&
               <div>
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    <i className='k-spin k-icon k-icon-spinner'/>
-                  </bem.Loading__inner>
-                </bem.Loading>
+                <LoadingSpinner hideMessage />
               </div>
             }
             { this.props.params.type === MODAL_TYPES.TABLE_SETTINGS &&

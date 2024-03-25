@@ -29,6 +29,8 @@ import {
 
 import {notify, checkLatLng} from 'utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import CenteredMessage from 'js/components/common/centeredMessage.component';
 
 import MapSettings from './mapSettings';
 
@@ -753,9 +755,7 @@ export class FormMap extends React.Component {
       return (
         <bem.uiPanel>
           <bem.uiPanel__body>
-            <bem.Loading>
-              <bem.Loading__inner>{this.state.error}</bem.Loading__inner>
-            </bem.Loading>
+            <CenteredMessage message={this.state.error} />
           </bem.uiPanel__body>
         </bem.uiPanel>
       );
@@ -979,11 +979,7 @@ export class FormMap extends React.Component {
           </bem.FormView__mapList>
         )}
         {!this.state.markers && !this.state.heatmap && (
-          <bem.Loading>
-            <bem.Loading__inner>
-              <i className='k-spin k-icon k-icon-spinner' />
-            </bem.Loading__inner>
-          </bem.Loading>
+          <LoadingSpinner hideMessage />
         )}
         {this.state.showMapSettings && (
           <Modal
