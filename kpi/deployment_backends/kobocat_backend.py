@@ -189,14 +189,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         json_response = self._kobocat_request(
             'POST', url, data=payload, files=files)
         # Store only path
-        json_response["url"] = urlparse(json_response["url"]).path
-        self.store_data({
-            'backend': 'kobocat',
-            'identifier': self.internal_to_external_url(identifier),
-            'active': json_response['downloadable'],
-            'backend_response': json_response,
-            'version': self.asset.version_id,
-        })
+        json_response['url'] = urlparse(json_response['url']).path
+        self.store_data(
+            {
+                'backend': 'kobocat',
+                'identifier': self.internal_to_external_url(identifier),
+                'active': json_response['downloadable'],
+                'backend_response': json_response,
+                'version': self.asset.version_id,
+            }
+        )
 
     @staticmethod
     def nlp_tracking_data(asset_ids, start_date=None):
