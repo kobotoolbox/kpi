@@ -13,7 +13,7 @@ $menu-padding: koboSelect.$k-select-menu-padding;
   @include mixins.centerRowFlex;
   justify-content: space-between;
   background-color: colors.$kobo-white;
-  border-bottom: sizes.$x1 solid colors.$kobo-cloud;
+  border-bottom: sizes.$x1 solid colors.$kobo-light-storm;
   padding: sizes.$x30 0 sizes.$x16;
   position: sticky;
   top: 0;

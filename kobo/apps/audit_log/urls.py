@@ -6,6 +6,4 @@ from .views import AuditLogViewSet
 router = DefaultRouter()
 router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 
-urlpatterns = [
-    path('', include(router.urls)),
-]
+urlpatterns = []
