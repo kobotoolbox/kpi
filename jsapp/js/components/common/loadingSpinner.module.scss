@@ -19,11 +19,11 @@
   }
 }
 
-// Moves spinner a bit off center to make it appear centered (ellipsis causes
+// Moves message a bit off center to make it appear centered (ellipsis causes
 // this optical illusion)
 .loadingHasDefaultMessage {
-  i:first-child {
-    margin-right: 10px;
+  .loadingMessage {
+    padding-left: 5px;
   }
 }
 

@@ -385,7 +385,7 @@ class BigModal extends React.Component {
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&
               <div>
-                <LoadingSpinner hideMessage />
+                <LoadingSpinner message={false} />
               </div>
             }
             { this.props.params.type === MODAL_TYPES.TABLE_SETTINGS &&

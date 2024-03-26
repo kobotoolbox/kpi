@@ -979,7 +979,7 @@ export class FormMap extends React.Component {
           </bem.FormView__mapList>
         )}
         {!this.state.markers && !this.state.heatmap && (
-          <LoadingSpinner hideMessage />
+          <LoadingSpinner message={false} />
         )}
         {this.state.showMapSettings && (
           <Modal

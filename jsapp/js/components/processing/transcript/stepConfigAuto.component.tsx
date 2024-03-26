@@ -63,7 +63,7 @@ export default function StepConfigAuto() {
   if (singleProcessingStore.data.isPollingForTranscript) {
     return (
       <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-        <LoadingSpinner type='big' hideMessage />
+        <LoadingSpinner type='big' message={false} />
 
         <header className={bodyStyles.header}>
           {t('Automatic transcription in progress')}

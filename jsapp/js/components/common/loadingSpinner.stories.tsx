@@ -15,13 +15,15 @@ export default {
       control: 'radio',
     },
     message: {
+      options: [
+        undefined,
+        false,
+        'Please wait things are coming…',
+        'Please wait until this process finishes, as there are a lot of things going on in the background. But since you started reading this, most probably the whole thing have already finished…',
+      ],
       description:
-        'Displayed underneath the animating spinner. If custom message is not provided, default message will be displayed.',
-      control: 'text',
-    },
-    hideMessage: {
-      description: 'Hides the message (both custom and deafault)',
-      control: 'boolean',
+        'Displayed underneath the animating spinner. If custom message is not provided, default message will be displayed. If `false` is passed, message will not be displayed.',
+      control: 'select',
     },
   },
 } as ComponentMeta<typeof LoadingSpinner>;

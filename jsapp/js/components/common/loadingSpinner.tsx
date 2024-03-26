@@ -6,20 +6,21 @@ import Icon from 'js/components/common/icon';
 export type LoadingSpinnerType = 'regular' | 'big';
 
 interface LoadingSpinnerProps {
+  /** Changes the looks of the spinner animation. */
   type?: LoadingSpinnerType;
-  message?: string;
   /**
-   * Most of the times we want a message, either custom or default one, but
-   * sometimes we want just the spinner. We need a boolean to hide it, because
-   * component has a fallback message.
+   * There is a default message if nothing is provided. If you want to hide
+   * the message completely, pass `false`.
    */
-  hideMessage?: boolean;
+  message?: string | boolean;
   'data-cy'?: string;
 }
 
+/**
+ * Displays a spinner animation above a customizable yet optional message.
+ */
 export default function LoadingSpinner(props: LoadingSpinnerProps) {
   const spinnerType: LoadingSpinnerType = props.type || 'regular';
-
   const message = props.message || t('loading…');
 
   return (
@@ -27,7 +28,7 @@ export default function LoadingSpinner(props: LoadingSpinnerProps) {
       className={cx({
         [styles.loading]: true,
         [styles.loadingTypeRegular]: spinnerType === 'regular',
-        [styles.loadingHasDefaultMessage]: !props.hideMessage && !props.message,
+        [styles.loadingHasDefaultMessage]: props.message === undefined,
       })}
       data-cy={props['data-cy']}
     >
@@ -36,11 +37,9 @@ export default function LoadingSpinner(props: LoadingSpinnerProps) {
           <Icon name='spinner' size='xl' classNames={['k-spin']} />
         )}
 
-        {spinnerType === 'big' && (
-          <span className={styles.bigSpinner} />
-        )}
+        {spinnerType === 'big' && <span className={styles.bigSpinner} />}
 
-        {!props.hideMessage && (
+        {props.message !== false && (
           <span className={styles.loadingMessage}>{message}</span>
         )}
       </div>
