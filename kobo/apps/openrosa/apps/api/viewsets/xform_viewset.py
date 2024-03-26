@@ -3,7 +3,6 @@ import json
 import os
 
 from django.core.exceptions import ValidationError
-from django.core.files.storage import default_storage
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
@@ -39,6 +38,9 @@ from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_an
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 from kobo.apps.openrosa.libs.utils.string import str2bool
 from kobo.apps.openrosa.libs.utils.viewer_tools import format_date_for_mongo
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 EXPORT_EXT = {

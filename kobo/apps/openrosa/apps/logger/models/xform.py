@@ -8,7 +8,6 @@ from xml.sax.saxutils import escape as xml_escape
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.files.storage import default_storage
 from django.urls import reverse
 from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_delete
@@ -36,8 +35,11 @@ from kobo.apps.openrosa.libs.utils.guardian import (
     get_perms_for_model
 )
 from kobo.apps.openrosa.libs.utils.hash import get_hash
-from kpi.utils.xml import XMLFormWithDisclaimer
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from kpi.models.asset import Asset
+from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
 title_pattern = re.compile(r"<h:title>([^<]+)</h:title>")
@@ -63,7 +65,9 @@ class XForm(BaseModel):
     CLONED_SUFFIX = '_cloned'
     MAX_ID_LENGTH = 100
 
-    xls = models.FileField(upload_to=upload_to, null=True)
+    xls = models.FileField(
+        storage=default_storage, upload_to=upload_to, null=True
+    )
     json = models.TextField(default='')
     description = models.TextField(default='', null=True)
     xml = models.TextField()

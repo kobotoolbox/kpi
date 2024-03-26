@@ -9,7 +9,6 @@ import requests
 import rest_framework.views as rest_framework_views
 from django import forms
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.http import (
     HttpResponse,
     HttpResponseNotFound,
@@ -33,6 +32,9 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
 from kobo.apps.openrosa.libs.utils.user_auth import (
     check_and_set_form_by_id,
     check_and_set_form_by_id_string,
+)
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
 )
 
 DECIMAL_PRECISION = 2
@@ -191,9 +193,8 @@ def get_media_file_response(
         file_path = metadata.data_file.name
         filename, extension = os.path.splitext(file_path.split('/')[-1])
         extension = extension.strip('.')
-        dfs = default_storage
 
-        if dfs.exists(file_path):
+        if default_storage.exists(file_path):
             response = response_with_mimetype_and_name(
                 metadata.data_file_type,
                 filename, extension=extension, show_date=False,

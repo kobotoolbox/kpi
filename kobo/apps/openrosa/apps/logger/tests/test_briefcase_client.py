@@ -4,7 +4,6 @@ from io import BytesIO
 
 import requests
 from django.contrib.auth import authenticate
-from django.core.files.storage import default_storage as storage
 from django.core.files.uploadedfile import UploadedFile
 from django.test import RequestFactory
 from django_digest.test import Client as DigestClient
@@ -16,6 +15,9 @@ from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.briefcase_client import BriefcaseClient
 from kobo.apps.openrosa.libs.utils.storage import rmdir
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as storage,
+)
 
 
 def formList(*args, **kwargs):  # noqa

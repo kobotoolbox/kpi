@@ -18,7 +18,6 @@ except ImportError:
 from dict2xml import dict2xml
 from django.conf import settings
 from django.core.exceptions import ValidationError, PermissionDenied
-from django.core.files.storage import default_storage
 from django.core.mail import mail_admins
 from django.db import IntegrityError, transaction
 from django.db.models import Q
@@ -62,7 +61,6 @@ from kobo.apps.openrosa.apps.logger.signals import (
     post_save_attachment,
     pre_delete_attachment,
 )
-
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     InstanceEmptyError,
     InstanceInvalidUserError,
@@ -74,11 +72,16 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_submission_date_from_xml,
     get_xform_media_question_xpaths,
 )
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils import common_tags
-from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kobo.apps.openrosa.libs.utils.model_tools import (
+    queryset_iterator,
+    set_uuid,
+)
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'

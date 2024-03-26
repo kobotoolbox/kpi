@@ -3,13 +3,16 @@ import csv
 from io import BytesIO
 
 from django.urls import reverse
-from django.core.files.storage import default_storage, FileSystemStorage
+from django.core.files.storage import FileSystemStorage
 from openpyxl import load_workbook
 
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.views import export_download
 from kobo.apps.openrosa.libs.utils.export_tools import generate_export
 from kobo.apps.openrosa.libs.utils.user_auth import http_auth_string
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from .test_base import TestBase
 
 

@@ -7,6 +7,9 @@ from django.db import models
 from django.utils.http import urlencode
 
 from kobo.apps.openrosa.libs.utils.hash import get_hash
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from .instance import Instance
 
 
@@ -38,7 +41,12 @@ class Attachment(models.Model):
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
-    media_file = models.FileField(upload_to=upload_to, max_length=380, db_index=True)
+    media_file = models.FileField(
+        storage=default_storage,
+        upload_to=upload_to,
+        max_length=380,
+        db_index=True,
+    )
     media_file_basename = models.CharField(
         max_length=260, null=True, blank=True, db_index=True)
     # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider

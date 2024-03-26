@@ -9,7 +9,6 @@ from django.conf import settings
 from django.core.files.base import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
-from django.core.files.storage import default_storage
 from django.shortcuts import render
 from django.utils.text import slugify
 from openpyxl.utils.datetime import to_excel, time_to_days, timedelta_to_days
@@ -38,6 +37,9 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     UUID,
     TAGS,
     NOTES
+)
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
 )
 
 # this is Mongo Collection where we will store the parsed submissions

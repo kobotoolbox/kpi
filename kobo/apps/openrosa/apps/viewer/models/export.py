@@ -2,12 +2,14 @@
 import os
 from tempfile import NamedTemporaryFile
 
-from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models.signals import post_delete
 from django.utils.translation import gettext as t
 
 from kobo.apps.openrosa.apps.logger.models import XForm
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 
 
 def export_delete_callback(sender, **kwargs):
@@ -77,7 +79,8 @@ class Export(models.Model):
             # if so, delete oldest
             # TODO: let user know that last export will be deleted
             num_existing_exports = Export.objects.filter(
-                xform=self.xform, export_type=self.export_type).count()
+                xform=self.xform, export_type=self.export_type
+            ).count()
 
             if num_existing_exports >= self.MAX_EXPORTS:
                 Export._delete_oldest_export(self.xform, self.export_type)
@@ -122,9 +125,12 @@ class Export(models.Model):
 
     def _update_filedir(self):
         assert(self.filename)
-        self.filedir = os.path.join(self.xform.user.username,
-                                    'exports', self.xform.id_string,
-                                    self.export_type)
+        self.filedir = os.path.join(
+            self.xform.user.username,
+            'exports',
+            self.xform.id_string,
+            self.export_type,
+        )
 
     @property
     def filepath(self):

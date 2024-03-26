@@ -9,11 +9,14 @@ from datetime import datetime
 from tempfile import NamedTemporaryFile
 
 from django.conf import settings
-from django.core.files.storage import default_storage, FileSystemStorage
+from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import mail_admins
 from django.utils.translation import gettext as t
 
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 
 SLASH = "/"
 

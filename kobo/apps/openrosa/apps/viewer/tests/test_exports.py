@@ -8,7 +8,7 @@ from time import sleep
 
 import requests
 from django.conf import settings
-from django.core.files.storage import default_storage, FileSystemStorage
+from django.core.files.storage import FileSystemStorage
 from django.urls import reverse
 from django.utils.dateparse import parse_datetime
 from openpyxl import load_workbook
@@ -26,8 +26,14 @@ from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.viewer.tasks import create_xls_export
-from kobo.apps.openrosa.libs.utils.export_tools import generate_export,\
-    increment_index_in_filename, dict_to_joined_export
+from kobo.apps.openrosa.libs.utils.export_tools import (
+    generate_export,
+    increment_index_in_filename,
+    dict_to_joined_export,
+)
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 
 AMBULANCE_KEY = (
     'transport/available_transportation_types_to_referral_facility/ambulance'

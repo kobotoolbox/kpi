@@ -4,12 +4,13 @@ from tempfile import NamedTemporaryFile
 
 import requests
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from PIL import Image
 
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_path
-
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 
 def flat(*nums):
     """

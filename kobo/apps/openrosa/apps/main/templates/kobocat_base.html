@@ -90,11 +90,6 @@
 {% block before-content %}{% endblock %}
 
 <div class="container-fluid container__wide main {{ request.resolver_match.url_name }}">
-    {% block message %}
-        {% if message or messages or message_list %}
-            {% include "message.html" %}
-        {% endif %}
-    {% endblock %}
     {% block content %}
         {% if template %}{% include template %}{% endif %}
         {{ content|safe }}

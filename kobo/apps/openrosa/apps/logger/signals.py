@@ -1,7 +1,6 @@
 # coding: utf-8
 import logging
 
-from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import F
 from django.db.models.signals import (
@@ -13,6 +12,9 @@ from django.dispatch import receiver
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 
 
 @receiver(pre_delete, sender=Attachment)

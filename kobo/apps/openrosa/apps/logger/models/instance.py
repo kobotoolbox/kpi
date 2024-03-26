@@ -1,6 +1,5 @@
 # coding: utf-8
 from hashlib import sha256
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:

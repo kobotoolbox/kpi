@@ -1,11 +1,13 @@
 # coding: utf-8
-from django.core.files.storage import default_storage
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import (
     DataDictionary,
     upload_to,
+)
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
 )
 
 

@@ -6,7 +6,7 @@ import re
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage, FileSystemStorage
+from django.core.files.storage import FileSystemStorage
 from django.urls import reverse
 from django.db.models import Q
 from django.http import (
@@ -34,6 +34,9 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
     helper_auth_helper,
 )
 from kobo.apps.openrosa.libs.utils.viewer_tools import export_def_from_filename
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 
 media_file_logger = logging.getLogger('media_files')
 

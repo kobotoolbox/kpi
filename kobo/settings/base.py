@@ -1300,7 +1300,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-    if DEFAULT_FILE_STORAGE.endswith("AzureStorage"):
+    if DEFAULT_FILE_STORAGE.endswith('AzureStorage'):
         PRIVATE_STORAGE_CLASS = \
             'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
@@ -1311,14 +1311,12 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
     KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
     if 'KOBOCAT_AWS_STORAGE_BUCKET_NAME' in os.environ:
         KOBOCAT_AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
 else:
     KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
-
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
@@ -1616,7 +1614,8 @@ AUTH_USER_MODEL = 'kobo_auth.User'
 #         KoboCAT settings         #
 ####################################
 KOBOCAT_PUBLIC_HOSTNAME = (
-    f"{env.str('KOBOCAT_PUBLIC_SUBDOMAIN')}.{env.str('PUBLIC_DOMAIN_NAME')}"
+    f"{env.str('KOBOCAT_PUBLIC_SUBDOMAIN', 'kc')}"
+    f".{env.str('PUBLIC_DOMAIN_NAME', 'domain.tld')}"
 )
 
 KOBOFORM_INTERNAL_URL = env.url('KOBOFORM_INTERNAL_URL', KOBOFORM_URL).geturl()

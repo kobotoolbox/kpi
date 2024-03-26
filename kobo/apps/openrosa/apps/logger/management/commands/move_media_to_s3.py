@@ -3,14 +3,20 @@
 # coding: utf-8
 import sys
 
-from django.core.files.storage import default_storage, get_storage_class
+from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
-from kobo.apps.openrosa.apps.logger.models.attachment import upload_to as\
-    attachment_upload_to
-from kobo.apps.openrosa.apps.logger.models.xform import XForm, upload_to as\
-    xform_upload_to
+from kobo.apps.openrosa.apps.logger.models.attachment import (
+    upload_to as attachment_upload_to,
+)
+from kobo.apps.openrosa.apps.logger.models.xform import (
+    XForm,
+    upload_to as xform_upload_to,
+)
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 
 
 class Command(BaseCommand):
@@ -23,8 +29,10 @@ class Command(BaseCommand):
                 'django.core.files.storage.FileSystemStorage')()
             s3 = get_storage_class('storages.backends.s3boto3.S3Boto3Storage')()
         except:
-            print("Missing necessary libraries. Try running: pip install -r"
-                  "requirements/s3.pip")
+            print(
+                'Missing necessary libraries. Try running: pip install -r'
+                'requirements/s3.pip'
+            )
             sys.exit(1)
 
         if default_storage.__class__ != s3.__class__:

@@ -1,12 +1,14 @@
 # coding: utf-8
 import os
 
-from django.core.files.storage import default_storage
 from django.utils.dateparse import parse_datetime
 
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs.utils.export_tools import generate_export
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from .test_base import TestBase
 
 

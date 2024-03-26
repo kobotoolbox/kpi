@@ -4,7 +4,6 @@ import os
 import tempfile
 
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
@@ -32,6 +31,9 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
     helper_auth_helper,
     has_permission,
     add_cors_headers,
+)
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
 )
 from ...koboform.pyxform_utils import convert_csv_to_xls
 
