@@ -122,6 +122,7 @@ interface SingleProcessingStoreData {
   source?: string;
   activeTab: SingleProcessingTabs;
   submissionData?: SubmissionResponse;
+  submissionCount: number;
   /** A list of all submissions editIds (`meta/rootUuid` or `_uuid`). */
   submissionsEditIds?: SubmissionsEditIds;
   /**
@@ -159,6 +160,7 @@ class SingleProcessingStore extends Reflux.Store {
   public data: SingleProcessingStoreData = {
     translations: [],
     activeTab: SingleProcessingTabs.Transcript,
+    submissionCount: 0,
     isPristine: true,
     isFetchingData: false,
     isPollingForTranscript: false,
@@ -436,10 +438,19 @@ class SingleProcessingStore extends Reflux.Store {
    * NOTE: We only need to call this once for given asset. We assume that while
    * processing view is opened, submissions will not be deleted or added.
    */
-  private fetchEditIds(): void {
+  fetchEditIds = (
+    filters: string | null = null,
+    sort: string | null = null,
+    pageSize: number | null = null,
+    startIndex: number | null = null
+  ): void => {
     this.areEditIdsLoaded = false;
     this.data.submissionsEditIds = undefined;
-    this.trigger(this.data);
+    // we want to avoid triggering a re-render here, which prevents us from unmounting
+    // singleProcessingHeader and losing a pending callback
+    if (startIndex == null) {
+      this.trigger(this.data);
+    }
 
     const processingRows = getAssetProcessingRows(this.currentAssetUid);
     const asset = assetStore.getAsset(this.currentAssetUid);
@@ -468,18 +479,21 @@ class SingleProcessingStore extends Reflux.Store {
       }
     }
 
-    actions.submissions.getProcessingSubmissions(
-      this.currentAssetUid,
-      processingRowsPaths
-    );
-  }
+    actions.submissions.getProcessingSubmissions({
+      assetUid: this.currentAssetUid,
+      questionsPaths: processingRowsPaths,
+      filters,
+      sort,
+      pageSize,
+      startIndex,
+    });
+  };
 
   private onGetProcessingSubmissionsCompleted(
     response: GetProcessingSubmissionsResponse
   ) {
     const submissionsEditIds: SubmissionsEditIds = {};
     const processingRows = getAssetProcessingRows(this.currentAssetUid);
-
     const asset = assetStore.getAsset(this.currentAssetUid);
     let flatPaths: SurveyFlatPaths = {};
 
@@ -518,8 +532,11 @@ class SingleProcessingStore extends Reflux.Store {
 
     this.areEditIdsLoaded = true;
     this.data.submissionsEditIds = submissionsEditIds;
+    this.data.submissionCount = response.count;
     this.trigger(this.data);
   }
+
+  getSubmissionCount = (): number => this.data.submissionCount;
 
   private onGetProcessingSubmissionsFailed(): void {
     this.areEditIdsLoaded = true;

@@ -203,11 +203,11 @@ export function isFormSingleProcessingRoute(
   qpath: string,
   submissionEditId: string
 ): boolean {
-  return (
-    getCurrentPath() ===
+  return getCurrentPath().startsWith(
     ROUTES.FORM_PROCESSING.replace(':uid', uid)
       .replace(':qpath', qpath)
       .replace(':submissionEditId', submissionEditId)
+      .replace('/:filters/:sort/:pageSize/:startIndex', '')
   );
 }
 

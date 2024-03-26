@@ -19,6 +19,7 @@ import exportsActions from './actions/exportsActions';
 import dataShareActions from './actions/dataShareActions';
 import {notify} from 'js/utils';
 import {replaceSupportEmail} from 'js/textUtils';
+import {cacheDataInterface} from "./stores/utils";
 import * as Sentry from '@sentry/react';
 
 // Configure Reflux
@@ -423,27 +424,13 @@ actions.auth.getApiToken.failed.listen(() => {
   notify(t('failed to load API token'), 'error');
 });
 
-const assetCache = {};
+const loadAsset = cacheDataInterface(
+  dataInterface.getAsset,
+  actions.resources.loadAsset.completed,
+  actions.resources.loadAsset.failed
+);
 
-actions.resources.loadAsset.listen(function (params, refresh = false) {
-  // if we want to force-refresh the asset or if we don't have it cached, make an API call
-  if (refresh || !(params.id in assetCache)) {
-    // initialize the cache entry with an empty value, or evict stale cached entry for this asset
-    // we use a string instead of null/undefined to distinguish from null responses from the server, etc.
-    assetCache[params.id] = 'pending';
-    dataInterface.getAsset(params)
-    .done((asset) => {
-      // save the fully loaded asset to the cache
-      assetCache[params.id] = asset;
-      actions.resources.loadAsset.completed(asset);
-    })
-    .fail(actions.resources.loadAsset.failed);
-  } else if (assetCache[params.id] !== 'pending') {
-    // we have a cache entry, use that
-    actions.resources.loadAsset.completed(assetCache[params.id]);
-  }
-  // the cache entry for this asset is currently loading, do nothing
-});
+actions.resources.loadAsset.listen(loadAsset);
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){
   dataInterface.updateSubmissionValidationStatus(uid, sid, data).done((result) => {

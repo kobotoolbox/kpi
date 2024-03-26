@@ -31,15 +31,26 @@ interface GetSubmissionCompletedDefinition extends Function {
   listen: (callback: (response: SubmissionResponse) => void) => Function;
 }
 
+interface GetProcessingSubmissionsArgs {
+  assetUid: string;
+  questionsPaths: string[];
+  filters?: string | null;
+  sort?: string | null;
+  pageSize?: number | null;
+  startIndex?: number | null;
+}
+
 interface GetProcessingSubmissionsDefinition extends Function {
-  (assetUid: string, questionsPaths: string[]): void;
+  (args: GetProcessingSubmissionsArgs, refresh?: boolean): void;
   completed: GetProcessingSubmissionsCompletedDefinition;
   failed: GenericFailedDefinition;
 }
 
 interface GetProcessingSubmissionsCompletedDefinition extends Function {
   (response: GetProcessingSubmissionsResponse): void;
-  listen: (callback: (response: GetProcessingSubmissionsResponse) => void) => Function;
+  listen: (
+    callback: (response: GetProcessingSubmissionsResponse) => void
+  ) => Function;
 }
 
 interface LoadAssetDefinition extends Function {

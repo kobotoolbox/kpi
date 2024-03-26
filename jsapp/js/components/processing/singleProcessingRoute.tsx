@@ -144,7 +144,6 @@ export default class SingleProcessingRoute extends React.Component<
 
   render() {
     const pageTitle = 'Data | KoboToolbox';
-
     if (
       !singleProcessingStore.isReady() ||
       !this.state.asset?.content?.survey

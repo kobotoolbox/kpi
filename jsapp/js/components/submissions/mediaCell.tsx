@@ -2,15 +2,8 @@ import autoBind from 'react-autobind';
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import {stores} from 'js/stores';
-import {
-  MODAL_TYPES,
-  QUESTION_TYPES,
-  META_QUESTION_TYPES,
-} from 'js/constants';
-import type {
-  QuestionTypeName,
-  MetaQuestionTypeName,
-} from 'js/constants';
+import {MODAL_TYPES, QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
+import type {QuestionTypeName, MetaQuestionTypeName} from 'js/constants';
 import Button from 'js/components/common/button';
 import {truncateString} from 'js/utils';
 import {openProcessing} from 'js/components/processing/processingUtils';
@@ -19,9 +12,21 @@ import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
-bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
-bem.TableMediaPreviewHeader__label = makeBem(bem.TableMediaPreviewHeader, 'label', 'label');
-bem.TableMediaPreviewHeader__options = makeBem(bem.TableMediaPreviewHeader, 'options', 'div');
+bem.TableMediaPreviewHeader__title = makeBem(
+  bem.TableMediaPreviewHeader,
+  'title',
+  'div'
+);
+bem.TableMediaPreviewHeader__label = makeBem(
+  bem.TableMediaPreviewHeader,
+  'label',
+  'label'
+);
+bem.TableMediaPreviewHeader__options = makeBem(
+  bem.TableMediaPreviewHeader,
+  'options',
+  'div'
+);
 
 bem.MediaCell = makeBem(null, 'media-cell');
 bem.MediaCell__duration = makeBem(bem.MediaCell, 'duration', 'label');
@@ -31,18 +36,23 @@ bem.MediaCellIconWrapper = makeBem(null, 'icon-wrapper');
 bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
 
 interface MediaCellProps {
- questionType: MetaQuestionTypeName | QuestionTypeName;
- /** It's `null` for text questions. */
- mediaAttachment: SubmissionAttachment;
- /** Backend stored media attachment file name or the content of a text question. */
- mediaName: string;
- /** Index of the submission for text questions. */
- submissionIndex: number;
- /** Total submissions for text questions. */
- submissionTotal: number;
- assetUid: string;
- qpath: string;
- submissionUuid: string;
+  questionType: MetaQuestionTypeName | QuestionTypeName;
+  /** It's `null` for text questions. */
+  mediaAttachment: SubmissionAttachment;
+  /** Backend stored media attachment file name or the content of a text question. */
+  mediaName: string;
+  /** Index of the submission for text questions. */
+  submissionIndex: number;
+  /** Total submissions for text questions. */
+  submissionTotal: number;
+  assetUid: string;
+  qpath: string;
+  submissionUuid: string;
+  /** Required for the Single Processing (QA) views **/
+  filter: string;
+  sort: Array<{desc: boolean; id: string}>;
+  pageSize: number;
+  startIndex: number;
 }
 
 /** Table cell replacement for media submissions */
@@ -89,7 +99,11 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     openProcessing(
       this.props.assetUid,
       this.props.qpath,
-      this.props.submissionUuid
+      this.props.submissionUuid,
+      this.props.filter,
+      this.props.sort,
+      this.props.pageSize,
+      this.props.startIndex
     );
   }
 
@@ -106,7 +120,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         this.props.mediaAttachment?.download_url,
         this.props.mediaName,
         this.props.submissionIndex,
-        this.props.submissionTotal,
+        this.props.submissionTotal
       ),
     });
   }
@@ -116,7 +130,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     mediaURL: string,
     mediaName: string,
     submissionIndex: number,
-    submissionTotal: number,
+    submissionTotal: number
   ) {
     let titleText = null;
 
@@ -132,7 +146,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
-          <i className={questionIcon}/>
+          <i className={questionIcon} />
           <bem.TableMediaPreviewHeader__label
             // Give the user a way to see the full file name
             title={mediaName}
@@ -142,7 +156,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         </bem.TableMediaPreviewHeader__title>
 
         <bem.TableMediaPreviewHeader__options>
-          {mediaURL &&
+          {mediaURL && (
             <a
               className='kobo-light-button kobo-light-button--blue'
               // TODO: once we get this button to `save as`, remove this target
@@ -151,11 +165,14 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
             >
               {t('download')}
 
-              <i className='k-icon k-icon-download'/>
+              <i className='k-icon k-icon-download' />
             </a>
-          }
+          )}
 
-          {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
+          {[
+            QUESTION_TYPES.audio.id,
+            META_QUESTION_TYPES['background-audio'],
+          ].includes(this.props.questionType) && (
             <Button
               type='frame'
               size='s'
@@ -164,7 +181,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
               label={t('process')}
               onClick={this.openProcessing.bind(this)}
             />
-          }
+          )}
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     );
@@ -175,12 +192,12 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
 
     return (
       <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
-        {isTextQuestion &&
+        {isTextQuestion && (
           // Show text as well if text question
           <bem.MediaCell__text className='trimmed-text'>
             {this.props.mediaName}
           </bem.MediaCell__text>
-        }
+        )}
 
         <bem.MediaCellIconWrapper>
           <bem.MediaCellIconWrapper__icon
@@ -195,8 +212,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
           <bem.MediaCell__duration>
             {tempTime}
           </bem.MediaCell__duration>
-          */
-        }
+          */}
       </bem.MediaCell>
     );
   }

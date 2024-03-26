@@ -6,6 +6,7 @@ import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 import {ROOT_URL} from 'js/constants';
+import {cacheDataInterface} from "../stores/utils";
 
 const submissionsActions = Reflux.createActions({
   getSubmission: {children: ['completed', 'failed']},
@@ -57,20 +58,25 @@ submissionsActions.getSubmissions.listen((options) => {
  * This gets an array of submission uuids
  * @param {string} assetUid
  */
-submissionsActions.getProcessingSubmissions.listen((assetUid, questionsPaths) => {
-  let fields = '';
-  questionsPaths.forEach((questionPath) => {
-    fields += `,"${questionPath}"`;
-  });
+const getProcessingSubmissionUuids = ({assetUid, questionsPaths = [], filters, sort, pageSize, startIndex}) => {
+  return dataInterface.getSubmissions(
+    assetUid,
+    pageSize ?? 30,
+    startIndex ?? 0,
+    JSON.parse(sort) ?? [],
+    questionsPaths.concat('_uuid', 'meta/rootUuid'),
+    filters === 'none' || !filters ? '' : filters,
+  )
+};
 
-  $.ajax({
-    dataType: 'json',
-    method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_uuid", "meta/rootUuid" ${fields}]`,
-  })
-    .done(submissionsActions.getProcessingSubmissions.completed)
-    .fail(submissionsActions.getProcessingSubmissions.failed);
-});
+submissionsActions.getProcessingSubmissions.listen(
+  cacheDataInterface(
+    getProcessingSubmissionUuids,
+    submissionsActions.getProcessingSubmissions.completed,
+    submissionsActions.getProcessingSubmissions.failed
+  )
+);
+
 submissionsActions.getProcessingSubmissions.failed.listen(() => {
   notify(t('Failed to get submissions uuids.'), 'error');
 });
