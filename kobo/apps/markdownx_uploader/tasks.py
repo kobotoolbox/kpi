@@ -1,10 +1,8 @@
 from django.core.files.storage import default_storage
 
-from kobo.celery import celery_app
 from .models import MarkdownxUploaderFile, MarkdownxUploaderFileReference
 
 
-@celery_app.task
 def remove_unused_markdown_files():
     """
     Clean-up unused files uploaded via markdown editor

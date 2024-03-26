@@ -966,19 +966,19 @@ CELERY_BEAT_SCHEDULE = {
     'send-hooks-failures-reports': {
         'task': 'kobo.apps.hook.tasks.failures_reports',
         'schedule': crontab(hour=0, minute=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 30 minutes
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
         'schedule': crontab(minute=30),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every monday at 00:30
-    'markdown-images-garbage-collector': {
-        'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
-        'schedule': crontab(hour=0, minute=30, day_of_week=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+    # Run maintenance every day at 20:00 UTC
+    'perform-maintenance': {
+        'task': 'kobo.tasks.perform_maintenance',
+        'schedule': crontab(hour=20, minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
 
