@@ -43,17 +43,18 @@ export function getAttachmentForProcessing(
 
 /**
  * For given length of an audio file (in seconds) returns a human-friendly
- * rough estimate.
+ * rough estimate of how long would it take to transcribe it.
  */
 export function secondsToTranscriptionEstimate(sourceSeconds: number): string {
-  const estimateSeconds = Math.round(sourceSeconds * 0.5 + 10);
-  if (estimateSeconds < 45) {
+  const durationSeconds = Math.round(sourceSeconds * 0.5 + 10);
+  if (durationSeconds < 45) {
     return t('less than a minute');
-  } else if (estimateSeconds >= 45 && estimateSeconds < 75) {
+  } else if (durationSeconds >= 45 && durationSeconds < 75) {
     return t('about 1 minute');
-  } else if (estimateSeconds >= 75 && estimateSeconds < 150) {
+  } else if (durationSeconds >= 75 && durationSeconds < 150) {
     return t('about 2 minutes');
   } else {
-    return t('about 3 minutes');
+    const durationMinutes = Math.round(durationSeconds / 60);
+    return t('about ##number## minutes').replace('##number##', String(durationMinutes));
   }
 }
