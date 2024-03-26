@@ -58,17 +58,9 @@ class TableBulkOptions extends React.Component {
     // setting empty value requires deleting the statuses with different API call
     const apiFn = newStatus === null ? actions.submissions.bulkDeleteStatus : actions.submissions.bulkPatchStatus;
 
-    if (this.props.selectedAllPages) {
-      if (this.props.fetchState.filtered.length) {
-        data.query = {};
-        data['validation_status.uid'] = newStatus;
-        this.props.fetchState.filtered.map((filteredItem) => {
-          data.query[filteredItem.id] = filteredItem.value;
-        });
-      } else {
-        data.confirm = true;
-        data['validation_status.uid'] = newStatus;
-      }
+    if (this.props.selectedAllPages && !this.props.fetchState.filtered.length) {
+      data.confirm = true;
+      data['validation_status.uid'] = newStatus;
       selectedCount = this.props.totalRowsCount;
     } else {
       data.submission_ids = Object.keys(this.props.selectedRows);
