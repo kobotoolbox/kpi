@@ -1,16 +1,13 @@
 import React from 'react';
 import bem from 'js/bem';
+import CenteredMessage from 'js/components/common/centeredMessage.component';
 
 export default class FormNotFound extends React.Component {
   render() {
     return (
       <bem.uiPanel>
         <bem.uiPanel__body>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {t('path not found / recognized')}
-            </bem.Loading__inner>
-          </bem.Loading>
+          <CenteredMessage message={t('path not found / recognized')}/>
         </bem.uiPanel__body>
       </bem.uiPanel>
     );

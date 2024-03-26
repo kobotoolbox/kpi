@@ -3,15 +3,11 @@ import AudioPlayer from 'js/components/common/audioPlayer';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {AssetContent} from 'js/dataInterface';
 import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
-import {
-  getQuestionXPath,
-  getRowData,
-  getMediaAttachment,
-} from 'js/components/submissions/submissionUtils';
+import {getAttachmentForProcessing} from 'js/components/processing/transcript/transcript.utils';
 import styles from './sidebarSubmissionMedia.module.scss';
 
 interface SidebarSubmissionMediaProps {
-  asset: AssetContent | undefined;
+  assetContent: AssetContent | undefined;
 }
 
 export default function SidebarSubmissionMedia(
@@ -20,43 +16,12 @@ export default function SidebarSubmissionMedia(
   // We need submission data.
   const [store] = useState(() => singleProcessingStore);
 
-  const submissionData = store.getSubmissionData();
-
-  if (!submissionData) {
+  // We need `assetContent` to proceed.
+  if (!props.assetContent) {
     return null;
   }
 
-  // We need asset with content.
-  if (!props.asset || !props.asset.survey) {
-    return null;
-  }
-
-  if (!store.currentQuestionName) {
-    return null;
-  }
-
-  // We need row data.
-  const rowData = getRowData(
-    store.currentQuestionName,
-    props.asset.survey,
-    submissionData
-  );
-  if (rowData === null) {
-    return null;
-  }
-
-  // NB: XPath work moved here from the now-deleted
-  // `singleProcessingSubmissionDetails.tsx` by jnm to resolve a merge
-  // conflict. It was originally added in commit
-  // b7d110a793d6fd5fcc280502b987c68d4b50aae9 (PR #4811)
-
-  // Attachment needs to be an object with urls.
-  const questionXPath = getQuestionXPath(
-    props.asset.survey,
-    store.currentQuestionName
-  );
-
-  const attachment = getMediaAttachment(submissionData, rowData, questionXPath);
+  const attachment = getAttachmentForProcessing(props.assetContent);
   if (typeof attachment === 'string') {
     return null;
   }

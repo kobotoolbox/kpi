@@ -98,7 +98,7 @@ export default function AnalysisTab() {
   }, [state.hasUnsavedWork]);
 
   if (!isInitialised) {
-    return <LoadingSpinner hideMessage />;
+    return <LoadingSpinner message={false} />;
   }
 
   if (isErrored) {

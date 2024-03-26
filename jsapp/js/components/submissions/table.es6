@@ -67,7 +67,7 @@ import {
   userCanPartially,
   userHasPermForSubmission,
 } from 'js/components/permissions/utils';
-
+import CenteredMessage from 'js/components/common/centeredMessage.component';
 const DEFAULT_PAGE_SIZE = 30;
 
 /**
@@ -1398,9 +1398,7 @@ export class DataTable extends React.Component {
       return (
         <bem.uiPanel>
           <bem.uiPanel__body>
-            <bem.Loading>
-              <bem.Loading__inner>{this.state.error}</bem.Loading__inner>
-            </bem.Loading>
+            <CenteredMessage message={this.state.error} />
           </bem.uiPanel__body>
         </bem.uiPanel>
       );

@@ -193,7 +193,7 @@ export default function TOSForm() {
     !envStore.isReady ||
     !sessionStore.isAuthStateKnown
   ) {
-    return <LoadingSpinner hideMessage />;
+    return <LoadingSpinner message={false} />;
   }
 
   return (

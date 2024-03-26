@@ -20,6 +20,7 @@ import {
 import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
 import {userHasPermForSubmission, userCan} from 'js/components/permissions/utils';
+import CenteredMessage from 'js/components/common/centeredMessage.component';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
@@ -278,11 +279,7 @@ class SubmissionModal extends React.Component {
 
     if (this.state.error) {
       return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            {this.state.error}
-          </bem.Loading__inner>
-        </bem.Loading>
+        <CenteredMessage message={this.state.error} />
       );
     }
 

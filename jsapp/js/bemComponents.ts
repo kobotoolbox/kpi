@@ -27,10 +27,6 @@ bem.KoboSelect__optionBadge = makeBem(bem.KoboSelect, 'option-badge');
 bem.PageWrapper = makeBem(null, 'page-wrapper');
 bem.PageWrapper__content = makeBem(bem.PageWrapper, 'content');
 
-bem.Loading = makeBem(null, 'loading');
-bem.Loading__inner = makeBem(bem.Loading, 'inner');
-bem.Loading__msg = makeBem(bem.Loading, 'msg');
-
 bem.EmptyContent = makeBem(null, 'empty-content', 'section');
 bem.EmptyContent__icon = makeBem(bem.EmptyContent, 'icon', 'i');
 bem.EmptyContent__title = makeBem(bem.EmptyContent, 'title', 'h1');

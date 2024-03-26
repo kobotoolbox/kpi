@@ -390,7 +390,7 @@ class LanguageSelector extends React.Component<
             pageStart={0}
             loadMore={this.fetchMoreLanguages.bind(this)}
             hasMore={this.store.hasMoreLanguages}
-            loader={<LoadingSpinner hideMessage key='loadingspinner'/>}
+            loader={<LoadingSpinner message={false} key='loadingspinner'/>}
             useWindow={false}
           >
             <ul key='unorderedlist'>

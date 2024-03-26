@@ -1,0 +1,16 @@
+.centeredMessage {
+  display: table;
+  vertical-align: middle;
+  height: 100%;
+  width: 100%;
+  font-size: 18px;
+  margin: 0;
+}
+
+.centeredMessageInner {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
