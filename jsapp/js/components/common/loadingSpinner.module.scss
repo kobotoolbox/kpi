@@ -61,6 +61,7 @@
 
 $spinner-size: 64px;
 $spinner-line-size: 10px;
+$spinner-mask-size: $spinner-size * 0.5 - $spinner-line-size;
 
 .bigSpinner {
   display: block;
@@ -71,6 +72,7 @@ $spinner-line-size: 10px;
   border-radius: 50%;
   background: conic-gradient(#{colors.$kobo-blue}, transparent);
   animation: rotate 1s linear infinite;
+  mask-image: radial-gradient(circle, transparent $spinner-mask-size, black 33%);
 }
 
 .bigSpinner::before,
