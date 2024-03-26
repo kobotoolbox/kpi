@@ -7,6 +7,7 @@ import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import prettyBytes from 'pretty-bytes';
 import type {AssetUsage} from 'js/account/usage/usage.api';
 import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
+import {ROOT_URL, USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 
 type ButtonType = 'back' | 'forward';
 
@@ -25,7 +26,6 @@ const ProjectBreakdown = () => {
     async function fetchData() {
       try {
         const data = await getAssetUsageForOrganization();
-        console.error(data);
         const updatedResults = data.results.map((projectResult) => {
           const assetParts = projectResult.asset.split('/');
           const uid = assetParts[assetParts.length - 2];
@@ -59,12 +59,12 @@ const ProjectBreakdown = () => {
 
 const calculateRange = (): string => {
   const totalProjects = parseInt(projectData.count);
-  const startRange = (currentPage - 1) * 8 + 1;
-  const endRange = Math.min(currentPage * 8, totalProjects);
+  const startRange = (currentPage - 1) * USAGE_ASSETS_PER_PAGE + 1;
+  const endRange = Math.min(currentPage * USAGE_ASSETS_PER_PAGE, totalProjects);
   return `${startRange}-${endRange} of ${totalProjects}`;
 };
 
-const removePrefix = (url: string): string => url.replace('http://kf.kobo.local', '');
+const removePrefix = (url: string): string => url.replace(ROOT_URL, '');
 
 const handleClick = async (
   event: React.MouseEvent<HTMLButtonElement>,
@@ -79,7 +79,7 @@ const handleClick = async (
       setProjectData(newData);
     } else if (buttonType === 'forward' && projectData.next) {
       const newData = await getAssetUsageForOrganization(removePrefix(projectData.next));
-      setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(parseInt(projectData.count) / 8)));
+      setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)));
       setProjectData(newData);
     }
   } catch (error) {
@@ -88,7 +88,7 @@ const handleClick = async (
 };
 
   const isActiveBack = currentPage > 1;
-  const isActiveForward = currentPage < Math.ceil(parseInt(projectData.count) / 8);
+  const isActiveForward = currentPage < Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE);
 
   return (
     <div className={styles.root}>

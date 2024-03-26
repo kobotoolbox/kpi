@@ -5,10 +5,10 @@ export interface AssetUsage {
   count: string;
   next: string | null;
   previous: string | null;
-  results: Asset[];
+  results: AssetWithUsage[];
 }
 
-interface Asset {
+interface AssetWithUsage {
   asset: string;
   uid: string;
   asset__name: string;
