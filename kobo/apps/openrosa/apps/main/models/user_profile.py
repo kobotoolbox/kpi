@@ -17,6 +17,7 @@ from kobo.apps.openrosa.libs.utils.gravatar import (
     get_gravatar_img_link,
     gravatar_exists,
 )
+from kpi.utils.database import use_db
 
 
 class UserProfile(models.Model):
@@ -67,28 +68,45 @@ class UserProfile(models.Model):
         )
 
 
+# TODO Get rid of post signals below. There are only needed to KC unit tests.
+#  KPI does create KoboCAT object permissions and KoboCAT Token.
+#  See below:
+
+# 1) KC Token object is created when KPI calls `KobocatToken.sync()`
+#    in `kpi.signals.save_kobocat_token()`
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
-        Token.objects.get_or_create(user=instance)
+        with use_db(settings.OPENROSA_DB_ALIAS):
+            if User.objects.filter(pk=instance.pk).exists() or settings.TESTING:
+                Token.objects.get_or_create(user_id=instance.pk)
 
 
 post_save.connect(create_auth_token, sender=User, dispatch_uid='auth_token')
 
+# 2) KC object permissions are created when KPI calls `grant_kc_model_level_perms()`
+#    in `kpi.signals.save_kobocat_user()`
 post_save.connect(
     set_api_permissions, sender=User, dispatch_uid='set_api_permissions'
 )
 
 
+# 3) Same as #2,
 def set_object_permissions(sender, instance=None, created=False, **kwargs):
     if created:
-        for perm in get_perms_for_model(UserProfile):
-            assign_perm(perm.codename, instance.user, instance)
+        with use_db(settings.OPENROSA_DB_ALIAS):
+            if User.objects.filter(pk=instance.pk).exists() or settings.TESTING:
+                for perm in get_perms_for_model(UserProfile):
+                    assign_perm(perm.codename, instance.user, instance)
 
 
-post_save.connect(set_object_permissions, sender=UserProfile,
-                  dispatch_uid='set_object_permissions')
+post_save.connect(
+    set_object_permissions,
+    sender=UserProfile,
+    dispatch_uid='set_object_permissions',
+)
 
 
+# TODO, remove this in favor of `kpi.utils.object_permission.get_anonymous_user()`
 def get_anonymous_user_instance(user_class: User):
     """
     Force `AnonymousUser` to be saved with `pk` == `ANONYMOUS_USER_ID`

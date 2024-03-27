@@ -174,6 +174,7 @@ def helper_auth_helper(request):
                 # first match wins; don't look any further
                 break
 
+
 def http_auth_string(username, password):
     credentials = base64_encodestring('%s:%s' % (username, password)).strip()
     auth_string = 'Basic %s' % credentials

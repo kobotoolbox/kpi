@@ -16,6 +16,7 @@ from kpi.utils.database import use_db
 # to `openrosa` django app (the db router will force to use KoboCAT database) or
 # use another context manager `with use_db` when the queryset is evaluated.
 
+
 def assign_perm(*args, **kwargs):
     with use_db(settings.OPENROSA_DB_ALIAS):
         return guardian_assign_perm(*args, **kwargs)
@@ -31,9 +32,11 @@ def get_perms_for_model(*args, **kwargs):
         for perm in guardian_get_perms_for_model(*args, **kwargs):
             yield perm
 
+
 def get_users_with_perms(*args, **kwargs):
     with use_db(settings.OPENROSA_DB_ALIAS):
         return guardian_get_users_with_perms(*args, **kwargs)
+
 
 def remove_perm(*args, **kwargs):
     with use_db(settings.OPENROSA_DB_ALIAS):
