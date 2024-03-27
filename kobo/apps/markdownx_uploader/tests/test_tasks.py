@@ -23,9 +23,15 @@ class MarkdownXUploaderTasksTestCase(BaseTestCase):
         baker.make(
             MarkdownxUploaderFile,
             content=unused_file_content,
-            _quantity=9,
+            _quantity=4,
         )
-        assert MarkdownxUploaderFile.objects.count() == 10
+        assert MarkdownxUploaderFile.objects.count() == 5
+        unused_file_names = [
+            file.content.name
+            for file in MarkdownxUploaderFile.objects.filter(
+                markdown_fields=None
+            )
+        ]
 
         with self.assertNumQueries(2):
             remove_unused_markdown_files()
@@ -33,5 +39,6 @@ class MarkdownXUploaderTasksTestCase(BaseTestCase):
         assert MarkdownxUploaderFile.objects.count() == 1
         assert 'used_file' in MarkdownxUploaderFile.objects.first().content.name
 
-        # TODO: Find way to set up test media storage so this isn't necessary
-        MarkdownxUploaderFile.objects.first().delete()
+        for name in unused_file_names:
+            if MarkdownxUploaderFile.content.field.storage.exists(name):
+                raise self.failureException(f'file {name} was not deleted')
