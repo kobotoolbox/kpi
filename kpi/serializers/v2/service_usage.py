@@ -98,6 +98,16 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         )
 
 
+class CustomAssetUsageSerializer(AssetUsageSerializer):
+    deployment_status = serializers.SerializerMethodField()
+
+    class Meta(AssetUsageSerializer.Meta):
+        fields = AssetUsageSerializer.Meta.fields + ('deployment_status',)
+
+    def get_deployment_status(self, asset):
+        return asset.deployment_status
+
+
 class ServiceUsageSerializer(serializers.Serializer):
     total_nlp_usage = serializers.SerializerMethodField()
     total_storage_bytes = serializers.SerializerMethodField()

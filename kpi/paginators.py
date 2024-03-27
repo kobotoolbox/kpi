@@ -119,3 +119,12 @@ class TinyPaginated(PageNumberPagination):
     Same as Paginated with a small page size
     """
     page_size = 50
+
+
+class AssetUsagePagination(PageNumberPagination):
+    """
+    Pagination class for usage project breakdown table.
+    """
+
+    page_size = 8
+    page_size_query_param = 'page_size'

@@ -19,8 +19,13 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
+        try:
+            self.anotheruser = User.objects.get(username='anotheruser')
+        except:
+            self.anotheruser = User.objects.create_user(
+                username='anotheruser', password='anotheruser'
+            )
         self.client.login(username='anotheruser', password='anotheruser')
-        self.anotheruser = User.objects.get(username='anotheruser')
 
     def __add_nlp_trackers(self):
         """

@@ -1,65 +1,30 @@
 import React, {useState, useEffect} from 'react';
 import styles from './usageProjectBreakdown.module.scss';
-import $ from 'jquery';
-import {ROOT_URL} from 'jsapp/js/constants';
 import {Link} from 'react-router-dom';
 import {ROUTES} from 'jsapp/js/router/routerConstants';
 import AssetStatusBadge from 'jsapp/js/components/common/assetStatusBadge';
-import type {ProjectViewAsset} from 'jsapp/js/dataInterface';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import prettyBytes from 'pretty-bytes';
-
-interface Project {
-  count: string;
-  next: string | null;
-  previous: string | null;
-  results: ProjectResult[];
-}
-
-interface ProjectResult {
-  asset: string;
-  uid: string;
-  asset__name: string;
-  nlp_usage_current_month: {
-    total_nlp_asr_seconds: number;
-    total_nlp_mt_characters: number;
-  };
-  nlp_usage_all_time: {
-    total_nlp_asr_seconds: number;
-    total_nlp_mt_characters: number;
-  };
-  storage_bytes: number;
-  submission_count_current_month: number;
-  submission_count_all_time: number;
-  assets: ProjectViewAsset;
-  deployment_status: string;
-}
+import type {AssetUsage} from 'js/account/usage/usage.api';
+import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
+import {ROOT_URL, USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 
 type ButtonType = 'back' | 'forward';
 
 const ProjectBreakdown = () => {
-  const [isActiveBack, setIsActiveBack] = useState(false);
-  const [isActiveForward, setIsActiveForward] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isComponentMounted, setIsComponentMounted] = useState(true);
 
-  const handleClick = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    buttonType: ButtonType
-  ): void => {
-    event.preventDefault();
-    setIsActiveBack(buttonType === 'back');
-    setIsActiveForward(buttonType === 'forward');
-  };
-
-  const [projectData, setProjectData] = useState<Project>({
+  const [projectData, setProjectData] = useState<AssetUsage>({
     count: '0',
     next: null,
     previous: null,
     results: [],
   });
 
-  const onFetchAssetsDone = (data: Project) => {
-    if (isComponentMounted) {
+   useEffect(() => {
+    async function fetchData() {
+      const data = await getAssetUsageForOrganization();
       const updatedResults = data.results.map((projectResult) => {
         const assetParts = projectResult.asset.split('/');
         const uid = assetParts[assetParts.length - 2];
@@ -69,90 +34,63 @@ const ProjectBreakdown = () => {
         };
       });
 
-      setProjectData((prevData) => {return {...prevData, results: updatedResults};});
+      if (isComponentMounted) {
+        setProjectData({
+          ...data,
+          results: updatedResults,
+        });
+      }
     }
-  };
 
- const onFetchAssetsDataDone = (assetsData: any, updatedResults: ProjectResult[]) => {
-  if (isComponentMounted) {
-    const updatedData = updatedResults
-      .filter((projectResult) => {
-        const matchingAsset = assetsData.results.find(
-          (asset: ProjectViewAsset) => asset.uid === projectResult.uid
-        );
-
-        // Include the asset in the updatedData only if it is a survery
-        return matchingAsset?.asset_type === 'survey';
-      })
-      .map((projectResult) => {
-        const matchingAsset = assetsData.results.find(
-          (asset: ProjectViewAsset) => asset.uid === projectResult.uid
-        );
-
-        if (matchingAsset) {
-          return {
-            ...projectResult,
-            assets: [matchingAsset],
-            deployment_status: matchingAsset.deployment_status,
-          };
-        }
-        return projectResult;
-      });
-
-    setProjectData((prevData: Project) => {
-      return {
-        ...prevData,
-        results: updatedData as ProjectResult[],
-      };
-    });
-  }
-};
-
-  // This code will be updated to only have one api call when the asset_usage api is updated
-  // Right now, you may need to refresh or re-navigate to the page multiple times as the Loading Spinner can be shown indefinitely
-  useEffect(() => {
-    const usageUrl = `${ROOT_URL}/api/v2/asset_usage`;
-
-    const fetchData = $.ajax({
-      dataType: 'json',
-      method: 'GET',
-      url: usageUrl,
-    })
-      .done(onFetchAssetsDone)
-      .then(() => {
-        const assetsUrl = `${ROOT_URL}/api/v2/assets`;
-
-        return $.ajax({
-          dataType: 'json',
-          method: 'GET',
-          url: assetsUrl,
-        })
-          .done((assetsData) =>
-            onFetchAssetsDataDone(assetsData, projectData.results)
-          )
-          .fail(onAnyFail);
-      })
-      .fail(onAnyFail);
+    fetchData();
 
     return () => {
       setIsComponentMounted(false);
     };
+  }, [isComponentMounted]);
 
-    function onAnyFail(error: any) {
-      console.error('Error fetching data:', error);
-    }
-  }, [projectData.results]);
-
-  if (projectData.results.length === 0 || projectData.results.some((result) => !result.assets)) {
+  if (projectData.results.length === 0) {
     return <LoadingSpinner/>;
   }
+
+const calculateRange = (): string => {
+  const totalProjects = parseInt(projectData.count);
+  const startRange = (currentPage - 1) * USAGE_ASSETS_PER_PAGE + 1;
+  const endRange = Math.min(currentPage * USAGE_ASSETS_PER_PAGE, totalProjects);
+  return `${startRange}-${endRange} of ${totalProjects}`;
+};
+
+const removePrefix = (url: string): string => url.replace(ROOT_URL, '');
+
+const handleClick = async (
+  event: React.MouseEvent<HTMLButtonElement>,
+  buttonType: ButtonType
+): Promise<void> => {
+  event.preventDefault();
+
+  try {
+    if (buttonType === 'back' && projectData.previous) {
+      const newData = await getAssetUsageForOrganization(removePrefix(projectData.previous));
+      setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
+      setProjectData(newData);
+    } else if (buttonType === 'forward' && projectData.next) {
+      const newData = await getAssetUsageForOrganization(removePrefix(projectData.next));
+      setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)));
+      setProjectData(newData);
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
+
+  const isActiveBack = currentPage > 1;
+  const isActiveForward = currentPage < Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE);
 
   return (
     <div className={styles.root}>
       <table>
         <thead>
           <tr>
-            {/* Note: the projectData count will be 0 for now as the api needs to be updated */}
             <th className={styles.projects}>{t('##count## Projects').replace('##count##', projectData.count)}</th>
             <th className={styles.wrap}>{t('Submissions (Total)')}</th>
             <th className={styles.wrap}>{t('Submissions (This billing period)')}</th>
@@ -185,7 +123,7 @@ const ProjectBreakdown = () => {
             <button className={`${isActiveBack ? styles.active : ''}`} onClick={(e) => handleClick(e, 'back')}>
              <i className='k-icon k-icon-arrow-left' />
             </button>
-            <span className={styles.range}>{'1-8 of 57'}</span> {/* Placeholder until pagination is added to the api*/ }
+            <span className={styles.range}>{calculateRange()}</span>
             <button className={`${isActiveForward ? styles.active : ''}`} onClick={(e) => handleClick(e, 'forward')}>
               <i className='k-icon k-icon-arrow-right' />
             </button>
