@@ -819,9 +819,10 @@ TEMPLATES = [
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
+RAVEN_JS_DSN = env.str('RAVEN_JS_DSN', None)
 if SENTRY_JS_DSN_URL := env.url(
         'SENTRY_JS_DSN',
-        default=env.url('RAVEN_JS_DSN', default=None)
+        default=RAVEN_JS_DSN
     ):
     SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
 
