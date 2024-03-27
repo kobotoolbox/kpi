@@ -7,6 +7,10 @@ export interface EmailResponse {
   verified: boolean;
 }
 
+export interface EmailError {
+  email: string[];
+}
+
 const LIST_URL = '/me/emails/';
 
 export async function getUserEmails() {
@@ -14,7 +18,7 @@ export async function getUserEmails() {
 }
 
 export async function setUserEmail(newEmail: string) {
-  return fetchPost<EmailResponse>(LIST_URL, {email: newEmail});
+  return fetchPost<EmailResponse | EmailError>(LIST_URL, {email: newEmail});
 }
 
 /** Removes all unverified/non-primary emails (there should only be one anyway)*/

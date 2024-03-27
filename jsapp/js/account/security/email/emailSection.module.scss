@@ -46,6 +46,17 @@
   align-items: flex-end;
 }
 
+.optionsSectionButtons {
+  > * {
+    display: inline-block;
+  }
+
+  label {
+    margin-right: sizes.$x12;
+    color: colors.$kobo-red;
+  }
+}
+
 .currentEmail {
   font-weight: bold;
   margin-top: 0;

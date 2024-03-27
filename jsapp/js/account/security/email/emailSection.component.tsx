@@ -17,6 +17,7 @@ interface EmailState {
   newEmail: string;
   refreshedEmail: boolean;
   refreshedEmailDate: string;
+  fieldErrors: string[];
 }
 
 export default function EmailSection() {
@@ -27,6 +28,7 @@ export default function EmailSection() {
     newEmail: '',
     refreshedEmail: false,
     refreshedEmailDate: '',
+    fieldErrors: [],
   });
 
   useEffect(() => {
@@ -39,14 +41,26 @@ export default function EmailSection() {
   }, []);
 
   function setNewUserEmail(newEmail: string) {
-    setUserEmail(newEmail).then(() => {
-      getUserEmails().then((data) => {
+    setEmail({
+      ...email,
+      fieldErrors: [],
+    });
+
+    setUserEmail(newEmail).then((response) => {
+      if ('primary' in response) {
+        getUserEmails().then((data) => {
+          setEmail({
+            ...email,
+            emails: data.results,
+            newEmail: '',
+          });
+        });
+      } else {
         setEmail({
           ...email,
-          emails: data.results,
-          newEmail: '',
+          fieldErrors: response.email,
         });
-      });
+      }
     });
   }
 
@@ -172,13 +186,17 @@ export default function EmailSection() {
           onChange={onTextFieldChange.bind(onTextFieldChange)}
         />
 
-        <Button
-          label='Change'
-          size='m'
-          color='blue'
-          type='frame'
-          onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
-        />
+        <div className={style.optionsSectionButtons}>
+          <label>{email.fieldErrors}</label>
+
+          <Button
+            label='Change'
+            size='m'
+            color='blue'
+            type='frame'
+            onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
+          />
+        </div>
       </form>
     </div>
   );
