@@ -2,6 +2,9 @@ import {createContext, useEffect, useState} from 'react';
 import type {Product} from 'js/account/stripe.types';
 import {getProducts} from 'js/account/stripe.api';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
+import {when} from 'mobx';
+import envStore from 'js/envStore';
+import {useApiFetcher, withApiFetcher} from 'js/hooks/useApiFetcher.hook';
 
 export interface ProductsState {
   products: Product[];
@@ -13,31 +16,24 @@ const INITIAL_PRODUCTS_STATE: ProductsState = Object.freeze({
   isLoaded: false,
 });
 
-export function useProducts() {
-  const [revalidateFlag, setRevalidateFlag] = useState(false);
-  const [products, setProducts] = useState<ProductsState>(
-    INITIAL_PRODUCTS_STATE
-  );
-
-  // get list of products
-  useWhenStripeIsEnabled(() => {
-    getProducts().then((products) => {
-      setProducts(() => {
-        return {
-          products: products.results,
-          isLoaded: true,
-        };
-      });
-    });
-  }, [revalidateFlag]);
-
-  const reload = () => {
-    setRevalidateFlag(!revalidateFlag);
+const loadProducts = async () => {
+  await when(() => envStore.isReady);
+  if (!envStore.data.stripe_public_key) {
+    return {
+      products: [],
+      isLoaded: true,
+    };
+  }
+  const products = await getProducts();
+  return {
+    products: products.results,
+    isLoaded: true,
   };
+};
 
-  return products;
-}
+export const useProducts = () =>
+  useApiFetcher(loadProducts, INITIAL_PRODUCTS_STATE);
 
-export const ProductsContext = createContext<ProductsState>(
-  INITIAL_PRODUCTS_STATE
+export const ProductsContext = createContext(
+  withApiFetcher(INITIAL_PRODUCTS_STATE)
 );

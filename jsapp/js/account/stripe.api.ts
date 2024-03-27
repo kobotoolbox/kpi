@@ -105,7 +105,7 @@ export async function getSubscriptionInterval() {
       ACTIVE_STRIPE_STATUSES.includes(sub.status)
     );
     if (activeSubscription) {
-      return activeSubscription.items[0].price.recurring?.interval;
+      return activeSubscription.items[0].price.recurring?.interval || 'month';
     }
   }
   return 'month';

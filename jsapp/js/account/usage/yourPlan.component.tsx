@@ -31,7 +31,7 @@ export const YourPlan = () => {
   const [subscriptions] = useState(() => subscriptionStore);
   const [env] = useState(() => envStore);
   const [session] = useState(() => sessionStore);
-  const productsContext = useContext(ProductsContext);
+  const [productsContext] = useContext(ProductsContext);
 
   /*
    * The plan name displayed to the user. This will display, in order of precedence:

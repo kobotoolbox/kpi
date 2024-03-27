@@ -30,8 +30,8 @@ interface LimitState {
 }
 
 export default function Usage() {
-  const productsContext = useContext(ProductsContext);
-  const usage = useContext(UsageContext);
+  const [products] = useContext(ProductsContext);
+  const [usage, loadUsage, usageStatus] = useContext(UsageContext);
 
   const [limits, setLimits] = useState<LimitState>({
     storageByteLimit: Limits.unlimited,
@@ -42,19 +42,16 @@ export default function Usage() {
     stripeEnabled: false,
   });
 
+  useEffect(() => loadUsage(), []);
+
   const location = useLocation();
 
   const isFullyLoaded = useMemo(
     () =>
       usage.isLoaded &&
-      (productsContext.isLoaded || !limits.stripeEnabled) &&
+      (products.isLoaded || !limits.stripeEnabled) &&
       limits.isLoaded,
-    [
-      usage.isLoaded,
-      productsContext.isLoaded,
-      limits.isLoaded,
-      limits.stripeEnabled,
-    ]
+    [usage.isLoaded, products.isLoaded, limits.isLoaded, limits.stripeEnabled]
   );
 
   const dateRange = useMemo(() => {
@@ -88,7 +85,7 @@ export default function Usage() {
       await when(() => envStore.isReady);
       let limits: AccountLimit;
       if (envStore.data.stripe_public_key) {
-        limits = await getAccountLimits(productsContext.products);
+        limits = await getAccountLimits(products.products);
       } else {
         setLimits((prevState) => {
           return {
@@ -116,7 +113,7 @@ export default function Usage() {
     };
 
     getLimits();
-  }, [productsContext.isLoaded]);
+  }, [products.isLoaded]);
 
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
   useWhenStripeIsEnabled(() => {

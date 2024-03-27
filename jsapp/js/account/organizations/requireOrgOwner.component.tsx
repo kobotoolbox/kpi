@@ -16,14 +16,19 @@ interface Props {
 }
 
 export const RequireOrgOwner = ({children, redirect = true}: Props) => {
-  const [organization] = useContext(OrganizationContext);
+  const [organization, _, orgStatus] = useContext(OrganizationContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (redirect && organization && !organization.is_owner) {
+    if (
+      redirect &&
+      orgStatus.initialLoadComplete &&
+      organization &&
+      !organization.is_owner
+    ) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
-  }, [organization, redirect]);
+  }, [organization, orgStatus, redirect]);
 
   return redirect && organization?.is_owner ? (
     <Suspense fallback={null}>{children}</Suspense>

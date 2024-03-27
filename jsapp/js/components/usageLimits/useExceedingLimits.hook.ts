@@ -22,8 +22,8 @@ function subscriptionReducer(state: SubscribedState, action: {prodData: any}) {
 
 export const useExceedingLimits = () => {
   const [state, dispatch] = useReducer(subscriptionReducer, initialState);
-  const usage = useContext(UsageContext);
-  const productsContext = useContext(ProductsContext);
+  const [usage] = useContext(UsageContext);
+  const [productsContext] = useContext(ProductsContext);
 
   const [exceedList, setExceedList] = useState<string[]>([]);
   const [warningList, setWarningList] = useState<string[]>([]);

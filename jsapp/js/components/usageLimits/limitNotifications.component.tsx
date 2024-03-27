@@ -21,7 +21,7 @@ const LimitNotifications = ({
   const [dismissed, setDismissed] = useState(!useModal);
   const [stripeEnabled, setStripeEnabled] = useState(false);
 
-  const usage = useContext(UsageContext);
+  const [usage] = useContext(UsageContext);
   const limits = useExceedingLimits();
 
   useWhenStripeIsEnabled(() => {
