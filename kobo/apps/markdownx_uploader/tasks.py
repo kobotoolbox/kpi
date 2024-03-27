@@ -17,4 +17,4 @@ def remove_unused_markdown_files():
     for file in files:
         default_storage.delete(file)
 
-    queryset.delete()
+    queryset._raw_delete(queryset.db)

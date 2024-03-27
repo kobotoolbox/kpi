@@ -1,6 +1,5 @@
-from model_bakery import baker
-
 from django.core.files.uploadedfile import SimpleUploadedFile
+from model_bakery import baker
 
 from kobo.apps.markdownx_uploader.models import (
     MarkdownxUploaderFile,
@@ -33,3 +32,6 @@ class MarkdownXUploaderTasksTestCase(BaseTestCase):
 
         assert MarkdownxUploaderFile.objects.count() == 1
         assert 'used_file' in MarkdownxUploaderFile.objects.first().content.name
+
+        # TODO: Find way to set up test media storage so this isn't necessary
+        MarkdownxUploaderFile.objects.first().delete()
