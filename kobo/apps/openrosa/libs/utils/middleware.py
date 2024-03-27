@@ -120,6 +120,10 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
         # This middleware should handle only Kobocat endpoints. Otherwise, grant
         # the request and let KPI handle it with permission classes.
         # See kpi/mixins/validation_password_permission.py
+        self._skipped_view = False
+        # Reset boolean for each processed view
+        self._allowed_view = True
+
         if (
             hasattr(view, 'cls')
             and not view.cls.__module__.startswith('kobo.apps.openrosa')
@@ -135,9 +139,6 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
             return
 
         view_name = view.__name__
-
-        # Reset boolean for each processed view
-        self._allowed_view = True
 
         if request.method == 'HEAD':
             return
