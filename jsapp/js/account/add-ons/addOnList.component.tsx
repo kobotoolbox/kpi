@@ -15,11 +15,11 @@ import {
   isRecurringAddonProduct,
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
-import {formatDate} from 'jsapp/js/utils';
+import {formatDate} from 'js/utils';
 import {postCustomerPortal} from 'js/account/stripe.api';
 import styles from './addOnList.module.scss';
 import BillingButton from 'js/account/plans/billingButton.component';
-import Badge, {BadgeColor} from 'jsapp/js/components/common/badge';
+import Badge, {BadgeColor} from 'js/components/common/badge';
 
 /**
  * A table of add-on products along with buttons to purchase/manage them.
