@@ -24,25 +24,21 @@ const ProjectBreakdown = () => {
 
    useEffect(() => {
     async function fetchData() {
-      try {
-        const data = await getAssetUsageForOrganization();
-        const updatedResults = data.results.map((projectResult) => {
-          const assetParts = projectResult.asset.split('/');
-          const uid = assetParts[assetParts.length - 2];
-          return {
-            ...projectResult,
-            uid: uid,
-          };
-        });
+      const data = await getAssetUsageForOrganization();
+      const updatedResults = data.results.map((projectResult) => {
+        const assetParts = projectResult.asset.split('/');
+        const uid = assetParts[assetParts.length - 2];
+        return {
+          ...projectResult,
+          uid: uid,
+        };
+      });
 
-        if (isComponentMounted) {
-          setProjectData({
-            ...data,
-            results: updatedResults,
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
+      if (isComponentMounted) {
+        setProjectData({
+          ...data,
+          results: updatedResults,
+        });
       }
     }
 

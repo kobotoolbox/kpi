@@ -83,16 +83,11 @@ export async function getUsageForOrganization() {
 }
 
 export async function getAssetUsage(url?: string) {
-  try {
-    const apiUrl = url || ASSET_USAGE_URL;
-    return fetchGet<AssetUsage>(apiUrl, {
-      includeHeaders: true,
-      errorMessageDisplay: t('There was an error fetching asset usage data.'),
-    });
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    throw error;
-  }
+  const apiUrl = url || ASSET_USAGE_URL;
+  return fetchGet<AssetUsage>(apiUrl, {
+    includeHeaders: true,
+    errorMessageDisplay: t('There was an error fetching asset usage data.'),
+  });
 }
 
 export async function getAssetUsageForOrganization(url?: string) {
