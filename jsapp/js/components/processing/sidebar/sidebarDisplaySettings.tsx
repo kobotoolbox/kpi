@@ -11,13 +11,19 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import {getActiveTab} from 'js/components/processing/routes.utils';
 import styles from './sidebarDisplaySettings.module.scss';
 
 export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const activeTab = store.getActiveTab();
+  const activeTab = getActiveTab();
+
+  if (activeTab === undefined) {
+    return null;
+  }
+
   const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>(
     store.getDisplays(activeTab)
   );

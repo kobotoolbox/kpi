@@ -1,6 +1,4 @@
-import {ROUTES} from 'js/router/routerConstants';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import {router} from 'js/router/legacy';
 
 type SupplementalPathPartsType = 'transcript' | 'translation' | 'qual';
 
@@ -57,14 +55,33 @@ export function getSupplementalPathParts(path: string): SupplementalPathParts {
   return output;
 }
 
-/** Opens processing view for given response to question in a project. */
-export function openProcessing(
-  assetUid: string,
-  qpath: string,
-  submissionEditId: string
-) {
-  const route = ROUTES.FORM_PROCESSING.replace(':uid', assetUid)
-    .replace(':qpath', qpath)
-    .replace(':submissionEditId', submissionEditId);
-  router!.navigate(route);
+/**
+ * Checks if two processing paths differ only with the tab part and are
+ * identical
+ */
+export function isSamePathExceptTab(firstPath: string, secondPath: string) {
+  const firstPathArray = firstPath.split('/');
+  const secondPathArray = secondPath.split('/');
+  // Remove the tab part from both paths and compare
+  return firstPathArray.splice(7, 1).join('/') === secondPathArray.splice(7, 1).join('/');
+}
+
+interface ProcessingPathParts {
+  assetUid: string;
+  qpath: string;
+  submissionEditId: string;
+  tab: string;
+}
+
+/**
+ * For given processing path, returns all params
+ */
+export function getProcessingPathParts(path: string): ProcessingPathParts {
+  const pathArray = path.split('/');
+  return {
+    assetUid: pathArray[2],
+    qpath: pathArray[5],
+    submissionEditId: pathArray[6],
+    tab: pathArray[7],
+  };
 }

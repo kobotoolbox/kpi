@@ -205,7 +205,7 @@ export function isFormSingleProcessingRoute(
 ): boolean {
   return (
     getCurrentPath() ===
-    ROUTES.FORM_PROCESSING.replace(':uid', uid)
+    ROUTES.FORM_PROCESSING_ROOT.replace(':uid', uid)
       .replace(':qpath', qpath)
       .replace(':submissionEditId', submissionEditId)
   );

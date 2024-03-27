@@ -30,6 +30,7 @@ import type {
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
 import {destroyConfirm} from 'js/alertify';
+import {getProcessingPathParts} from 'js/components/processing/processingUtils';
 
 export enum SingleProcessingTabs {
   Transcript = 'trc',
@@ -120,7 +121,6 @@ interface SingleProcessingStoreData {
   translationDraft?: TransxDraft;
   /** Being displayed on the left side of the screen during translation editing. */
   source?: string;
-  activeTab: SingleProcessingTabs;
   submissionData?: SubmissionResponse;
   /** A list of all submissions editIds (`meta/rootUuid` or `_uuid`). */
   submissionsEditIds?: SubmissionsEditIds;
@@ -158,7 +158,6 @@ class SingleProcessingStore extends Reflux.Store {
 
   public data: SingleProcessingStoreData = {
     translations: [],
-    activeTab: SingleProcessingTabs.Transcript,
     isPristine: true,
     isFetchingData: false,
     isPollingForTranscript: false,
@@ -174,7 +173,6 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.data.isPristine = true;
-    // We don't reset active tab here on purpose
   }
 
   public get currentAssetUid() {
@@ -364,8 +362,6 @@ class SingleProcessingStore extends Reflux.Store {
     if (!isAssetProcessingActivated(this.currentAssetUid)) {
       this.activateAsset();
     } else {
-      // When opening processing view we want always to land on Transcript tab
-      this.data.activeTab = SingleProcessingTabs.Transcript;
       this.fetchSubmissionData();
       this.fetchEditIds();
       this.fetchProcessingData();
@@ -373,36 +369,60 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onRouteChange(data: RouterState) {
+    // Skip non-changes
     if (this.previousPath === data.location.pathname) {
       return;
     }
 
-    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(
-      ':uid',
-      this.currentAssetUid
-    );
+    let previousPathParts;
+    if (this.previousPath) {
+      previousPathParts = getProcessingPathParts(this.previousPath);
+    }
+    const newPathParts = getProcessingPathParts(data.location.pathname);
 
+    // Case 1: navigating to different processing tab, but within the same
+    // submission and question
     if (
-      this.previousPath !== data.location.pathname &&
-      this.previousPath !== undefined &&
-      this.previousPath.startsWith(baseProcessingRoute) &&
-      data.location.pathname.startsWith(baseProcessingRoute)
+      previousPathParts &&
+      previousPathParts.assetUid === newPathParts.assetUid &&
+      previousPathParts.qpath === newPathParts.qpath &&
+      previousPathParts.submissionEditId === newPathParts.submissionEditId &&
+      previousPathParts.tab !== newPathParts.tab
     ) {
-      // Case 1: switching from a processing route to a processing route.
-      // This means that we are changing either the question and the submission
-      // or just the submission.
+      // When changing tab, discard all drafts and the selected source.
+      this.data.transcriptDraft = undefined;
+      this.data.translationDraft = undefined;
+      this.data.source = undefined;
+      // When we leave Analysis tab, we need to reset the flag responsible for
+      // keeping the status of unsaved changes. This way it's not blocking
+      // navigation after leaving the tab directly from editing.
+      this.setAnalysisTabHasUnsavedChanges(false);
+    }
+
+    // Case 2: from processing route to processing route, different submission
+    // or different question
+    if (
+      previousPathParts &&
+      previousPathParts.assetUid === newPathParts.assetUid &&
+      (
+        previousPathParts.qpath !== newPathParts.qpath ||
+        previousPathParts.submissionEditId !== newPathParts.submissionEditId
+      )
+    ) {
       this.fetchProcessingData();
       this.fetchSubmissionData();
-    } else if (
-      this.previousPath !== data.location.pathname &&
+    }
+
+    // Case 3: switching into processing route out of other place (most
+    // probably from assets data table route).
+    if (
+      !previousPathParts &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
         this.currentSubmissionEditId
       )
     ) {
-      // Case 2: switching into processing route out of other place (most
-      // probably from assets data table route).
       this.fetchAllInitialDataForAsset();
       // Each time user visits Processing View from some different route we want
       // to present the same default displays.
@@ -893,22 +913,6 @@ class SingleProcessingStore extends Reflux.Store {
     return [];
   }
 
-  activateTab(tab: SingleProcessingTabs) {
-    this.data.activeTab = tab;
-
-    // When changing tab, discard all drafts and the selected source.
-    this.data.transcriptDraft = undefined;
-    this.data.translationDraft = undefined;
-    this.data.source = undefined;
-
-    // When we leave Analysis tab, we need to reset the flag responsible for
-    // keeping the status of unsaved changes. This way it's not blocking
-    // navigation after leaving the tab directly from editing.
-    this.setAnalysisTabHasUnsavedChanges(false);
-
-    this.trigger(this.data);
-  }
-
   getSubmissionData() {
     return this.data.submissionData;
   }
@@ -923,10 +927,6 @@ class SingleProcessingStore extends Reflux.Store {
 
   getSubmissionsEditIds() {
     return this.data.submissionsEditIds;
-  }
-
-  getActiveTab() {
-    return this.data.activeTab;
   }
 
   hasUnsavedTranscriptDraftValue() {
@@ -982,8 +982,11 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /** Returns displays for given tab. */
-  getDisplays(tabName: SingleProcessingTabs) {
-    return this.displays[tabName];
+  getDisplays(tabName: SingleProcessingTabs | undefined) {
+    if (tabName !== undefined) {
+      return this.displays[tabName];
+    }
+    return [];
   }
 
   /** Updates the list of active displays for given tab. */
@@ -1041,7 +1044,7 @@ class SingleProcessingStore extends Reflux.Store {
 
 /**
  * Stores all data necessary for rendering the single processing route and all
- * its features. Handles draft transcripts/translations, switching content tabs.
+ * its features. Handles draft transcripts/translations.
  */
 const singleProcessingStore = new SingleProcessingStore();
 singleProcessingStore.init();

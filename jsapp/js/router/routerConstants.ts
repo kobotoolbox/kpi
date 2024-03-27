@@ -38,10 +38,7 @@ export const ROUTES = Object.freeze({
   FORM_MAP: '/forms/:uid/data/map',
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
   /** Has: :uid, :qpath, :submissionEditId */
-  FORM_PROCESSING: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId`,
-  FORM_PROCESSING_TRANSCRIPT: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId/transcript`,
-  FORM_PROCESSING_TRANSLATIONS: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId/translations`,
-  FORM_PROCESSING_ANALYSIS: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId/analysis`,
+  FORM_PROCESSING_ROOT: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId`,
   FORM_SETTINGS: '/forms/:uid/settings',
   FORM_MEDIA: '/forms/:uid/settings/media',
   FORM_SHARING: '/forms/:uid/settings/sharing',
@@ -54,4 +51,10 @@ export const ROUTES = Object.freeze({
 export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
   MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
   CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
+};
+
+export const PROCESSING_ROUTES: {readonly [key: string]: string} = {
+  TRANSCRIPT: ROUTES.FORM_PROCESSING_ROOT + '/transcript',
+  TRANSLATIONS: ROUTES.FORM_PROCESSING_ROOT + '/translations',
+  ANALYSIS: ROUTES.FORM_PROCESSING_ROOT + '/analysis',
 };

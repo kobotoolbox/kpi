@@ -14,7 +14,7 @@ import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
+import processingRoutes from 'js/components/processing/routes';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {injectRouter} from './legacy';
@@ -210,42 +210,7 @@ export const router = createHashRouter(
                 />
               }
             />
-            <Route
-              path={ROUTES.FORM_PROCESSING}
-              element={
-                <PermProtectedRoute
-                  requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
-                  protectedComponent={SingleProcessingRoute}
-                />
-              }
-            />
-            <Route
-              path={ROUTES.FORM_PROCESSING_TRANSCRIPT}
-              element={
-                <PermProtectedRoute
-                  requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
-                  protectedComponent={SingleProcessingRoute}
-                />
-              }
-            />
-            <Route
-              path={ROUTES.FORM_PROCESSING_TRANSLATIONS}
-              element={
-                <PermProtectedRoute
-                  requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
-                  protectedComponent={SingleProcessingRoute}
-                />
-              }
-            />
-            <Route
-              path={ROUTES.FORM_PROCESSING_ANALYSIS}
-              element={
-                <PermProtectedRoute
-                  requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
-                  protectedComponent={SingleProcessingRoute}
-                />
-              }
-            />
+            <Route path={ROUTES.FORM_PROCESSING_ROOT}>{processingRoutes()}</Route>
           </Route>
 
           <Route path={ROUTES.FORM_SETTINGS}>
