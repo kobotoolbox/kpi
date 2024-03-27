@@ -251,7 +251,7 @@ $button-border-radius: sizes.$x6;
 .k-button.k-button--color-light-blue.k-button--type-full {
   @include button-full(
     colors.$kobo-bg-blue,
-    color.adjust(colors.$kobo-dark-blue, $lightness: -5%),
+    color.adjust(colors.$kobo-bg-blue, $lightness: -5%),
     colors.$kobo-dark-blue
   );
 }
@@ -300,8 +300,8 @@ $button-border-radius: sizes.$x6;
 
 .k-button.k-button--color-light-storm.k-button--type-bare {
   @include button-bare(
-    colors.$kobo-light-storm,
-    color.adjust(colors.$kobo-light-storm, $lightness: -5%)
+    colors.$kobo-storm,
+    color.adjust(colors.$kobo-storm, $lightness: -5%)
   );
 }
 
