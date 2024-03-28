@@ -61,7 +61,7 @@ class ConfigurationFile(models.Model):
         mtime = content.storage.get_modified_time(content.name).timestamp()
 
         if not was_modified_since(
-            request.META.get('HTTP_IF_MODIFIED_SINCE'), mtime, size
+            request.META.get('HTTP_IF_MODIFIED_SINCE'), mtime
         ):
             return HttpResponseNotModified()
 

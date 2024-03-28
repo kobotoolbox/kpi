@@ -3,7 +3,7 @@
 Fabric
 coverage
 coveralls
-ipython
+ipython==8.12.3 # Max supported version by Python 3.8
 mock
 model-bakery
 mongomock

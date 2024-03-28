@@ -36,10 +36,10 @@ class AuditLog(models.Model):
     user_uid = models.CharField(db_index=True, max_length=UUID_LENGTH + 1)  # 1 is prefix length
 
     class Meta:
-        index_together = (
-            ('app_label', 'model_name', 'action'),
-            ('app_label', 'model_name'),
-        )
+        indexes = [
+            models.Index(fields=['app_label', 'model_name', 'action']),
+            models.Index(fields=['app_label', 'model_name']),
+        ]
 
     def save(
         self,
