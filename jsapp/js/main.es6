@@ -11,9 +11,39 @@ import {AppContainer} from 'react-hot-loader';
 import React from 'react';
 import {Cookies} from 'react-cookie';
 import {render} from 'react-dom';
+import * as Sentry from '@sentry/react';
 import {csrfSafeMethod, currentLang} from 'utils';
 require('../scss/main.scss');
 import Modal from 'react-modal';
+
+let sentryDsnEl = document.head.querySelector('meta[name=sentry-dsn]');
+if (sentryDsnEl !== null) {
+  Sentry.init({
+    dsn: sentryDsnEl.content,
+    tracesSampleRate: 0.0,
+    sendClientReports: false,
+    autoSessionTracking: false,
+  })
+  window.Raven = Sentry; // Legacy use (formbuilder)
+  /*
+    In TS files, it's safe to do
+
+        import * as Sentry from '@sentry/react';
+           ...
+        Sentry.captureMessage(...);
+
+    even if Sentry is disabled (and Sentry.init doesn't run.)
+
+    In CoffeeScript, you can keep using
+
+        window.Raven?.captureMessage(...)
+
+    Support for `import` syntax (or literal JS in backticks) varies between
+    CoffeeScript versions. We might invoke Sentry as a CommonJS module (perhaps
+    with wrapping) but I'd rather leave that as TODO until working on other
+    CoffeeScript/Formbuilder changes.
+  */
+}
 
 // Tell moment library what is the app language
 moment.locale(currentLang());

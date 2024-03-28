@@ -5,8 +5,9 @@ from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models import Asset
+from kpi.utils.log import logging
 from .constants import GOOGLETS, GOOGLETX
-from .exceptions import SubsequenceTimeoutError
+from .exceptions import SubsequenceTimeoutError, TranscriptionResultsNotFound
 from .integrations.google.google_transcribe import GoogleTranscribeEngine
 from .integrations.google.google_translate import GoogleTranslationEngine
 from .tasks import handle_google_translation_operation
@@ -67,9 +68,15 @@ class SubmissionExtras(models.Model):
                             )
                         except SubsequenceTimeoutError:
                             continue
-                        result_string = ' '.join(
-                            [r['transcript'] for r in results]
-                        )
+                        except TranscriptionResultsNotFound:
+                            logging.error(f'No transcriptions found for {xpath}')
+                            result_string = ''
+                            results = []
+                        else:
+                            result_string = ' '.join(
+                                [r['transcript'] for r in results]
+                            )
+
                         vals[GOOGLETS] = {
                             'status': 'complete',
                             'value': result_string,

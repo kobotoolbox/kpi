@@ -84,7 +84,7 @@ export default function StepConfig() {
         onLanguageChange={onLanguageChange}
         hiddenLanguages={getTranslationsLanguages()}
         suggestedLanguages={singleProcessingStore.getAssetTranslatableLanguages()}
-        isDisabled={singleProcessingStore.isFetchingData}
+        isDisabled={singleProcessingStore.data.isFetchingData}
       />
 
       <footer className={bodyStyles.footer}>
@@ -95,7 +95,7 @@ export default function StepConfig() {
           label={t('back')}
           startIcon='caret-left'
           onClick={back}
-          isDisabled={singleProcessingStore.isFetchingData}
+          isDisabled={singleProcessingStore.data.isFetchingData}
         />
 
         <div className={bodyStyles.footerRightButtons}>
@@ -107,7 +107,7 @@ export default function StepConfig() {
             onClick={selectModeManual}
             isDisabled={
               draft?.languageCode === undefined ||
-              singleProcessingStore.isFetchingData
+              singleProcessingStore.data.isFetchingData
             }
           />
 
