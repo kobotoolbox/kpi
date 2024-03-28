@@ -9,5 +9,5 @@ class PasswordValidation(User):
 
     class Meta:
         proxy = True
-        app_label = 'auth'  # hack to make it appear in the same action as Users
+        app_label = 'kobo_auth'  # hack to make it appear in the same action as Users
         verbose_name_plural = 'Password validation'

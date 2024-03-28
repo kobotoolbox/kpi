@@ -2,13 +2,13 @@
 from typing import Union
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import (
     AssetOrderingFilter,

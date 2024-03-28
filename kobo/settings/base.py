@@ -3,7 +3,7 @@ import logging
 import os
 import string
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
@@ -15,8 +15,11 @@ from django.urls import reverse_lazy
 from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
 
+from kobo.apps.stripe.constants import (
+    FREE_TIER_NO_THRESHOLDS,
+    FREE_TIER_EMPTY_DISPLAY,
+)
 from kpi.utils.json import LazyJSONSerializable
-from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -88,6 +91,7 @@ INSTALLED_APPS = (
     'django_prometheus',
     'reversion',
     'private_storage',
+    'kobo.apps.kobo_auth.KoboAuthAppConfig',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
     'allauth',
@@ -127,10 +131,37 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
+    'kobo.apps.openrosa.apps.logger.LoggerAppConfig',
+    'kobo.apps.openrosa.apps.viewer',
+    'kobo.apps.openrosa.apps.main',
+    'kobo.apps.openrosa.apps.restservice',
+    'kobo.apps.openrosa.apps.api',
+    'guardian',
+    'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
 )
 
+# BEFORE KOBOCAT migration
+# MIDDLEWARE = [
+#     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
+#     'corsheaders.middleware.CorsMiddleware',
+#     'django.middleware.security.SecurityMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'hub.middleware.LocaleMiddleware',
+#     'allauth.account.middleware.AccountMiddleware',
+#     'django.middleware.common.CommonMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+#     'hub.middleware.UsernameInResponseHeaderMiddleware',
+#     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
+#     'django_request_cache.middleware.RequestCacheMiddleware',
+# ]
+
 MIDDLEWARE = [
+    'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
+    'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -138,14 +169,20 @@ MIDDLEWARE = [
     'hub.middleware.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # Still needed really?
+    'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
 ]
+
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL')
@@ -669,9 +706,10 @@ TEST_RUNNER = __name__ + '.DoNotUseRunner'
 # KoBoCAT also lists ModelBackend before
 # guardian.backends.ObjectPermissionBackend.
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
+    'kpi.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
+    'kobo.apps.openrosa.libs.backends.ObjectPermissionBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
@@ -701,8 +739,10 @@ DATABASES = {
     ),
 }
 
+OPENROSA_DB_ALIAS = 'kobocat'
+
 if 'KC_DATABASE_URL' in os.environ:
-    DATABASES['kobocat'] = env.db_url('KC_DATABASE_URL')
+    DATABASES[OPENROSA_DB_ALIAS] = env.db_url('KC_DATABASE_URL')
 
 DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
@@ -857,6 +897,49 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
 
+OPENROSA_REST_FRAMEWORK = {
+
+    'DEFAULT_PAGINATION_CLASS': None,
+    'DEFAULT_VERSIONING_CLASS': None,
+
+    # deprecated
+    # # Use hyperlinked styles by default.
+    # # Only used if the `serializer_class` attribute is not set on a view.
+    # 'DEFAULT_MODEL_SERIALIZER_CLASS': (
+    #     'rest_framework.serializers.HyperlinkedModelSerializer'
+    # ),
+    # # Use Django's standard `django.contrib.auth` permissions,
+    # # or allow read-only access for unauthenticated users.
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.AllowAny',
+    # ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'kobo.apps.openrosa.libs.authentication.DigestAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
+        # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
+        # Django authentication is called before DRF authentication and users get authenticated with
+        # Session if it comes first (which bypass BasicAuthentication and MFA validation)
+        'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
+        'kpi.authentication.SessionAuthentication',
+        'kobo_service_account.authentication.ServiceAccountAuthentication',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        # Keep JSONRenderer at the top "in order to send JSON responses to
+        # clients that do not specify an Accept header." See
+        # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework_jsonp.renderers.JSONPRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework_xml.renderers.XMLRenderer',
+        'rest_framework_csv.renderers.CSVRenderer',
+    ],
+    # FIXME Kobocat migration: Move to main REST_FRAMEWORK and change logic to handle kobocat view properly
+    'VIEW_NAME_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_name',
+    'VIEW_DESCRIPTION_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_description',
+}
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -882,6 +965,7 @@ TEMPLATES = [
                 'kpi.context_processors.config',
                 'kpi.context_processors.mfa',
                 'kpi.context_processors.django_settings',
+                'kpi.context_processors.kobocat',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },
@@ -1024,9 +1108,7 @@ CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", False)
 
 CELERY_TIMEZONE = "UTC"
 
-if os.environ.get('SKIP_CELERY', 'False') == 'True':
-    # helpful for certain debugging
-    CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_ALWAYS_EAGER = env.bool('SKIP_CELERY', False)
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks
@@ -1061,6 +1143,16 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=30, day_of_week=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    'log-stuck-exports-and-mark-failed': {
+        'task': 'kobo.apps.openrosa.apps.viewer.tasks.log_stuck_exports_and_mark_failed',
+        'schedule': timedelta(hours=6),
+        'options': {'queue': 'kobocat_queue'}
+    },
+    'delete-daily-xform-submissions-counter': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_daily_counters',
+        'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kobocat_queue'}
+    },
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
         'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
@@ -1086,6 +1178,7 @@ CELERY_BEAT_SCHEDULE = {
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }
+
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     "fanout_patterns": True,
@@ -1208,7 +1301,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-    if DEFAULT_FILE_STORAGE.endswith("AzureStorage"):
+    if DEFAULT_FILE_STORAGE.endswith('AzureStorage'):
         PRIVATE_STORAGE_CLASS = \
             'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
@@ -1219,14 +1312,12 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
     KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
     if 'KOBOCAT_AWS_STORAGE_BUCKET_NAME' in os.environ:
         KOBOCAT_AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
 else:
     KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
-
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
@@ -1426,7 +1517,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 # OpenRosa setting in bytes
-OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
+OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 # Should match KoBoCAT setting
@@ -1480,6 +1571,7 @@ TRENCH_AUTH = {
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
+    'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
 ]
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
@@ -1510,4 +1602,120 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'kpi.password_validation.MostRecentPasswordValidator',
     },
+]
+
+# Needed to avoid Constance to create permissions on Kobocat database
+CONSTANCE_DBS = [
+    'default'
+]
+
+AUTH_USER_MODEL = 'kobo_auth.User'
+
+####################################
+#         KoboCAT settings         #
+####################################
+KOBOCAT_PUBLIC_HOSTNAME = (
+    f"{env.str('KOBOCAT_PUBLIC_SUBDOMAIN', 'kc')}"
+    f".{env.str('PUBLIC_DOMAIN_NAME', 'domain.tld')}"
+)
+
+KOBOFORM_INTERNAL_URL = env.url('KOBOFORM_INTERNAL_URL', KOBOFORM_URL).geturl()
+
+ENKETO_OFFLINE_SURVEYS = env.bool('ENKETO_OFFLINE_SURVEYS', True)
+ENKETO_ONLINE_SURVEY_ENDPOINT = 'api/v2/survey'
+ENKETO_OFFLINE_SURVEY_ENDPOINT = 'api/v2/survey/offline'
+OPENROSA_ENKETO_SURVEY_ENDPOINT = (
+    ENKETO_OFFLINE_SURVEY_ENDPOINT
+    if ENKETO_OFFLINE_SURVEYS
+    else ENKETO_ONLINE_SURVEY_ENDPOINT
+)
+OPENROSA_APP_DIR = os.path.join(BASE_DIR, 'kobo', 'apps', 'openrosa')
+DEFAULT_SESSION_EXPIRY_TIME = 21600  # 6 hours
+
+CELERY_TASK_ROUTES = {
+    'kobo.apps.openrosa.*': 'kobocat_queue',
+}
+USE_THOUSAND_SEPARATOR = True
+
+DIGEST_NONCE_BACKEND = 'kobo.apps.openrosa.apps.django_digest_backends.cache.RedisCacheNonceStorage'
+
+# Needed to get ANONYMOUS_USER = -1
+GUARDIAN_GET_INIT_ANONYMOUS_USER = 'kobo.apps.openrosa.apps.main.models.user_profile.get_anonymous_user_instance'
+
+KPI_HOOK_ENDPOINT_PATTERN = '/api/v2/assets/{asset_uid}/hook-signal/'
+
+# TODO Validate if `'PKCE_REQUIRED': False` is required in KPI
+OAUTH2_PROVIDER = {
+    # this is the list of available scopes
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+        'groups': 'Access to your groups'
+    },
+    'PKCE_REQUIRED': False,
+}
+
+REVERSION_MIDDLEWARE_SKIPPED_URL_PATTERNS = {
+    r'/api/v1/users/(.*)': ['DELETE']
+}
+DAILY_COUNTERS_MAX_DAYS = env.int('DAILY_COUNTERS_MAX_DAYS', 366)
+
+USE_POSTGRESQL = True
+
+# Added this because of https://github.com/onaio/kobo.apps.open_rosa_server/pull/2139
+# Should bring support to ODK v1.17+
+SUPPORT_BRIEFCASE_SUBMISSION_DATE = (
+    os.environ.get('SUPPORT_BRIEFCASE_SUBMISSION_DATE') != 'True'
+)
+
+DEFAULT_VALIDATION_STATUSES = [
+    {
+        'uid': 'validation_status_not_approved',
+        'color': '#ff0000',
+        'label': 'Not Approved'
+    },
+    {
+        'uid': 'validation_status_approved',
+        'color': '#00ff00',
+        'label': 'Approved'
+    },
+    {
+        'uid': 'validation_status_on_hold',
+        'color': '#0000ff',
+        'label': 'On Hold'
+    },
+]
+
+THUMB_CONF = {
+    'large': {'size': 1280, 'suffix': '-large'},
+    'medium': {'size': 640, 'suffix': '-medium'},
+    'small': {'size': 240, 'suffix': '-small'},
+}
+# order of thumbnails from largest to smallest
+THUMB_ORDER = ['large', 'medium', 'small']
+
+SUPPORTED_MEDIA_UPLOAD_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/svg+xml',
+    'video/3gpp',
+    'video/mp4',
+    'video/quicktime',
+    'video/ogg',
+    'video/webm',
+    'audio/aac',
+    'audio/aacp',
+    'audio/flac',
+    'audio/mp3',
+    'audio/mp4',
+    'audio/mpeg',
+    'audio/ogg',
+    'audio/wav',
+    'audio/x-wav',
+    'audio/webm',
+    'audio/x-m4a',
+    'text/csv',
+    'application/xml',
+    'application/zip',
+    'application/x-zip-compressed'
 ]

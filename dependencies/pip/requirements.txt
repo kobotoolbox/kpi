@@ -4,7 +4,7 @@
 #
 #    pip-compile dependencies/pip/requirements.in
 #
--e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
+-e git+https://github.com/kobotoolbox/django-digest@ae76cb8300d3d973e4cc1e923653d1fe85956706#egg=django_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
@@ -113,6 +113,7 @@ django==3.2.15
     #   django-dont-vary-on
     #   django-extensions
     #   django-filter
+    #   django-guardian
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-organizations
@@ -146,6 +147,8 @@ django-environ==0.8.1
 django-extensions==3.1.5
     # via -r dependencies/pip/requirements.in
 django-filter==21.1
+    # via -r dependencies/pip/requirements.in
+django-guardian==2.4.0
     # via -r dependencies/pip/requirements.in
 django-loginas==0.3.10
     # via -r dependencies/pip/requirements.in
@@ -184,8 +187,13 @@ django-webpack-loader==2.0.1
 djangorestframework==3.13.1
     # via
     #   -r dependencies/pip/requirements.in
+    #   djangorestframework-csv
     #   drf-extensions
     #   kobo-service-account
+djangorestframework-csv==3.0.2
+    # via -r dependencies/pip/requirements.in
+djangorestframework-jsonp==1.0.2
+    # via -r dependencies/pip/requirements.in
 djangorestframework-xml==2.0.0
     # via -r dependencies/pip/requirements.in
 docutils==0.18.1
@@ -281,10 +289,14 @@ markdown==3.3.6
     # via
     #   -r dependencies/pip/requirements.in
     #   django-markdownx
+modilabs-python-utils==0.1.5
+    # via -r dependencies/pip/requirements.in
 msrest==0.7.1
     # via azure-storage-blob
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
+numpy==1.26.4
+    # via pandas
 oauthlib==3.2.0
     # via
     #   -r dependencies/pip/requirements.in
@@ -296,6 +308,8 @@ openpyxl==3.0.9
     #   pyxform
 packaging==21.3
     # via redis
+pandas==2.2.1
+    # via -r dependencies/pip/requirements.in
 path==16.4.0
     # via path-py
 path-py==12.5.0
@@ -360,6 +374,7 @@ python-dateutil==2.8.2
     # via
     #   -r dependencies/pip/requirements.in
     #   botocore
+    #   pandas
     #   python-crontab
 python3-openid==3.2.0
     # via django-allauth
@@ -370,6 +385,7 @@ pytz==2022.1
     #   django-timezone-field
     #   djangorestframework
     #   flower
+    #   pandas
     #   twilio
 pyxform==1.9.0
     # via
@@ -445,6 +461,8 @@ twilio==7.8.2
     # via django-trench
 typing-extensions==4.2.0
     # via azure-core
+tzdata==2024.1
+    # via pandas
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==1.26.9

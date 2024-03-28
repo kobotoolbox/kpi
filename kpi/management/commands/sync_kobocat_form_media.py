@@ -5,12 +5,10 @@ import time
 from typing import Optional
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db.models import Q
-
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 

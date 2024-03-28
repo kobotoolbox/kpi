@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -12,7 +13,7 @@ class ObjectPermission(models.Model):
     It was formerly a generic object-level permission assignment, but the class
     name will change soon to `AssetPermission`.
     """
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     permission = models.ForeignKey('auth.Permission', on_delete=models.CASCADE)
     deny = models.BooleanField(
         default=False,
@@ -63,4 +64,3 @@ class ObjectPermission(models.Model):
             'denied from' if self.deny else 'granted to',
             str(self.user)  # TODO Test if cast is still needed
         )
-

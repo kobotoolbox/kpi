@@ -18,7 +18,7 @@ class MfaAvailableToUser(models.Model):
     class Meta:
         verbose_name = 'per-user availability'
         verbose_name_plural = 'per-user availabilities'
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         # Used to display the user-friendly representation of MfaAvailableToUser

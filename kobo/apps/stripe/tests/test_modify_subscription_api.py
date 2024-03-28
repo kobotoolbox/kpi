@@ -1,6 +1,5 @@
 import stripe
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 
 from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem, SubscriptionSchedule
@@ -9,6 +8,7 @@ from rest_framework import status
 from urllib.parse import urlencode
 from unittest.mock import patch
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 

@@ -14,7 +14,7 @@ exec celery -A kobo worker --loglevel=info \
     --logfile=${KPI_LOGS_DIR}/celery_low_priority.log \
     --pidfile=/tmp/celery_low_priority.pid \
     --queues=kpi_low_priority_queue \
-    --exclude-queues=kpi_queue \
+    --exclude-queues=kpi_queue,kobocat_queue \
     --uid=${UWSGI_USER} \
     --gid=${UWSGI_GROUP} \
     --autoscale ${AUTOSCALE_MIN},${AUTOSCALE_MAX}

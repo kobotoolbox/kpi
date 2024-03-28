@@ -49,7 +49,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -62,7 +62,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username],
             ),
             'assets': [self.asset.uid, 'not_owned_asset_uid'],
@@ -75,7 +75,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         self.client.login(username='thirduser', password='thirduser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -433,7 +433,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -498,7 +498,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -564,7 +564,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -588,7 +588,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -611,7 +611,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
 
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -634,7 +634,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]

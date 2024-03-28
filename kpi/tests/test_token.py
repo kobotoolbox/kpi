@@ -11,7 +11,16 @@ class UserListTests(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        # This user has a pre-made token in the test fixture
+        # It uses to be in the test fixture, but it was in conflicts with Kobocat
+        # code.
+        token, _ = Token.objects.get_or_create(
+            user__username='anotheruser',
+        )
+        # Cannot use `save` because it always makes INSERTs.
+        Token.objects.filter(key=token.key).update(
+            key='3a8da043dd1b669688dae523b015177a1d4201d5'
+        )
+
         self.username = 'anotheruser'
         self.client.login(username='anotheruser', password='anotheruser')
         self.url = reverse('token')

@@ -3,7 +3,6 @@ import json
 
 import responses
 from constance.test import override_config
-from django.contrib.auth.models import User
 from django.urls import reverse
 from mock import patch
 from rest_framework import status
@@ -15,6 +14,7 @@ from kobo.apps.hook.constants import (
     SUBMISSION_PLACEHOLDER,
 )
 from kobo.apps.hook.models.hook import Hook
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON
 from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,

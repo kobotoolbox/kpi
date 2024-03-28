@@ -98,7 +98,7 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser_id,
             user=someuser,
@@ -134,7 +134,7 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser.pk,
             user=admin,
@@ -188,7 +188,7 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser.pk,
             user=admin,

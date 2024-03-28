@@ -2,9 +2,10 @@
 import sys
 import os
 
-from django.db.utils import ProgrammingError
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
+from django.db.utils import ProgrammingError
+
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class Command(BaseCommand):
@@ -31,4 +32,3 @@ class Command(BaseCommand):
 
         if User.objects.filter(username=super_username).count() > 0:
             self.stdout.write('Superuser successfully created.')
-

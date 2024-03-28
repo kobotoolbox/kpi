@@ -1,10 +1,11 @@
 # coding: utf-8
 from copy import deepcopy
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Permission
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     PERM_ADD_SUBMISSIONS,

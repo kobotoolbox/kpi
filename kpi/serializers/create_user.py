@@ -1,5 +1,4 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import serializers
 
@@ -8,6 +7,7 @@ from kobo.apps.accounts.validators import (
     USERNAME_MAX_LENGTH,
     USERNAME_INVALID_MESSAGE,
 )
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class CreateUserSerializer(serializers.ModelSerializer):

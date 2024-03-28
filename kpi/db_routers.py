@@ -1,4 +1,10 @@
-# coding: utf-8
+from django.conf import settings
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
+
+from kobo.apps.openrosa.libs.constants import (
+    OPENROSA_APP_LABELS,
+)
+from kpi.utils.database import get_thread_local
 from .constants import SHADOW_MODEL_APP_LABELS
 from .exceptions import ReadOnlyModelError
 
@@ -9,9 +15,13 @@ class DefaultDatabaseRouter:
         """
         Reads go to KoBoCAT database when `model` is a ShadowModel
         """
-        if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
-            return 'kobocat'
-        return 'default'
+        if (
+            model._meta.app_label in SHADOW_MODEL_APP_LABELS
+            or model._meta.app_label in OPENROSA_APP_LABELS
+        ):
+            return settings.OPENROSA_DB_ALIAS
+
+        return get_thread_local('DB_ALIAS', DEFAULT_DB_ALIAS)
 
     def db_for_write(self, model, **hints):
         """
@@ -21,23 +31,37 @@ class DefaultDatabaseRouter:
         if getattr(model, 'read_only', False):
             raise ReadOnlyModelError
 
-        if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
-            return 'kobocat'
+        if (
+            model._meta.app_label in SHADOW_MODEL_APP_LABELS
+            or model._meta.app_label in OPENROSA_APP_LABELS
+        ):
+            return settings.OPENROSA_DB_ALIAS
 
-        return 'default'
+        return get_thread_local('DB_ALIAS', DEFAULT_DB_ALIAS)
 
     def allow_relation(self, obj1, obj2, **hints):
         """
         Relations between objects are allowed
         """
+        # Relationship between databases will raise an error, but it helps
+        # to lure Django to construct SQL queries when using models which exist
+        # in both databases (i.e. `auth_user`)
         return True
 
     def allow_migrate(self, db, app_label, model=None, **hints):
         """
         All default models end up in this pool.
         """
-        if db != 'default' or app_label in SHADOW_MODEL_APP_LABELS:
+        if db == DEFAULT_DB_ALIAS and app_label in OPENROSA_APP_LABELS:
             return False
+
+        if (
+            app_label in SHADOW_MODEL_APP_LABELS or
+            db != DEFAULT_DB_ALIAS
+            and app_label not in OPENROSA_APP_LABELS
+        ):
+            return False
+
         return True
 
 
@@ -47,13 +71,19 @@ class SingleDatabaseRouter(DefaultDatabaseRouter):
         """
         Reads always go to `default`
         """
-        return 'default'
+        return DEFAULT_DB_ALIAS
 
     def db_for_write(self, model, **hints):
         """
         Writes always go to default
         """
-        return 'default'
+        return DEFAULT_DB_ALIAS
+
+    def allow_migrate(self, db, app_label, model=None, **hints):
+        if app_label in SHADOW_MODEL_APP_LABELS:
+            return False
+
+        return True
 
 
 class TestingDatabaseRouter(SingleDatabaseRouter):

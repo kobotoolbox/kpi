@@ -5,13 +5,14 @@ from typing import Union
 import django.dispatch
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.models import User, Permission, AnonymousUser
+from django.contrib.auth.models import Permission, AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PERM_MANAGE_ASSET, PERM_FROM_KC_ONLY
 from kpi.utils.permissions import is_user_anonymous
 

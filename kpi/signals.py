@@ -1,13 +1,13 @@
 from typing import Union
 
 from django.conf import settings
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import AnonymousUser
 from django.db.models.signals import post_save, post_delete
-
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.models.hook import Hook
 from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.deployment_backends.kc_access.shadow_models import (
@@ -114,7 +114,7 @@ def post_delete_asset(sender, instance, **kwargs):
 def post_assign_asset_perm(
     sender,
     instance,
-    user: Union['auth.User', 'AnonymousUser'],
+    user: Union[settings.AUTH_USER_MODEL, 'AnonymousUser'],
     codename: str,
     **kwargs
 ):
@@ -132,7 +132,7 @@ def post_assign_asset_perm(
 def post_remove_asset_perm(
     sender,
     instance,
-    user: Union['auth.User', 'AnonymousUser'],
+    user: Union[settings.AUTH_USER_MODEL, 'AnonymousUser'],
     codename: str,
     **kwargs
 ):

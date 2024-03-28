@@ -1,12 +1,12 @@
 # coding: utf-8
 from constance import config
-from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import gettext as t
 from rest_framework import status, viewsets, permissions
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.serializers import CurrentUserSerializer
 

@@ -30,7 +30,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
     asset = RelativePrefixHyperlinkedRelatedField(
         view_name='asset-detail', lookup_field='uid', read_only=True)
     user = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail', lookup_field='username', read_only=True)
+        view_name='user-kpi-detail', lookup_field='username', read_only=True)
     user__username = serializers.ReadOnlyField(source='user.username')
     file_type = serializers.ChoiceField(choices=AssetFile.TYPE_CHOICES)
     description = serializers.CharField()
