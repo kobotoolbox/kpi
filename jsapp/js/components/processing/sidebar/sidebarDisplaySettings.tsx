@@ -11,9 +11,16 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {AssetContent} from 'js/dataInterface';
 import styles from './sidebarDisplaySettings.module.scss';
+import MultiCheckbox, {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
+import {getFlatQuestionsList} from 'jsapp/js/assetUtils';
 
-export default function SidebarDisplaySettings() {
+interface SidebarDisplaySettingsProps {
+  asset: AssetContent | undefined;
+}
+
+export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProps) {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -21,6 +28,19 @@ export default function SidebarDisplaySettings() {
   const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>(
     store.getDisplays(activeTab)
   );
+
+  function getInitialFields() {
+    if (!props.asset || !props.asset.survey) {
+      return [];
+    }
+
+    const questionsList = getFlatQuestionsList(props.asset.survey, 0).map(
+      (question) => question.name
+    );
+    return questionsList;
+  }
+
+  const [selectedFields, setSelectedFields] = useState(getInitialFields());
 
   // Every time user changes the tab, we need to load the stored displays list
   // for that tab.
@@ -59,6 +79,35 @@ export default function SidebarDisplaySettings() {
         (selectedDisplayName) => selectedDisplayName !== displayName
       )
     );
+  }
+
+  function getCheckboxes() {
+    if (!props.asset?.survey) {
+      return [];
+    }
+    const questionsList = getFlatQuestionsList(props.asset.survey, 0).map((question) => question.name);
+
+    const checkboxes = questionsList.map((question) => {
+      return {
+        label: question,
+        checked: selectedFields.includes(question),
+      };
+    });
+
+    return checkboxes;
+  }
+
+  function onCheckboxesChange(list: MultiCheckboxItem[]) {
+    const newList = list
+      .filter((question) => question.checked)
+      .map((question) => question.label);
+
+    const hiddenList = list
+      .filter((question) => !question.checked)
+      .map((question) => question.label);
+
+    store.setQuestionList(hiddenList);
+    setSelectedFields(newList);
   }
 
   return (
@@ -132,6 +181,14 @@ export default function SidebarDisplaySettings() {
               }
             })}
           </ul>
+
+          {props.asset?.survey && (
+            <MultiCheckbox
+              type='frame'
+              items={getCheckboxes()}
+              onChange={onCheckboxesChange}
+            />
+          )}
         </KoboModalContent>
 
         <KoboModalFooter alignment='center'>

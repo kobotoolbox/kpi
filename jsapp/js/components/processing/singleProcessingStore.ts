@@ -156,6 +156,8 @@ class SingleProcessingStore extends Reflux.Store {
 
   private analysisTabHasUnsavedWork = false;
 
+  private questionsList: string[] = [];
+
   public data: SingleProcessingStoreData = {
     translations: [],
     activeTab: SingleProcessingTabs.Transcript,
@@ -984,6 +986,10 @@ class SingleProcessingStore extends Reflux.Store {
     return this.displays[tabName];
   }
 
+  getQuestionList() {
+    return this.questionsList;
+  }
+
   /** Updates the list of active displays for given tab. */
   setDisplays(tabName: SingleProcessingTabs, displays: DisplaysList) {
     this.displays[tabName] = displays;
@@ -1034,6 +1040,14 @@ class SingleProcessingStore extends Reflux.Store {
       this.data.isPristine = false;
       this.trigger(this.data);
     }
+  }
+
+  setQuestionList(list: string[]) {
+    this.questionsList = list;
+
+    console.log('store setQuestionList', this.questionsList);
+    console.log('store setQuestionList param', list);
+    this.trigger(this.questionsList);
   }
 }
 

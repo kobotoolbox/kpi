@@ -22,7 +22,7 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
 
   return (
     <div className={styles.root}>
-      <SidebarDisplaySettings />
+      <SidebarDisplaySettings asset={props.asset.content}/>
 
       <div className={styles.displays}>
         {Array.from(translations).map((translation) => {

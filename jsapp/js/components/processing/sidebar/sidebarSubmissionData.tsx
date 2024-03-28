@@ -27,11 +27,13 @@ export default function SidebarSubmissionData(
 
   /** We want only the processing related data (the actual form questions) */
   function getQuestionsToHide(): string[] {
-    return [
+    const metaQuestions = [
       singleProcessingStore.currentQuestionName || '',
       ...Object.keys(ADDITIONAL_SUBMISSION_PROPS),
       ...Object.keys(META_QUESTION_TYPES),
     ];
+
+    return metaQuestions.concat(store.getQuestionList());
   }
 
   return (
