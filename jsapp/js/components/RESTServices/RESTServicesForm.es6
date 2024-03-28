@@ -1,7 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
-import alertify from 'alertifyjs';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
@@ -14,6 +13,7 @@ import TextBox from 'js/components/common/textBox';
 import {KEY_CODES} from 'js/constants';
 import envStore from 'js/envStore';
 import {notify} from 'js/utils';
+import "./RESTServicesForm.scss"
 
 const EXPORT_TYPES = {
   json: {
@@ -56,6 +56,12 @@ export default class RESTServicesForm extends React.Component {
         EXPORT_TYPES.xml
       ],
       isActive: true,
+      onEvent : {
+        onSubmit: true,
+        onEdit: false,
+        onDelete: false,
+        onValidation: false
+      },
       emailNotification: true,
       authLevel: null,
       authOptions: [
@@ -83,6 +89,7 @@ export default class RESTServicesForm extends React.Component {
             name: data.name,
             endpoint: data.endpoint,
             isActive: data.active,
+            onEvent: data.on_event,
             emailNotification: data.email_notification,
             subsetFields: data.subset_fields || [],
             type: data.export_type,
@@ -173,6 +180,20 @@ export default class RESTServicesForm extends React.Component {
     this.setState({emailNotification: isChecked});
   }
 
+  handleMethodOnSubmitChange(isChecked) {
+    this.setState({ onEvent: {...this.state.onEvent, onSubmit: isChecked }})
+  }
+  handleMethodOnEditChange(isChecked) {
+    this.setState({ onEvent: {...this.state.onEvent, onEdit: isChecked }})
+  }
+  handleMethodOnDeleteChange(isChecked) {
+    this.setState({ onEvent: {...this.state.onEvent, onDelete: isChecked }})
+    console.log(this.state.onEvent)
+  }
+  handleMethodOnValidationChange(isChecked) {
+    this.setState({ onEvent: {...this.state.onEvent, onValidation: isChecked }})
+  }
+
   handleTypeRadioChange(value, name) {this.setState({[name]: value});}
 
   handleCustomHeaderChange(evt) {
@@ -211,6 +232,7 @@ export default class RESTServicesForm extends React.Component {
       endpoint: this.state.endpoint,
       active: this.state.isActive,
       subset_fields: this.state.subsetFields,
+      on_event : this.state.onEvent,
       email_notification: this.state.emailNotification,
       export_type: this.state.type,
       auth_level: authLevel,
@@ -451,7 +473,44 @@ export default class RESTServicesForm extends React.Component {
                 label={t('Enabled')}
               />
             </bem.FormModal__item>
-
+            <bem.FormModal__item>
+              <div className='res-service-editor__sub-row'>
+                  <Checkbox
+                    name='onSubmit'
+                    onChange={this.handleMethodOnSubmitChange.bind(this)}
+                    checked={this.state.onEvent.onSubmit}
+                    label={t('On submit')}
+                    disabled={!this.state.isActive}
+                  />
+              </div>
+              <div className='res-service-editor__sub-row'>
+                  <Checkbox
+                    name='onEdit'
+                    onChange={this.handleMethodOnEditChange.bind(this)}
+                    checked={this.state.onEvent.onEdit}
+                    label={t('On edit')}
+                    disabled={!this.state.isActive}
+                  />
+              </div>
+              <div className='res-service-editor__sub-row'>
+                  <Checkbox
+                    name='onDelete'
+                    onChange={this.handleMethodOnDeleteChange.bind(this)}
+                    checked={this.state.onEvent.onDelete}
+                    label={t('On delete')}
+                    disabled={!this.state.isActive}
+                  />
+              </div>
+              <div className='res-service-editor__sub-row'>
+                  <Checkbox
+                    name='onValidationChange'
+                    onChange={this.handleMethodOnValidationChange.bind(this)}
+                    checked={this.state.onEvent.onValidation}
+                    label={t('On validation change')}
+                    disabled={!this.state.isActive}
+                  />
+              </div>
+            </bem.FormModal__item>
             <bem.FormModal__item>
               <Checkbox
                 name='emailNotification'

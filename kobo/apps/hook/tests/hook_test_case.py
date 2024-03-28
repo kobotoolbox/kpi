@@ -76,6 +76,13 @@ class HookTestCase(KpiTestCase):
             'subset_fields': kwargs.get('subset_fields', []),
             'payload_template': kwargs.get('payload_template', None)
         }
+        if kwargs.get('on_event'):
+            data['on_event'] = kwargs.get('on_event', {
+                                            "onEdit": False,
+                                            "onDelete": False,
+                                            "onSubmit": True,
+                                            "onValidation": False
+                                        })
 
         response = self.client.post(url, data, format='json')
         if return_response_only:
@@ -155,3 +162,43 @@ class HookTestCase(KpiTestCase):
             'group2/subgroup11/q1': '¿Cómo está en el subgrupo once?',
         }
         self.asset.deployment.mock_submissions([submission])
+
+
+    def _create_hook_with_event(self, return_response_only=False, **kwargs):
+
+        format_type = kwargs.get('format_type', SUBMISSION_FORMAT_TYPE_JSON)
+        if format_type not in [
+            SUBMISSION_FORMAT_TYPE_JSON,
+            SUBMISSION_FORMAT_TYPE_XML,
+        ]:
+            raise BadFormatException(
+                'The format {} is not supported'.format(format_type)
+            )
+
+        self.__prepare_submission()
+
+        url = reverse('hook-list', args=(self.asset.uid,))
+        data = {
+            'name': kwargs.get('name', 'some external service with token'),
+            'endpoint': kwargs.get('endpoint', 'http://external.service.local/'),
+            'settings': kwargs.get('settings', {
+                'custom_headers': {
+                    'X-Token': '1234abcd'
+                }
+            }),
+            'export_type': format_type,
+            'active': kwargs.get('active', True),
+            'subset_fields': kwargs.get('subset_fields', []),
+            'payload_template': kwargs.get('payload_template', None)
+
+        }
+
+        response = self.client.post(url, data, format='json')
+        if return_response_only:
+            return response
+        else:
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED,
+                             msg=response.data)
+            hook = self.asset.hooks.last()
+            self.assertTrue(hook.active)
+            return hook

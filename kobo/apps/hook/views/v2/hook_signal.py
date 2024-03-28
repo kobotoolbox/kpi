@@ -10,7 +10,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.hook.utils import HookUtils
 from kpi.models import Asset
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-
+from kobo.apps.hook.constants import HOOK_EVENT_SUBMIT
 
 class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                         viewsets.ViewSet):
@@ -33,6 +33,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >
     >        {
     >           "submission_id": {integer}
+    >           "event": {string}
     >        }
 
     """
@@ -49,6 +50,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         try:
             submission_id = positive_int(
                 request.data.get('submission_id'), strict=True)
+            event = str(request.data.get('event', HOOK_EVENT_SUBMIT))
         except ValueError:
             raise serializers.ValidationError(
                 {'submission_id': t('A positive integer is required.')})
@@ -62,8 +64,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         if not (submission and int(submission['_id']) == submission_id):
             raise Http404
-
-        if HookUtils.call_services(self.asset, submission_id):
+        if HookUtils.call_services(self.asset, submission_id, event):
             # Follow Open Rosa responses by default
             response_status_code = status.HTTP_202_ACCEPTED
             response = {

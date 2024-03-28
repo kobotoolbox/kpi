@@ -79,6 +79,12 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >                   {string}: {string}
     >               }
     >           },
+    >           "on_event": {
+    >               "onEdit": {boolean},
+    >               "onDelete": {boolean},
+    >               "onSubmit": {boolean},
+    >               "onValidation": {boolean}
+    >           },
     >           "payload_template": {string}
     >        }
 
@@ -111,6 +117,15 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     For example:
     >           "payload_template": '{"fields": %SUBMISSION%}'
+
+    * `on_event` is dictionary of HOOK_EVENT allow for the RestAPI methods.
+    For example:
+    >    {
+    >        "onEdit": false,
+    >        "onDelete": false,
+    >        "onSubmit": true,
+    >        "onValidation": false
+    >    }
 
     #### Update an external service.
     <pre class="prettyprint">

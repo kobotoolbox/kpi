@@ -10,12 +10,11 @@ from django.utils import translation, timezone
 from django_celery_beat.models import PeriodicTask
 
 from kpi.utils.log import logging
-from .constants import HOOK_LOG_FAILED
+from .constants import (HOOK_LOG_FAILED, HOOK_EVENT_SUBMIT)
 from .models import Hook, HookLog
 
-
 @shared_task(bind=True)
-def service_definition_task(self, hook_id, submission_id):
+def service_definition_task(self, hook_id, submission_id, uid = None, event=HOOK_EVENT_SUBMIT):
     """
     Tries to send data to the endpoint of the hook
     It retries n times (n = `constance.config.HOOK_MAX_RETRIES`)
@@ -28,16 +27,32 @@ def service_definition_task(self, hook_id, submission_id):
     :param self: Celery.Task.
     :param hook_id: int. Hook PK
     :param submission_id: int. Instance PK
+    :param uid: string. uid of the hook_log
+    :param event: HookEvent
     """
     hook = Hook.objects.get(id=hook_id)
     # Use camelcase (even if it's not PEP-8 compliant)
     # because variable represents the class, not the instance.
+
+    hook_events_mapping = {
+        'on_edit': 'onEdit',
+        'on_delete': 'onDelete',
+        'on_submit': 'onSubmit',
+        'on_validation_status_change': 'onValidation'
+    }
+
+    hook_event = hook_events_mapping.get(event)
+    if not hook_event or not hook_event in hook.on_event or hook.on_event.get(hook_event) == False:
+        return True
+
     ServiceDefinition = hook.get_service_definition()
-    service_definition = ServiceDefinition(hook, submission_id)
+    service_definition = ServiceDefinition(hook, submission_id, uid, event)
     if not service_definition.send():
         # Countdown is in seconds
         countdown = HookLog.get_remaining_seconds(self.request.retries)
-        raise self.retry(countdown=countdown, max_retries=constance.config.HOOK_MAX_RETRIES)
+        # setting up retry with the args comming on top, to keep the context and be able to retrieve it if needed.
+        raise self.retry(countdown=countdown, max_retries=constance.config.HOOK_MAX_RETRIES,
+                        args=[hook_id, submission_id, service_definition._uid_hook_log, event])
 
     return True
 
