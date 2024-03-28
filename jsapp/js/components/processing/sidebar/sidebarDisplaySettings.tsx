@@ -44,6 +44,7 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
   }
 
   const [selectedFields, setSelectedFields] = useState(getInitialFields());
+  const [hiddenFields, setHiddenFields] = useState<string[]>();
 
   // Every time user changes the tab, we need to load the stored displays list
   // for that tab.
@@ -117,8 +118,20 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
       .filter((question) => !question.checked)
       .map((question) => question.label);
 
-    store.setQuestionList(hiddenList);
+    setHiddenFields(hiddenList);
     setSelectedFields(newList);
+  }
+
+  function applyFieldsSelection() {
+    if (hiddenFields) {
+      store.setQuestionList(hiddenFields);
+    }
+  }
+
+  function resetFieldsSelection() {
+    setSelectedFields(getInitialFields());
+    setHiddenFields([]);
+    store.setQuestionList([]);
   }
 
   return (
@@ -221,6 +234,7 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
               // because the modal component (and its state) is kept alive even
               // when the modal is closed.
               setSelectedDisplays(store.getDisplays(activeTab));
+              resetFieldsSelection();
               setIsModalOpen(false);
             }}
           />
@@ -232,6 +246,7 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
             color='light-blue'
             size='m'
             onClick={() => {
+              applyFieldsSelection();
               store.setDisplays(activeTab, selectedDisplays);
               setIsModalOpen(false);
             }}
