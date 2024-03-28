@@ -1,0 +1,22 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load i18n %}
+{% load allauth %}
+
+{% block head_title %}
+  {% element h2 %}
+    {% trans "Third-Party Login Failure" %}
+  {% endelement %}
+{% endblock head_title %}
+{% block content %}
+  {% element panel %}
+    {% slot title %}
+        {% trans "Third-Party Login Failure" %}
+    {% endslot %}
+    {% slot body %}
+      <p>{% trans "An error occurred while attempting to login via your third-party account." %}</p>
+    {% endslot %}
+    {% slot actions %}
+      <p><a href="">{% trans "← Go back" %}</a></p>
+    {% endslot %}
+  {% endelement %}
+{% endblock content %}

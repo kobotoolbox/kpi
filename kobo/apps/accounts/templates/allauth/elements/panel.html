@@ -1,0 +1,14 @@
+{% load allauth %}
+<form class="registration registration--provider-login">
+    <h2>
+        {% slot title %}
+        {% endslot %}
+    </h2>
+    {% slot body %}
+    {% endslot %}
+    {% if slots.actions %}
+        <ul>
+            {% for action in slots.actions %}<li>{{ action }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+</form>
