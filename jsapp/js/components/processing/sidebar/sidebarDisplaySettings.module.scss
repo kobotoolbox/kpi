@@ -30,3 +30,14 @@
   margin: 0 !important;
   overflow-y: auto;
 }
+
+.questionList {
+  margin-top: sizes.$x12;
+  padding: sizes.$x12;
+  border: 1px solid colors.$kobo-gray-92;
+  border-radius: sizes.$x2;
+}
+
+.checkbox {
+  margin-top: sizes.$x12;
+}

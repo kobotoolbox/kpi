@@ -34,9 +34,12 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
       return [];
     }
 
-    const questionsList = getFlatQuestionsList(props.asset.survey, 0).map(
-      (question) => question.name
-    );
+    const currentQuestionName = store.currentQuestionName;
+
+    const questionsList = getFlatQuestionsList(props.asset.survey, 0)
+      .filter((question) => !(question.name === currentQuestionName))
+      .map((question) => question.name);
+
     return questionsList;
   }
 
@@ -85,7 +88,12 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
     if (!props.asset?.survey) {
       return [];
     }
-    const questionsList = getFlatQuestionsList(props.asset.survey, 0).map((question) => question.name);
+
+    const currentQuestionName = store.currentQuestionName;
+
+    const questionsList = getFlatQuestionsList(props.asset.survey, 0)
+      .filter((question) => !(question.name === currentQuestionName))
+      .map((question) => question.name);
 
     const checkboxes = questionsList.map((question) => {
       return {
@@ -97,6 +105,9 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
     return checkboxes;
   }
 
+  // To make the code a little simpler later on, we need an inverse array here
+  // to send to the the display, and a normal array to keep track of the checkboxes
+  // in this modal.
   function onCheckboxesChange(list: MultiCheckboxItem[]) {
     const newList = list
       .filter((question) => question.checked)
@@ -182,13 +193,19 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
             })}
           </ul>
 
-          {props.asset?.survey && (
-            <MultiCheckbox
-              type='frame'
-              items={getCheckboxes()}
-              onChange={onCheckboxesChange}
-            />
-          )}
+          {props.asset?.survey &&
+            selectedDisplays.includes(StaticDisplays.Data) && (
+              <div className={styles.questionList}>
+                <strong>{t('Select the submission data to display.')}</strong>
+                <div className={styles.checkbox}>
+                  <MultiCheckbox
+                    type='bare'
+                    items={getCheckboxes()}
+                    onChange={onCheckboxesChange}
+                  />
+                </div>
+              </div>
+            )}
         </KoboModalContent>
 
         <KoboModalFooter alignment='center'>
