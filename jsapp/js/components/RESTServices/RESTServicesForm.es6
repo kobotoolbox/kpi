@@ -55,7 +55,7 @@ export default class RESTServicesForm extends React.Component {
         EXPORT_TYPES.json,
         EXPORT_TYPES.xml
       ],
-      isActive: false,
+      isActive: true,
       onEvent : {
         onSubmit: true,
         onEdit: false,
