@@ -1,0 +1,62 @@
+{% extends "socialaccount/base_manage.html" %}
+{% load i18n %}
+{% load allauth %}
+{% block head_title %}
+    {% trans "Connect your Account to SSO" %}
+{% endblock head_title %}
+{% block content %}
+  {% element panel %}
+    {% slot title %}
+      {% element h1 %}
+          {% trans "Connect your Account to SSO" %}
+      {% endelement %}
+    {% endslot %}
+    {% slot body %}
+    {% if form.accounts %}
+        <p>
+            {% blocktrans %}You can sign in to your KoboToolbox account using any of the following SSO providers:{% endblocktrans %}
+        </p>
+        {% url 'socialaccount_connections' as action_url %}
+        {% element form form=form method="post" action=action_url %}
+                {% csrf_token %}
+                {% for acc in form.fields.account.choices %}
+                    {% with account=acc.0.instance.get_provider_account %}
+                        {% setvar radio_id %}
+                            id_account_{{ account.account.pk }}
+                        {% endsetvar %}
+                        {% setvar tags %}
+                            socialaccount,{{ account.account.provider }}
+                        {% endsetvar %}
+                        {% element field id=radio_id type="radio" name="account" value=account.account.pk %}
+                            {% slot label %}
+                                {{ account }}
+                                {% element badge tags=tags %}
+                                    {{ account.get_brand.name }}
+                                {% endelement %}
+                            {% endslot %}
+                        {% endelement %}
+                    {% endwith %}
+                {% endfor %}
+            {% slot actions %}
+                {% element button tags="full,delete,danger" class="kobo-button kobo-button--sso" type="submit" %}
+                    {% trans 'Remove' %}
+                {% endelement %}
+            {% endslot %}
+        {% endelement %}
+    {% else %}
+        <p>{% trans 'You currently have no third-party accounts connected to this account.' %}</p>
+    {% endif %}
+    {% endslot %}
+  {% endelement %}
+  {% element panel %}
+    {% slot title %}
+      {% element h1 %}
+        {% trans 'Add an SSO Account' %}
+      {% endelement %}
+    {% endslot %}
+    {% slot actions %}
+      {% include "socialaccount/snippets/provider_list.html" with process="connect" %}
+      {% include "socialaccount/snippets/login_extra.html" %}
+    {% endslot %}
+  {% endelement %}
+{% endblock content %}
