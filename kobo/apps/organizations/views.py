@@ -3,6 +3,7 @@ from django.db.models import QuerySet
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_dont_vary_on.decorators import only_vary_on
+from kpi import filters
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -176,7 +177,13 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             **self.get_serializer_context(),
         }
 
-        page = self.paginate_queryset(assets)
+        filtered_assets = (
+            filters.AssetOrganizationUsageFilter().filter_queryset(
+                request, assets, self
+            )
+        )
+
+        page = self.paginate_queryset(filtered_assets)
 
         if page is not None:
             serializer = CustomAssetUsageSerializer(
@@ -185,6 +192,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = CustomAssetUsageSerializer(
-            assets, many=True, context=context
+            filtered_assets, many=True, context=context
         )
         return Response(serializer.data)

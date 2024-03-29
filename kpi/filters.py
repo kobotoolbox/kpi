@@ -15,6 +15,7 @@ from django.db.models.query import QuerySet
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import filters
 from rest_framework.request import Request
+import logging
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
@@ -54,6 +55,28 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
         fields = {"asset__owner": request.user}
         return queryset.filter(**fields)
 
+
+class AssetOrganizationUsageFilter(filters.OrderingFilter):
+
+    DEFAULT_USAGE_ORDERING_FIELDS = [
+        'asset__name',
+        'nlp_usage_current_month',
+        'nlp_usage_all_time',
+        'storage_bytes',
+        'submission_count_current_month',
+        'submission_count_all_time',
+        '_deployment_status',
+    ]
+
+    ordering_fields = DEFAULT_USAGE_ORDERING_FIELDS
+
+    def filter_queryset(self, request, queryset, view):
+        ordering = self.get_ordering(request, queryset, view)
+
+        if ordering:
+            queryset = queryset.order_by(*ordering)
+
+        return queryset
 
 class AssetOrderingFilter(filters.OrderingFilter):
 
