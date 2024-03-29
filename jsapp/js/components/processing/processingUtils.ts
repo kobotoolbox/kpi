@@ -1,4 +1,5 @@
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {ProcessingTabName} from 'js/components/processing/singleProcessingStore';
 
 type SupplementalPathPartsType = 'transcript' | 'translation' | 'qual';
 
@@ -63,14 +64,17 @@ export function isSamePathExceptTab(firstPath: string, secondPath: string) {
   const firstPathArray = firstPath.split('/');
   const secondPathArray = secondPath.split('/');
   // Remove the tab part from both paths and compare
-  return firstPathArray.splice(7, 1).join('/') === secondPathArray.splice(7, 1).join('/');
+  return (
+    firstPathArray.splice(7, 1).join('/') ===
+    secondPathArray.splice(7, 1).join('/')
+  );
 }
 
 interface ProcessingPathParts {
   assetUid: string;
   qpath: string;
   submissionEditId: string;
-  tab: string;
+  tab: ProcessingTabName;
 }
 
 /**
@@ -78,10 +82,14 @@ interface ProcessingPathParts {
  */
 export function getProcessingPathParts(path: string): ProcessingPathParts {
   const pathArray = path.split('/');
+
+  // We assume this will always be correct :fingers_crossed:
+  const pathTabPart = pathArray[7] as ProcessingTabName;
+
   return {
     assetUid: pathArray[2],
     qpath: pathArray[5],
     submissionEditId: pathArray[6],
-    tab: pathArray[7],
+    tab: pathTabPart,
   };
 }

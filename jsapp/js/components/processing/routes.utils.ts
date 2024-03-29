@@ -1,5 +1,6 @@
 import {generatePath} from 'react-router-dom';
-import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import type {ProcessingTabName} from 'js/components/processing/singleProcessingStore';
 import {router, routerIsActive} from 'js/router/legacy';
 import {ROUTES, PROCESSING_ROUTES} from 'jsapp/js/router/routerConstants';
 
@@ -22,15 +23,15 @@ export function isProcessingRouteActive(targetRoute: string) {
   return routerIsActive(applyCurrentRouteParams(targetRoute));
 }
 
-export function getActiveTab(): SingleProcessingTabs | undefined {
+export function getActiveTab(): ProcessingTabName | undefined {
   if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
-    return SingleProcessingTabs.Transcript;
+    return 'transcript';
   }
   if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS)) {
-    return SingleProcessingTabs.Translations;
+    return 'translations';
   }
   if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
-    return SingleProcessingTabs.Analysis;
+    return 'analysis';
   }
   // Should not happen
   return undefined;
@@ -70,6 +71,10 @@ export function goToProcessing(
     }
   }
 
-  const path = generatePath(targetRoute, {uid: assetUid, qpath, submissionEditId});
+  const path = generatePath(targetRoute, {
+    uid: assetUid,
+    qpath,
+    submissionEditId,
+  });
   router!.navigate(path);
 }
