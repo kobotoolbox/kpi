@@ -38,14 +38,14 @@
     // Unchecked
     .checkbox__input:not(:checked) {
       border-color: colors.$kobo-gray-40;
-      background-color: colors.$kobo-light-blue;
+      background-color: colors.$kobo-bg-blue;
     }
 
     // Checked
     .checkbox__input:checked {
       color: colors.$kobo-white;
-      border-color: colors.$kobo-alt-blue;
-      background-color: colors.$kobo-alt-blue;
+      border-color: colors.$kobo-mid-blue;
+      background-color: colors.$kobo-mid-blue;
     }
   }
 

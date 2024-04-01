@@ -129,6 +129,9 @@ interface SingleProcessingStoreData {
    * View was opened (only changes saved to Back end are taken into account).
    */
   isPristine: boolean;
+  /** Marks some backend calls being in progress. */
+  isFetchingData: boolean;
+  isPollingForTranscript: boolean;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -153,21 +156,18 @@ class SingleProcessingStore extends Reflux.Store {
 
   private analysisTabHasUnsavedWork = false;
 
-  // We want to give access to this only through methods.
-  private data: SingleProcessingStoreData = {
+  public data: SingleProcessingStoreData = {
     translations: [],
     activeTab: SingleProcessingTabs.Transcript,
     isPristine: true,
+    isFetchingData: false,
+    isPollingForTranscript: false,
   };
-  /** Marks some backend calls being in progress. */
-  public isFetchingData = false;
-  public isPollingForTranscript = false;
 
   /** Clears all data - useful before making initialisation call */
   private resetProcessingData() {
     this.isProcessingDataLoaded = false;
-    this.isPollingForTranscript = false;
-
+    this.data.isPollingForTranscript = false;
     this.data.transcript = undefined;
     this.data.transcriptDraft = undefined;
     this.data.translations = [];
@@ -175,10 +175,6 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.source = undefined;
     this.data.activeTab = SingleProcessingTabs.Transcript;
     this.data.isPristine = true;
-  }
-
-  public get isPristine() {
-    return this.data.isPristine;
   }
 
   public get currentAssetUid() {
@@ -545,7 +541,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onFetchProcessingDataStarted(abort: () => void) {
     this.abortFetchData = abort;
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     this.trigger(this.data);
   }
 
@@ -579,7 +575,7 @@ class SingleProcessingStore extends Reflux.Store {
 
     delete this.abortFetchData;
     this.isProcessingDataLoaded = true;
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
 
     this.cleanupDisplays();
 
@@ -603,15 +599,15 @@ class SingleProcessingStore extends Reflux.Store {
     }
     alertify.notify(errorText, 'error');
     delete this.abortFetchData;
-    this.isFetchingData = false;
-    this.isPollingForTranscript = false;
+    this.data.isFetchingData = false;
+    this.data.isPollingForTranscript = false;
     this.trigger(this.data);
   }
 
   private onSetTranscriptCompleted(response: ProcessingDataResponse) {
     const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
 
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
 
     if (transcriptResponse) {
       this.data.transcript = transcriptResponse;
@@ -623,7 +619,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onDeleteTranscriptCompleted() {
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
     this.data.transcript = undefined;
     this.setNotPristine();
     this.trigger(this.data);
@@ -647,7 +643,7 @@ class SingleProcessingStore extends Reflux.Store {
   private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
     if (
       !this.currentQuestionQpath ||
-      !this.isPollingForTranscript ||
+      !this.data.isPollingForTranscript ||
       !this.data.transcriptDraft
     ) {
       return;
@@ -655,7 +651,7 @@ class SingleProcessingStore extends Reflux.Store {
     const googleTsResponse =
       event.response[this.currentQuestionQpath]?.googlets;
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
-      this.isPollingForTranscript = false;
+      this.data.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
     }
     this.setNotPristine();
@@ -667,16 +663,16 @@ class SingleProcessingStore extends Reflux.Store {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
       if (this.isAutoTranscriptionEventApplicable(event)) {
-        this.isPollingForTranscript = true;
+        this.data.isPollingForTranscript = true;
         this.requestAutoTranscription();
       } else {
-        this.isPollingForTranscript = false;
+        this.data.isPollingForTranscript = false;
       }
     }, 5000);
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
     this.data.translations = newTranslations;
     // discard draft after saving (exit the editor)
     this.data.translationDraft = undefined;
@@ -688,7 +684,7 @@ class SingleProcessingStore extends Reflux.Store {
   private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
     const googleTxResponse = response[this.currentQuestionQpath]?.googletx;
 
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
     if (
       googleTxResponse &&
       this.data.translationDraft &&
@@ -736,7 +732,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   setTranscript(languageCode: LanguageCode, value: string) {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -748,7 +744,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranscript() {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -758,7 +754,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranscription() {
-    this.isPollingForTranscript = true;
+    this.data.isPollingForTranscript = true;
     processingActions.requestAutoTranscription(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -822,7 +818,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** This stores the translation on backend. */
   setTranslation(languageCode: LanguageCode, value: string) {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -834,7 +830,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranslation(languageCode: LanguageCode) {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -845,7 +841,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranslation(languageCode: string) {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -973,8 +969,11 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** Returns available displays for given tab */
   getAvailableDisplays(tabName: SingleProcessingTabs) {
-    const outcome: DisplaysList = [StaticDisplays.Audio, StaticDisplays.Data];
-    if (tabName !== SingleProcessingTabs.Transcript) {
+    const outcome: DisplaysList = [
+      StaticDisplays.Audio,
+      StaticDisplays.Data,
+    ];
+    if (tabName !== SingleProcessingTabs.Transcript && this.data.transcript) {
       outcome.push(StaticDisplays.Transcript);
     }
     this.getTranslations().forEach((translation) => {

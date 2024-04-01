@@ -6,7 +6,12 @@ import cx from 'classnames';
 
 interface NewFeatureDialogProps {
   children: React.ReactNode;
-  className?: string;
+  /** Custom CSS for positioning root element. */
+  rootClass?: string;
+  /** Custom CSS for positioning pointer element. */
+  pointerClass?: string;
+  /** Custom CSS for positioning dialog element. */
+  dialogClass?: string;
   /**
    * Used to differentiate between dialogs for different features.
    * Tip: Use the feature name. It's added to the end of the localstorage key.
@@ -23,9 +28,20 @@ interface NewFeatureDialogProps {
   disabled?: boolean;
 }
 
+/*
+ * Custom dialog compoennt used to highlight new features. Must adjust poisiton
+ * manually with a class prop.
+ *
+ * Styling tip: use rootClass, pointerClass, and/or dialogClass to change the position
+ * of the dialog box to suit your needs.
+ * - Adjusting `left` in pointerClass will move the ^ left/right
+ * - Adjusting `margin-top` in dialogClass will move the dialog (and the pointer) up/down
+ */
 export default function NewFeatureDialog({
   children,
-  className = '',
+  rootClass = '',
+  pointerClass = '',
+  dialogClass = '',
   featureKey,
   content,
   supportArticle,
@@ -79,10 +95,11 @@ export default function NewFeatureDialog({
   }
 
   return (
-    <div className={cx(styles.root, {className: className})}>
+    <div className={cx(styles.root, rootClass)}>
       <div className={styles.wrapper}>{children}</div>
       {showDialog && !disabled && (
-        <div className={styles.dialog}>
+        <div className={cx(styles.dialog, dialogClass)}>
+          <div className={cx(styles.pointer, pointerClass)} />
           <div className={styles.header}>
             {t('New feature')}
             <Button

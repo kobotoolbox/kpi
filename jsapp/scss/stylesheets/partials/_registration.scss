@@ -40,15 +40,15 @@
     }
 
     a {
-      color: colors.$kobo-mid-blue;
+      color: colors.$kobo-light-blue;
       text-decoration: underline;
       text-decoration-skip-ink: none;
-      text-decoration-color: rgba(colors.$kobo-mid-blue, 0.5);
+      text-decoration-color: rgba(colors.$kobo-light-blue, 0.5);
 
       &:hover {
         // Darken by 6%, like kobo-button hover
-        color: color.scale(colors.$kobo-mid-blue, $lightness: -6%);
-        text-decoration-color: rgba(color.scale(colors.$kobo-mid-blue, $lightness: -6%), 0.5);
+        color: color.scale(colors.$kobo-light-blue, $lightness: -6%);
+        text-decoration-color: rgba(color.scale(colors.$kobo-light-blue, $lightness: -6%), 0.5);
       }
     }
 
@@ -131,7 +131,7 @@
 
     // Special button variant only used for SSO
     .kobo-button.kobo-button--sso {
-      background-color: colors.$kobo-mid-blue;
+      background-color: colors.$kobo-light-blue;
       color: colors.$kobo-dark-blue;
 
       &:focus {
@@ -142,7 +142,7 @@
 
   a:focus-visible {
     // ux/accessibility: bring back the tabfocus ring
-    outline-color: colors.$kobo-cloud;              // Ours (fallback)
+    outline-color: colors.$kobo-light-storm;              // Ours (fallback)
     outline-color: Highlight;                // Firefox
     outline-color: -webkit-focus-ring-color; // Chrome & Safari
     outline-offset: 4px;
@@ -211,7 +211,7 @@
   border-radius: 6px;
   font-size: variables.$base-font-size;
   border-bottom: 3px solid transparent;
-  background-color: colors.$kobo-cloud;
+  background-color: colors.$kobo-light-storm;
 
   &:focus {
     border-bottom-color: colors.$kobo-blue;
@@ -219,7 +219,7 @@
   }
   &[readonly] {
     // Dim readonly fields
-    background-color: rgba(colors.$kobo-cloud, 0.7);
+    background-color: rgba(colors.$kobo-light-storm, 0.7);
   }
 }
 .registration select {
@@ -233,7 +233,7 @@
   border-radius: 6px;
   transition: background-color 0.5s, box-shadow 0.5s;
   &:focus-within {
-    background-color: rgba(colors.$kobo-cloud, 0.05);
+    background-color: rgba(colors.$kobo-light-storm, 0.05);
     box-shadow: inset 0 -3px colors.$kobo-blue;
     transition: background-color 0.5s, box-shadow 0.5s;
   }
@@ -243,7 +243,7 @@
   margin-top: 28px;
 
   &:focus {
-    outline: 2px solid colors.$kobo-cloud;
+    outline: 2px solid colors.$kobo-light-storm;
   }
 }
 
@@ -358,7 +358,7 @@
     color: colors.$kobo-white;
 
     &:hover {
-      color: colors.$kobo-cloud;
+      color: colors.$kobo-light-storm;
     }
   }
 

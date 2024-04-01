@@ -19,6 +19,7 @@ import exportsActions from './actions/exportsActions';
 import dataShareActions from './actions/dataShareActions';
 import {notify} from 'js/utils';
 import {replaceSupportEmail} from 'js/textUtils';
+import * as Sentry from '@sentry/react';
 
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
@@ -144,8 +145,8 @@ actions.resources.listTags.listen(function(data){
 });
 
 actions.resources.listTags.completed.listen(function(results){
-  if (results.next && window.Raven) {
-    Raven.captureMessage('MAX_TAGS_EXCEEDED: Too many tags');
+  if (results.next) {
+    Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags');
   }
 });
 

@@ -16,6 +16,7 @@ interface UserPermissionRowProps {
   assignablePerms: AssignablePermsMap;
   permissions: PermissionResponse[];
   isUserOwner: boolean;
+  isPendingOwner: boolean;
   username: string;
 }
 
@@ -136,7 +137,7 @@ export default class UserPermissionRow extends React.Component<
     };
 
     const modifiers = [];
-    if (this.props.permissions.length === 0) {
+    if (!this.props.isPendingOwner && this.props.permissions.length === 0) {
       modifiers.push('deleted');
     }
     if (this.state.isBeingDeleted) {
@@ -157,7 +158,12 @@ export default class UserPermissionRow extends React.Component<
           {this.props.isUserOwner && (
             <bem.UserRow__perms>{t('is owner')}</bem.UserRow__perms>
           )}
-          {!this.props.isUserOwner && (
+
+          {this.props.isPendingOwner && (
+            <bem.UserRow__perms>{t('Pending owner')}</bem.UserRow__perms>
+          )}
+
+          {!this.props.isUserOwner && !this.props.isPendingOwner && (
             <React.Fragment>
               {this.renderPermissions(this.props.permissions)}
 

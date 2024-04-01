@@ -64,7 +64,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             startIcon='plus'
             label={t('new translation')}
             onClick={addTranslation}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
 
           <Button
@@ -74,7 +74,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
 
           <Button
@@ -84,7 +84,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             startIcon='trash'
             onClick={deleteTranslation}
             tooltip={t('Delete')}
-            isPending={singleProcessingStore.isFetchingData}
+            isPending={singleProcessingStore.data.isFetchingData}
           />
         </div>
       </header>
