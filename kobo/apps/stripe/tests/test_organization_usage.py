@@ -12,9 +12,9 @@ from model_bakery import baker
 
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
+from kpi.models.asset import Asset
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
-from kpi.models.asset import Asset
 from rest_framework import status
 
 

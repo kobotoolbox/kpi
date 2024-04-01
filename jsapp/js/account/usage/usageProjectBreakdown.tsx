@@ -7,13 +7,12 @@ import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import prettyBytes from 'pretty-bytes';
 import type {AssetUsage} from 'js/account/usage/usage.api';
 import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
+import {ROOT_URL, USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 
 type ButtonType = 'back' | 'forward';
 
 const ProjectBreakdown = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [isComponentMounted, setIsComponentMounted] = useState(true);
-
   const [projectData, setProjectData] = useState<AssetUsage>({
     count: '0',
     next: null,
@@ -22,36 +21,26 @@ const ProjectBreakdown = () => {
   });
 
    useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await getAssetUsageForOrganization();
+     async function fetchData() {
+      const data = await getAssetUsageForOrganization(currentPage);
+      const updatedResults = data.results.map((projectResult) => {
+        const assetParts = projectResult.asset.split('/');
+        const uid = assetParts[assetParts.length - 2];
+        return {
+          ...projectResult,
+          uid: uid,
+        };
+      });
 
-        const updatedResults = data.results.map((projectResult) => {
-          const assetParts = projectResult.asset.split('/');
-          const uid = assetParts[assetParts.length - 2];
-          return {
-            ...projectResult,
-            uid: uid,
-          };
-        });
-
-        if (isComponentMounted) {
-          setProjectData({
-            ...data,
-            results: updatedResults,
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+      setProjectData({
+        ...data,
+        results: updatedResults,
+      });
     }
 
-    fetchData();
+     fetchData();
 
-    return () => {
-      setIsComponentMounted(false);
-    };
-  }, [isComponentMounted]);
+  }, [currentPage]);
 
   if (projectData.results.length === 0) {
     return <LoadingSpinner/>;
@@ -59,12 +48,10 @@ const ProjectBreakdown = () => {
 
 const calculateRange = (): string => {
   const totalProjects = parseInt(projectData.count);
-  const startRange = (currentPage - 1) * 8 + 1;
-  const endRange = Math.min(currentPage * 8, totalProjects);
+  const startRange = (currentPage - 1) * USAGE_ASSETS_PER_PAGE + 1;
+  const endRange = Math.min(currentPage * USAGE_ASSETS_PER_PAGE, totalProjects);
   return `${startRange}-${endRange} of ${totalProjects}`;
 };
-
-const removePrefix = (url: string): string => url.replace('http://kf.kobo.local', '');
 
 const handleClick = async (
   event: React.MouseEvent<HTMLButtonElement>,
@@ -74,13 +61,9 @@ const handleClick = async (
 
   try {
     if (buttonType === 'back' && projectData.previous) {
-      const newData = await getAssetUsageForOrganization(removePrefix(projectData.previous));
       setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
-      setProjectData(newData);
     } else if (buttonType === 'forward' && projectData.next) {
-      const newData = await getAssetUsageForOrganization(removePrefix(projectData.next));
-      setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(parseInt(projectData.count) / 8)));
-      setProjectData(newData);
+      setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)));
     }
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -88,7 +71,7 @@ const handleClick = async (
 };
 
   const isActiveBack = currentPage > 1;
-  const isActiveForward = currentPage < Math.ceil(parseInt(projectData.count) / 8);
+  const isActiveForward = currentPage < Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE);
 
   return (
     <div className={styles.root}>

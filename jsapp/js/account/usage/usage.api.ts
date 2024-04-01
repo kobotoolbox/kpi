@@ -5,10 +5,10 @@ export interface AssetUsage {
   count: string;
   next: string | null;
   previous: string | null;
-  results: Asset[];
+  results: AssetWithUsage[];
 }
 
-interface Asset {
+interface AssetWithUsage {
   asset: string;
   uid: string;
   asset__name: string;
@@ -52,7 +52,7 @@ const ORGANIZATION_USAGE_URL =
 
 const ASSET_USAGE_URL = '/api/v2/asset_usage/';
 const ORGANIZATION_ASSET_USAGE_URL =
-  '/api/v2/organizations/##ORGANIZATION_ID##/asset_usage/';
+  '/api/v2/organizations/##ORGANIZATION_ID##/asset_usage/?page=##PAGE_NUM##';
 
 export async function getUsage(organization_id: string | null = null) {
   if (organization_id) {
@@ -83,30 +83,25 @@ export async function getUsageForOrganization() {
 }
 
 export async function getAssetUsage(url?: string) {
-  try {
-    const apiUrl = url || ASSET_USAGE_URL;
+  const apiUrl = url || ASSET_USAGE_URL;
     return fetchGet<AssetUsage>(apiUrl, {
-      includeHeaders: true,
-      errorMessageDisplay: t('There was an error fetching asset usage data.'),
-    });
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    throw error;
-  }
+    includeHeaders: true,
+    errorMessageDisplay: t('There was an error fetching asset usage data.'),
+  });
 }
 
-export async function getAssetUsageForOrganization(url?: string) {
+export async function getAssetUsageForOrganization(pageNumber: number) {
   let organizations;
   try {
     organizations = await getOrganization();
   } catch (error) {
-    return await getAssetUsage(url);
+    return await getAssetUsage(ASSET_USAGE_URL);
   }
 
-  const apiUrl = url || ORGANIZATION_ASSET_USAGE_URL.replace(
+  const apiUrl = ORGANIZATION_ASSET_USAGE_URL.replace(
     '##ORGANIZATION_ID##',
     organizations.results?.[0].id || ''
-  );
+  ).replace('##PAGE_NUM##', pageNumber.toString());
 
   return await getAssetUsage(apiUrl);
 }
