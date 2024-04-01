@@ -419,7 +419,7 @@
 
 @media screen and (min-width: 768px) {
   .registration__bg {
-    form.registration {
+    form.registration, section.registration {
       padding: 30px 40px;
       margin-top: 10px;
     }
