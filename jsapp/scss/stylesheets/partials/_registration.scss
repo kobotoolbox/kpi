@@ -134,6 +134,11 @@
       background-color: colors.$kobo-light-blue;
       color: colors.$kobo-dark-blue;
 
+      &.btn-danger {
+        background-color: colors.$kobo-red;
+        color: colors.$kobo-white;
+      }
+
       &:focus {
         outline-offset: 0;
       }

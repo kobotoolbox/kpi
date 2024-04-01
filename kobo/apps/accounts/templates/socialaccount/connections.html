@@ -7,9 +7,7 @@
 {% block content %}
   {% element panel %}
     {% slot title %}
-      {% element h1 %}
-          {% trans "Connect your Account to SSO" %}
-      {% endelement %}
+      {% trans "Manage your SSO Account" %}
     {% endslot %}
     {% slot body %}
     {% if form.accounts %}
@@ -18,6 +16,7 @@
         </p>
         {% url 'socialaccount_connections' as action_url %}
         {% element form form=form method="post" action=action_url %}
+            {% slot body %}
                 {% csrf_token %}
                 {% for acc in form.fields.account.choices %}
                     {% with account=acc.0.instance.get_provider_account %}
@@ -27,14 +26,12 @@
                         {% setvar tags %}
                             socialaccount,{{ account.account.provider }}
                         {% endsetvar %}
-                        {% element field id=radio_id type="radio" name="account" value=account.account.pk %}
-                            {% slot label %}
-                                {{ account }}
-                                {% element badge tags=tags %}
-                                    {{ account.get_brand.name }}
-                                {% endelement %}
-                            {% endslot %}
-                        {% endelement %}
+                        <input id={{ radio_id }} type="radio" name="account" value={{ account.account.pk }}>
+                        <label for={{ radio_id }}>
+                            {% element badge tags=tags %}
+                                {{ account.get_brand.name }}
+                            {% endelement %}
+                        </label>
                     {% endwith %}
                 {% endfor %}
             {% slot actions %}
@@ -42,6 +39,7 @@
                     {% trans 'Remove' %}
                 {% endelement %}
             {% endslot %}
+          {% endslot %}
         {% endelement %}
     {% else %}
         <p>{% trans 'You currently have no third-party accounts connected to this account.' %}</p>
@@ -50,9 +48,7 @@
   {% endelement %}
   {% element panel %}
     {% slot title %}
-      {% element h1 %}
-        {% trans 'Add an SSO Account' %}
-      {% endelement %}
+      {% trans 'Add an SSO Account' %}
     {% endslot %}
     {% slot actions %}
       {% include "socialaccount/snippets/provider_list.html" with process="connect" %}

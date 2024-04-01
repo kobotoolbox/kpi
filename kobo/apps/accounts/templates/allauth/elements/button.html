@@ -8,16 +8,15 @@
 {% if attrs.value %}value="{{ attrs.value }}"{% endif %}
 class="{% block class %}
     kobo-button kobo-button--sso
-    {% if "full" in attrs.tags %}kobo-button--fullwidth
-    {% else %}
-      {% if "prominent" in attrs.tags %}btn-lg
-      {% elif "minor" in attrs.tags %}btn-sm{% endif %}
-      {% if "danger" in attrs.tags %}btn-danger
-      {% elif "secondary" in attrs.tags %}btn-secondary
-      {% elif "warning" in attrs.tags %}btn-warning
-      {% else %}btn-primary
-      {% endif %}
-    {% endif %}{% endblock %}">
+    {% if "full" in attrs.tags %}kobo-button--fullwidth{% endif %}
+    {% if "prominent" in attrs.tags %}btn-lg
+    {% elif "minor" in attrs.tags %}btn-sm{% endif %}
+    {% if "danger" in attrs.tags %}btn-danger
+    {% elif "secondary" in attrs.tags %}btn-secondary
+    {% elif "warning" in attrs.tags %}btn-warning
+    {% else %}btn-primary
+    {% endif %}
+    {% endblock %}">
 
 {% if not "tool" in attrs.tags %}
 {% slot %}
