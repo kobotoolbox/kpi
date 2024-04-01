@@ -98,7 +98,7 @@ export default function Usage() {
       if (envStore.data.stripe_public_key) {
         limits = await getAccountLimits(
           productsContext.products,
-          oneTimeAddOnsContext.addons
+          oneTimeAddOnsContext.oneTimeAddOns
         );
       } else {
         setLimits((prevState) => {
@@ -139,7 +139,7 @@ export default function Usage() {
   }, [productsContext.isLoaded, oneTimeAddOnsContext.isLoaded]);
 
   function filterAddOns(type: USAGE_TYPE) {
-    const availableAddons = oneTimeAddOnsContext.addons.filter(
+    const availableAddons = oneTimeAddOnsContext.oneTimeAddOns.filter(
       (addon) => addon.is_available
     );
     
@@ -172,7 +172,7 @@ export default function Usage() {
   // Find out if any usage type has one-time addons so we can
   // adjust the formatting of the usage containers to accommodate
   // a detail link.
-  const useAddonsLayout = useMemo(() => {
+  const hasAddOnsLayout = useMemo(() => {
     let result = false;
     for (const type of [
       USAGE_TYPE.STORAGE,
@@ -224,7 +224,7 @@ export default function Usage() {
               remainingLimit={limits.submissionsRemainingLimit}
               recurringLimit={limits.submissionsRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
-              useAddonLayout={useAddonsLayout}
+              hasAddOnsLayout={hasAddOnsLayout}
               period={usage.trackingPeriod}
               type={USAGE_TYPE.SUBMISSIONS}
             />
@@ -239,7 +239,7 @@ export default function Usage() {
               remainingLimit={limits.storageByteRemainingLimit}
               recurringLimit={limits.storageByteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
-              useAddonLayout={useAddonsLayout}
+              hasAddOnsLayout={hasAddOnsLayout}
               period={usage.trackingPeriod}
               label={t('Total')}
               type={USAGE_TYPE.STORAGE}
@@ -259,7 +259,7 @@ export default function Usage() {
               remainingLimit={limits.nlpMinuteRemainingLimit}
               recurringLimit={limits.nlpMinuteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
-              useAddonLayout={useAddonsLayout}
+              hasAddOnsLayout={hasAddOnsLayout}
               period={usage.trackingPeriod}
               type={USAGE_TYPE.TRANSCRIPTION}
             />
@@ -276,7 +276,7 @@ export default function Usage() {
               remainingLimit={limits.nlpCharacterRemainingLimit}
               recurringLimit={limits.nlpCharacterRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
-              useAddonLayout={useAddonsLayout}
+              hasAddOnsLayout={hasAddOnsLayout}
               period={usage.trackingPeriod}
               type={USAGE_TYPE.TRANSLATION}
             />

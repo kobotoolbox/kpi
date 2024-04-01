@@ -20,7 +20,7 @@ interface UsageContainerProps {
   remainingLimit: LimitAmount;
   recurringLimit: LimitAmount;
   oneTimeAddOns: OneTimeAddOn[];
-  useAddonLayout: boolean;
+  hasAddOnsLayout: boolean;
   period: RecurringInterval;
   label?: string;
   type: USAGE_TYPE;
@@ -31,7 +31,7 @@ const UsageContainer = ({
   remainingLimit,
   recurringLimit,
   oneTimeAddOns,
-  useAddonLayout,
+  hasAddOnsLayout,
   period,
   type,
   label = undefined,
@@ -61,7 +61,7 @@ const UsageContainer = ({
   return (
     <ul
       className={cx(styles.usage, {
-        [styles.hasAddon]: hasRecurringAddOn || useAddonLayout,
+        [styles.hasAddon]: hasRecurringAddOn || hasAddOnsLayout,
       })}
     >
       {isStripeEnabled && (

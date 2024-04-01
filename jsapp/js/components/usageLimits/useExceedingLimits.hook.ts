@@ -49,7 +49,7 @@ export const useExceedingLimits = () => {
     if (productsContext.isLoaded && oneTimeAddOnsContext.isLoaded) {
       getAccountLimits(
         productsContext.products,
-        oneTimeAddOnsContext.addons
+        oneTimeAddOnsContext.oneTimeAddOns
       ).then((limits) => {
         setSubscribedSubmissionLimit(limits.remainingLimits.submission_limit);
         setSubscribedStorageLimit(limits.remainingLimits.storage_bytes_limit);
@@ -62,7 +62,7 @@ export const useExceedingLimits = () => {
     productsContext.isLoaded,
     productsContext.products,
     oneTimeAddOnsContext.isLoaded,
-    oneTimeAddOnsContext.addons,
+    oneTimeAddOnsContext.oneTimeAddOns,
   ]);
 
   // Get subscription data

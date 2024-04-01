@@ -216,6 +216,7 @@ export interface OneTimeAddOn {
   limits_remaining: Partial<OneTimeUsageLimits>;
   organization: string;
   product: string;
+  quantity: number;
 }
 
 export interface OneTimeUsageLimits {

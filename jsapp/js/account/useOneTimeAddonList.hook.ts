@@ -6,12 +6,12 @@ import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {getOneTimeAddOns} from 'js/account/stripe.api';
 
 export interface OneTimeAddOnState {
-  addons: OneTimeAddOn[];
+  oneTimeAddOns: OneTimeAddOn[];
   isLoaded: boolean;
 }
 
 const INITIAL_ADDONS_STATE: OneTimeAddOnState = Object.freeze({
-  addons: [],
+  oneTimeAddOns: [],
   isLoaded: false,
 });
 
@@ -20,10 +20,10 @@ export function useOneTimeAddOns() {
 
   // get list of addons
   useWhenStripeIsEnabled(() => {
-    getOneTimeAddOns().then((addons) => {
+    getOneTimeAddOns().then((oneTimeAddOns) => {
       setAddons(() => {
         return {
-          addons: addons.results,
+          oneTimeAddOns: oneTimeAddOns.results,
           isLoaded: true,
         };
       });
