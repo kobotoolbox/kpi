@@ -12,10 +12,13 @@ from model_bakery import baker
 
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
+from kpi.models.asset import Asset
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
+from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
+from rest_framework import status
 
 
-class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
+class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
     """
     Test organization service usage when Stripe is enabled.
 
@@ -186,3 +189,67 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
+
+
+class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
+    """
+    Test organization asset usage when Stripe is enabled.
+    """
+
+    def setUp(self):
+        self.org_id = 'orgBGRFJskafsngf'
+        self.url = reverse(self._get_endpoint('organizations-list'))
+        self.detail_url = f'{self.url}{self.org_id}/asset_usage/'
+        self.organization = baker.make(
+            Organization, id=self.org_id, name='test organization'
+        )
+
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.organization.users.add(self.anotheruser)
+        self.client.force_login(self.anotheruser)
+
+    def test_unauthorized_user(self):
+        self.client.logout()
+        response = self.client.get(self.detail_url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        self.client.force_login(self.anotheruser)
+
+    def test_nonexistent_organization(self):
+        non_org_id = 'lkdjalkfewkl'
+        url_with_non_org_id = f'{self.url}{non_org_id}/asset_usage/'
+        response = self.client.get(url_with_non_org_id)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_user_not_member_of_organization(self):
+        non_member_user = User.objects.create(username='non_member_user')
+        self.client.force_login(non_member_user)
+        response = self.client.get(self.detail_url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_successful_retrieval(self):
+        Asset.objects.create(
+            content={
+                'survey': [
+                    {
+                        'type': 'file',
+                        'label': 'upload1',
+                        'required': 'true',
+                        '$kuid': 'kdem',
+                    },
+                    {
+                        'type': 'file',
+                        'label': 'upload2',
+                        'required': 'true',
+                        '$kuid': 'emfs',
+                    },
+                ]
+            },
+            owner=self.anotheruser,
+            asset_type='survey',
+            name='test',
+        )
+        response = self.client.get(self.detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['asset__name'] == 'test'
+        assert response.data['results'][0]['deployment_status'] == 'draft'
