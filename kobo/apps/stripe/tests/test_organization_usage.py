@@ -7,22 +7,13 @@ from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import (
-    Customer,
-    Price,
-    Product,
-    Subscription,
-    SubscriptionItem,
-)
+from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
 from model_bakery import baker
 
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.trackers.submission_utils import (
-    create_mock_assets,
-    add_mock_submissions,
-)
-from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
+from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
 from kpi.models.asset import Asset
+from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
 from rest_framework import status
 
@@ -46,20 +37,14 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         cls.now = timezone.now()
 
         anotheruser = User.objects.get(username='anotheruser')
-        organization = baker.make(
-            Organization, id=cls.org_id, name='test organization'
-        )
+        organization = baker.make(Organization, id=cls.org_id, name='test organization')
         organization.add_user(cls.anotheruser, is_admin=True)
         assets = create_mock_assets([cls.anotheruser], cls.assets_per_user)
 
-        cls.customer = baker.make(
-            Customer, subscriber=organization, livemode=False
-        )
+        cls.customer = baker.make(Customer, subscriber=organization, livemode=False)
         organization.save()
 
-        users = baker.make(
-            User, _quantity=cls.user_count - 1, _bulk_create=True
-        )
+        users = baker.make(User, _quantity=cls.user_count - 1, _bulk_create=True)
         baker.make(
             OrganizationUser,
             user=users.__iter__(),
@@ -75,26 +60,18 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         super().setUp()
         url = reverse(self._get_endpoint('organizations-list'))
         self.detail_url = f'{url}{self.org_id}/service_usage/'
-        self.expected_submissions_single = (
-            self.assets_per_user * self.submissions_per_asset
-        )
-        self.expected_submissions_multi = (
-            self.expected_submissions_single * self.user_count
-        )
+        self.expected_submissions_single = self.assets_per_user * self.submissions_per_asset
+        self.expected_submissions_multi = self.expected_submissions_single * self.user_count
 
     def tearDown(self):
         cache.clear()
 
     def generate_subscription(self, metadata: dict):
         """Create a subscription for a product with custom metadata"""
-        product = baker.make(
-            Product,
-            active=True,
-            metadata={
-                'product_type': 'plan',
-                **metadata,
-            },
-        )
+        product = baker.make(Product, active=True, metadata={
+            'product_type': 'plan',
+            **metadata,
+        })
         price = baker.make(
             Price,
             active=True,
@@ -102,9 +79,7 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
             product=product,
         )
 
-        subscription_item = baker.make(
-            SubscriptionItem, price=price, quantity=1, livemode=False
-        )
+        subscription_item = baker.make(SubscriptionItem, price=price, quantity=1, livemode=False)
         baker.make(
             Subscription,
             customer=self.customer,
@@ -123,14 +98,8 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         """
         response = self.client.get(self.detail_url)
         # without a plan, the user should only see their usage
-        assert (
-            response.data['total_submission_count']['all_time']
-            == self.expected_submissions_single
-        )
-        assert (
-            response.data['total_submission_count']['current_month']
-            == self.expected_submissions_single
-        )
+        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_single
+        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_single
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_single
         )
@@ -150,14 +119,8 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
 
         # the user should see usage for everyone in their org
         response = self.client.get(self.detail_url)
-        assert (
-            response.data['total_submission_count']['current_month']
-            == self.expected_submissions_multi
-        )
-        assert (
-            response.data['total_submission_count']['all_time']
-            == self.expected_submissions_multi
-        )
+        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
+        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
@@ -172,14 +135,8 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
 
         response = self.client.get(self.detail_url)
         # without the proper subscription, the user should only see their usage
-        assert (
-            response.data['total_submission_count']['current_month']
-            == self.expected_submissions_single
-        )
-        assert (
-            response.data['total_submission_count']['all_time']
-            == self.expected_submissions_single
-        )
+        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_single
+        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_single
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_single
         )
@@ -187,9 +144,7 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
     @pytest.mark.performance
     def test_endpoint_speed(self):
         # get the average request time for 10 hits to the endpoint
-        single_user_time = timeit.timeit(
-            lambda: self.client.get(self.detail_url), number=10
-        )
+        single_user_time = timeit.timeit(lambda: self.client.get(self.detail_url), number=10)
 
         self.generate_subscription(
             {
@@ -199,9 +154,7 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         )
 
         # get the average request time for 10 hits to the endpoint
-        multi_user_time = timeit.timeit(
-            lambda: self.client.get(self.detail_url), number=10
-        )
+        multi_user_time = timeit.timeit(lambda: self.client.get(self.detail_url), number=10)
         assert single_user_time < 1.5
         assert multi_user_time < 2
         assert multi_user_time < single_user_time * 2
@@ -219,14 +172,8 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         )
 
         response = self.client.get(self.detail_url)
-        assert (
-            response.data['total_submission_count']['current_month']
-            == self.expected_submissions_multi
-        )
-        assert (
-            response.data['total_submission_count']['all_time']
-            == self.expected_submissions_multi
-        )
+        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
+        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
@@ -237,14 +184,8 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
 
         # make sure the second request doesn't reflect the additional submissions
         response = self.client.get(self.detail_url)
-        assert (
-            response.data['total_submission_count']['current_month']
-            == self.expected_submissions_multi
-        )
-        assert (
-            response.data['total_submission_count']['all_time']
-            == self.expected_submissions_multi
-        )
+        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
+        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
