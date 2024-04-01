@@ -1,27 +1,29 @@
 import {createContext, useState} from 'react';
-import type {OneTimeAddOn} from 'js/account/stripe.types';
+import type {
+  OneTimeAddOn,
+} from 'js/account/stripe.types';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {getOneTimeAddOns} from 'js/account/stripe.api';
 
 export interface OneTimeAddOnState {
-  addons: OneTimeAddOn[];
+  oneTimeAddOns: OneTimeAddOn[];
   isLoaded: boolean;
 }
 
 const INITIAL_ADDONS_STATE: OneTimeAddOnState = Object.freeze({
-  addons: [],
+  oneTimeAddOns: [],
   isLoaded: false,
 });
 
 export function useOneTimeAddOns() {
   const [addons, setAddons] = useState<OneTimeAddOnState>(INITIAL_ADDONS_STATE);
 
-  // get list of products
+  // get list of addons
   useWhenStripeIsEnabled(() => {
-    getOneTimeAddOns().then((products) => {
+    getOneTimeAddOns().then((oneTimeAddOns) => {
       setAddons(() => {
         return {
-          addons: products.results,
+          oneTimeAddOns: oneTimeAddOns.results,
           isLoaded: true,
         };
       });
