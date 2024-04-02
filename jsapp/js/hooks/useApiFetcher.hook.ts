@@ -1,29 +1,41 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
+
+export interface ApiFetcherOptions {
+  /* If set, the ApiFetcher will execute the fetch() function once per the
+   * provided number of seconds. Will only fetch when the window is visible.
+   * *Don't* use this for fetches that mutate data on the server (POST, DELETE, PUT).
+   */
+  reloadEverySeconds: number;
+  skipInitialLoad: boolean;
+}
 
 export type WithApiFetcher<Type> = [
   Type,
   () => void,
-  {pending: boolean; error: string | null; initialLoadComplete: boolean}
+  {
+    pending: boolean;
+    error: string | null;
+    isInitialLoad: boolean;
+    setIsInitialLoad: (isInitialLoad: boolean) => void;
+  }
 ];
 
 export function useApiFetcher<Type>(
-  fetch: () => Promise<Type | undefined>,
-  initialValue: Type
+  fetcher: () => Promise<Type | undefined>,
+  initialValue: Type,
+  options?: Partial<ApiFetcherOptions>
 ): WithApiFetcher<Type> {
   const [state, setState] = useState<Type>(initialValue);
-  const [initialLoadComplete, setInitialLoad] = useState(false);
-  const [pending, setPending] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(false);
+  const [pending, setPending] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [revalidateFlag, setRevalidateFlag] = useState(false);
 
-  useEffect(() => {
+  const loadFetcher = useCallback(() => {
     setPending(true);
-    fetch()
+    fetcher()
       .then((data) => {
         setState(data ?? initialValue);
-        if (!initialLoadComplete) {
-          setInitialLoad(true);
-        }
+        setIsInitialLoad(false);
         setPending(false);
         setError(null);
       })
@@ -32,13 +44,35 @@ export function useApiFetcher<Type>(
         setPending(false);
         setError(reason);
       });
-  }, [revalidateFlag]);
+  }, [fetcher]);
 
-  const reload = () => {
-    setRevalidateFlag(!revalidateFlag);
-  };
+  // load the fetcher once when the component is mounted
+  useEffect(() => {
+    if (!options?.skipInitialLoad) {
+      loadFetcher();
+    }
+  }, [options?.skipInitialLoad]);
 
-  return [state, reload, {pending, error, initialLoadComplete}];
+  useEffect(() => {
+    if (options?.reloadEverySeconds) {
+      const intervalId = setInterval(() => {
+        // only reload if the tab is visible
+        if (document.visibilityState === 'visible') {
+          loadFetcher();
+        }
+      }, options.reloadEverySeconds * 1000);
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+    return;
+  }, [options]);
+
+  return [
+    state,
+    loadFetcher,
+    {pending, error, isInitialLoad, setIsInitialLoad},
+  ];
 }
 
 export const withApiFetcher = <Type>(
@@ -47,6 +81,11 @@ export const withApiFetcher = <Type>(
   return [
     initialState,
     () => {},
-    {pending: false, error: null, initialLoadComplete: false},
+    {
+      pending: true,
+      error: null,
+      isInitialLoad: true,
+      setIsInitialLoad: () => {},
+    },
   ];
 };

@@ -1,10 +1,4 @@
-import React, {
-  ReactElement,
-  Suspense,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import React, {ReactElement, Suspense, useContext, useEffect} from 'react';
 import {RouteObject, useNavigate} from 'react-router-dom';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -22,13 +16,13 @@ export const RequireOrgOwner = ({children, redirect = true}: Props) => {
   useEffect(() => {
     if (
       redirect &&
-      orgStatus.initialLoadComplete &&
+      !orgStatus.pending &&
       organization &&
       !organization.is_owner
     ) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
-  }, [organization, orgStatus, redirect]);
+  }, [organization, orgStatus.pending, redirect]);
 
   return redirect && organization?.is_owner ? (
     <Suspense fallback={null}>{children}</Suspense>

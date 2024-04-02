@@ -1,7 +1,6 @@
-import {createContext, useEffect, useState} from 'react';
+import {createContext} from 'react';
 import type {Product} from 'js/account/stripe.types';
 import {getProducts} from 'js/account/stripe.api';
-import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {when} from 'mobx';
 import envStore from 'js/envStore';
 import {useApiFetcher, withApiFetcher} from 'js/hooks/useApiFetcher.hook';

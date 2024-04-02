@@ -42,16 +42,27 @@ export default function Usage() {
     stripeEnabled: false,
   });
 
-  useEffect(() => loadUsage(), []);
+  useEffect(() => {
+    if (usageStatus.isInitialLoad && !usageStatus.pending) {
+      loadUsage();
+    }
+  }, [usageStatus]);
+
+  useEffect(() => {
+    return () => {
+      usageStatus.setIsInitialLoad(true);
+    };
+  }, []);
 
   const location = useLocation();
 
   const isFullyLoaded = useMemo(
     () =>
-      usage.isLoaded &&
+      !usageStatus.pending &&
+      !usageStatus.error &&
       (products.isLoaded || !limits.stripeEnabled) &&
       limits.isLoaded,
-    [usage.isLoaded, products.isLoaded, limits.isLoaded, limits.stripeEnabled]
+    [usageStatus, products.isLoaded, limits.isLoaded, limits.stripeEnabled]
   );
 
   const dateRange = useMemo(() => {

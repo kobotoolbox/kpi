@@ -22,7 +22,7 @@ function subscriptionReducer(state: SubscribedState, action: {prodData: any}) {
 
 export const useExceedingLimits = () => {
   const [state, dispatch] = useReducer(subscriptionReducer, initialState);
-  const [usage] = useContext(UsageContext);
+  const [usage, _, usageStatus] = useContext(UsageContext);
   const [productsContext] = useContext(ProductsContext);
 
   const [exceedList, setExceedList] = useState<string[]>([]);
@@ -87,7 +87,7 @@ export const useExceedingLimits = () => {
 
   // Check if usage is more than limit
   useEffect(() => {
-    if (!usage.isLoaded || !areLimitsLoaded) {
+    if ((!usageStatus.error && !usageStatus.pending) || !areLimitsLoaded) {
       return;
     }
     isOverLimit(subscribedStorageLimit, usage.storage, 'storage');
@@ -102,7 +102,7 @@ export const useExceedingLimits = () => {
       usage.translationChars,
       'machine translation'
     );
-  }, [usage.isLoaded, areLimitsLoaded]);
+  }, [usageStatus, areLimitsLoaded]);
 
   return {exceedList, warningList};
 };

@@ -1,12 +1,7 @@
 import React, {createContext} from 'react';
 import {getOrganization} from 'js/account/stripe.api';
 import type {Organization} from 'js/account/stripe.types';
-import {
-  WithApiFetcher,
-  useApiFetcher,
-  withApiFetcher,
-} from 'js/hooks/useApiFetcher.hook';
-import {UsageState} from 'js/account/usage/useUsage.hook';
+import {useApiFetcher, withApiFetcher} from 'js/hooks/useApiFetcher.hook';
 
 const loadOrganization = async () => {
   const response = await getOrganization();

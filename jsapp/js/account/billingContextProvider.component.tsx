@@ -8,7 +8,7 @@ import {
 
 export const BillingContextProvider = (props: {children: ReactNode}) => {
   const [organization, reloadOrg, orgStatus] = useOrganization();
-  const usage = useUsage(organization);
+  const usage = useUsage(organization?.id);
   const products = useProducts();
   return (
     <OrganizationContext.Provider value={[organization, reloadOrg, orgStatus]}>
