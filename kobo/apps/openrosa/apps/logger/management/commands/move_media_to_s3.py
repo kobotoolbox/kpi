@@ -3,7 +3,11 @@
 # coding: utf-8
 import sys
 
-from django.core.files.storage import get_storage_class
+from django.core.files.storage import (
+    default_storage,
+    storages,
+    InvalidStorageError,
+)
 from django.core.management.base import BaseCommand
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
@@ -14,30 +18,23 @@ from kobo.apps.openrosa.apps.logger.models.xform import (
     XForm,
     upload_to as xform_upload_to,
 )
-from kpi.deployment_backends.kc_access.storage import (
-    default_kobocat_storage as default_storage,
-)
 
 
 class Command(BaseCommand):
-    help = ("Moves all attachments and xls files "
-            "to s3 from the local file system storage.")
+    help = (
+        'Moves all attachments and xls files '
+        'to s3 from the local file system storage.'
+    )
 
     def handle(self, *args, **kwargs):
         try:
-            fs = get_storage_class(
-                'django.core.files.storage.FileSystemStorage')()
-            s3 = get_storage_class('storages.backends.s3boto3.S3Boto3Storage')()
-        except:
+            fs = storages['local']
+            s3 = default_storage
+        except InvalidStorageError:
             print(
-                'Missing necessary libraries. Try running: pip install -r'
-                'requirements/s3.pip'
+                'You must first set `KOBOCAT_DEFAULT_FILE_STORAGE` env variable '
+                'to `storages.backends.s3boto3.S3Boto3Storage`'
             )
-            sys.exit(1)
-
-        if default_storage.__class__ != s3.__class__:
-            print("You must first set your default storage to s3 in your "
-                  "local_settings.py file.")
             sys.exit(1)
 
         classes_to_move = [
@@ -53,7 +50,7 @@ class Command(BaseCommand):
                 if f.name and fs.exists(f.name) and not s3.exists(
                         upload_to(i, f.name)):
                     f.save(fs.path(f.name), fs.open(fs.path(f.name)))
-                    print ("\t+ '%(fname)s'\n\t---> '%(url)s'"
+                    print("\t+ '%(fname)s'\n\t---> '%(url)s'"
                            % {'fname': fs.path(old_filename), 'url': f.url})
                 else:
                     print("\t- (f.name=%s, fs.exists(f.name)=%s, not s3.exist"
