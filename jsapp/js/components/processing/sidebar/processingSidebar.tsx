@@ -43,11 +43,11 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
         )}
 
         {displays.includes(StaticDisplays.Audio) && (
-          <SidebarSubmissionMedia asset={props.asset.content} />
+          <SidebarSubmissionMedia assetContent={props.asset.content} />
         )}
 
         {displays.includes(StaticDisplays.Data) && (
-          <SidebarSubmissionData asset={props.asset.content} />
+          <SidebarSubmissionData assetContent={props.asset.content} />
         )}
 
         {displays.length === 0 && (
