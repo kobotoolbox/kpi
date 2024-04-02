@@ -7,7 +7,7 @@ import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import prettyBytes from 'pretty-bytes';
 import type {AssetUsage} from 'js/account/usage/usage.api';
 import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
-import {ROOT_URL, USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
+import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 
 type ButtonType = 'back' | 'forward';
 
@@ -105,7 +105,8 @@ const handleClick = async (
             </tr>
           ))}
         </tbody>
-        <tfoot>
+      </table>
+       <nav>
             <div className={styles.pagination}>
             <button className={`${isActiveBack ? styles.active : ''}`} onClick={(e) => handleClick(e, 'back')}>
              <i className='k-icon k-icon-arrow-left' />
@@ -115,8 +116,7 @@ const handleClick = async (
               <i className='k-icon k-icon-arrow-right' />
             </button>
           </div>
-        </tfoot>
-      </table>
+        </nav>
     </div>
   );
 };
