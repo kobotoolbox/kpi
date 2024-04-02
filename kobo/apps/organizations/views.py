@@ -142,19 +142,18 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         """
 
         org_id = kwargs.get('id', None)
-
         # Check if the organization exists and if the user is a member
         try:
             organization = Organization.objects.get(id=org_id)
         except Organization.DoesNotExist:
             return Response(
-                {"error": "Organization not found."},
+                {'error': 'Organization not found.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         if request.user not in organization.users.all():
             return Response(
-                {"error": "You are not a member of this organization."},
+                {'error': 'You are not a member of this organization.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
