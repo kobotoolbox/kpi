@@ -28,7 +28,6 @@ import {destroyConfirm} from 'js/alertify';
 import {
   isAnyProcessingRouteActive,
   getProcessingPathParts,
-  getSingleProcessingRouteParameters,
 } from 'js/components/processing/routes.utils';
 
 export type ProcessingTabName = 'transcript' | 'translations' | 'analysis';
@@ -169,15 +168,15 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   public get currentAssetUid() {
-    return getSingleProcessingRouteParameters().uid;
+    return getProcessingPathParts().assetUid;
   }
 
   public get currentQuestionQpath() {
-    return getSingleProcessingRouteParameters().qpath;
+    return getProcessingPathParts().qpath;
   }
 
   public get currentSubmissionEditId() {
-    return getSingleProcessingRouteParameters().submissionEditId;
+    return getProcessingPathParts().submissionEditId;
   }
 
   public get currentQuestionName() {

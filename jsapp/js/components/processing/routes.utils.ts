@@ -7,17 +7,33 @@ import {router} from 'js/router/legacy';
 import {ROUTES, PROCESSING_ROUTES} from 'js/router/routerConstants';
 import {getCurrentPath} from 'js/router/routerUtils';
 
-/** Returns parameters from path for single processing route. */
-export function getSingleProcessingRouteParameters(): {
-  uid: string;
+interface ProcessingPathParts {
+  assetUid: string;
   qpath: string;
   submissionEditId: string;
-} {
-  const splitPath = getCurrentPath().split('/');
+  tab: ProcessingTabName;
+}
+
+/**
+ * For given processing path, returns all of it's params and parts. If path is
+ * not provided, function is working on current path.
+ */
+export function getProcessingPathParts(path?: string): ProcessingPathParts {
+  let targetPath = path;
+  if (!targetPath) {
+    targetPath = getCurrentPath();
+  }
+
+  const pathArray = targetPath.split('/');
+
+  // We assume this will always be correct :fingers_crossed:
+  const pathTabPart = pathArray[7] as ProcessingTabName;
+
   return {
-    uid: splitPath[2],
-    qpath: splitPath[5],
-    submissionEditId: splitPath[6],
+    assetUid: pathArray[2],
+    qpath: pathArray[5],
+    submissionEditId: pathArray[6],
+    tab: pathTabPart,
   };
 }
 
@@ -26,17 +42,19 @@ export function getSingleProcessingRouteParameters(): {
  * params from `singleProcessingStore` to it.
  */
 function applyCurrentRouteParams(targetRoute: string) {
-  const routeParams = getSingleProcessingRouteParameters();
+  const routeParams = getProcessingPathParts(getCurrentPath());
 
   return generatePath(targetRoute, {
-    uid: routeParams.uid || '',
+    uid: routeParams.assetUid || '',
     qpath: routeParams.qpath || '',
     submissionEditId: routeParams.submissionEditId || '',
   });
 }
 
 export function isAnyProcessingRouteActive(): boolean {
-  return getCurrentPath().startsWith(applyCurrentRouteParams(ROUTES.FORM_PROCESSING_ROOT));
+  return getCurrentPath().startsWith(
+    applyCurrentRouteParams(ROUTES.FORM_PROCESSING_ROOT)
+  );
 }
 
 /**
@@ -105,28 +123,4 @@ export function goToProcessing(
     submissionEditId,
   });
   router!.navigate(path);
-}
-
-interface ProcessingPathParts {
-  assetUid: string;
-  qpath: string;
-  submissionEditId: string;
-  tab: ProcessingTabName;
-}
-
-/**
- * For given processing path, returns all of it's params and parts.
- */
-export function getProcessingPathParts(path: string): ProcessingPathParts {
-  const pathArray = path.split('/');
-
-  // We assume this will always be correct :fingers_crossed:
-  const pathTabPart = pathArray[7] as ProcessingTabName;
-
-  return {
-    assetUid: pathArray[2],
-    qpath: pathArray[5],
-    submissionEditId: pathArray[6],
-    tab: pathTabPart,
-  };
 }
