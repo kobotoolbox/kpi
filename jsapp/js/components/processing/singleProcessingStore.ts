@@ -1,10 +1,6 @@
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import type {RouterState} from '@remix-run/router';
-import {
-  isAnySingleProcessingRoute,
-  getSingleProcessingRouteParameters,
-} from 'js/router/routerUtils';
 import {router} from 'js/router/legacy';
 import {
   getSurveyFlatPaths,
@@ -29,7 +25,11 @@ import type {
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
 import {destroyConfirm} from 'js/alertify';
-import {getProcessingPathParts} from 'js/components/processing/routes.utils';
+import {
+  isAnyProcessingRouteActive,
+  getProcessingPathParts,
+  getSingleProcessingRouteParameters,
+} from 'js/components/processing/routes.utils';
 
 export type ProcessingTabName = 'transcript' | 'translations' | 'analysis';
 
@@ -46,7 +46,10 @@ type SidebarDisplays = {
 };
 
 export const DefaultDisplays: Map<ProcessingTabName, DisplaysList> = new Map([
-  ['transcript', [StaticDisplays.Audio, StaticDisplays.Data]],
+  [
+    'transcript',
+    [StaticDisplays.Audio, StaticDisplays.Data],
+  ],
   [
     'translations',
     [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
@@ -281,14 +284,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** This is making sure the asset processing features are activated. */
   private onAssetLoad(asset: AssetResponse) {
-    if (
-      isAnySingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      ) &&
-      this.currentAssetUid === asset.uid
-    ) {
+    if (isAnyProcessingRouteActive() && this.currentAssetUid === asset.uid) {
       if (!isAssetProcessingActivated(this.currentAssetUid)) {
         this.activateAsset();
       } else {
@@ -310,13 +306,7 @@ class SingleProcessingStore extends Reflux.Store {
    * the processing route URL directly the asset data might not be here yet.
    */
   private startupStore() {
-    if (
-      isAnySingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      )
-    ) {
+    if (isAnyProcessingRouteActive()) {
       const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid));
       if (isAssetLoaded) {
         this.fetchAllInitialDataForAsset();
@@ -406,14 +396,7 @@ class SingleProcessingStore extends Reflux.Store {
 
     // Case 3: switching into processing route out of other place (most
     // probably from assets data table route).
-    if (
-      !previousPathParts &&
-      isAnySingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      )
-    ) {
+    if (!previousPathParts && isAnyProcessingRouteActive()) {
       this.fetchAllInitialDataForAsset();
       // Each time user visits Processing View from some different route we want
       // to present the same default displays.

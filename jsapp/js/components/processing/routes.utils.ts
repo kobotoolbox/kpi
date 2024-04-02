@@ -3,9 +3,23 @@
 
 import {generatePath} from 'react-router-dom';
 import type {ProcessingTabName} from 'js/components/processing/singleProcessingStore';
-import {router, routerIsActive} from 'js/router/legacy';
+import {router} from 'js/router/legacy';
 import {ROUTES, PROCESSING_ROUTES} from 'js/router/routerConstants';
-import {getSingleProcessingRouteParameters} from 'js/router/routerUtils';
+import {getCurrentPath} from 'js/router/routerUtils';
+
+/** Returns parameters from path for single processing route. */
+export function getSingleProcessingRouteParameters(): {
+  uid: string;
+  qpath: string;
+  submissionEditId: string;
+} {
+  const splitPath = getCurrentPath().split('/');
+  return {
+    uid: splitPath[2],
+    qpath: splitPath[5],
+    submissionEditId: splitPath[6],
+  };
+}
 
 /**
  * Small helper function that takes given route string and applies current
@@ -21,12 +35,16 @@ function applyCurrentRouteParams(targetRoute: string) {
   });
 }
 
+export function isAnyProcessingRouteActive(): boolean {
+  return getCurrentPath().startsWith(applyCurrentRouteParams(ROUTES.FORM_PROCESSING_ROOT));
+}
+
 /**
  * Checks if given processing route is active (useful for checking if given tab
  * is active)
  */
 export function isProcessingRouteActive(targetRoute: string) {
-  return routerIsActive(applyCurrentRouteParams(targetRoute));
+  return getCurrentPath().startsWith(applyCurrentRouteParams(targetRoute));
 }
 
 /**
