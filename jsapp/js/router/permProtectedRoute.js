@@ -5,6 +5,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDenied from 'js/router/accessDenied';
 import {withRouter} from './legacy';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
+import assetStore from 'js/assetStore';
 
 /**
  * A gateway component for rendering the route only for a user who has
@@ -35,11 +36,21 @@ class PermProtectedRoute extends React.Component {
   }
 
   componentDidMount() {
-    this.unlisteners.push(
-      actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted),
-      actions.resources.loadAsset.failed.listen(this.onLoadAssetFailed)
-    );
-    actions.resources.loadAsset({id: this.props.params.uid}, true);
+    const assetFromStore = assetStore.getAsset(this.props.params.uid);
+    if (assetFromStore) {
+      // If this asset was already loaded before, we are not going to be picky
+      // and require a fresh one. We only need to know the permissions, and
+      // those are most probably up to date.
+      // This helps us avoid unnecessary API calls and spinners being displayed
+      // in the UI (from this component; see `render()` below).
+      this.onLoadAssetCompleted(assetFromStore);
+    } else {
+      this.unlisteners.push(
+        actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted),
+        actions.resources.loadAsset.failed.listen(this.onLoadAssetFailed)
+      );
+      actions.resources.loadAsset({id: this.props.params.uid}, true);
+    }
   }
 
   componentWillUnmount() {
