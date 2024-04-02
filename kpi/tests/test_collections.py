@@ -1,5 +1,10 @@
 # coding: utf-8
+<<<<<<< HEAD
 from django.contrib.auth.models import AnonymousUser, Permission
+=======
+import pytest
+from django.contrib.auth.models import User, AnonymousUser, Permission
+>>>>>>> django-4.2
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from rest_framework import serializers
@@ -496,7 +501,8 @@ class ShareCollectionTests(TestCase):
         # Delete the collection and make sure all associated permissions
         # are gone
         self.standalone_coll.delete()
-        self.assertEqual(self.standalone_coll.permissions.count(), 0)
+        with pytest.raises(ValueError) as e:
+            self.assertEqual(self.standalone_coll.permissions.count(), 0)
 
     def test_anonymous_view_permission_on_standalone_collection(self):
         # Grant

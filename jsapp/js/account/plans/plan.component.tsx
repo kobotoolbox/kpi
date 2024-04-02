@@ -563,7 +563,7 @@ export default function Plan() {
               <div>
                 <Button
                   type='full'
-                  color='cloud'
+                  color='light-storm'
                   size='m'
                   isFullWidth
                   label={

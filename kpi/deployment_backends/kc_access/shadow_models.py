@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Optional
+from urllib.parse import quote as urlquote
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -16,7 +17,6 @@ from django.db import (
     transaction,
 )
 from django.utils import timezone
-from django.utils.http import urlquote
 from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL

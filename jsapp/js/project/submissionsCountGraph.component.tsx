@@ -199,7 +199,7 @@ export default function SubmissionsCountGraph(
         responsive: true,
         elements: {
           bar: {
-            backgroundColor: '#64c0ff', // $kobo-alt-blue
+            backgroundColor: '#64c0ff', // $kobo-mid-blue
             borderRadius: 4,
           },
           point: {
