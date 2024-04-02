@@ -10,15 +10,11 @@ from ..misc import (
 )
 
 BUCKET_NAME = 'kobo-translations-test-qwerty12345'
-GS_URI = f'gs://${BUCKET_NAME}'
-EXTENSION = '.txt'
 LOCATION = 'us-central1'
 MAX_SYNC_CHARS = 30720
 PROJECT_ID = 'kobo-nlp-asr-mt'
 PARENT = f'projects/{PROJECT_ID}'
 PARENT_ASYNC = f'projects/{PROJECT_ID}/locations/{LOCATION}'
-SOURCE_BASENAME = 'source'
-COST_PER_CHAR = 20 / 1000000  # https://cloud.google.com/translate/pricing
 
 
 def _hashed_strings(self, *strings):
