@@ -13,14 +13,18 @@ import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils'
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AssetContent} from 'js/dataInterface';
 import styles from './sidebarDisplaySettings.module.scss';
-import MultiCheckbox, {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
+import MultiCheckbox, {
+  MultiCheckboxItem,
+} from 'js/components/common/multiCheckbox';
 import {getFlatQuestionsList} from 'jsapp/js/assetUtils';
 
 interface SidebarDisplaySettingsProps {
   asset: AssetContent | undefined;
 }
 
-export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProps) {
+export default function SidebarDisplaySettings(
+  props: SidebarDisplaySettingsProps
+) {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -38,7 +42,11 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
 
     const questionsList = getFlatQuestionsList(props.asset.survey, 0)
       .filter((question) => !(question.name === currentQuestionName))
-      .map((question) => question.name);
+      .map((question) => {
+        // We make an object to show the question label to the user but use the
+        // name internally so it works with duplicate question labels
+        return {name: question.name, label: question.label};
+      });
 
     return questionsList;
   }
@@ -85,6 +93,10 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
     );
   }
 
+  function isChecked(questionName: string) {
+    return selectedFields.some((field) => field.name === questionName);
+  }
+
   function getCheckboxes() {
     if (!props.asset?.survey) {
       return [];
@@ -94,12 +106,15 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
 
     const questionsList = getFlatQuestionsList(props.asset.survey, 0)
       .filter((question) => !(question.name === currentQuestionName))
-      .map((question) => question.name);
+      .map((question) => {
+        return {name: question.name, label: question.label};
+      });
 
     const checkboxes = questionsList.map((question) => {
       return {
-        label: question,
-        checked: selectedFields.includes(question),
+        label: question.label,
+        checked: isChecked(question.name),
+        name: question.name,
       };
     });
 
@@ -107,16 +122,18 @@ export default function SidebarDisplaySettings(props: SidebarDisplaySettingsProp
   }
 
   // To make the code a little simpler later on, we need an inverse array here
-  // to send to the the display, and a normal array to keep track of the checkboxes
-  // in this modal.
+  // to send to the the display, and a normal array to keep track of the
+  // checkboxes in this modal.
   function onCheckboxesChange(list: MultiCheckboxItem[]) {
     const newList = list
       .filter((question) => question.checked)
-      .map((question) => question.label);
+      .map((question) => {
+        return {name: question.name, label: question.label};
+      });
 
     const hiddenList = list
       .filter((question) => !question.checked)
-      .map((question) => question.label);
+      .map((question) => question.name);
 
     setHiddenFields(hiddenList);
     setSelectedFields(newList);

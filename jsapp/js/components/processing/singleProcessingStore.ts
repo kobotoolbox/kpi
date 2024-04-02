@@ -1045,8 +1045,6 @@ class SingleProcessingStore extends Reflux.Store {
   setQuestionList(list: string[]) {
     this.questionsList = list;
 
-    console.log('store setQuestionList', this.questionsList);
-    console.log('store setQuestionList param', list);
     this.trigger(this.questionsList);
   }
 }
