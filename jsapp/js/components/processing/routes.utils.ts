@@ -1,3 +1,6 @@
+// This is a collection of various utility functions related to processing
+// routes and navigation.
+
 import {generatePath} from 'react-router-dom';
 import type {ProcessingTabName} from 'js/components/processing/singleProcessingStore';
 import {router, routerIsActive} from 'js/router/legacy';
@@ -19,13 +22,17 @@ function applyCurrentRouteParams(targetRoute: string) {
 }
 
 /**
- * DRY function for checking if given processing route is active (i.e. if given
- * tab is active)
+ * Checks if given processing route is active (useful for checking if given tab
+ * is active)
  */
 export function isProcessingRouteActive(targetRoute: string) {
   return routerIsActive(applyCurrentRouteParams(targetRoute));
 }
 
+/**
+ * Returns an active tab name. It works by matching the route (with a tab in it)
+ * to the `ProcessingTabName`.
+ */
 export function getActiveTab(): ProcessingTabName | undefined {
   if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
     return 'transcript';
@@ -80,4 +87,28 @@ export function goToProcessing(
     submissionEditId,
   });
   router!.navigate(path);
+}
+
+interface ProcessingPathParts {
+  assetUid: string;
+  qpath: string;
+  submissionEditId: string;
+  tab: ProcessingTabName;
+}
+
+/**
+ * For given processing path, returns all of it's params and parts.
+ */
+export function getProcessingPathParts(path: string): ProcessingPathParts {
+  const pathArray = path.split('/');
+
+  // We assume this will always be correct :fingers_crossed:
+  const pathTabPart = pathArray[7] as ProcessingTabName;
+
+  return {
+    assetUid: pathArray[2],
+    qpath: pathArray[5],
+    submissionEditId: pathArray[6],
+    tab: pathTabPart,
+  };
 }

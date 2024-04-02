@@ -29,7 +29,7 @@ import type {
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
 import {destroyConfirm} from 'js/alertify';
-import {getProcessingPathParts} from 'js/components/processing/processingUtils';
+import {getProcessingPathParts} from 'js/components/processing/routes.utils';
 
 export type ProcessingTabName = 'transcript' | 'translations' | 'analysis';
 
