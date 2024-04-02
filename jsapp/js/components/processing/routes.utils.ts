@@ -1,18 +1,21 @@
 import {generatePath} from 'react-router-dom';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {ProcessingTabName} from 'js/components/processing/singleProcessingStore';
 import {router, routerIsActive} from 'js/router/legacy';
-import {ROUTES, PROCESSING_ROUTES} from 'jsapp/js/router/routerConstants';
+import {ROUTES, PROCESSING_ROUTES} from 'js/router/routerConstants';
+import {getSingleProcessingRouteParameters} from 'js/router/routerUtils';
 
 /**
  * Small helper function that takes given route string and applies current
  * params from `singleProcessingStore` to it.
  */
 function applyCurrentRouteParams(targetRoute: string) {
-  const uid = singleProcessingStore.currentAssetUid;
-  const qpath = singleProcessingStore.currentQuestionQpath;
-  const submissionEditId = singleProcessingStore.currentSubmissionEditId;
-  return generatePath(targetRoute, {uid, qpath, submissionEditId});
+  const routeParams = getSingleProcessingRouteParameters();
+
+  return generatePath(targetRoute, {
+    uid: routeParams.uid || '',
+    qpath: routeParams.qpath || '',
+    submissionEditId: routeParams.submissionEditId || '',
+  });
 }
 
 /**

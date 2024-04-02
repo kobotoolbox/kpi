@@ -198,13 +198,12 @@ export function isFormRestHookRoute(uid: string, hookUid: string): boolean {
   );
 }
 
-export function isFormSingleProcessingRoute(
+export function isAnySingleProcessingRoute(
   uid: string,
   qpath: string,
   submissionEditId: string
 ): boolean {
-  return (
-    getCurrentPath() ===
+  return getCurrentPath().startsWith(
     ROUTES.FORM_PROCESSING_ROOT.replace(':uid', uid)
       .replace(':qpath', qpath)
       .replace(':submissionEditId', submissionEditId)

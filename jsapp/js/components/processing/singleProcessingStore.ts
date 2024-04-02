@@ -2,7 +2,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import type {RouterState} from '@remix-run/router';
 import {
-  isFormSingleProcessingRoute,
+  isAnySingleProcessingRoute,
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils';
 import {router} from 'js/router/legacy';
@@ -282,7 +282,7 @@ class SingleProcessingStore extends Reflux.Store {
   /** This is making sure the asset processing features are activated. */
   private onAssetLoad(asset: AssetResponse) {
     if (
-      isFormSingleProcessingRoute(
+      isAnySingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
         this.currentSubmissionEditId
@@ -311,7 +311,7 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private startupStore() {
     if (
-      isFormSingleProcessingRoute(
+      isAnySingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
         this.currentSubmissionEditId
@@ -408,7 +408,7 @@ class SingleProcessingStore extends Reflux.Store {
     // probably from assets data table route).
     if (
       !previousPathParts &&
-      isFormSingleProcessingRoute(
+      isAnySingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
         this.currentSubmissionEditId
