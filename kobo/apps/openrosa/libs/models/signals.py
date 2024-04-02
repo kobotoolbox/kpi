@@ -3,8 +3,8 @@ import django.dispatch
 
 from kobo.apps.openrosa.apps.logger.models import XForm
 
-xform_tags_add = django.dispatch.Signal(providing_args=['xform', 'tags'])
-xform_tags_delete = django.dispatch.Signal(providing_args=['xform', 'tag'])
+xform_tags_add = django.dispatch.Signal()
+xform_tags_delete = django.dispatch.Signal()
 
 
 @django.dispatch.receiver(xform_tags_add, sender=XForm)

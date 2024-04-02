@@ -6,14 +6,13 @@ import os
 import re
 import sys
 import traceback
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
-
 
 from dict2xml import dict2xml
 from django.conf import settings
@@ -28,7 +27,7 @@ from django.http import (
     Http404
 )
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
+from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
 from kobo_service_account.utils import get_real_user
@@ -650,9 +649,9 @@ def save_submission(
 
     # override date created if required
     if date_created_override:
-        if not timezone.is_aware(date_created_override):
+        if not dj_timezone.is_aware(date_created_override):
             # default to utc?
-            date_created_override = timezone.make_aware(
+            date_created_override = dj_timezone.make_aware(
                 date_created_override, timezone.utc)
         instance.date_created = date_created_override
         instance.save()
@@ -744,7 +743,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
         | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
     )
     soft_deleted_attachments = list(queryset.all())
-    queryset.update(deleted_at=timezone.now())
+    queryset.update(deleted_at=dj_timezone.now())
 
     return soft_deleted_attachments
 

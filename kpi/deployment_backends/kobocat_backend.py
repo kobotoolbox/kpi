@@ -872,8 +872,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         })
         self.set_asset_uid()
 
-    def remove_from_kc_only_flag(self,
-                                 specific_user: Union[int, 'User'] = None):
+    def remove_from_kc_only_flag(
+        self, specific_user: Union[int, settings.AUTH_USER_MODEL] = None
+    ):
         """
         Removes `from_kc_only` flag for ALL USERS unless `specific_user` is
         provided

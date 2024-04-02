@@ -6,10 +6,11 @@ import uuid
 from datetime import datetime
 from typing import TextIO, Union
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
-
 from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.openrosa.libs.utils.logger_tools import dict2xml, safe_create_instance
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    dict2xml,
+    safe_create_instance,
+)
 
 
 def get_submission_meta_dict(xform, instance_id):
@@ -71,8 +72,9 @@ def submit_csv(
     :py:func:`kobo.apps.openrosa.libs.utils.logger_tools.safe_create_instance`
 
     """
-    if isinstance(csv_file, InMemoryUploadedFile):
-        csv_file = csv_file.read().decode()
+
+    if hasattr(csv_file, 'readable'):
+        csv_file = io.TextIOWrapper(csv_file, encoding='utf-8')
 
     if isinstance(csv_file, str):
         csv_file = io.StringIO(csv_file)

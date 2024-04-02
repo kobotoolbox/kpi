@@ -16,10 +16,11 @@ class CSVImportTestCase(TestBase):
 
     def setUp(self):
         super().setUp()
-        self.fixtures_dir = os.path.join(settings.OPENROSA_APP_DIR,
-                                         'libs', 'tests', 'fixtures')
-        self.good_csv = open(os.path.join(self.fixtures_dir, 'good.csv'), 'r')
-        self.bad_csv = open(os.path.join(self.fixtures_dir, 'bad.csv'), 'r')
+        self.fixtures_dir = os.path.join(
+            settings.OPENROSA_APP_DIR, 'libs', 'tests', 'fixtures'
+        )
+        self.good_csv = open(os.path.join(self.fixtures_dir, 'good.csv'), 'rb')
+        self.bad_csv = open(os.path.join(self.fixtures_dir, 'bad.csv'), 'rb')
         xls_file_path = os.path.join(self.fixtures_dir, 'tutorial.xls')
         self._publish_xls_file(xls_file_path)
         self.xform = XForm.objects.get()
@@ -56,19 +57,21 @@ class CSVImportTestCase(TestBase):
 
     def test_submit_csv_edits(self):
         csv_import.submit_csv(self.request, self.xform, self.good_csv)
-        self.assertEqual(Instance.objects.count(),
-                         9, 'submit_csv edits #1 test Failed!')
+        self.assertEqual(
+            Instance.objects.count(), 9, 'submit_csv edits #1 test Failed!'
+        )
 
         edit_csv = open(os.path.join(self.fixtures_dir, 'edit.csv'), 'rb')
         edit_csv_str = edit_csv.read().decode()
 
-        edit_csv = StringIO(
+        edit_csv = BytesIO(
             edit_csv_str.format(
                 *[x.get('uuid') for x in Instance.objects.values('uuid')]
-            )
+            ).encode()
         )
 
         count = Instance.objects.count()
         csv_import.submit_csv(self.request, self.xform, edit_csv)
-        self.assertEqual(Instance.objects.count(),
-                         count, 'submit_csv edits #2 test Failed!')
+        self.assertEqual(
+            Instance.objects.count(), count, 'submit_csv edits #2 test Failed!'
+        )

@@ -306,10 +306,9 @@ class ParsedInstance(models.Model):
 
     @staticmethod
     def bulk_update_validation_statuses(query, validation_status):
-        return xform_instances.update(
+        return xform_instances.update_many(
             query,
-            {"$set": {VALIDATION_STATUS: validation_status}},
-            multi=True,
+            {'$set': {VALIDATION_STATUS: validation_status}},
         )
 
     @staticmethod

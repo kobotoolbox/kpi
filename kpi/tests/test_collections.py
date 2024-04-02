@@ -1,10 +1,6 @@
 # coding: utf-8
-<<<<<<< HEAD
-from django.contrib.auth.models import AnonymousUser, Permission
-=======
 import pytest
-from django.contrib.auth.models import User, AnonymousUser, Permission
->>>>>>> django-4.2
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from rest_framework import serializers
