@@ -52,16 +52,6 @@ azure-storage-blob==12.19.1
     # via django-storages
 backcall==0.2.0
     # via ipython
-backports-zoneinfo[tzdata]==0.2.1 ; python_version < "3.9"
-    # via
-    #   -r dependencies/pip/requirements.in
-    #   celery
-    #   django
-    #   django-celery-beat
-    #   django-timezone-field
-    #   djangorestframework
-    #   kombu
-    #   psycopg
 bcrypt==4.1.2
     # via paramiko
 begins==0.9
