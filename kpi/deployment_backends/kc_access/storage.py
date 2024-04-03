@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.conf import settings as django_settings
 from django.core.files.storage import FileSystemStorage
 from django.utils.functional import SimpleLazyObject

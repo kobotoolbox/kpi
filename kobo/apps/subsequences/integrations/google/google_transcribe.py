@@ -11,7 +11,11 @@ from googleapiclient import discovery
 from kobo.apps.trackers.utils import update_nlp_counter
 from .utils import google_credentials_from_constance_config
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
-from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
+from ...exceptions import (
+    AudioTooLongError,
+    SubsequenceTimeoutError,
+    TranscriptionResultsNotFound,
+)
 
 GS_BUCKET_PREFIX = 'speech_tmp'
 REQUEST_TIMEOUT = 5  # seconds
@@ -88,8 +92,14 @@ class GoogleTranscribeEngine(AutoTranscription):
             operation = speech_service.operations().get(name=operation_name).execute()
             if not operation["done"]:
                 raise SubsequenceTimeoutError
+
+            try:
+                results = operation['response']['results']
+            except KeyError:
+                raise TranscriptionResultsNotFound
+
             # operations api uses a dict, while speech api uses objects
-            for result in operation['response']['results']:
+            for result in results:
                 alternatives = result['alternatives']
                 transcript.append({
                     'transcript': alternatives[0]['transcript'],

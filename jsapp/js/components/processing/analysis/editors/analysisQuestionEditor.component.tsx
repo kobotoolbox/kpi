@@ -188,8 +188,8 @@ export default function AnalysisQuestionEditor(
           />
 
           <Button
-            type='frame'
-            color='storm'
+            type='full'
+            color='blue'
             size='m'
             label={t('Save')}
             onClick={saveQuestion}
@@ -198,10 +198,10 @@ export default function AnalysisQuestionEditor(
           />
 
           <Button
-            type='bare'
-            color='storm'
+            type='frame'
+            color='blue'
             size='m'
-            startIcon='close'
+            label={t('Cancel')}
             onClick={cancelEditing}
             isDisabled={analysisQuestions.state.isPending}
           />

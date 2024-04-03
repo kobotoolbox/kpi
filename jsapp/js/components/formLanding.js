@@ -365,6 +365,12 @@ class FormLanding extends React.Component {
     kc_server.href = this.state.deployment__identifier;
     var kobocollect_url = kc_server.origin;
 
+    /* TODO
+     `deployment__identifier` has been removed from API response.
+     Stop reading `kc_server` from `deployment__identifier` and use `open_rosa_server`
+     property provided in `/environment` endpoint
+    */
+
     return (
       <bem.FormView__row>
         <bem.FormView__cell m={['label', 'first']}>
@@ -447,6 +453,8 @@ class FormLanding extends React.Component {
                 }
                 featureKey='anonymousSubmissions'
                 disabled={stores.pageState.state?.modal}
+                pointerClass='anonymousSubmissionPointer'
+                dialogClass='anonymousSubmissionDialog'
               >
                 <AnonymousSubmission
                   checked={this.state.anonymousSubmissions}
