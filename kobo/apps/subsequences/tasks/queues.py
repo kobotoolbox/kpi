@@ -2,6 +2,8 @@ import json
 from celery import shared_task
 
 # note this is not currently imported from tasks/__init__.py
+# jnm: assume this is dead code after #4002? unless we return to a Celery-based
+# approach for async transcriptions and translations
 @shared_task
 def queue_transcript(**params):
     from kobo.apps.subsequences.integrations.google.google_transcribe import GoogleTranscribeEngine

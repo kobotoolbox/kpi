@@ -101,10 +101,12 @@ class GoogleTranslationEngine:
         ).operation
         operation_name = operation.name
         return {
-            'name': operation_name,
-            'dir': output_dir,
-            'target_lang': target_lang,
+            'operation_name': operation_name,
+            'operation_dir': output_dir,
             'blob_name_includes': f'_{target_lang}_translations',
+            'submission_uuid': submission_uuid,
+            'xpath': xpath,
+            'target_lang': target_lang,
         }
 
     def translate_sync(
