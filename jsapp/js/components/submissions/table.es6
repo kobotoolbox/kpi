@@ -35,7 +35,6 @@ import {
 import {
   getRepeatGroupAnswers,
   getMediaAttachment,
-  getSupplementalDetailsContent,
 } from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
@@ -68,6 +67,7 @@ import {
   userHasPermForSubmission,
 } from 'js/components/permissions/utils';
 import CenteredMessage from 'js/components/common/centeredMessage.component';
+import SupplementalDetailsCell from 'js/components/submissions/supplementalDetailsCell.component';
 const DEFAULT_PAGE_SIZE = 30;
 
 /**
@@ -927,13 +927,11 @@ export class DataTable extends React.Component {
             q === undefined &&
             key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
           ) {
-            const supplementalDetailsContent = getSupplementalDetailsContent(
-              row.original,
-              key
-            );
-
             return (
-              <span className='trimmed-text'>{supplementalDetailsContent}</span>
+              <SupplementalDetailsCell
+                responseData={row.original}
+                targetKey={key}
+              />
             );
           }
 
