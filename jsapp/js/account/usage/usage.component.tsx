@@ -19,6 +19,7 @@ import moment from 'moment';
 import {YourPlan} from 'js/account/usage/yourPlan.component';
 import cx from 'classnames';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
 
 interface LimitState {
   storageByteLimit: LimitAmount;
@@ -32,6 +33,7 @@ interface LimitState {
 export default function Usage() {
   const [products] = useContext(ProductsContext);
   const [usage, loadUsage, usageStatus] = useContext(UsageContext);
+  useRefreshApiFetcher(loadUsage, usageStatus);
 
   const [limits, setLimits] = useState<LimitState>({
     storageByteLimit: Limits.unlimited,
@@ -41,18 +43,6 @@ export default function Usage() {
     isLoaded: false,
     stripeEnabled: false,
   });
-
-  useEffect(() => {
-    if (usageStatus.isInitialLoad && !usageStatus.pending) {
-      loadUsage();
-    }
-  }, [usageStatus]);
-
-  useEffect(() => {
-    return () => {
-      usageStatus.setIsInitialLoad(true);
-    };
-  }, []);
 
   const location = useLocation();
 

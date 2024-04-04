@@ -9,16 +9,14 @@ export interface ApiFetcherOptions {
   skipInitialLoad: boolean;
 }
 
-export type WithApiFetcher<Type> = [
-  Type,
-  () => void,
-  {
-    pending: boolean;
-    error: string | null;
-    isInitialLoad: boolean;
-    setIsInitialLoad: (isInitialLoad: boolean) => void;
-  }
-];
+export interface ApiFetcherStatus {
+  pending: boolean;
+  error: string | null;
+  isInitialLoad: boolean;
+  setIsInitialLoad: (isInitialLoad: boolean) => void;
+}
+
+export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
 
 export function useApiFetcher<Type>(
   fetcher: () => Promise<Type | undefined>,

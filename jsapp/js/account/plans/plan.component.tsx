@@ -39,6 +39,7 @@ import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
 
 export interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
@@ -112,8 +113,10 @@ export default function Plan(props: PlanProps) {
   const [activeSubscriptions, setActiveSubscriptions] = useState<
     SubscriptionInfo[]
   >([]);
-  const [productsContext] = useContext(ProductsContext);
-  const [organization] = useContext(OrganizationContext);
+  const [products, loadProducts, productsStatus] = useContext(ProductsContext);
+  useRefreshApiFetcher(loadProducts, productsStatus);
+  const [organization, loadOrg, orgStatus] = useContext(OrganizationContext);
+  useRefreshApiFetcher(loadOrg, orgStatus);
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
     newPrice: null,
     products: [],
@@ -128,8 +131,8 @@ export default function Plan(props: PlanProps) {
 
   const isDataLoading = useMemo(
     (): boolean =>
-      !(productsContext.isLoaded && organization && state.subscribedProduct),
-    [productsContext.isLoaded, organization, state.subscribedProduct]
+      !(products.isLoaded && organization && state.subscribedProduct),
+    [products.isLoaded, organization, state.subscribedProduct]
   );
 
   const isDisabled = useMemo(() => isBusy, [isBusy]);
@@ -288,8 +291,8 @@ export default function Plan(props: PlanProps) {
 
   // An array of all the prices that should be displayed in the UI
   const filteredPriceProducts = useMemo((): SinglePricedProduct[] => {
-    if (productsContext.products.length) {
-      const filterAmount = productsContext.products.map(
+    if (products.products.length) {
+      const filterAmount = products.products.map(
         (product: Product): SinglePricedProduct => {
           const filteredPrices = product.prices.filter((price: Price) => {
             const interval = price.recurring?.interval;
@@ -315,7 +318,7 @@ export default function Plan(props: PlanProps) {
       return filterAmount.filter((price) => price.price);
     }
     return [];
-  }, [productsContext.products, state.intervalFilter, visiblePlanTypes]);
+  }, [products.products, state.intervalFilter, visiblePlanTypes]);
 
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
@@ -341,7 +344,7 @@ export default function Plan(props: PlanProps) {
       }
       return false;
     },
-    [state.subscribedProduct, state.intervalFilter, productsContext.products]
+    [state.subscribedProduct, state.intervalFilter, products.products]
   );
 
   const dismissConfirmModal = () => {
@@ -366,7 +369,7 @@ export default function Plan(props: PlanProps) {
         // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
         // this will downgrade the subscription at the end of the current billing period
         setConfirmModal({
-          products: productsContext.products,
+          products: products.products,
           newPrice: price,
           currentSubscription: activeSubscriptions[0],
           quantity: quantity,
@@ -382,7 +385,7 @@ export default function Plan(props: PlanProps) {
 
   const hasMetaFeatures = () => {
     let expandBool = false;
-    if (productsContext.products.length) {
+    if (products.products.length) {
       filteredPriceProducts.map((product) => {
         for (const featureItem in product.metadata) {
           if (
@@ -401,9 +404,9 @@ export default function Plan(props: PlanProps) {
 
   useEffect(() => {
     hasMetaFeatures();
-  }, [productsContext.products]);
+  }, [products.products]);
 
-  if (!productsContext.products.length || !organization) {
+  if (!products.products.length || !organization) {
     return null;
   }
 
@@ -539,7 +542,7 @@ export default function Plan(props: PlanProps) {
               <AddOnList
                 isBusy={isBusy}
                 setIsBusy={setIsBusy}
-                products={productsContext.products}
+                products={products.products}
                 organization={organization}
                 onClickBuy={buySubscription}
               />
