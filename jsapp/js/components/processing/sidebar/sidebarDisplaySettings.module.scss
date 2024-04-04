@@ -16,6 +16,10 @@
   padding-bottom: sizes.$x36;
 }
 
+.isSubmissionData {
+  padding-bottom: 0 !important;
+}
+
 .wrapWithParens {
   span::before {
     content: '(';
@@ -32,12 +36,14 @@
 }
 
 .questionList {
-  margin-top: sizes.$x12;
-  padding: sizes.$x12;
-  border: 1px solid colors.$kobo-gray-92;
-  border-radius: sizes.$x2;
+  margin: sizes.$x12 0 sizes.$x12 sizes.$x36;
 }
 
 .checkbox {
-  margin-top: sizes.$x12;
+  padding: sizes.$x12;
+  margin-top: sizes.$x6;
+  max-height: sizes.$x140; // ~4.5 times the size of a checkbox, makes 4 checkboxes visible
+  border: 1px solid colors.$kobo-gray-92;
+  border-radius: sizes.$x2;
+  overflow: scroll;
 }

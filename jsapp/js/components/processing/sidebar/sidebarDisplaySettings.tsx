@@ -17,6 +17,7 @@ import MultiCheckbox, {
   MultiCheckboxItem,
 } from 'js/components/common/multiCheckbox';
 import {getFlatQuestionsList} from 'jsapp/js/assetUtils';
+import cx from 'classnames';
 
 interface SidebarDisplaySettingsProps {
   asset: AssetContent | undefined;
@@ -181,21 +182,48 @@ export default function SidebarDisplaySettings(
 
               if (entry in StaticDisplays) {
                 const staticDisplay = entry as StaticDisplays;
+                const isSubmissionData = staticDisplay === StaticDisplays.Data;
 
                 return (
-                  <li className={styles.display} key={entry}>
-                    <ToggleSwitch
-                      onChange={(isChecked) => {
-                        if (isChecked) {
-                          enableDisplay(entry);
-                        } else {
-                          disableDisplay(entry);
-                        }
-                      }}
-                      checked={isEnabled}
-                      label={getStaticDisplayText(staticDisplay)}
-                    />
-                  </li>
+                  <>
+                    <li
+                      className={cx(styles.display, {
+                        [styles.isSubmissionData]:
+                          // Apply styles only under "Submission data" and if it is on
+                          isSubmissionData &&
+                          selectedDisplays.includes(StaticDisplays.Data),
+                      })}
+                      key={entry}
+                    >
+                      <ToggleSwitch
+                        onChange={(isChecked) => {
+                          if (isChecked) {
+                            enableDisplay(entry);
+                          } else {
+                            disableDisplay(entry);
+                          }
+                        }}
+                        checked={isEnabled}
+                        label={getStaticDisplayText(staticDisplay)}
+                      />
+                    </li>
+                    {isSubmissionData &&
+                      props.asset?.survey &&
+                      selectedDisplays.includes(StaticDisplays.Data) && (
+                        <div className={styles.questionList}>
+                          <strong>
+                            {t('Select the submission data to display.')}
+                          </strong>
+                          <div className={styles.checkbox}>
+                            <MultiCheckbox
+                              type='bare'
+                              items={getCheckboxes()}
+                              onChange={onCheckboxesChange}
+                            />
+                          </div>
+                        </div>
+                      )}
+                  </>
                 );
               } else {
                 return (
@@ -222,20 +250,6 @@ export default function SidebarDisplaySettings(
               }
             })}
           </ul>
-
-          {props.asset?.survey &&
-            selectedDisplays.includes(StaticDisplays.Data) && (
-              <div className={styles.questionList}>
-                <strong>{t('Select the submission data to display.')}</strong>
-                <div className={styles.checkbox}>
-                  <MultiCheckbox
-                    type='bare'
-                    items={getCheckboxes()}
-                    onChange={onCheckboxesChange}
-                  />
-                </div>
-              </div>
-            )}
         </KoboModalContent>
 
         <KoboModalFooter alignment='center'>
