@@ -1,12 +1,15 @@
-import datetime
 import uuid
 
 from constance.test import override_config
+from datetime import timedelta
+from dateutil.parser import isoparse
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from mock import patch, MagicMock
 from rest_framework import status
 from rest_framework.reverse import reverse
+from unittest.mock import ANY
 
 from kobo.apps.project_ownership.models import (
     Invite,
@@ -375,7 +378,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
     )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):
-        today = datetime.date.today()
+        today = timezone.now()
         expected_data = {
             'total_nlp_usage': {
                 'asr_seconds_current_year': 120,
@@ -391,8 +394,8 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 1,
                 'current_month': 1,
             },
-            'current_month_start': datetime.date(today.year, today.month, 1),
-            'current_year_start': datetime.date(today.year, 1, 1),
+            'current_month_start': ANY,
+            'current_year_start': ANY,
             'billing_period_end': None,
         }
 
@@ -411,10 +414,19 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 0,
                 'current_month': 0,
             },
-            'current_month_start': datetime.date(today.year, today.month, 1),
-            'current_year_start': datetime.date(today.year, 1, 1),
+            'current_month_start': ANY,
+            'current_year_start': ANY,
             'billing_period_end': None,
         }
+
+        current_month_start = today.replace(day=1).isoformat()
+        current_year_start = today.replace(month=1, day=1).isoformat()
+
+        def assert_date_strings_are_approximately_equal(string1, string2, gap=timedelta(seconds=10)):
+            date1 = isoparse(string1)
+            date2 = isoparse(string2)
+            timedelta = abs(date1 - date2)
+            assert timedelta <= gap
 
         service_usage_url = reverse(
             self._get_endpoint('service-usage-list'),
@@ -423,11 +435,15 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.client.login(username='someuser', password='someuser')
         response = self.client.get(service_usage_url)
         assert response.data == expected_data
+        assert_date_strings_are_approximately_equal(response.data['current_month_start'], current_month_start)
+        assert_date_strings_are_approximately_equal(response.data['current_year_start'], current_year_start)
 
         # anotheruser's usage should be 0
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(service_usage_url)
         assert response.data == expected_empty_data
+        assert_date_strings_are_approximately_equal(response.data['current_month_start'], current_month_start)
+        assert_date_strings_are_approximately_equal(response.data['current_year_start'], current_year_start)
 
         # Transfer project from someuser to anotheruser
         self.client.login(username='someuser', password='someuser')
@@ -450,11 +466,15 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         # someuser should have no usage reported anymore
         response = self.client.get(service_usage_url)
         assert response.data == expected_empty_data
+        assert_date_strings_are_approximately_equal(response.data['current_month_start'], current_month_start)
+        assert_date_strings_are_approximately_equal(response.data['current_year_start'], current_year_start)
 
         # anotheruser should now have usage reported
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(service_usage_url)
         assert response.data == expected_data
+        assert_date_strings_are_approximately_equal(response.data['current_month_start'], current_month_start)
+        assert_date_strings_are_approximately_equal(response.data['current_year_start'], current_year_start)
 
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
