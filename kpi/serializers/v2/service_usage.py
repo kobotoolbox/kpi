@@ -152,7 +152,7 @@ class ServiceUsageSerializer(serializers.Serializer):
             return self._period_start
 
         month_start = self._period_end
-        while month_start > self._now():
+        while month_start > self._now:
             month_start -= relativedelta(months=1)
         return month_start
 
