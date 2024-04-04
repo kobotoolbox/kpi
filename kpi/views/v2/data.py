@@ -2,7 +2,6 @@
 import copy
 import json
 import re
-from lxml import etree  # for compatibility with edit_submission_xml()
 
 import requests
 from django.conf import settings
@@ -48,7 +47,12 @@ from kpi.renderers import (
 )
 from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.utils.xml import edit_submission_xml
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    get_or_create_element,
+    xml_tostring,
+)
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
@@ -662,7 +666,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             # TODO: handle this in a unified way instead of haphazardly. See,
             # e.g., `kpi.utils.xml.strip_nodes()`
             submission_xml = submission_xml.encode()
-        submission_xml_root = etree.fromstring(submission_xml)
+        submission_xml_root = fromstring_preserve_root_xmlns(submission_xml)
         # The JSON version is needed to detect its version
         submission_json = deployment.get_submission(
             submission_id, user, request=request
@@ -684,27 +688,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # submission. They could be overwritten unconditionally, but be
         # conservative for now and don't modify anything unless they're missing
         # entirely
-        if (
-            not (e := submission_xml_root.find(deployment.FORM_UUID_XPATH))
-            or not e.text.strip()
-        ):
+        el = get_or_create_element(
+            submission_xml_root, deployment.FORM_UUID_XPATH
+        )
+        if not el or not el.text.strip():
             form_uuid = deployment.backend_response['uuid']
-            edit_submission_xml(
-                submission_xml_root, deployment.FORM_UUID_XPATH, form_uuid
-            )
-        if (
-            not (
-                e := submission_xml_root.find(
-                    deployment.SUBMISSION_CURRENT_UUID_XPATH
-                )
-            )
-            or not e.text.strip()
-        ):
-            edit_submission_xml(
-                submission_xml_root,
-                deployment.SUBMISSION_CURRENT_UUID_XPATH,
-                'uuid:' + submission_json['_uuid'],
-            )
+            el.text = form_uuid
+
+        el = get_or_create_element(
+            submission_xml_root, deployment.SUBMISSION_CURRENT_UUID_XPATH
+        )
+        if not el or not el.text.strip():
+            el.text = 'uuid:' + submission_json['_uuid']
 
         # Do not use version_uid from the submission until UI gives users the
         # possibility to choose which version they want to use
@@ -744,7 +739,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 kwargs={'uid': snapshot.uid},
                 request=request,
             ),
-            'instance': etree.tostring(submission_xml_root),
+            'instance': xml_tostring(submission_xml_root),
             'instance_id': submission_json['_uuid'],
             'form_id': snapshot.uid,
             'return_url': 'false'  # String to be parsed by EE as a boolean

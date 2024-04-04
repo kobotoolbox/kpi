@@ -237,7 +237,7 @@ $k-select-menu-padding: sizes.$x6;
 .k-select.k-select--type-gray {
   &.k-select--is-menu-visible {
     .k-select__trigger {
-      border-color: colors.$kobo-alt-blue;
+      border-color: colors.$kobo-mid-blue;
 
       &:focus-within {
         @include mixins.default-ui-focus;
@@ -257,25 +257,25 @@ $k-select-menu-padding: sizes.$x6;
 
 .k-select.k-select--type-blue {
   .k-select__trigger {
-    background-color: colors.$kobo-light-blue;
+    background-color: colors.$kobo-bg-blue;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
     color: colors.$kobo-gray-24;
-    background-color: darken(colors.$kobo-light-blue, 2);
+    background-color: darken(colors.$kobo-bg-blue, 2);
   }
 }
 
 .k-select.k-select--type-gray {
   .k-select__trigger {
-    background-color: colors.$kobo-cloud;
+    background-color: colors.$kobo-light-storm;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
     color: colors.$kobo-gray-24;
-    background-color: darken(colors.$kobo-cloud, 2);
+    background-color: darken(colors.$kobo-light-storm, 2);
   }
 }
 
@@ -317,6 +317,19 @@ $k-select-menu-padding: sizes.$x6;
   font-size: sizes.$x12;
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;
+}
+
+.k-select__required-mark {
+  // NOTE: copied from textBox.module.scss
+  // Smaller than the design, because there is also a single whitespace
+  // character between the label and this mark
+  margin-left: sizes.$x2;
+  color: colors.$kobo-red;
+  font-size: sizes.$x14;
+  // Magic number to align it similarly to Figma designs
+  line-height: sizes.$x16;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 // Sets the different sizes for given size of a trigger button.

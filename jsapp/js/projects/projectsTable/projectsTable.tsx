@@ -93,7 +93,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
           loader={
             // We want to hide the plugin spinner when we already display
             // the main one - this ensures no double spinners
-            props.isLoading ? <></> : <LoadingSpinner hideMessage key='0' />
+            props.isLoading ? <></> : <LoadingSpinner message={false} key='0' />
           }
           useWindow={false}
           initialLoad={false}

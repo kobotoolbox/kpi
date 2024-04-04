@@ -12,6 +12,9 @@ import {UNSAVED_CHANGES_WARNING} from 'jsapp/js/protector/protectorConstants';
 import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import styles from './singleProcessingRoute.module.scss';
+import CenteredMessage from 'js/components/common/centeredMessage.component';
+
+const NO_DATA_MESSAGE = t('There is no data for this question for the current submission');
 
 interface SingleProcessingRouteProps extends WithRouterProps {
   uid: string;
@@ -108,12 +111,7 @@ export default class SingleProcessingRoute extends React.Component<
 
     if (!this.isProcessingEnabled()) {
       return (
-        <LoadingSpinner
-          hideSpinner
-          message={t(
-            'There is no data for this question for the current submission'
-          )}
-        />
+        <CenteredMessage message={NO_DATA_MESSAGE} />
       );
     }
 
@@ -123,12 +121,7 @@ export default class SingleProcessingRoute extends React.Component<
           <section className={styles.bottomLeft}>
             {this.isDataProcessable() && <SingleProcessingContent />}
             {!this.isDataProcessable() && (
-              <LoadingSpinner
-                hideSpinner
-                message={t(
-                  'There is no data for this question for the current submission'
-                )}
-              />
+              <CenteredMessage message={NO_DATA_MESSAGE} />
             )}
           </section>
 
@@ -162,7 +155,7 @@ export default class SingleProcessingRoute extends React.Component<
       <DocumentTitle title={pageTitle}>
         <section className={styles.root}>
           {(singleProcessingStore.hasAnyUnsavedWork() ||
-            singleProcessingStore.isPollingForTranscript) && <Prompt />}
+            singleProcessingStore.data.isPollingForTranscript) && <Prompt />}
           <section className={styles.top}>
             <SingleProcessingHeader
               submissionEditId={this.props.params.submissionEditId}

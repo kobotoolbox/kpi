@@ -6,7 +6,7 @@ import Badge from './badge';
 import type {BadgeColor, BadgeSize} from './badge';
 
 const badgeColors: BadgeColor[] = [
-  'cloud',
+  'light-storm',
   'light-amber',
   'light-blue',
   'light-teal',
