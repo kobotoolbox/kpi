@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+  <section class='registration--login'>
+    <h3>
+      {% trans '404 Error' %}
+    </h3>
+
+    {% trans 'This page does not exist on the server. Please check the URL or link that sent you here.' %}
+  </section>
+{% endblock %}
