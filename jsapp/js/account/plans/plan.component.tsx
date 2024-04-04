@@ -519,7 +519,7 @@ export default function Plan(props: PlanProps) {
                   <div>
                     <Button
                       type='full'
-                      color='cloud'
+                      color='light-storm'
                       size='m'
                       isFullWidth
                       label={
