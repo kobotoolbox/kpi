@@ -127,6 +127,7 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
+    'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
 )
 
 MIDDLEWARE = [
@@ -155,6 +156,7 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
+
 CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (
         True,
@@ -422,8 +424,7 @@ CONSTANCE_CONFIG = {
         ),
         'List all custom character rules as regular expressions supported '
         'by `regex` python library.\n'
-        'One per line.'
-        ,
+        'One per line.',
     ),
     'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS': (
         3,
@@ -469,6 +470,63 @@ CONSTANCE_CONFIG = {
         ),
         'i18n_text_jsonfield_schema',
     ),
+    'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
+        10,
+        'Number of minutes asynchronous tasks can be idle before being '
+        'restarted.\n'
+        'It is recommended to keep greater than 10 minutes.',
+        'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_STUCK_THRESHOLD': (
+        12 * 60,
+        (
+            'Number of minutes asynchronous tasks can run before being '
+            'flagged as failed.\n'
+            'Should be greater than `PROJECT_OWNERSHIP_RESUME_THRESHOLD`.'
+        ),
+        'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_INVITE_EXPIRY': (
+        14,
+        'Number of days before invites expire.',
+        'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION': (
+        30,
+        (
+            'Number of days to keep invites history.\n'
+            'Failed invites are kept forever.'
+        ),
+        'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY': (
+        7,
+        'The number of days after which in-app messages expire.',
+        'positive_int',
+    ),
+    'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES': (
+        False,
+        'Auto-accept invites by default and do not sent them by e-mail.'
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL': (
+        '',
+        (
+            'Email addresses to which error reports are sent, one per line.\n'
+            'Leave empty to not send emails.'
+        ),
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT': (
+        'KoboToolbox Notifications: Project ownership transfer failure',
+        'Email subject to sent to admins on failure.',
+    ),
+    'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY': (
+        (
+            'Dear admins,\n\n'
+            'A transfer of project ownership has failed:\n'
+            '##invite_url##'
+        ),
+        'Email message to sent to admins on failure.',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -511,6 +569,9 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     }],
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {
         'min_value': -1
+    }],
+    'positive_int': ['django.forms.fields.IntegerField', {
+        'min_value': 0
     }],
 }
 
@@ -564,6 +625,17 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PASSWORD_CUSTOM_CHARACTER_RULES',
         'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
         'CUSTOM_PASSWORD_GUIDANCE_TEXT',
+    ),
+    'Transfer project ownership': (
+        'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
+        'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
+        'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
+        'PROJECT_OWNERSHIP_INVITE_EXPIRY',
+        'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
+        'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
+        'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -818,10 +890,13 @@ TEMPLATES = [
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
-RAVEN_JS_DSN = None
-if RAVEN_JS_DSN_URL:
-    RAVEN_JS_DSN = RAVEN_JS_DSN_URL.geturl()
+SENTRY_JS_DSN = None
+RAVEN_JS_DSN = env.str('RAVEN_JS_DSN', None)
+if SENTRY_JS_DSN_URL := env.url(
+        'SENTRY_JS_DSN',
+        default=RAVEN_JS_DSN
+    ):
+    SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
@@ -927,11 +1002,10 @@ if GOOGLE_ANALYTICS_TOKEN:
     CSP_SCRIPT_SRC.append('https://*.googletagmanager.com')
     CSP_CONNECT_SRC.extend(['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'])
     CSP_IMG_SRC.extend(['https://*.google-analytics.com', 'https://*.googletagmanager.com'])
-if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
-    raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
-    CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
-    CSP_SCRIPT_SRC.append(raven_js_url)
-    CSP_CONNECT_SRC.append(raven_js_url)
+if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme:
+    sentry_js_url = SENTRY_JS_DSN_URL.scheme + '://' + SENTRY_JS_DSN_URL.hostname
+    CSP_SCRIPT_SRC.append(sentry_js_url)
+    CSP_CONNECT_SRC.append(sentry_js_url)
 if STRIPE_ENABLED:
     stripe_domain = "https://js.stripe.com"
     CSP_SCRIPT_SRC.append(stripe_domain)
@@ -985,6 +1059,30 @@ CELERY_BEAT_SCHEDULE = {
     'markdown-images-garbage-collector': {
         'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
         'schedule': crontab(hour=0, minute=30, day_of_week=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 10 minutes
+    'project-ownership-task-scheduler': {
+        'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
+        'schedule': crontab(minute=10),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 30 minutes
+    'project-ownership-mark-stuck-tasks-as-failed': {
+        'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
+        'schedule': crontab(minute=30),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 30 minutes
+    'project-ownership-mark-as-expired': {
+        'task': 'kobo.apps.project_ownership.tasks.mark_as_expired',
+        'schedule': crontab(minute=30),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every day at midnight UTC
+    'project-ownership-garbage-collector': {
+        'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
+        'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }

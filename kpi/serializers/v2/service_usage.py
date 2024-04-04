@@ -12,7 +12,7 @@ from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
-    ReadOnlyKobocatDailyXFormSubmissionCounter,
+    KobocatDailyXFormSubmissionCounter,
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models.asset import Asset
@@ -284,7 +284,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        submission_count = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
+        submission_count = KobocatDailyXFormSubmissionCounter.objects.only(
             'counter', 'user_id'
         ).filter(self._user_id_query).aggregate(
             all_time=Coalesce(Sum('counter'), 0),

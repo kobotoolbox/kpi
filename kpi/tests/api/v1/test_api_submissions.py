@@ -126,6 +126,10 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
     def test_delete_submission_with_partial_perms_as_anotheruser(self):
         pass
 
+    @pytest.mark.skip(reason='Rewrite should be used only with v2')
+    def test_attachments_rewrite(self):
+        pass
+
 
 class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
 

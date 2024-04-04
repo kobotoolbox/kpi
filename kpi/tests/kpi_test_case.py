@@ -28,10 +28,11 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
     fixtures = ['test_data']
 
     def login(self, username=None, password=None, expect_success=True):
-        '''
-        Log in, asserting success. Uses `username` rather than `user`, preferring consistency with
-        :py:class:`BasePermissionsTestCase` over the rest of the calls in this class.
-        '''
+        """
+        Log in, asserting success. Uses `username` rather than `user`,
+        preferring consistency with :py:class:`BasePermissionsTestCase` over the
+        rest of the calls in this class.
+        """
 
         kwargs = dict()
         if username and password:
