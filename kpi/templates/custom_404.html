@@ -8,5 +8,7 @@
     </h1>
 
     {% trans 'This page does not exist on the server. Please check the URL or link that sent you here.' %}
+
+    <a href="javascript: history.back()">{% trans 'Go back' %}</a>
   </form>
 {% endblock %}
