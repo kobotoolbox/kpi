@@ -48,7 +48,6 @@ export const TABLE_MEDIA_TYPES = createEnum([
   QUESTION_TYPES.image.id,
   QUESTION_TYPES.audio.id,
   QUESTION_TYPES.video.id,
-  QUESTION_TYPES.text.id,
   META_QUESTION_TYPES['background-audio'],
 ]);
 
