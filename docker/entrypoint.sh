@@ -14,7 +14,7 @@ if [[ -z $DATABASE_URL ]]; then
 fi
 
 # Handle Python dependencies BEFORE attempting any `manage.py` commands
-KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
+KPI_WEB_SERVER="${UWSGI:-uWSGI}"
 if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
     # `diff` returns exit code 1 if it finds a difference between the files
     if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/requirements.txt" "${TMP_DIR}/pip_dependencies.txt"
@@ -77,12 +77,6 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     python manage.py compilemessages
 fi
 
-rm -rf /etc/profile.d/pydev_debugger.bash.sh
-if [[ -d /srv/pydev_orig && -n "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
-    echo 'Enabling PyDev remote debugging.'
-    "${KPI_SRC_DIR}/docker/setup_pydev.bash"
-fi
-
 echo 'Cleaning up Celery PIDs…'
 rm -rf /tmp/celery*.pid
 
@@ -96,4 +90,11 @@ chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
 
 echo 'KPI initialization completed.'
 
-exec /usr/bin/runsvdir "${SERVICES_DIR}"
+cd "${KPI_SRC_DIR}"
+if [[ "${UWSGI,,}" == 'uwsgi' ]]; then
+    echo "Running \`kpi\` container with uWSGI application server."
+    $(command -v uwsgi) --ini ${KPI_SRC_DIR}/docker/uwsgi.ini
+else
+    echo "Running \`kpi\` container with \`runserver_plus\` debugging application server."
+    python manage.py runserver_plus 0:8000
+fi
