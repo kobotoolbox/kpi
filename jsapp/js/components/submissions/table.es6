@@ -67,7 +67,8 @@ import {
   userHasPermForSubmission,
 } from 'js/components/permissions/utils';
 import CenteredMessage from 'js/components/common/centeredMessage.component';
-import SupplementalDetailsCell from 'js/components/submissions/supplementalDetailsCell.component';
+import {getSupplementalDetailsContent} from 'js/components/submissions/submissionUtils';
+import TextModalCell from 'js/components/submissions/textModalCell.component';
 const DEFAULT_PAGE_SIZE = 30;
 
 /**
@@ -825,6 +826,13 @@ export class DataTable extends React.Component {
         headerClassName: elClassNames.join(' '),
         width: this._getColumnWidth(q?.type),
         Cell: (row) => {
+          const columnName = getColumnLabel(
+            this.props.asset,
+            key,
+            this.state.showGroupName,
+            this.state.translationIndex
+          );
+
           if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null;
@@ -921,6 +929,17 @@ export class DataTable extends React.Component {
             );
           }
 
+          if (q?.type === QUESTION_TYPES.text.id) {
+            return (
+              <TextModalCell
+                text={row.value}
+                columnName={columnName}
+                submissionIndex={row.index + 1}
+                submissionTotal={this.state.submissions.length}
+              />
+            );
+          }
+
           // This identifies supplemental details column
           if (
             row.value === undefined &&
@@ -928,9 +947,11 @@ export class DataTable extends React.Component {
             key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
           ) {
             return (
-              <SupplementalDetailsCell
-                responseData={row.original}
-                targetKey={key}
+              <TextModalCell
+                text={getSupplementalDetailsContent(row.original, key)}
+                columnName={columnName}
+                submissionIndex={row.index + 1}
+                submissionTotal={this.state.submissions.length}
               />
             );
           }
