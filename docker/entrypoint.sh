@@ -13,8 +13,8 @@ if [[ -z $DATABASE_URL ]]; then
 fi
 
 # Handle Python dependencies BEFORE attempting any `manage.py` commands
-KPI_WEB_SERVER="${UWSGI:-uWSGI}"
-if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
+WSGI="${WSGI:-uWSGI}"
+if [[ "${WSGI}" == 'uWSGI' ]]; then
     # `diff` returns exit code 1 if it finds a difference between the files
     if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/requirements.txt" "${TMP_DIR}/pip_dependencies.txt"
     then
@@ -90,7 +90,8 @@ chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
 echo 'KPI initialization completed.'
 
 cd "${KPI_SRC_DIR}"
-if [[ "${UWSGI,,}" == 'uwsgi' ]]; then
+
+if [[ "${WSGI}" == 'uWSGI' ]]; then
     echo "Running \`kpi\` container with uWSGI application server."
     $(command -v uwsgi) --ini ${KPI_SRC_DIR}/docker/uwsgi.ini
 else
