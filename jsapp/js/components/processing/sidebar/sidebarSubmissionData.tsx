@@ -33,7 +33,7 @@ export default function SidebarSubmissionData(
       ...Object.keys(META_QUESTION_TYPES),
     ];
 
-    return metaQuestions.concat(store.getQuestionList());
+    return metaQuestions.concat(store.getHiddenSidebarQuestions());
   }
 
   return (

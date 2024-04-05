@@ -13,14 +13,13 @@ import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils'
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AssetContent} from 'js/dataInterface';
 import styles from './sidebarDisplaySettings.module.scss';
-import MultiCheckbox, {
-  MultiCheckboxItem,
-} from 'js/components/common/multiCheckbox';
+import MultiCheckbox from 'js/components/common/multiCheckbox';
+import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import {getFlatQuestionsList} from 'jsapp/js/assetUtils';
 import cx from 'classnames';
 
 interface SidebarDisplaySettingsProps {
-  asset: AssetContent | undefined;
+  assetContent: AssetContent | undefined;
 }
 
 export default function SidebarDisplaySettings(
@@ -35,14 +34,12 @@ export default function SidebarDisplaySettings(
   );
 
   function getInitialFields() {
-    if (!props.asset || !props.asset.survey) {
+    if (!props.assetContent?.survey) {
       return [];
     }
 
-    const currentQuestionName = store.currentQuestionName;
-
-    const questionsList = getFlatQuestionsList(props.asset.survey, 0)
-      .filter((question) => !(question.name === currentQuestionName))
+    const questionsList = getFlatQuestionsList(props.assetContent.survey, 0)
+      .filter((question) => !(question.name === store.currentQuestionName))
       .map((question) => {
         // We make an object to show the question label to the user but use the
         // name internally so it works with duplicate question labels
@@ -94,28 +91,21 @@ export default function SidebarDisplaySettings(
     );
   }
 
-  function isChecked(questionName: string) {
+  function isFieldChecked(questionName: string) {
     return selectedFields.some((field) => field.name === questionName);
   }
 
-  function getCheckboxes() {
-    if (!props.asset?.survey) {
+  function getCheckboxes(disabled?: boolean) {
+    if (!props.assetContent?.survey) {
       return [];
     }
 
-    const currentQuestionName = store.currentQuestionName;
-
-    const questionsList = getFlatQuestionsList(props.asset.survey, 0)
-      .filter((question) => !(question.name === currentQuestionName))
-      .map((question) => {
-        return {name: question.name, label: question.label};
-      });
-
-    const checkboxes = questionsList.map((question) => {
+    const checkboxes = getInitialFields().map((question) => {
       return {
         label: question.label,
-        checked: isChecked(question.name),
+        checked: isFieldChecked(question.name),
         name: question.name,
+        disabled: disabled,
       };
     });
 
@@ -142,14 +132,14 @@ export default function SidebarDisplaySettings(
 
   function applyFieldsSelection() {
     if (hiddenFields) {
-      store.setQuestionList(hiddenFields);
+      store.setHiddenSidebarQuestions(hiddenFields);
     }
   }
 
   function resetFieldsSelection() {
     setSelectedFields(getInitialFields());
     setHiddenFields([]);
-    store.setQuestionList([]);
+    store.setHiddenSidebarQuestions([]);
   }
 
   return (
@@ -190,8 +180,7 @@ export default function SidebarDisplaySettings(
                       className={cx(styles.display, {
                         [styles.isSubmissionData]:
                           // Apply styles only under "Submission data" and if it is on
-                          isSubmissionData &&
-                          selectedDisplays.includes(StaticDisplays.Data),
+                          isSubmissionData,
                       })}
                       key={entry}
                     >
@@ -207,22 +196,22 @@ export default function SidebarDisplaySettings(
                         label={getStaticDisplayText(staticDisplay)}
                       />
                     </li>
-                    {isSubmissionData &&
-                      props.asset?.survey &&
-                      selectedDisplays.includes(StaticDisplays.Data) && (
-                        <div className={styles.questionList}>
-                          <strong>
-                            {t('Select the submission data to display.')}
-                          </strong>
-                          <div className={styles.checkbox}>
-                            <MultiCheckbox
-                              type='bare'
-                              items={getCheckboxes()}
-                              onChange={onCheckboxesChange}
-                            />
-                          </div>
+                    {isSubmissionData && props.assetContent?.survey && (
+                      <div className={styles.questionList}>
+                        <strong>
+                          {t('Select the submission data to display.')}
+                        </strong>
+                        <div className={styles.checkbox}>
+                          <MultiCheckbox
+                            type='bare'
+                            items={getCheckboxes(
+                              !selectedDisplays.includes(StaticDisplays.Data)
+                            )}
+                            onChange={onCheckboxesChange}
+                          />
                         </div>
-                      )}
+                      </div>
+                    )}
                   </>
                 );
               } else {

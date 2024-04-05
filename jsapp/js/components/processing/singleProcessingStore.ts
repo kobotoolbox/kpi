@@ -132,6 +132,7 @@ interface SingleProcessingStoreData {
   /** Marks some backend calls being in progress. */
   isFetchingData: boolean;
   isPollingForTranscript: boolean;
+  hiddenSidebarQuestions: string[];
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -156,14 +157,13 @@ class SingleProcessingStore extends Reflux.Store {
 
   private analysisTabHasUnsavedWork = false;
 
-  private questionsList: string[] = [];
-
   public data: SingleProcessingStoreData = {
     translations: [],
     activeTab: SingleProcessingTabs.Transcript,
     isPristine: true,
     isFetchingData: false,
     isPollingForTranscript: false,
+    hiddenSidebarQuestions: [],
   };
 
   /** Clears all data - useful before making initialisation call */
@@ -986,8 +986,8 @@ class SingleProcessingStore extends Reflux.Store {
     return this.displays[tabName];
   }
 
-  getQuestionList() {
-    return this.questionsList;
+  getHiddenSidebarQuestions() {
+    return this.data.hiddenSidebarQuestions;
   }
 
   /** Updates the list of active displays for given tab. */
@@ -1042,10 +1042,10 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  setQuestionList(list: string[]) {
-    this.questionsList = list;
+  setHiddenSidebarQuestions(list: string[]) {
+    this.data.hiddenSidebarQuestions = list;
 
-    this.trigger(this.questionsList);
+    this.trigger(this.data);
   }
 }
 
