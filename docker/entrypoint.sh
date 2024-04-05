@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 source /etc/profile
 
 echo 'KPI initializing…'
@@ -80,7 +79,7 @@ fi
 echo 'Cleaning up Celery PIDs…'
 rm -rf /tmp/celery*.pid
 
-echo 'Restore permissions on Celery logs folder'
+echo 'Restore permissions on logs folder'
 chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
 
 # This can take a while when starting a container with lots of media files.

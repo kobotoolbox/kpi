@@ -164,4 +164,4 @@ RUN chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
 
 EXPOSE 8000
 
-CMD ["/bin/bash", "-c", "exec ${KPI_SRC_DIR}/docker/entrypoint.sh"]
+CMD ["/bin/bash", "docker/entrypoint.sh"]
