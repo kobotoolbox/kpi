@@ -685,7 +685,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             response = requests.post(
                 f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
                 # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
+                auth=(settings.ENKETO_API_KEY, ''),
                 data=data
             )
             response.raise_for_status()
