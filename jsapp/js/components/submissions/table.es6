@@ -51,14 +51,13 @@ import {
   DEFAULT_DATA_CELL_WIDTH,
   CELLS_WIDTH_OVERRIDES,
   DROPDOWN_FILTER_QUESTION_TYPES,
-  TEXT_FILTER_QUESTION_TYPES,
-  TEXT_FILTER_QUESTION_IDS,
 } from 'js/components/submissions/tableConstants';
 import {
   getColumnLabel,
   getColumnHXLTags,
   getBackgroundAudioQuestionName,
   buildFilterQuery,
+  isTableColumnFilterable,
 } from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
@@ -985,10 +984,7 @@ export class DataTable extends React.Component {
           </select>
         );
       }
-      if (
-        TEXT_FILTER_QUESTION_TYPES.includes(col.question?.type) ||
-        TEXT_FILTER_QUESTION_IDS.includes(col.id)
-      ) {
+      if (isTableColumnFilterable(col)) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <DebounceInput

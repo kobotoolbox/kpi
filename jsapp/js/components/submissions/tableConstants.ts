@@ -1,9 +1,9 @@
 import {
   createEnum,
-  QUESTION_TYPES,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   QuestionTypeName,
+  MiscRowTypeName,
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 
@@ -103,6 +103,8 @@ export const TEXT_FILTER_QUESTION_TYPES = [
   META_QUESTION_TYPES.phonenumber,
   META_QUESTION_TYPES.today,
   META_QUESTION_TYPES['background-audio'],
+  MiscRowTypeName.score__row,
+  MiscRowTypeName.rank__level,
 ];
 
 /**
@@ -123,6 +125,8 @@ export const TEXT_FILTER_QUESTION_IDS = [
  * (i.e. filter value is exactly the response). Any question type not on this
  * list will be filtered by responses that include the value (i.e. filter value
  * is part of the response).
+ *
+ * Every type that is not listed here is using "inexact" or "partial" match.
  */
 export const FILTER_EXACT_TYPES: AnyRowTypeName[] = [
   QuestionTypeName.decimal,

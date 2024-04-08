@@ -6,10 +6,16 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
   VALIDATION_STATUSES,
 } from 'js/constants';
+import type {
+  QuestionTypeName,
+  MetaQuestionTypeName,
+} from 'js/constants';
 import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
+  TEXT_FILTER_QUESTION_IDS,
+  TEXT_FILTER_QUESTION_TYPES,
   FILTER_EXACT_TYPES,
 } from 'js/components/submissions/tableConstants';
 import type {
@@ -347,4 +353,24 @@ export function buildFilterQuery(
   }
 
   return output;
+}
+
+// TODO: this needs to be build up while typescriptizing table.es6
+interface TableColumn {
+  id: string;
+  question?: {
+    type: QuestionTypeName | MetaQuestionTypeName;
+  };
+}
+
+/**
+ * For checking if given column from Data Table should display a filter. It
+ * works for columns associated with form questions and for other columns too.
+ */
+export function isTableColumnFilterable(column: TableColumn) {
+  if (column.question?.type) {
+    return TEXT_FILTER_QUESTION_TYPES.includes(column.question.type);
+  } else {
+    return TEXT_FILTER_QUESTION_IDS.includes(column.id);
+  }
 }
