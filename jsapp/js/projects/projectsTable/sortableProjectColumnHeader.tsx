@@ -8,7 +8,7 @@ import styles from './projectsTableHeader.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import KoboDropdown from 'jsapp/js/components/common/koboDropdown';
 
-interface SortableColumnHeaderProps {
+interface SortableProjectColumnHeaderProps {
   styling: boolean;
   field: ProjectFieldDefinition;
   highlightedFields?: ProjectFieldName[];
@@ -19,7 +19,7 @@ interface SortableColumnHeaderProps {
 }
 
 
-export default function SortableColumnHeader(props: SortableColumnHeaderProps) {
+export default function SortableProjectColumnHeader(props: SortableProjectColumnHeaderProps) {
   // We track the menu visibility for the trigger icon.
   const [visibleMenuNames, setVisibleMenuNames] = useState<string[]>([]);
   const isMenuVisible = visibleMenuNames.includes(props.field.name);
@@ -111,7 +111,7 @@ export default function SortableColumnHeader(props: SortableColumnHeaderProps) {
                   />
                 )}
                 {/* The `name` field is always visible, no need for the button */}
-                {props.field.name !== 'name' && (
+                {props.onHideFieldRequested && props.field.name !== 'name' && (
                   <Button
                     type='bare'
                     color='storm'

@@ -8,7 +8,7 @@ import prettyBytes from 'pretty-bytes';
 import type {AssetUsage} from 'js/account/usage/usage.api';
 import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
 import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
-import SortableColumnHeader from 'jsapp/js/projects/projectsTable/sortableColumnHeader';
+import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
 
@@ -99,16 +99,16 @@ const handleClick = async (
   return (
     <div className={styles.root}>
       <table>
-        <thead>
+        <thead className={styles.headerFont}>
             <tr>
-              <th className={styles.projects}><SortableColumnHeader styling={false} field={usageName} orderableFields={['name', 'status']} order={order}
-              onChangeOrderRequested={updateOrder}/></th>
+              <th className={styles.projects}><SortableProjectColumnHeader styling={false} field={usageName} orderableFields={['name', 'status']} order={order}
+              onChangeOrderRequested={updateOrder} /></th>
               <th className={styles.wrap}>{t('Submissions (Total)')}</th>
               <th className={styles.wrap}>{t('Submissions (This billing period)')}</th>
               <th>{t('Data Storage')}</th>
               <th>{t('Transcript Minutes')}</th>
               <th>{t('Translation characters')}</th>
-              <th className={styles.badge}><SortableColumnHeader styling={false} field={usageStatus} orderableFields={['name', 'status']} order={order}
+              <th className={styles.badge}><SortableProjectColumnHeader styling={false} field={usageStatus} orderableFields={['name', 'status']} order={order}
               onChangeOrderRequested={updateOrder}/></th>
             </tr>
           </thead>

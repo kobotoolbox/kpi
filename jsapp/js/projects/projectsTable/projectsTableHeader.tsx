@@ -9,7 +9,7 @@ import tableStyles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
 import ColumnResizer from './columnResizer';
-import SortableColumnHeader from './sortableColumnHeader';
+import SortableProjectColumnHeader from './sortableProjectColumnHeader';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
@@ -29,10 +29,10 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
     }
 
     // Generate a unique key for each rendered column
-    const key = `${field.name}_${Date.now()}`;
+    const key = `${field.name}_${field.label}`;
 
     return (
-      <SortableColumnHeader
+      <SortableProjectColumnHeader
         key={key}
         styling
         field={field}

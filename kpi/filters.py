@@ -67,11 +67,6 @@ class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
 
     DEFAULT_USAGE_ORDERING_FIELDS = [
         'name',
-        'submissions_total',
-        'submissions_this_billing_period',
-        'data_storage',
-        'transcript_minutes',
-        'translation_characters',
         '_deployment_status',
     ]
 
