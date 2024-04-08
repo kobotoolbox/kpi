@@ -20,6 +20,7 @@ interface SortableColumnHeaderProps {
 
 
 export default function SortableColumnHeader(props: SortableColumnHeaderProps) {
+  // We track the menu visibility for the trigger icon.
   const [visibleMenuNames, setVisibleMenuNames] = useState<string[]>([]);
   const isMenuVisible = visibleMenuNames.includes(props.field.name);
 
