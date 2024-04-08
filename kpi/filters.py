@@ -45,6 +45,14 @@ from kpi.utils.permissions import is_user_anonymous
 from .models import Asset, ObjectPermission
 
 
+class DeploymentFilter:
+    DEPLOYMENT_STATUS_DEFAULT_ORDER = [
+        AssetDeploymentStatus.DEPLOYED.value,
+        AssetDeploymentStatus.DRAFT.value,
+        AssetDeploymentStatus.ARCHIVED.value,
+    ]
+
+
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
     For use with nested models of Asset.
@@ -56,15 +64,15 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
         return queryset.filter(**fields)
 
 
-class AssetOrganizationUsageFilter(filters.OrderingFilter):
+class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
 
     DEFAULT_USAGE_ORDERING_FIELDS = [
-        'asset__name',
-        'nlp_usage_current_month',
-        'nlp_usage_all_time',
-        'storage_bytes',
-        'submission_count_current_month',
-        'submission_count_all_time',
+        'name',
+        'submissions_total',
+        'submissions_this_billing_period',
+        'data_storage',
+        'transcript_minutes',
+        'translation_characters',
         '_deployment_status',
     ]
 
@@ -75,10 +83,18 @@ class AssetOrganizationUsageFilter(filters.OrderingFilter):
 
         if ordering:
             queryset = queryset.order_by(*ordering)
+        else:
+            return queryset.order_by(
+                OrderCustomCharField(
+                    '_deployment_status',
+                    self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
+                )
+            )
 
         return queryset
 
-class AssetOrderingFilter(filters.OrderingFilter):
+
+class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
 
     DEFAULT_ORDERING_FIELDS = [
         'asset_type',
@@ -95,12 +111,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
         'owner__extra_details__data__organization',
         'owner__email',
         '_deployment_status',
-    ]
-
-    DEPLOYMENT_STATUS_DEFAULT_ORDER = [
-        AssetDeploymentStatus.DEPLOYED.value,
-        AssetDeploymentStatus.DRAFT.value,
-        AssetDeploymentStatus.ARCHIVED.value,
     ]
 
     def filter_queryset(self, request, queryset, view):

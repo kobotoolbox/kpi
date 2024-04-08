@@ -8,6 +8,9 @@ import prettyBytes from 'pretty-bytes';
 import type {AssetUsage} from 'js/account/usage/usage.api';
 import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
 import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
+import SortableColumnHeader from 'jsapp/js/projects/projectsTable/sortableColumnHeader';
+import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
+import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
 
 type ButtonType = 'back' | 'forward';
 
@@ -19,10 +22,11 @@ const ProjectBreakdown = () => {
     previous: null,
     results: [],
   });
+  const [order, setOrder] = useState({});
 
    useEffect(() => {
      async function fetchData() {
-      const data = await getAssetUsageForOrganization(currentPage);
+      const data = await getAssetUsageForOrganization(currentPage, order);
       const updatedResults = data.results.map((projectResult) => {
         const assetParts = projectResult.asset.split('/');
         const uid = assetParts[assetParts.length - 2];
@@ -40,7 +44,7 @@ const ProjectBreakdown = () => {
 
      fetchData();
 
-  }, [currentPage]);
+  }, [currentPage, order]);
 
   if (projectData.results.length === 0) {
     return <LoadingSpinner/>;
@@ -73,21 +77,41 @@ const handleClick = async (
   const isActiveBack = currentPage > 1;
   const isActiveForward = currentPage < Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE);
 
+  const usageName: ProjectFieldDefinition = {
+    name: 'name',
+    label: t('##count## Projects').replace('##count##', projectData.count),
+    apiFilteringName: 'name',
+    apiOrderingName: 'name',
+    availableConditions: [],
+  };
+  const usageStatus: ProjectFieldDefinition = {
+    name: 'status',
+    label: 'Status',
+    apiFilteringName: '_deployment_status',
+    apiOrderingName: '_deployment_status',
+    availableConditions: [],
+  };
+
+  const updateOrder = (newOrder: ProjectsTableOrder) => {
+    setOrder(newOrder);
+  };
+
   return (
     <div className={styles.root}>
       <table>
         <thead>
-          <tr>
-            <th className={styles.projects}>{t('##count## Projects').replace('##count##', projectData.count)}</th>
-            <th className={styles.wrap}>{t('Submissions (Total)')}</th>
-            <th className={styles.wrap}>{t('Submissions (This billing period)')}</th>
-            <th>{t('Data Storage')}</th>
-            <th>{t('Transcript Minutes')}</th>
-            <th>{t('Translation characters')}</th>
-            <th>{t('Status')}</th>
-          </tr>
-        </thead>
-
+            <tr>
+              <th className={styles.projects}><SortableColumnHeader styling={false} field={usageName} orderableFields={['name', 'status']} order={order}
+              onChangeOrderRequested={updateOrder}/></th>
+              <th className={styles.wrap}>{t('Submissions (Total)')}</th>
+              <th className={styles.wrap}>{t('Submissions (This billing period)')}</th>
+              <th>{t('Data Storage')}</th>
+              <th>{t('Transcript Minutes')}</th>
+              <th>{t('Translation characters')}</th>
+              <th className={styles.badge}><SortableColumnHeader styling={false} field={usageStatus} orderableFields={['name', 'status']} order={order}
+              onChangeOrderRequested={updateOrder}/></th>
+            </tr>
+          </thead>
         <tbody>
              {projectData.results.map((project) => (
                <tr key={project.asset}>

@@ -121,7 +121,7 @@ export interface ProjectFieldDefinition {
   availableConditions: FilterConditionName[];
 }
 
-type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
+export type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
 /**
  * A full list of available fields for projects. Order is important here, as it
  * influences the order these will be displayed in UI.
