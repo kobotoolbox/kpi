@@ -15,7 +15,6 @@ from django.db.models.query import QuerySet
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import filters
 from rest_framework.request import Request
-import logging
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
