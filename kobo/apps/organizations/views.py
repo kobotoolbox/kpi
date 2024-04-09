@@ -171,7 +171,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         )
 
         context = {
-            'organization_id': kwargs.get('id', None),
+            'organization': organization,
             **self.get_serializer_context(),
         }
 
