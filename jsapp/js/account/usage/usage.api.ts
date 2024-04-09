@@ -1,5 +1,9 @@
 import {fetchGet} from 'jsapp/js/api';
 import {getOrganization} from 'js/account/stripe.api';
+import {PROJECT_FIELDS} from 'jsapp/js/projects/projectViews/constants';
+import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
+import type {ProjectFieldName} from 'jsapp/js/projects/projectViews/constants';
+
 
 export interface AssetUsage {
   count: string;
@@ -90,7 +94,7 @@ export async function getAssetUsage(url?: string) {
   });
 }
 
-export async function getAssetUsageForOrganization(pageNumber: number) {
+export async function getAssetUsageForOrganization(pageNumber: number, order?: ProjectsTableOrder) {
   let organizations;
   try {
     organizations = await getOrganization();
@@ -98,10 +102,16 @@ export async function getAssetUsageForOrganization(pageNumber: number) {
     return await getAssetUsage(ASSET_USAGE_URL);
   }
 
-  const apiUrl = ORGANIZATION_ASSET_USAGE_URL.replace(
+  let apiUrl = ORGANIZATION_ASSET_USAGE_URL.replace(
     '##ORGANIZATION_ID##',
     organizations.results?.[0].id || ''
   ).replace('##PAGE_NUM##', pageNumber.toString());
+
+  if (order?.fieldName && order.direction && (order.direction === 'ascending' || order.direction === 'descending')) {
+    const orderingPrefix = order.direction === 'ascending' ? '' : '-';
+    const fieldDefinition = PROJECT_FIELDS[order.fieldName as ProjectFieldName];
+    apiUrl += `&ordering=${orderingPrefix}${fieldDefinition.apiOrderingName}`;
+  }
 
   return await getAssetUsage(apiUrl);
 }
