@@ -264,7 +264,7 @@ const MFAModals = class MFAModals extends React.Component<
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
-              disableAutocomplete={true}
+              disableAutocomplete
             />
           </bem.MFAModal__p>
 
@@ -388,7 +388,7 @@ const MFAModals = class MFAModals extends React.Component<
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
-              disableAutocomplete={true}
+              disableAutocomplete
             />
           </bem.MFAModal__p>
 
@@ -445,7 +445,7 @@ const MFAModals = class MFAModals extends React.Component<
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
-              disableAutocomplete={true}
+              disableAutocomplete
             />
           </bem.MFAModal__p>
 
