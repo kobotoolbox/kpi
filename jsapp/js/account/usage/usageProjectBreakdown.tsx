@@ -23,6 +23,7 @@ const ProjectBreakdown = () => {
     results: [],
   });
   const [order, setOrder] = useState({});
+  const [loading, setLoading] = useState(true);
 
    useEffect(() => {
      async function fetchData() {
@@ -40,19 +41,23 @@ const ProjectBreakdown = () => {
         ...data,
         results: updatedResults,
       });
+       setLoading(false);
     }
 
      fetchData();
 
   }, [currentPage, order]);
 
-  if (projectData.results.length === 0) {
+  if (loading) {
     return <LoadingSpinner/>;
   }
 
 const calculateRange = (): string => {
   const totalProjects = parseInt(projectData.count);
-  const startRange = (currentPage - 1) * USAGE_ASSETS_PER_PAGE + 1;
+  let startRange = (currentPage - 1) * USAGE_ASSETS_PER_PAGE + 1;
+  if (parseInt(projectData.count) === 0) {
+    startRange = 0;
+  }
   const endRange = Math.min(currentPage * USAGE_ASSETS_PER_PAGE, totalProjects);
   return `${startRange}-${endRange} of ${totalProjects}`;
 };
@@ -112,35 +117,47 @@ const handleClick = async (
               onChangeOrderRequested={updateOrder}/></th>
             </tr>
           </thead>
-        <tbody>
-             {projectData.results.map((project) => (
-               <tr key={project.asset}>
-              <td>
-                <Link className={styles.link} to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}>
-                  {project.asset__name}
-                </Link>
-              </td>
-              <td>{project.submission_count_all_time.toLocaleString()}</td>
-              <td className={styles.currentMonth}>{project.submission_count_current_month.toLocaleString()}</td>
-              <td>{prettyBytes(project.storage_bytes)}</td>
-              <td>{project.nlp_usage_current_month.total_nlp_asr_seconds.toLocaleString()}</td>
-              <td>{project.nlp_usage_current_month.total_nlp_mt_characters.toLocaleString()}</td>
-              <td className={styles.badge}>{<AssetStatusBadge deploymentStatus={project.deployment_status}/>}</td>
-            </tr>
-          ))}
-        </tbody>
+            {parseInt(projectData.count) === 0 ? (
+              <tbody>
+                <tr>
+                  <td colSpan={7} style={{border: 'none'}}>
+                    <div className={styles.emptyMessage}>
+                      {t('There are no projects to display.')}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            ) : (
+              <tbody>
+                {projectData.results.map((project) => (
+                  <tr key={project.asset}>
+                    <td>
+                      <Link className={styles.link} to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}>
+                        {project.asset__name}
+                      </Link>
+                    </td>
+                    <td>{project.submission_count_all_time.toLocaleString()}</td>
+                    <td className={styles.currentMonth}>{project.submission_count_current_month.toLocaleString()}</td>
+                    <td>{prettyBytes(project.storage_bytes)}</td>
+                    <td>{project.nlp_usage_current_month.total_nlp_asr_seconds.toLocaleString()}</td>
+                    <td>{project.nlp_usage_current_month.total_nlp_mt_characters.toLocaleString()}</td>
+                    <td className={styles.badge}><AssetStatusBadge deploymentStatus={project.deployment_status}/></td>
+                  </tr>
+                ))}
+              </tbody>
+            )}
       </table>
-       <nav>
-            <div className={styles.pagination}>
-            <button className={`${isActiveBack ? styles.active : ''}`} onClick={(e) => handleClick(e, 'back')}>
-             <i className='k-icon k-icon-arrow-left' />
-            </button>
-            <span className={styles.range}>{calculateRange()}</span>
-            <button className={`${isActiveForward ? styles.active : ''}`} onClick={(e) => handleClick(e, 'forward')}>
-              <i className='k-icon k-icon-arrow-right' />
-            </button>
-          </div>
-        </nav>
+      <nav>
+        <div className={styles.pagination}>
+          <button className={`${isActiveBack ? styles.active : ''}`} onClick={(e) => handleClick(e, 'back')}>
+            <i className='k-icon k-icon-arrow-left' />
+          </button>
+          <span className={styles.range}>{calculateRange()}</span>
+          <button className={`${isActiveForward ? styles.active : ''}`} onClick={(e) => handleClick(e, 'forward')}>
+            <i className='k-icon k-icon-arrow-right' />
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };

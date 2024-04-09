@@ -97,3 +97,10 @@ button {
 .badge {
   width: sizes.$x150;
 }
+
+.emptyMessage {
+  padding: sizes.$x40;
+  font-size: 1.2rem;
+  justify-content: center;
+  text-align: center;
+}
