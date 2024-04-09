@@ -18,7 +18,6 @@ from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models.asset import Asset
 
 
-
 class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
     asset = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
