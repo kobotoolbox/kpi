@@ -476,6 +476,25 @@ class Asset(ObjectPermissionMixin,
         engines = dict(self._get_engines())
         output = {'engines': engines, 'additional_fields': additional_fields}
         try:
+            number_doubler_field = self.advanced_features[
+                'number_doubler'
+            ]['number_doubler_fields']  # just a singular string lol
+        except KeyError:
+            pass
+        else:
+            additional_fields.append(dict(
+                # What do all these do?
+                label=f'{number_doubler_field} DOUBLED!',  # understood
+                name=number_doubler_field + '__avoid_collision_with_source_question_name',  # arbitrary?
+                dtpath=number_doubler_field,  # unknown
+                type='doubled_number',  # understood; xref with formpack `data_type_classes`
+                language='??',  # only useful for transx? what does it do?
+                source=number_doubler_field,  # probably understood; formpack field can reference e.g. for building labels
+                qpath=number_doubler_field,  # probably understood; but compare to `source`?
+                settings='??',  # only used by transx so far?
+                path=[number_doubler_field],  # does this get `_supplementalDetails/` prepended to it? haven't looked yet
+            ))
+        try:
             qual_survey = self.advanced_features['qual']['qual_survey']
         except KeyError:
             return output
