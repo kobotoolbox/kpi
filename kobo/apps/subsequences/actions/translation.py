@@ -12,6 +12,7 @@ class TranslationAction(BaseAction):
 
     @classmethod
     def build_params(cls, content, **kwargs):
+        raise Exception('Fuck You')
         audio_questions = []
         translatable_fields = []
         for row in content.get('survey', []):

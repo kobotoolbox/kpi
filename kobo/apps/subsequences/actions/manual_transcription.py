@@ -8,6 +8,7 @@ class ManualTranscriptionAction(BaseAction):
 
     @classmethod
     def build_params(cls, content, **kwargs):
+        raise Exception('Fuck You')
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:

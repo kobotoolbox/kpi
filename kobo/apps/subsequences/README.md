@@ -66,6 +66,8 @@ class DecimalRounder(BaseAction):
 
 ```
 
+TODO: `run_change()` is never called. Ouch! Is the `revise_field()` method its successor?
+
 #### Step 4a: modify `ADVANCED_FEATURES_PARAMS_SCHEMA`
 
 …otherwise, you will be unable to add `decimal_rounder` to `asset.advanced_features` in step 5.
@@ -109,6 +111,9 @@ class DecimalRounder(BaseAction):
             _data[self.ID][field_name] = round(fuel_cost * 100) / 100
         return {**submission, self._destination_field: _data}
 ```
+
+TODO: `build_params()` also appears in real-life actions. What is it? It is never called(!) because
+`action_params == True` in `utils/__init__.py` never evaluates to true.
 
 #### Step 8: After a submission has come in, POST metadata to the `/advanced_submission_post/` API endpoint
 
@@ -159,7 +164,9 @@ class DecimalRounder(BaseAction):
         }
 
         for field_name in self.fields_to_round:
-            props[field_name] = {'$ref': f'#/defs/{self.ID}/roundednumber'}
+            props[field_name] = {'$ref': f'#/definitions/{self.ID}/roundednumber'}
+
+        return schema
 ```
 
 #### Step 10: Test the module

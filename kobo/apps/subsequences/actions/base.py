@@ -39,6 +39,9 @@ class BaseAction:
         a method that applies changes to a json structure and appends previous
         changes to a revision history
         '''
+        # TODO: should this handle managing `DATE_CREATED_FIELD`,
+        # `DATE_MODIFIED_FIELD`, etc. instead of delegating that to
+        # `revise_record()` as it currently does?
         if self.ID is None:
             return content
         for field_name, vals in edits.items():
