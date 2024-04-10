@@ -112,6 +112,8 @@ class DecimalRounder(BaseAction):
 
 #### Step 8: After a submission has come in, POST metadata to the `/advanced_submission_post/` API endpoint
 
+TODO: for number_doubler, we ended up using something like `"this_number": {"number_doubler": {"value": 667}}}`
+
 ```
 POST to "/advanced_submission_post/aSsEtUiD"
 
