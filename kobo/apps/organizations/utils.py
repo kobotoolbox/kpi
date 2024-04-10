@@ -1,10 +1,12 @@
+from typing import Union
+
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
 from kobo.apps.organizations.models import Organization
 
 
-def organization_month_start(organization: Organization | None):
+def organization_month_start(organization: Union[Organization, None]):
     now = timezone.now()
     first_of_this_month = now.date().replace(day=1)
     # If no organization/subscription, just use the first day of current month
@@ -26,7 +28,7 @@ def organization_month_start(organization: Organization | None):
     return month_start
 
 
-def organization_year_start(organization: Organization | None):
+def organization_year_start(organization: Union[Organization, None]):
     now = timezone.now()
     first_of_this_year = now.date().replace(month=1, day=1)
     if not organization:

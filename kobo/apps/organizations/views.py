@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -7,18 +8,19 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.models.asset import Asset
+from kpi.paginators import AssetUsagePagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
 )
-from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.models.asset import Asset
-from kpi.paginators import AssetUsagePagination
 from kpi.utils.object_permission import get_database_user
 from .models import Organization, create_organization
 from .permissions import IsOrgAdminOrReadOnly
 from .serializers import OrganizationSerializer
+from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
 @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='service_usage')
@@ -141,20 +143,30 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         """
 
         org_id = kwargs.get('id', None)
-        # Check if the organization exists and if the user is a member
+        # Check if the organization exists and if the user is the owner
         try:
-            organization = Organization.objects.get(id=org_id)
-        except Organization.DoesNotExist:
+            organization = Organization.objects.prefetch_related('organization_users__user').filter(
+                id=org_id, owner__organization_user__user_id=request.user.id,
+            ).annotate(
+                user_ids=ArrayAgg('organization_users__user_id')
+            )[0]
+        except IndexError:
             return Response(
-                {'error': 'Organization not found.'},
-                status=status.HTTP_404_NOT_FOUND,
+                {'error': "There was a problem finding the organization."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if request.user not in organization.users.all():
-            return Response(
-                {'error': 'You are not a member of this organization.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # default to showing all users for this org
+        asset_users = organization.user_ids
+        # if Stripe is enabled, check that the org is on a plan that supports Organization features
+        if settings.STRIPE_ENABLED and not Organization.objects.filter(
+            id=org_id,
+            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+            djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
+            djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
+        ).exists():
+            # No active subscription that supports multiple users, just get this user's data
+            asset_users = [request.user.id]
 
         assets = (
             Asset.objects.only(
@@ -165,7 +177,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             )
             .select_related('owner')
             .filter(
-                owner=request.user,
+                owner__in=asset_users,
                 asset_type=ASSET_TYPE_SURVEY,
             )
         )
@@ -177,13 +189,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         page = self.paginate_queryset(assets)
 
-        if page is not None:
-            serializer = CustomAssetUsageSerializer(
-                page, many=True, context=context
-            )
-            return self.get_paginated_response(serializer.data)
-
         serializer = CustomAssetUsageSerializer(
-            assets, many=True, context=context
+            page, many=True, context=context
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
