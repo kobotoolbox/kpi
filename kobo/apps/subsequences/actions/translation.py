@@ -11,12 +11,12 @@ class TranslationAction(BaseAction):
     MANUAL = 'user_translated'
 
     @classmethod
-    def build_params(kls, survey_content):
+    def build_params(cls, content, **kwargs):
         audio_questions = []
         translatable_fields = []
-        for row in survey_content.get('survey', []):
+        for row in content.get('survey', []):
             if row['type'] in ['audio', 'video', 'text']:
-                translatable_fields.append(kls.get_qpath(kls, row))
+                translatable_fields.append(cls.get_qpath(cls, row))
         params = {'values': translatable_fields}
         return params
 
@@ -32,7 +32,7 @@ class TranslationAction(BaseAction):
 
     def load_params(self, params):
         self.translatable_fields = params.get('values', [])
-        self.languages = params['languages']
+        self.languages = params.get('languages', [])
         self.available_services = params.get('services', [])
 
     def has_change(self, orecord, erecord):

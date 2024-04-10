@@ -7,17 +7,17 @@ class ManualTranscriptionAction(BaseAction):
     ID = 'manual_transcription'
 
     @classmethod
-    def build_params(kls, survey_content):
+    def build_params(cls, content, **kwargs):
         possible_transcribed_fields = []
-        for row in survey_content.get('survey', []):
+        for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(row['name'])
+                possible_transcribed_fields.append(cls.get_name(row))
         params = {'values': possible_transcribed_fields}
         return params
-    
+
     def load_params(self, params):
         self.possible_transcribed_fields = params['values']
-    
+
     def check_submission_status(self, submission):
         if self._destination_field not in submission:
             return ACTION_NEEDED
@@ -25,4 +25,3 @@ class ManualTranscriptionAction(BaseAction):
 
         # needs to be built out
         return PASSES
-    

@@ -20,14 +20,13 @@ class NumberDoubler(BaseAction):
     ID = 'number_doubler'
 
     def load_params(self, params):
-        self.values = params['values']
+        self.values = params.get('values', [])
 
-    def run_change(self, submission):
-        additions = submission.get(self._destination_field, {})
-        for key, dest_key in self.values.items():
-            original = submission.get(key)
-            additions[dest_key] = double_number(original)
-        return {**submission, self._destination_field: additions}
+    def has_change(self, original, edit):
+        return True
+
+    def revise_field(self, previous, edit):
+        return {'value': double_number(edit['value'])}
 
     def check_submission_status(self, submission):
         if self._destination_field not in submission:
@@ -39,11 +38,35 @@ class NumberDoubler(BaseAction):
         return ACTION_NEEDED
 
     @classmethod
-    def build_params(kls, params, asset_content):
+    def build_params(cls, content, **kwargs):
         numeric_questions = {}
-        for row in asset_content['survey']:
-            if row.get('type') in ['number', 'decimal']:
-                name = row['name']
+        for row in content['survey']:
+            if row.get('type') in ['integer', 'decimal']:
+                name = cls.get_name(row)
                 numeric_questions[name] = f'{name}_doubled'
         params = {'values': numeric_questions}
         return params
+
+    @classmethod
+    def get_values_for_content(cls, content):
+        """
+        If no "values" are defined for a given asset, then this method will
+        generate a set of defaults.
+        """
+        values = []
+        for row in content.get('survey', []):
+            if row['type'] in ['integer', 'decimal']:
+                values.append(cls.get_qpath(cls, row))
+        return values
+
+    def modify_jsonschema(self, schema):
+        defs = schema.setdefault('definitions', {})
+        props = schema.setdefault('properties', {})
+        defs[f'{self.ID}schemadef'] = {
+            'type': 'object',
+        }
+
+        for field_name in self.values:
+            props[field_name] = {'$ref': f'#/definitions/{self.ID}schemadef'}
+
+        return schema

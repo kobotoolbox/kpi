@@ -7,6 +7,7 @@ from kobo.apps.subsequences.constants import (GOOGLETS, GOOGLETX)
 ACTION_NEEDED = 'ACTION_NEEDED'
 PASSES = 'PASSES'
 
+
 class BaseAction:
     ID = None
     _destination_field = '_supplementalDetails'
@@ -103,8 +104,8 @@ class BaseAction:
         return self.record_repr(original) != self.record_repr(edit)
 
     @classmethod
-    def build_params(kls, *args, **kwargs):
-        raise NotImplementedError(f'{kls.__name__} has not implemented a build_params method')
+    def build_params(cls, *args, **kwargs):
+        raise NotImplementedError(f'{cls.__name__} has not implemented a build_params method')
 
     def get_qpath(self, row):
         # return the full path...
@@ -113,7 +114,8 @@ class BaseAction:
                 return row[name_field]
         return None
 
-    def get_name(self, row):
+    @classmethod
+    def get_name(cls, row):
         for name_field in ['name', '$autoname']:
             if name_field in row:
                 return row[name_field]

@@ -2,6 +2,7 @@ from copy import deepcopy
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
 from ..actions.translation import TranslationAction
 from ..actions.qual import QualAction
+from ..actions.number_doubler import NumberDoubler
 
 from ..actions.unknown_action import UnknownAction
 
@@ -10,6 +11,7 @@ AVAILABLE_ACTIONS = (
     AutomaticTranscriptionAction,
     TranslationAction,
     QualAction,
+    NumberDoubler,
 )
 
 ACTIONS_BY_ID = dict([
@@ -41,13 +43,15 @@ SUBMISSION_UUID_FIELD = 'meta/rootUuid'
 #         if not action.test_submission_passes_action(submission):
 #             return action
 
+
 def advanced_feature_instances(content, actions):
     action_instances = []
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        if action_params == True:
-            action_params = action_kls.build_params({}, content)
+        if action_params:
+            action_params = action_kls.build_params(content=content)
         yield action_kls(action_params)
+
 
 def populate_paths(_content):
     content = deepcopy(_content)
@@ -75,22 +79,23 @@ def populate_paths(_content):
         row['qpath'] = '-'.join([*group_stack, rowname])
     return content
 
+
 def advanced_submission_jsonschema(content, actions, url=None):
     actions = deepcopy(actions)
     action_instances = []
     content = populate_paths(content)
     # devhack: this keeps serializer from breaking when old params
     # are still in the database
-    if 'translated' in actions: # migration
+    if 'translated' in actions:  # migration
         actions['translation'] = actions['translated']  # migration
         assert 'languages' in actions['translation']
-        del actions['translated'] # migration
+        del actions['translated']  # migration
     # /devhack
-
+    # breakpoint()
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        if action_params == True:
-            action_params = action_kls.build_params({}, content)
+        if action_params:
+            action_params = action_kls.build_params(content=content)
         if 'values' not in action_params:
             action_params['values'] = action_kls.get_values_for_content(content)
         action_instances.append(action_kls(action_params))
@@ -99,25 +104,31 @@ def advanced_submission_jsonschema(content, actions, url=None):
 # def _empty_obj():
 #     return {'type': 'object', 'properties': {}, 'additionalProperties': False}
 
+
 def get_jsonschema(action_instances=(), url=None):
     sub_props = {}
     if url is None:
         url = '/advanced_submission_post/<asset_uid>'
-    schema = {'type': 'object',
-                  '$description': FEATURE_JSONSCHEMA_DESCRIPTION,
-                  'url': url,
-                  'properties': {
-                    'submission': {'type': 'string',
-                                   'description': 'the uuid of the submission'},
-                  },
-                  'additionalProperties': False,
-                  'required': ['submission'],
-              }
+    schema = {
+        'type': 'object',
+        '$description': FEATURE_JSONSCHEMA_DESCRIPTION,
+        'url': url,
+        'properties': {
+            'submission': {
+                'type': 'string',
+                'description': 'the uuid of the submission',
+            },
+        },
+        'additionalProperties': False,
+        'required': ['submission'],
+    }
     for instance in action_instances:
         schema = instance.modify_jsonschema(schema)
     return schema
 
+
 SUPPLEMENTAL_DETAILS_KEY = '_supplementalDetails'
+
 
 def stream_with_extras(submission_stream, asset):
     extras = dict(

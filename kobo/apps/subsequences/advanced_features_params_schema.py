@@ -25,23 +25,23 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
                     'type': 'array',
                     'items': {'type': 'string'},
                 },
-            }
+            },
         },
         'translation': {
             'type': 'object',
             'properties': {
-                'languages': {
-                    'type': 'array',
-                    'items': {'type': 'string'}
-                },
+                'languages': {'type': 'array', 'items': {'type': 'string'}},
                 'values': {
                     'type': 'array',
                     'items': {'type': 'string'},
                 },
             },
-            'required': ['languages']
-        }
-    }
+            'required': ['languages'],
+        },
+        'number_doubler': {
+            'type': 'object',
+        },
+    },
 }
 
 # User-defined qualitative analysis forms

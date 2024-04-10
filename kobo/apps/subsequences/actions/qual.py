@@ -6,17 +6,17 @@ class QualAction(BaseAction):
     ID = 'qual'
 
     @classmethod
-    def build_params(kls, survey_content):
+    def build_params(cls, content, **kwargs):
         _fields = []
-        for row in survey_content.get('survey', []):
+        for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                _fields.append(row['name'])
+                _fields.append(cls.get_name(row))
         return {'values': _fields}
 
     def load_params(self, params):
         '''
         Action.load_params is called when the instance is initialized
-        for each Asset. It will 
+        for each Asset. It will
         '''
         self.fields = params.get('values', [])
         self.qual_survey = params.get('qual_survey', [])

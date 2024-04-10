@@ -28,7 +28,7 @@ def get_lang_code(key, tvals):
     elif key == 'translation':
         for key in tvals.keys():
             yield key
-    elif key == 'translated': # migration
+    elif key == 'translated':  # migration
         raise ValueError('key "translated" should not be in the asset. Run management command:'
                          ' python manage.py runscript repop_known_cols" to fix')
 
