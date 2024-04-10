@@ -13,7 +13,7 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import styles from './singleProcessingHeader.module.scss';
-import {openProcessing} from './processingUtils';
+import {goToProcessing} from 'js/components/processing/routes.utils';
 import {withRouter} from 'js/router/legacy';
 import type {WithRouterProps} from 'js/router/legacy';
 import {actions} from 'js/actions';
@@ -167,7 +167,7 @@ class SingleProcessingHeader extends React.Component<
 
   /** Goes to another submission. */
   goToSubmission(qpath: string, targetSubmissionEditId: string) {
-    openProcessing(this.props.assetUid, qpath, targetSubmissionEditId);
+    goToProcessing(this.props.assetUid, qpath, targetSubmissionEditId, true);
   }
 
   goPrev() {

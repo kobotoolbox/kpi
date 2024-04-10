@@ -1,6 +1,4 @@
-import {ROUTES} from 'js/router/routerConstants';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import {router} from 'js/router/legacy';
 
 type SupplementalPathPartsType = 'transcript' | 'translation' | 'qual';
 
@@ -55,16 +53,4 @@ export function getSupplementalPathParts(path: string): SupplementalPathParts {
   }
 
   return output;
-}
-
-/** Opens processing view for given response to question in a project. */
-export function openProcessing(
-  assetUid: string,
-  qpath: string,
-  submissionEditId: string
-) {
-  const route = ROUTES.FORM_PROCESSING.replace(':uid', assetUid)
-    .replace(':qpath', qpath)
-    .replace(':submissionEditId', submissionEditId);
-  router!.navigate(route);
 }
