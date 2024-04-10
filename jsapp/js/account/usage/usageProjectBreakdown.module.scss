@@ -22,7 +22,6 @@ table th {
 .projects {
   padding-right: 15%;
   padding-left: sizes.$x8;
-  white-space: nowrap;
 }
 
 .wrap {
@@ -31,7 +30,7 @@ table th {
 
 th {
   font-weight: 700;
-  font-size: sizes.$x14;
+  font-size: sizes.$x13;
   color: colors.$kobo-gray-40;
   text-align: left;
   padding-block: 1.5%;
@@ -96,5 +95,12 @@ button {
 }
 
 .badge {
-  width: sizes.$x120;
+  width: sizes.$x150;
+}
+
+.emptyMessage {
+  padding: sizes.$x40;
+  font-size: 1.2rem;
+  justify-content: center;
+  text-align: center;
 }
