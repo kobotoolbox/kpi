@@ -58,12 +58,19 @@ class DecimalRounder(BaseAction):
 ## STEP 4: define the handler
 
     def run_change(self, submission):
+        # `_destination_field` is defined by `BaseAction` to be `_supplementalDetails`
         _data = submission.get(self._destination_field, {})
         fuel_cost = submission.get('fuel_cost')
-        _data['rounded'] = round(fuel_cost * 100) / 100
+        _data[self.ID] = {'fuel_cost': round(fuel_cost * 100) / 100}
         return {**submission, self._destination_field: _data}
 
 ```
+
+#### Step 4a: modify `ADVANCED_FEATURES_PARAMS_SCHEMA`
+
+…otherwise, you will be unable to add `decimal_rounder` to `asset.advanced_features` in step 5.
+
+TODO: figure out if we should really be maintaining the schema as one big constant, or if we should have a method in each action class that returns its own schema
 
 #### Step 5: specify which surveys (`Asset`) should be passed to this handler
 
@@ -96,9 +103,10 @@ class DecimalRounder(BaseAction):
 
     def run_change(self, submission):
         _data = submission.get(self._destination_field, {})
-        for field in self.fields_to_round:
+        _data[self.ID] = {}
+        for field_name in self.fields_to_round:
             fuel_cost = submission.get(field_name)
-            _data[field_name] = round(fuel_cost * 100) / 100
+            _data[self.ID][field_name] = round(fuel_cost * 100) / 100
         return {**submission, self._destination_field: _data}
 ```
 
@@ -121,12 +129,14 @@ GET "/advanced_submission_post/aSsEtUiD?submission=<submissionUuid>"
 {
   "submission": "submissionUuid",
   "_supplementalDetails": {
-    "rounded": {
+    "decimal_rounder": {
       "fuel_cost": 1.23
     }
   }
 }
 ```
+
+TODO: does GET to `advanced_submission_post` actually work?
 
 #### Step 9 (optional): Define a validator
 
@@ -138,14 +148,16 @@ class DecimalRounder(BaseAction):
     # ...
     # `modify_jsonschema` appended to the class above
     def modify_jsonschema(self, schema):
-        defs = schema.get('definitions', {})
-        props = schema.get('properties', {})
-        defs['roundedschemadef'] = {
+        defs = schema.setdefault('definitions', {})
+        props = schema.setdefault('properties', {})
+        # TODO: make sure this actually works…
+        defs[self.ID] = {}
+        defs[self.ID]['roundednumber'] = {
             'type': 'number',
         }
 
         for field_name in self.fields_to_round:
-            props[field_name] = {'$ref': '#/defs/roundedschemadef'}
+            props[field_name] = {'$ref': f'#/defs/{self.ID}/roundednumber'}
 ```
 
 #### Step 10: Test the module
@@ -175,8 +187,8 @@ this should print out the resulting submission:
 {
     "fuel_cost": 5.678901,
     "_supplementalDetails": {
-        "fuel_cost": {
-            "rounded": 5.68
+        "decimal_rounder": {
+            "fuel_cost": 5.68
         }
     }
 }
