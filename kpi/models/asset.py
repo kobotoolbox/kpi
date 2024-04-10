@@ -81,7 +81,6 @@ from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
-from kpi.tasks import remove_asset_snapshots
 
 
 class AssetDeploymentStatus(models.TextChoices):
@@ -1236,7 +1235,6 @@ class Asset(ObjectPermissionMixin,
         if regenerate:
             snapshot = False
             # Let's do some housekeeping
-            remove_asset_snapshots.delay(self.id)
         else:
             snapshot = AssetSnapshot.objects.filter(**snap_params).order_by(
                 '-date_created'

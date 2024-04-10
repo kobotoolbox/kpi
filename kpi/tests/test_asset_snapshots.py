@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils.timezone import now
 
+from kpi.tasks import remove_asset_snapshots
 from kpi.tests.api.v2 import test_api_asset_snapshots
 from ..models import Asset
 from ..models import AssetSnapshot
@@ -93,21 +94,37 @@ class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
         old_snapshot = AssetSnapshot.objects.create(asset=self.asset)
         old_snapshot.date_created = yesterday
         old_snapshot.save(update_fields=['date_created'])
-        # versioned snapshots are always regenerated
-        versioned_snapshot = self.asset.snapshot(
+
+        self.asset.deploy(backend='mock', active=True)
+        versioned_snapshot_1 = self.asset.snapshot(
             regenerate=True,
             version_uid=self.asset.latest_deployed_version_uid
         )
-        snapshot_uids = list(AssetSnapshot.objects.filter(
-            asset=self.asset
-        ).values_list('uid', flat=True))
-        expected_snapshot_uids = [
-            versioned_snapshot.uid,
-            old_snapshot.uid,
-            self.asset_snapshot.uid,
-        ]
+        versioned_snapshot_1.date_created = two_days_before
+        versioned_snapshot_1.save(update_fields=['date_created'])
+
+        # Redeploy asset to add version
+        self.asset.content['survey'].append(
+            {'type': 'note', 'label': 'Read me', 'name': 'n'}
+        )
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        versioned_snapshot_2 = self.asset.snapshot(
+            regenerate=True, version_uid=self.asset.latest_deployed_version_uid
+        )
+        # Set date to beyond retention limit to ensure latest version snapshot is preserved
+        versioned_snapshot_2.date_created = two_days_before
+        versioned_snapshot_2.save(update_fields=['date_created'])
+
+        with self.assertNumQueries(7):
+            remove_asset_snapshots.delay()
+
+        # Old snapshot should still exist
+        assert AssetSnapshot.objects.filter(pk=old_snapshot.id).exists()
         # Older snapshot should be gone
         assert not AssetSnapshot.objects.filter(pk=older_snapshot.id).exists()
-        # Older snapshot should still exist
-        assert AssetSnapshot.objects.filter(pk=old_snapshot.id).exists()
-        assert sorted(expected_snapshot_uids) == sorted(snapshot_uids)
+        # Only latest versioned snapshot should still exist
+        assert AssetSnapshot.objects.filter(pk=versioned_snapshot_2.id).exists()
+        assert not AssetSnapshot.objects.filter(
+            pk=versioned_snapshot_1.id
+        ).exists()
