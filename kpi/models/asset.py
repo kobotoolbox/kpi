@@ -1234,7 +1234,6 @@ class Asset(ObjectPermissionMixin,
 
         if regenerate:
             snapshot = False
-            # Let's do some housekeeping
         else:
             snapshot = AssetSnapshot.objects.filter(**snap_params).order_by(
                 '-date_created'
