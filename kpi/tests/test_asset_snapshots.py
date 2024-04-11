@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils.timezone import now
 
-from kpi.tasks import remove_asset_snapshots
+from kpi.maintenance_tasks import remove_old_assetsnapshots
 from kpi.tests.api.v2 import test_api_asset_snapshots
 from ..models import Asset
 from ..models import AssetSnapshot
@@ -116,8 +116,8 @@ class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
         versioned_snapshot_2.date_created = two_days_before
         versioned_snapshot_2.save(update_fields=['date_created'])
 
-        with self.assertNumQueries(7):
-            remove_asset_snapshots.delay()
+        with self.assertNumQueries(4):
+            remove_old_assetsnapshots()
 
         # Old snapshot should still exist
         assert AssetSnapshot.objects.filter(pk=old_snapshot.id).exists()

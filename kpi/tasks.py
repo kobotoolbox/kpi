@@ -94,15 +94,3 @@ def enketo_flush_cached_preview(server_url, form_id):
         data=dict(server_url=server_url, form_id=form_id),
     )
     response.raise_for_status()
-
-
-@celery_app.task
-def remove_asset_snapshots():
-    """
-    Temporary task to delete old snapshots.
-    TODO remove when kpi#2434 is merged
-    """
-    call_command(
-        'delete_assets_snapshots',
-        days=constance.config.ASSET_SNAPSHOT_DAYS_RETENTION,
-    )
