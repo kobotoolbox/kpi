@@ -29,8 +29,7 @@ import {
   isAnyProcessingRouteActive,
   getProcessingPathParts,
 } from 'js/components/processing/routes.utils';
-
-export type ProcessingTabName = 'transcript' | 'translations' | 'analysis';
+import type {ProcessingTabName} from 'js/components/processing/routes.utils';
 
 export enum StaticDisplays {
   Data = 'Data',

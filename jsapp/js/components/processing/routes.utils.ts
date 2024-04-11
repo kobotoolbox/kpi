@@ -2,10 +2,17 @@
 // routes and navigation.
 
 import {generatePath} from 'react-router-dom';
-import type {ProcessingTabName} from 'js/components/processing/singleProcessingStore';
 import {router} from 'js/router/legacy';
 import {ROUTES, PROCESSING_ROUTES} from 'js/router/routerConstants';
 import {getCurrentPath} from 'js/router/routerUtils';
+
+export type ProcessingTabName = 'transcript' | 'translations' | 'analysis';
+
+const TabToRouteMap: Map<ProcessingTabName, string> = new Map([
+  ['transcript', PROCESSING_ROUTES.TRANSCRIPT],
+  ['translations', PROCESSING_ROUTES.TRANSLATIONS],
+  ['analysis', PROCESSING_ROUTES.ANALYSIS],
+]);
 
 interface ProcessingPathParts {
   assetUid: string;
@@ -108,12 +115,12 @@ export function goToProcessing(
   let targetRoute: string = ROUTES.FORM_PROCESSING_ROOT;
 
   if (remainOnSameTab) {
-    if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
-      targetRoute = PROCESSING_ROUTES.TRANSCRIPT;
-    } else if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS)) {
-      targetRoute = PROCESSING_ROUTES.TRANSLATIONS;
-    } else if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
-      targetRoute = PROCESSING_ROUTES.ANALYSIS;
+    const activeTab = getActiveTab();
+    if (activeTab) {
+      const activeTabRoute = TabToRouteMap.get(activeTab);
+      if (activeTabRoute) {
+        targetRoute = activeTabRoute;
+      }
     }
   }
 
