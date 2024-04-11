@@ -1,6 +1,5 @@
 # coding: utf-8
 from django.conf import settings
-from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse, HttpRequest
@@ -9,6 +8,8 @@ from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 from rest_framework import status
 from rest_framework.exceptions import server_error
+
+from kpi.utils.urls import is_request_for_html
 
 admin.autodiscover()
 admin.site.login = staff_member_required(
@@ -44,11 +45,6 @@ if settings.ENABLE_METRICS:
     )
 
 
-def is_request_for_html(request: HttpRequest):
-    request_format = request.GET.get('format') or request.POST.get('format')
-    return request.accepts('text/html') or (request_format and request_format != 'api')
-
-
 def render404(request: HttpRequest, exception):
     if is_request_for_html(request):
         return render(request, 'custom_404.html', status=404)
@@ -63,5 +59,6 @@ def render500(request: HttpRequest):
     return server_error(request)
 
 
+# override the django error page handlers with our own
 handler404 = render404
 handler500 = render500
