@@ -84,7 +84,7 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
 class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
 
     @override_config(ASSET_SNAPSHOT_DAYS_RETENTION=2)
-    def test_delete_old_asset_snapshots_on_regenerate(self):
+    def test_delete_old_asset_snapshots_task(self):
         two_days_before = now() - timedelta(days=3)  # One more day than Constance setting
         yesterday = now() - timedelta(days=1)
         # Because of `auto_date_now` , we cannot specify the date with `create()`
