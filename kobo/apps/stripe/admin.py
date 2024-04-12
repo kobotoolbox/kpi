@@ -24,6 +24,7 @@ class PlanAddOnAdmin(ModelAdmin):
     search_fields = ('organization__id', 'id', 'organization__name', 'product__id')
     actions = ('_delete', 'make_add_ons')
     universal_actions = ['make_add_ons']
+    change_list_template = 'admin/add-ons/change_list.html'
 
     @admin.action(description='Make add-ons for existing Charges')
     def make_add_ons(self, request, queryset):
