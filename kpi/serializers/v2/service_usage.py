@@ -218,6 +218,8 @@ class ServiceUsageSerializer(serializers.Serializer):
             id=organization_id,
         ).first()
 
+        self.context.update({'organization': organization})
+
         if not organization:
             # Couldn't find organization, proceed as normal
             return
