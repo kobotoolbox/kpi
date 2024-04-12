@@ -105,7 +105,7 @@ const AddOnList = (props: {
       .catch(handleCheckoutError);
   };
 
-  if (!addOnProducts.length || subscribedPlans.length || !props.organization) {
+  if (!addOnProducts.length || !props.organization) {
     return null;
   }
 
