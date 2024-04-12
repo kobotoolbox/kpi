@@ -1,31 +1,28 @@
 import constance
 from datetime import timedelta
 
-from django.db.models import Max
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
 from kpi.models import AssetSnapshot
 
 
-default_retention_period = 90
-
 def remove_old_assetsnapshots():
-    days = (
-        constance.config.ASSET_SNAPSHOT_DAYS_RETENTION
-        or default_retention_period
-    )
-    max_snapshots_qs = (
-        AssetSnapshot.objects.exclude(asset_version=None)
-        .values('asset_id')
-        .annotate(max_snapshot_id=Max('pk'))
-        .values_list('max_snapshot_id', flat=True)
-    )
+    days = constance.config.ASSET_SNAPSHOT_DAYS_RETENTION
 
-    max_snapshot_ids = list(max_snapshots_qs)
+    # We don't want to delete an asset's latest versioned snapshot,
+    # even if it is older than the retention period
+    newer_snapshot_for_asset = AssetSnapshot.objects.exclude(
+        asset_version=None
+    ).filter(asset_id=OuterRef('asset_id'), pk__gt=OuterRef('pk'))
 
-    delete_queryset = AssetSnapshot.objects.filter(
-        date_created__lt=timezone.now() - timedelta(days=days),
-    ).exclude(pk__in=max_snapshot_ids).order_by('pk')
+    delete_queryset = (
+        AssetSnapshot.objects.filter(
+            date_created__lt=timezone.now() - timedelta(days=days),
+        )
+        .filter(Exists(newer_snapshot_for_asset))
+        .order_by('pk')
+    )
 
     while True:
         try:
@@ -35,5 +32,4 @@ def remove_old_assetsnapshots():
             delete_queryset.filter(id__lte=deletion_delimiter).delete()
         except AssetSnapshot.DoesNotExist:
             break
-        
     delete_queryset.delete()

@@ -116,7 +116,7 @@ class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
         versioned_snapshot_2.date_created = two_days_before
         versioned_snapshot_2.save(update_fields=['date_created'])
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(3):
             remove_old_assetsnapshots()
 
         # Old snapshot should still exist
