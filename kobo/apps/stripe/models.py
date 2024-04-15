@@ -1,3 +1,5 @@
+from typing import List
+
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinValueValidator
@@ -8,6 +10,8 @@ from djstripe.enums import PaymentIntentStatus
 from djstripe.models import Charge, Price, Subscription
 
 from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
+from kobo.apps.organizations.types import UsageType
 from kobo.apps.stripe.utils import get_default_add_on_limits
 from kpi.fields import KpiUidField
 
@@ -61,13 +65,13 @@ class PlanAddOn(models.Model):
         return {key: value * self.quantity for key, value in self.usage_limits.items()}
 
     @property
-    def valid_subscription_products(self):
+    def valid_tags(self) -> List:
         """
-        The subscription products required to purchase this add-on.
-        If the org that purchased this add-on no longer has a subscription in this list, the add-on will be inactive.
-        If the add-on doesn't require a specific subscription, this property will return an empty list.
+        The tag metadata (on the subscription product/price) needed to view/purchase this add-on.
+        If the org that purchased this add-on no longer has that a plan with those tags, the add-on will be inactive.
+        If the add-on doesn't require a tag, this property will return an empty list.
         """
-        return self.product.metadata.get('valid_subscription_products', [])
+        return self.product.metadata.get('valid_tags', '').split(',')
 
     @admin.display(boolean=True, description='available')
     def is_available(self):
@@ -112,10 +116,11 @@ class PlanAddOn(models.Model):
             # might be some other type of payment
             return False
 
-        valid_subscription_products = product.metadata.get('valid_subscription_products', '').split(',')
-        if valid_subscription_products and not Subscription.objects.filter(
+        tags = product.metadata.get('valid_tags', '').split(',')
+        if tags and ('all' not in tags) and not Subscription.objects.filter(
             customer__subscriber=organization,
-            items__price__product__id__in=valid_subscription_products,
+            items__price__product__metadata__has_key__in=[tags],
+            status__in=ACTIVE_STRIPE_STATUSES
         ).exists():
             # this user doesn't have the subscription level they need for this addon, bail
             return False
@@ -157,22 +162,26 @@ class PlanAddOn(models.Model):
         return created_count
 
     @staticmethod
-    def increment_add_ons_for_user(user_id: int, usage_type: str, amount: int):
+    def increment_add_ons_for_user(user_id: int, add_on_type: UsageType, amount: int):
         """
         Increments the usage counter for limit_type by amount_used for a given user.
         Will always increment the add-on with the most used first, so that add-ons are used up in FIFO order.
         Returns the amount of usage that was not applied to an add-on.
         """
-        limit_key = f'limits_remaining__{usage_type}'
+        usage_type = USAGE_LIMIT_MAP[add_on_type]
+        limit_key = f'{usage_type}_limit'
+        metadata_key = f'limits_remaining__{limit_key}'
         add_ons = PlanAddOn.objects.filter(
             organization__organization_users__user__id=user_id,
-            usage_limits__has_key=usage_type,
+            limits_remaining__has_key=limit_key,
             charge__refunded=False,
             charge__payment_intent__status=PaymentIntentStatus.succeeded,
-            **{f'{limit_key}__gt': 0}
-        ).order_by(limit_key)
+            **{f'{metadata_key}__gt': 0}
+        ).order_by(metadata_key)
         remaining = amount
         for add_on in add_ons.iterator():
+            if not add_on.organization.is_organization_over_plan_limit(add_on_type):
+                return remaining
             if add_on.is_available():
                 remaining -= add_on.increment(limit_type=usage_type, amount_used=remaining)
         return remaining
