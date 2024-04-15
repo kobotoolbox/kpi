@@ -67,7 +67,7 @@ export default function StepEditor() {
           setDraftValue(evt.target.value);
         }}
         disabled={singleProcessingStore.data.isFetchingData}
-        dir="auto"
+        dir='auto'
       />
     </div>
   );

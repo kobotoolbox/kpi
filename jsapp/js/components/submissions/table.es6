@@ -933,7 +933,9 @@ export class DataTable extends React.Component {
             );
 
             return (
-              <span className='trimmed-text'>{supplementalDetailsContent}</span>
+              <span className='trimmed-text' dir='auto'>
+                {supplementalDetailsContent}
+              </span>
             );
           }
 
@@ -942,7 +944,7 @@ export class DataTable extends React.Component {
             if (repeatGroupAnswers) {
               // display a list of answers from a repeat group question
               return (
-                <span className='trimmed-text'>
+                <span className='trimmed-text' dir='auto'>
                   {repeatGroupAnswers.join(', ')}
                 </span>
               );
@@ -950,7 +952,7 @@ export class DataTable extends React.Component {
               return '';
             }
           } else {
-            return <span className='trimmed-text'>{row.value}</span>;
+            return <span className='trimmed-text' dir='auto'>{row.value}</span>;
           }
         },
       });
