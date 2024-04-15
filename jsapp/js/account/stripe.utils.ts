@@ -249,7 +249,9 @@ export const useLimitDisplay = () => {
         case USAGE_TYPE.TRANSCRIPTION:
           return t('##minutes## mins').replace(
             '##minutes##',
-            total.toLocaleString()
+            typeof total === 'number'
+              ? Math.floor(total).toLocaleString()
+              : total
           );
         default:
           return total.toLocaleString();
