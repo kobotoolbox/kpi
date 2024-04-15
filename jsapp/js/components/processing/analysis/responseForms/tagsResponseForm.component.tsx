@@ -80,6 +80,8 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
           onlyUnique
           addOnBlur
           addOnPaste
+          // We override the default to not have "split by space character"
+          pasteSplit={(data) => [data.trim()]}
           disabled={!props.canEdit}
         />
       </section>
