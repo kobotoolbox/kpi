@@ -43,7 +43,7 @@ export default function TextModalCell(
 
   return (
     <>
-      <div className={styles.cell}>
+      <div className={styles.cell} dir='auto'>
         <span className={styles.textContent}>{props.text}</span>
 
         <Button
@@ -74,7 +74,7 @@ export default function TextModalCell(
         </KoboModalHeader>
 
         <KoboModalContent>
-          <div className={styles.modalContent}>{props.text}</div>
+          <div className={styles.modalContent} dir='auto'>{props.text}</div>
         </KoboModalContent>
       </KoboModal>
     </>
