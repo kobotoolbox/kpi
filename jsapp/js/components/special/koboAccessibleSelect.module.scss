@@ -14,11 +14,12 @@ $input-color: colors.$kobo-gray-24;
 .root {
   width: 100%;
   position: relative;
-  font-size: sizes.$x12;
+  font-size: sizes.$x14;
+  margin-right: sizes.$x8;
 }
 
 .m {
-  width: 50%;
+  width: 60%;
 }
 
 .s {
@@ -33,9 +34,9 @@ $input-color: colors.$kobo-gray-24;
 // A focusable input that receives keyboard shortcuts and mouse clicks
 .trigger {
   // Sizing
-  height: sizes.$x36;
+  height: sizes.$x48;
   width: 100%;
-  font-size: sizes.$x12;
+  font-size: sizes.$x14;
   padding: 0 sizes.$x16;
   @include mixins.centerRowFlex;
   justify-content: space-between;

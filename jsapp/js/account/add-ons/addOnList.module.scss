@@ -29,7 +29,6 @@
   & td {
     padding-block: 1em;
     font-weight: 700;
-    overflow: hidden;
   }
 }
 
@@ -38,8 +37,29 @@
   width: 40%;
 }
 
+.oneTimePrice {
+  width: 20%;
+  text-align: center;
+  font-weight: 600;
+  font-size: sizes.$x16;
+  color: colors.$kobo-gray-40;
+  padding-right: 1.5%;
+}
+
+.dropDown {
+  width: 40%;
+}
+
 .productName {
+  width: 25%;
   margin-right: sizes.$x12;
+  font-size: sizes.$x16;
+  font-weight: 600;
+}
+
+.description {
+  font-size: sizes.$x14;
+  font-weight: 400;
 }
 
 .buy {
@@ -48,6 +68,18 @@
 
 .oneTime {
   display: flex;
+  justify-content: center;
+}
+
+.purchasedAddOns {
+  padding-top: 2%;
+  padding-bottom: 2%;
+}
+
+.activePrice {
+  text-align: right;
+  font-size: sizes.$x16;
+  font-weight: 600;
 }
 
 @media screen and (min-width: breakpoints.$b1140) {
