@@ -40,7 +40,7 @@ def organization_year_start(organization: Union[Organization, None]):
 
     # Subscription is billed yearly, use the provided anchor date as start date
     if billing_details.get('subscription_interval') == 'year':
-        return billing_details.get('period_start')
+        return billing_details.get('current_period_start')
 
     # Subscription is monthly, calculate this year's start based on anchor date
     while anchor_date + relativedelta(years=1) < now:
