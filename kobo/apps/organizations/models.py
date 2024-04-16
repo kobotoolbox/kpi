@@ -1,12 +1,17 @@
+from typing import Union
+
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import F
 from django.utils import timezone
+from django_request_cache import cache_for_request
 
+from kobo.apps.organizations.types import UsageType
 
 if settings.STRIPE_ENABLED:
    from djstripe.models import Customer, Subscription
+   from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, ORGANIZATION_USAGE_MAX_CACHE_AGE, \
+    USAGE_LIMIT_MAP_STRIPE, USAGE_LIMIT_MAP
 from functools import partial
 
 from organizations.abstract import (
@@ -17,16 +22,13 @@ from organizations.abstract import (
 )
 from organizations.utils import create_organization as create_organization_base
 
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kpi.fields import KpiUidField
 
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
-    asr_seconds_month = models.PositiveIntegerField(blank=True, null=True, default=None)
-    asr_seconds_year = models.PositiveIntegerField(blank=True, null=True, default=None)
-    mt_characters_month = models.PositiveIntegerField(blank=True, null=True, default=None)
-    mt_characters_year = models.PositiveIntegerField(blank=True, null=True, default=None)
+    asr_seconds_limit = models.PositiveIntegerField(blank=True, null=True, default=None)
+    mt_character_limit = models.PositiveIntegerField(blank=True, null=True, default=None)
     usage_updated = models.DateTimeField(blank=True, null=True, default=None)
 
     @property
@@ -63,12 +65,41 @@ class Organization(AbstractOrganization):
         return None
 
     def update_usage_cache(self, service_usage: dict):
-        self.asr_seconds_month = service_usage['total_nlp_usage']['asr_seconds_current_month']
-        self.asr_seconds_year = service_usage['total_nlp_usage']['asr_seconds_current_year']
-        self.mt_characters_month = service_usage['total_nlp_usage']['mt_characters_current_month']
-        self.mt_characters_year = service_usage['total_nlp_usage']['mt_characters_current_year']
+        if not (billing_details := self.active_subscription_billing_details):
+            return None
+        interval = billing_details['recurring_interval']
+        self.asr_seconds_limit = service_usage['total_nlp_usage'][f'asr_seconds_current_{interval}']
+        self.mt_character_limit = service_usage['total_nlp_usage'][f'mt_characters_current_{interval}']
         self.usage_updated = timezone.now()
         return self.save()
+
+    @cache_for_request
+    def is_organization_over_plan_limit(self, limit_type: UsageType) -> Union[bool, None]:
+        """
+        Check if an organization is over their plan's limit for a given usage type
+        Returns None if Stripe isn't enabled or the limit status couldn't be determined
+        """
+        if not settings.STRIPE_ENABLED:
+            return None
+        if timezone.now() - self.usage_updated > ORGANIZATION_USAGE_MAX_CACHE_AGE:
+            # TODO: re-fetch service usage data if stale
+            pass
+        cached_usage = self.serializable_value(f'{USAGE_LIMIT_MAP[limit_type]}_limit')
+        stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[limit_type]}_limit'
+        current_limit = Organization.objects.filter(
+            id=self.id,
+            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',
+        ).values(
+            price_limit=F(f'djstripe_customers__subscriptions__items__price__metadata__{stripe_key}'),
+            product_limit=F(f'djstripe_customers__subscriptions__items__price__product__metadata__{stripe_key}'),
+        ).first()
+        if current_limit:
+            relevant_limit = current_limit.get('price_limit') or current_limit.get('product_limit')
+        else:
+            # TODO: get the limits from the community plan, overrides
+            relevant_limit = 2000
+        return int(relevant_limit) and cached_usage > int(relevant_limit)
 
 
 class OrganizationUser(AbstractOrganizationUser):

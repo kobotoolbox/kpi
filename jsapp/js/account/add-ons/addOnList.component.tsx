@@ -68,6 +68,29 @@ const AddOnList = (props: {
     []
   );
 
+  const isSubscribedAddOnPrice = useCallback(
+    (price: Price) =>
+      isChangeScheduled(price, activeSubscriptions) ||
+      subscribedAddOns.some(
+        (subscription) => subscription.items[0].price.id === price.id
+      ),
+    [subscribedAddOns]
+  );
+
+  const handleCheckoutError = () => {
+    props.setIsBusy(false);
+  };
+
+  const onClickManage = (price?: Price) => {
+    if (!props.organization || props.isBusy) {
+      return;
+    }
+    props.setIsBusy(true);
+    postCustomerPortal(props.organization.id, price?.id)
+      .then(processCheckoutResponse)
+      .catch(handleCheckoutError);
+  };
+
   if (!addOnProducts.length || !props.organization) {
     return null;
   }

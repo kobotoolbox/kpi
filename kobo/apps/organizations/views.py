@@ -92,6 +92,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             context=context,
         )
         response = Response(data=serializer.data)
-        if (response.status_code == 200) and (organization := serializer._organization):
+
+        # update the cached usage data only if we successfully got results for this organization
+        if (response.status_code == 200) and (organization := context.get('organization')):
             organization.update_usage_cache(serializer.data)
         return response
