@@ -68,29 +68,6 @@ const AddOnList = (props: {
     []
   );
 
-  const isSubscribedAddOnPrice = useCallback(
-    (price: Price) =>
-      isChangeScheduled(price, activeSubscriptions) ||
-      subscribedAddOns.some(
-        (subscription) => subscription.items[0].price.id === price.id
-      ),
-    [subscribedAddOns]
-  );
-
-  const handleCheckoutError = () => {
-    props.setIsBusy(false);
-  };
-
-  const onClickManage = (price?: Price) => {
-    if (!props.organization || props.isBusy) {
-      return;
-    }
-    props.setIsBusy(true);
-    postCustomerPortal(props.organization.id, price?.id)
-      .then(processCheckoutResponse)
-      .catch(handleCheckoutError);
-  };
-
   if (!addOnProducts.length || !props.organization) {
     return null;
   }
@@ -181,11 +158,7 @@ const AddOnList = (props: {
                       </p>
                     </td>
                     <td className={styles.activePrice}>
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                      }).format(
-                        (oneTimeAddOns.quantity *
+                      {('$' + (oneTimeAddOns.quantity *
                           oneTimeAddOneProducts[0].prices[0].unit_amount) /
                           100
                       )}
@@ -236,7 +209,9 @@ const AddOnList = (props: {
                   <tr className={styles.row} key={oneTimeAddOns.id}>
                     <td className={styles.product}>
                       <span className={styles.productName}>
-                        {oneTimeAddOneProducts[0].name}
+                         {oneTimeAddOneProducts[0].name +
+                          ' x ' +
+                          oneTimeAddOns.quantity}
                       </span>
                       <Badge color={'cloud'} size={'s'} label={'Inactive'} />
                       <p className={styles.description}>
@@ -244,11 +219,7 @@ const AddOnList = (props: {
                       </p>
                     </td>
                     <td className={styles.activePrice}>
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                      }).format(
-                        (oneTimeAddOns.quantity *
+                      {('$' + (oneTimeAddOns.quantity *
                           oneTimeAddOneProducts[0].prices[0].unit_amount) /
                           100
                       )}
