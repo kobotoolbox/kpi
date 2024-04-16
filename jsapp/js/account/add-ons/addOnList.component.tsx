@@ -11,12 +11,13 @@ import type {
 import {isAddonProduct} from 'js/account/stripe.utils';
 import styles from './addOnList.module.scss';
 import {OneTimeAddOnRow} from 'js/account/add-ons/oneTimeAddOnRow.component';
+import type {BadgeColor} from 'jsapp/js/components/common/badge';
 import Badge from 'jsapp/js/components/common/badge';
 import {formatDate} from 'js/utils';
 import {OneTimeAddOnsContext} from 'jsapp/js/account/useOneTimeAddonList.hook';
 
 /**
- * A table of add-on products along with buttons to purchase/manage them.
+ * A table of add-on products along with dropdowns to purchase them.
  */
 const AddOnList = (props: {
   products: Product[];
@@ -72,6 +73,73 @@ const AddOnList = (props: {
     return null;
   }
 
+  const renderActivePreviousAddons = (
+    addOns: SubscriptionInfo[],
+    oneTimeAddOns: OneTimeAddOn[],
+    activeStatus: string,
+    available: boolean,
+    label: string,
+    badgeLabel: string,
+    color: BadgeColor
+  ) => (
+    <table className={styles.table}>
+      <caption className={`${styles.caption} ${styles.purchasedAddOns}`}>
+        <label className={styles.header}>{label}</label>
+      </caption>
+      <tbody>
+        {addOns.map((product) => {
+          if (product.status === activeStatus) {
+            return (
+              <tr className={styles.row} key={product.id}>
+                <td className={styles.product}>
+                  <span className={styles.productName}>
+                    {product.items[0].price.product.name}
+                  </span>
+                  <Badge color={color} size={'s'} label={badgeLabel} />
+                  <p className={styles.description}>
+                    {`Added on ${formatDate(product.created)}`}
+                  </p>
+                </td>
+                <td className={styles.activePrice}>
+                  {product.items[0].price.human_readable_price
+                    .replace('USD/month', '')
+                    .replace('USD/year', '')}
+                </td>
+              </tr>
+            );
+          }
+          return null;
+        })}
+        {oneTimeAddOns.map((oneTimeAddOn: OneTimeAddOn) => {
+          if (oneTimeAddOn.is_available === available) {
+            return (
+              <tr className={styles.row} key={oneTimeAddOn.id}>
+                <td className={styles.product}>
+                  <span className={styles.productName}>
+                    {oneTimeAddOneProducts[0].name +
+                      ' x ' +
+                      oneTimeAddOn.quantity}
+                  </span>
+                  <Badge color={color} size={'s'} label={badgeLabel} />
+                  <p className={styles.description}>
+                    {`Added on ${formatDate(oneTimeAddOn.created)}`}
+                  </p>
+                </td>
+                <td className={styles.activePrice}>
+                  {'$' +
+                    ((oneTimeAddOn.quantity *
+                      oneTimeAddOneProducts[0].prices[0].unit_amount) /
+                      100).toFixed(2)}
+                </td>
+              </tr>
+            );
+          }
+          return null;
+        })}
+      </tbody>
+    </table>
+  );
+
   return (
     <>
       <table className={styles.table}>
@@ -113,125 +181,32 @@ const AddOnList = (props: {
       {subscribedAddOns.some((product) => product.status === 'active') ||
       oneTimeAddOnSubscriptions.some(
         (oneTimeAddOns) => oneTimeAddOns.is_available
-      ) ? (
-        <table className={styles.table}>
-          <caption className={`${styles.caption} ${styles.purchasedAddOns}`}>
-            <label className={styles.header}>{t('your active add-ons')}</label>
-          </caption>
-          <tbody>
-            {subscribedAddOns.map((product) => {
-              if (product.status === 'active') {
-                return (
-                  <tr className={styles.row} key={product.id}>
-                    <td className={styles.product}>
-                      <span className={styles.productName}>
-                        {product.items[0].price.product.name}
-                      </span>
-                      <Badge color={'light-teal'} size={'s'} label={'Active'} />
-                      <p className={styles.description}>
-                        {`Added on ${formatDate(product.created)}`}
-                      </p>
-                    </td>
-                    <td className={styles.activePrice}>
-                      {product.items[0].price.human_readable_price
-                        .replace('USD/month', '')
-                        .replace('USD/year', '')}
-                    </td>
-                  </tr>
-                );
-              }
-              return null;
-            })}
-            {oneTimeAddOnSubscriptions.map((oneTimeAddOns: OneTimeAddOn) => {
-              if (oneTimeAddOns.is_available) {
-                return (
-                  <tr className={styles.row} key={oneTimeAddOns.id}>
-                    <td className={styles.product}>
-                      <span className={styles.productName}>
-                        {oneTimeAddOneProducts[0].name +
-                          ' x ' +
-                          oneTimeAddOns.quantity}
-                      </span>
-                      <Badge color={'light-teal'} size={'s'} label={'Active'} />
-                      <p className={styles.description}>
-                        {`Added on ${formatDate(oneTimeAddOns.created)}`}
-                      </p>
-                    </td>
-                    <td className={styles.activePrice}>
-                      {('$' + (oneTimeAddOns.quantity *
-                          oneTimeAddOneProducts[0].prices[0].unit_amount) /
-                          100
-                      )}
-                    </td>
-                  </tr>
-                );
-              }
-              return null;
-            })}
-          </tbody>
-        </table>
-      ) : null}
+      )
+        ? renderActivePreviousAddons(
+            subscribedAddOns,
+            oneTimeAddOnSubscriptions,
+            'active',
+            true,
+            t('your active add-ons'),
+            'Active',
+            'light-teal'
+          )
+        : null}
+
       {subscribedAddOns.some((product) => product.status !== 'active') ||
       oneTimeAddOnSubscriptions.some(
         (oneTimeAddOns) => !oneTimeAddOns.is_available
-      ) ? (
-        <table className={styles.table}>
-          <caption className={`${styles.caption} ${styles.purchasedAddOns}`}>
-            <label className={styles.header}>{t('previous add-ons')}</label>
-          </caption>
-          <tbody>
-            {subscribedAddOns.map((product) => {
-              if (product.status !== 'active') {
-                return (
-                  <tr className={styles.row} key={product.id}>
-                    <td className={styles.product}>
-                      <span className={styles.productName}>
-                        {product.items[0].price.product.name}
-                      </span>
-                      <Badge color={'cloud'} size={'s'} label={'inactive'} />
-                      <p className={styles.description}>
-                        {`Added on ${formatDate(product.created)}`}
-                      </p>
-                    </td>
-                    <td className={styles.activePrice}>
-                      {product.items[0].price.human_readable_price
-                        .replace('USD/month', '')
-                        .replace('USD/year', '')}
-                    </td>
-                  </tr>
-                );
-              }
-              return null;
-            })}
-            {oneTimeAddOnSubscriptions.map((oneTimeAddOns: OneTimeAddOn) => {
-              if (!oneTimeAddOns.is_available) {
-                return (
-                  <tr className={styles.row} key={oneTimeAddOns.id}>
-                    <td className={styles.product}>
-                      <span className={styles.productName}>
-                         {oneTimeAddOneProducts[0].name +
-                          ' x ' +
-                          oneTimeAddOns.quantity}
-                      </span>
-                      <Badge color={'cloud'} size={'s'} label={'Inactive'} />
-                      <p className={styles.description}>
-                        {`Added on ${formatDate(oneTimeAddOns.created)}`}
-                      </p>
-                    </td>
-                    <td className={styles.activePrice}>
-                      {('$' + (oneTimeAddOns.quantity *
-                          oneTimeAddOneProducts[0].prices[0].unit_amount) /
-                          100
-                      )}
-                    </td>
-                  </tr>
-                );
-              }
-              return null;
-            })}
-          </tbody>
-        </table>
-      ) : null}
+      )
+        ? renderActivePreviousAddons(
+            subscribedAddOns,
+            oneTimeAddOnSubscriptions,
+            'inactive',
+            false,
+            t('previous add-ons'),
+            'Inactive',
+            'cloud'
+          )
+        : null}
     </>
   );
 };
