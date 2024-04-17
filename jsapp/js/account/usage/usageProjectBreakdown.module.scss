@@ -1,3 +1,4 @@
+@use 'scss/breakpoints';
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 
@@ -8,6 +9,10 @@
   margin: 0 sizes.$x40;
   height: 100%;
   overflow-x: auto;
+}
+
+.container{
+  height: sizes.$x600;
 }
 
 table {
@@ -103,4 +108,13 @@ button {
   font-size: 1.2rem;
   justify-content: center;
   text-align: center;
+}
+
+@media screen and (min-width: breakpoints.$b1140) {
+  .container{
+    height: sizes.$x580;
+  }
+  .pagination{
+     margin-top: sizes.$x20;
+  }
 }
