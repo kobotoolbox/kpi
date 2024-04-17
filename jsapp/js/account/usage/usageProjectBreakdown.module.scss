@@ -1,4 +1,3 @@
-@use 'scss/breakpoints';
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 
@@ -11,13 +10,10 @@
   overflow-x: auto;
 }
 
-.container{
-  height: sizes.$x600;
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-block-end: sizes.$x60;
 }
 
 table th {
@@ -69,7 +65,9 @@ th {
   font-weight: 400;
   font-size: sizes.$x14;
   color: colors.$kobo-gray-24;
-  margin-top: sizes.$x30;
+  position: fixed;
+  bottom: sizes.$x20;
+  background-color: white;
   border: sizes.$x1 solid colors.$kobo-gray-85;
   width: sizes.$x150;
   border-radius: sizes.$x4;
@@ -108,13 +106,4 @@ button {
   font-size: 1.2rem;
   justify-content: center;
   text-align: center;
-}
-
-@media screen and (min-width: breakpoints.$b1140) {
-  .container{
-    height: sizes.$x580;
-  }
-  .pagination{
-     margin-top: sizes.$x20;
-  }
 }

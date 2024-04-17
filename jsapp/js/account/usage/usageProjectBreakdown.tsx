@@ -112,81 +112,79 @@ const ProjectBreakdown = () => {
 
   return (
     <div className={styles.root}>
-      <div className={styles.container}>
-        <table>
-          <thead className={styles.headerFont}>
+      <table>
+        <thead className={styles.headerFont}>
+          <tr>
+            <th className={styles.projects}>
+              <SortableProjectColumnHeader
+                styling={false}
+                field={usageName}
+                orderableFields={['name', 'status']}
+                order={order}
+                onChangeOrderRequested={updateOrder}
+              />
+            </th>
+            <th className={styles.wrap}>{t('Submissions (Total)')}</th>
+            <th className={styles.wrap}>
+              {t('Submissions (This billing period)')}
+            </th>
+            <th>{t('Data Storage')}</th>
+            <th>{t('Transcript Minutes')}</th>
+            <th>{t('Translation characters')}</th>
+            <th className={styles.badge}>
+              <SortableProjectColumnHeader
+                styling={false}
+                field={usageStatus}
+                orderableFields={['name', 'status']}
+                order={order}
+                onChangeOrderRequested={updateOrder}
+              />
+            </th>
+          </tr>
+        </thead>
+        {parseInt(projectData.count) === 0 ? (
+          <tbody>
             <tr>
-              <th className={styles.projects}>
-                <SortableProjectColumnHeader
-                  styling={false}
-                  field={usageName}
-                  orderableFields={['name', 'status']}
-                  order={order}
-                  onChangeOrderRequested={updateOrder}
-                />
-              </th>
-              <th className={styles.wrap}>{t('Submissions (Total)')}</th>
-              <th className={styles.wrap}>
-                {t('Submissions (This billing period)')}
-              </th>
-              <th>{t('Data Storage')}</th>
-              <th>{t('Transcript Minutes')}</th>
-              <th>{t('Translation characters')}</th>
-              <th className={styles.badge}>
-                <SortableProjectColumnHeader
-                  styling={false}
-                  field={usageStatus}
-                  orderableFields={['name', 'status']}
-                  order={order}
-                  onChangeOrderRequested={updateOrder}
-                />
-              </th>
+              <td colSpan={7} style={{border: 'none'}}>
+                <div className={styles.emptyMessage}>
+                  {t('There are no projects to display.')}
+                </div>
+              </td>
             </tr>
-          </thead>
-          {parseInt(projectData.count) === 0 ? (
-            <tbody>
-              <tr>
-                <td colSpan={7} style={{border: 'none'}}>
-                  <div className={styles.emptyMessage}>
-                    {t('There are no projects to display.')}
-                  </div>
+          </tbody>
+        ) : (
+          <tbody>
+            {projectData.results.map((project) => (
+              <tr key={project.asset}>
+                <td>
+                  <Link
+                    className={styles.link}
+                    to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}
+                  >
+                    {project.asset__name}
+                  </Link>
+                </td>
+                <td>{project.submission_count_all_time.toLocaleString()}</td>
+                <td className={styles.currentMonth}>
+                  {project.submission_count_current_month.toLocaleString()}
+                </td>
+                <td>{prettyBytes(project.storage_bytes)}</td>
+                <td>
+                  {project.nlp_usage_current_month.total_nlp_asr_seconds.toLocaleString()}
+                </td>
+                <td>
+                  {project.nlp_usage_current_month.total_nlp_mt_characters.toLocaleString()}
+                </td>
+                <td className={styles.badge}>
+                  <AssetStatusBadge
+                    deploymentStatus={project.deployment_status}
+                  />
                 </td>
               </tr>
-            </tbody>
-          ) : (
-            <tbody>
-              {projectData.results.map((project) => (
-                <tr key={project.asset}>
-                  <td>
-                    <Link
-                      className={styles.link}
-                      to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}
-                    >
-                      {project.asset__name}
-                    </Link>
-                  </td>
-                  <td>{project.submission_count_all_time.toLocaleString()}</td>
-                  <td className={styles.currentMonth}>
-                    {project.submission_count_current_month.toLocaleString()}
-                  </td>
-                  <td>{prettyBytes(project.storage_bytes)}</td>
-                  <td>
-                    {project.nlp_usage_current_month.total_nlp_asr_seconds.toLocaleString()}
-                  </td>
-                  <td>
-                    {project.nlp_usage_current_month.total_nlp_mt_characters.toLocaleString()}
-                  </td>
-                  <td className={styles.badge}>
-                    <AssetStatusBadge
-                      deploymentStatus={project.deployment_status}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          )}
-        </table>
-      </div>
+            ))}
+          </tbody>
+        )}
+      </table>
       <nav>
         <div className={styles.pagination}>
           <button
