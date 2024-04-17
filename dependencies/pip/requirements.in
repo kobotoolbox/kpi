@@ -71,7 +71,7 @@ static3
 tabulate
 unicodecsv
 uWSGI
-Werkzeug<=2.0.3
+Werkzeug<=2.2.8
 xlrd
 xlwt
 xlutils

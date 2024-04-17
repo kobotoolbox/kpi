@@ -42,7 +42,7 @@ celery[redis]==5.2.6
     # via
     #   -r dependencies/pip/requirements.in
     #   django-celery-beat
-certifi==2021.10.8
+certifi==2023.7.22
     # via
     #   msrest
     #   requests
@@ -62,7 +62,7 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.2.0
     # via celery
-cryptography==36.0.2
+cryptography==42.0.2
     # via
     #   azure-storage-blob
     #   jwcrypto
@@ -194,7 +194,7 @@ jsonfield==3.1.0
     # via -r dependencies/pip/requirements.in
 jsonschema==4.4.0
     # via formpack
-jwcrypto==1.4
+jwcrypto==1.5.1
     # via django-oauth-toolkit
 kombu==5.2.4
     # via
@@ -228,7 +228,7 @@ path==16.4.0
     # via path-py
 path-py==12.5.0
     # via formpack
-pillow==9.2.0
+pillow==10.2.0
     # via django-markdownx
 prompt-toolkit==3.0.29
     # via click-repl
@@ -248,7 +248,7 @@ pyjwt==2.4.0
     #   twilio
 pymongo==3.12.3
     # via -r dependencies/pip/requirements.in
-pyopenssl==22.0.0
+pyopenssl==24.0.0
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
@@ -278,7 +278,7 @@ pyxform==1.9.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
-redis==4.4.4
+redis==4.5.4
     # via
     #   celery
     #   django-redis
@@ -343,7 +343,7 @@ vine==5.0.0
     #   kombu
 wcwidth==0.2.5
     # via prompt-toolkit
-werkzeug==2.2.3
+werkzeug==3.0.1
     # via -r dependencies/pip/requirements.in
 wrapt==1.14.0
     # via deprecated
