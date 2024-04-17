@@ -53,9 +53,9 @@ class PlanAddOn(models.Model):
         Whether the addon is at/over its usage limits.
         """
         for limit_type, limit_value in self.limits_remaining.items():
-            if limit_value <= 0:
-                return True
-        return False
+            if limit_value > 0:
+                return False
+        return True
 
     @property
     def total_usage_limits(self):
