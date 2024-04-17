@@ -45,14 +45,14 @@ export const OneTimeAddOnRow = ({
   let displayName;
   let description;
 
-  if (selectedProduct.name.includes('ASR' && 'MT')) {
-    displayName = 'NLP Package';
+  if (selectedProduct.metadata.asr_seconds_limit || selectedProduct.metadata.mt_characters_limit) {
+    displayName = t('NLP Package');
     description =
-      'Increase your transcription minutes and translations characters.';
-  } else if (selectedProduct.name.includes('file storage')) {
-    displayName = 'File Storage';
+      t('Increase your transcription minutes and translations characters.');
+  } else if (selectedProduct.metadata.storage_bytes_limit) {
+    displayName = t('File Storage');
     description =
-      'Get up to 50GB of media storage on a KoboToolbox public server.';
+      t('Get up to 50GB of media storage on a KoboToolbox public server.');
   }
 
   const onChangeProduct = (productId: string) => {
