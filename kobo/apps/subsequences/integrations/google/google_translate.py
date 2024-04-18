@@ -59,7 +59,7 @@ class GoogleTranslationEngine:
         content: str,
         source_lang: str,
         target_lang: str,
-    ) -> str:
+    ) -> dict:
         self.submission_uuid = submission_uuid
         self.username = username
         self.xpath = xpath
