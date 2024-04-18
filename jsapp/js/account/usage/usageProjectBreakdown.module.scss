@@ -13,6 +13,7 @@
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-block-end: sizes.$x60;
 }
 
 table th {
@@ -64,7 +65,9 @@ th {
   font-weight: 400;
   font-size: sizes.$x14;
   color: colors.$kobo-gray-24;
-  margin-top: sizes.$x30;
+  position: fixed;
+  bottom: sizes.$x20;
+  background-color: white;
   border: sizes.$x1 solid colors.$kobo-gray-85;
   width: sizes.$x150;
   border-radius: sizes.$x4;
