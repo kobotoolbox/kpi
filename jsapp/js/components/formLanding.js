@@ -362,14 +362,8 @@ class FormLanding extends React.Component {
     const chosenMethodLink = this.state.deployment__links[chosenMethod] || null;
 
     var kc_server = document.createElement('a');
-    kc_server.href = this.state.deployment__identifier;
+    kc_server.href = envStore.data.open_rosa_server;
     var kobocollect_url = kc_server.origin;
-
-    /* TODO
-     `deployment__identifier` has been removed from API response.
-     Stop reading `kc_server` from `deployment__identifier` and use `open_rosa_server`
-     property provided in `/environment` endpoint
-    */
 
     return (
       <bem.FormView__row>
