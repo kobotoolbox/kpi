@@ -177,6 +177,7 @@ export default function TextBox(props: TextBoxProps) {
     // For `number` type we allow only positive integers
     step: props.type === 'number' ? 1 : undefined,
     min: props.type === 'number' ? 0 : undefined,
+    dir: 'auto',
   };
 
   // For now we only support one size of TextBox, but when we're going to
