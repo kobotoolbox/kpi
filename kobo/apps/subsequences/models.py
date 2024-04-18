@@ -42,7 +42,6 @@ class SubmissionExtras(models.Model):
                     autoparams = vals[GOOGLETS]
                     status = autoparams['status']
                     if status == 'requested':
-                        username = self.asset.owner.username
                         engine = GoogleTranscribeEngine()
                         service = TranscriptionService.objects.get(code='goog')
                         language_code = autoparams.get('languageCode')
