@@ -1,14 +1,14 @@
 import styles from 'js/account/add-ons/addOnList.module.scss';
 import React, {useMemo, useState} from 'react';
-import {Organization, Product} from 'js/account/stripe.types';
+import type {Organization, Product} from 'js/account/stripe.types';
 import KoboSelect3 from 'js/components/special/koboAccessibleSelect';
-import {KoboSelectOption} from 'js/components/common/koboSelect';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import BillingButton from 'js/account/plans/billingButton.component';
 import {postCheckout} from 'js/account/stripe.api';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 
 interface OneTimeAddOnRowProps {
-  product: Product;
+  products: Product[];
   isDisabled: boolean;
   organization: Organization;
 }
@@ -24,24 +24,48 @@ const quantityOptions = Array.from(
 );
 
 export const OneTimeAddOnRow = ({
-  product,
+  products,
   isDisabled,
   organization,
 }: OneTimeAddOnRowProps) => {
+  const [selectedProduct, setSelectedProduct] = useState(products[0]);
   const [quantity, setQuantity] = useState('1');
-  const [selectedPrice, setSelectedPrice] = useState(product.prices?.[0]);
+  const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(
+    selectedProduct.prices[0]
+  );
   const displayPrice = useDisplayPrice(selectedPrice, parseInt(quantity));
   const priceOptions: KoboSelectOption[] = useMemo(
     () =>
-      product.prices.map((price) => {
-        return {value: price.id, label: product.name};
+      selectedProduct.prices.map((price) => {
+        return {value: price.id, label: price.recurring?.interval || 'me'};
       }),
-    [product]
+    [selectedProduct]
   );
+
+  let displayName;
+  let description;
+
+  if (selectedProduct.metadata.asr_seconds_limit || selectedProduct.metadata.mt_characters_limit) {
+    displayName = t('NLP Package');
+    description =
+      t('Increase your transcription minutes and translations characters.');
+  } else if (selectedProduct.metadata.storage_bytes_limit) {
+    displayName = t('File Storage');
+    description =
+      t('Get up to 50GB of media storage on a KoboToolbox public server.');
+  }
+
+  const onChangeProduct = (productId: string) => {
+    const product = products.find((product) => product.id === productId);
+    if (product) {
+      setSelectedProduct(product);
+      setSelectedPrice(product.prices[0]);
+    }
+  };
 
   const onChangePrice = (inputPrice: string | null) => {
     if (inputPrice) {
-      const priceObject = product.prices.find(
+      const priceObject = selectedProduct.prices.find(
         (price) => inputPrice === price.id
       );
       if (priceObject) {
@@ -68,29 +92,49 @@ export const OneTimeAddOnRow = ({
 
   return (
     <tr>
-      <td>
-        <div className={'flex'}>
+      <td className={styles.productName}>
+        {displayName}
+        {description && <p className={styles.description}>{description}</p>}
+      </td>
+      <td className={styles.price}>
+        <div className={styles.oneTime}>
           <KoboSelect3
             size='m'
-            name={t('prices')}
-            options={priceOptions}
-            onChange={onChangePrice}
-            value={selectedPrice?.id || ''}
+            name='products'
+            options={products.map((product) => {
+              return {value: product.id, label: product.name};
+            })}
+            onChange={(productId) => onChangeProduct(productId as string)}
+            value={selectedProduct.id}
           />
-          <KoboSelect3
-            size={'fit'}
-            name={t('quantity')}
-            options={quantityOptions}
-            onChange={onChangeQuantity}
-            value={quantity}
-          />
+          {displayName === 'File Storage' ? (
+            <KoboSelect3
+              size={'fit'}
+              name='prices'
+              options={priceOptions}
+              onChange={onChangePrice}
+              value={selectedPrice.id}
+            />
+          ) : (
+            <KoboSelect3
+              size={'fit'}
+              name='quantity'
+              options={quantityOptions}
+              onChange={onChangeQuantity}
+              value={quantity}
+            />
+          )}
         </div>
       </td>
-      <td className={styles.price}>{displayPrice}</td>
-      <td>
+      <td className={styles.oneTimePrice}>
+        {selectedPrice.recurring?.interval === 'year'
+          ? selectedPrice.human_readable_price
+          : displayPrice}
+      </td>
+      <td className={styles.buy}>
         <BillingButton
           size={'m'}
-          label={t('Buy now')}
+          label='Buy now'
           isDisabled={Boolean(selectedPrice) && isDisabled}
           onClick={onClickBuy}
           isFullWidth
