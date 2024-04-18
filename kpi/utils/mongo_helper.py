@@ -16,7 +16,7 @@ PermissionFilter = Dict[str, Any]
 def drop_mock_only(func):
     """
     This decorator should be used on every method that drop data in MongoDB
-    in a testing environment. It ensures that MockMongo is used and no prodction
+    in a testing environment. It ensures that MockMongo is used and no production
     data is deleted
     """
 

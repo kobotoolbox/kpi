@@ -330,6 +330,7 @@ def user_statistics_report(request):
     return HttpResponse(template_ish)
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def user_details_report(request):
 
     # Get the date filters from the query and set defaults
