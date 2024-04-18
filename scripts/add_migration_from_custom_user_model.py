@@ -3,6 +3,23 @@ from django.db import connection, connections
 
 
 def run():
+    migrate_custom_user_model()
+    delete_kobocat_form_disclaimer_app()
+
+
+def delete_kobocat_form_disclaimer_app():
+    """
+    Kobocat form_disclaimer app does not exist anymore but its migrations
+    create conflicts and must be deleted before applying migration.
+    """
+    with connections[settings.OPENROSA_DB_ALIAS].cursor() as kc_cursor:
+        kc_cursor.execute(
+            "DELETE FROM django_migrations "
+            "WHERE app_label = 'form_disclaimer';"
+        )
+
+
+def migrate_custom_user_model():
     """
     Insert an entry in django_migrations for existing setups.
     Because kobo_auth.User becomes the (custom) User model, we enter
