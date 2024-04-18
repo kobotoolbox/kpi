@@ -16,10 +16,6 @@
   padding-bottom: sizes.$x36;
 }
 
-.isSubmissionData {
-  padding-bottom: 0 !important;
-}
-
 .wrapWithParens {
   span::before {
     content: '(';

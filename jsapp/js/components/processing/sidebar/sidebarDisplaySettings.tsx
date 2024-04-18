@@ -95,7 +95,7 @@ export default function SidebarDisplaySettings(
     return selectedFields.some((field) => field.name === questionName);
   }
 
-  function getCheckboxes(disabled?: boolean) {
+  function getCheckboxes() {
     if (!props.assetContent?.survey) {
       return [];
     }
@@ -105,7 +105,7 @@ export default function SidebarDisplaySettings(
         label: question.label,
         checked: isFieldChecked(question.name),
         name: question.name,
-        disabled: disabled,
+        disabled: !selectedDisplays.includes(StaticDisplays.Data),
       };
     });
 
@@ -176,14 +176,7 @@ export default function SidebarDisplaySettings(
 
                 return (
                   <>
-                    <li
-                      className={cx(styles.display, {
-                        [styles.isSubmissionData]:
-                          // Apply styles only under "Submission data" and if it is on
-                          isSubmissionData,
-                      })}
-                      key={entry}
-                    >
+                    <li className={cx(styles.display)} key={entry}>
                       <ToggleSwitch
                         onChange={(isChecked) => {
                           if (isChecked) {
@@ -195,23 +188,20 @@ export default function SidebarDisplaySettings(
                         checked={isEnabled}
                         label={getStaticDisplayText(staticDisplay)}
                       />
-                    </li>
-                    {isSubmissionData && props.assetContent?.survey && (
-                      <div className={styles.questionList}>
-                        <strong>
+
+                      {isSubmissionData && props.assetContent?.survey && (
+                        <div className={styles.questionList}>
                           {t('Select the submission data to display.')}
-                        </strong>
-                        <div className={styles.checkbox}>
-                          <MultiCheckbox
-                            type='bare'
-                            items={getCheckboxes(
-                              !selectedDisplays.includes(StaticDisplays.Data)
-                            )}
-                            onChange={onCheckboxesChange}
-                          />
+                          <div className={styles.checkbox}>
+                            <MultiCheckbox
+                              type='bare'
+                              items={getCheckboxes()}
+                              onChange={onCheckboxesChange}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </li>
                   </>
                 );
               } else {
