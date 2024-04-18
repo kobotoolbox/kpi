@@ -1220,6 +1220,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
     if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
         # Force usage of custom S3 tellable Storage
         DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
+        AWS_S3_FILE_OVERWRITE = False
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
