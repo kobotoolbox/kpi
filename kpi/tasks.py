@@ -105,4 +105,3 @@ def perform_maintenance():
 
     remove_unused_markdown_files()
     remove_old_assetsnapshots()
-    

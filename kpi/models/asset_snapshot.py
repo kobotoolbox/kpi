@@ -54,12 +54,6 @@ class AssetSnapshot(
     """
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.
-
-    TODO: come up with a policy to clear this cache out.
-    DO NOT: depend on these snapshots existing for more than a day
-    until a policy is set.
-    Done with https://github.com/kobotoolbox/kpi/pull/2434.
-    Remove above lines when PR is merged
     """
     xml = models.TextField()
     source = models.JSONField(default=dict)
