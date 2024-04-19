@@ -9,10 +9,18 @@
  */
 
 .root {
-  padding: sizes.$x30;
   display: flex;
   flex-direction: column;
   height: 100%;
+
+  @include breakpoints.breakpoint(veryNarrow) {
+    padding: 20px;
+  }
+
+  // Narrow screen and wider
+  @include breakpoints.breakpoint(narrowAndUp) {
+    padding: 30px;
+  }
 }
 
 .root.viewAnalysis {
@@ -65,49 +73,6 @@
   }
 }
 
-.transxHeader {
-  @include mixins.centerRowFlex;
-  margin-bottom: sizes.$x12;
-}
-
-.transxHeaderDate {
-  @include mixins.textEllipsis;
-
-  background-color: colors.$kobo-light-storm;
-  height: sizes.$x28;
-  line-height: sizes.$x28;
-  border-radius: sizes.$x14;
-  padding: 0 sizes.$x14;
-
-  &:not(:first-child) {
-    margin-left: sizes.$x20;
-  }
-}
-
-.transxHeaderLanguage {
-  font-weight: 700;
-
-  &:not(:first-child) {
-    margin-left: sizes.$x4;
-  }
-
-  @media screen and (min-width: #{breakpoints.$b1440}) {
-    max-width: sizes.$x300;
-  }
-  @media screen and (max-width: #{breakpoints.$b1440 - 1px}) {
-    max-width: sizes.$x200;
-  }
-}
-
-.transxHeaderButtons {
-  @include mixins.centerRowFlex;
-
-  flex: 1;
-  margin-left: sizes.$x20;
-  justify-content: flex-end;
-  gap: sizes.$x12;
-}
-
 .text {
   white-space: pre-wrap;
   border-top: sizes.$x2 solid colors.$kobo-gray-96;
@@ -158,4 +123,73 @@
   flex: 1;
   justify-content: center;
   gap: sizes.$x14;
+}
+
+/*
+ * transxHeader
+ */
+
+.transxHeader {
+  @include mixins.centerRowFlex;
+  margin-bottom: sizes.$x12;
+  gap: 8px;
+
+  @include breakpoints.breakpoint(medium) {
+    gap: 12px;
+  }
+
+  @include breakpoints.breakpoint(wideAndUp) {
+    gap: 20px;
+  }
+}
+
+.transxHeaderButtons {
+  @include mixins.centerRowFlex;
+
+  flex: 1;
+  justify-content: flex-end;
+  gap: inherit;
+}
+
+.transxHeaderLanguage {
+  font-weight: 700;
+  // With single column layout this can get very long or very short
+  max-width: 30%;
+
+  &:not(:first-child) {
+    margin-left: sizes.$x4;
+  }
+
+  @include breakpoints.breakpoint(medium) {
+    // cramped two columns layout - this value makes sure we don't overflow
+    // horizontally
+    max-width: 140px;
+  }
+
+  @include breakpoints.breakpoint(wide) {
+    max-width: 140px;
+  }
+
+  @include breakpoints.breakpoint(veryWide) {
+    max-width: 250px;
+  }
+}
+
+.transxHeaderDate {
+  @include mixins.textEllipsis;
+
+  background-color: colors.$kobo-light-storm;
+  height: sizes.$x28;
+  line-height: sizes.$x28;
+  border-radius: sizes.$x14;
+  padding: 0 sizes.$x14;
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .transxHeaderDateLong {display: none;}
+}
+
+// Narrow screen and wider
+@include breakpoints.breakpoint(narrowAndUp) {
+  .transxHeaderDateShort {display: none;}
 }

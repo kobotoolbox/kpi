@@ -250,7 +250,7 @@ a.enterpriseLink {
   width: 100%;
 }
 
-@media screen and (max-width: breakpoints.$b1440) {
+@include breakpoints.breakpoint(veryWide) {
   .enterprisePlan {
     font-size: sizes.$x12;
   }

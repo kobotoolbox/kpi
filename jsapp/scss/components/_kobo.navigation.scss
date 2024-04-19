@@ -1,5 +1,6 @@
 @use "scss/_variables";
 @use 'scss/z-indexes';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 // header and navigation styling
@@ -236,30 +237,8 @@
   }
 }
 
-.mdl-layout__header .mdl-button--icon {
-  display: none;
-}
-
-@media screen and (max-width: 999px) {
+@media screen and (max-width: #{breakpoints.$b1000 - 1px}) {
   .mdl-layout__header {
-    .mdl-button--icon {
-      display: block;
-      margin-right: 8px;
-      padding: 0px;
-      color: colors.$kobo-white;
-
-      &:active {
-        transform: translateX(1px);
-      }
-
-      .k-icon.k-icon-menu {
-        font-size: 32px;
-        line-height: 32px;
-        display: block;
-        margin: 3px;
-      }
-    }
-
     .account-box__logo {
       max-width: 85%;
     }

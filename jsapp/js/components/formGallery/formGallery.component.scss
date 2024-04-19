@@ -7,12 +7,10 @@
 }
 
 .gallery__wrapper {
-  margin: sizes.$x20 sizes.$x50;
+  margin: 8px 14px;
 
-  @media screen and (max-width: breakpoints.$b768) {
-    margin-top: sizes.$x8;
-    margin-left: sizes.$x14;
-    margin-right: sizes.$x14;
+  @include breakpoints.breakpoint(mediumAndUp) {
+    margin: 20px 50px;
   }
 
   .gallery__footer {

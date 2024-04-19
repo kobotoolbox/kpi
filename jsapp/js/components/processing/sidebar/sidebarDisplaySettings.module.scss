@@ -4,8 +4,8 @@
 .root {
   display: flex;
   justify-content: right;
-  padding-top: sizes.$x18;
-  padding-bottom: sizes.$x10;
+  align-items: center;
+  height: sizes.$x48;
 }
 
 .description {

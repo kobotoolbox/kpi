@@ -2,8 +2,8 @@
  * Responsive breakpoints for usage in media queries
  */
 $b480: 480px;
-$b600: 600px;
 $b530: 530px;
+$b600: 600px;
 $b700: 700px;
 $b768: 768px;
 $b860: 860px;
@@ -11,3 +11,38 @@ $b960: 960px;
 $b1000: 1000px;
 $b1140: 1140px;
 $b1440: 1440px;
+
+/*
+ * Breakpoints and the names of the sizes are:
+ *
+ * veryNarrow ↔︎ 600 ↔︎ narrow ↔︎ 960 ↔︎ medium ↔︎ 1140 ↔︎ wide ↔︎ 1440 ↔︎ veryWide
+ */
+@mixin breakpoint($breakpointName) {
+  @if $breakpointName == veryNarrow {
+    @media (max-width: #{$b600 - 1px}) {@content;}
+  }
+  @else if $breakpointName == narrow {
+    @media (min-width: $b600) and (max-width: #{$b960 - 1px}) {@content;}
+  }
+  @else if $breakpointName == narrowAndUp {
+    @media (min-width: $b600) {@content;}
+  }
+  @else if $breakpointName == medium {
+    @media (min-width: $b960) and (max-width: #{$b1140 - 1px}) {@content;}
+  }
+  @else if $breakpointName == mediumAndUp {
+    @media (min-width: $b960) {@content;}
+  }
+  @else if $breakpointName == wide {
+    @media (min-width: $b1140) and (max-width: #{$b1440 - 1px}) {@content;}
+  }
+  @else if $breakpointName == wideAndUp {
+    @media (min-width: $b1140) {@content;}
+  }
+  @else if $breakpointName == veryWide {
+    @media (min-width: $b1440) {@content;}
+  }
+  @else {
+    @error 'Unknown brakpoint "#{$breakpointName}".';
+  }
+}

@@ -3,9 +3,13 @@
 @use 'scss/variables';
 @use 'scss/breakpoints';
 
-@media screen and (min-width: breakpoints.$b960) {
+.report-view {
+  padding: 12px;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
   .report-view {
-    padding: 0 sizes.$x40;
+    padding: 12px 40px;
   }
 }
 
@@ -88,7 +92,7 @@
   }
 }
 
-@media screen and (min-width: breakpoints.$b960) {
+@include breakpoints.breakpoint(mediumAndUp) {
   .report-view__itemContent table {
     width: 80%;
     margin-left: 10%;
@@ -110,7 +114,7 @@
 
 // report buttons
 .form-view__reportButtons {
-  padding: sizes.$x15 0;
+  margin-bottom: 12px;
 
   button:not(.mdl-button--icon) {
     text-transform: uppercase;
@@ -135,30 +139,28 @@
   + .form-view__cell--iframe {
     height: calc(100% - sizes.$x60);
   }
-}
 
-@media screen and (max-width: breakpoints.$b1000) {
-  .form-view__reportButtons {
-    padding-left: sizes.$x12;
-    padding-right: sizes.$x12;
+  @include breakpoints.breakpoint(mediumAndUp) {
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
-@media screen and (max-width: breakpoints.$b768) {
-  .form-view__reportButtons {
-    button.mdl-button {
-      font-size: sizes.$x13;
-    }
+.form-view__reportButtons button.report-button__print {
+  display: none;
 
-    button.report-button__print {
-      display: none;
-    }
+  @include breakpoints.breakpoint(mediumAndUp) {
+    display: initial;
+  }
+}
 
-    button.report-button__expand {
-      margin-left: 0;
-      padding-left: sizes.$x4;
-      padding-right: sizes.$x4;
-    }
+.form-view__reportButtons button.report-button__expand {
+  padding-left: 4px;
+  padding-right: 4px;
+
+  @include breakpoints.breakpoint(mediumAndUp) {
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -304,16 +306,4 @@
 .custom-report--footer {
   margin: sizes.$x15 0;
   text-align: right;
-}
-
-@media screen and (max-width: breakpoints.$b768) {
-  .form-view__reportButtons button.custom-reports {
-    margin-left: sizes.$x8;
-  }
-
-  .form-view__reportButtons button.report-button__expand,
-  .form-view__reportButtons button.report-button__print {
-    margin-left: 0;
-    padding: 0 sizes.$x4;
-  }
 }

@@ -1,4 +1,5 @@
 @use 'scss/z-indexes';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 // drawer (sidebar)
@@ -88,7 +89,7 @@
   }
 }
 
-@media screen and (max-width: 999px) {
+@media screen and (max-width: #{breakpoints.$b1000 - 1px}) {
   .k-drawer {
     position: fixed;
     z-index: z-indexes.$z-kobo-drawer;

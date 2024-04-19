@@ -42,7 +42,7 @@
   width: max(20%, 40em);
 }
 
-@media screen and (min-width: breakpoints.$b1140) {
+@include breakpoints.breakpoint(wideAndUp) {
   .table {
     padding: 1em;
   }
