@@ -94,3 +94,15 @@ def enketo_flush_cached_preview(server_url, form_id):
         data=dict(server_url=server_url, form_id=form_id),
     )
     response.raise_for_status()
+
+@celery_app.task(time_limit=82800, soft_time_limit=82800)
+def perform_maintenance():
+    """
+    Run daily maintenance tasks
+    """
+    from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
+    from kpi.maintenance_tasks import remove_old_assetsnapshots
+
+    remove_unused_markdown_files()
+    remove_old_assetsnapshots()
+    
