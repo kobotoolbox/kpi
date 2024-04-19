@@ -11,6 +11,8 @@ import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
+import OverLimitBanner from 'js/components/usageLimits/overLimitBanner.component';
+import Button from 'jsapp/js/components/common/button';
 
 type ButtonType = 'back' | 'forward';
 
@@ -24,6 +26,7 @@ const ProjectBreakdown = () => {
   });
   const [order, setOrder] = useState({});
   const [loading, setLoading] = useState(true);
+  const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -110,8 +113,20 @@ const ProjectBreakdown = () => {
     setOrder(newOrder);
   };
 
+  const infoButtonClick = () => {
+    setShowBanner((prevShowBanner) => !prevShowBanner);
+  };
+
   return (
     <div className={styles.root}>
+      {showBanner && (
+        <OverLimitBanner
+          info
+          interval={'none'}
+          limits={['none']}
+          usagePage={false}
+        />
+      )}
       <table>
         <thead className={styles.headerFont}>
           <tr>
@@ -123,15 +138,20 @@ const ProjectBreakdown = () => {
                 order={order}
                 onChangeOrderRequested={updateOrder}
               />
+              <Button
+                type={'bare'}
+                startIcon='alert'
+                size='s'
+                color={'gray'}
+                onClick={infoButtonClick}
+              />
             </th>
-            <th className={styles.wrap}>{t('Submissions (Total)')}</th>
-            <th className={styles.wrap}>
-              {t('Submissions (This billing period)')}
-            </th>
-            <th>{t('Data Storage')}</th>
-            <th>{t('Transcript Minutes')}</th>
+            <th>{t('Submissions (Total)')}</th>
+            <th>{t('Submissions')}</th>
+            <th>{t('Data storage')}</th>
+            <th>{t('Transcript minutes')}</th>
             <th>{t('Translation characters')}</th>
-            <th className={styles.badge}>
+            <th>
               <SortableProjectColumnHeader
                 styling={false}
                 field={usageStatus}

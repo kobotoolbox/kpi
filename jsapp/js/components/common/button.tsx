@@ -25,7 +25,8 @@ export type ButtonColor =
   | 'red'
   | 'storm'
   | 'light-storm'
-  | 'dark-blue';
+  | 'dark-blue'
+  | 'gray';
 
 /**
  * The size is the height of the button, but it also influences the paddings.
