@@ -1,7 +1,7 @@
 import constance
 from datetime import timedelta
 
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from kpi.models import AssetSnapshot
@@ -20,7 +20,7 @@ def remove_old_assetsnapshots():
         AssetSnapshot.objects.filter(
             date_created__lt=timezone.now() - timedelta(days=days),
         )
-        .filter(Exists(newer_snapshot_for_asset))
+        .filter(Exists(newer_snapshot_for_asset) | Q(asset_version=None))
         .order_by('pk')
     )
 
