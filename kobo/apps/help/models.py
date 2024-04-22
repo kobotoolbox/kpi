@@ -43,6 +43,9 @@ class InAppMessage(AbstractMarkdownxModel):
     valid_from = models.DateTimeField(default=EPOCH_BEGINNING)
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
     last_editor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # We do not want to use a generic foreign key or tightly couple this model
+    # with another one, so we use JSONField to store related object name and pk
+    generic_related_objects = models.JSONField(default=dict)
 
     markdown_fields = ['snippet', 'body']
 
@@ -57,6 +60,12 @@ class InAppMessage(AbstractMarkdownxModel):
         for field in self.markdown_fields:
             result[field] = markdownify(getattr(self, field))
         return result
+
+
+class InAppMessageUsers(models.Model):
+
+    in_app_message = models.ForeignKey(InAppMessage, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 
 class InAppMessageFile(MarkdownxUploaderFile):
