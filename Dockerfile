@@ -4,12 +4,12 @@ ENV VIRTUAL_ENV=/opt/venv
 
 RUN python -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip install --quiet pip==23.3.2 && \
+RUN pip install --quiet pip==24.0 setuptools=69.5.1 && \
     pip install --quiet pip-tools
 COPY ./dependencies/pip/external_services.txt "/tmp/pip_dependencies.txt"
 RUN pip-sync "/tmp/pip_dependencies.txt" 1>/dev/null
 
-FROM python:3.10-slim
+FROM python:3.10.14-slim-bookworm
 
 RUN apt -y update && apt -y upgrade
 
