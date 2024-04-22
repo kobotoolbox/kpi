@@ -17,7 +17,6 @@
     padding: 20px;
   }
 
-  // Narrow screen and wider
   @include breakpoints.breakpoint(narrowAndUp) {
     padding: 30px;
   }
@@ -204,7 +203,6 @@
   .transxHeaderDateLong {display: none;}
 }
 
-// Narrow screen and wider
 @include breakpoints.breakpoint(narrowAndUp) {
   .transxHeaderDateShort {display: none;}
 }
