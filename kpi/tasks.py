@@ -3,24 +3,28 @@ import constance
 import requests
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.management import call_command
 from django.core.mail import send_mail
+from django.core.management import call_command
 
+from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
 from kobo.celery import celery_app
+from kpi.maintenance_tasks import remove_old_assetsnapshots
+from kpi.models.asset import Asset
+from kpi.models.import_export_task import (
+    ExportTask,
+    ImportTask,
+    ProjectViewExportTask,
+)
 
 
 @celery_app.task
 def import_in_background(import_task_uid):
-    from kpi.models.import_export_task import ImportTask  # avoid circular imports
-
     import_task = ImportTask.objects.get(uid=import_task_uid)
     import_task.run()
 
 
 @celery_app.task
 def export_in_background(export_task_uid):
-    from kpi.models.import_export_task import ExportTask  # avoid circular imports
-
     export_task = ExportTask.objects.get(uid=export_task_uid)
     export_task.run()
 
@@ -29,10 +33,6 @@ def export_in_background(export_task_uid):
 def project_view_export_in_background(
     export_task_uid: str, username: str
 ) -> None:
-    from kpi.models.import_export_task import (
-        ProjectViewExportTask,
-    )  # avoid circular imports
-
     user = User.objects.get(username=username)
 
     export_task = ProjectViewExportTask.objects.get(uid=export_task_uid)
@@ -72,8 +72,6 @@ def sync_kobocat_xforms(
 
 @celery_app.task
 def sync_media_files(asset_uid):
-    from kpi.models.asset import Asset  # avoid circular imports
-
     asset = Asset.objects.get(uid=asset_uid)
     asset.deployment.sync_media_files()
 
@@ -95,13 +93,13 @@ def enketo_flush_cached_preview(server_url, form_id):
     )
     response.raise_for_status()
 
-@celery_app.task(time_limit=82800, soft_time_limit=82800)
+limit_hours_23 = 82800
+
+
+@celery_app.task(time_limit=limit_hours_23, soft_time_limit=limit_hours_23)
 def perform_maintenance():
     """
     Run daily maintenance tasks
     """
-    from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
-    from kpi.maintenance_tasks import remove_old_assetsnapshots
-
     remove_unused_markdown_files()
     remove_old_assetsnapshots()
