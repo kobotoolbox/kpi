@@ -1,7 +1,8 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/sizes";
-@use "scss/libs/_mdl";
-@use "scss/_variables";
+@use 'scss/breakpoints';
+@use 'scss/sizes';
+@use 'scss/libs/_mdl';
+@use 'scss/_variables';
 
 $z-modal-backdrop: 1101;
 $z-enketo-iframe-icon: 1100;
@@ -496,7 +497,7 @@ $modal-custom-header-height: sizes.$x60;
   .modal & {
     width: 100%;
 
-    @media screen and (min-width: 768px) {
+    @media screen and (min-width: breakpoints.$b768) {
       min-width: 600px;
     }
   }
@@ -534,7 +535,7 @@ $modal-custom-header-height: sizes.$x60;
       min-height: 120px;
       box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
 
-      @media screen and (min-width: 768px) {
+      @media screen and (min-width: breakpoints.$b768) {
         margin: $buttons-spacing;
         padding: 2*$buttons-spacing;
         width: calc(50% - #{2*$buttons-spacing});
@@ -872,7 +873,7 @@ $modal-custom-header-height: sizes.$x60;
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .modal.modal--open {
     min-width: 90%;
     max-width: 90%;

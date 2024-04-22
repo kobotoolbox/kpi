@@ -1,5 +1,6 @@
 @use "scss/_variables";
 @use 'scss/sizes';
+@use 'scss/breakpoints';
 @use 'scss/z-indexes';
 @use '~kobo-common/src/styles/colors';
 
@@ -27,8 +28,16 @@ $side-tabs-width-mobile: 70px;
 
 // form landing takes .form-view__toptabs into account
 .page-wrapper__content--form-landing {
-  .form-view {
+  .form-view,
+  > *[class*='loadingSpinner'] {
     height: calc(100% - 48px);
+  }
+
+  .form-view__sidetabs + *[class*='loadingSpinner'] {
+    // Without this, it gets pushed down, outside the layout
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -719,7 +728,7 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .form-view__sidetabs {
     width: $side-tabs-width-mobile;
 

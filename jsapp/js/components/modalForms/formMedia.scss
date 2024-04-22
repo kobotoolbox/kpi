@@ -1,5 +1,6 @@
 @use 'scss/sizes';
 @use 'scss/mixins';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 @use 'scss/_variables';
 
@@ -129,7 +130,7 @@
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .media-settings--upload-file {
     width: auto;
   }

@@ -1,5 +1,6 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/z-indexes';
+@use 'scss/breakpoints';
 @use 'js/components/common/checkbox';
 @use 'sass:color';
 
@@ -316,8 +317,44 @@ $s-data-table-font: 13px;
     border-top: none;
     padding: 0;
 
+    .-previous,
+    .-next {
+      @include breakpoints.breakpoint(veryNarrow) {
+        flex: auto;
+      }
+
+      @include breakpoints.breakpoint(narrowAndUp) {
+        flex: 1;
+      }
+    }
+
     .-center {
-      flex: 2;
+      @include breakpoints.breakpoint(veryNarrow) {
+        flex: auto;
+      }
+
+      @include breakpoints.breakpoint(narrowAndUp) {
+        flex: 2;
+        min-width: 300px;
+      }
+    }
+
+    .-pageInfo,
+    .-pageSizeOptions {
+      @include breakpoints.breakpoint(veryNarrow) {
+        margin: 0;
+      }
+    }
+
+    .-pageJump {
+      @include breakpoints.breakpoint(narrowAndUp) {
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+
+      input {
+        appearance: none;
+      }
     }
 
     .-btn {
@@ -343,15 +380,6 @@ $s-data-table-font: 13px;
 
       &:active {
         transform: translateY(1px);
-      }
-    }
-
-    .-pageJump {
-      margin-left: 10px;
-      margin-right: 10px;
-
-      input {
-        appearance: none;
       }
     }
 
@@ -501,7 +529,7 @@ $s-data-table-font: 13px;
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .form-view--table {
     padding: 0px 20px;
   }

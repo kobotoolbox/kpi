@@ -255,7 +255,7 @@
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .mdl-layout__header {
     .search {
       display: none;
@@ -325,7 +325,7 @@
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .main-header {
     .main-header__icon,
     .main-header__counter {
@@ -377,7 +377,7 @@
   display: none;
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: breakpoints.$b768) {
   .git-rev {
     display: block;
     position: fixed;

@@ -1,6 +1,7 @@
 @use 'scss/_variables';
 @use 'scss/sizes';
 @use 'scss/z-indexes';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 #kpiapp,
@@ -387,7 +388,7 @@
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .popover-menu--collectData-menu {
     .popover-menu__toggle {
       padding-right: 40px;
@@ -498,7 +499,7 @@ iframe {
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .form-modal__item {
     select {
       max-width: 90%;

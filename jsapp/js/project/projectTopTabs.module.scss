@@ -1,14 +1,14 @@
 @use 'scss/sizes';
+@use 'scss/breakpoints';
+@use 'scss/mixins';
 @use '~kobo-common/src/styles/colors';
-
-@media print {
-  .root {
-    display: none;
-  }
-}
 
 .root {
   width: 100%;
+
+  @media print {
+    display: none;
+  }
 }
 
 .tabs {
@@ -21,6 +21,20 @@
   flex-direction: row;
   justify-content: center;
   align-items: stretch;
+
+  @include breakpoints.breakpoint(veryNarrow) {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: sizes.$x15;
+  }
+
+  @include breakpoints.breakpoint(narrow) {
+    gap: sizes.$x30;
+  }
+
+  @include breakpoints.breakpoint(mediumAndUp) {
+    gap: sizes.$x60;
+  }
 }
 
 .tab {
@@ -29,8 +43,6 @@
   border-bottom: sizes.$x2 solid transparent;
   text-transform: uppercase;
   line-height: sizes.$x48;
-  margin: 0 sizes.$x30;
-  font-size: sizes.$x15;
   cursor: pointer;
   position: relative;
   color: colors.$kobo-gray-40;
@@ -49,5 +61,13 @@
   &.disabled {
     pointer-events: none;
     opacity: 0.5;
+  }
+
+  @include breakpoints.breakpoint(veryNarrow) {
+    @include mixins.textEllipsis;
+  }
+
+  @include breakpoints.breakpoint(narrowAndUp) {
+    font-size: sizes.$x15;
   }
 }

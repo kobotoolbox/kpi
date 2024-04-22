@@ -3,15 +3,26 @@
  */
 $b480: 480px;
 $b600: 600px;
-$b960: 960px; // At this size the mobile menu kicks in
+// 768 is a legacy breakpoint. We use it (in old code mostly), and we might or
+// might not want to use it in the future (TBD).
+$b768: 768px;
+// Mobile menu kicks in at 960.
+$b960: 960px;
 $b1140: 1140px;
 $b1440: 1440px;
 
 /*
- * Breakpoints and the names of the sizes are:
- *
- * veryNarrow ↔︎ 600 ↔︎ narrow ↔︎ 960 ↔︎ medium ↔︎ 1140 ↔︎ wide ↔︎ 1440 ↔︎ veryWide
- */
+
+The names for screen sizes and the breakpoints that divides them are:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~  |              ↔︎            ↔︎            ↔︎            ↔︎              |  ~
+~  |  veryNarrow  ↔︎   narrow   ↔︎   medium   ↔︎    wide    ↔︎   veryWide   |  ~
+~  |              ↔︎            ↔︎            ↔︎            ↔︎              |  ~
+~  0             600          960          1140         1440            ∞  ~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*/
 @mixin breakpoint($breakpointName) {
   @if $breakpointName == veryNarrow {
     @media (max-width: #{$b600 - 1px}) {@content;}

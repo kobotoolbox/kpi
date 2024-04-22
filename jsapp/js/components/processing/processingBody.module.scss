@@ -35,8 +35,15 @@
 .root.stepBegin,
 .root.stepConfig {
   max-width: sizes.$x600 + (2 * sizes.$x30); // include paddings
-  padding-top: sizes.$x50;
   margin: 0 auto;
+
+  @media (max-height: #{breakpoints.$b600 - 1px}) {
+    padding-top: sizes.$x30;
+  }
+
+  @media (min-height: breakpoints.$b600) {
+    padding-top: sizes.$x50;
+  }
 }
 
 .root.stepBegin {
@@ -92,11 +99,19 @@
 }
 
 .header {
-  font-size: sizes.$x18;
   font-weight: 400;
   text-align: center;
-  line-height: sizes.$x20;
   margin-bottom: sizes.$x24;
+
+  @include breakpoints.breakpoint(veryNarrow) {
+    font-size: 16px;
+    line-height: 18px;
+  }
+
+  @include breakpoints.breakpoint(narrowAndUp) {
+    font-size: 18px;
+    line-height: 20px;
+  }
 }
 
 .header:not(:first-child) {

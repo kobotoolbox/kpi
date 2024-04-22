@@ -1,6 +1,7 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/libs/_mdl";
-@use "scss/_variables";
+@use 'scss/breakpoints';
+@use 'scss/libs/_mdl';
+@use 'scss/_variables';
 @use 'scss/z-indexes';
 
 #data-map {
@@ -152,7 +153,7 @@ body .leaflet-control-layers,
   margin-top: 12px;
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .popover-menu--viewby-menu {
     max-width: 90%;
 

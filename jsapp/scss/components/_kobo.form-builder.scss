@@ -1,4 +1,5 @@
 @use 'scss/z-indexes';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 $s-form-builder-header: 125px;
@@ -460,7 +461,7 @@ $s-form-builder-content-width: 1024px;
 
 // FORM BUILDER SMALL SCREEN ADJUSTMENTS
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .form-builder-header__cell--logo {
     display: none;
   }
@@ -479,7 +480,7 @@ $s-form-builder-content-width: 1024px;
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .form-builder-header__cell--library-toggle {
     display: none;
   }

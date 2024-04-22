@@ -1,4 +1,5 @@
 @use "scss/_variables";
+@use "scss/breakpoints";
 @use "sass:color";
 @use '~kobo-common/src/styles/colors';
 
@@ -417,7 +418,7 @@
   }
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: breakpoints.$b768) {
   .registration__bg {
     form.registration {
       padding: 30px 40px;
@@ -512,7 +513,7 @@
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .registration__bg {
     form.registration--register {
       display: flex;

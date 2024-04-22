@@ -1,15 +1,16 @@
 @use 'scss/z-indexes';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 // This is an alternative tooltip component for displaying more complex content;
 // if possible use the other one (`data-tip` from `_kobo.tooltips.scss`)
-@media screen and (max-width: 767px) {
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .k-tooltip {
     display: none;
   }
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: breakpoints.$b768) {
   .k-tooltip__parent {
     position: relative;
 
