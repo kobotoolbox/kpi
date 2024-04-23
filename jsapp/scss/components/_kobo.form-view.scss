@@ -1,5 +1,5 @@
-@use "scss/_variables";
 @use 'scss/sizes';
+@use 'scss/_variables';
 @use 'scss/z-indexes';
 @use '~kobo-common/src/styles/colors';
 
@@ -563,10 +563,9 @@ $side-tabs-width-mobile: 70px;
 }
 
 .form-view.form-view--form-settings-sharing {
+  background: colors.$kobo-white;
   .form-modal {
-    background: colors.$kobo-white;
-    padding: 40px;
-    height: 100%;
+    padding: sizes.$x40 sizes.$x40 sizes.$x16 sizes.$x40;
     overflow: auto;
   }
 }

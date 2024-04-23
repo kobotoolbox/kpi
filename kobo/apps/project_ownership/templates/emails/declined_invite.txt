@@ -1,0 +1,19 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Projects:" as projects_label %}
+
+{% trans "Dear" %} {{ username }},
+{% if transfers|length == 1 %}
+{% blocktrans with asset_uid=transfers.0.asset_uid asset_name=transfers.0.asset_name  %}{{ recipient }} has declined your request to transfer ownership of the project {{ asset_name }} ({{ base_url }}/#/forms/{{ asset_uid }}/landing).{% endblocktrans %}
+
+{% trans "You will remain the owner of the project. The submissions, data storage, and transcription and translation usage for the project have not been transferred." %}
+{% else %}
+{% blocktrans %}{{ recipient }} has declined your request to transfer ownership of these projects:{% endblocktrans %}
+    {% for transfer in transfers %}
+    * {{ transfer.asset_name }} - [{{ base_url }}/#/forms/{{ transfer.asset_uid }}/landing]
+    {% endfor %}
+
+{% trans "You will remain the owner of these projects. The submissions, data storage, and transcription and translation usage for these projects have not been transferred." %}
+{% endif %}
+
+- KoboToolbox
