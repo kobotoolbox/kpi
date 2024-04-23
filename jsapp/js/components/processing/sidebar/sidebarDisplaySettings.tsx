@@ -38,14 +38,17 @@ export default function SidebarDisplaySettings() {
   const availableDisplays = store.getAvailableDisplays(activeTab);
 
   function getStaticDisplayText(display: StaticDisplays) {
-    if (display === StaticDisplays.Transcript && transcript) {
-      return (
-        <strong className={styles.wrapWithParens}>
-          {t('Original transcript')}
-          &nbsp;
-          <AsyncLanguageDisplayLabel code={transcript.languageCode} />
-        </strong>
-      );
+    if (display === StaticDisplays.Transcript) {
+      if (transcript) {
+        return (
+          <strong className={styles.wrapWithParens}>
+            {t('Original transcript')}
+            &nbsp;
+            <AsyncLanguageDisplayLabel code={transcript.languageCode} />
+          </strong>
+        );
+      }
+      return null;
     } else if (display === StaticDisplays.Data) {
       return <strong>{t('Submission data')}</strong>;
     } else {
@@ -97,7 +100,6 @@ export default function SidebarDisplaySettings() {
 
               if (entry in StaticDisplays) {
                 const staticDisplay = entry as StaticDisplays;
-
                 return (
                   <li className={styles.display} key={entry}>
                     <ToggleSwitch

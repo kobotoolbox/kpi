@@ -193,6 +193,9 @@ class EnvironmentView(APIView):
 
         return data
 
+    def static_configs(self, request):
+        return {'open_rosa_server': settings.KOBOCAT_URL}
+
     def get(self, request, *args, **kwargs):
         data = {}
         data.update(self.process_simple_configs())
@@ -203,4 +206,5 @@ class EnvironmentView(APIView):
         data.update(self.process_project_metadata_configs(request))
         data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))
+        data.update(self.static_configs(request))
         return Response(data)

@@ -969,8 +969,11 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** Returns available displays for given tab */
   getAvailableDisplays(tabName: ProcessingTab) {
-    const outcome: DisplaysList = [StaticDisplays.Audio, StaticDisplays.Data];
-    if (tabName !== ProcessingTab.Transcript) {
+    const outcome: DisplaysList = [
+      StaticDisplays.Audio,
+      StaticDisplays.Data,
+    ];
+    if (tabName !== ProcessingTab.Transcript && this.data.transcript) {
       outcome.push(StaticDisplays.Transcript);
     }
     this.getTranslations().forEach((translation) => {

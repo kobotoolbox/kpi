@@ -1,8 +1,10 @@
 # coding: utf-8
 import uuid
+import posixpath
 from concurrent.futures import TimeoutError
 from datetime import timedelta
 
+import constance
 from django.conf import settings
 from django.core.cache import cache
 from google.cloud import speech, storage
@@ -11,9 +13,12 @@ from googleapiclient import discovery
 from kobo.apps.trackers.utils import update_nlp_counter
 from .utils import google_credentials_from_constance_config
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
-from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
+from ...exceptions import (
+    AudioTooLongError,
+    SubsequenceTimeoutError,
+    TranscriptionResultsNotFound,
+)
 
-GS_BUCKET_PREFIX = 'speech_tmp'
 REQUEST_TIMEOUT = 5  # seconds
 # https://cloud.google.com/speech-to-text/quotas#content
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
@@ -52,8 +57,9 @@ class GoogleTranscribeEngine(AutoTranscription):
         # Store temporary file. Needed to avoid limits.
         # Set Life cycle expiration to delete after 1 day
         # https://cloud.google.com/storage/docs/lifecycle
-        self.destination_path = (
-            f'{GS_BUCKET_PREFIX}/{uuid.uuid4()}.flac'
+        self.destination_path = posixpath.join(
+            constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX,
+            f'{uuid.uuid4()}.flac'
         )
 
         # send the audio file to google storage
@@ -88,8 +94,14 @@ class GoogleTranscribeEngine(AutoTranscription):
             operation = speech_service.operations().get(name=operation_name).execute()
             if not operation["done"]:
                 raise SubsequenceTimeoutError
+
+            try:
+                results = operation['response']['results']
+            except KeyError:
+                raise TranscriptionResultsNotFound
+
             # operations api uses a dict, while speech api uses objects
-            for result in operation['response']['results']:
+            for result in results:
                 alternatives = result['alternatives']
                 transcript.append({
                     'transcript': alternatives[0]['transcript'],
