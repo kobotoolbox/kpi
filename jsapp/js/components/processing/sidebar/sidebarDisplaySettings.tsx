@@ -15,7 +15,6 @@ import type {AssetContent} from 'js/dataInterface';
 import styles from './sidebarDisplaySettings.module.scss';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
-import {getFlatQuestionsList} from 'jsapp/js/assetUtils';
 import cx from 'classnames';
 
 interface SidebarDisplaySettingsProps {
@@ -50,7 +49,6 @@ export default function SidebarDisplaySettings(
   }
 
   const [selectedFields, setSelectedFields] = useState(getInitialFields());
-  const [hiddenFields, setHiddenFields] = useState<string[]>();
 
   // Every time user changes the tab, we need to load the stored displays list
   // for that tab.
@@ -125,24 +123,23 @@ export default function SidebarDisplaySettings(
         return {name: question.name, label: question.label};
       });
 
-    const hiddenList = list
-      .filter((question) => !question.checked)
-      .map((question) => question.name);
-
-    setHiddenFields(hiddenList);
     setSelectedFields(newList);
   }
 
   function applyFieldsSelection() {
-    if (hiddenFields) {
-      store.setHiddenSidebarQuestions(hiddenFields);
-    }
+    const hiddenList = getCheckboxes()
+      .filter((question) => !question.checked)
+      .map((question) => question.name) || [];
+
+    store.setHiddenSidebarQuestions(hiddenList);
   }
 
   function resetFieldsSelection() {
-    setSelectedFields(getInitialFields());
-    setHiddenFields([]);
+    // Since we check the store for hidden fields and use that to get our
+    // checkboxes, using `applyFieldsSelection` here would never actually
+    // reset the checkboxes visually so we explicitly set it to empty here.
     store.setHiddenSidebarQuestions([]);
+    setSelectedFields(getInitialFields());
   }
 
   return (
