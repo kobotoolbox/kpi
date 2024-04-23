@@ -23,6 +23,7 @@ from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
     BadContentTypeException,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
 from .storage import (
@@ -109,8 +110,9 @@ class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
         related_name='attachments',
         on_delete=models.CASCADE,
     )
-    media_file = models.FileField(storage=get_kobocat_storage(), max_length=380,
-                                  db_index=True)
+    media_file = ExtendedFileField(
+        storage=get_kobocat_storage(), max_length=380, db_index=True
+    )
     media_file_basename = models.CharField(
         max_length=260, null=True, blank=True, db_index=True)
     # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
@@ -369,6 +371,28 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 return []
 
 
+class KobocatMetadata(ShadowModel):
+
+    MEDIA_FILES_TYPE = [
+        'media',
+        'paired_data',
+    ]
+
+    xform = models.ForeignKey('shadow_model.KobocatXForm', on_delete=models.CASCADE)
+    data_type = models.CharField(max_length=255)
+    data_value = models.CharField(max_length=255)
+    data_file = ExtendedFileField(storage=get_kobocat_storage(), blank=True, null=True)
+    data_file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_hash = models.CharField(max_length=50, blank=True, null=True)
+    from_kpi = models.BooleanField(default=False)
+    data_filename = models.CharField(max_length=255, blank=True, null=True)
+    date_created = models.DateTimeField(default=timezone.now)
+    date_modified = models.DateTimeField(default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'main_metadata'
+
+
 class KobocatMonthlyXFormSubmissionCounter(ShadowModel):
     year = models.IntegerField()
     month = models.IntegerField()
@@ -613,7 +637,7 @@ class KobocatXForm(ShadowModel):
         verbose_name_plural = 'xforms'
 
     XFORM_TITLE_LENGTH = 255
-    xls = models.FileField(null=True)
+    xls = ExtendedFileField(null=True)
     xml = models.TextField()
     user = models.ForeignKey(
         KobocatUser, related_name='xforms', null=True, on_delete=models.CASCADE

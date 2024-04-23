@@ -1,16 +1,14 @@
-# coding: utf-8
-import datetime
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 from django.db.models import Q
-from markdownx.views import ImageUploadView
+from django.utils import timezone
 from private_storage.views import PrivateStorageView
 from rest_framework import viewsets
 
-from .forms import InAppMessageImageForm
+from kpi.utils.object_permission import get_database_user
 from .models import InAppMessage, InAppMessageFile
 from .permissions import InAppMessagePermissions
 from .serializers import InAppMessageSerializer
@@ -46,9 +44,11 @@ class InAppMessageViewSet(viewsets.ModelViewSet):
     permission_classes = [InAppMessagePermissions]
 
     def get_queryset(self):
-        now = datetime.datetime.now(tz=ZoneInfo('UTC'))
-        return self.queryset.filter(
-            Q(published=True) | Q(last_editor=self.request.user),
-            valid_from__lte=now,
-            valid_until__gte=now,
+        user = get_database_user(self.request.user)
+
+        return self.queryset.distinct().filter(
+            Q(published=True) | Q(last_editor=user),
+            Q(inappmessageusers__isnull=True) | Q(inappmessageusers__user=user),
+            valid_from__lte=timezone.now(),
+            valid_until__gte=timezone.now(),
         ).order_by('-pk')
