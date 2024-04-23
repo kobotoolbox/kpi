@@ -8,7 +8,8 @@ from django.core.management import call_command
 
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
 from kobo.celery import celery_app
-from kpi.maintenance_tasks import remove_old_assetsnapshots
+from kpi.constants import LIMIT_HOURS_23
+from kpi.maintenance_tasks import remove_old_asset_snapshots
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import (
     ExportTask,
@@ -93,7 +94,6 @@ def enketo_flush_cached_preview(server_url, form_id):
     )
     response.raise_for_status()
 
-LIMIT_HOURS_23 = 82800
 
 
 @celery_app.task(time_limit=LIMIT_HOURS_23, soft_time_limit=LIMIT_HOURS_23)
@@ -102,4 +102,4 @@ def perform_maintenance():
     Run daily maintenance tasks
     """
     remove_unused_markdown_files()
-    remove_old_assetsnapshots()
+    remove_old_asset_snapshots()

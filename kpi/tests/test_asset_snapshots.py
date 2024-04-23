@@ -5,11 +5,10 @@ from datetime import timedelta
 from constance.test import override_config
 from django.contrib.auth.models import User
 from django.test import TestCase
-from django.utils.timezone import now
+from django.utils import timezone
 
-from kpi.maintenance_tasks import remove_old_assetsnapshots
+from kpi.maintenance_tasks import remove_old_asset_snapshots
 from kpi.tests.api.v2 import test_api_asset_snapshots
-
 from ..models import Asset
 from ..models import AssetSnapshot
 
@@ -31,6 +30,7 @@ class AssetSnapshotsTestCase(TestCase):
 
 
 class CreateAssetSnapshots(AssetSnapshotsTestCase):
+
     def test_init_asset_snapshot(self):
         ae = AssetSnapshot(asset=self.asset)
         self.assertEqual(ae.asset.id, self.asset.id)
@@ -82,17 +82,18 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
 
 
 class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
+
     @override_config(ASSET_SNAPSHOT_DAYS_RETENTION=2)
     def test_delete_old_asset_snapshots_task(self):
         # Because of `auto_date_now` , we cannot specify the date with `create()`
         older_snapshot = AssetSnapshot.objects.create(asset=self.asset)
-        older_snapshot.date_created = now() - timedelta(days=5)
+        older_snapshot.date_created = timezone.now() - timedelta(days=5)
         older_snapshot.save(update_fields=['date_created'])
         newer_snapshot = AssetSnapshot.objects.create(asset=self.asset)
-        newer_snapshot.date_created = now() - timedelta(days=4)
+        newer_snapshot.date_created = timezone.now() - timedelta(days=4)
         newer_snapshot.save(update_fields=['date_created'])
 
-        remove_old_assetsnapshots()
+        remove_old_asset_snapshots()
 
         # Both are outside retention date, oldest gets removed
         assert AssetSnapshot.objects.filter(pk=newer_snapshot.id).exists()
@@ -101,10 +102,12 @@ class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
         newest_unversioned_snapshot = AssetSnapshot.objects.create(
             asset=self.asset, source=self.asset.content
         )
-        newest_unversioned_snapshot.date_created = now() - timedelta(days=3)
+        newest_unversioned_snapshot.date_created = timezone.now() - timedelta(
+            days=3
+        )
         newest_unversioned_snapshot.save(update_fields=['date_created'])
 
-        remove_old_assetsnapshots()
+        remove_old_asset_snapshots()
 
         # Newest still gets deleted because it doesn't have version
         assert AssetSnapshot.objects.filter(pk=newer_snapshot.id).exists()
@@ -118,11 +121,11 @@ class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
             asset_type='survey',
         )
         asset_2_older_snapshot = AssetSnapshot.objects.create(asset=asset_2)
-        asset_2_older_snapshot.date_created = now() - timedelta(days=1)
+        asset_2_older_snapshot.date_created = timezone.now() - timedelta(days=1)
         asset_2_older_snapshot.save(update_fields=['date_created'])
         asset_2_newer_snapshot = AssetSnapshot.objects.create(asset=asset_2)
 
-        remove_old_assetsnapshots()
+        remove_old_asset_snapshots()
 
         # Both remain because they are within retention date
         assert AssetSnapshot.objects.filter(

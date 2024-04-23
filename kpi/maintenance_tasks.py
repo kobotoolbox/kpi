@@ -7,7 +7,7 @@ from django.utils import timezone
 from kpi.models import AssetSnapshot
 
 
-def remove_old_assetsnapshots():
+def remove_old_asset_snapshots():
     days = constance.config.ASSET_SNAPSHOT_DAYS_RETENTION
 
     # We don't want to delete an asset's latest versioned snapshot,
