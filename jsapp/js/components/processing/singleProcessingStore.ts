@@ -15,6 +15,7 @@ import {
   findRowByQpath,
   getRowName,
   getRowNameByQpath,
+  getFlatQuestionsList,
 } from 'js/assetUtils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
@@ -984,6 +985,23 @@ class SingleProcessingStore extends Reflux.Store {
   /** Returns displays for given tab. */
   getDisplays(tabName: SingleProcessingTabs) {
     return this.displays[tabName];
+  }
+
+  getAllSidebarQuestions() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+
+    if (asset?.content?.survey) {
+      const questionsList = getFlatQuestionsList(asset.content.survey, 0)
+        .filter((question) => !(question.name === this.currentQuestionName))
+        .map((question) => {
+          // We make an object to show the question label to the user but use the
+          // name internally so it works with duplicate question labels
+          return {name: question.name, label: question.label};
+        });
+      return questionsList;
+    } else {
+      return [];
+    }
   }
 
   getHiddenSidebarQuestions() {

@@ -38,14 +38,14 @@ export default function SidebarDisplaySettings(
       return [];
     }
 
-    const questionsList = getFlatQuestionsList(props.assetContent.survey, 0)
-      .filter((question) => !(question.name === store.currentQuestionName))
-      .map((question) => {
-        // We make an object to show the question label to the user but use the
-        // name internally so it works with duplicate question labels
-        return {name: question.name, label: question.label};
-      });
+    const allQuestions = store.getAllSidebarQuestions();
+    const hiddenFields = store.getHiddenSidebarQuestions();
 
+    // Remove the fields hidden in the store so it persists when
+    // across navigating submissions.
+    const questionsList = allQuestions.filter(
+      (question) => !hiddenFields.includes(question.name)
+    );
     return questionsList;
   }
 
@@ -100,7 +100,7 @@ export default function SidebarDisplaySettings(
       return [];
     }
 
-    const checkboxes = getInitialFields().map((question) => {
+    const checkboxes = store.getAllSidebarQuestions().map((question) => {
       return {
         label: question.label,
         checked: isFieldChecked(question.name),
