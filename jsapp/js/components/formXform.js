@@ -1,6 +1,7 @@
 import React from 'react';
 import {dataInterface} from 'js/dataInterface';
 import bem from 'js/bem';
+import CenteredMessage from 'js/components/common/centeredMessage.component';
 
 export default class FormXform extends React.Component {
   constructor(props) {
@@ -23,11 +24,7 @@ export default class FormXform extends React.Component {
       return (
         <bem.uiPanel>
           <bem.uiPanel__body>
-            <bem.Loading>
-              <bem.Loading__inner>
-                <p>XForm is loading</p>
-              </bem.Loading__inner>
-            </bem.Loading>
+            <CenteredMessage message={t('XForm is loading')} />
           </bem.uiPanel__body>
         </bem.uiPanel>
       );

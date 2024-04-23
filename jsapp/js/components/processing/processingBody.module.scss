@@ -134,6 +134,10 @@
   margin-bottom: sizes.$x24;
 }
 
+.header:not(:first-child) {
+  margin-top: sizes.$x32;
+}
+
 .footer {
   @include mixins.centerRowFlex;
 

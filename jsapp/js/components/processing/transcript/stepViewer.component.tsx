@@ -49,7 +49,7 @@ export default function StepViewer() {
         </nav>
       </header>
 
-      <article className={bodyStyles.text}>
+      <article className={bodyStyles.text} dir='auto'>
         {singleProcessingStore.getTranscript()?.value}
       </article>
     </div>

@@ -83,7 +83,7 @@ export default class ReportContents extends React.Component {
               return (
                 question &&
                 o.list_name === question.select_from_list_name &&
-                (o.label === resps[j])
+                (o.name === resps[j])
               );
             });
             if (choice && choice.label && choice.label[tnslIndex]) {
@@ -96,6 +96,7 @@ export default class ReportContents extends React.Component {
           const vals = reportData[i].data.values;
           if (vals && vals[0] && vals[0][1] && vals[0][1].responses) {
             var respValues = vals[0][1].responses;
+
             reportData[i].data.responseLabels = [];
             let qGB = asset.content.survey.find((z) => {
               return z.name === groupBy || z.$autoname === groupBy;
