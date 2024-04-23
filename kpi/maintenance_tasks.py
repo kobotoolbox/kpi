@@ -16,20 +16,13 @@ def remove_old_asset_snapshots():
         asset_version=None
     ).filter(asset_id=OuterRef('asset_id'), pk__gt=OuterRef('pk'))
 
-    delete_queryset = (
-        AssetSnapshot.objects.filter(
-            date_created__lt=timezone.now() - timedelta(days=days),
-        )
-        .filter(Exists(newer_snapshot_for_asset) | Q(asset_version=None))
-        .order_by('pk')
-    )
+    delete_queryset = AssetSnapshot.objects.filter(
+        date_created__lt=timezone.now() - timedelta(days=days),
+    ).filter(Exists(newer_snapshot_for_asset) | Q(asset_version=None))
 
     while True:
-        try:
-            deletion_delimiter = delete_queryset.values_list('pk', flat=True)[
-                1000:1001
-            ].get()
-            delete_queryset.filter(id__lte=deletion_delimiter).delete()
-        except AssetSnapshot.DoesNotExist:
+        count, _ = delete_queryset.filter(
+            pk__in=delete_queryset[:1000]
+        ).delete()
+        if not count:
             break
-    delete_queryset.delete()
