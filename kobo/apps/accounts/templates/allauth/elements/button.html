@@ -1,0 +1,25 @@
+{% load allauth %}
+{% comment %} djlint:off {% endcomment %}
+<{% if attrs.href %}a href="{{ attrs.href }}"{% else %}button{% endif %}
+{% if attrs.form %}form="{{ attrs.form }}"{% endif %}
+{% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+{% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+{% if attrs.type %}type="{{ attrs.type }}"{% endif %}
+{% if attrs.value %}value="{{ attrs.value }}"{% endif %}
+class="{% block class %}
+    kobo-button kobo-button--sso
+    {% if "full" in attrs.tags %}kobo-button--fullwidth{% endif %}
+    {% if "prominent" in attrs.tags %}btn-lg
+    {% elif "minor" in attrs.tags %}btn-sm{% endif %}
+    {% if "danger" in attrs.tags %}btn-danger
+    {% elif "secondary" in attrs.tags %}btn-secondary
+    {% elif "warning" in attrs.tags %}btn-warning
+    {% else %}btn-primary
+    {% endif %}
+    {% endblock %}">
+
+{% if not "tool" in attrs.tags %}
+{% slot %}
+{% endslot %}
+{% endif %}
+</{% if attrs.href %}a{% else %}button{% endif %}>

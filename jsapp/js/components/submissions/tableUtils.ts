@@ -4,11 +4,19 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
+  VALIDATION_STATUSES,
+} from 'js/constants';
+import type {
+  QuestionTypeName,
+  MetaQuestionTypeName,
 } from 'js/constants';
 import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
+  TEXT_FILTER_QUESTION_IDS,
+  TEXT_FILTER_QUESTION_TYPES,
+  FILTER_EXACT_TYPES,
 } from 'js/components/submissions/tableConstants';
 import type {
   SubmissionResponse,
@@ -21,6 +29,7 @@ import {
   injectSupplementalRowsIntoListOfRows,
 } from 'js/assetUtils';
 import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
+import type {Filter} from 'react-table';
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -79,7 +88,10 @@ export function getColumnLabel(
       const dtpath = key.slice('_supplementalDetails/'.length);
       // FIXME: pass the entire object (or at least the label!) provided by
       // the back end through to this function, without doing all this nonsense
-      const analysisQuestion = asset.analysis_form_json?.additional_fields.filter((f) => f.dtpath === dtpath)[0];
+      const analysisQuestion =
+        asset.analysis_form_json?.additional_fields.filter(
+          (f) => f.dtpath === dtpath
+        )[0];
       if (analysisQuestion?.label) {
         return `${analysisQuestion.label} | ${sourceQuestionLabel}`;
       }
@@ -271,4 +283,94 @@ export function getAllDataColumns(
   output = injectSupplementalRowsIntoListOfRows(asset, output);
 
   return output;
+}
+
+export interface TableFilterQuery {
+  queryString: string;
+  queryObj: {
+    [key: string]:
+      | string
+      | null
+      | {$in: string[]}
+      | {$regex: string; $options: string};
+  };
+}
+
+/**
+ * This function uses filters list from `react-table` output to produce queries
+ * that our Back end can understand. We use it it multiple places that intensely
+ * need to use identical output. We might simply return `queryObj` and make
+ * the code stringify it by itself, but it will make it less robust.
+ */
+export function buildFilterQuery(
+  /** Whole survey of given asset - we need it to get questions types */
+  survey: SurveyRow[],
+  /** List of `react-table` filters */
+  filters: Filter[]
+): TableFilterQuery {
+  const output: TableFilterQuery = {
+    queryString: '',
+    queryObj: {},
+  };
+
+  filters.forEach((filter) => {
+    switch (filter.id) {
+      case '_id': {
+        output.queryObj[filter.id] = {$in: [filter.value]};
+        break;
+      }
+      case VALIDATION_STATUS_ID_PROP: {
+        if (filter.value === VALIDATION_STATUSES.no_status.value) {
+          output.queryObj[filter.id] = null;
+        } else {
+          output.queryObj[filter.id] = filter.value;
+        }
+        break;
+      }
+      // Apart from few exceptions in above cases, we tend to treat all columns
+      // (`filter.id`s) with the same algorithm
+      default: {
+        // We assume `filter.id` is the question name (Data Table column name)
+        const foundRow = survey.find((row) => getRowName(row) === filter.id);
+
+        // Some question types needs the data to be filtered by exact values
+        // (e.g. "yes" shouldn't mach "yessica" or "yes and no")
+        if (foundRow && FILTER_EXACT_TYPES.includes(foundRow.type)) {
+          output.queryObj[filter.id] = {
+            $regex: `^${filter.value}$`,
+            $options: 'i',
+          };
+        } else {
+          output.queryObj[filter.id] = {$regex: filter.value, $options: 'i'};
+        }
+        break;
+      }
+    }
+  });
+
+  if (Object.keys(output.queryObj).length > 0) {
+    output.queryString = JSON.stringify(output.queryObj);
+  }
+
+  return output;
+}
+
+// TODO: this needs to be build up while typescriptizing table.es6
+interface TableColumn {
+  id: string;
+  question?: {
+    type: QuestionTypeName | MetaQuestionTypeName;
+  };
+}
+
+/**
+ * For checking if given column from Data Table should display a filter. It
+ * works for columns associated with form questions and for other columns too.
+ */
+export function isTableColumnFilterable(column: TableColumn) {
+  if (column.question?.type) {
+    return TEXT_FILTER_QUESTION_TYPES.includes(column.question.type);
+  } else {
+    return TEXT_FILTER_QUESTION_IDS.includes(column.id);
+  }
 }

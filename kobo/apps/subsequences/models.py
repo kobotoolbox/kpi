@@ -6,7 +6,7 @@ from kobo.apps.languages.models.translation import TranslationService
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models import Asset
 from kpi.utils.log import logging
-from .constants import GOOGLETS, GOOGLETX
+from .constants import GOOGLETS, GOOGLETX, ASYNC_TRANSLATION_DELAY_INTERVAL
 from .exceptions import SubsequenceTimeoutError, TranscriptionResultsNotFound
 from .integrations.google.google_transcribe import GoogleTranscribeEngine
 from .integrations.google.google_translate import GoogleTranslationEngine
@@ -119,7 +119,6 @@ class SubmissionExtras(models.Model):
                         # the string to translate
                         content=content,
                         # field IDs to tell us where to save results
-                        asset_uid=self.asset.uid,
                         submission_uuid=self.submission_uuid,
                         xpath=key,
                         # username is used in the label of the request
@@ -128,9 +127,13 @@ class SubmissionExtras(models.Model):
                         source_lang=service.get_language_code(source_lang),
                         target_lang=service.get_language_code(target_lang),
                     )
-                    handle_google_translation_operation(
-                        **followup_params, countdown=8
+                    handle_google_translation_operation.apply_async(
+                        kwargs=followup_params,
+                        countdown=ASYNC_TRANSLATION_DELAY_INTERVAL,
                     )
+                    # FIXME: clobbers previous translations; we want a record
+                    # of what Google returned, and another async translation
+                    # could be in progress
                     vals[GOOGLETX] = {
                         'status': 'in_progress',
                         'source': source_lang,
@@ -143,6 +146,8 @@ class SubmissionExtras(models.Model):
                         target_lang=service.get_language_code(target_lang),
                         username=self.asset.owner.username,
                     )
+                    # FIXME: clobbers previous translations; we want a record
+                    # of what Google returned
                     vals[GOOGLETX] = {
                         'status': 'complete',
                         'languageCode': target_lang,
