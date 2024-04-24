@@ -9,7 +9,7 @@ from django.core.management import call_command
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
 from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
-from kpi.maintenance_tasks import remove_old_asset_snapshots
+from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import (
     ExportTask,
@@ -102,4 +102,5 @@ def perform_maintenance():
     Run daily maintenance tasks
     """
     remove_unused_markdown_files()
+    remove_old_import_tasks()
     remove_old_asset_snapshots()
