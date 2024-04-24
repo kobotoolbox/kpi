@@ -11,6 +11,7 @@ import TextBox from 'js/components/common/textBox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import InlineMessage from 'js/components/common/inlineMessage';
 import assetUtils from 'js/assetUtils';
 import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
@@ -1098,12 +1099,11 @@ class ProjectSettings extends React.Component {
 
     if (this.isReplacingFormLocked()) {
       return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i className='k-icon k-icon-alert'/>
-            {t("Form replacing is not available due to form's Locking Profile restrictions.")}
-          </bem.Loading__inner>
-        </bem.Loading>
+        <InlineMessage
+          type='warning'
+          icon='alert'
+          message={t("Form replacing is not available due to form's Locking Profile restrictions.")}
+        />
       );
     }
 

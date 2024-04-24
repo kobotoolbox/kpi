@@ -89,7 +89,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
         </div>
       </header>
 
-      <article className={bodyStyles.text}>
+      <article className={bodyStyles.text} dir='auto'>
         {singleProcessingStore.getTranslation(props.selectedTranslation)?.value}
       </article>
     </div>

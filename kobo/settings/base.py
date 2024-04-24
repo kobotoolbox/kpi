@@ -1072,19 +1072,18 @@ CELERY_BEAT_SCHEDULE = {
     'send-hooks-failures-reports': {
         'task': 'kobo.apps.hook.tasks.failures_reports',
         'schedule': crontab(hour=0, minute=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 30 minutes
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
         'schedule': crontab(minute=30),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every monday at 00:30
-    'markdown-images-garbage-collector': {
-        'task': 'kobo.apps.markdownx_uploader.tasks.remove_unused_markdown_files',
-        'schedule': crontab(hour=0, minute=30, day_of_week=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+    'perform-maintenance': {
+        'task': 'kobo.tasks.perform_maintenance',
+        'schedule': crontab(hour=20, minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
@@ -1218,6 +1217,7 @@ if env.str('AWS_ACCESS_KEY_ID', False):
 STORAGES = global_settings.STORAGES
 
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
+<<<<<<< HEAD
 
     global_default_file_storage = STORAGES['default']['BACKEND']
     default_file_storage = STORAGES['default']['BACKEND'] = env.str(
@@ -1242,6 +1242,14 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
                 'AZURE_URL_EXPIRATION_SECS', None
             )
 
+=======
+    # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
+    DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
+    if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
+        # Force usage of custom S3 tellable Storage
+        DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
+        AWS_S3_FILE_OVERWRITE = False
+>>>>>>> release/2.024.12
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
