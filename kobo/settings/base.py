@@ -1217,7 +1217,6 @@ if env.str('AWS_ACCESS_KEY_ID', False):
 STORAGES = global_settings.STORAGES
 
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-<<<<<<< HEAD
 
     global_default_file_storage = STORAGES['default']['BACKEND']
     default_file_storage = STORAGES['default']['BACKEND'] = env.str(
@@ -1230,6 +1229,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
             STORAGES['default']['BACKEND'] = (
                 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
             )
+            AWS_S3_FILE_OVERWRITE = False
         elif default_file_storage.endswith('AzureStorage'):
             PRIVATE_STORAGE_CLASS = (
                 'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
@@ -1242,14 +1242,6 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
                 'AZURE_URL_EXPIRATION_SECS', None
             )
 
-=======
-    # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
-    DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
-    if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
-        # Force usage of custom S3 tellable Storage
-        DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
-        AWS_S3_FILE_OVERWRITE = False
->>>>>>> release/2.024.12
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
