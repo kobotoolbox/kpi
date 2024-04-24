@@ -5,6 +5,7 @@ from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from kpi.models import AssetSnapshot, ImportTask
+from kpi.utils.chunked_delete import chunked_delete
 
 
 def remove_old_asset_snapshots():
@@ -20,12 +21,7 @@ def remove_old_asset_snapshots():
         date_created__lt=timezone.now() - timedelta(days=days),
     ).filter(Exists(newer_snapshot_for_asset) | Q(asset_version=None))
 
-    while True:
-        count, _ = delete_queryset.filter(
-            pk__in=delete_queryset[:1000]
-        ).delete()
-        if not count:
-            break
+    chunked_delete(delete_queryset)
 
 
 def remove_old_import_tasks():
@@ -33,9 +29,4 @@ def remove_old_import_tasks():
         date_created__lt=timezone.now() - timedelta(days=90),
     )
 
-    while True:
-        count, _ = delete_queryset.filter(
-            pk__in=delete_queryset[:1000]
-        ).delete()
-        if not count:
-            break
+    chunked_delete(delete_queryset)

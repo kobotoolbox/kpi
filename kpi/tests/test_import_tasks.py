@@ -20,7 +20,7 @@ class AssetImportTaskHousekeepingTest(BaseTestCase):
             user=self.user,
             data='{}',
         )
-
+        # Because of `auto_date_now`, we cannot specify created_date on creation
         old_task.date_created = timezone.now() - timedelta(days=95)
         old_task.save(update_fields=['date_created'])
 
