@@ -294,7 +294,7 @@ export default function SubmissionsCountGraph(
           [styles.graphVisible]: !isLoading && hasData,
         })}
       >
-        {isLoading && <LoadingSpinner hideMessage />}
+        {isLoading && <LoadingSpinner message={false} />}
 
         <canvas ref={canvasRef} />
 
