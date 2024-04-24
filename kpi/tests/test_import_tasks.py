@@ -19,7 +19,6 @@ class AssetImportTaskHousekeepingTest(BaseTestCase):
         old_task = ImportTask.objects.create(
             user=self.user,
             data='{}',
-            date_created=timezone.now() - timedelta(days=92),
         )
 
         old_task.date_created = timezone.now() - timedelta(days=95)
