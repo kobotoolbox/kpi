@@ -452,6 +452,30 @@ export default function Plan() {
     return null;
   }
 
+  const comparisonButton = () => (
+    hasMetaFeatures() && (
+      <div className={styles.comparisonButton}>
+        <Button
+          type='full'
+          color='light-storm'
+          size='m'
+          isFullWidth
+          label={
+            expandComparison
+              ? t('Collapse full comparison')
+              : t('Display full comparison')
+          }
+          onClick={() => setExpandComparison(!expandComparison)}
+          aria-label={
+            expandComparison
+              ? t('Collapse full comparison')
+              : t('Display full comparison')
+          }
+        />
+      </div>
+    )
+  );
+
   return (
     <>
       {isDataLoading ? (
@@ -518,9 +542,10 @@ export default function Plan() {
                     />
                   </div>
                 ))}
+                <div className={styles.minimizedCards}>{comparisonButton()}</div>
                 {shouldShowExtras && (
                   <div className={styles.enterprisePlanContainer}>
-                    <div className={styles.enterprisePlan}>
+                    <div className={expandComparison ? `${styles.enterprisePlan} ${styles.expandedEnterprisePlan}` : styles.enterprisePlan}>
                       <h1 className={styles.enterpriseTitle}>
                         {' '}
                         {t('Want more?')}
@@ -557,38 +582,18 @@ export default function Plan() {
                   </div>
                 )}
               </div>
+              <div className={styles.maximizedCards}>{comparisonButton()}</div>
+              {shouldShowExtras && (
+                <AddOnList
+                  isBusy={isBusy}
+                  setIsBusy={setIsBusy}
+                  products={state.products}
+                  organization={state.organization}
+                  onClickBuy={buySubscription}
+                />
+              )}
             </div>
 
-            {hasMetaFeatures() && (
-              <div>
-                <Button
-                  type='full'
-                  color='light-storm'
-                  size='m'
-                  isFullWidth
-                  label={
-                    expandComparison
-                      ? t('Collapse full comparison')
-                      : t('Display full comparison')
-                  }
-                  onClick={() => setExpandComparison(!expandComparison)}
-                  aria-label={
-                    expandComparison
-                      ? t('Collapse full comparison')
-                      : t('Display full comparison')
-                  }
-                />
-              </div>
-            )}
-            {shouldShowExtras && (
-              <AddOnList
-                isBusy={isBusy}
-                setIsBusy={setIsBusy}
-                products={state.products}
-                organization={state.organization}
-                onClickBuy={buySubscription}
-              />
-            )}
             <ConfirmChangeModal
               onRequestClose={dismissConfirmModal}
               {...confirmModal}
