@@ -25,8 +25,10 @@ def remove_old_asset_snapshots():
 
 
 def remove_old_import_tasks():
+    days = constance.config.IMPORT_TASK_DAYS_RETENTION
+
     delete_queryset = ImportTask.objects.filter(
-        date_created__lt=timezone.now() - timedelta(days=90),
+        date_created__lt=timezone.now() - timedelta(days=days),
     )
 
     chunked_delete(delete_queryset)
