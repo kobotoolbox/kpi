@@ -1433,6 +1433,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Retrieve submissions directly from Mongo.
         Submissions can be filtered with `params`.
         """
+        # Apply a default sort of _id to prevent unpredictable natural sort
+        if not params.get('sort'):
+            params['sort'] = {'_id': 1}
         mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
 

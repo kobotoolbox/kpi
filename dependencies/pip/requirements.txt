@@ -137,7 +137,7 @@ django==4.2.11
     #   djangorestframework
     #   jsonfield
     #   kobo-service-account
-django-allauth==0.57.2
+django-allauth==0.61.1
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in

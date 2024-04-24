@@ -42,6 +42,7 @@ interface EnvironmentResponse {
    * if we should display TOS Screen to user :)
    */
   terms_of_service__sitewidemessage__exists: boolean;
+  open_rosa_server: string;
 }
 
 /*
@@ -128,6 +129,7 @@ export class EnvStoreData {
   public custom_password_localized_help_text = '';
   public enable_password_entropy_meter = false;
   public terms_of_service__sitewidemessage__exists = false;
+  public open_rosa_server = '';
 
   getProjectMetadataField(
     fieldName: ProjectMetadataFieldKey
@@ -219,6 +221,7 @@ class EnvStore {
     this.data.social_apps = response.social_apps;
     this.data.free_tier_thresholds = response.free_tier_thresholds;
     this.data.free_tier_display = response.free_tier_display;
+    this.data.open_rosa_server = response.open_rosa_server;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(

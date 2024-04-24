@@ -51,7 +51,9 @@ export default function TransxDisplay(props: TransxDisplayProps) {
           {renderLanguageAndDate()}
         </header>
 
-        <article className={bodyStyles.text}>{props.transx.value}</article>
+        <article className={bodyStyles.text} dir='auto'>
+          {props.transx.value}
+        </article>
       </div>
     </section>
   );
