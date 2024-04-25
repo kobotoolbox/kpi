@@ -218,7 +218,9 @@ interface AssignablePermissionPartial {
   label: AssignablePermissionPartialLabel;
 }
 
-export type AssignablePermission = AssignablePermissionRegular | AssignablePermissionPartial;
+export type AssignablePermission =
+  | AssignablePermissionRegular
+  | AssignablePermissionPartial;
 
 export interface LabelValuePair {
   /** Note: the labels are always localized in the current UI language */
@@ -584,7 +586,6 @@ export interface AssetResponse extends AssetRequestObject {
       date_modified: string;
     }>;
   };
-  deployment__identifier: string | null;
   deployment__links?: {
     url?: string;
     single_url?: string;

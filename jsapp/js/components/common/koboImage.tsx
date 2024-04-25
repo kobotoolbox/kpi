@@ -49,7 +49,7 @@ class KoboImage extends React.Component<KoboImageProps, KoboImageState> {
     return (
       <bem.KoboImage >
         {this.state.isLoading &&
-          <LoadingSpinner hideMessage/>
+          <LoadingSpinner message={false} />
         }
 
         {!this.state.isLoading &&

@@ -472,3 +472,13 @@ export function moveArrayElementToIndex(
   copiedArr.splice(toIndex, 0, element);
   return copiedArr;
 }
+
+export function getAudioDuration(src: string): Promise<number> {
+  return new Promise((resolve) => {
+    const audio = new Audio();
+    $(audio).on('loadedmetadata', () => {
+      resolve(audio.duration);
+    });
+    audio.src = src;
+  });
+}
