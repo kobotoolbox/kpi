@@ -262,6 +262,20 @@ a.enterpriseLink {
   display: none;
 }
 
+.scrollToTopButton{
+  position: fixed;
+  bottom: sizes.$x20;
+  right: sizes.$x20;
+  border-radius: sizes.$x6;
+  background-color: colors.$kobo-gray-40;
+  width: sizes.$x50;
+  height: sizes.$x40;
+	color: colors.$kobo-white;
+	border: none;
+	cursor: pointer;
+  box-shadow: 0 sizes.$x4 sizes.$x12 0 rgba(0, 0, 0, 0.2);
+}
+
 @media screen and (min-width: breakpoints.$b1000) {
   .featureContainer {
     height: 24em;

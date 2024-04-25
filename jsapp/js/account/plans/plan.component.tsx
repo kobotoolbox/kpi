@@ -135,6 +135,24 @@ export default function Plan() {
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const navigate = useNavigate();
+  const [showGoTop, setShowGoTop] = useState(false);
+  const pageBody = useRef<HTMLDivElement>(null);
+
+  const handleVisibleButton = () => {
+    if (pageBody.current && pageBody.current.scrollTop > 300) {
+      setShowGoTop(true);
+    } else {
+      setShowGoTop(false);
+    }
+  };
+
+  const handleScrollUp = () => {
+    pageBody.current?.scrollTo({left: 0, top: 0, behavior: 'smooth'});
+  };
+
+  useEffect(() => {
+    pageBody.current?.addEventListener('scroll', handleVisibleButton);
+  }, []);
 
   const isDataLoading = useMemo(
     (): boolean =>
@@ -452,7 +470,7 @@ export default function Plan() {
     return null;
   }
 
-  const comparisonButton = () => (
+  const comparisonButton = () =>
     hasMetaFeatures() && (
       <div className={styles.comparisonButton}>
         <Button
@@ -473,8 +491,7 @@ export default function Plan() {
           }
         />
       </div>
-    )
-  );
+    );
 
   return (
     <>
@@ -492,6 +509,7 @@ export default function Plan() {
             />
           )}
           <div
+            ref={pageBody}
             className={classnames(styles.accountPlan, {
               [styles.wait]: isBusy,
               [styles.unauthorized]: isUnauthorized,
@@ -542,10 +560,18 @@ export default function Plan() {
                     />
                   </div>
                 ))}
-                <div className={styles.minimizedCards}>{comparisonButton()}</div>
+                <div className={styles.minimizedCards}>
+                  {comparisonButton()}
+                </div>
                 {shouldShowExtras && (
                   <div className={styles.enterprisePlanContainer}>
-                    <div className={expandComparison ? `${styles.enterprisePlan} ${styles.expandedEnterprisePlan}` : styles.enterprisePlan}>
+                    <div
+                      className={
+                        expandComparison
+                          ? `${styles.enterprisePlan} ${styles.expandedEnterprisePlan}`
+                          : styles.enterprisePlan
+                      }
+                    >
                       <h1 className={styles.enterpriseTitle}>
                         {' '}
                         {t('Want more?')}
@@ -593,7 +619,14 @@ export default function Plan() {
                 />
               )}
             </div>
-
+            {showGoTop && (
+              <button
+                onClick={handleScrollUp}
+                className={styles.scrollToTopButton}
+              >
+                <i className='k-icon k-icon-arrow-up k-icon--size-m' />
+              </button>
+            )}
             <ConfirmChangeModal
               onRequestClose={dismissConfirmModal}
               {...confirmModal}
