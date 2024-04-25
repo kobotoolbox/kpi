@@ -31,7 +31,7 @@ const loadProducts = async () => {
 };
 
 export const useProducts = () =>
-  useApiFetcher(loadProducts, INITIAL_PRODUCTS_STATE);
+  useApiFetcher({fetcher: loadProducts, initialValue: INITIAL_PRODUCTS_STATE});
 
 export const ProductsContext = createContext(
   withApiFetcher(INITIAL_PRODUCTS_STATE)

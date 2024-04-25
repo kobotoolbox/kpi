@@ -19,7 +19,10 @@ const INITIAL_ORGANIZATION_STATE: Organization = Object.freeze({
 });
 
 export const useOrganization = () =>
-  useApiFetcher(loadOrganization, INITIAL_ORGANIZATION_STATE);
+  useApiFetcher({
+    fetcher: loadOrganization,
+    initialValue: INITIAL_ORGANIZATION_STATE,
+  });
 
 export const OrganizationContext = createContext(
   withApiFetcher(INITIAL_ORGANIZATION_STATE)

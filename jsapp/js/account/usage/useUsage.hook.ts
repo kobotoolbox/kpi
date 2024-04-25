@@ -66,17 +66,17 @@ const loadUsage = async (
 };
 
 export const useUsage = (organizationId: string | null) => {
-  const fetcher = useApiFetcher(
-    () => {
+  const apiFetcher = useApiFetcher({
+    fetcher: () => {
       return loadUsage(organizationId);
     },
-    INITIAL_USAGE_STATE,
-    {
+    initialValue: INITIAL_USAGE_STATE,
+    options: {
       reloadEverySeconds: 15 * 60,
       skipInitialLoad: !organizationId,
-    }
-  );
+    },
+  });
 
-  return fetcher;
+  return apiFetcher;
 };
 export const UsageContext = createContext(withApiFetcher(INITIAL_USAGE_STATE));

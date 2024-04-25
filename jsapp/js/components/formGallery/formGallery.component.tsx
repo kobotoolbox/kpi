@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useReducer} from 'react';
+import React, {useEffect, useMemo, useReducer, useState} from 'react';
 import ReactSelect from 'react-select';
 import type {
   AssetResponse,
@@ -16,6 +16,7 @@ import {
   selectImageAttachments,
   selectShowLoadMore,
 } from './formGallery.selectors';
+import {useFormGallery} from 'js/components/formGallery/useFormGallery.hook';
 
 bem.Gallery = makeBem(null, 'gallery');
 bem.Gallery__wrapper = makeBem(bem.Gallery, 'wrapper');
@@ -33,7 +34,7 @@ interface FormGalleryProps {
   asset: AssetResponse;
 }
 
-export default function FormGallery(props: FormGalleryProps) {
+const FormGallery = (props: FormGalleryProps) => {
   const flatQuestionsList = getFlatQuestionsList(
     props.asset.content!.survey!
   ).filter((survey) => survey.type === 'image');
@@ -46,6 +47,7 @@ export default function FormGallery(props: FormGalleryProps) {
         survey.label,
     };
   });
+  const [page, setPage] = useState(0);
   const defaultOption = {value: '', label: t('All questions')};
   const questionFilterOptions = [defaultOption, ...(questions || [])];
   const [
@@ -71,6 +73,15 @@ export default function FormGallery(props: FormGalleryProps) {
       selectFilterQuery(filterQuestion, flatQuestionsList, startDate, endDate),
     [filterQuestion, startDate, endDate]
   );
+
+  const [formGalleryData] = useFormGallery({
+    asset_uid: props.asset.uid,
+    pageSize: PAGE_SIZE,
+    page,
+    sort: [],
+    fields: [],
+    filter: filterQuery,
+  });
 
   useEffect(() => {
     dispatch({type: 'getSubmissions'});
@@ -190,4 +201,6 @@ export default function FormGallery(props: FormGalleryProps) {
       </bem.Gallery__wrapper>
     </bem.Gallery>
   );
-}
+};
+
+export default FormGallery;
