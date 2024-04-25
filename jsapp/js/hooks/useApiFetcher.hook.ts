@@ -9,10 +9,13 @@ export interface ApiFetcherOptions {
   skipInitialLoad?: boolean;
 }
 
-export interface ApiFetcherStatus {
+interface Status {
   pending: boolean;
   error: string | null;
   isInitialLoad: boolean;
+}
+
+export interface ApiFetcherStatus extends Status {
   setIsInitialLoad: (isInitialLoad: boolean) => void;
 }
 
@@ -44,23 +47,26 @@ export const useApiFetcher = <Type>(
   options?: ApiFetcherOptions
 ): WithApiFetcher<Type> => {
   const [response, setResponse] = useState<Type>(initialValue);
-  const [isInitialLoad, setIsInitialLoad] = useState(false);
-  const [pending, setPending] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<Status>({
+    error: null,
+    pending: true,
+    isInitialLoad: false,
+  });
 
   const loadFetcher = useCallback(() => {
-    setPending(true);
+    setStatus((prevState) => {
+      return {...prevState, pending: true};
+    });
     fetcher()
       .then((data) => {
         setResponse(data ?? initialValue);
-        setIsInitialLoad(false);
-        setPending(false);
-        setError(null);
+        setStatus({error: null, isInitialLoad: false, pending: false});
       })
-      .catch((reason) => {
+      .catch((error) => {
         setResponse(initialValue);
-        setPending(false);
-        setError(reason);
+        setStatus((prevState) => {
+          return {...prevState, error: error?.message, pending: false};
+        });
       });
   }, [fetcher]);
 
@@ -86,11 +92,13 @@ export const useApiFetcher = <Type>(
     return;
   }, [options]);
 
-  return [
-    response,
-    loadFetcher,
-    {pending, error, isInitialLoad, setIsInitialLoad},
-  ];
+  const setIsInitialLoad = (value: boolean) => {
+    setStatus((prevState) => {
+      return {...prevState, isInitialLoad: value};
+    });
+  };
+
+  return [response, loadFetcher, {...status, setIsInitialLoad}];
 };
 
 export const withApiFetcher = <Type>(
