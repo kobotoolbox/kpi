@@ -30,6 +30,7 @@ import {
   isAnyProcessingRoute,
   isAnyProcessingRouteActive,
   getProcessingRouteParts,
+  getCurrentProcessingRouteParts,
   ProcessingTab,
 } from 'js/components/processing/routes.utils';
 
@@ -166,21 +167,15 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   public get currentAssetUid() {
-    // To avoid too much complexity in the code, we pass empty string instead
-    // of undefined
-    return getProcessingRouteParts().assetUid || '';
+    return getCurrentProcessingRouteParts().assetUid;
   }
 
   public get currentQuestionQpath() {
-    // To avoid too much complexity in the code, we pass empty string instead
-    // of undefined
-    return getProcessingRouteParts().qpath || '';
+    return getCurrentProcessingRouteParts().qpath;
   }
 
   public get currentSubmissionEditId() {
-    // To avoid too much complexity in the code, we pass empty string instead
-    // of undefined
-    return getProcessingRouteParts().submissionEditId || '';
+    return getCurrentProcessingRouteParts().submissionEditId;
   }
 
   public get currentQuestionName() {
@@ -381,7 +376,7 @@ class SingleProcessingStore extends Reflux.Store {
     // Cleanup: When we leave Analysis tab, we need to reset the flag
     // responsible for keeping the status of unsaved changes. This way it's not
     // blocking the navigation after leaving the tab directly from editing.
-    if (previousPathParts?.tab === ProcessingTab.Analysis) {
+    if (previousPathParts?.tabName === ProcessingTab.Analysis) {
       this.setAnalysisTabHasUnsavedChanges(false);
     }
 
@@ -397,8 +392,8 @@ class SingleProcessingStore extends Reflux.Store {
       previousPathParts.submissionEditId === newPathParts.submissionEditId &&
       // This check is needed to avoid going into this in case when route
       // redirects from no tab (e.g. `/`) into default tab (e.g. `/transcript`).
-      previousPathParts.tab !== undefined &&
-      previousPathParts.tab !== newPathParts.tab
+      previousPathParts.tabName !== undefined &&
+      previousPathParts.tabName !== newPathParts.tabName
     ) {
       // When changing tab, discard all drafts and the selected source.
       this.data.transcriptDraft = undefined;

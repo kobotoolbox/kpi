@@ -14,7 +14,7 @@ describe('processing routes.utils tests', () => {
         assetUid: 'abc123',
         qpath: 'My_que',
         submissionEditId: 'def-45gh-jklm',
-        tab: ProcessingTab.Analysis,
+        tabName: ProcessingTab.Analysis,
       });
     });
 
@@ -25,7 +25,7 @@ describe('processing routes.utils tests', () => {
         assetUid: 'abc123',
         qpath: 'My_que',
         submissionEditId: 'def-45gh-jklm',
-        tab: ProcessingTab.Transcript,
+        tabName: ProcessingTab.Transcript,
       });
     });
 
@@ -36,7 +36,6 @@ describe('processing routes.utils tests', () => {
         assetUid: 'abc123',
         qpath: 'My_que',
         submissionEditId: 'def-45gh-jklm',
-        tab: undefined,
       });
     });
 
@@ -47,7 +46,6 @@ describe('processing routes.utils tests', () => {
         assetUid: 'abc123',
         qpath: 'My_que',
         submissionEditId: 'def-45gh-jklm',
-        tab: undefined,
       });
     });
 
@@ -55,10 +53,9 @@ describe('processing routes.utils tests', () => {
       const path = '/forms/abc123/data/table';
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
-        assetUid: undefined,
-        qpath: undefined,
-        submissionEditId: undefined,
-        tab: undefined,
+        assetUid: '',
+        qpath: '',
+        submissionEditId: '',
       });
     });
 
@@ -66,10 +63,9 @@ describe('processing routes.utils tests', () => {
       const path = '/account/settings';
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
-        assetUid: undefined,
-        qpath: undefined,
-        submissionEditId: undefined,
-        tab: undefined,
+        assetUid: '',
+        qpath: '',
+        submissionEditId: '',
       });
     });
 
@@ -77,10 +73,9 @@ describe('processing routes.utils tests', () => {
       const path = '/a/b/c/d/e/f/g/h/i/j/k/l/m';
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
-        assetUid: undefined,
-        qpath: undefined,
-        submissionEditId: undefined,
-        tab: undefined,
+        assetUid: '',
+        qpath: '',
+        submissionEditId: '',
       });
     });
   });

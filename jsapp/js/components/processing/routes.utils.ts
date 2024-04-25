@@ -1,9 +1,9 @@
 // This is a collection of various utility functions related to processing
 // routes and navigation.
 
-import {generatePath} from 'react-router-dom';
+import {generatePath, matchPath} from 'react-router-dom';
 import {router} from 'js/router/legacy';
-import {ROUTES, PROCESSING_ROUTES} from 'js/router/routerConstants';
+import {ROUTES, PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC} from 'js/router/routerConstants';
 import {getCurrentPath} from 'js/router/routerUtils';
 
 /**
@@ -23,69 +23,54 @@ const TabToRouteMap: Map<ProcessingTab, string> = new Map([
 ]);
 
 interface ProcessingRouteParts {
-  assetUid?: string;
-  qpath?: string;
-  submissionEditId?: string;
-  tab?: ProcessingTab;
+  assetUid: string;
+  qpath: string;
+  submissionEditId: string;
+  tabName?: ProcessingTab;
 }
 
 /**
- * For given processing path, returns all of it's params and parts. If path is
- * not provided, function is working on current path.
+ * For given processing path, returns all of it's params and parts.
  */
-export function getProcessingRouteParts(path?: string): ProcessingRouteParts {
-  // Step 1. Fallback to current path
-  let targetPath = path;
-  if (!targetPath) {
-    targetPath = getCurrentPath();
-  }
-
-  // Step 2. We get the parts of checked path, and we drop any existing query
-  // params to not pollute the outcome
-  const pathArray = targetPath.split('?')[0].split('/');
-
-  // Step 3. Get all indexes of all the parts from the route definition.
-  // These checks are a bit annoyting to have, but we want to avoid false
-  // positives, and path splitting is very vague. The idea is to make sure
-  // that the provided path has all necessary static parts of the processing
-  // route.
-  const defRouteArray = PROCESSING_ROUTES.ANALYSIS.split('/');
-  const formsPartIndex = defRouteArray.indexOf('forms');
-  const uidPartIndex = defRouteArray.indexOf(':uid');
-  const dataPartIndex = defRouteArray.indexOf('data');
-  const processingPartIndex = defRouteArray.indexOf('processing');
-  const qpathPartIndex = defRouteArray.indexOf(':qpath');
-  const submissionPartIndex = defRouteArray.indexOf(':submissionEditId');
-  const tabPartIndex = defRouteArray.indexOf('analysis');
-
-  // Step 4. Make sure all the static parts exist in the checked path
-  if (
-    pathArray[formsPartIndex] !== 'forms' ||
-    pathArray[dataPartIndex] !== 'data' ||
-    pathArray[processingPartIndex] !== 'processing'
-  ) {
-    // Not processing path, so we return "empty" results
-    return {
-      assetUid: undefined,
-      qpath: undefined,
-      submissionEditId: undefined,
-      tab: undefined,
-    };
-  }
-
-  // Step 5. Get path part
-  let pathTabPart;
-  if (pathArray[tabPartIndex]) {
-    // We only assign it (and cast it) when it actually exists
-    pathTabPart = pathArray[tabPartIndex] as ProcessingTab;
-  }
-
-  return {
-    assetUid: pathArray[uidPartIndex],
-    qpath: pathArray[qpathPartIndex],
-    submissionEditId: pathArray[submissionPartIndex],
-    tab: pathTabPart,
+export function getProcessingRouteParts(path: string): ProcessingRouteParts {
+  const output: ProcessingRouteParts = {
+    assetUid: '',
+    qpath: '',
+    submissionEditId: '',
   };
+
+  // Step 1. Remove query string from path.
+  const targetPath = path.split('?')[0];
+
+  // Step 2. Generate match profile (an object with parameters from the path).
+  let matchProfile = matchPath(PROCESSING_ROUTE_GENERIC, targetPath);
+
+  // Step 3. If a root route was passed (i.e. one without tab name), we need to
+  // match it again, this time against different pattern.
+  if (!matchProfile) {
+    matchProfile = matchPath(ROUTES.FORM_PROCESSING_ROOT, targetPath);
+  }
+
+  if (!matchProfile) {
+    return output;
+  }
+
+  // Step 4. Assign all the found values to output
+  output.assetUid = matchProfile.params.uid as string;
+  output.qpath = matchProfile.params.qpath as string;
+  output.submissionEditId = matchProfile.params.submissionEditId as string;
+  if (
+    'tabName' in matchProfile.params &&
+    Object.values(ProcessingTab).includes(matchProfile.params.tabName as ProcessingTab)
+  ) {
+    output.tabName = matchProfile.params.tabName as ProcessingTab;
+  }
+
+  return output;
+};
+
+export function getCurrentProcessingRouteParts(): ProcessingRouteParts {
+  return getProcessingRouteParts(getCurrentPath());
 }
 
 /**
@@ -96,9 +81,9 @@ function applyCurrentRouteParams(targetRoute: string) {
   const routeParams = getProcessingRouteParts(getCurrentPath());
 
   return generatePath(targetRoute, {
-    uid: routeParams.assetUid || '',
-    qpath: routeParams.qpath || '',
-    submissionEditId: routeParams.submissionEditId || '',
+    uid: routeParams.assetUid,
+    qpath: routeParams.qpath,
+    submissionEditId: routeParams.submissionEditId,
   });
 }
 
@@ -114,8 +99,8 @@ export function isAnyProcessingRoute(path?: string): boolean {
   const processingRouteParts = getProcessingRouteParts(path);
   return Boolean(
     processingRouteParts.assetUid &&
-      processingRouteParts.submissionEditId &&
-      processingRouteParts.qpath
+    processingRouteParts.submissionEditId &&
+    processingRouteParts.qpath
   );
 }
 
