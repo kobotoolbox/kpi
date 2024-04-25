@@ -25,10 +25,6 @@ table th {
   padding-left: sizes.$x8;
 }
 
-.wrap {
-  width: sizes.$x120;
-}
-
 th {
   font-weight: 700;
   font-size: sizes.$x13;
@@ -41,16 +37,13 @@ tr {
   font-weight: 400;
   font-size: sizes.$x16;
   color: colors.$kobo-gray-24;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
 }
 
 td {
   padding: sizes.$x18 sizes.$x8;
 }
 
-td,
-th {
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
-}
 
 .link {
   color: colors.$kobo-dark-blue;
@@ -95,10 +88,6 @@ button {
   border-left: sizes.$x1 solid colors.$kobo-gray-85;
   flex: 1;
   text-align: center;
-}
-
-.badge {
-  width: sizes.$x150;
 }
 
 .emptyMessage {
