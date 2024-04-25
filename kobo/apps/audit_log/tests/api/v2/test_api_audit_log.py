@@ -3,9 +3,9 @@ from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.audit_log.models import AuditAction, AuditLog
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from ..models import AuditAction, AuditLog
 
 
 class ApiAuditLogTestCase(BaseTestCase):
@@ -15,7 +15,7 @@ class ApiAuditLogTestCase(BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        self.audit_log_list_url = reverse('audit-log-list')
+        self.audit_log_list_url = reverse(self._get_endpoint('audit-log-list'))
 
     def test_list_as_anonymous(self):
         self.client.logout()
@@ -53,7 +53,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             'app_label': 'foo',
             'model_name': 'bar',
             'object_id': 1,
-            'user': 'http://testserver/users/someuser/',
+            'user': 'http://testserver/api/v2/users/someuser/',
             'user_uid': someuser.extra_details.uid,
             'action': 'DELETE',
             'metadata': {},
@@ -90,7 +90,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             'app_label': 'foo',
             'model_name': 'bar',
             'object_id': 1,
-            'user': 'http://testserver/users/anotheruser/',
+            'user': 'http://testserver/api/v2/users/anotheruser/',
             'user_uid': anotheruser.extra_details.uid,
             'action': 'DELETE',
             'metadata': {},

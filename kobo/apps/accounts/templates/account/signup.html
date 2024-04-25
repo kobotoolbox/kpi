@@ -20,7 +20,7 @@
               <div class="field">{{ custom_guidance_text|safe }}</div>
             {% endif %}
           {% endif %}
-          {{ field.label_tag|cut:':' }}
+          {{ field.label_tag }}
           {% if field.field.required %}
             <span class="required">*</span>
           {% endif %}
@@ -36,6 +36,8 @@
           <div class="field" id="registration-password-app"></div>
         {% endif %}
       {% endfor %}
+
+      <script src="{% static 'js/organization_type_skiplogic.js' %}"></script>
 
       <button
         type="submit"

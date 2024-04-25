@@ -20,6 +20,7 @@ import ReportContents from './reportContents';
 import ReportStyleSettings from './reportStyleSettings';
 import './reports.scss';
 import {userCan} from 'js/components/permissions/utils';
+import CenteredMessage from 'js/components/common/centeredMessage.component';
 
 export default class Reports extends React.Component {
   constructor(props) {
@@ -457,22 +458,22 @@ export default class Reports extends React.Component {
   renderLoadingOrError() {
     if (this.state.error) {
       return (
-        <bem.Loading>
-          <bem.Loading__inner>
+        <CenteredMessage
+          message={(
+            <>
             {t('This report cannot be loaded.')}
             <br />
             <code>
               {this.state.error.statusText}
               {': ' + this.state.error.responseText || t('An error occurred')}
             </code>
-          </bem.Loading__inner>
-        </bem.Loading>
+            </>
+          )}
+        />
       );
     } else {
       return (
-        <bem.Loading>
-          <LoadingSpinner />
-        </bem.Loading>
+        <LoadingSpinner />
       );
     }
   }
@@ -521,6 +522,12 @@ export default class Reports extends React.Component {
     const hasAnyProvidedData = this.hasAnyProvidedData(reportData);
     const hasGroupBy = this.state.groupBy.length !== 0;
 
+    let noDataMessage = t('This report has no data.');
+    if (hasGroupBy) {
+      noDataMessage += ' ';
+      noDataMessage += t('Try changing Report Style to "No grouping".');
+    }
+
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m={formViewModifiers}>
@@ -529,14 +536,7 @@ export default class Reports extends React.Component {
 
             {!hasAnyProvidedData && (
               <bem.ReportView__wrap>
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    {t('This report has no data.')}
-
-                    {hasGroupBy &&
-                      ' ' + t('Try changing Report Style to "No grouping".')}
-                  </bem.Loading__inner>
-                </bem.Loading>
+                <InlineMessage type='warning' message={noDataMessage}/>
               </bem.ReportView__wrap>
             )}
 

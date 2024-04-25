@@ -2,9 +2,9 @@ import React from 'react';
 import singleProcessingStore, {
   SingleProcessingTabs,
 } from 'js/components/processing/singleProcessingStore';
-import Analysis from 'js/components/processing/analysis/analysis.component';
-import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
-import TranslationsTabContent from 'js/components/processing/translationsTabContent';
+import AnalysisTab from 'js/components/processing/analysis/analysisTab.component';
+import TranscriptTab from 'js/components/processing/transcript/transcriptTab.component';
+import TranslationsTab from 'js/components/processing/translations/translationsTab.component';
 import protectorHelpers from 'js/protector/protectorHelpers';
 import styles from './singleProcessingContent.module.scss';
 import classNames from 'classnames';
@@ -52,11 +52,11 @@ export default class SingleProcessingContent extends React.Component<{}> {
   renderTabContent() {
     switch (singleProcessingStore.getActiveTab()) {
       case SingleProcessingTabs.Transcript:
-        return <TranscriptTabContent />;
+        return <TranscriptTab />;
       case SingleProcessingTabs.Translations:
-        return <TranslationsTabContent />;
+        return <TranslationsTab />;
       case SingleProcessingTabs.Analysis:
-        return <Analysis />;
+        return <AnalysisTab />;
       default:
         return null;
     }

@@ -5,6 +5,7 @@ import Icon from 'js/components/common/icon';
 import './button.scss';
 import type {TooltipAlignment} from './tooltip';
 import Tooltip from './tooltip';
+import {useId} from 'js/hooks/useId.hook';
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't
@@ -23,8 +24,7 @@ export type ButtonColor =
   | 'light-blue'
   | 'red'
   | 'storm'
-  | 'cloud'
-  | 'dark-red'
+  | 'light-storm'
   | 'dark-blue';
 
 /**
@@ -88,6 +88,7 @@ interface AdditionalButtonAttributes {
  * A button component.
  */
 const Button = (props: ButtonProps) => {
+  const labelId = useId();
   // Note: both icon(s) and label are optional, but in reality the button
   // needs at least one of them to work.
   if (!props.startIcon && !props.endIcon && !props.label) {
@@ -161,11 +162,16 @@ const Button = (props: ButtonProps) => {
       aria-disabled={props.isDisabled}
       onClick={handleClick}
       onKeyUp={onKeyUp}
+      aria-labelledby={props.label ? `k-button__label--${labelId}` : undefined}
       {...additionalButtonAttributes}
     >
       {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
 
-      {props.label && <span className='k-button__label'>{props.label}</span>}
+      {props.label && (
+        <label id={`k-button__label--${labelId}`} className='k-button__label'>
+          {props.label}
+        </label>
+      )}
 
       {/* Ensures only one icon is being displayed.*/}
       {!props.startIcon && props.endIcon && (

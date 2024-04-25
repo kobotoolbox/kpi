@@ -19,6 +19,7 @@ import exportsActions from './actions/exportsActions';
 import dataShareActions from './actions/dataShareActions';
 import {notify} from 'js/utils';
 import {replaceSupportEmail} from 'js/textUtils';
+import * as Sentry from '@sentry/react';
 
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
@@ -41,7 +42,6 @@ actions.navigation = Reflux.createActions([
 
 actions.auth = Reflux.createActions({
   verifyLogin: {children: ['loggedin', 'anonymous', 'failed']},
-  logout: {children: ['completed', 'failed']},
   changePassword: {children: ['completed', 'failed']},
   getApiToken: {children: ['completed', 'failed']},
 });
@@ -145,8 +145,8 @@ actions.resources.listTags.listen(function(data){
 });
 
 actions.resources.listTags.completed.listen(function(results){
-  if (results.next && window.Raven) {
-    Raven.captureMessage('MAX_TAGS_EXCEEDED: Too many tags');
+  if (results.next) {
+    Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags');
   }
 });
 
@@ -385,18 +385,6 @@ actions.search.assets.listen(function(searchData, params = {}){
     });
 });
 
-// reload so a new csrf token is issued
-actions.auth.logout.completed.listen(function(){
-  window.setTimeout(function(){
-    window.location.replace('', '');
-  }, 1);
-});
-
-actions.auth.logout.listen(function(){
-  dataInterface.logout().done(actions.auth.logout.completed).fail(function(){
-    console.error('logout failed for some reason. what should happen now?');
-  });
-});
 actions.auth.verifyLogin.listen(function(){
     dataInterface.selfProfile()
         .done((data/*, msg, req*/)=>{
@@ -435,10 +423,26 @@ actions.auth.getApiToken.failed.listen(() => {
   notify(t('failed to load API token'), 'error');
 });
 
-actions.resources.loadAsset.listen(function(params){
-  dataInterface.getAsset(params)
-    .done(actions.resources.loadAsset.completed)
+const assetCache = {};
+
+actions.resources.loadAsset.listen(function (params, refresh = false) {
+  // if we want to force-refresh the asset or if we don't have it cached, make an API call
+  if (refresh || !(params.id in assetCache)) {
+    // initialize the cache entry with an empty value, or evict stale cached entry for this asset
+    // we use a string instead of null/undefined to distinguish from null responses from the server, etc.
+    assetCache[params.id] = 'pending';
+    dataInterface.getAsset(params)
+    .done((asset) => {
+      // save the fully loaded asset to the cache
+      assetCache[params.id] = asset;
+      actions.resources.loadAsset.completed(asset);
+    })
     .fail(actions.resources.loadAsset.failed);
+  } else if (assetCache[params.id] !== 'pending') {
+    // we have a cache entry, use that
+    actions.resources.loadAsset.completed(assetCache[params.id]);
+  }
+  // the cache entry for this asset is currently loading, do nothing
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){

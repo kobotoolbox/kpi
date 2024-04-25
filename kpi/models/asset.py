@@ -407,11 +407,11 @@ class Asset(ObjectPermissionMixin,
 
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
-        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
-        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
-        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
-        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can Delete Data" in KC UI
-        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can Validate" in KC UI
+        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can change XForm" in KC shell
+        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can view XForm" in KC shell
+        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell
+        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell
+        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
@@ -578,16 +578,40 @@ class Asset(ObjectPermissionMixin,
         )
 
     @cache_for_request
-    def get_attachment_xpaths(self, deployed: bool = True) -> list:
+    def get_attachment_xpaths(self, deployed: bool = True) -> Optional[list]:
         version = (
             self.latest_deployed_version if deployed else self.latest_version
         )
-        survey = version.to_formpack_schema()['content']['survey']
-        return [
-            q['$xpath']
-            for q in survey
-            if q['type'] in ATTACHMENT_QUESTION_TYPES
-        ]
+
+        if version:
+            content = version.to_formpack_schema()['content']
+        else:
+            content = self.content
+
+        survey = content['survey']
+
+        def _get_xpaths(survey_: dict) -> Optional[list]:
+            """
+            Returns an empty list if no questions that take attachments are
+            present. Returns `None` if XPath are missing from the survey
+            content
+            """
+            xpaths = []
+            for question in survey_:
+                if question['type'] not in ATTACHMENT_QUESTION_TYPES:
+                    continue
+                try:
+                    xpath = question['$xpath']
+                except KeyError:
+                    return None
+                xpaths.append(xpath)
+            return xpaths
+
+        if xpaths := _get_xpaths(survey):
+            return xpaths
+
+        self._insert_qpath(content)
+        return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS

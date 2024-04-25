@@ -402,6 +402,15 @@ $s-data-table-font: 13px;
     }
   }
 
+  // currently hovered or focused cell will not cut off its content - for
+  // tooltips and dropdowns
+  .rt-th:hover,
+  .rt-td:hover,
+  .rt-th:focus-within,
+  .rt-td:focus-within {
+    overflow: visible;
+  }
+
   // currently hovered cell will be on top - for tooltips and dropdowns
   .rt-th:hover.is-frozen,
   .rt-td:hover.is-frozen {

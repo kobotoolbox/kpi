@@ -113,6 +113,14 @@ module.exports = do ->
       @$label = @$header.find('.js-card-label').eq(0)
       @$hint = @$header.find('.js-card-hint').eq(0)
 
+      if !!@model.get('file')
+        fileDetail = @model.get('file')
+        @$el.find('.card__text').append("""<p class="card__attr--file"></p>""")
+        $filePrev = @$el.find('.card__attr--file')
+        updateViewBubble = () -> $filePrev.text("🗃️ " + fileDetail.get('value'))
+        fileDetail.on('change:value', updateViewBubble)
+        updateViewBubble()
+
       context = {warnings: []}
 
       questionType = @getRawType()

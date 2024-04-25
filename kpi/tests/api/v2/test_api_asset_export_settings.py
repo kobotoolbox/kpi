@@ -1,6 +1,4 @@
 # coding: utf-8
-import json
-
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -281,4 +279,3 @@ class AssetExportSettingsApiTest(BaseTestCase):
             url, HTTP_ACCEPT='application/json'
         )
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT
-

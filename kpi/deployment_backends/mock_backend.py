@@ -1,19 +1,13 @@
 # coding: utf-8
 from __future__ import annotations
+
 import copy
 import os
-import re
 import time
 import uuid
 from collections import defaultdict
 from datetime import date, datetime
 from typing import Optional, Union
-from xml.etree import ElementTree as ET
-
-from django.db.models import Sum
-from django.db.models.functions import Coalesce
-from django.utils import timezone
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -22,9 +16,9 @@ except ImportError:
 from deepmerge import always_merger
 from dict2xml import dict2xml as dict2xml_real
 from django.conf import settings
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.urls import reverse
-from django.utils.translation import gettext as t
-from lxml import etree
 from rest_framework import status
 
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -45,9 +39,8 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.tests.utils.mock import MockAttachment
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
-from kpi.utils.xml import edit_submission_xml
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 from .base_backend import BaseDeploymentBackend
-from ..exceptions import KobocatBulkUpdateSubmissionsClientException
 
 
 def dict2xml(*args, **kwargs):
@@ -71,66 +64,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def bulk_assign_mapped_perms(self):
         pass
-
-    def bulk_update_submissions(
-        self, data: dict, user: 'auth.User'
-    ) -> dict:
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=data['submission_ids'],
-            query=data['query'],
-        )
-
-        if submission_ids:
-            data['query'] = {}
-        else:
-            submission_ids = data['submission_ids']
-
-        submissions = self.get_submissions(
-            user=user,
-            format_type=SUBMISSION_FORMAT_TYPE_XML,
-            submission_ids=submission_ids,
-            query=data['query'],
-        )
-
-        if not self.current_submission_count:
-            raise KobocatBulkUpdateSubmissionsClientException(
-                detail=t('No submissions match the given `submission_ids`')
-            )
-
-        update_data = self.__prepare_bulk_update_data(data['data'])
-        kc_responses = []
-        for submission in submissions:
-            # Remove XML declaration from submission
-            submission = re.sub(r'(<\?.*\?>)', '', submission)
-            xml_parsed = etree.fromstring(submission)
-
-            _uuid, uuid_formatted = self.generate_new_instance_id()
-
-            instance_id = xml_parsed.find('meta/instanceID')
-            deprecated_id = xml_parsed.find('meta/deprecatedID')
-            deprecated_id_or_new = (
-                deprecated_id
-                if deprecated_id is not None
-                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
-            )
-            deprecated_id_or_new.text = instance_id.text
-            instance_id.text = uuid_formatted
-
-            for path, value in update_data.items():
-                edit_submission_xml(xml_parsed, path, value)
-
-            kc_responses.append(
-                {
-                    'uuid': _uuid,
-                    'status_code': status.HTTP_201_CREATED,
-                    'message': 'Successful submission',
-                    'updated_submission': etree.tostring(xml_parsed)  # only for testing
-                }
-            )
-
-        return self.__prepare_bulk_update_response(kc_responses)
 
     def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
         params = self.validate_submission_list_params(user,
@@ -297,14 +230,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             sub['_id']
             for sub in self.get_submissions(self.asset.owner, fields=['_id'])
         )) + 1
-        duplicated_submission.update({
-            '_id': next_id,
-            'start': updated_time,
-            'end': updated_time,
-            'meta/instanceID': f'uuid:{uuid.uuid4()}',
-            'meta/deprecatedID': submission['meta/instanceID'],
-            '_attachments': dup_att,
-        })
+        duplicated_submission.update(
+            {
+                '_id': next_id,
+                'start': updated_time,
+                'end': updated_time,
+                self.SUBMISSION_CURRENT_UUID_XPATH: f'uuid:{uuid.uuid4()}',
+                self.SUBMISSION_DEPRECATED_UUID_XPATH: submission[
+                    self.SUBMISSION_CURRENT_UUID_XPATH
+                ],
+                '_attachments': dup_att,
+            }
+        )
 
         self.asset.deployment.mock_submissions([duplicated_submission])
         return duplicated_submission
@@ -347,11 +284,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
 
         if xpath:
-            submission_tree = ET.ElementTree(
-                ET.fromstring(submission_xml)
-            )
+            submission_root = fromstring_preserve_root_xmlns(submission_xml)
             try:
-                element = submission_tree.find(xpath)
+                element = submission_root.find(xpath)
             except KeyError:
                 raise InvalidXPathException
 
@@ -647,15 +582,19 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
         }
 
-    @staticmethod
-    def generate_new_instance_id() -> (str, str):
+    def store_submission(
+        self, user, xml_submission, submission_uuid, attachments=None
+    ):
         """
-        Returns:
-            - Generated uuid
-            - Formatted uuid for OpenRosa xml
+        Return a mock response without actually storing anything
         """
-        _uuid = str(uuid.uuid4())
-        return _uuid, f'uuid:{_uuid}'
+
+        return {
+            'uuid': submission_uuid,
+            'status_code': status.HTTP_201_CREATED,
+            'message': 'Successful submission',
+            'updated_submission': xml_submission,
+        }
 
     @property
     def submission_count(self):
@@ -711,7 +650,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return sanitized_updates
 
     @staticmethod
-    def __prepare_bulk_update_response(kc_responses: list) -> dict:
+    def prepare_bulk_update_response(kc_responses: list) -> dict:
         total_update_attempts = len(kc_responses)
         total_successes = total_update_attempts  # all will be successful
         return {

@@ -73,7 +73,7 @@
 .transxHeaderDate {
   @include mixins.textEllipsis;
 
-  background-color: colors.$kobo-cloud;
+  background-color: colors.$kobo-light-storm;
   height: sizes.$x28;
   line-height: sizes.$x28;
   border-radius: sizes.$x14;
@@ -132,6 +132,10 @@
   text-align: center;
   line-height: sizes.$x20;
   margin-bottom: sizes.$x24;
+}
+
+.header:not(:first-child) {
+  margin-top: sizes.$x32;
 }
 
 .footer {

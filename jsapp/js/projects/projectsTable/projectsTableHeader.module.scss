@@ -102,7 +102,7 @@ $resizer-width: sizes.$x16 + $line-width;
   right: math.div($resizer-width - $line-width, -2);
   width: $resizer-width;
   z-index: 2; // Overlap adjacent column header and cell width indicator
-  background-color: colors.$kobo-light-blue; // Resizer "pad" color
+  background-color: colors.$kobo-bg-blue; // Resizer "pad" color
   opacity: 0;
 
   &:hover {

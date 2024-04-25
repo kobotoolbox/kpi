@@ -2,24 +2,31 @@
 import os
 import re
 from copy import deepcopy
-from lxml import etree
 
 import pytest
 from django.conf import settings
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kpi.exceptions import (
     SearchQueryTooShortException,
-    QueryParserBadSyntax,
     QueryParserNotSupportedFieldLookup,
 )
+from kpi.models.asset import Asset
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.xml import strip_nodes, edit_submission_xml
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    get_or_create_element,
+    strip_nodes,
+    xml_tostring,
+)
 
 
 class UtilsTestCase(TestCase):
@@ -297,6 +304,94 @@ class UtilsTestCase(TestCase):
             == 'no'
         )
 
+    def test_question_xpaths(self):
+        # TODO Move this test to `api/v2` and make it work with mockbackend
+        #   when kpi#4743 is merged
+        content = {
+            'survey': [
+                {
+                    'name': 'group_ec9yq67',
+                    'type': 'begin_group',
+                    '$kuid': 'zo3lt68',
+                    'label': ['3 levels'],
+                    'required': False,
+                },
+                {
+                    'name': 'group_dq8as25',
+                    'type': 'begin_repeat',
+                    '$kuid': 'mg3vt38',
+                    'label': ['Repeated group - Upper level'],
+                    'required': False,
+                },
+                {
+                    'name': 'group_xt0za80',
+                    'type': 'begin_repeat',
+                    '$kuid': 'pp7xz89',
+                    'label': ['Repeated group - Nested'],
+                    'required': False,
+                },
+                {
+                    'type': 'image',
+                    '$kuid': 'ra2ti71',
+                    'label': ['my_attachment'],
+                    'required': False,
+                },
+                {'type': 'end_repeat', '$kuid': '/pp7xz89'},
+                {'type': 'end_repeat', '$kuid': '/mg3vt38'},
+                {'type': 'end_group', '$kuid': '/zo3lt68'},
+            ],
+            'settings': {},
+            'translated': ['label'],
+            'translations': [None],
+        }
+
+        user = get_user_model().objects.create(username='johndoe')
+        asset = Asset.objects.create(content=content, owner=user)
+        attachment_xpaths = asset.get_attachment_xpaths(deployed=False)
+        submission = {
+            'group_ec9yq67/group_dq8as25': [
+                {
+                    'group_ec9yq67/group_dq8as25/group_xt0za80': [
+                        {
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'IMG_4266-11_38_22.jpg'
+                        },
+                        {
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'كوبو-رائع-10_7_41.jpg'
+                        },
+                    ]
+                },
+                {
+                    'group_ec9yq67/group_dq8as25/group_xt0za80': [
+                        {
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'Screenshot 2024-02-14 at 18.31.39-11_38_35.png'
+                        }
+                    ]
+                },
+            ]
+        }
+
+        attachment_basenames = [
+            'IMG_4266-11_38_22.jpg',
+            'كوبو-رايع-10_7_41.jpg',
+            'Screenshot_2024-02-14_at_18.31.39-11_38_35.png'
+        ]
+
+        expected_question_xpaths = [
+            'group_ec9yq67/group_dq8as25[1]/group_xt0za80[1]/my_attachment',
+            'group_ec9yq67/group_dq8as25[1]/group_xt0za80[2]/my_attachment',
+            'group_ec9yq67/group_dq8as25[2]/group_xt0za80[1]/my_attachment'
+        ]
+
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            submission, attachment_xpaths
+        )
+
+        for idx, att_basename in enumerate(attachment_basenames):
+            assert (
+                filenames_and_xpaths.get(att_basename)
+                == expected_question_xpaths[idx]
+            )
+
 
 class XmlUtilsTestCase(TestCase):
 
@@ -372,7 +467,7 @@ class XmlUtilsTestCase(TestCase):
             '        <subgroup11>'
             '            <question_3>Answer 3</question_3>'
             '            <question_4>Answer 4</question_4>'
-            '        </subgroup11>'            
+            '        </subgroup11>'
             '        <question_5>Answer 5</question_5>'
             '    </group1>'
             '</root>'
@@ -427,7 +522,7 @@ class XmlUtilsTestCase(TestCase):
             '        <subgroup11>'
             '            <question_3>Answer 3</question_3>'
             '            <question_4>Answer 4</question_4>'
-            '        </subgroup11>'            
+            '        </subgroup11>'
             '        <question_5>Answer 5</question_5>'
             '    </group1>'
             '</root>'
@@ -475,8 +570,60 @@ class XmlUtilsTestCase(TestCase):
 
         )
 
+    def test_get_or_create_element(self):
+        initial_xml_with_ns = '''
+            <hello xmlns="http://opendatakit.org/submissions">
+                <meta>
+                    <instanceID>uuid:abc-123</instanceID>
+                </meta>
+            </hello>
+        '''
+        expected_xml_with_ns_after_modification = '''
+            <hello xmlns="http://opendatakit.org/submissions">
+                <meta>
+                    <instanceID>uuid:def-456</instanceID>
+                    <deprecatedID>uuid:abc-123</deprecatedID>
+                </meta>
+            </hello>
+        '''
+
+        initial_xml_without_ns = initial_xml_with_ns.replace(
+            ' xmlns="http://opendatakit.org/submissions"', ''
+        )
+        expected_xml_without_ns_after_modification = (
+            expected_xml_with_ns_after_modification.replace(
+                ' xmlns="http://opendatakit.org/submissions"', ''
+            )
+        )
+
+        for initial, expected in (
+            (initial_xml_with_ns, expected_xml_with_ns_after_modification),
+            (
+                initial_xml_without_ns,
+                expected_xml_without_ns_after_modification,
+            ),
+        ):
+            root = fromstring_preserve_root_xmlns(initial)
+            assert root.tag == 'hello'
+
+            initial_e = get_or_create_element(root, 'meta/instanceID')
+            assert (
+                initial_e.text == 'uuid:abc-123'
+            )
+            initial_e.text = 'uuid:def-456'
+
+            new_e = get_or_create_element(root, 'meta/deprecatedID')
+            assert new_e.tag == 'deprecatedID'
+            assert new_e.text is None
+            new_e.text = 'uuid:abc-123'
+
+            self.__compare_xml(
+                xml_tostring(root),
+                expected,
+            )
+
     def test_edit_submission_xml(self):
-        xml_parsed = etree.fromstring(self.__submission)
+        xml_parsed = fromstring_preserve_root_xmlns(self.__submission)
         update_data = {
             'group1/subgroup1/question_1': 'Edit 1',
             'group1/subgroup11/question_3': 'Edit 2',
@@ -533,7 +680,7 @@ class XmlUtilsTestCase(TestCase):
                 </a>
             </root>
         '''
-        self.__compare_xml(etree.tostring(xml_parsed).decode(), xml_expected)
+        self.__compare_xml(xml_tostring(xml_parsed), xml_expected)
 
     def __compare_xml(self, source: str, target: str) -> bool:
         """ Attempts to standardize XML by removing whitespace between tags """
