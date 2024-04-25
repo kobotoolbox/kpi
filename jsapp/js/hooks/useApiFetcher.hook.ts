@@ -3,10 +3,10 @@ import {useCallback, useEffect, useState} from 'react';
 export interface ApiFetcherOptions {
   /* If set, the ApiFetcher will execute the fetch() function once per the
    * provided number of seconds. Will only fetch when the window is visible.
-   * *Don't* use this for fetches that mutate data on the server (POST, DELETE, PUT).
+   * *Don't* use this for fetches that mutate data on the server (DELETE, PUT, some POST requests).
    */
-  reloadEverySeconds: number;
-  skipInitialLoad: boolean;
+  reloadEverySeconds?: number;
+  skipInitialLoad?: boolean;
 }
 
 export interface ApiFetcherStatus {
@@ -18,12 +18,32 @@ export interface ApiFetcherStatus {
 
 export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
 
-export function useApiFetcher<Type>(
+/** A reusable hook for making simple fetches with a consistent API.
+ *
+ * Made to be easily used alongside the Context API - for a simple
+ * example, look at `useOrganization` and `OrganizationContext`.
+ *
+ * It's heavily patterned off of swr: https://github.com/vercel/swr
+ * But only has a small subset of its features of interest to us.
+ *
+ * @function
+ * @template Type
+ * @param {function} fetcher Makes an API request and returns a data
+ *  object. `useApiFetcher` will call this whenever it needs a fresh
+ *  API response.
+ * @returns {Promise<Type|undefined>}
+ *
+ * @param {Type} initialValue Will be returned by useApiFetcher
+ *  during the initial load or if there's an error while fetching.
+ *
+ * @param {ApiFetcherOptions} options Setup options for the hook.
+ * */
+export const useApiFetcher = <Type>(
   fetcher: () => Promise<Type | undefined>,
   initialValue: Type,
-  options?: Partial<ApiFetcherOptions>
-): WithApiFetcher<Type> {
-  const [state, setState] = useState<Type>(initialValue);
+  options?: ApiFetcherOptions
+): WithApiFetcher<Type> => {
+  const [response, setResponse] = useState<Type>(initialValue);
   const [isInitialLoad, setIsInitialLoad] = useState(false);
   const [pending, setPending] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,13 +52,13 @@ export function useApiFetcher<Type>(
     setPending(true);
     fetcher()
       .then((data) => {
-        setState(data ?? initialValue);
+        setResponse(data ?? initialValue);
         setIsInitialLoad(false);
         setPending(false);
         setError(null);
       })
       .catch((reason) => {
-        setState(initialValue);
+        setResponse(initialValue);
         setPending(false);
         setError(reason);
       });
@@ -67,11 +87,11 @@ export function useApiFetcher<Type>(
   }, [options]);
 
   return [
-    state,
+    response,
     loadFetcher,
     {pending, error, isInitialLoad, setIsInitialLoad},
   ];
-}
+};
 
 export const withApiFetcher = <Type>(
   initialState: Type
