@@ -198,19 +198,6 @@ export function isFormRestHookRoute(uid: string, hookUid: string): boolean {
   );
 }
 
-export function isFormSingleProcessingRoute(
-  uid: string,
-  qpath: string,
-  submissionEditId: string
-): boolean {
-  return (
-    getCurrentPath() ===
-    ROUTES.FORM_PROCESSING.replace(':uid', uid)
-      .replace(':qpath', qpath)
-      .replace(':submissionEditId', submissionEditId)
-  );
-}
-
 export function isFormResetRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_RESET.replace(':uid', uid);
 }
@@ -256,20 +243,6 @@ export function getRouteAssetUid() {
   }
 
   return null;
-}
-
-/** Returns parameters from path for single processing route. */
-export function getSingleProcessingRouteParameters(): {
-  uid: string;
-  qpath: string;
-  submissionEditId: string;
-} {
-  const splitPath = getCurrentPath().split('/');
-  return {
-    uid: splitPath[2],
-    qpath: splitPath[5],
-    submissionEditId: splitPath[6],
-  };
 }
 
 /**
