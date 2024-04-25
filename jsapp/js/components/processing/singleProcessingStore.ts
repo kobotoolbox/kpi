@@ -1005,12 +1005,7 @@ class SingleProcessingStore extends Reflux.Store {
    * translation.
    */
   cleanupDisplays() {
-    const allTabs: ProcessingTab[] = [
-      ProcessingTab.Transcript,
-      ProcessingTab.Translations,
-      ProcessingTab.Analysis,
-    ];
-    allTabs.forEach((tab) => {
+    Object.values<ProcessingTab>(ProcessingTab).forEach((tab) => {
       const availableDisplays = this.getAvailableDisplays(tab);
       this.displays[tab].filter((display) => {
         availableDisplays.includes(display);
