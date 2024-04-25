@@ -1,5 +1,4 @@
 @use '~kobo-common/src/styles/colors';
-@use 'scss/sizes';
 
 .limitBannerContainer {
   background-color: colors.$kobo-light-red;
@@ -19,11 +18,6 @@
 
 .warningBanner {
   background-color: colors.$kobo-light-amber;
-}
-
-.infoBanner {
-  background-color: colors.$kobo-bg-blue;
-  margin: 1% 0 1%;
 }
 
 .bannerContent {

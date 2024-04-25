@@ -338,14 +338,6 @@ $button-border-radius: sizes.$x6;
   );
 }
 
-.k-button.k-button--color-gray.k-button--type-bare {
-  color: colors.$kobo-gray-55;
-
-  &:hover{
-    background-color: none;
-  }
-}
-
 // button sizes ↓
 
 .k-button.k-button--size-s {
