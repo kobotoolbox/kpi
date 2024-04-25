@@ -11,7 +11,7 @@ import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
-import { useUsage } from './useUsage.hook';
+import {useUsage} from './useUsage.hook';
 
 type ButtonType = 'back' | 'forward';
 
@@ -127,7 +127,11 @@ const ProjectBreakdown = () => {
               />
             </th>
             <th>{t('Submissions (Total)')}</th>
-            <th>{usage.trackingPeriod === 'year' ? t('Submissions (This year)') : t('Submissions (This month)')}</th>
+            <th>
+              {usage.trackingPeriod === 'year'
+                ? t('Submissions (This year)')
+                : t('Submissions (This month)')}
+            </th>
             <th>{t('Data storage')}</th>
             <th>{t('Transcript minutes')}</th>
             <th>{t('Translation characters')}</th>
