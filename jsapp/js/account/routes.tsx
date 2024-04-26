@@ -16,12 +16,13 @@ const AccountSettings = React.lazy(
   () => import(/* webpackPrefetch: true */ './accountSettingsRoute')
 );
 const DataStorage = React.lazy(
-  () => import(/* webpackPrefetch: true */ './usage/usage.component')
+  () => import(/* webpackPrefetch: true */ './usage/usageTopTabs')
 );
 
 export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
   ACCOUNT_SETTINGS: ROUTES.ACCOUNT_ROOT + '/settings',
   USAGE: ROUTES.ACCOUNT_ROOT + '/usage',
+  USAGE_PROJECT_BREAKDOWN: ROUTES.ACCOUNT_ROOT + '/usage/per-project',
   SECURITY: ROUTES.ACCOUNT_ROOT + '/security',
   PLAN: ROUTES.ACCOUNT_ROOT + '/plan',
   CHANGE_PASSWORD: ROUTES.ACCOUNT_ROOT + '/change-password',
@@ -54,7 +55,15 @@ export default function routes() {
         path={ACCOUNT_ROUTES.USAGE}
         element={
           <RequireAuth>
-            <DataStorage />
+            <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
+        element={
+          <RequireAuth>
+            <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}/>
           </RequireAuth>
         }
       />

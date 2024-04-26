@@ -1,0 +1,33 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+
+.root {
+  width: auto;
+  padding-top: sizes.$x20;
+  margin: 0 sizes.$x40;
+  display: flex;
+  flex-direction: row;
+  border-bottom: sizes.$x2 solid colors.$kobo-gray-85;
+}
+
+.tab {
+  background: transparent;
+  cursor: pointer;
+  font-size: sizes.$x18;
+  color: colors.$kobo-gray-55;
+  font-weight: 600;
+  padding: sizes.$x14 sizes.$x30 sizes.$x10;
+  margin-bottom: -(sizes.$x2);
+  outline: none;
+
+  &.active {
+    color: colors.$kobo-dark-blue;
+    background-color: colors.$kobo-bg-blue;
+    border-bottom: sizes.$x2 solid colors.$kobo-dark-blue;
+    border-radius: sizes.$x8 sizes.$x8 0 0;
+  }
+}
+
+button {
+  border: none;
+}
