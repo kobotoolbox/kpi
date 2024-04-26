@@ -71,6 +71,10 @@
         }
     }
 
+    .card__attr--file {
+      margin: 0;
+    }
+
     .card__header-title,
     .card__header-hint {
       &:focus {

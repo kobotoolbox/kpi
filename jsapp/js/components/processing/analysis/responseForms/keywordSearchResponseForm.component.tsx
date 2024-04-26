@@ -124,7 +124,7 @@ export default function KeywordSearchResponseForm(
               <div className={styles.foundInstancesRow}>
                 <span className={styles.keywordsWrapper}>
                   <Badge
-                    color='cloud'
+                    color='light-storm'
                     size='s'
                     label={t('##number## instances').replace(
                       '##number##',

@@ -13,7 +13,7 @@ from rest_framework import status
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
-    ReadOnlyKobocatDailyXFormSubmissionCounter,
+    KobocatDailyXFormSubmissionCounter,
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
@@ -29,7 +29,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     unmanaged_models = [
-        ReadOnlyKobocatDailyXFormSubmissionCounter,
+        KobocatDailyXFormSubmissionCounter,
         KobocatXForm,
     ]
     xform = None
@@ -177,7 +177,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
             self.counter.save()
         else:
             self.counter = (
-                ReadOnlyKobocatDailyXFormSubmissionCounter.objects.create(
+                KobocatDailyXFormSubmissionCounter.objects.create(
                     date=today.date(),
                     counter=submissions,
                     xform=self.xform,

@@ -11,13 +11,19 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import {getActiveTab} from 'js/components/processing/routes.utils';
 import styles from './sidebarDisplaySettings.module.scss';
 
 export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const activeTab = store.getActiveTab();
+  const activeTab = getActiveTab();
+
+  if (activeTab === undefined) {
+    return null;
+  }
+
   const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>(
     store.getDisplays(activeTab)
   );
@@ -32,14 +38,17 @@ export default function SidebarDisplaySettings() {
   const availableDisplays = store.getAvailableDisplays(activeTab);
 
   function getStaticDisplayText(display: StaticDisplays) {
-    if (display === StaticDisplays.Transcript && transcript) {
-      return (
-        <strong className={styles.wrapWithParens}>
-          {t('Original transcript')}
-          &nbsp;
-          <AsyncLanguageDisplayLabel code={transcript.languageCode} />
-        </strong>
-      );
+    if (display === StaticDisplays.Transcript) {
+      if (transcript) {
+        return (
+          <strong className={styles.wrapWithParens}>
+            {t('Original transcript')}
+            &nbsp;
+            <AsyncLanguageDisplayLabel code={transcript.languageCode} />
+          </strong>
+        );
+      }
+      return null;
     } else if (display === StaticDisplays.Data) {
       return <strong>{t('Submission data')}</strong>;
     } else {
@@ -91,7 +100,6 @@ export default function SidebarDisplaySettings() {
 
               if (entry in StaticDisplays) {
                 const staticDisplay = entry as StaticDisplays;
-
                 return (
                   <li className={styles.display} key={entry}>
                     <ToggleSwitch

@@ -23,6 +23,7 @@ import type {
 import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
 import type {ReportsResponse} from 'js/components/reports/reportsConstants';
+import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 
 interface AssetsRequestData {
   q?: string;
@@ -217,7 +218,9 @@ interface AssignablePermissionPartial {
   label: AssignablePermissionPartialLabel;
 }
 
-export type AssignablePermission = AssignablePermissionRegular | AssignablePermissionPartial;
+export type AssignablePermission =
+  | AssignablePermissionRegular
+  | AssignablePermissionPartial;
 
 export interface LabelValuePair {
   /** Note: the labels are always localized in the current UI language */
@@ -583,7 +586,6 @@ export interface AssetResponse extends AssetRequestObject {
       date_modified: string;
     }>;
   };
-  deployment__identifier: string | null;
   deployment__links?: {
     url?: string;
     single_url?: string;
@@ -640,6 +642,7 @@ export interface AssetResponse extends AssetRequestObject {
   settings__style?: string;
   settings__form_id?: string;
   settings__title?: string;
+  project_ownership: ProjectTransferAssetDetail;
 }
 
 /** This is the asset object returned by project-views endpoint. */

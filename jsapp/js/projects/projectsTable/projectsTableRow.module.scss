@@ -101,7 +101,7 @@ $projects-table-row-height: sizes.$x36;
         outline: 1px solid colors.$kobo-blue;
         border-radius: 2px;
         outline-offset: 4px;
-        text-decoration-color: colors.$kobo-alt-blue;
+        text-decoration-color: colors.$kobo-mid-blue;
         text-decoration-line: underline;
       }
     }
@@ -109,7 +109,7 @@ $projects-table-row-height: sizes.$x36;
     // Setup for underlining the Project Name on row hover.
     // This clarifies the size of the checkbox touch-target
     // and makes full-navigation a little more predictable.
-    text-decoration: 1px solid underline color.change(colors.$kobo-alt-blue, $alpha: 0);
+    text-decoration: 1px solid underline color.change(colors.$kobo-mid-blue, $alpha: 0);
     text-underline-offset: 3px;
   }
 
@@ -168,7 +168,7 @@ $projects-table-row-height: sizes.$x36;
     background-color: $projects-table-hover-bg;
 
     &.cellHighlighted {
-      background-color: color.change(colors.$kobo-light-blue, $alpha: 0.6);
+      background-color: color.change(colors.$kobo-bg-blue, $alpha: 0.6);
     }
 
     // Various hover rules to tell the user what will happen:
@@ -178,7 +178,7 @@ $projects-table-row-height: sizes.$x36;
     // Hovering any cell  ->  Outline the checkbox
     &[data-field='checkbox'] {
       :global .checkbox__input {
-        outline: sizes.$x2 solid colors.$kobo-alt-blue;
+        outline: sizes.$x2 solid colors.$kobo-mid-blue;
         outline-offset: 0 - sizes.$x1;
       }
 
@@ -208,7 +208,7 @@ $projects-table-row-height: sizes.$x36;
     // Hovering 'Project name' cell…
     //  ->  Underline project name (link)
     &[data-field='name']:hover {
-      text-decoration-color: colors.$kobo-alt-blue;
+      text-decoration-color: colors.$kobo-mid-blue;
     }
     //  ->  De-emphasize the checkbox
     &[data-field='checkbox']:has(~ [data-field='name']:hover) {
@@ -249,11 +249,6 @@ $projects-table-row-height: sizes.$x36;
   font-size: 1.2rem;
   justify-content: center;
   text-align: center;
-
-  .proTip {
-    font-size: 1rem;
-    margin-top: sizes.$x20;
-  }
 }
 
 .headerLabel {
@@ -264,10 +259,10 @@ $projects-table-row-height: sizes.$x36;
 // Highlighted columns:
 
 .row.rowTypeProject .cell.cellHighlighted {
-  background-color: color.change(colors.$kobo-light-blue, $alpha: 0.3);
+  background-color: color.change(colors.$kobo-bg-blue, $alpha: 0.3);
 }
 
 .row.rowTypeHeader .cell.cellHighlighted {
-  background-color: colors.$kobo-light-blue;
+  background-color: colors.$kobo-bg-blue;
   color: colors.$kobo-dark-blue;
 }

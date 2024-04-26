@@ -42,7 +42,7 @@
 }
 
 .intervalToggle {
-  background-color: colors.$kobo-cloud;
+  background-color: colors.$kobo-light-storm;
   padding: sizes.$x3;
   border-radius: sizes.$x4;
   margin: 0 auto;
@@ -81,7 +81,7 @@
   &:before {
     width: sizes.$x20;
     height: sizes.$x20;
-    color: colors.$kobo-cloud;
+    color: colors.$kobo-light-storm;
     padding: sizes.$x8 sizes.$x12;
   }
 
@@ -91,7 +91,7 @@
 }
 
 .intervalToggle input[type='radio'] + label:hover {
-  background-color: color.adjust(colors.$kobo-cloud, $lightness: -5%);
+  background-color: color.adjust(colors.$kobo-light-storm, $lightness: -5%);
   border-radius: sizes.$x4;
 }
 
@@ -191,7 +191,7 @@ $plan-badge-height: sizes.$x38;
 }
 
 .enterprisePlan {
-  background-color: colors.$kobo-light-blue;
+  background-color: colors.$kobo-bg-blue;
   padding: sizes.$x24;
   overflow: hidden;
   border-radius: sizes.$x6;

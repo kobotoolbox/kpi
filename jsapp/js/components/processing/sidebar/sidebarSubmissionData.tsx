@@ -6,7 +6,7 @@ import {META_QUESTION_TYPES, ADDITIONAL_SUBMISSION_PROPS} from 'js/constants';
 import styles from './sidebarSubmissionData.module.scss';
 
 interface SidebarSubmissionDataProps {
-  asset: AssetContent | undefined;
+  assetContent: AssetContent | undefined;
 }
 
 export default function SidebarSubmissionData(
@@ -16,7 +16,7 @@ export default function SidebarSubmissionData(
 
   const submissionData = store.getSubmissionData();
 
-  if (!props.asset) {
+  if (!props.assetContent) {
     return null;
   }
 
@@ -39,7 +39,7 @@ export default function SidebarSubmissionData(
       <div className={styles.dataListBody}>
         {submissionData && (
           <SubmissionDataList
-            assetContent={props.asset}
+            assetContent={props.assetContent}
             submissionData={submissionData}
             hideQuestions={getQuestionsToHide()}
             hideGroups

@@ -15,6 +15,8 @@ import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
+import sessionStore from 'js/stores/session';
+import TransferProjects from 'js/components/permissions/transferProjects/transferProjects.component';
 
 const ConnectProjects = React.lazy(() =>
   import(
@@ -40,7 +42,8 @@ export class FormSubScreens extends React.Component {
     autoBind(this);
   }
   componentDidMount() {
-    const uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
+    const uid =
+      this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
       actions.resources.loadAsset({id: uid});
     }
@@ -51,12 +54,8 @@ export class FormSubScreens extends React.Component {
     }
 
     var iframeUrl = '';
-    var deployment__identifier = '';
 
     if (this.state.uid != undefined) {
-      if (this.state.deployment__identifier != undefined) {
-        deployment__identifier = this.state.deployment__identifier;
-      }
       switch (this.props.router.location.pathname) {
         case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
           return (
@@ -137,9 +136,12 @@ export class FormSubScreens extends React.Component {
   }
   renderSharing() {
     const uid = this.props.params.assetid || this.props.params.uid;
+
     return (
       <bem.FormView m='form-settings-sharing'>
         <SharingForm assetUid={uid} />
+
+        <TransferProjects asset={this.state} />
       </bem.FormView>
     );
   }

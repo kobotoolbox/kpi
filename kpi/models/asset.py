@@ -81,7 +81,6 @@ from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
-from kpi.tasks import remove_asset_snapshots
 
 
 class AssetDeploymentStatus(models.TextChoices):
@@ -407,11 +406,12 @@ class Asset(ObjectPermissionMixin,
 
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
-        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
-        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
-        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
-        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can Delete Data" in KC UI
-        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can Validate" in KC UI
+        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can change XForm" in KC shell
+        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can view XForm" in KC shell
+        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell
+        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell
+        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell
+        PERM_DELETE_ASSET: 'delete_xform',  # "Can delete XForm" in KC shell
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
@@ -1235,8 +1235,6 @@ class Asset(ObjectPermissionMixin,
 
         if regenerate:
             snapshot = False
-            # Let's do some housekeeping
-            remove_asset_snapshots.delay(self.id)
         else:
             snapshot = AssetSnapshot.objects.filter(**snap_params).order_by(
                 '-date_created'

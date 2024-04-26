@@ -87,7 +87,7 @@
 
 .text-small {
   font-size: 0.85em;
-  opacity: .75;
+  opacity: 0.75;
 }
 
 // Popover menu
@@ -410,13 +410,14 @@ iframe {
   border: none;
 }
 
-
-
 // Flexbox helps us maintain a layout when some fields may be customized
 // or removed.
 // Place sector and country side-by-side, when both fields exist and we're
 // not in the narrow form builder sidebar. Similar to registration screen.
-.form-modal__form.project-settings--project-details:not(.project-settings--narrow) > .form-modal__item--wrapper {
+.form-modal__form.project-settings--project-details:not(
+    .project-settings--narrow
+  )
+  > .form-modal__item--wrapper {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
@@ -446,7 +447,7 @@ iframe {
     }
   }
 
-  label {
+  & > label {
     font-weight: normal;
     font-size: 12px;
     color: colors.$kobo-gray-40;
@@ -456,17 +457,10 @@ iframe {
       margin-bottom: 10px;
       font-size: variables.$base-font-size;
     }
-  }
 
-  label:not(.inline) {
-    display: block;
-  }
-
-  label.next-to-checkbox {
-    display: inline-block !important;
-    margin-left: 10px;
-    max-width: 90%;
-    vertical-align: top;
+    &:not(.inline) {
+      display: block;
+    }
   }
 
   input[type='text'],
