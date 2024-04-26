@@ -373,10 +373,10 @@ class SingleProcessingStore extends Reflux.Store {
     }
     const newPathParts = getProcessingRouteParts(newPath);
 
-    if (this.analysisTabHasUnsavedWork) {
-      // When we navigate, we need to reset the flag responsible for keeping
-      // the status of unsaved changes. This way it's not blocking navigation
-      // unnecessarily.
+    // Cleanup: When we leave Analysis tab, we need to reset the flag
+    // responsible for keeping the status of unsaved changes. This way it's not
+    // blocking the navigation after leaving the tab directly from editing.
+    if (previousPathParts?.tabName === ProcessingTab.Analysis) {
       this.setAnalysisTabHasUnsavedChanges(false);
     }
 
