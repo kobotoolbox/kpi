@@ -80,6 +80,7 @@ class KoboTagsInput extends React.Component<KoboTagsInputProps> {
           inputProps={inputProps}
           onlyUnique
           addOnBlur
+          addOnPaste
           pasteSplit={this.pasteSplit}
         />
       </div>
