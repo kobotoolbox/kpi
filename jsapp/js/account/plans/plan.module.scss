@@ -284,7 +284,7 @@ a.enterpriseLink {
   .allPlans {
     column-gap: sizes.$x20;
     flex-direction: row;
-    width: max-width;
+    max-width: variables.$plans-page-max-width;
   }
 
   .comparisonButton {
