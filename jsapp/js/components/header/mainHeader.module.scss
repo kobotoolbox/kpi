@@ -13,7 +13,7 @@
     opacity: 0.8;
   }
 
-  @media screen and (min-width: breakpoints.$b960) {
+  @media screen and (min-width: breakpoints.$bMobileMenu) {
     display: none;
   }
 }

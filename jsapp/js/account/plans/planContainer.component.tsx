@@ -234,20 +234,22 @@ export const PlanContainer = ({
             })}
           </div>
         )}
-        <PlanButton
-          price={price}
-          downgrading={
-            activeSubscriptions?.length > 0 &&
-            activeSubscriptions?.[0].items?.[0].price.unit_amount >
-              price.prices.unit_amount
-          }
-          isSubscribedToPlan={isSubscribedProduct(price)}
-          buySubscription={buySubscription}
-          showManage={shouldShowManage(price)}
-          isBusy={isDisabled}
-          setIsBusy={setIsBusy}
-          organization={state.organization}
-        />
+        <div className={styles.planButton}>
+          <PlanButton
+            price={price}
+            downgrading={
+              activeSubscriptions?.length > 0 &&
+              activeSubscriptions?.[0].items?.[0].price.unit_amount >
+                price.prices.unit_amount
+            }
+            isSubscribedToPlan={isSubscribedProduct(price)}
+            buySubscription={buySubscription}
+            showManage={shouldShowManage(price)}
+            isBusy={isDisabled}
+            setIsBusy={setIsBusy}
+            organization={state.organization}
+          />
+        </div>
       </div>
     </>
   );

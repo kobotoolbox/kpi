@@ -6,10 +6,10 @@ $b600: 600px;
 // 768 is a legacy breakpoint. We use it (in old code mostly), and we might or
 // might not want to use it in the future (TBD).
 $b768: 768px;
-// Mobile menu kicks in at 960.
 $b960: 960px;
 $b1140: 1140px;
 $b1440: 1440px;
+$bMobileMenu: $b1140;
 
 /*
 

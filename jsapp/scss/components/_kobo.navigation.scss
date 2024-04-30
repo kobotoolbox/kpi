@@ -1,6 +1,6 @@
+@use 'scss/breakpoints';
 @use "scss/_variables";
 @use 'scss/z-indexes';
-@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 // header and navigation styling
@@ -237,7 +237,7 @@
   }
 }
 
-@media screen and (max-width: #{breakpoints.$b960 - 1px}) {
+@media screen and (max-width: #{breakpoints.$bMobileMenu - 1px}) {
   .mdl-layout__header {
     .account-box__logo {
       max-width: 85%;
