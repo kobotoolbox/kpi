@@ -52,8 +52,8 @@ class AssetStore extends Reflux.Store {
    * probability that it was already fetched from backend.
    *
    * NOTE: this is a copy of functionality that already exists in
-   * `stores.allAssets.whenLoaded`, but is a bit broken due to how `allAssets`
-   * was written (plus not typed).
+   * `stores.allAssets.whenLoaded` (that one is a bit broken due to how
+   * `allAssets` was written; plus it's not typed).
    */
   whenLoaded(assetUid: string, callback: (foundAsset: AssetResponse) => void) {
     const foundAsset = this.getAsset(assetUid);
