@@ -394,8 +394,8 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 1,
                 'current_month': 1,
             },
-            'current_month_start': ANY,
-            'current_year_start': ANY,
+            'current_month_start': today.replace(day=1).strftime('%Y-%m-%d'),
+            'current_year_start': today.replace(month=1, day=1).strftime('%Y-%m-%d'),
             'billing_period_end': None,
         }
 
@@ -414,19 +414,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 0,
                 'current_month': 0,
             },
-            'current_month_start': ANY,
-            'current_year_start': ANY,
+            'current_month_start': today.replace(day=1).strftime('%Y-%m-%d'),
+            'current_year_start': today.replace(month=1, day=1).strftime('%Y-%m-%d'),
             'billing_period_end': None,
         }
-
-        current_month_start = today.replace(day=1).isoformat()
-        current_year_start = today.replace(month=1, day=1).isoformat()
-
-        def assert_date_strings_are_approximately_equal(string1, string2, gap=timedelta(seconds=10)):
-            date1 = isoparse(string1)
-            date2 = isoparse(string2)
-            timedelta = abs(date1 - date2)
-            assert timedelta <= gap
 
         service_usage_url = reverse(
             self._get_endpoint('service-usage-list'),
@@ -435,15 +426,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.client.login(username='someuser', password='someuser')
         response = self.client.get(service_usage_url)
         assert response.data == expected_data
-        assert_date_strings_are_approximately_equal(response.data['current_month_start'], current_month_start)
-        assert_date_strings_are_approximately_equal(response.data['current_year_start'], current_year_start)
 
         # anotheruser's usage should be 0
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(service_usage_url)
         assert response.data == expected_empty_data
-        assert_date_strings_are_approximately_equal(response.data['current_month_start'], current_month_start)
-        assert_date_strings_are_approximately_equal(response.data['current_year_start'], current_year_start)
 
         # Transfer project from someuser to anotheruser
         self.client.login(username='someuser', password='someuser')
@@ -466,15 +453,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         # someuser should have no usage reported anymore
         response = self.client.get(service_usage_url)
         assert response.data == expected_empty_data
-        assert_date_strings_are_approximately_equal(response.data['current_month_start'], current_month_start)
-        assert_date_strings_are_approximately_equal(response.data['current_year_start'], current_year_start)
 
         # anotheruser should now have usage reported
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(service_usage_url)
         assert response.data == expected_data
-        assert_date_strings_are_approximately_equal(response.data['current_month_start'], current_month_start)
-        assert_date_strings_are_approximately_equal(response.data['current_year_start'], current_year_start)
 
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',

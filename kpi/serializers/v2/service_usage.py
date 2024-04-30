@@ -124,7 +124,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._current_year_start = None
         self._organization = None
         self._period_end = None
-        self._now = timezone.now().date()
+        self._now = timezone.now()
         self._get_per_asset_usage(instance)
 
     def get_total_nlp_usage(self, user):
