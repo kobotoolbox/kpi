@@ -26,3 +26,4 @@ require('../jsapp/js/components/locking/lockingUtils.tests');
 require('../jsapp/js/components/submissions/submissionUtils.tests');
 require('../jsapp/js/projects/projectViews/utils.tests');
 require('../jsapp/js/components/processing/processingUtils.tests');
+require('../jsapp/js/components/processing/routes.utils.tests');
