@@ -1,7 +1,7 @@
 import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
-import {ROUTES, PROJECTS_ROUTES} from 'js/router/routerConstants';
+import {PROJECTS_ROUTES} from 'js/router/routerConstants';
 
 const MyProjectsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './myProjectsRoute')

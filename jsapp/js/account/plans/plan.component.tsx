@@ -128,6 +128,24 @@ export default function Plan(props: PlanProps) {
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const navigate = useNavigate();
+  const [showGoTop, setShowGoTop] = useState(false);
+  const pageBody = useRef<HTMLDivElement>(null);
+
+  const handleVisibleButton = () => {
+    if (pageBody.current && pageBody.current.scrollTop > 300) {
+      setShowGoTop(true);
+    } else {
+      setShowGoTop(false);
+    }
+  };
+
+  const handleScrollUp = () => {
+    pageBody.current?.scrollTo({left: 0, top: 0, behavior: 'smooth'});
+  };
+
+  useEffect(() => {
+    pageBody.current?.addEventListener('scroll', handleVisibleButton);
+  }, []);
 
   const isDataLoading = useMemo(
     (): boolean =>
@@ -353,7 +371,7 @@ export default function Plan(props: PlanProps) {
     });
   };
 
-  const buySubscription = (price: Price, quantity: number = 1) => {
+  const buySubscription = (price: Price, quantity = 1) => {
     if (!price.id || isDisabled || !organization?.id) {
       return;
     }
@@ -406,155 +424,161 @@ export default function Plan(props: PlanProps) {
     hasMetaFeatures();
   }, [products.products]);
 
+  const comparisonButton = () =>
+    hasMetaFeatures() && (
+      <div className={styles.comparisonButton}>
+        <Button
+          type='full'
+          color='light-storm'
+          size='m'
+          isFullWidth
+          label={
+            expandComparison
+              ? t('Collapse full comparison')
+              : t('Display full comparison')
+          }
+          onClick={() => setExpandComparison(!expandComparison)}
+        />
+      </div>
+    );
+
   if (!products.products.length || !organization) {
     return null;
   }
 
+  if (isDataLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <>
-      {isDataLoading ? (
-        <LoadingSpinner />
-      ) : (
-        <>
-          <div
-            className={classnames(styles.accountPlan, {
-              [styles.wait]: isBusy,
-              [styles.showAddOns]: props.showAddOns,
-            })}
-          >
-            {!props.showAddOns && (
-              <>
-                <div className={styles.plansSection}>
-                  <form className={styles.intervalToggle}>
-                    <input
-                      type='radio'
-                      id='switch_left'
-                      name='switchToggle'
-                      value='month'
-                      aria-label={t('show monthly plans')}
-                      onChange={() => !isDisabled && dispatch({type: 'month'})}
-                      aria-disabled={isDisabled}
-                      checked={state.filterToggle}
-                    />
-                    <label htmlFor='switch_left'> {t('Monthly')}</label>
+      <div
+        ref={pageBody}
+        className={classnames(styles.accountPlan, {
+          [styles.wait]: isBusy,
+          [styles.showAddOns]: props.showAddOns,
+        })}
+      >
+        {!props.showAddOns && (
+          <>
+            <div className={styles.plansSection}>
+              <form className={styles.intervalToggle}>
+                <input
+                  type='radio'
+                  id='switch_left'
+                  name='switchToggle'
+                  value='month'
+                  aria-label={t('show monthly plans')}
+                  onChange={() => !isDisabled && dispatch({type: 'month'})}
+                  aria-disabled={isDisabled}
+                  checked={state.filterToggle}
+                />
+                <label htmlFor='switch_left'> {t('Monthly')}</label>
 
-                    <input
-                      type='radio'
-                      id='switch_right'
-                      name='switchToggle'
-                      value='year'
-                      onChange={() => !isDisabled && dispatch({type: 'year'})}
-                      aria-disabled={isDisabled}
-                      checked={!state.filterToggle}
-                      aria-label={t('show annual plans')}
-                    />
-                    <label htmlFor='switch_right'>{t('Annual')}</label>
-                  </form>
+                <input
+                  type='radio'
+                  id='switch_right'
+                  name='switchToggle'
+                  value='year'
+                  onChange={() => !isDisabled && dispatch({type: 'year'})}
+                  aria-disabled={isDisabled}
+                  checked={!state.filterToggle}
+                  aria-label={t('show annual plans')}
+                />
+                <label htmlFor='switch_right'>{t('Annual')}</label>
+              </form>
 
-                  <div className={styles.allPlans}>
-                    {filteredPriceProducts.map(
-                      (product: SinglePricedProduct) => (
-                        <div className={styles.stripePlans} key={product.id}>
-                          <PlanContainer
-                            key={product.price.id}
-                            freeTierOverride={freeTierOverride}
-                            expandComparison={expandComparison}
-                            isSubscribedProduct={isSubscribedProduct}
-                            product={product}
-                            filteredPriceProducts={filteredPriceProducts}
-                            hasManageableStatus={hasManageableStatus}
-                            setIsBusy={setIsBusy}
-                            isDisabled={isDisabled}
-                            state={state}
-                            buySubscription={buySubscription}
-                            activeSubscriptions={activeSubscriptions}
-                          />
-                        </div>
-                      )
-                    )}
-                    {shouldShowExtras && (
-                      <div className={styles.enterprisePlanContainer}>
-                        <div className={styles.enterprisePlan}>
-                          <h1 className={styles.enterpriseTitle}>
-                            {' '}
-                            {t('Want more?')}
-                          </h1>
-                          <div className={styles.priceTitle}>
-                            {t('Contact us')}
-                          </div>
-                          <p className={styles.enterpriseDetails}>
-                            {t(
-                              'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
-                            )}
-                            <a
-                              href='https://www.kobotoolbox.org/contact/'
-                              target='_blanks'
-                              className={styles.enterpriseLink}
-                            >
-                              {t('Enterprise Plan')}
-                            </a>
-                            .
-                          </p>
-                          <p className={styles.enterpriseDetails}>
-                            {t(
-                              'We also offer custom solutions and private servers for large organizations. '
-                            )}
-                            <br />
-                            <a
-                              href='https://www.kobotoolbox.org/contact/'
-                              target='_blanks'
-                              className={styles.enterpriseLink}
-                            >
-                              {t('Contact our team')}
-                            </a>
-                            {t(' for more information.')}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+              <div className={styles.allPlans}>
+                {filteredPriceProducts.map((product: SinglePricedProduct) => (
+                  <div className={styles.stripePlans} key={product.id}>
+                    <PlanContainer
+                      key={product.price.id}
+                      freeTierOverride={freeTierOverride}
+                      expandComparison={expandComparison}
+                      isSubscribedProduct={isSubscribedProduct}
+                      product={product}
+                      filteredPriceProducts={filteredPriceProducts}
+                      hasManageableStatus={hasManageableStatus}
+                      setIsBusy={setIsBusy}
+                      isDisabled={isDisabled}
+                      state={state}
+                      buySubscription={buySubscription}
+                      activeSubscriptions={activeSubscriptions}
+                    />
                   </div>
+                ))}
+                <div className={styles.minimizedCards}>
+                  {comparisonButton()}
                 </div>
-
-                {hasMetaFeatures() && (
-                  <div>
-                    <Button
-                      type='full'
-                      color='light-storm'
-                      size='m'
-                      isFullWidth
-                      label={
+                {shouldShowExtras && (
+                  <div className={styles.enterprisePlanContainer}>
+                    <div
+                      className={
                         expandComparison
-                          ? t('Collapse full comparison')
-                          : t('Display full comparison')
+                          ? `${styles.enterprisePlan} ${styles.expandedEnterprisePlan}`
+                          : styles.enterprisePlan
                       }
-                      onClick={() => setExpandComparison(!expandComparison)}
-                      aria-label={
-                        expandComparison
-                          ? t('Collapse full comparison')
-                          : t('Display full comparison')
-                      }
-                    />
+                    >
+                      <h1 className={styles.enterpriseTitle}>
+                        {' '}
+                        {t('Want more?')}
+                      </h1>
+                      <div className={styles.priceTitle}>{t('Contact us')}</div>
+                      <p className={styles.enterpriseDetails}>
+                        {t(
+                          'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
+                        )}
+                        <a
+                          href='https://www.kobotoolbox.org/contact/'
+                          target='_blanks'
+                          className={styles.enterpriseLink}
+                        >
+                          {t('Enterprise Plan')}
+                        </a>
+                        .
+                      </p>
+                      <p className={styles.enterpriseDetails}>
+                        {t(
+                          'We also offer custom solutions and private servers for large organizations. '
+                        )}
+                        <br />
+                        <a
+                          href='https://www.kobotoolbox.org/contact/'
+                          target='_blanks'
+                          className={styles.enterpriseLink}
+                        >
+                          {t('Contact our team')}
+                        </a>
+                        {t(' for more information.')}
+                      </p>
+                    </div>
                   </div>
                 )}
-              </>
-            )}
-            {shouldShowExtras && props.showAddOns && (
-              <AddOnList
-                isBusy={isBusy}
-                setIsBusy={setIsBusy}
-                products={products.products}
-                organization={organization}
-                onClickBuy={buySubscription}
-              />
-            )}
-            <ConfirmChangeModal
-              onRequestClose={dismissConfirmModal}
-              setIsBusy={setIsBusy}
-              {...confirmModal}
-            />
-          </div>
-        </>
-      )}
+              </div>
+              <div className={styles.maximizedCards}>{comparisonButton()}</div>
+            </div>
+          </>
+        )}
+        {props.showAddOns && (
+          <AddOnList
+            isBusy={isBusy}
+            setIsBusy={setIsBusy}
+            products={products.products}
+            organization={organization}
+            onClickBuy={buySubscription}
+          />
+        )}
+        {showGoTop && (
+          <button onClick={handleScrollUp} className={styles.scrollToTopButton}>
+            <i className='k-icon k-icon-arrow-up k-icon--size-m' />
+          </button>
+        )}
+        <ConfirmChangeModal
+          onRequestClose={dismissConfirmModal}
+          setIsBusy={setIsBusy}
+          {...confirmModal}
+        />
+      </div>
     </>
   );
 }

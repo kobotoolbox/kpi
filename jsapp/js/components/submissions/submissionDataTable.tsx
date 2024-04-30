@@ -28,7 +28,7 @@ import type {
   SubmissionResponse,
 } from 'jsapp/js/dataInterface';
 import AudioPlayer from 'js/components/common/audioPlayer';
-import {openProcessing} from 'js/components/processing/processingUtils';
+import {goToProcessing} from 'js/components/processing/routes.utils';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -57,7 +57,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     if (this.props.asset?.content) {
       const foundRow = findRow(this.props.asset?.content, name);
       if (foundRow) {
-        openProcessing(
+        goToProcessing(
           this.props.asset.uid,
           foundRow.$qpath,
           this.props.submissionData._uuid

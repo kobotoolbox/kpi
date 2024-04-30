@@ -357,16 +357,21 @@ export const PlanContainer = ({
             })}
           </div>
         )}
-        <PlanButton
-          product={product}
-          downgrading={isDowngrading}
-          quantity={submissionQuantity}
-          isSubscribedToPlan={isSubscribedProduct(product, submissionQuantity)}
-          buySubscription={buySubscription}
-          showManage={shouldShowManage(product)}
-          isBusy={isDisabled}
-          setIsBusy={setIsBusy}
-        />
+        <div className={styles.planButton}>
+          <PlanButton
+            product={product}
+            downgrading={isDowngrading}
+            quantity={submissionQuantity}
+            isSubscribedToPlan={isSubscribedProduct(
+              product,
+              submissionQuantity
+            )}
+            buySubscription={buySubscription}
+            showManage={shouldShowManage(product)}
+            isBusy={isDisabled}
+            setIsBusy={setIsBusy}
+          />
+        </div>
       </div>
     </>
   );
