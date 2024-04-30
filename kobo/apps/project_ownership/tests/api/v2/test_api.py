@@ -502,16 +502,14 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
 
         # Validate Mongo documents directly
         assert (
-            settings.MONGO_DB.instances.find(
+            settings.MONGO_DB.instances.count_documents(
                 {'_userform_id': f'someuser_{self.asset.uid}'}
-            ).count()
-            == 1
+            ) == 1
         )
         assert (
-            settings.MONGO_DB.instances.find(
+            settings.MONGO_DB.instances.count_documents(
                 {'_userform_id': f'anotheruser_{self.asset.uid}'}
-            ).count()
-            == 0
+            ) == 0
         )
 
         # Transfer project from someuser to anotheruser
@@ -541,16 +539,14 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             assert attachment['filename'].startswith('anotheruser/')
 
         assert (
-            settings.MONGO_DB.instances.find(
+            settings.MONGO_DB.instances.count_documents(
                 {'_userform_id': f'someuser_{self.asset.uid}'}
-            ).count()
-            == 0
+            ) == 0
         )
         assert (
-            settings.MONGO_DB.instances.find(
+            settings.MONGO_DB.instances.count_documents(
                 {'_userform_id': f'anotheruser_{self.asset.uid}'}
-            ).count()
-            == 1
+            ) == 1
         )
 
 

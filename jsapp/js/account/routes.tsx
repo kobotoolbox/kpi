@@ -55,8 +55,16 @@ export default function routes() {
         element={
           <RequireAuth>
             <RequireOrgOwner>
-              <DataStorage />
+              <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
             </RequireOrgOwner>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
+        element={
+          <RequireAuth>
+            <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN} />
           </RequireAuth>
         }
       />
