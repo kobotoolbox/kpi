@@ -160,7 +160,12 @@ export default function SidebarDisplaySettings(
       />
       <KoboModal
         isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
+        onRequestClose={() => {
+          // Reset modals and checkboxes if user closed modal without applying
+          setSelectedDisplays(store.getDisplays(activeTab));
+          setSelectedFields(getInitialFields());
+          setIsModalOpen(false);
+        }}
         size='medium'
       >
         <KoboModalHeader>{t('Customize display settings')}</KoboModalHeader>
@@ -249,8 +254,8 @@ export default function SidebarDisplaySettings(
               // Apply reset to local state of selected displays. This is needed
               // because the modal component (and its state) is kept alive even
               // when the modal is closed.
-              setSelectedDisplays(store.getDisplays(activeTab));
               resetFieldsSelection();
+              setSelectedDisplays(store.getDisplays(activeTab));
               setIsModalOpen(false);
             }}
           />
