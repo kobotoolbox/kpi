@@ -1,4 +1,5 @@
 from kobo.apps.subsequences.constants import GOOGLETS
+from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 
 NOT_REQUESTED = 'NOT_REQUESTED'
@@ -17,7 +18,7 @@ class AutomaticTranscriptionAction(BaseAction):
     def build_params(kls, params, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in TRANSCRIBABLE_SOURCE_TYPES:
                 possible_transcribed_fields.append(kls.get_qpath(kls, row))
         params = {'values': possible_transcribed_fields, 'services': []}
         return params
@@ -26,7 +27,7 @@ class AutomaticTranscriptionAction(BaseAction):
     def get_values_for_content(kls, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in TRANSCRIBABLE_SOURCE_TYPES:
                 possible_transcribed_fields.append(kls.get_qpath(kls, row))
         return possible_transcribed_fields
 

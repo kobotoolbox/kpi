@@ -1,3 +1,9 @@
+# Could allow more types in the future? See
+# formpack.utils.replace_aliases.MEDIA_TYPES
+TRANSCRIBABLE_SOURCE_TYPES = ['audio', 'video', 'background-audio']
+TRANSLATABLE_SOURCE_TYPES = TRANSCRIBABLE_SOURCE_TYPES + ['text']
+QUAL_SOURCE_TYPES = TRANSLATABLE_SOURCE_TYPES
+
 GOOGLETX = 'googletx'
 GOOGLETS = 'googlets'
 
