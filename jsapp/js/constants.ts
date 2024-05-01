@@ -210,6 +210,7 @@ export const ASSET_FILE_TYPES: {
 export enum QuestionTypeName {
   acknowledge = 'acknowledge',
   audio = 'audio',
+  'background-audio' = 'background-audio',
   barcode = 'barcode',
   calculate = 'calculate',
   date = 'date',
@@ -273,6 +274,11 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
     id: QuestionTypeName.acknowledge,
   },
   audio: {label: t('Audio'), icon: 'qt-audio', id: QuestionTypeName.audio},
+  'background-audio': {
+    label: t('Background Audio'),
+    icon: 'qt-audio',
+    id: QuestionTypeName['background-audio'],
+  },
   barcode: {
     label: t('Barcode / QR Code'),
     icon: 'qt-barcode',
