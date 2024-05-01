@@ -12,6 +12,7 @@ import Button from 'js/components/common/button';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AssetContent} from 'js/dataInterface';
+import {getActiveTab} from 'js/components/processing/routes.utils';
 import styles from './sidebarDisplaySettings.module.scss';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
@@ -27,7 +28,12 @@ export default function SidebarDisplaySettings(
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const activeTab = store.getActiveTab();
+  const activeTab = getActiveTab();
+
+  if (activeTab === undefined) {
+    return null;
+  }
+
   const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>(
     store.getDisplays(activeTab)
   );

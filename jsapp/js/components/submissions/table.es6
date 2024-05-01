@@ -878,7 +878,7 @@ export class DataTable extends React.Component {
                 return <span className='trimmed-text'>{row.value}</span>;
               }
             }
-            if (q.type === QUESTION_TYPES.select_multiple.id && row.value) {
+            if (q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
               const values = row.value.split(' ');
               const labels = [];
               values.forEach(function (v) {

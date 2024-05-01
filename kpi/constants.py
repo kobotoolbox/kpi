@@ -126,3 +126,5 @@ SKIP_HEAVY_MIGRATIONS_GUIDANCE = (
     manually from the django shell.
     """
 )
+
+LIMIT_HOURS_23 = 82800

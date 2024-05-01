@@ -363,6 +363,11 @@ CONSTANCE_CONFIG = {
         'Number of days to keep asset snapshots',
         'positive_int'
     ),
+    'IMPORT_TASK_DAYS_RETENTION': (
+        90,
+        'Number of days to keep import tasks',
+        'positive_int',
+    ),
     'FREE_TIER_THRESHOLDS': (
         LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
         'Free tier thresholds: storage in kilobytes, '
@@ -661,9 +666,12 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
-        'ASSET_SNAPSHOT_DAYS_RETENTION',
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+    ),
+    'Regular maintenance settings': (
+        'ASSET_SNAPSHOT_DAYS_RETENTION',
+        'IMPORT_TASK_DAYS_RETENTION',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -759,6 +767,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
+        'sw '  # Swahili
         'th '  # Thai
         'tr '  # Turkish
         'uk '  # Ukrainian
@@ -1220,6 +1229,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
     if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
         # Force usage of custom S3 tellable Storage
         DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
+        AWS_S3_FILE_OVERWRITE = False
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
