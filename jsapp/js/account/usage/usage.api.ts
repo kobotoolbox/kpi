@@ -1,5 +1,4 @@
 import {fetchGet} from 'jsapp/js/api';
-import {getOrganization} from 'js/account/stripe.api';
 import {PROJECT_FIELDS} from 'jsapp/js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
 import type {ProjectFieldName} from 'jsapp/js/projects/projectViews/constants';
@@ -55,7 +54,7 @@ const ORGANIZATION_USAGE_URL =
 
 const ASSET_USAGE_URL = '/api/v2/asset_usage/';
 const ORGANIZATION_ASSET_USAGE_URL =
-  '/api/v2/organizations/##ORGANIZATION_ID##/asset_usage/?page=##PAGE_NUM##';
+  '/api/v2/organizations/##ORGANIZATION_ID##/asset_usage/';
 
 export async function getUsage(organization_id: string | null = null) {
   if (organization_id) {
@@ -73,29 +72,31 @@ export async function getUsage(organization_id: string | null = null) {
   });
 }
 
-export async function getAssetUsage(url?: string) {
-  const apiUrl = url || ASSET_USAGE_URL;
-  return fetchGet<AssetUsage>(apiUrl, {
+export async function getAssetUsage(url = ASSET_USAGE_URL) {
+  return fetchGet<AssetUsage>(url, {
     includeHeaders: true,
     errorMessageDisplay: t('There was an error fetching asset usage data.'),
   });
 }
 
 export async function getAssetUsageForOrganization(
-  pageNumber: number,
-  order?: ProjectsTableOrder
+  pageNumber: number | string,
+  order?: ProjectsTableOrder,
+  organizationId = ''
 ) {
-  let organizations;
-  try {
-    organizations = await getOrganization();
-  } catch (error) {
+  // if the user isn't in an organization, just get their personal asset usage
+  if (!organizationId) {
     return await getAssetUsage(ASSET_USAGE_URL);
   }
 
-  let apiUrl = ORGANIZATION_ASSET_USAGE_URL.replace(
+  const apiUrl = ORGANIZATION_ASSET_USAGE_URL.replace(
     '##ORGANIZATION_ID##',
-    organizations.results?.[0].id || ''
-  ).replace('##PAGE_NUM##', pageNumber.toString());
+    organizationId
+  );
+
+  const params = new URLSearchParams({
+    page: pageNumber.toString(),
+  });
 
   if (
     order?.fieldName &&
@@ -104,8 +105,8 @@ export async function getAssetUsageForOrganization(
   ) {
     const orderingPrefix = order.direction === 'ascending' ? '' : '-';
     const fieldDefinition = PROJECT_FIELDS[order.fieldName as ProjectFieldName];
-    apiUrl += `&ordering=${orderingPrefix}${fieldDefinition.apiOrderingName}`;
+    params.set('ordering', orderingPrefix + fieldDefinition.apiOrderingName);
   }
 
-  return await getAssetUsage(apiUrl);
+  return await getAssetUsage(`${apiUrl}?${params}`);
 }
