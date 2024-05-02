@@ -16,6 +16,7 @@ export default function BillingButton(props: Partial<ButtonProps>) {
       size='l'
       {...props}
       classNames={props.classNames ? [button, ...props.classNames] : [button]}
+      isFullWidth
     />
   );
 }
