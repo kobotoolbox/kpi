@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import Tabs from 'jsapp/js/components/common/tabs';
 import ProjectBreakdown from './usageProjectBreakdown';
-import {ACCOUNT_ROUTES} from '../routes';
 import {useNavigate} from 'react-router-dom';
 import Usage from './usage.component';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface UsageTopTabsProps {
   activeRoute: string;
@@ -31,13 +31,8 @@ const usageTopTabs: React.FC<UsageTopTabsProps> = ({activeRoute}) => {
         selectedTab={selectedTab}
         onChange={handleTabChange}
       />
-      {selectedTab === ACCOUNT_ROUTES.USAGE ? (
-        <Usage />
-      ) : (
-        <ProjectBreakdown />
-      )}
+      {selectedTab === ACCOUNT_ROUTES.USAGE ? <Usage /> : <ProjectBreakdown />}
     </div>
-
   );
 };
 

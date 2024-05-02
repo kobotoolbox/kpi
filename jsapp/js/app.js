@@ -22,6 +22,7 @@ import ToasterConfig from './toasterConfig';
 import {withRouter, routerGetAssetId, router} from './router/legacy';
 import {Tracking} from './router/useTracking';
 import InvalidatedPassword from 'js/router/invalidatedPassword.component';
+import {RootContextProvider} from 'js/rootContextProvider.component';
 import TOSAgreement from 'js/router/tosAgreement.component';
 import {
   isInvalidatedPasswordRouteBlockerActive,
@@ -86,37 +87,39 @@ class App extends React.Component {
     return (
       <DocumentTitle title='KoboToolbox'>
         <React.Fragment>
-          <Tracking />
-          <ToasterConfig />
-          <div className='header-stretch-bg' />
-          <bem.PageWrapper
-            m={pageWrapperModifiers}
-            className='mdl-layout mdl-layout--fixed-header'
-          >
-            {this.state.pageState.modal && (
-              <BigModal params={this.state.pageState.modal} />
-            )}
-
-            {!this.isFormBuilder() && (
-              <React.Fragment>
-                <MainHeader assetUid={assetid} />
-                <Drawer />
-              </React.Fragment>
-            )}
-
-            <bem.PageWrapper__content
-              className='mdl-layout__content'
-              m={pageWrapperContentModifiers}
+          <RootContextProvider>
+            <Tracking />
+            <ToasterConfig />
+            <div className='header-stretch-bg' />
+            <bem.PageWrapper
+              m={pageWrapperModifiers}
+              className='mdl-layout mdl-layout--fixed-header'
             >
+              {this.state.pageState.modal && (
+                <BigModal params={this.state.pageState.modal} />
+              )}
+
               {!this.isFormBuilder() && (
                 <React.Fragment>
-                  {this.isFormSingle() && <ProjectTopTabs />}
-                  <FormViewSideTabs show={this.isFormSingle()} />
+                  <MainHeader assetUid={assetid} />
+                  <Drawer />
                 </React.Fragment>
               )}
-              <Outlet />
-            </bem.PageWrapper__content>
-          </bem.PageWrapper>
+
+              <bem.PageWrapper__content
+                className='mdl-layout__content'
+                m={pageWrapperContentModifiers}
+              >
+                {!this.isFormBuilder() && (
+                  <React.Fragment>
+                    {this.isFormSingle() && <ProjectTopTabs />}
+                    <FormViewSideTabs show={this.isFormSingle()} />
+                  </React.Fragment>
+                )}
+                <Outlet />
+              </bem.PageWrapper__content>
+            </bem.PageWrapper>
+          </RootContextProvider>
         </React.Fragment>
       </DocumentTitle>
     );

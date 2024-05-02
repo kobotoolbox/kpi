@@ -126,6 +126,14 @@ export function formatDate(
 }
 
 /**
+ * Takes a Unix timestamp. Returns a UTC string
+ */
+export function convertUnixTimestampToUtc(time: number): string {
+  const date = new Date(time * 1000); //seconds to milliseconds
+  return date.toISOString();
+}
+
+/**
  * Returns something like "March 15, 2021 4:06 PM"
  */
 export function formatTimeDate(timeStr: string, localize = true): string {

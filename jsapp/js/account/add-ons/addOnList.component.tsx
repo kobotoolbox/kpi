@@ -1,32 +1,36 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import useWhen from 'js/hooks/useWhen.hook';
 import subscriptionStore from 'js/account/subscriptionStore';
-import type {
-  BasePrice,
+import {
+  Price,
   Organization,
   Product,
+  SubscriptionChangeType,
   SubscriptionInfo,
 } from 'js/account/stripe.types';
 import {
+  getSubscriptionChangeDetails,
   isAddonProduct,
   isChangeScheduled,
   isRecurringAddonProduct,
   processCheckoutResponse,
 } from 'js/account/stripe.utils';
+import {formatDate} from 'js/utils';
 import {postCustomerPortal} from 'js/account/stripe.api';
 import styles from './addOnList.module.scss';
 import BillingButton from 'js/account/plans/billingButton.component';
+import Badge, {BadgeColor} from 'js/components/common/badge';
 
 /**
  * A table of add-on products along with buttons to purchase/manage them.
  * @TODO Until one-time add-ons are complete, this only displays recurring add-ons.
  */
 const AddOnList = (props: {
-  products: Product[] | null;
+  products: Product[];
   organization: Organization | null;
   isBusy: boolean;
   setIsBusy: (value: boolean) => void;
-  onClickBuy: (price: BasePrice) => void;
+  onClickBuy: (price: Price) => void;
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>(
     []
@@ -59,6 +63,18 @@ const AddOnList = (props: {
     setAddOnProducts(addonProducts);
   }, [props.products]);
 
+  const currentAddon = useMemo(() => {
+    if (subscriptionStore.addOnsResponse.length) {
+      return subscriptionStore.addOnsResponse[0];
+    } else {
+      return null;
+    }
+  }, [subscriptionStore.isInitialised]);
+
+  const subscriptionUpdate = useMemo(() => {
+    return getSubscriptionChangeDetails(currentAddon, props.products);
+  }, [currentAddon, props.products]);
+
   useWhen(
     () => subscriptionStore.isInitialised,
     () => {
@@ -70,7 +86,7 @@ const AddOnList = (props: {
   );
 
   const isSubscribedAddOnPrice = useCallback(
-    (price: BasePrice) =>
+    (price: Price) =>
       isChangeScheduled(price, activeSubscriptions) ||
       subscribedAddOns.some(
         (subscription) => subscription.items[0].price.id === price.id
@@ -82,7 +98,7 @@ const AddOnList = (props: {
     props.setIsBusy(false);
   };
 
-  const onClickManage = (price?: BasePrice) => {
+  const onClickManage = (price?: Price) => {
     if (!props.organization || props.isBusy) {
       return;
     }
@@ -90,6 +106,49 @@ const AddOnList = (props: {
     postCustomerPortal(props.organization.id, price?.id)
       .then(processCheckoutResponse)
       .catch(handleCheckoutError);
+  };
+
+  const renderUpdateBadge = (price: Price) => {
+    if (!(subscriptionUpdate && isSubscribedAddOnPrice(price))) {
+      return null;
+    }
+
+    let color: BadgeColor;
+    let label;
+    switch (subscriptionUpdate.type) {
+      case SubscriptionChangeType.CANCELLATION:
+        color = 'light-red';
+        label = t('Ends on ##cancel_date##').replace(
+          '##cancel_date##',
+          formatDate(subscriptionUpdate.date)
+        );
+        break;
+      case SubscriptionChangeType.RENEWAL:
+        color = 'light-blue';
+        label = t('Renews on ##renewal_date##').replace(
+          '##renewal_date##',
+          formatDate(subscriptionUpdate.date)
+        );
+        break;
+      case SubscriptionChangeType.PRODUCT_CHANGE:
+        if (currentAddon?.items[0].price.product.id === price.product) {
+          color = 'light-amber';
+          label = t('Ends on ##end_date##').replace(
+            '##end_date##',
+            formatDate(subscriptionUpdate.date)
+          );
+        } else {
+          color = 'light-teal';
+          label = t('Starts on ##start_date##').replace(
+            '##start_date##',
+            formatDate(subscriptionUpdate.date)
+          );
+        }
+        break;
+      default:
+        return null;
+    }
+    return <Badge size={'s'} color={color} label={label} />;
   };
 
   if (!addOnProducts.length || subscribedPlans.length || !props.organization) {
@@ -112,6 +171,11 @@ const AddOnList = (props: {
         {addOnProducts.map((product) =>
           product.prices.map((price) => (
             <tr className={styles.row} key={price.id}>
+              <td className={styles.product}>
+                <span className={styles.productName}>{product.name}</span>
+                {renderUpdateBadge(price)}
+              </td>
+              <td className={styles.price}>{price.human_readable_price}</td>
               <td>
                 <div className={styles.product}>{product.name}</div>
                 <div className={styles.price}>{price.human_readable_price}</div>

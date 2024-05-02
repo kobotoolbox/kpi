@@ -124,7 +124,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._current_year_start = None
         self._organization = None
         self._period_end = None
-        self._now = timezone.now().date()
+        self._now = timezone.now()
         self._get_per_asset_usage(instance)
 
     def get_total_nlp_usage(self, user):
@@ -137,13 +137,15 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._total_storage_bytes
 
     def get_current_month_start(self, user):
-        return self._current_month_start
+        return self._current_month_start.isoformat()
 
     def get_current_year_start(self, user):
-        return self._current_year_start
+        return self._current_year_start.isoformat()
 
     def get_billing_period_end(self, user):
-        return self._period_end
+        if self._period_end is None:
+            return None
+        return self._period_end.isoformat()
 
     def _filter_by_user(self, user_ids: list) -> Q:
         """

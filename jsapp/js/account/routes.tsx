@@ -1,32 +1,16 @@
 import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
-import {ROUTES} from 'js/router/routerConstants';
-
-const ChangePasswordRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './changePasswordRoute.component')
-);
-const SecurityRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './security/securityRoute.component')
-);
-const PlanRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './plans/plan.component')
-);
-const AccountSettings = React.lazy(
-  () => import(/* webpackPrefetch: true */ './accountSettingsRoute')
-);
-const DataStorage = React.lazy(
-  () => import(/* webpackPrefetch: true */ './usage/usageTopTabs')
-);
-
-export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
-  ACCOUNT_SETTINGS: ROUTES.ACCOUNT_ROOT + '/settings',
-  USAGE: ROUTES.ACCOUNT_ROOT + '/usage',
-  USAGE_PROJECT_BREAKDOWN: ROUTES.ACCOUNT_ROOT + '/usage/per-project',
-  SECURITY: ROUTES.ACCOUNT_ROOT + '/security',
-  PLAN: ROUTES.ACCOUNT_ROOT + '/plan',
-  CHANGE_PASSWORD: ROUTES.ACCOUNT_ROOT + '/change-password',
-};
+import {RequireOrgOwner} from 'js/account/organizations/requireOrgOwner.component';
+import {
+  ACCOUNT_ROUTES,
+  AccountSettings,
+  AddOnsRoute,
+  ChangePasswordRoute,
+  DataStorage,
+  PlansRoute,
+  SecurityRoute,
+} from 'js/account/routes.constants';
 
 export default function routes() {
   return (
@@ -45,17 +29,34 @@ export default function routes() {
       />
       <Route
         path={ACCOUNT_ROUTES.PLAN}
+        index
         element={
           <RequireAuth>
-            <PlanRoute />
+            <RequireOrgOwner>
+              <PlansRoute />
+            </RequireOrgOwner>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.ADD_ONS}
+        index
+        element={
+          <RequireAuth>
+            <RequireOrgOwner>
+              <AddOnsRoute />
+            </RequireOrgOwner>
           </RequireAuth>
         }
       />
       <Route
         path={ACCOUNT_ROUTES.USAGE}
+        index
         element={
           <RequireAuth>
-            <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
+            <RequireOrgOwner>
+              <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
+            </RequireOrgOwner>
           </RequireAuth>
         }
       />
@@ -63,7 +64,7 @@ export default function routes() {
         path={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
         element={
           <RequireAuth>
-            <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}/>
+            <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN} />
           </RequireAuth>
         }
       />

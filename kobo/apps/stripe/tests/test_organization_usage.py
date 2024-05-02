@@ -129,10 +129,10 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         """
         generate_enterprise_subscription(self.organization)
 
-        response = self.client.get(self.detail_url)
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
-        assert response.data['total_storage_bytes'] == (
+        first_response = self.client.get(self.detail_url)
+        assert first_response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
+        assert first_response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
+        assert first_response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
 

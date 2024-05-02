@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import styles from './usageProjectBreakdown.module.scss';
 import {Link} from 'react-router-dom';
 import {ROUTES} from 'jsapp/js/router/routerConstants';
@@ -11,7 +11,8 @@ import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
-import {useUsage} from './useUsage.hook';
+import {UsageContext, useUsage} from './useUsage.hook';
+import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 
 type ButtonType = 'back' | 'forward';
 
@@ -25,11 +26,16 @@ const ProjectBreakdown = () => {
   });
   const [order, setOrder] = useState({});
   const [loading, setLoading] = useState(true);
-  const usage = useUsage();
+  const [usage] = useContext(UsageContext);
+  const [organization] = useContext(OrganizationContext);
 
   useEffect(() => {
     async function fetchData() {
-      const data = await getAssetUsageForOrganization(currentPage, order);
+      const data = await getAssetUsageForOrganization(
+        currentPage,
+        order,
+        organization?.id
+      );
       const updatedResults = data.results.map((projectResult) => {
         const assetParts = projectResult.asset.split('/');
         const uid = assetParts[assetParts.length - 2];
