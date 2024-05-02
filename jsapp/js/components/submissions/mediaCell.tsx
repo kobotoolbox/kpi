@@ -13,7 +13,7 @@ import type {
 } from 'js/constants';
 import Button from 'js/components/common/button';
 import {truncateString} from 'js/utils';
-import {openProcessing} from 'js/components/processing/processingUtils';
+import {goToProcessing} from 'js/components/processing/routes.utils';
 // import {hashHistory} from 'react-router';
 import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
@@ -72,7 +72,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   }
 
   openProcessing() {
-    openProcessing(
+    goToProcessing(
       this.props.assetUid,
       this.props.qpath,
       this.props.submissionUuid

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from copy import deepcopy
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
 from ..actions.translation import TranslationAction
@@ -127,14 +128,22 @@ def stream_with_extras(submission_stream, asset):
         qual_survey = asset.advanced_features['qual']['qual_survey']
     except KeyError:
         qual_survey = []
+    else:
+        qual_survey = deepcopy(qual_survey)
+    # keys are question UUIDs, values are question definitions
     qual_questions_by_uuid = {}
+    # outer keys are question UUIDs, inner keys are choice UUIDs, values are
+    # choice definitions
+    qual_choices_per_question_by_uuid = defaultdict(dict)
     for qual_q in qual_survey:
         try:
             choices = qual_q['choices']
         except KeyError:
             pass
         else:
-            qual_q['choices_by_uuid'] = {c['uuid']: c for c in choices}
+            qual_choices_per_question_by_uuid[qual_q['uuid']] = {
+                c['uuid']: c for c in choices
+            }
         qual_questions_by_uuid[qual_q['uuid']] = qual_q
     for submission in submission_stream:
         if SUBMISSION_UUID_FIELD in submission:
@@ -168,7 +177,9 @@ def stream_with_extras(submission_stream, asset):
                     val_expanded = []
                     for v in val:
                         try:
-                            v_ex = qual_q['choices_by_uuid'][v]
+                            v_ex = qual_choices_per_question_by_uuid[
+                                qual_q['uuid']
+                            ][v]
                         except KeyError:
                             # TODO: make sure this can never happen by refusing
                             # to remove qualitative analysis *choices* once
@@ -178,7 +189,6 @@ def stream_with_extras(submission_stream, asset):
                     if single_choice:
                         val_expanded = val_expanded[0]
                     qual_response['val'] = val_expanded
-                qual_q.pop('choices_by_uuid', None)
                 qual_response.update(qual_q)
         submission[SUPPLEMENTAL_DETAILS_KEY] = all_supplemental_details
         yield submission
