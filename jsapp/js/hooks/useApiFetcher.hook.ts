@@ -3,7 +3,8 @@ import {useCallback, useEffect, useState} from 'react';
 export interface ApiFetcherOptions {
   /* If set, the ApiFetcher will execute the fetch() function once per the
    * provided number of seconds. Will only fetch when the window is visible.
-   * *Don't* use this for fetches that mutate data on the server (DELETE, PUT, some POST requests).
+   * *Don't* use this for fetches that mutate data on the server (DELETE, PUT,
+   * non-idempotent POST requests).
    */
   reloadEverySeconds?: number;
   skipInitialLoad?: boolean;
