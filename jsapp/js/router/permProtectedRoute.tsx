@@ -26,6 +26,7 @@ interface PermProtectedRouteState {
   userHasRequiredPermissions: boolean | null;
   errorMessage?: string;
   asset: AssetResponse | null;
+  initialAssetLoadNotNeeded: boolean;
 }
 
 /**
@@ -50,6 +51,7 @@ class PermProtectedRoute extends React.Component<
       userHasRequiredPermissions: null,
       errorMessage: undefined,
       asset: null,
+      initialAssetLoadNotNeeded: true,
     };
   }
 
@@ -67,9 +69,14 @@ class PermProtectedRoute extends React.Component<
       // in the UI (from this component; see `render()` below).
       this.onLoadAssetCompleted(assetFromStore);
     } else {
+      this.setState({initialAssetLoadNotNeeded: true});
       this.unlisteners.push(
-        actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this)),
-        actions.resources.loadAsset.failed.listen(this.onLoadAssetFailed.bind(this))
+        actions.resources.loadAsset.completed.listen(
+          this.onLoadAssetCompleted.bind(this)
+        ),
+        actions.resources.loadAsset.failed.listen(
+          this.onLoadAssetFailed.bind(this)
+        )
       );
       actions.resources.loadAsset({id: this.props.params.uid}, true);
     }
@@ -165,7 +172,7 @@ class PermProtectedRoute extends React.Component<
         <Suspense fallback={<LoadingSpinner />}>
           <this.props.protectedComponent
             {...this.props}
-            initialAssetLoadNotNeeded
+            initialAssetLoadNotNeeded={this.state.initialAssetLoadNotNeeded}
           />
         </Suspense>
       );
