@@ -26,7 +26,7 @@
     margin-top: -5px;
   }
 
-  form.registration {
+  form.registration, section.registration {
     margin: 0 auto;
     position: relative;
     max-width: 400px;
@@ -133,6 +133,11 @@
     .kobo-button.kobo-button--sso {
       background-color: colors.$kobo-light-blue;
       color: colors.$kobo-dark-blue;
+
+      &.btn-danger {
+        background-color: colors.$kobo-red;
+        color: colors.$kobo-white;
+      }
 
       &:focus {
         outline-offset: 0;
@@ -419,7 +424,7 @@
 
 @media screen and (min-width: 768px) {
   .registration__bg {
-    form.registration {
+    form.registration, section.registration {
       padding: 30px 40px;
       margin-top: 10px;
     }
