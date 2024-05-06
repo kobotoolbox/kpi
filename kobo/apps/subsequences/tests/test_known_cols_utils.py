@@ -42,10 +42,10 @@ def test_known_cols_transc_uniqs():
         'qpath2 - transcript',
     ]
     assert rs['qpath'] == [
-        'qpath1-transcript-en',
-        'qpath1-transcript-fr',
-        'qpath2-transcript-en',
-        'qpath2-transcript-fr',
+        'col-qpath1-transcript-en',
+        'col-qpath1-transcript-fr',
+        'col-qpath2-transcript-en',
+        'col-qpath2-transcript-fr',
     ]
 
 
@@ -61,10 +61,10 @@ def test_known_cols_transl_uniqs():
     labls = [r['label'] for r in results]
     qpths = [r['qpath'] for r in results]
     assert qpths == [
-        'qpath1-translation-en',
-        'qpath1-translation-fr',
-        'qpath2-translation-en',
-        'qpath2-translation-fr',
+        'col-qpath1-translation-en',
+        'col-qpath1-translation-fr',
+        'col-qpath2-translation-en',
+        'col-qpath2-translation-fr',
     ]
 
 
@@ -78,3 +78,28 @@ def test_known_cols_combos():
     langs = [r['language'] for r in results]
     assert langs == ['en', 'fr', 'en', 'fr']
     assert len(results) == 4
+
+
+def test_known_cols_grouped_source():
+    # TODO: refer to commit d013bfe0f5 and `extend_col_deets()` to figure out
+    # how this should behave
+    results = parse_known_cols([
+        # `group` is the group name
+        # `question` is the (source) question name
+        'group-question:transcript:en',
+        'group-question:translation:es',
+    ])
+    sources = [r['source'] for r in results]
+    qpaths = [r['qpath'] for r in results]
+    names = [r['name'] for r in results]
+    assert set(sources) == set(('group-question',))
+    assert qpaths == [
+        'group-question-transcript-en',
+        'group-question-translation-es',
+    ]
+    assert names == [
+        # This can't be right (why a mixture of dash and slash delimiters?) but
+        # it is at least what the front end expects
+        'group-question/transcript_en',
+        'group-question/translation_es',
+    ]
