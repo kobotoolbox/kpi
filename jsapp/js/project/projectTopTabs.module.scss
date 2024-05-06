@@ -21,20 +21,6 @@
   flex-direction: row;
   justify-content: center;
   align-items: stretch;
-
-  @include breakpoints.breakpoint(veryNarrow) {
-    padding-left: 10px;
-    padding-right: 10px;
-    gap: sizes.$x15;
-  }
-
-  @include breakpoints.breakpoint(narrow) {
-    gap: sizes.$x30;
-  }
-
-  @include breakpoints.breakpoint(mediumAndUp) {
-    gap: sizes.$x60;
-  }
 }
 
 .tab {
@@ -62,12 +48,34 @@
     pointer-events: none;
     opacity: 0.5;
   }
+}
 
-  @include breakpoints.breakpoint(veryNarrow) {
-    @include mixins.textEllipsis;
+@include breakpoints.breakpoint(veryNarrow) {
+  .tabs {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: sizes.$x15;
   }
 
-  @include breakpoints.breakpoint(narrowAndUp) {
+  .tab {
+    @include mixins.textEllipsis;
+  }
+}
+
+@include breakpoints.breakpoint(narrow) {
+  .tabs {
+    gap: sizes.$x30;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .tab {
     font-size: sizes.$x15;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .tabs {
+    gap: sizes.$x60;
   }
 }

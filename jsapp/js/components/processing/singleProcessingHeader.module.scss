@@ -9,40 +9,39 @@
   color: colors.$kobo-gray-24;
   gap: 10px;
   min-height: 60px;
-
-  @include breakpoints.breakpoint(veryNarrow) {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
 }
 
 .submissions {
   @include mixins.centerRowFlex;
   gap: sizes.$x5;
+}
 
-  @include breakpoints.breakpoint(narrowAndUp) {
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .root {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .column.columnMain {
+    width: 100%;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .submissions {
     font-size: sizes.$x18;
   }
-}
 
-.count {
-  @include breakpoints.breakpoint(narrowAndUp) {
+  .count {
     margin-left: sizes.$x50;
   }
-}
 
-.column {
-  &.columnMain {
-    @include breakpoints.breakpoint(veryNarrow) {
-      width: 100%;
-    }
+  .column.columnMain {
+    flex: 1;
 
-    @include breakpoints.breakpoint(narrowAndUp) {
-      flex: 1;
-
-      // HACK: this ensures this element doesn't push other flex items off screen
-      // when the content is too long.
-      min-width: 0;
-    }
+    // HACK: this ensures this element doesn't push other flex items off screen
+    // when the content is too long.
+    min-width: 0;
   }
 }

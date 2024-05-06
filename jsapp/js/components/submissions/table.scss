@@ -317,41 +317,7 @@ $s-data-table-font: 13px;
     border-top: none;
     padding: 0;
 
-    .-previous,
-    .-next {
-      @include breakpoints.breakpoint(veryNarrow) {
-        flex: auto;
-      }
-
-      @include breakpoints.breakpoint(narrowAndUp) {
-        flex: 1;
-      }
-    }
-
-    .-center {
-      @include breakpoints.breakpoint(veryNarrow) {
-        flex: auto;
-      }
-
-      @include breakpoints.breakpoint(narrowAndUp) {
-        flex: 2;
-        min-width: 300px;
-      }
-    }
-
-    .-pageInfo,
-    .-pageSizeOptions {
-      @include breakpoints.breakpoint(veryNarrow) {
-        margin: 0;
-      }
-    }
-
     .-pageJump {
-      @include breakpoints.breakpoint(narrowAndUp) {
-        margin-left: 10px;
-        margin-right: 10px;
-      }
-
       input {
         appearance: none;
       }
@@ -529,16 +495,6 @@ $s-data-table-font: 13px;
   }
 }
 
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
-  .form-view--table {
-    padding: 0px 20px;
-  }
-
-  .form-view--table .ReactTable .pagination-bottom {
-    margin-bottom: 10px;
-  }
-}
-
 .table-meta {
   flex-grow: 1;
   min-height: 30px;
@@ -585,5 +541,48 @@ $s-data-table-font: 13px;
   .popover-menu .popover-menu__toggle {
     // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
     height: auto;
+  }
+}
+
+@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
+  .form-view--table {
+    padding: 0px 20px;
+  }
+
+  .form-view--table .ReactTable .pagination-bottom {
+    margin-bottom: 10px;
+  }
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .form-view--table .ReactTable .-pagination .-previous,
+  .form-view--table .ReactTable .-pagination .-next {
+    flex: auto;
+  }
+
+  .form-view--table .ReactTable .-pagination .-center {
+    flex: auto;
+  }
+
+  .form-view--table .ReactTable .-pagination .-pageInfo,
+  .form-view--table .ReactTable .-pagination .-pageSizeOptions {
+    margin: 0;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .form-view--table .ReactTable .-pagination .-previous,
+  .form-view--table .ReactTable .-pagination .-next {
+    flex: 1;
+  }
+
+  .form-view--table .ReactTable .-pagination .-center {
+    flex: 2;
+    min-width: 300px;
+  }
+
+  .form-view--table .ReactTable .-pagination .-pageJump {
+    margin-left: 10px;
+    margin-right: 10px;
   }
 }

@@ -7,12 +7,6 @@
   padding: 12px;
 }
 
-@include breakpoints.breakpoint(mediumAndUp) {
-  .report-view {
-    padding: 12px 40px;
-  }
-}
-
 .form-view__cell--reportLimit {
   padding-bottom: sizes.$x16;
 }
@@ -92,13 +86,6 @@
   }
 }
 
-@include breakpoints.breakpoint(mediumAndUp) {
-  .report-view__itemContent table {
-    width: 80%;
-    margin-left: 10%;
-  }
-}
-
 .report-view__chart {
   margin: 0 auto;
   padding: sizes.$x20 sizes.$x50;
@@ -139,29 +126,15 @@
   + .form-view__cell--iframe {
     height: calc(100% - sizes.$x60);
   }
-
-  @include breakpoints.breakpoint(mediumAndUp) {
-    padding-left: 0;
-    padding-right: 0;
-  }
 }
 
 .form-view__reportButtons button.report-button__print {
   display: none;
-
-  @include breakpoints.breakpoint(mediumAndUp) {
-    display: initial;
-  }
 }
 
 .form-view__reportButtons button.report-button__expand {
   padding-left: 4px;
   padding-right: 4px;
-
-  @include breakpoints.breakpoint(mediumAndUp) {
-    padding-left: 0;
-    padding-right: 0;
-  }
 }
 
 // report graph settings
@@ -306,4 +279,29 @@
 .custom-report--footer {
   margin: sizes.$x15 0;
   text-align: right;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .report-view {
+    padding: 12px 40px;
+  }
+
+  .report-view__itemContent table {
+    width: 80%;
+    margin-left: 10%;
+  }
+
+  .form-view__reportButtons {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .form-view__reportButtons button.report-button__print {
+    display: initial;
+  }
+
+  .form-view__reportButtons button.report-button__expand {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }

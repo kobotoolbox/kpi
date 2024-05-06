@@ -56,25 +56,29 @@
       background-color: inherit;
     }
   }
-
-  @include breakpoints.breakpoint(veryNarrow) {
-    padding: 0 12px;
-    flex: 1;
-    text-align: center;
-  }
-
-  @include breakpoints.breakpoint(narrowAndUp) {
-    padding: 0 24px;
-  }
 }
 
 .body {
   background-color: colors.$kobo-white;
   border-radius: sizes.$x6;
   flex: 1;
+}
 
-  // Only add scrolling if layout is multi column
-  @include breakpoints.breakpoint(narrowAndUp) {
+@include breakpoints.breakpoint(veryNarrow) {
+  .tab {
+    padding: 0 12px;
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .tab {
+    padding: 0 24px;
+  }
+
+  .body {
+    // Only add scrolling if layout is multi column
     overflow-y: auto;
   }
 }

@@ -9,10 +9,6 @@
 .gallery__wrapper {
   margin: 8px 14px;
 
-  @include breakpoints.breakpoint(mediumAndUp) {
-    margin: 20px 50px;
-  }
-
   .gallery__footer {
     width: 100%;
     display: flex;
@@ -56,4 +52,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: sizes.$x3;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .gallery__wrapper {
+    margin: 20px 50px;
+  }
 }

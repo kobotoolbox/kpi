@@ -26,16 +26,6 @@
   box-shadow: 0 1px 0 colors.$kobo-light-storm;
   padding-top: 10px;
   padding-bottom: 10px;
-
-  @include breakpoints.breakpoint(veryNarrow) {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  @include breakpoints.breakpoint(narrowAndUp) {
-    padding-left: 18px;
-    padding-right: 18px;
-  }
 }
 
 .bottom {
@@ -44,36 +34,50 @@
   flex: 1;
   padding-top: 0; // This needs to be 0 for sticky scroll elements
   padding-bottom: 12px;
+}
 
-  @include breakpoints.breakpoint(veryNarrow) {
+@include breakpoints.breakpoint(veryNarrow) {
+  .top {
     padding-left: 10px;
     padding-right: 10px;
   }
 
-  @include breakpoints.breakpoint(narrow) {
+  .bottom {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@include breakpoints.breakpoint(narrow) {
+  .bottom {
     padding-left: 18px;
     padding-right: 18px;
   }
+}
 
-  @include breakpoints.breakpoint(mediumAndUp) {
+@include breakpoints.breakpoint(narrowAndUp) {
+  .top {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .bottom {
     display: flex;
     flex-direction: row;
     align-items: stretch;
     padding-left: 60px;
     padding-right: 60px;
   }
-}
 
-.bottomLeft {
-  @include breakpoints.breakpoint(mediumAndUp) {
+  .bottomLeft {
     flex: 61;
     max-width: 60vw; // ensure very long words don't murder the UI
     margin-right: sizes.$x16;
   }
-}
 
-.bottomRight {
-  @include breakpoints.breakpoint(mediumAndUp) {
+  .bottomRight {
     flex: 39;
     min-width: 30vw; // ensure very long words don't murder the UI
     // used for details

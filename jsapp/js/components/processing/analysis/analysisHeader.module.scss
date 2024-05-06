@@ -18,14 +18,6 @@ $menu-padding: koboSelect.$k-select-menu-padding;
   position: sticky;
   top: 0;
   z-index: 1;
-
-  @include breakpoints.breakpoint(veryNarrow) {
-    padding: 20px 0 10px;
-  }
-
-  @include breakpoints.breakpoint(narrowAndUp) {
-    padding: 30px 0 16px;
-  }
 }
 
 .addQuestionMenu {
@@ -88,4 +80,16 @@ $menu-padding: koboSelect.$k-select-menu-padding;
   padding: 0;
   color: colors.$kobo-storm;
   margin: 0 sizes.$x12;
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .root {
+    padding: 20px 0 10px;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .root {
+    padding: 30px 0 16px;
+  }
 }

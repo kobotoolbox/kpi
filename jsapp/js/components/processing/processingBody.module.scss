@@ -12,14 +12,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-
-  @include breakpoints.breakpoint(veryNarrow) {
-    padding: 20px;
-  }
-
-  @include breakpoints.breakpoint(narrowAndUp) {
-    padding: 30px;
-  }
 }
 
 .root.viewAnalysis {
@@ -35,14 +27,6 @@
 .root.stepConfig {
   max-width: sizes.$x600 + (2 * sizes.$x30); // include paddings
   margin: 0 auto;
-
-  @media (max-height: #{breakpoints.$b600 - 1px}) {
-    padding-top: sizes.$x30;
-  }
-
-  @media (min-height: breakpoints.$b600) {
-    padding-top: sizes.$x50;
-  }
 }
 
 .root.stepBegin {
@@ -101,16 +85,6 @@
   font-weight: 400;
   text-align: center;
   margin-bottom: sizes.$x24;
-
-  @include breakpoints.breakpoint(veryNarrow) {
-    font-size: 16px;
-    line-height: 18px;
-  }
-
-  @include breakpoints.breakpoint(narrowAndUp) {
-    font-size: 18px;
-    line-height: 20px;
-  }
 }
 
 .header:not(:first-child) {
@@ -147,14 +121,6 @@
   @include mixins.centerRowFlex;
   margin-bottom: sizes.$x12;
   gap: 8px;
-
-  @include breakpoints.breakpoint(medium) {
-    gap: 12px;
-  }
-
-  @include breakpoints.breakpoint(wideAndUp) {
-    gap: 20px;
-  }
 }
 
 .transxHeaderButtons {
@@ -173,20 +139,6 @@
   &:not(:first-child) {
     margin-left: sizes.$x4;
   }
-
-  @include breakpoints.breakpoint(medium) {
-    // cramped two columns layout - this value makes sure we don't overflow
-    // horizontally
-    max-width: 140px;
-  }
-
-  @include breakpoints.breakpoint(wide) {
-    max-width: 140px;
-  }
-
-  @include breakpoints.breakpoint(veryWide) {
-    max-width: 250px;
-  }
 }
 
 .transxHeaderDate {
@@ -200,9 +152,63 @@
 }
 
 @include breakpoints.breakpoint(veryNarrow) {
+  .root {padding: 20px;}
+
+  .root.stepBegin,
+  .root.stepConfig {
+    padding-top: sizes.$x30;
+  }
+
+  .header {
+    font-size: 16px;
+    line-height: 18px;
+  }
+
   .transxHeaderDateLong {display: none;}
 }
 
 @include breakpoints.breakpoint(narrowAndUp) {
+  .root {padding: 30px;}
+
+  .root.stepBegin,
+  .root.stepConfig {
+    padding-top: sizes.$x50;
+  }
+
+  .header {
+    font-size: 18px;
+    line-height: 20px;
+  }
+
   .transxHeaderDateShort {display: none;}
+}
+
+@include breakpoints.breakpoint(medium) {
+  .transxHeader {
+    gap: 12px;
+  }
+
+  .transxHeaderLanguage {
+    // cramped two columns layout - this value makes sure we don't overflow
+    // horizontally
+    max-width: 140px;
+  }
+}
+
+@include breakpoints.breakpoint(wide) {
+  .transxHeaderLanguage {
+    max-width: 140px;
+  }
+}
+
+@include breakpoints.breakpoint(wideAndUp) {
+  .transxHeader {
+    gap: 20px;
+  }
+}
+
+@include breakpoints.breakpoint(veryWide) {
+  .transxHeaderLanguage {
+    max-width: 250px;
+  }
 }

@@ -13,10 +13,6 @@ $choice-width: 66.66%;
   &:not(:last-child) {
     margin-bottom: analysisVariables.$inner-vertical-gap;
   }
-
-  @include breakpoints.breakpoint(narrowAndUp) {
-    width: $choice-width;
-  }
 }
 
 .labelInput {
@@ -24,13 +20,19 @@ $choice-width: 66.66%;
 }
 
 .addOption {
-  @include breakpoints.breakpoint(narrowAndUp) {
+  :global .k-button {
+    width: 100%;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .choice {
+    width: $choice-width;
+  }
+
+  .addOption {
     // We make it shorter to take the trash icon buttons from choices above into
     // the picture
     width: calc($choice-width - button.$button-height-m - sizes.$x6);
-  }
-
-  :global .k-button {
-    width: 100%;
   }
 }

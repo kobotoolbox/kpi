@@ -40,10 +40,6 @@
       .checkbox {
         min-width: 200px;
         width: 100%;
-
-        @include breakpoints.breakpoint(mediumAndUp) {
-          max-width: 50%;
-        }
       }
     }
   }
@@ -58,21 +54,6 @@
   padding-top: sizes.$x12;
   margin-top: sizes.$x12;
   border-top: sizes.$x1 solid colors.$kobo-gray-92;
-
-  @include breakpoints.breakpoint(narrowAndUp) {
-    .connect-projects__export-hint {
-      flex: 1;
-      min-width: 280px;
-      max-width: 100%;
-    }
-
-    .multi-checkbox {
-      flex: 1;
-      height: sizes.$x200;
-      min-width: 280px;
-      max-width: 100%;
-    }
-  }
 }
 
 .connect-projects__import .connect-projects__import-form {
@@ -197,5 +178,26 @@
       padding-left: sizes.$x60;
       padding-right: sizes.$x60;
     }
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .connect-projects__export .connect-projects__export-option .checkbox {
+    max-width: 50%;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .connect-projects__export-multicheckbox .connect-projects__export-hint {
+    flex: 1;
+    min-width: 280px;
+    max-width: 100%;
+  }
+
+  .connect-projects__export-multicheckbox .multi-checkbox {
+    flex: 1;
+    height: sizes.$x200;
+    min-width: 280px;
+    max-width: 100%;
   }
 }
