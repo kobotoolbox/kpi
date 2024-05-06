@@ -51,7 +51,7 @@ class PermProtectedRoute extends React.Component<
       userHasRequiredPermissions: null,
       errorMessage: undefined,
       asset: null,
-      initialAssetLoadNotNeeded: true,
+      initialAssetLoadNotNeeded: false,
     };
   }
 
