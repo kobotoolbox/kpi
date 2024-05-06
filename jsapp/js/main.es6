@@ -62,7 +62,9 @@ $.ajaxSetup({
   beforeSend: function (xhr, settings) {
     let csrfToken = '';
     try {
-      csrfToken = document.cookie.match(/csrftoken=(\w{64})/)[1];
+      // Need to support old token (64 characters - prior to Django 4.1)
+      // and new token (32 characters).
+      csrfToken = document.cookie.match(/csrftoken=(\w{32,64})/)[1];
     } catch (err) {
       console.error('Cookie not matched');
     }

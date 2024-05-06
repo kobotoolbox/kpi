@@ -5,7 +5,7 @@
 -e git+https://github.com/kobotoolbox/formpack.git@443a8e940756976a9f88fb577dbbc53510726536#egg=formpack
 
 # service-account
--e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
+-e git+https://github.com/kobotoolbox/kobo-service-account.git@8ee76730106ff8dc0ee2539c8e6a567aea4ed9ee#egg=kobo-service-account
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -20,7 +20,7 @@
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
 
 # Regular PyPI packages
-Django>=3.2,<3.3
+Django>=4.2,<4.3
 Markdown
 Pygments
 amqp
@@ -30,10 +30,10 @@ celery[redis]
 dict2xml
 dj-static
 dj-stripe
-django-allauth
+django-allauth<0.58  # Backwards incompatible changes
 django-braces
 django-celery-beat
-django-constance[database]
+django-constance
 django-cors-headers
 django-csp
 django-debug-toolbar
@@ -72,8 +72,8 @@ lxml
 oauthlib
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
-psycopg2
-pymongo==3.12.3
+psycopg
+pymongo
 python-dateutil
 pyxform==1.9.0
 requests
@@ -84,7 +84,7 @@ sqlparse
 static3
 tabulate
 uWSGI
-Werkzeug<=2.0.3
+Werkzeug
 xlrd
 xlwt
 xlutils
