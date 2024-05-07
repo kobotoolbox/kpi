@@ -34,6 +34,7 @@ import {
   getCurrentProcessingRouteParts,
   ProcessingTab,
 } from 'js/components/processing/routes.utils';
+import type {KoboSelectOption} from '../common/koboSelect';
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -148,6 +149,8 @@ class SingleProcessingStore extends Reflux.Store {
   private displays = this.getInitialDisplays();
 
   private analysisTabHasUnsavedWork = false;
+
+  private currentlyDisplayedLanguage: LanguageCode | string = this.getInitialDisplayedLanguage();
 
   public data: SingleProcessingStoreData = {
     translations: [],
@@ -957,6 +960,40 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
+  getDisplayedLanguagesList(): KoboSelectOption[] {
+    const languagesList = [];
+
+    languagesList.push({label: t('XML names'), value: 'xml_names'});
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.summary?.languages && asset?.summary?.languages.length > 0) {
+      asset.summary.languages.forEach((language) => {
+        if (language !== null) {
+          languagesList.push({
+            label: language,
+            value: language,
+          });
+        }
+      });
+    } else {
+      languagesList.push({label: t('Default'), value: 'default'});
+    }
+
+    return languagesList;
+  }
+
+  getInitialDisplayedLanguage() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.summary?.languages && asset?.summary?.languages[0]) {
+      return asset?.summary?.languages[0];
+    } else {
+      return '';
+    }
+  }
+
+  getCurrentlyDisplayedLanguage() {
+    return this.currentlyDisplayedLanguage;
+  }
+
   getInitialDisplays(): SidebarDisplays {
     return {
       transcript: DefaultDisplays.get(ProcessingTab.Transcript) || [],
@@ -1062,6 +1099,12 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.hiddenSidebarQuestions = list;
 
     this.trigger(this.data);
+  }
+
+  setCurrentlyDisplayedLanguage(language: LanguageCode) {
+    this.currentlyDisplayedLanguage = language;
+
+    this.trigger(this.currentlyDisplayedLanguage);
   }
 }
 

@@ -17,6 +17,7 @@ import styles from './sidebarDisplaySettings.module.scss';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import cx from 'classnames';
+import KoboSelect from '../../common/koboSelect';
 
 interface SidebarDisplaySettingsProps {
   assetContent: AssetContent | undefined;
@@ -64,6 +65,7 @@ export default function SidebarDisplaySettings(
 
   const transcript = store.getTranscript();
   const availableDisplays = store.getAvailableDisplays(activeTab);
+  const displayedLanguageList = store.getDisplayedLanguagesList();
 
   function getStaticDisplayText(display: StaticDisplays) {
     if (display === StaticDisplays.Transcript) {
@@ -171,6 +173,19 @@ export default function SidebarDisplaySettings(
         <KoboModalHeader>{t('Customize display settings')}</KoboModalHeader>
 
         <KoboModalContent>
+          <KoboSelect
+            name='displayedLanguage'
+            type='gray'
+            size='m'
+            options={displayedLanguageList}
+            selectedOption={null}
+            onChange={(languageCode) => {
+              if (languageCode) {
+                store.setCurrentlyDisplayedLanguage(languageCode);
+              }
+            }}
+          />
+
           <p className={styles.description}>
             {t(
               'Select the information you want to display in the side menu to support your analysis.'
