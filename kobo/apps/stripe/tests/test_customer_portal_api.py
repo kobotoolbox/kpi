@@ -1,4 +1,3 @@
-import stripe
 from django.urls import reverse
 from djstripe.models import Customer, Subscription, Price, Product
 from model_bakery import baker
@@ -35,12 +34,16 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
             Product,
             metadata={'product_type': product_type}
         )
-        self.price = baker.make(Price, product=self.product)
+        self.price = baker.make(
+            Price,
+            product=self.product,
+        )
         if create_subscription:
             self.subscription = baker.make(
                 Subscription,
                 status='active',
                 customer=self.customer,
+                items__price=self.price
             )
 
     def _get_url_for_expected_request(self, create_subscription=True, product_type='plan'):
@@ -88,11 +91,20 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         list_config.return_value = [
             {
                 'id': 'test',
+                'active': True,
+                'is_default': True,
+                'livemode': False,
+                'features': {
+                    'subscription_update': {
+                        'default_allowed_updates': ['quantity'],
+                        'products': [],
+                        'prices': [],
+                    },
+                },
+                'business_profile': None,
                 'metadata': {
                     'portal_price': self.price.id,
                 },
-                'active': True,
-                'livemode': False,
             },
         ]
         create_config.return_value = {'id': 'test'}

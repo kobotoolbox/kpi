@@ -37,6 +37,7 @@ def create_mock_assets(users: list, assets_per_user: int = 1):
             content=content_source_asset,
             owner=user,
             asset_type='survey',
+            name='test',
             _quantity=assets_per_user,
         )
 

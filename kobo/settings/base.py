@@ -404,6 +404,11 @@ CONSTANCE_CONFIG = {
         'Number of days to keep asset snapshots',
         'positive_int'
     ),
+    'IMPORT_TASK_DAYS_RETENTION': (
+        90,
+        'Number of days to keep import tasks',
+        'positive_int',
+    ),
     'FREE_TIER_THRESHOLDS': (
         LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
         'Free tier thresholds: storage in kilobytes, '
@@ -702,9 +707,12 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
-        'ASSET_SNAPSHOT_DAYS_RETENTION',
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+    ),
+    'Regular maintenance settings': (
+        'ASSET_SNAPSHOT_DAYS_RETENTION',
+        'IMPORT_TASK_DAYS_RETENTION',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -803,6 +811,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
+        'sw '  # Swahili
         'th '  # Thai
         'tr '  # Turkish
         'uk '  # Ukrainian

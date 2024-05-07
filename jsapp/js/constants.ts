@@ -203,6 +203,8 @@ export const ASSET_FILE_TYPES: {
   },
 };
 
+export const USAGE_ASSETS_PER_PAGE = 8;
+
 /**
  * These are the types of survey rows that users can create in FormBuilder and
  * ones that require manual data submission.
