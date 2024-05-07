@@ -1,22 +1,191 @@
 import json
+from copy import deepcopy
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.models import Asset
 
-def mock_submission_stream():
-    yield {'_uuid': 'aaa'}
-    yield {'_uuid': 'bbb'}
 
 class TestSubmissionStream(TestCase):
+    """
+    TODO: These tests need to be built out substantially, and test data should
+    move to fixtures (and be expanded with more realistic examples)
+    """
+
+    def _create_asset(self):
+        owner = get_user_model().objects.create(username='nlp_owner')
+        self.asset = Asset.objects.create(
+            owner=owner,
+            content={
+                'schema': '1',
+                'survey': [
+                    {
+                        'type': 'text',
+                        '$kuid': 'rc9ak31',
+                        'label': ["What's your name?"],
+                        '$qpath': 'What_s_your_name',
+                        '$xpath': 'What_s_your_name',
+                        'required': False,
+                        '$autoname': 'What_s_your_name',
+                    },
+                    {
+                        'type': 'audio',
+                        '$kuid': 'ff6ek09',
+                        'label': ['Tell me a story!'],
+                        '$qpath': 'Tell_me_a_story',
+                        '$xpath': 'Tell_me_a_story',
+                        'required': False,
+                        '$autoname': 'Tell_me_a_story',
+                    },
+                ],
+                'settings': {},
+            },
+            advanced_features={
+                'qual': {
+                    'qual_survey': [
+                        {
+                            'type': 'qual_integer',
+                            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                            'qpath': 'Tell_me_a_story',
+                            'scope': 'by_question#survey',
+                            'labels': {'_default': 'When was this recorded?'},
+                        },
+                        {
+                            'type': 'qual_select_one',
+                            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+                            'qpath': 'Tell_me_a_story',
+                            'scope': 'by_question#survey',
+                            'labels': {
+                                '_default': "What's the source of this story?"
+                            },
+                            'choices': [
+                                {
+                                    'uuid': (
+                                        '3c7aacdc-8971-482a-9528-68e64730fc99'
+                                    ),
+                                    'labels': {
+                                        '_default': 'Private conversation'
+                                    },
+                                },
+                                {
+                                    'uuid': (
+                                        '7e31c6a5-5eac-464c-970c-62c383546a94'
+                                    ),
+                                    'labels': {'_default': 'Public event'},
+                                },
+                            ],
+                        },
+                    ]
+                },
+                'transcript': {'languages': ['en']},
+                'translation': {'languages': []},
+            },
+        )
+        self.asset.deploy(backend='mock', active=True)
+
+    def _create_mock_submissions(self):
+        self.asset.deployment.mock_submissions(
+            [
+                {
+                    'What_s_your_name': 'Ed',
+                    'Tell_me_a_story': 'ed-18_6_34.ogg',
+                    'meta/instanceID': (
+                        'uuid:1c05898e-b43c-491d-814c-79595eb84e81'
+                    ),
+                    # `MockDeploymentBackend` should probably add `_uuid`, but
+                    # it doesn't. It's going away soon enough, though.
+                    '_uuid': '1c05898e-b43c-491d-814c-79595eb84e81',
+                },
+            ]
+        )
+
+    def _create_submission_extras(self):
+        subexes = [
+            {
+                'submission_uuid': '1c05898e-b43c-491d-814c-79595eb84e81',
+                'content': {
+                    'Tell_me_a_story': {
+                        'qual': [
+                            {
+                                'val': 2017,
+                                'type': 'qual_integer',
+                                'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                            },
+                            {
+                                'val': ['7e31c6a5-5eac-464c-970c-62c383546a94'],
+                                'type': 'qual_select_one',
+                                'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+                            },
+                        ],
+                        # Credit: https://f4dc.org/nevermind-guaranteed-income-we-want-the-cow/
+                        'transcript': {
+                            'value': (
+                                'I’m reminded of a story that I was told by'
+                                ' Rev. Bugani Finca who was involved in South'
+                                ' Africa’s Truth and Reconciliation work. A'
+                                ' black South African, Tabo, confronted a white'
+                                ' man, Mr. Smith, who had disrespected him and'
+                                ' stolen his prize cow. With the prospect of'
+                                ' amnesty for telling the truth, the white man'
+                                ' admitted to having done what he was accused'
+                                ' of, recognized how horribly wrong it was and'
+                                ' asked for forgiveness, saying that he was'
+                                ' truly sorry. Tabo was visibly relieved for'
+                                ' having an opportunity to confront his'
+                                ' oppressor and get an apology. They shook'
+                                ' hands and embraced. As Mr. Smith, stood to'
+                                ' leave, free, with his amnesty, the black man'
+                                ' called out to stop him. The white man turned'
+                                ' back with a questioning look on his face, not'
+                                ' sure why he was being stopped, Tabo, the'
+                                ' black South African, asked him: “But what'
+                                ' about the cow?” Mr. Smith was visibly angry:'
+                                ' “You are ruining our Reconciliation,” he'
+                                ' shouted, “This has nothing to do with a cow.”'
+                            ),
+                            'revisions': [],
+                            'dateCreated': '2024-04-29 22:08:40',
+                            'dateModified': '2024-04-29 22:08:40',
+                            'languageCode': 'en',
+                        },
+                    }
+                },
+                'asset': self.asset,
+            },
+        ]
+        for subex in subexes:
+            SubmissionExtras.objects.create(**subex)
+
     def setUp(self):
-        self.asset = Asset.objects.create()
+        self._create_asset()
+        self._create_mock_submissions()
+        self._create_submission_extras()
+
+    def test_submission_stream_does_not_mutate_advanced_features(self):
+        original_schema = deepcopy(self.asset.advanced_features)
+        _ = list(
+            stream_with_extras(
+                self.asset.deployment.get_submissions(user=self.asset.owner),
+                self.asset,
+            )
+        )
+        # Validation failure is what exposed the bug that prompted this test;
+        # reproduce that failure here
+        self.asset.validate_advanced_features()
+        assert self.asset.advanced_features == original_schema
 
     def test_submission_stream_is_flat(self):
+        def mock_submission_stream():
+            yield {'_uuid': 'aaa'}
+            yield {'_uuid': 'bbb'}
+
+        asset = Asset.objects.create()
+
         SubmissionExtras.objects.create(
-            asset=self.asset,
+            asset=asset,
             submission_uuid='aaa',
             content={
                 'QQ': {
@@ -47,7 +216,7 @@ class TestSubmissionStream(TestCase):
             },
         )
         SubmissionExtras.objects.create(
-            asset=self.asset,
+            asset=asset,
             submission_uuid='bbb',
             content={
                 'QQ': {
@@ -67,7 +236,7 @@ class TestSubmissionStream(TestCase):
             },
         )
         output = []
-        for i in stream_with_extras(mock_submission_stream(), self.asset):
+        for i in stream_with_extras(mock_submission_stream(), asset):
             output.append(i)
         assert '_supplementalDetails' in output[0]
         assert '_supplementalDetails' in output[1]
