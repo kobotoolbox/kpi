@@ -24,6 +24,8 @@ interface MultiCheckboxProps {
   disabled?: boolean;
   /** Returns whole list whenever any item changes */
   onChange: (items: MultiCheckboxItem[]) => void;
+  /** Additional class names. */
+  classNames?: string[];
 }
 
 /**
@@ -38,8 +40,16 @@ class MultiCheckbox extends React.Component<MultiCheckboxProps> {
   }
 
   render() {
+    let customClassNames: string[] = [];
+    if (this.props.classNames) {
+      customClassNames = this.props.classNames;
+    }
+
     return (
-      <bem.MultiCheckbox m={`type-${this.props.type}`}>
+      <bem.MultiCheckbox
+        m={`type-${this.props.type}`}
+        className={customClassNames.join(' ')}
+      >
         {this.props.items.map((item, itemIndex) => (
           <bem.MultiCheckbox__item key={itemIndex}>
             <Checkbox

@@ -108,13 +108,11 @@ export default Object.assign({
       this.launchAppForSurveyContent();
     }
 
-    document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
   },
 
   componentWillUnmount () {
     if (this.app && this.app.survey) {
-      document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
@@ -361,21 +359,6 @@ export default Object.assign({
     this.setState({
       asset_updated: update_states.PENDING_UPDATE,
     });
-  },
-
-  handleScroll(evt) {
-    var scrollTop = evt.target.scrollTop;
-    if (!this.state.formHeaderFixed && scrollTop > 40) {
-      var fhfh = $('.asset-view__row--header').height();
-      this.setState({
-        formHeaderFixed: true,
-        formHeaderFixedHeight: fhfh,
-      });
-    } else if (this.state.formHeaderFixed && scrollTop <= 32) {
-      this.setState({
-        formHeaderFixed: false
-      });
-    }
   },
 
   buttonStates() {
@@ -938,67 +921,65 @@ export default Object.assign({
           */
           this.state.preventNavigatingOut && <Prompt/>
         }
-        <bem.uiPanel m={['transparent', 'fixed']}>
-          <bem.uiPanel__body>
-            {this.renderAside()}
+        <div className='form-builder-wrapper'>
+          {this.renderAside()}
 
-            <bem.FormBuilder>
-            {this.renderFormBuilderHeader()}
+          <bem.FormBuilder>
+          {this.renderFormBuilderHeader()}
 
-              <bem.FormBuilder__contents>
-                {this.state.asset &&
-                  <FormLockedMessage asset={this.state.asset}/>
+            <bem.FormBuilder__contents>
+              {this.state.asset &&
+                <FormLockedMessage asset={this.state.asset}/>
+              }
+
+              {this.hasBackgroundAudio() &&
+                this.renderBackgroundAudioWarning()
+              }
+
+              <div ref='form-wrap' className='form-wrap'>
+                {!this.state.surveyAppRendered &&
+                  this.renderNotLoadedMessage()
                 }
+              </div>
+            </bem.FormBuilder__contents>
+          </bem.FormBuilder>
 
-                {this.hasBackgroundAudio() &&
-                  this.renderBackgroundAudioWarning()
-                }
-
-                <div ref='form-wrap' className='form-wrap'>
-                  {!this.state.surveyAppRendered &&
-                    this.renderNotLoadedMessage()
-                  }
+          {this.state.enketopreviewOverlay &&
+            <Modal
+              open
+              large
+              onClose={this.hidePreview}
+              title={t('Form Preview')}
+            >
+              <Modal.Body>
+                <div className='enketo-holder'>
+                  <iframe src={this.state.enketopreviewOverlay} />
                 </div>
-              </bem.FormBuilder__contents>
-            </bem.FormBuilder>
+              </Modal.Body>
+            </Modal>
+          }
 
-            {this.state.enketopreviewOverlay &&
-              <Modal
-                open
-                large
-                onClose={this.hidePreview}
-                title={t('Form Preview')}
-              >
-                <Modal.Body>
-                  <div className='enketo-holder'>
-                    <iframe src={this.state.enketopreviewOverlay} />
-                  </div>
-                </Modal.Body>
-              </Modal>
-            }
+          {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+            <Modal
+              open
+              error
+              onClose={this.clearPreviewError}
+              title={t('Error generating preview')}
+            >
+              <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
+            </Modal>
+          }
 
-            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-              <Modal
-                open
-                error
-                onClose={this.clearPreviewError}
-                title={t('Error generating preview')}
-              >
-                <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
-              </Modal>
-            }
-
-            {this.state.showCascadePopup &&
-              <Modal
-                open
-                onClose={this.hideCascade}
-                title={t('Import Cascading Select Questions')}
-              >
-                <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
-              </Modal>
-            }
-          </bem.uiPanel__body>
-        </bem.uiPanel>
+          {this.state.showCascadePopup &&
+            <Modal
+              open
+              onClose={this.hideCascade}
+              title={t('Import Cascading Select Questions')}
+            >
+              <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
+            </Modal>
+          }
+        </div>
         </>
       </DocumentTitle>
     );

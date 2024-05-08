@@ -367,7 +367,7 @@ $s-data-table-font: 13px;
 
   .pagination-bottom {
     margin-top: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
 
   .-loading {
@@ -525,12 +525,10 @@ $s-data-table-font: 13px;
     display: inline;
     white-space: nowrap;
   }
+}
 
-  @media screen and (max-width: 1100px) {
-    .table-meta__additional-text {
-      display: none;
-    }
-  }
+.table-meta__additional-text {
+  display: none;
 }
 
 .table-meta__bulk-options {
@@ -541,16 +539,6 @@ $s-data-table-font: 13px;
   .popover-menu .popover-menu__toggle {
     // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
     height: auto;
-  }
-}
-
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
-  .form-view--table {
-    padding: 0px 20px;
-  }
-
-  .form-view--table .ReactTable .pagination-bottom {
-    margin-bottom: 10px;
   }
 }
 
@@ -584,5 +572,15 @@ $s-data-table-font: 13px;
   .form-view--table .ReactTable .-pagination .-pageJump {
     margin-left: 10px;
     margin-right: 10px;
+  }
+
+  .form-view--table .ReactTable .pagination-bottom {
+    margin-bottom: 20px;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .table-meta__additional-text {
+    display: initial;
   }
 }

@@ -461,6 +461,9 @@ $s-form-builder-content-width: 1024px;
 
 // FORM BUILDER SMALL SCREEN ADJUSTMENTS
 
+// TODO: we should rework all these media queries to mobile first, but it's
+// possible we would rewrite form builder, so it would be useless
+
 @media screen and (max-width: #{breakpoints.$b768 - 1px}) {
   .form-builder-header__cell--logo {
     display: none;

@@ -144,13 +144,18 @@
   .bulk-options {
     margin-top: sizes.$x14;
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
 
     .bulk-options__description {
       font-weight: bold;
     }
 
     .bulk-options__buttons {
+      white-space: nowrap;
+
       span {
         margin: sizes.$x12;
       }
@@ -179,6 +184,10 @@
       padding-right: sizes.$x60;
     }
   }
+}
+
+.data-attachment-columns-multicheckbox {
+  overflow-x: auto;
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {

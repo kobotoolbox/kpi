@@ -854,6 +854,8 @@ $modal-custom-header-height: sizes.$x60;
 .remove-encryption {
   float: right;
 }
+
+// TODO: rework all these media queries to mobile first
 @media screen and (max-width: 480px) {
   .table-media-preview-header {
     margin-right: 0 !important;

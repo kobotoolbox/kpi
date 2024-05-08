@@ -129,9 +129,3 @@
     display: block;
   }
 }
-
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
-  .media-settings--upload-file {
-    width: auto;
-  }
-}

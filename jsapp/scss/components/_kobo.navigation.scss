@@ -23,7 +23,7 @@
 
   .mdl-layout__header-row {
     height: $layout-desktop-header-height;
-    padding: 0px 20px;
+    padding: 0px 12px;
   }
 
   .mdl-placeholder {
@@ -31,15 +31,13 @@
   }
 
   .mdl-layout__title {
-    // This makes sure the search box is aligned with right side content.
-    // We subtract the header bar paddings and the left margin of search box.
-    width: $s-drawer-width - 20px - 6px;
+    width: 40px;
   }
 
   .header__logo {
-    width: 180px;
+    background-image: url("../img/kobologo_symbol.svg");
+    width: 40px;
     height: 40px;
-    background: url("../img/kobologo.svg") no-repeat 50% 50%;
     background-size: contain;
     display: block;
   }
@@ -237,33 +235,13 @@
   }
 }
 
-@media screen and (max-width: #{breakpoints.$bMobileMenu - 1px}) {
-  .mdl-layout__header {
-    .account-box__logo {
-      max-width: 85%;
-    }
-
-    .mdl-layout__header-row {
-      padding: 0px 12px;
-    }
-
-    .form-title {
-      width: calc(100% - 240px);
-      overflow: hidden;
-      margin-right: 10px;
-    }
-  }
-}
-
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
-  .mdl-layout__header {
-    .search {
-      display: none;
-    }
-  }
-}
-
 // Form title + desc in header, editable
+
+// On smaller screens we hide both of them
+.main-header .main-header__icon,
+.main-header .main-header__counter {
+  display: none;
+}
 
 .main-header {
   .main-header__icon {
@@ -325,30 +303,6 @@
   }
 }
 
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
-  .main-header {
-    .main-header__icon,
-    .main-header__counter {
-      display: none;
-    }
-  }
-
-  .mdl-layout__header {
-    .mdl-layout__title {
-      width: 40px;
-    }
-
-    .main-header__title input {
-      border-radius: 0;
-    }
-
-    .header__logo {
-      background-image: url("../img/kobologo_symbol.svg");
-      width: 40px;
-    }
-  }
-}
-
 // Initials avatar, used in header, sharing modal and account settings
 .account-box__initials {
   width: 32px;
@@ -375,6 +329,30 @@
 
 .git-rev {
   display: none;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .main-header .main-header__icon,
+  .main-header .main-header__counter {
+    display: initial;
+  }
+
+  .mdl-layout__header .mdl-layout__title {
+    // This makes sure the search box is aligned with right side content.
+    // We subtract the header bar paddings and the left margin of search box.
+    width: $s-drawer-width - 20px - 6px;
+  }
+
+  .mdl-layout__header .header__logo {
+    background: url("../img/kobologo.svg") no-repeat 50% 50%;
+    width: 180px;
+  }
+}
+
+@media (min-width: breakpoints.$bMobileMenu) {
+  .mdl-layout__header .mdl-layout__header-row {
+    padding: 0px 12px;
+  }
 }
 
 @media screen and (min-width: breakpoints.$b768) {

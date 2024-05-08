@@ -305,26 +305,6 @@
   }
 }
 
-.registration--register {
-  .registration--logo {
-    text-align: left;
-    margin: 0;
-    margin-left: -5px;
-  }
-
-  h1 {
-    margin-top: 0em;
-  }
-
-  div.field {
-    margin-bottom: 12px;
-  }
-
-  input[type=submit] {
-    margin-top: 20px;
-  }
-}
-
 .registration .registration__kc-domain + input {
   display: inline-block;
 }
@@ -418,8 +398,64 @@
   }
 }
 
+.registration__bg {
+  form.registration--register {
+    display: flex;
+    flex-direction: column;
+
+    h1 {
+      text-align: center;
+      margin-top: 0.5em;
+    }
+
+    .registration--logo {
+      display: block;
+      text-align: center;
+      order: 1;
+    }
+
+    .registration__first-half {
+      order: 3;
+    }
+
+    .registration__second-half {
+      order: 2;
+    }
+
+    div.field {
+      margin-bottom: 12px;
+    }
+
+    input[type=submit] {
+      margin-top: 20px;
+    }
+  }
+}
+
 @media screen and (min-width: breakpoints.$b768) {
   .registration__bg {
+    form.registration--register {
+      display: block;
+      padding: 30px;
+
+      h1 {
+        text-align: initial;
+        margin-top: 0;
+      }
+
+      .registration--logo {
+        text-align: left;
+        margin: 0;
+        margin-left: -5px;
+        width: 48%;
+        float: right;
+
+        > * {
+          padding-left: 60px;
+        }
+      }
+    }
+
     form.registration {
       padding: 30px 40px;
       margin-top: 10px;
@@ -440,19 +476,6 @@
 
       &[data-path="/accounts/signup/"] {
         max-width: 860px;
-      }
-    }
-
-    form.registration--register {
-      padding: 30px;
-
-      .registration--logo {
-        width: 48%;
-        float: right;
-
-        > * {
-          padding-left: 60px;
-        }
       }
     }
 
@@ -510,33 +533,5 @@
   .registration .registration__kc-domain {
     font-size: variables.$base-font-size;
     letter-spacing: 0em;
-  }
-}
-
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
-  .registration__bg {
-    form.registration--register {
-      display: flex;
-      flex-direction: column;
-
-      h1 {
-        text-align: center;
-        margin-top: 0.5em;
-      }
-
-      .registration--logo {
-        display: block;
-        text-align: center;
-        order: 1;
-      }
-
-      .registration__first-half {
-        order: 3;
-      }
-
-      .registration__second-half {
-        order: 2;
-      }
-    }
   }
 }

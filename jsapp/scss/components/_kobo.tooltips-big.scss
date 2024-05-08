@@ -4,10 +4,8 @@
 
 // This is an alternative tooltip component for displaying more complex content;
 // if possible use the other one (`data-tip` from `_kobo.tooltips.scss`)
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
-  .k-tooltip {
-    display: none;
-  }
+.k-tooltip {
+  display: none;
 }
 
 @media screen and (min-width: breakpoints.$b768) {
@@ -15,6 +13,7 @@
     position: relative;
 
     .k-tooltip {
+      display: block;
       pointer-events: none;
       position: absolute;
       font-size: 13px;
