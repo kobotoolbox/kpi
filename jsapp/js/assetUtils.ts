@@ -76,7 +76,9 @@ export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewA
  * Returns the index of language or null if not found.
  */
 export function getLanguageIndex(asset: AssetResponse, langString: string) {
-  let foundIndex = null;
+  // Return -1 instead of null as that would allow
+  // `getQuestionOrChoiceDisplayName` to defualt to xml names.
+  let foundIndex = -1;
 
   if (
     Array.isArray(asset.summary?.languages) &&

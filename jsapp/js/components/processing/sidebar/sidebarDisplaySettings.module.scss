@@ -3,7 +3,7 @@
 
 .root {
   display: flex;
-  justify-content: right;
+  justify-content: space-between;
   padding-top: sizes.$x18;
   padding-bottom: sizes.$x10;
 }
@@ -42,4 +42,8 @@
   border: 1px solid colors.$kobo-gray-92;
   border-radius: sizes.$x2;
   overflow: scroll;
+}
+
+.selectWrapper {
+  width: 40%;
 }

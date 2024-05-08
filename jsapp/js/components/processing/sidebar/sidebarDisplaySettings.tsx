@@ -152,6 +152,21 @@ export default function SidebarDisplaySettings(
 
   return (
     <div className={styles.root}>
+      <div className={styles.selectWrapper}>
+      <KoboSelect
+        label={t('Select displayed language')}
+        name='displayedLanguage'
+        type='outline'
+        size='s'
+        options={displayedLanguageList}
+        selectedOption={store.getCurrentlyDisplayedLanguage()}
+        onChange={(languageCode) => {
+          if (languageCode) {
+            store.setCurrentlyDisplayedLanguage(languageCode);
+          }
+        }}
+      />
+      </div>
       <Button
         size='m'
         type='bare'
@@ -173,19 +188,6 @@ export default function SidebarDisplaySettings(
         <KoboModalHeader>{t('Customize display settings')}</KoboModalHeader>
 
         <KoboModalContent>
-          <KoboSelect
-            name='displayedLanguage'
-            type='gray'
-            size='m'
-            options={displayedLanguageList}
-            selectedOption={null}
-            onChange={(languageCode) => {
-              if (languageCode) {
-                store.setCurrentlyDisplayedLanguage(languageCode);
-              }
-            }}
-          />
-
           <p className={styles.description}>
             {t(
               'Select the information you want to display in the side menu to support your analysis.'

@@ -12,6 +12,7 @@ import {
   getRowName,
   getRowNameByQpath,
   getFlatQuestionsList,
+  getLanguageIndex,
 } from 'js/assetUtils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
@@ -1029,7 +1030,10 @@ class SingleProcessingStore extends Reflux.Store {
     const asset = assetStore.getAsset(this.currentAssetUid);
 
     if (asset?.content?.survey) {
-      const questionsList = getFlatQuestionsList(asset.content.survey, 0)
+      const questionsList = getFlatQuestionsList(
+        asset.content.survey,
+        getLanguageIndex(asset, this.currentlyDisplayedLanguage)
+      )
         .filter((question) => !(question.name === this.currentQuestionName))
         .map((question) => {
           // We make an object to show the question label to the user but use the
