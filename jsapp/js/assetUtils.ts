@@ -226,6 +226,11 @@ export function getQuestionOrChoiceDisplayName(
   }
 
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
+    // If the user hasn't made translations yet for a form language show
+    // the xml names instead of blank.
+    if (questionOrChoice.label[translationIndex] === null) {
+      return getRowName(questionOrChoice);
+    }
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
     // in rare cases the label could be a string
