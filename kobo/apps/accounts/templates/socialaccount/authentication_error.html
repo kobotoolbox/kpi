@@ -1,0 +1,23 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load i18n %}
+{% load allauth %}
+
+{% block head_title %}
+  {% element h2 %}
+    {% trans "SSO Login Failure" %}
+  {% endelement %}
+{% endblock head_title %}
+{% block content %}
+  {% element panel %}
+    {% slot title %}
+        {% trans "SSO Login Failure" %}
+    {% endslot %}
+    {% slot body %}
+
+      <p>{% blocktrans %}An error occurred while attempting to login using your SSO account.{% endblocktrans %}</p>
+    {% endslot %}
+    {% slot actions %}
+      <p><a href="{% url 'account_login' %}">{% trans "Go back" %}</a></p>
+    {% endslot %}
+  {% endelement %}
+{% endblock content %}
