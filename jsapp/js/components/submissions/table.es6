@@ -35,7 +35,6 @@ import {
 import {
   getRepeatGroupAnswers,
   getMediaAttachment,
-  getSupplementalDetailsContent,
 } from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
@@ -50,13 +49,14 @@ import {
   TABLE_MEDIA_TYPES,
   DEFAULT_DATA_CELL_WIDTH,
   CELLS_WIDTH_OVERRIDES,
-  TEXT_FILTER_QUESTION_TYPES,
-  TEXT_FILTER_QUESTION_IDS,
+  DROPDOWN_FILTER_QUESTION_TYPES,
 } from 'js/components/submissions/tableConstants';
 import {
   getColumnLabel,
   getColumnHXLTags,
   getBackgroundAudioQuestionName,
+  buildFilterQuery,
+  isTableColumnFilterable,
 } from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
@@ -67,7 +67,9 @@ import {
   userCanPartially,
   userHasPermForSubmission,
 } from 'js/components/permissions/utils';
-
+import CenteredMessage from 'js/components/common/centeredMessage.component';
+import {getSupplementalDetailsContent} from 'js/components/submissions/submissionUtils';
+import TextModalCell from 'js/components/submissions/textModalCell.component';
 const DEFAULT_PAGE_SIZE = 30;
 
 /**
@@ -209,29 +211,18 @@ export class DataTable extends React.Component {
     const pageSize = instance.state.pageSize;
     const page = instance.state.page * instance.state.pageSize;
     const filter = instance.state.filtered;
-    let filterQuery = '';
+    let filterQueryString = '';
     // sort comes from outside react-table
     const sort = [];
 
     if (filter.length) {
-      filterQuery = '&query={';
-      filter.forEach(function (f, i) {
-        if (f.id === '_id') {
-          filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
-        } else if (f.id === VALIDATION_STATUS_ID_PROP) {
-          if (f.value === VALIDATION_STATUSES.no_status.value) {
-            filterQuery += `"${f.id}":null`;
-          } else {
-            filterQuery += `"${f.id}":"${f.value}"`;
-          }
-        } else {
-          filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
-        }
-        if (i < filter.length - 1) {
-          filterQuery += ',';
-        }
-      });
-      filterQuery += '}';
+      const filterQuery = buildFilterQuery(
+        this.props.asset.content.survey,
+        instance.state.filtered
+      );
+      if (filterQuery.queryString) {
+        filterQueryString = `&query=${filterQuery.queryString}`;
+      }
     }
 
     const sortBy = tableStore.getSortBy();
@@ -248,7 +239,7 @@ export class DataTable extends React.Component {
       page: page,
       sort: sort,
       fields: [],
-      filter: filterQuery,
+      filter: filterQueryString,
     });
   }
 
@@ -665,6 +656,9 @@ export class DataTable extends React.Component {
     }
 
     const survey = this.props.asset.content.survey;
+    // TODO: write some code that will get the choices for `select_x_from_file`
+    // from the file. It needs to first load the file and then parse the content
+    // so it's quite the task :)
     const choices = this.props.asset.content.choices;
     const flatPaths = getSurveyFlatPaths(survey);
     allColumns.forEach((key, columnIndex) => {
@@ -825,6 +819,13 @@ export class DataTable extends React.Component {
         headerClassName: elClassNames.join(' '),
         width: this._getColumnWidth(q?.type),
         Cell: (row) => {
+          const columnName = getColumnLabel(
+            this.props.asset,
+            key,
+            this.state.showGroupName,
+            this.state.translationIndex
+          );
+
           if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null;
@@ -885,7 +886,7 @@ export class DataTable extends React.Component {
                 return <span className='trimmed-text'>{row.value}</span>;
               }
             }
-            if (q.type === QUESTION_TYPES.select_multiple.id && row.value) {
+            if (q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
               const values = row.value.split(' ');
               const labels = [];
               values.forEach(function (v) {
@@ -921,19 +922,30 @@ export class DataTable extends React.Component {
             );
           }
 
+          if (q?.type === QUESTION_TYPES.text.id) {
+            return (
+              <TextModalCell
+                text={row.value}
+                columnName={columnName}
+                submissionIndex={row.index + 1}
+                submissionTotal={this.state.submissions.length}
+              />
+            );
+          }
+
           // This identifies supplemental details column
           if (
             row.value === undefined &&
             q === undefined &&
             key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
           ) {
-            const supplementalDetailsContent = getSupplementalDetailsContent(
-              row.original,
-              key
-            );
-
             return (
-              <span className='trimmed-text'>{supplementalDetailsContent}</span>
+              <TextModalCell
+                text={getSupplementalDetailsContent(row.original, key)}
+                columnName={columnName}
+                submissionIndex={row.index + 1}
+                submissionTotal={this.state.submissions.length}
+              />
             );
           }
 
@@ -942,7 +954,7 @@ export class DataTable extends React.Component {
             if (repeatGroupAnswers) {
               // display a list of answers from a repeat group question
               return (
-                <span className='trimmed-text'>
+                <span className='trimmed-text' dir='auto'>
                   {repeatGroupAnswers.join(', ')}
                 </span>
               );
@@ -950,7 +962,7 @@ export class DataTable extends React.Component {
               return '';
             }
           } else {
-            return <span className='trimmed-text'>{row.value}</span>;
+            return <span className='trimmed-text' dir='auto'>{row.value}</span>;
           }
         },
       });
@@ -966,11 +978,7 @@ export class DataTable extends React.Component {
     const frozenColumn = tableStore.getFrozenColumn();
 
     columnsToRender.forEach(function (col) {
-      if (
-        (col.question && col.question.type === QUESTION_TYPES.select_one.id) ||
-        (col.question &&
-          col.question.type === QUESTION_TYPES.select_multiple.id)
-      ) {
+      if (DROPDOWN_FILTER_QUESTION_TYPES.includes(col.question?.type)) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <select
@@ -995,11 +1003,7 @@ export class DataTable extends React.Component {
           </select>
         );
       }
-      if (
-        (col.question &&
-          TEXT_FILTER_QUESTION_TYPES.includes(col.question.type)) ||
-        TEXT_FILTER_QUESTION_IDS.includes(col.id)
-      ) {
+      if (isTableColumnFilterable(col)) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <DebounceInput
@@ -1120,18 +1124,18 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * @param {object} state
-   * @param {object} instance
+   * @param {object} tableState - state of react-table table
+   * @param {object} tableInstance - instance data of react-table table
    */
-  fetchData(state, instance) {
+  fetchData(tableState, tableInstance) {
     this.setState({
       loading: true,
-      pageSize: instance.state.pageSize,
-      currentPage: instance.state.page,
-      fetchState: state,
-      fetchInstance: instance,
+      pageSize: tableInstance.state.pageSize,
+      currentPage: tableInstance.state.page,
+      fetchState: tableState,
+      fetchInstance: tableInstance,
     });
-    this.fetchSubmissions(instance);
+    this.fetchSubmissions(tableInstance);
   }
 
   /**
@@ -1398,9 +1402,7 @@ export class DataTable extends React.Component {
       return (
         <bem.uiPanel>
           <bem.uiPanel__body>
-            <bem.Loading>
-              <bem.Loading__inner>{this.state.error}</bem.Loading__inner>
-            </bem.Loading>
+            <CenteredMessage message={this.state.error} />
           </bem.uiPanel__body>
         </bem.uiPanel>
       );

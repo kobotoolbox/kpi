@@ -1829,7 +1829,6 @@ export const assetWithSupplementalDetails = {
       },
     ],
   },
-  'deployment__identifier': 'http://kc.kobo.local/kobo/forms/aDDywpeYGnvuDLTeiveyxZ',
   'deployment__links': {
     'url': 'http://ee.kobo.local/6PTli7y9',
     'single_url': 'http://ee.kobo.local/single/6PTli7y9',

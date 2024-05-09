@@ -10,7 +10,7 @@ from urllib.parse import quote_plus
 import django.conf.locale
 import environ
 from celery.schedules import crontab
-from django.conf.global_settings import LOGIN_URL
+from django.conf import global_settings
 from django.urls import reverse_lazy
 from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
@@ -36,7 +36,9 @@ SECRET_KEY = env.str('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#
 # SECURITY WARNING: If enabled, outer web server must filter out the `X-Forwarded-Proto` header.
 SECURE_PROXY_SSL_HEADER = env.tuple("SECURE_PROXY_SSL_HEADER", str, None)
 
-if env.str('PUBLIC_REQUEST_SCHEME', '').lower() == 'https' or SECURE_PROXY_SSL_HEADER:
+public_request_scheme = env.str('PUBLIC_REQUEST_SCHEME', 'https').lower()
+
+if public_request_scheme == 'https' or SECURE_PROXY_SSL_HEADER:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
@@ -54,7 +56,10 @@ if SESSION_COOKIE_DOMAIN:
     SESSION_COOKIE_NAME = env.str('SESSION_COOKIE_NAME', 'kobonaut')
     # The trusted CSRF origins must encompass Enketo's subdomain. See
     # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
-    CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
+    trusted_domains = [
+        f'{public_request_scheme}://*{SESSION_COOKIE_DOMAIN}',
+    ]
+    CSRF_TRUSTED_ORIGINS = trusted_domains
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
@@ -110,7 +115,6 @@ INSTALLED_APPS = (
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
     'constance',
-    'constance.backends.database',
     'kobo.apps.hook',
     'django_celery_beat',
     'corsheaders',
@@ -362,6 +366,11 @@ CONSTANCE_CONFIG = {
         30,
         'Number of days to keep asset snapshots',
         'positive_int'
+    ),
+    'IMPORT_TASK_DAYS_RETENTION': (
+        90,
+        'Number of days to keep import tasks',
+        'positive_int',
     ),
     'FREE_TIER_THRESHOLDS': (
         LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
@@ -661,9 +670,12 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
-        'ASSET_SNAPSHOT_DAYS_RETENTION',
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+    ),
+    'Regular maintenance settings': (
+        'ASSET_SNAPSHOT_DAYS_RETENTION',
+        'IMPORT_TASK_DAYS_RETENTION',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -759,6 +771,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
+        'sw '  # Swahili
         'th '  # Thai
         'tr '  # Turkish
         'uk '  # Ukrainian
@@ -778,8 +791,6 @@ TIME_ZONE = 'UTC'
 LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
@@ -841,7 +852,7 @@ else:
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = KPI_PREFIX + '/' + STATIC_URL.lstrip('/')
     MEDIA_URL = KPI_PREFIX + '/' + MEDIA_URL.lstrip('/')
-    LOGIN_URL = KPI_PREFIX + '/' + LOGIN_URL.lstrip('/')
+    LOGIN_URL = KPI_PREFIX + '/' + global_settings.LOGIN_URL.lstrip('/')
     LOGIN_REDIRECT_URL = KPI_PREFIX + '/' + LOGIN_REDIRECT_URL.lstrip('/')
 
 STATICFILES_DIRS = (
@@ -1070,19 +1081,18 @@ CELERY_BEAT_SCHEDULE = {
     'send-hooks-failures-reports': {
         'task': 'kobo.apps.hook.tasks.failures_reports',
         'schedule': crontab(hour=0, minute=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 30 minutes
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
         'schedule': crontab(minute=30),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every monday at 00:30
-    'markdown-images-garbage-collector': {
-        'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
-        'schedule': crontab(hour=0, minute=30, day_of_week=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+    'perform-maintenance': {
+        'task': 'kobo.tasks.perform_maintenance',
+        'schedule': crontab(hour=20, minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
@@ -1212,14 +1222,35 @@ if env.str('AWS_ACCESS_KEY_ID', False):
     if region := env.str('AWS_S3_REGION_NAME', False):
         AWS_S3_REGION_NAME = region
 
+# Storage configuration
+STORAGES = global_settings.STORAGES
 
-''' Storage configuration '''
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
-    DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
-    if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
-        # Force usage of custom S3 tellable Storage
-        DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
+
+    global_default_file_storage = STORAGES['default']['BACKEND']
+    default_file_storage = STORAGES['default']['BACKEND'] = env.str(
+        'KPI_DEFAULT_FILE_STORAGE'
+    )
+    if default_file_storage != global_default_file_storage:
+        if default_file_storage.endswith('S3Boto3Storage'):
+            # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
+            # Force usage of custom S3 tellable Storage
+            STORAGES['default']['BACKEND'] = (
+                'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
+            )
+            AWS_S3_FILE_OVERWRITE = False
+        elif default_file_storage.endswith('AzureStorage'):
+            PRIVATE_STORAGE_CLASS = (
+                'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
+            )
+            PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
+            AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
+            AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
+            AZURE_CONTAINER = env.str('AZURE_CONTAINER')
+            AZURE_URL_EXPIRATION_SECS = env.int(
+                'AZURE_URL_EXPIRATION_SECS', None
+            )
+
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
@@ -1231,14 +1262,6 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-    if DEFAULT_FILE_STORAGE.endswith("AzureStorage"):
-        PRIVATE_STORAGE_CLASS = \
-            'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
-        PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
-        AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
-        AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
-        AZURE_CONTAINER = env.str('AZURE_CONTAINER')
-        AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
@@ -1247,7 +1270,7 @@ if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
     if 'KOBOCAT_AWS_STORAGE_BUCKET_NAME' in os.environ:
         KOBOCAT_AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
 else:
-    KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    KOBOCAT_DEFAULT_FILE_STORAGE = global_settings.STORAGES['default']['BACKEND']
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
 
 
