@@ -11,6 +11,7 @@ import {
   findRowByQpath,
   getRowName,
   getRowNameByQpath,
+  getFlatQuestionsList,
 } from 'js/assetUtils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
@@ -123,6 +124,7 @@ interface SingleProcessingStoreData {
   /** Marks some backend calls being in progress. */
   isFetchingData: boolean;
   isPollingForTranscript: boolean;
+  hiddenSidebarQuestions: string[];
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -152,6 +154,7 @@ class SingleProcessingStore extends Reflux.Store {
     isPristine: true,
     isFetchingData: false,
     isPollingForTranscript: false,
+    hiddenSidebarQuestions: [],
   };
 
   /** Clears all data - useful before making initialisation call */
@@ -985,6 +988,27 @@ class SingleProcessingStore extends Reflux.Store {
     return [];
   }
 
+  getAllSidebarQuestions() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+
+    if (asset?.content?.survey) {
+      const questionsList = getFlatQuestionsList(asset.content.survey, 0)
+        .filter((question) => !(question.name === this.currentQuestionName))
+        .map((question) => {
+          // We make an object to show the question label to the user but use the
+          // name internally so it works with duplicate question labels
+          return {name: question.name, label: question.label};
+        });
+      return questionsList;
+    } else {
+      return [];
+    }
+  }
+
+  getHiddenSidebarQuestions() {
+    return this.data.hiddenSidebarQuestions;
+  }
+
   /** Updates the list of active displays for given tab. */
   setDisplays(tabName: ProcessingTab, displays: DisplaysList) {
     this.displays[tabName] = displays;
@@ -1032,6 +1056,12 @@ class SingleProcessingStore extends Reflux.Store {
       this.data.isPristine = false;
       this.trigger(this.data);
     }
+  }
+
+  setHiddenSidebarQuestions(list: string[]) {
+    this.data.hiddenSidebarQuestions = list;
+
+    this.trigger(this.data);
   }
 }
 

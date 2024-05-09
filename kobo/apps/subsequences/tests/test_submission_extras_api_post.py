@@ -1,18 +1,20 @@
 from copy import deepcopy
 from unittest.mock import patch
 
+from constance.test import override_config
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
-
-from constance.test import override_config
 from jsonschema import validate
 from rest_framework.test import APITestCase
 
 from kobo.apps.languages.models.language import Language, LanguageRegion
 from kobo.apps.languages.models.transcription import (
-    TranscriptionService, TranscriptionServiceLanguageM2M)
+    TranscriptionService,
+    TranscriptionServiceLanguageM2M,
+)
+from kpi.models.asset import Asset
 from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
@@ -23,15 +25,15 @@ from kpi.constants import (
 )
 from ..constants import GOOGLETS, make_async_cache_key
 from ..models import SubmissionExtras
-from .test_submission_extras_content import sample_asset
 
 
 class ValidateSubmissionTest(APITestCase):
     def setUp(self):
         user = User.objects.create_user(username='someuser', email='user@example.com')
-
-        self.asset = sample_asset(advanced_features={})
-        self.asset.owner = user
+        self.asset = Asset(
+            owner=user, content={'survey': [{'type': 'audio', 'name': 'q1'}]}
+        )
+        self.asset.advanced_features = {}
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
         self.asset_uid = self.asset.uid
@@ -371,10 +373,12 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
         })
         resp = self.client.get(self.asset_url)
         schema = resp.json()['advanced_submission_schema']
-        package = {'submission': 'abc123-def456'}
-        package['q1'] = {
-            'transcript': {
-                'value': 'they said hello',
+        package = {
+            'submission': 'abc123-def456',
+            'q1': {
+                'transcript': {
+                    'value': 'they said hello',
+                },
             },
         }
         # validate(package, schema)
@@ -383,7 +387,8 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
 class GoogleTranscriptionSubmissionTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='someuser', email='user@example.com')
-        self.asset = sample_asset(advanced_features={'transcript': {'values': ['q1']}})
+        self.asset = Asset(content={'survey': [{'type': 'audio', 'name': 'q1'}]})
+        self.asset.advanced_features = {'transcript': {'values': ['q1']}}
         self.asset.owner = self.user
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
@@ -457,7 +462,6 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         }
         res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
-
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_google_transcript_permissions(self):
