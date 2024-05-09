@@ -34,19 +34,20 @@
 }
 
 .allPlans {
-  column-gap: sizes.$x20;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  row-gap: sizes.$x20;
 }
 
 .stripePlans {
-  flex: 1 1 0;
+  flex: 0 0 variables.$plans-page-card-width;
   display: flex;
   flex-direction: column;
+  margin-top: 0;
 }
 
 .intervalToggle {
-  background-color: colors.$kobo-cloud;
+  background-color: colors.$kobo-light-storm;
   padding: sizes.$x3;
   border-radius: sizes.$x4;
   margin: 0 auto;
@@ -85,7 +86,7 @@
   &:before {
     width: sizes.$x20;
     height: sizes.$x20;
-    color: colors.$kobo-cloud;
+    color: colors.$kobo-light-storm;
     padding: sizes.$x8 sizes.$x12;
   }
 
@@ -95,7 +96,7 @@
 }
 
 .intervalToggle input[type='radio'] + label:hover {
-  background-color: color.adjust(colors.$kobo-cloud, $lightness: -5%);
+  background-color: color.adjust(colors.$kobo-light-storm, $lightness: -5%);
   border-radius: sizes.$x4;
 }
 
@@ -103,19 +104,22 @@
   border-radius: sizes.$x6;
   border: colors.$kobo-gray-85 solid sizes.$x1;
   padding: sizes.$x24;
-  flex-grow: 1;
+  min-height: variables.$plans-page-card-min-height;
+  max-height: variables.$plans-page-card-max-height;
+  width: variables.$plans-page-card-width;
 }
 
 .plansSection {
   display: flex;
   flex-direction: column;
   row-gap: sizes.$x20;
+  align-items: center;
 }
 
 .priceName,
 .enterpriseTitle {
   color: colors.$kobo-gray-40;
-  font-weight: 700;
+  font-weight: 600;
   font-size: sizes.$x24;
   line-height: sizes.$x32;
   margin: 0;
@@ -129,9 +133,9 @@
 .priceTitle {
   color: colors.$kobo-dark-blue;
   text-align: left;
-  font-size: sizes.$x18;
+  font-size: sizes.$x20;
   padding-bottom: sizes.$x16;
-  font-weight: 600;
+  font-weight: 700;
   line-height: sizes.$x20;
   height: 2em;
 }
@@ -147,12 +151,6 @@
   width: 100%;
 }
 
-$plan-badge-height: sizes.$x38;
-
-.planContainer:not(.planContainerWithBadge) {
-  margin-top: $plan-badge-height;
-}
-
 .planContainer {
   display: flex;
   flex-direction: column;
@@ -163,7 +161,7 @@ $plan-badge-height: sizes.$x38;
 }
 
 .featureContainer {
-  height: 18em;
+  height: 16em;
 }
 
 .planContainer :global hr {
@@ -195,22 +193,23 @@ $plan-badge-height: sizes.$x38;
 }
 
 .enterprisePlanContainer {
-  flex: 1;
+  flex: 0 0 variables.$plans-page-card-width;
   display: flex;
   flex-direction: column;
-  margin-top: sizes.$x38;
 }
 
 .enterprisePlan {
-  background-color: colors.$kobo-light-blue;
+  background-color: colors.$kobo-bg-blue;
   padding: sizes.$x24;
   overflow: hidden;
   border-radius: sizes.$x6;
-  flex-grow: 1;
+  min-height: variables.$plans-page-card-min-height;
+  max-height: variables.$plans-page-card-max-height;
+  width: variables.$plans-page-card-width;
 }
 
 .enterpriseDetails {
-  line-height: sizes.$x24;
+  line-height: sizes.$x22;
 }
 
 a.enterpriseLink {
@@ -222,7 +221,7 @@ a.enterpriseLink {
 .listTitle {
   color: colors.$kobo-gray-40;
   font-size: sizes.$x14;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0;
 }
 
@@ -230,18 +229,16 @@ a.enterpriseLink {
   margin: sizes.$x5 0 0;
 }
 
-.expandedContainer > :nth-child(2) {
-  height: 11.2em;
-  margin-bottom: sizes.$x24;
+.expandedEnterprisePlan {
+  height: variables.$plans-page-card-min-height;
 }
 
-.expandedContainer > :nth-child(3) {
-  height: 7em;
-  margin-bottom: sizes.$x24;
+.expandedContainer > :nth-child(2) {
+  height: sizes.$x180;
 }
 
 .expandedContainer > :nth-child(4) {
-  height: 7.5em;
+  height: sizes.$x80;
 }
 
 .planContainer :last-child {
@@ -258,31 +255,86 @@ a.enterpriseLink {
   top: 0;
   border-radius: sizes.$x6 sizes.$x6 0 0;
   height: sizes.$x38;
-  width: 100%;
+  width: variables.$plans-page-card-width;
+  font-weight: 700;
+  font-size: sizes.$x16;
 }
 
-@media screen and (max-width: breakpoints.$b1440) {
-  .enterprisePlan {
-    font-size: sizes.$x12;
-  }
+.comparisonButton {
+  width: variables.$plans-page-card-width;
+}
 
-  .planContainer {
-    font-size: sizes.$x12;
-  }
+.planButton {
+  height: sizes.$x80;
+  padding-top: sizes.$x20;
+}
 
-  .iconContainer {
-    margin-right: sizes.$x10;
-  }
+.maximizedCards{
+  display: none;
+}
 
+.scrollToTopButton{
+  position: fixed;
+  bottom: sizes.$x20;
+  right: sizes.$x20;
+  border-radius: sizes.$x6;
+  background-color: colors.$kobo-gray-40;
+  width: sizes.$x50;
+  height: sizes.$x40;
+	color: colors.$kobo-white;
+	border: none;
+	cursor: pointer;
+  box-shadow: 0 sizes.$x4 sizes.$x12 0 rgba(0, 0, 0, 0.2);
+}
+
+@media screen and (min-width: breakpoints.$b1000) {
   .featureContainer {
-    height: 26em;
+    height: 24em;
   }
 
-  .priceTitle {
-    height: 2.5em;
+  .allPlans {
+    column-gap: sizes.$x20;
+    flex-direction: row;
+    max-width: variables.$plans-page-max-width;
+  }
+
+  .comparisonButton {
+    width: variables.$plans-page-max-width;
+  }
+
+  .expandedEnterprisePlan {
+    height: variables.$plans-page-card-max-height;
+  }
+
+  .minimizedCards{
+    display: none;
+  }
+
+  .maximizedCards{
+    display: unset;
+  }
+
+  .planContainer{
+    min-height: 551px;
+  }
+
+  .planContainer:not(.planContainerWithBadge) {
+    margin-top: variables.$plan-badge-height;
+  }
+
+  .enterprisePlanContainer {
+    margin-top: sizes.$x38;
+  }
+
+  .enterprisePlan{
+    min-height: 551px;
+  }
+
+  .expandedContainer > :nth-child(2) {
+    height: sizes.$x200;
   }
 
   .expandedContainer > :nth-child(4) {
-    height: 10.5em;
+    height: sizes.$x120;
   }
 }

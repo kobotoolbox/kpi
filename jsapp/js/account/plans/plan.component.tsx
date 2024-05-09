@@ -131,6 +131,24 @@ export default function Plan(props: PlanProps) {
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const navigate = useNavigate();
+  const [showGoTop, setShowGoTop] = useState(false);
+  const pageBody = useRef<HTMLDivElement>(null);
+
+  const handleVisibleButton = () => {
+    if (pageBody.current && pageBody.current.scrollTop > 300) {
+      setShowGoTop(true);
+    } else {
+      setShowGoTop(false);
+    }
+  };
+
+  const handleScrollUp = () => {
+    pageBody.current?.scrollTo({left: 0, top: 0, behavior: 'smooth'});
+  };
+
+  useEffect(() => {
+    pageBody.current?.addEventListener('scroll', handleVisibleButton);
+  }, []);
 
   const isDataLoading = useMemo(
     (): boolean =>
@@ -434,6 +452,29 @@ export default function Plan(props: PlanProps) {
     return null;
   }
 
+  const comparisonButton = () =>
+    hasMetaFeatures() && (
+      <div className={styles.comparisonButton}>
+        <Button
+          type='full'
+          color='light-storm'
+          size='m'
+          isFullWidth
+          label={
+            expandComparison
+              ? t('Collapse full comparison')
+              : t('Display full comparison')
+          }
+          onClick={() => setExpandComparison(!expandComparison)}
+          aria-label={
+            expandComparison
+              ? t('Collapse full comparison')
+              : t('Display full comparison')
+          }
+        />
+      </div>
+    );
+
   return (
     <>
       {isDataLoading ? (
@@ -450,6 +491,7 @@ export default function Plan(props: PlanProps) {
             />
           )}
           <div
+            ref={pageBody}
             className={classnames(styles.accountPlan, {
               [styles.wait]: isBusy,
               [styles.unauthorized]: isUnauthorized,
@@ -547,32 +589,17 @@ export default function Plan(props: PlanProps) {
                       </div>
                     )}
                   </div>
-                </div>
-
-                {hasMetaFeatures() && (
-                  <div>
-                    <Button
-                      type='full'
-                      color='cloud'
-                      size='m'
-                      isFullWidth
-                      label={
-                        expandComparison
-                          ? t('Collapse full comparison')
-                          : t('Display full comparison')
-                      }
-                      onClick={() => setExpandComparison(!expandComparison)}
-                      aria-label={
-                        expandComparison
-                          ? t('Collapse full comparison')
-                          : t('Display full comparison')
-                      }
-                    />
+                  <div className={styles.minimizedCards}>
+                    {comparisonButton()}
                   </div>
-                )}
+
+                  <div className={styles.maximizedCards}>
+                    {comparisonButton()}
+                  </div>
+                </div>
               </>
             )}
-            {shouldShowExtras && props.showAddOns && (
+            {props.showAddOns && (
               <AddOnList
                 isBusy={isBusy}
                 setIsBusy={setIsBusy}
@@ -580,6 +607,14 @@ export default function Plan(props: PlanProps) {
                 organization={state.organization}
                 onClickBuy={buySubscription}
               />
+            )}
+            {showGoTop && (
+              <button
+                onClick={handleScrollUp}
+                className={styles.scrollToTopButton}
+              >
+                <i className='k-icon k-icon-arrow-up k-icon--size-m' />
+              </button>
             )}
             <ConfirmChangeModal
               onRequestClose={dismissConfirmModal}

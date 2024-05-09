@@ -1,10 +1,11 @@
 # coding: utf-8
+import celery
 from django.utils import timezone
 
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import BadAssetTypeException, DeploymentNotFound
 from kpi.models.asset_file import AssetFile
-from kpi.tasks import sync_media_files
+
 from .backends import DEPLOYMENT_BACKENDS
 from .base_backend import BaseDeploymentBackend
 
@@ -19,7 +20,9 @@ class DeployableMixin:
             file_type=AssetFile.FORM_MEDIA, synced_with_backend=False
         ).exists():
             self.save(create_version=False, adjust_content=False)
-            sync_media_files.delay(self.uid)
+
+            # Not using .delay() due to circular import in tasks.py
+            celery.current_app.send_task('kpi.tasks.sync_media_files', (self.uid,))
 
     @property
     def can_be_deployed(self):

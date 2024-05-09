@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Optional
+from urllib.parse import quote as urlquote
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -16,13 +17,13 @@ from django.db import (
     transaction,
 )
 from django.utils import timezone
-from django.utils.http import urlquote
 from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
     BadContentTypeException,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
 from .storage import (
@@ -93,6 +94,105 @@ class ShadowModel(models.Model):
             app_label=app_label, model=model_name)
 
 
+class KobocatAttachmentManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(deleted_at__isnull=False)
+
+
+class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_attachment'
+
+    instance = models.ForeignKey(
+        'superuser_stats.ReadOnlyKobocatInstance',
+        related_name='attachments',
+        on_delete=models.CASCADE,
+    )
+    media_file = ExtendedFileField(
+        storage=get_kobocat_storage(), max_length=380, db_index=True
+    )
+    media_file_basename = models.CharField(
+        max_length=260, null=True, blank=True, db_index=True)
+    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
+    # `PositiveBigIntegerField` after upgrading to Django 3.1+
+    media_file_size = models.PositiveIntegerField(blank=True, null=True)
+    mimetype = models.CharField(
+        max_length=100, null=False, blank=True, default=''
+    )
+    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    objects = KobocatAttachmentManager()
+    all_objects = models.Manager()
+
+    @property
+    def absolute_mp3_path(self):
+        """
+        Return the absolute path on local file system of the converted version of
+        attachment. Otherwise, return the AWS url (e.g. https://...)
+        """
+
+        kobocat_storage = get_kobocat_storage()
+
+        if not kobocat_storage.exists(self.mp3_storage_path):
+            content = self.get_transcoded_audio('mp3')
+            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
+
+        if isinstance(kobocat_storage, KobocatFileSystemStorage):
+            return f'{self.media_file.path}.mp3'
+
+        return kobocat_storage.url(self.mp3_storage_path)
+
+    @property
+    def absolute_path(self):
+        """
+        Return the absolute path on local file system of the attachment.
+        Otherwise, return the AWS url (e.g. https://...)
+        """
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
+            return self.media_file.path
+
+        return self.media_file.url
+
+    @property
+    def mp3_storage_path(self):
+        """
+        Return the path of file after conversion. It is the exact same name, plus
+        the conversion audio format extension concatenated.
+        E.g: file.mp4 and file.mp4.mp3
+        """
+        return f'{self.storage_path}.mp3'
+
+    def protected_path(self, format_: Optional[str] = None):
+        """
+        Return path to be served as protected file served by NGINX
+        """
+
+        if format_ == 'mp3':
+            attachment_file_path = self.absolute_mp3_path
+        else:
+            attachment_file_path = self.absolute_path
+
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
+            # Django normally sanitizes accented characters in file names during
+            # save on disk but some languages have extra letters
+            # (out of ASCII character set) and must be encoded to let NGINX serve
+            # them
+            protected_url = urlquote(attachment_file_path.replace(
+                settings.KOBOCAT_MEDIA_PATH, '/protected')
+            )
+        else:
+            # Double-encode the S3 URL to take advantage of NGINX's
+            # otherwise troublesome automatic decoding
+            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
+
+        return protected_url
+
+    @property
+    def storage_path(self):
+        return str(self.media_file)
+
+
 class KobocatContentType(ShadowModel):
     """
     Minimal representation of Django 1.8's
@@ -110,6 +210,25 @@ class KobocatContentType(ShadowModel):
         # complete with whitespace. That requires access to the Python model
         # class, though
         return self.model
+
+
+class KobocatDailyXFormSubmissionCounter(ShadowModel):
+
+    date = models.DateField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser', null=True, on_delete=models.CASCADE
+    )
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='daily_counts',
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_dailyxformsubmissioncounter'
+        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
 
 
 class KobocatDigestPartial(ShadowModel):
@@ -250,6 +369,49 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 ]
             else:
                 return []
+
+
+class KobocatMetadata(ShadowModel):
+
+    MEDIA_FILES_TYPE = [
+        'media',
+        'paired_data',
+    ]
+
+    xform = models.ForeignKey('shadow_model.KobocatXForm', on_delete=models.CASCADE)
+    data_type = models.CharField(max_length=255)
+    data_value = models.CharField(max_length=255)
+    data_file = ExtendedFileField(storage=get_kobocat_storage(), blank=True, null=True)
+    data_file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_hash = models.CharField(max_length=50, blank=True, null=True)
+    from_kpi = models.BooleanField(default=False)
+    data_filename = models.CharField(max_length=255, blank=True, null=True)
+    date_created = models.DateTimeField(default=timezone.now)
+    date_modified = models.DateTimeField(default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'main_metadata'
+
+
+class KobocatMonthlyXFormSubmissionCounter(ShadowModel):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser',
+        on_delete=models.CASCADE,
+    )
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='monthly_counts',
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ShadowModel.Meta):
+        app_label = 'superuser_stats'
+        db_table = 'logger_monthlyxformsubmissioncounter'
+        verbose_name_plural = 'User Statistics'
 
 
 class KobocatPermission(ShadowModel):
@@ -475,7 +637,7 @@ class KobocatXForm(ShadowModel):
         verbose_name_plural = 'xforms'
 
     XFORM_TITLE_LENGTH = 255
-    xls = models.FileField(null=True)
+    xls = ExtendedFileField(null=True)
     xml = models.TextField()
     user = models.ForeignKey(
         KobocatUser, related_name='xforms', null=True, on_delete=models.CASCADE
@@ -516,117 +678,6 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
-class ReadOnlyKobocatAttachmentManager(models.Manager):
-
-    def get_queryset(self):
-        return super().get_queryset().exclude(deleted_at__isnull=False)
-
-
-class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_attachment'
-
-    instance = models.ForeignKey(
-        'superuser_stats.ReadOnlyKobocatInstance',
-        related_name='attachments',
-        on_delete=models.CASCADE,
-    )
-    media_file = models.FileField(storage=get_kobocat_storage(), max_length=380,
-                                  db_index=True)
-    media_file_basename = models.CharField(
-        max_length=260, null=True, blank=True, db_index=True)
-    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
-    # `PositiveBigIntegerField` after upgrading to Django 3.1+
-    media_file_size = models.PositiveIntegerField(blank=True, null=True)
-    mimetype = models.CharField(
-        max_length=100, null=False, blank=True, default=''
-    )
-    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
-    objects = ReadOnlyKobocatAttachmentManager()
-
-    @property
-    def absolute_mp3_path(self):
-        """
-        Return the absolute path on local file system of the converted version of
-        attachment. Otherwise, return the AWS url (e.g. https://...)
-        """
-
-        kobocat_storage = get_kobocat_storage()
-
-        if not kobocat_storage.exists(self.mp3_storage_path):
-            content = self.get_transcoded_audio('mp3')
-            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
-
-        if isinstance(kobocat_storage, KobocatFileSystemStorage):
-            return f'{self.media_file.path}.mp3'
-
-        return kobocat_storage.url(self.mp3_storage_path)
-
-    @property
-    def absolute_path(self):
-        """
-        Return the absolute path on local file system of the attachment.
-        Otherwise, return the AWS url (e.g. https://...)
-        """
-        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
-            return self.media_file.path
-
-        return self.media_file.url
-
-    @property
-    def mp3_storage_path(self):
-        """
-        Return the path of file after conversion. It is the exact same name, plus
-        the conversion audio format extension concatenated.
-        E.g: file.mp4 and file.mp4.mp3
-        """
-        return f'{self.storage_path}.mp3'
-
-    def protected_path(self, format_: Optional[str] = None):
-        """
-        Return path to be served as protected file served by NGINX
-        """
-
-        if format_ == 'mp3':
-            attachment_file_path = self.absolute_mp3_path
-        else:
-            attachment_file_path = self.absolute_path
-
-        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
-            # Django normally sanitizes accented characters in file names during
-            # save on disk but some languages have extra letters
-            # (out of ASCII character set) and must be encoded to let NGINX serve
-            # them
-            protected_url = urlquote(attachment_file_path.replace(
-                settings.KOBOCAT_MEDIA_PATH, '/protected')
-            )
-        else:
-            # Double-encode the S3 URL to take advantage of NGINX's
-            # otherwise troublesome automatic decoding
-            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
-
-        return protected_url
-
-    @property
-    def storage_path(self):
-        return str(self.media_file)
-
-
-class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
-
-    date = models.DateField()
-    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(
-        KobocatXForm, related_name='daily_counts', null=True, on_delete=models.CASCADE
-    )
-    counter = models.IntegerField(default=0)
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_dailyxformsubmissioncounter'
-        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
-
-
 class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     class Meta(ReadOnlyModel.Meta):
@@ -645,27 +696,6 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     status = models.CharField(max_length=20,
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
-
-
-class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
-    year = models.IntegerField()
-    month = models.IntegerField()
-    user = models.ForeignKey(
-        'shadow_model.KobocatUser',
-        on_delete=models.CASCADE,
-    )
-    xform = models.ForeignKey(
-        'shadow_model.KobocatXForm',
-        related_name='monthly_counts',
-        null=True,
-        on_delete=models.SET_NULL,
-    )
-    counter = models.IntegerField(default=0)
-
-    class Meta:
-        app_label = 'superuser_stats'
-        db_table = 'logger_monthlyxformsubmissioncounter'
-        verbose_name_plural = 'User Statistics'
 
 
 def safe_kc_read(func):

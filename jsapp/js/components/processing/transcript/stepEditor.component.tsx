@@ -45,7 +45,7 @@ export default function StepEditor() {
             size='s'
             label={discardLabel}
             onClick={discardDraft}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData}
           />
 
           <Button
@@ -54,7 +54,7 @@ export default function StepEditor() {
             size='s'
             label={t('Save')}
             onClick={saveDraft}
-            isPending={singleProcessingStore.isFetchingData}
+            isPending={singleProcessingStore.data.isFetchingData}
             isDisabled={!singleProcessingStore.hasUnsavedTranscriptDraftValue()}
           />
         </nav>
@@ -66,7 +66,8 @@ export default function StepEditor() {
         onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => {
           setDraftValue(evt.target.value);
         }}
-        disabled={singleProcessingStore.isFetchingData}
+        disabled={singleProcessingStore.data.isFetchingData}
+        dir='auto'
       />
     </div>
   );

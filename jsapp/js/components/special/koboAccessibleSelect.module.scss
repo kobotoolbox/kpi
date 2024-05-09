@@ -55,7 +55,7 @@ $input-color: colors.$kobo-gray-24;
   background-color: colors.$kobo-white;
 
   // This transition reduces visual glitching when script initiates focus()
-  outline: 0 solid colors.$kobo-alt-blue;
+  outline: 0 solid colors.$kobo-mid-blue;
   transition: outline-width 20ms, border-color 20ms;
 
   &:hover {
@@ -66,12 +66,12 @@ $input-color: colors.$kobo-gray-24;
     border-width: sizes.$x1;
     border-color: colors.$kobo-blue;
     transition: outline-width 20ms, border-color 20ms;
-    outline: sizes.$x3 solid colors.$kobo-alt-blue;
+    outline: sizes.$x3 solid colors.$kobo-mid-blue;
   }
   // Specificity-fighting with normalize.css in Firefox
   &button:focus-visible,
   &[type='button']:focus-visible {
-    outline: sizes.$x3 solid colors.$kobo-alt-blue;
+    outline: sizes.$x3 solid colors.$kobo-mid-blue;
   }
 
   &.hasError {
@@ -127,7 +127,7 @@ $k-select-menu-padding: sizes.$x6;
   padding: $k-select-menu-padding 0;
 
   background-color: colors.$kobo-white;
-  border: sizes.$x1 solid colors.$kobo-mid-blue; // more contrast for keyboard
+  border: sizes.$x1 solid colors.$kobo-light-blue; // more contrast for keyboard
   border-radius: button.$button-border-radius;
   box-shadow: 0 0 sizes.$x6 rgba(colors.$kobo-storm, 0.3);
 
@@ -151,7 +151,7 @@ $k-select-menu-padding: sizes.$x6;
 
   &.selected {
     // background: colors.$kobo-gray-96; // prior design
-    background: colors.$kobo-mid-blue; // a11y: adds contrast for keyboard use
+    background: colors.$kobo-light-blue; // a11y: adds contrast for keyboard use
     color: colors.$kobo-gray-14;
     border-radius: 2px;
   }

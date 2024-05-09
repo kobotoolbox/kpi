@@ -1,0 +1,30 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Projects:" as projects_label %}
+
+<p>{% trans "Dear" %} {{ username }},</p>
+
+{% if transfers|length == 1 %}
+  <p>{% blocktrans with asset_uid=transfers.0.asset_uid asset_name=transfers.0.asset_name  %}{{ recipient }} has accepted your request to transfer ownership of the project <a href="{{ base_url }}/#/forms/{{ asset_uid }}/landing">{{ asset_name }}</a> to you.{% endblocktrans %}</p>
+
+  <p>{% trans "All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner." %}</p>
+
+  <p>{% trans "Note: You will continue to have permissions to manage the project until the user permissions are changed." %}</p>
+{% else %}
+  <p>{% blocktrans %}{{ recipient }} has accepted your request to transfer ownership of these projects:{% endblocktrans %}
+    <ul>
+    {% for transfer in transfers %}
+      {% url 'api_v2:asset-detail' uid=transfer.asset_uid as asset_url %}
+      <li><a href="{{ base_url }}/#/forms/{{transfer.asset_uid}}/landing">{{ transfer.asset_name }}</a></li>
+    {% endfor %}
+    </ul>
+  </p>
+
+  <p>{% trans "All submissions, data storage, and transcription and translation usage for these projects will be transferred to the new project owner." %}</p>
+
+  <p>{% trans "Note: You will continue to have permissions to manage these projects until the user permissions are changed." %}</p>
+{% endif %}
+
+<p>
+&nbsp;-&nbsp;KoboToolbox
+</p>

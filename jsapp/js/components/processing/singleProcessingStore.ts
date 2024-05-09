@@ -1,12 +1,8 @@
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import type {RouterState} from '@remix-run/router';
-import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
-import {
-  isFormSingleProcessingRoute,
-  getSingleProcessingRouteParameters,
-} from 'js/router/routerUtils';
 import {router} from 'js/router/legacy';
+import {getCurrentPath} from 'js/router/routerUtils';
 import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
@@ -30,12 +26,13 @@ import type {
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
 import {destroyConfirm} from 'js/alertify';
-
-export enum SingleProcessingTabs {
-  Transcript = 'trc',
-  Translations = 'trl',
-  Analysis = 'an',
-}
+import {
+  isAnyProcessingRoute,
+  isAnyProcessingRouteActive,
+  getProcessingRouteParts,
+  getCurrentProcessingRouteParts,
+  ProcessingTab,
+} from 'js/components/processing/routes.utils';
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -46,25 +43,20 @@ export enum StaticDisplays {
 export type DisplaysList = Array<LanguageCode | StaticDisplays>;
 
 type SidebarDisplays = {
-  [tabName in SingleProcessingTabs]: DisplaysList;
+  [tabName in ProcessingTab]: DisplaysList;
 };
 
-export const DefaultDisplays: Map<SingleProcessingTabs, DisplaysList> = new Map(
+export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
+  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
   [
-    [
-      SingleProcessingTabs.Transcript,
-      [StaticDisplays.Audio, StaticDisplays.Data],
-    ],
-    [
-      SingleProcessingTabs.Translations,
-      [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
-    ],
-    [
-      SingleProcessingTabs.Analysis,
-      [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
-    ],
-  ]
-);
+    ProcessingTab.Translations,
+    [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
+  ],
+  [
+    ProcessingTab.Analysis,
+    [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
+  ],
+]);
 
 /** Shared interface for transcript and translations. */
 export interface Transx {
@@ -120,7 +112,6 @@ interface SingleProcessingStoreData {
   translationDraft?: TransxDraft;
   /** Being displayed on the left side of the screen during translation editing. */
   source?: string;
-  activeTab: SingleProcessingTabs;
   submissionData?: SubmissionResponse;
   /** A list of all submissions editIds (`meta/rootUuid` or `_uuid`). */
   submissionsEditIds?: SubmissionsEditIds;
@@ -129,6 +120,9 @@ interface SingleProcessingStoreData {
    * View was opened (only changes saved to Back end are taken into account).
    */
   isPristine: boolean;
+  /** Marks some backend calls being in progress. */
+  isFetchingData: boolean;
+  isPollingForTranscript: boolean;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -153,44 +147,35 @@ class SingleProcessingStore extends Reflux.Store {
 
   private analysisTabHasUnsavedWork = false;
 
-  // We want to give access to this only through methods.
-  private data: SingleProcessingStoreData = {
+  public data: SingleProcessingStoreData = {
     translations: [],
-    activeTab: SingleProcessingTabs.Transcript,
     isPristine: true,
+    isFetchingData: false,
+    isPollingForTranscript: false,
   };
-  /** Marks some backend calls being in progress. */
-  public isFetchingData = false;
-  public isPollingForTranscript = false;
 
   /** Clears all data - useful before making initialisation call */
   private resetProcessingData() {
     this.isProcessingDataLoaded = false;
-    this.isPollingForTranscript = false;
-
+    this.data.isPollingForTranscript = false;
     this.data.transcript = undefined;
     this.data.transcriptDraft = undefined;
     this.data.translations = [];
     this.data.translationDraft = undefined;
     this.data.source = undefined;
-    this.data.activeTab = SingleProcessingTabs.Transcript;
     this.data.isPristine = true;
   }
 
-  public get isPristine() {
-    return this.data.isPristine;
-  }
-
   public get currentAssetUid() {
-    return getSingleProcessingRouteParameters().uid;
+    return getCurrentProcessingRouteParts().assetUid;
   }
 
   public get currentQuestionQpath() {
-    return getSingleProcessingRouteParameters().qpath;
+    return getCurrentProcessingRouteParts().qpath;
   }
 
   public get currentSubmissionEditId() {
-    return getSingleProcessingRouteParameters().submissionEditId;
+    return getCurrentProcessingRouteParts().submissionEditId;
   }
 
   public get currentQuestionName() {
@@ -219,6 +204,12 @@ class SingleProcessingStore extends Reflux.Store {
 
   init() {
     this.resetProcessingData();
+
+    // We start off with noting down current path if there is none (i.e. case
+    // of opening processing directly from URL)
+    if (!this.previousPath) {
+      this.previousPath = getCurrentPath();
+    }
 
     // HACK: We add this ugly `setTimeout` to ensure router exists.
     setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
@@ -297,14 +288,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** This is making sure the asset processing features are activated. */
   private onAssetLoad(asset: AssetResponse) {
-    if (
-      isFormSingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      ) &&
-      this.currentAssetUid === asset.uid
-    ) {
+    if (isAnyProcessingRouteActive() && this.currentAssetUid === asset.uid) {
       if (!isAssetProcessingActivated(this.currentAssetUid)) {
         this.activateAsset();
       } else {
@@ -326,13 +310,7 @@ class SingleProcessingStore extends Reflux.Store {
    * the processing route URL directly the asset data might not be here yet.
    */
   private startupStore() {
-    if (
-      isFormSingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      )
-    ) {
+    if (isAnyProcessingRouteActive()) {
       const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid));
       if (isAssetLoaded) {
         this.fetchAllInitialDataForAsset();
@@ -375,43 +353,76 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onRouteChange(data: RouterState) {
-    if (this.previousPath === data.location.pathname) {
+    const newPath = data.location.pathname;
+
+    // Store path for future `onRouteChange`s.
+    // Note: Make sure not to use `this.previousPath` in the further code within
+    // this function! I save it here, because the code doesn't always reach
+    // the end of the function :)
+    const oldPath = this.previousPath;
+    this.previousPath = newPath;
+
+    // Skip non-changes; not sure if this happens, but better safe than sorry.
+    if (oldPath === newPath) {
       return;
     }
 
-    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(
-      ':uid',
-      this.currentAssetUid
-    );
+    let previousPathParts;
+    if (oldPath) {
+      previousPathParts = getProcessingRouteParts(oldPath);
+    }
+    const newPathParts = getProcessingRouteParts(newPath);
 
-    // Case 1: switching from a processing route to a processing route.
-    // This means that we are changing either the question and the submission
-    // or just the submission.
+    // Cleanup: When we leave Analysis tab, we need to reset the flag
+    // responsible for keeping the status of unsaved changes. This way it's not
+    // blocking the navigation after leaving the tab directly from editing.
+    if (previousPathParts?.tabName === ProcessingTab.Analysis) {
+      this.setAnalysisTabHasUnsavedChanges(false);
+    }
+
+    // Case 1: navigating to different processing tab, but within the same
+    // submission and question (neither entering nor leaving Single Processing
+    // View)
     if (
-      this.previousPath !== data.location.pathname &&
-      this.previousPath !== undefined &&
-      this.previousPath.startsWith(baseProcessingRoute) &&
-      data.location.pathname.startsWith(baseProcessingRoute)
+      isAnyProcessingRoute(oldPath) &&
+      isAnyProcessingRoute(newPath) &&
+      previousPathParts &&
+      previousPathParts.assetUid === newPathParts.assetUid &&
+      previousPathParts.qpath === newPathParts.qpath &&
+      previousPathParts.submissionEditId === newPathParts.submissionEditId &&
+      // This check is needed to avoid going into this in case when route
+      // redirects from no tab (e.g. `/`) into default tab (e.g. `/transcript`).
+      previousPathParts.tabName !== undefined &&
+      previousPathParts.tabName !== newPathParts.tabName
+    ) {
+      // When changing tab, discard all drafts and the selected source.
+      this.data.transcriptDraft = undefined;
+      this.data.translationDraft = undefined;
+      this.data.source = undefined;
+    }
+
+    // Case 2: navigating to a different submission or different question
+    // (neither entering nor leaving Single Processing View)
+    if (
+      isAnyProcessingRoute(oldPath) &&
+      isAnyProcessingRoute(newPath) &&
+      previousPathParts &&
+      previousPathParts.assetUid === newPathParts.assetUid &&
+      (previousPathParts.qpath !== newPathParts.qpath ||
+        previousPathParts.submissionEditId !== newPathParts.submissionEditId)
     ) {
       this.fetchProcessingData();
       this.fetchSubmissionData();
-    } else if (
-      // Case 2: switching into processing route out of other place (most
-      // probably from assets data table route).
-      this.previousPath !== data.location.pathname &&
-      isFormSingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      )
-    ) {
+    }
+
+    // Case 3: switching into processing route out of other place (most
+    // probably from assets data table route).
+    if (!isAnyProcessingRoute(oldPath) && isAnyProcessingRoute(newPath)) {
       this.fetchAllInitialDataForAsset();
       // Each time user visits Processing View from some different route we want
       // to present the same default displays.
       this.displays = this.getInitialDisplays();
     }
-
-    this.previousPath = data.location.pathname;
   }
 
   private fetchSubmissionData(): void {
@@ -545,7 +556,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onFetchProcessingDataStarted(abort: () => void) {
     this.abortFetchData = abort;
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     this.trigger(this.data);
   }
 
@@ -579,7 +590,7 @@ class SingleProcessingStore extends Reflux.Store {
 
     delete this.abortFetchData;
     this.isProcessingDataLoaded = true;
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
 
     this.cleanupDisplays();
 
@@ -603,15 +614,15 @@ class SingleProcessingStore extends Reflux.Store {
     }
     alertify.notify(errorText, 'error');
     delete this.abortFetchData;
-    this.isFetchingData = false;
-    this.isPollingForTranscript = false;
+    this.data.isFetchingData = false;
+    this.data.isPollingForTranscript = false;
     this.trigger(this.data);
   }
 
   private onSetTranscriptCompleted(response: ProcessingDataResponse) {
     const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
 
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
 
     if (transcriptResponse) {
       this.data.transcript = transcriptResponse;
@@ -623,7 +634,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onDeleteTranscriptCompleted() {
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
     this.data.transcript = undefined;
     this.setNotPristine();
     this.trigger(this.data);
@@ -647,7 +658,7 @@ class SingleProcessingStore extends Reflux.Store {
   private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
     if (
       !this.currentQuestionQpath ||
-      !this.isPollingForTranscript ||
+      !this.data.isPollingForTranscript ||
       !this.data.transcriptDraft
     ) {
       return;
@@ -655,7 +666,7 @@ class SingleProcessingStore extends Reflux.Store {
     const googleTsResponse =
       event.response[this.currentQuestionQpath]?.googlets;
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
-      this.isPollingForTranscript = false;
+      this.data.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
     }
     this.setNotPristine();
@@ -667,16 +678,16 @@ class SingleProcessingStore extends Reflux.Store {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
       if (this.isAutoTranscriptionEventApplicable(event)) {
-        this.isPollingForTranscript = true;
+        this.data.isPollingForTranscript = true;
         this.requestAutoTranscription();
       } else {
-        this.isPollingForTranscript = false;
+        this.data.isPollingForTranscript = false;
       }
     }, 5000);
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
     this.data.translations = newTranslations;
     // discard draft after saving (exit the editor)
     this.data.translationDraft = undefined;
@@ -688,7 +699,7 @@ class SingleProcessingStore extends Reflux.Store {
   private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
     const googleTxResponse = response[this.currentQuestionQpath]?.googletx;
 
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
     if (
       googleTxResponse &&
       this.data.translationDraft &&
@@ -736,7 +747,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   setTranscript(languageCode: LanguageCode, value: string) {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -748,7 +759,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranscript() {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -758,7 +769,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranscription() {
-    this.isPollingForTranscript = true;
+    this.data.isPollingForTranscript = true;
     processingActions.requestAutoTranscription(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -822,7 +833,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** This stores the translation on backend. */
   setTranslation(languageCode: LanguageCode, value: string) {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -834,7 +845,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranslation(languageCode: LanguageCode) {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -845,7 +856,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranslation(languageCode: string) {
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
@@ -895,22 +906,6 @@ class SingleProcessingStore extends Reflux.Store {
     return [];
   }
 
-  activateTab(tab: SingleProcessingTabs) {
-    this.data.activeTab = tab;
-
-    // When changing tab, discard all drafts and the selected source.
-    this.data.transcriptDraft = undefined;
-    this.data.translationDraft = undefined;
-    this.data.source = undefined;
-
-    // When we leave Analysis tab, we need to reset the flag responsible for
-    // keeping the status of unsaved changes. This way it's not blocking
-    // navigation after leaving the tab directly from editing.
-    this.setAnalysisTabHasUnsavedChanges(false);
-
-    this.trigger(this.data);
-  }
-
   getSubmissionData() {
     return this.data.submissionData;
   }
@@ -925,10 +920,6 @@ class SingleProcessingStore extends Reflux.Store {
 
   getSubmissionsEditIds() {
     return this.data.submissionsEditIds;
-  }
-
-  getActiveTab() {
-    return this.data.activeTab;
   }
 
   hasUnsavedTranscriptDraftValue() {
@@ -965,16 +956,19 @@ class SingleProcessingStore extends Reflux.Store {
 
   getInitialDisplays(): SidebarDisplays {
     return {
-      trc: DefaultDisplays.get(SingleProcessingTabs.Transcript) || [],
-      trl: DefaultDisplays.get(SingleProcessingTabs.Translations) || [],
-      an: DefaultDisplays.get(SingleProcessingTabs.Analysis) || [],
+      transcript: DefaultDisplays.get(ProcessingTab.Transcript) || [],
+      translations: DefaultDisplays.get(ProcessingTab.Translations) || [],
+      analysis: DefaultDisplays.get(ProcessingTab.Analysis) || [],
     };
   }
 
   /** Returns available displays for given tab */
-  getAvailableDisplays(tabName: SingleProcessingTabs) {
-    const outcome: DisplaysList = [StaticDisplays.Audio, StaticDisplays.Data];
-    if (tabName !== SingleProcessingTabs.Transcript) {
+  getAvailableDisplays(tabName: ProcessingTab) {
+    const outcome: DisplaysList = [
+      StaticDisplays.Audio,
+      StaticDisplays.Data,
+    ];
+    if (tabName !== ProcessingTab.Transcript && this.data.transcript) {
       outcome.push(StaticDisplays.Transcript);
     }
     this.getTranslations().forEach((translation) => {
@@ -984,18 +978,21 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /** Returns displays for given tab. */
-  getDisplays(tabName: SingleProcessingTabs) {
-    return this.displays[tabName];
+  getDisplays(tabName: ProcessingTab | undefined) {
+    if (tabName !== undefined) {
+      return this.displays[tabName];
+    }
+    return [];
   }
 
   /** Updates the list of active displays for given tab. */
-  setDisplays(tabName: SingleProcessingTabs, displays: DisplaysList) {
+  setDisplays(tabName: ProcessingTab, displays: DisplaysList) {
     this.displays[tabName] = displays;
     this.trigger(this.displays);
   }
 
   /** Resets the list of displays for given tab to a default list. */
-  resetDisplays(tabName: SingleProcessingTabs) {
+  resetDisplays(tabName: ProcessingTab) {
     this.displays[tabName] = DefaultDisplays.get(tabName) || [];
     this.trigger(this.displays);
   }
@@ -1008,15 +1005,12 @@ class SingleProcessingStore extends Reflux.Store {
    * translation.
    */
   cleanupDisplays() {
-    // We need this weird way of iterating enum, because of TypeScript :)
-    let tab: keyof typeof SingleProcessingTabs;
-    for (tab in SingleProcessingTabs) {
-      const tabName = SingleProcessingTabs[tab];
-      const availableDisplays = this.getAvailableDisplays(tabName);
-      this.displays[tabName].filter((display) => {
+    Object.values<ProcessingTab>(ProcessingTab).forEach((tab) => {
+      const availableDisplays = this.getAvailableDisplays(tab);
+      this.displays[tab].filter((display) => {
         availableDisplays.includes(display);
       });
-    }
+    });
     this.trigger(this.displays);
   }
 
@@ -1043,7 +1037,7 @@ class SingleProcessingStore extends Reflux.Store {
 
 /**
  * Stores all data necessary for rendering the single processing route and all
- * its features. Handles draft transcripts/translations, switching content tabs.
+ * its features. Handles draft transcripts/translations.
  */
 const singleProcessingStore = new SingleProcessingStore();
 singleProcessingStore.init();

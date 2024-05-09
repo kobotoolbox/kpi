@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from django.conf import settings
 
@@ -10,11 +10,13 @@ from kobo.celery import celery_app
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
 
+PermissionFilter = Dict[str, Any]
+
 
 def drop_mock_only(func):
     """
     This decorator should be used on every method that drop data in MongoDB
-    in a testing environment. It ensures that MockMongo is used and no prodction
+    in a testing environment. It ensures that MockMongo is used and no production
     data is deleted
     """
 
@@ -286,26 +288,53 @@ class MongoHelper:
 
     @classmethod
     def get_permission_filters_query(
-        cls, query: dict, permission_filters: Optional[Union[dict, list]]
-    ) -> dict:
-        if permission_filters is None:
+        cls,
+        query: dict,
+        permission_filters: Optional[
+            Union[PermissionFilter, list[PermissionFilter]]
+        ],
+    ) -> dict[str, list[dict]]:
+        if permission_filters is None or len(permission_filters) == 0:
             return query
-
-        if len(permission_filters) == 1:
+        if (
+            isinstance(permission_filters, list)
+            and len(permission_filters) == 1
+        ):
             permission_filters_query = permission_filters[0]
         else:
-            permission_filters_query = {cls.OR_OPERATOR: []}
-            for permission_filter in permission_filters:
-                if isinstance(permission_filter, list):
-                    permission_filters_query[cls.OR_OPERATOR].append(
-                        {cls.OR_OPERATOR: permission_filter}
-                    )
-                else:
-                    permission_filters_query[cls.OR_OPERATOR].append(
-                        permission_filter
-                    )
+            permission_filters_query = cls._convert_permissions(
+                permission_filters
+            )
 
         return {cls.AND_OPERATOR: [query, permission_filters_query]}
+
+    @classmethod
+    def _convert_permissions(
+        cls, input_data: Union[PermissionFilter, list[PermissionFilter]]
+    ) -> PermissionFilter:
+        """
+        Convert permissions to mongo readable perms
+
+        - list implies OR
+        - dict implies AND
+
+        Additional MongoHelper.KEY_WHITELIST data is accepted.
+
+        While this function is recursive, it is not tested nor intended to support
+        infinite nesting. Values inside of a dict are passed as is.
+        This will not work {"a": {"ba": "ca", "bb": "cb"}, {"c": "ca"}} inner dict
+        will not receive AND
+        """
+        if isinstance(input_data, list):
+            return {
+                cls.OR_OPERATOR: [
+                    cls._convert_permissions(item) for item in input_data
+                ]
+            }
+        elif isinstance(input_data, dict) and len(input_data) > 1:
+            return {cls.AND_OPERATOR: [{k: v} for k, v in input_data.items()]}
+        else:
+            return input_data
 
     @classmethod
     def _get_cursor_and_count(

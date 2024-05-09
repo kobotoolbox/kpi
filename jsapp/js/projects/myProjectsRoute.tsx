@@ -27,16 +27,34 @@ import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
-import { OneTimeAddOnsContext, useOneTimeAddOns } from '../account/useOneTimeAddonList.hook';
-import {ProductsContext, useProducts} from 'js/account/useProducts.hook';
-import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
+import {useSearchParams} from 'react-router-dom';
+import TransferProjectsInvite from 'js/components/permissions/transferProjects/transferProjectsInvite.component';
+import {
+  isInviteForLoggedInUser,
+  TransferStatuses,
+} from 'js/components/permissions/transferProjects/transferProjects.api';
+import Button from '../components/common/button';
+
+interface InviteState {
+  valid: boolean;
+  uid: string;
+  status: TransferStatuses.Accepted | TransferStatuses.Declined | null;
+  name: string;
+  currentOwner: string;
+}
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const products = useProducts();
-  const usage = useUsage();
-  const oneTimeAddons = useOneTimeAddOns();
+  const [invite, setInvite] = useState<InviteState>({
+    valid: false,
+    uid: '',
+    status: null,
+    name: '',
+    currentOwner: '',
+  });
+  const [banner, setBanner] = useState(true);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     customView.setUp(
@@ -44,7 +62,16 @@ function MyProjectsRoute() {
       `${ROOT_URL}/api/v2/assets/`,
       HOME_DEFAULT_VISIBLE_FIELDS
     );
-  }, []);
+
+    const inviteParams = searchParams.get('invite');
+    if (inviteParams) {
+      isInviteForLoggedInUser(inviteParams).then((data) => {
+        setInvite({...invite, valid: data, uid: inviteParams});
+      });
+    } else {
+      setInvite({...invite, valid: false, uid: ''});
+    }
+  }, [searchParams]);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -69,6 +96,19 @@ function MyProjectsRoute() {
     );
   };
 
+  const setInviteDetail = (
+    newStatus: TransferStatuses.Accepted | TransferStatuses.Declined,
+    name: string,
+    currentOwner: string
+  ) => {
+    setInvite({
+      ...invite,
+      status: newStatus,
+      name: name,
+      currentOwner: currentOwner,
+    });
+  };
+
   return (
     <Dropzone
       onDrop={dropImportXLSForms}
@@ -83,15 +123,53 @@ function MyProjectsRoute() {
         <h1>{t('Drop files to upload')}</h1>
       </div>
 
-      <UsageContext.Provider value={usage}>
-        <ProductsContext.Provider value={products}>
-          <OneTimeAddOnsContext.Provider value={oneTimeAddons}>
-            <LimitNotifications useModal />
-          </OneTimeAddOnsContext.Provider>
-        </ProductsContext.Provider>
-      </UsageContext.Provider>
+      <LimitNotifications useModal />
 
       <section className={styles.root}>
+        {invite.status && banner && (
+          <div className={styles.banner}>
+            <Icon
+              name='information'
+              color='blue'
+              classNames={[styles.bannerIcon]}
+            />
+
+            {invite.status === TransferStatuses.Declined && (
+              <>
+                {t(
+                  'You have declined the request of transfer ownership for ##PROJECT_NAME##. ##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'
+                )
+                  .replace('##PROJECT_NAME##', invite.name)
+                  .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+                &nbsp;
+                {t(
+                  '##CURRENT_OWNER_NAME## will remain the project owner.'
+                ).replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+              </>
+            )}
+            {invite.status === TransferStatuses.Accepted && (
+              <>
+                {t(
+                  'You have accepted project ownership from ##CURRENT_OWNER_NAME## for ##PROJECT_NAME##. This process can take up to a few minutes to complete.'
+                )
+                  .replace('##PROJECT_NAME##', invite.name)
+                  .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+              </>
+            )}
+
+            <Button
+              type='bare'
+              color='storm'
+              size='s'
+              startIcon='close'
+              onClick={() => {
+                setBanner(false);
+              }}
+              classNames={[styles.bannerButton]}
+            />
+          </div>
+        )}
+
         <header className={styles.header}>
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
 
@@ -139,6 +217,12 @@ function MyProjectsRoute() {
           selectedRows={selectedRows}
           onRowsSelected={setSelectedRows}
         />
+        {invite.valid && invite.uid !== '' && (
+          <TransferProjectsInvite
+            setInvite={setInviteDetail}
+            inviteUid={invite.uid}
+          />
+        )}
       </section>
     </Dropzone>
   );

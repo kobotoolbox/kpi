@@ -1,15 +1,23 @@
 import styles from 'js/account/add-ons/addOnList.module.scss';
-import React, {useMemo, useState} from 'react';
-import type {Organization, Product} from 'js/account/stripe.types';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {
+  Organization,
+  Product,
+  SubscriptionInfo,
+} from 'js/account/stripe.types';
 import KoboSelect3 from 'js/components/special/koboAccessibleSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import BillingButton from 'js/account/plans/billingButton.component';
-import {postCheckout} from 'js/account/stripe.api';
+import {postCheckout, postCustomerPortal} from 'js/account/stripe.api';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
+import {isChangeScheduled} from 'js/account/stripe.utils';
 
 interface OneTimeAddOnRowProps {
   products: Product[];
-  isDisabled: boolean;
+  isBusy: boolean;
+  setIsBusy: (value: boolean) => void;
+  activeSubscriptions: SubscriptionInfo[];
+  subscribedAddOns: SubscriptionInfo[];
   organization: Organization;
 }
 
@@ -25,7 +33,10 @@ const quantityOptions = Array.from(
 
 export const OneTimeAddOnRow = ({
   products,
-  isDisabled,
+  isBusy,
+  setIsBusy,
+  activeSubscriptions,
+  subscribedAddOns,
   organization,
 }: OneTimeAddOnRowProps) => {
   const [selectedProduct, setSelectedProduct] = useState(products[0]);
@@ -45,15 +56,29 @@ export const OneTimeAddOnRow = ({
   let displayName;
   let description;
 
-  if (selectedProduct.metadata.asr_seconds_limit || selectedProduct.metadata.mt_characters_limit) {
+  if (
+    selectedProduct.metadata.asr_seconds_limit ||
+    selectedProduct.metadata.mt_characters_limit
+  ) {
     displayName = t('NLP Package');
-    description =
-      t('Increase your transcription minutes and translations characters.');
+    description = t(
+      'Increase your transcription minutes and translations characters.'
+    );
   } else if (selectedProduct.metadata.storage_bytes_limit) {
     displayName = t('File Storage');
-    description =
-      t('Get up to 50GB of media storage on a KoboToolbox public server.');
+    description = t(
+      'Get up to 50GB of media storage on a KoboToolbox public server.'
+    );
   }
+
+  const isSubscribedAddOnPrice = useMemo(
+    () =>
+      isChangeScheduled(selectedPrice, activeSubscriptions) ||
+      subscribedAddOns.some(
+        (subscription) => subscription.items[0].price.id === selectedPrice.id
+      ),
+    [subscribedAddOns, selectedPrice]
+  );
 
   const onChangeProduct = (productId: string) => {
     const product = products.find((product) => product.id === productId);
@@ -81,17 +106,29 @@ export const OneTimeAddOnRow = ({
   };
 
   const onClickBuy = () => {
+    if (isBusy || !selectedPrice) {
+      return;
+    }
+    setIsBusy(true);
     if (selectedPrice) {
       postCheckout(selectedPrice.id, organization.id, parseInt(quantity))
         .then((response) => window.location.assign(response.url))
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch(() => setIsBusy(false));
     }
   };
 
+  const onClickManage = () => {
+    if (isBusy || !selectedPrice) {
+      return;
+    }
+    setIsBusy(true);
+    postCustomerPortal(organization.id, selectedPrice.id)
+      .then((response) => window.location.assign(response.url))
+      .catch(() => setIsBusy(false));
+  };
+
   return (
-    <tr>
+    <tr className={styles.row}>
       <td className={styles.productName}>
         {displayName}
         {description && <p className={styles.description}>{description}</p>}
@@ -132,13 +169,24 @@ export const OneTimeAddOnRow = ({
           : displayPrice}
       </td>
       <td className={styles.buy}>
-        <BillingButton
-          size={'m'}
-          label='Buy now'
-          isDisabled={Boolean(selectedPrice) && isDisabled}
-          onClick={onClickBuy}
-          isFullWidth
-        />
+        {isSubscribedAddOnPrice && (
+          <BillingButton
+            size={'m'}
+            label='Buy now'
+            isDisabled={Boolean(selectedPrice) && isBusy}
+            onClick={onClickBuy}
+            isFullWidth
+          />
+        )}
+        {!isSubscribedAddOnPrice && (
+          <BillingButton
+            size={'m'}
+            label={t('Buy now')}
+            isDisabled={Boolean(selectedPrice) && isBusy}
+            onClick={onClickBuy}
+            isFullWidth
+          />
+        )}
       </td>
     </tr>
   );

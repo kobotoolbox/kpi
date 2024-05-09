@@ -32,6 +32,9 @@ const AddOnList = (props: {
   const [subscribedPlans, setSubscribedPlans] = useState<SubscriptionInfo[]>(
     []
   );
+  const [activeSubscriptions, setActiveSubscriptions] = useState<
+    SubscriptionInfo[]
+  >([]);
   const [addOnProducts, setAddOnProducts] = useState<Product[]>([]);
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext);
   const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns;
@@ -65,6 +68,7 @@ const AddOnList = (props: {
     () => {
       setSubscribedAddOns(subscriptionStore.addOnsResponse);
       setSubscribedPlans(subscriptionStore.planResponse);
+      setActiveSubscriptions(subscriptionStore.activeSubscriptions);
     },
     []
   );
@@ -176,28 +180,26 @@ const AddOnList = (props: {
           </p>
         </caption>
         <tbody>
-          {props.organization && (
-            <>
-              {!subscribedPlans.length && (
-                <OneTimeAddOnRow
-                  key={filteredAddOnProducts
-                    .map((product) => product.id)
-                    .join('-')}
-                  products={filteredAddOnProducts}
-                  isDisabled={props.isBusy}
-                  organization={props.organization}
-                />
-              )}
-              <OneTimeAddOnRow
-                key={oneTimeAddOnProducts
-                  .map((product) => product.id)
-                  .join('-')}
-                products={oneTimeAddOnProducts}
-                isDisabled={props.isBusy}
-                organization={props.organization}
-              />
-            </>
+          {!subscribedPlans.length && (
+            <OneTimeAddOnRow
+              key={filteredAddOnProducts.map((product) => product.id).join('-')}
+              products={filteredAddOnProducts}
+              isBusy={props.isBusy}
+              setIsBusy={props.setIsBusy}
+              subscribedAddOns={subscribedAddOns}
+              activeSubscriptions={activeSubscriptions}
+              organization={props.organization}
+            />
           )}
+          <OneTimeAddOnRow
+            key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
+            products={oneTimeAddOnProducts}
+            isBusy={props.isBusy}
+            setIsBusy={props.setIsBusy}
+            subscribedAddOns={subscribedAddOns}
+            activeSubscriptions={activeSubscriptions}
+            organization={props.organization}
+          />
         </tbody>
       </table>
       {subscribedAddOns.some((product) => product.status === 'active') ||
@@ -226,7 +228,7 @@ const AddOnList = (props: {
             false,
             t('previous add-ons'),
             t('Inactive'),
-            'cloud'
+            'light-storm'
           )
         : null}
     </>

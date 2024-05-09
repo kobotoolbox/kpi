@@ -2,7 +2,7 @@ import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import MiniAudioPlayer from 'js/components/common/miniAudioPlayer';
-import {openProcessing} from 'js/components/processing/processingUtils';
+import {goToProcessing} from 'js/components/processing/routes.utils';
 import type {SubmissionAttachment} from 'js/dataInterface';
 import './audioCell.scss';
 
@@ -37,7 +37,7 @@ export default class AudioCell extends React.Component<AudioCellProps, {}> {
           endIcon='arrow-up-right'
           label={t('Open')}
           onClick={() => {
-            openProcessing(
+            goToProcessing(
               this.props.assetUid,
               this.props.qpath,
               this.props.submissionEditId,

@@ -12,6 +12,7 @@ import {replaceBracketsWithLink} from 'js/textUtils';
 import {ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
 import {ASSET_TYPES} from 'js/constants';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
+import {TransferStatuses} from 'js/components/permissions/transferProjects/transferProjects.api';
 import './sharingForm.scss';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions.component';
@@ -162,6 +163,41 @@ export default class SharingForm extends React.Component<
     }
   }
 
+  /** Check if the recipient of the transfer is the specified user */
+  isPendingOwner(username: string) {
+    return this.state.asset?.project_ownership?.status ===
+      TransferStatuses.Pending &&
+      this.state.asset?.project_ownership?.recipient === username
+      ? true
+      : false;
+  }
+
+  /** Display pending owner if not already included in list of user permissions */
+  renderPendingOwner() {
+    if (
+      this.state.asset?.project_ownership?.status ===
+        TransferStatuses.Pending &&
+      !this.state.permissions?.find(
+        (perm) =>
+          perm.user.name === this.state.asset?.project_ownership?.recipient
+      )
+    ) {
+      return (
+        <UserPermissionRow
+          assetUid={this.props.assetUid}
+          nonOwnerPerms={this.state.nonOwnerPerms}
+          assignablePerms={this.state.assignablePerms}
+          permissions={[]}
+          isUserOwner={false}
+          isPendingOwner={true}
+          username={this.state.asset.project_ownership.recipient}
+        />
+      );
+    } else {
+      return null;
+    }
+  }
+
   render() {
     if (!this.state.asset || !this.state.permissions) {
       return <LoadingSpinner />;
@@ -201,7 +237,7 @@ export default class SharingForm extends React.Component<
         )}
 
         {/* list of users and their permissions */}
-        <bem.FormModal__item>
+        <bem.FormModal__item m='who-has-access'>
           <h2>{t('Who has access')}</h2>
 
           {this.state.permissions.map((perm) => {
@@ -217,10 +253,12 @@ export default class SharingForm extends React.Component<
                 assignablePerms={this.state.assignablePerms}
                 permissions={perm.permissions}
                 isUserOwner={perm.user.isOwner}
+                isPendingOwner={this.isPendingOwner(perm.user.name)}
                 username={perm.user.name}
               />
             );
           })}
+          {this.renderPendingOwner()}
 
           {!this.state.isAddUserEditorVisible && (
             <Button

@@ -5,6 +5,7 @@
 @use 'scss/breakpoints';
 @use 'sass:color';
 @use 'js/components/common/icon';
+@use 'js/components/common/button';
 
 $kobo-modal-elements-height-min: sizes.$x60;
 $kobo-modal-width-min: 280px;
@@ -32,6 +33,13 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 
   @media all and (max-height: breakpoints.$b480) {
     transform: translate(-50%, -50%);
+
+    // This ensures that modal layout is better adapting to very short screens.
+    .kobo-modal__header,
+    .kobo-modal__content,
+    .kobo-modal__footer {
+      min-height: $kobo-modal-elements-height-min;
+    }
   }
 
   @media all and (min-height: (breakpoints.$b480 + 1px)) {
@@ -45,13 +53,6 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 
 .kobo-modal--size-medium {
   width: $kobo-modal-width-medium;
-}
-
-// This ensures that modal layout is better adapting to very short screens.
-.kobo-modal__header,
-.kobo-modal__content,
-.kobo-modal__footer {
-  min-height: $kobo-modal-elements-height-min;
 }
 
 .kobo-modal__footer--isCentered {
@@ -73,7 +74,6 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   }
   &.kobo-modal__header--white {
     background-color: colors.$kobo-white;
-    padding-bottom: 0;
   }
 
   h1 {
@@ -84,6 +84,11 @@ $kobo-modal-header-icon-margin: sizes.$x10;
     font-weight: 700;
     margin: 0;
     line-height: 1;
+
+    // If there is close button, we need to limit the width (for a long content)
+    &:not(:only-child) {
+      max-width: calc(100% - button.$button-height-s);
+    }
   }
 }
 

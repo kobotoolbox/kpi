@@ -21,10 +21,10 @@ jobs:
       ENKETO_REDIS_MAIN_URL: redis://localhost:6379/0
     strategy:
       matrix:
-        python-version: ['3.8', '3.10']
+        python-version: ['3.8', '3.10', '3.12']
     services:
       postgres:
-        image: postgis/postgis:11-3.2
+        image: postgis/postgis:14-3.4
         env:
           POSTGRES_USER: kobo
           POSTGRES_PASSWORD: kobo
