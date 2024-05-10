@@ -309,6 +309,11 @@
   }
 }
 
+// hide the redundant django-allauth "Forgot your password?" link
+form.registration--login > p > span.helptext{
+    display: none;
+}
+
 .registration--register {
   .registration--logo {
     text-align: left;

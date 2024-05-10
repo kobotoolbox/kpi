@@ -647,6 +647,8 @@ export function getMediaAttachment(
  * `_supplementalDetails/question_name/a1234567-a123-123a-12a3-123aaaa45678`
  * (a random uuid for qualitative analysis questions).
  *
+ * Returns null if there is no details to return.
+ *
  * NOTE: transcripts are actually not nested on language level (because there
  * can be only one transcript), but we need to use paths with languages in it
  * to build Submission Modal and Data Table properly.
@@ -654,7 +656,7 @@ export function getMediaAttachment(
 export function getSupplementalDetailsContent(
   submission: SubmissionResponse,
   path: string
-): string {
+): string | null {
   let pathArray;
   const pathParts = getSupplementalPathParts(path);
 
@@ -739,13 +741,13 @@ export function getSupplementalDetailsContent(
         return String(foundResponse.val);
       }
 
-      return t('N/A');
+      return null;
     }
   }
 
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
-  return t('N/A');
+  return null;
 }
 
 export default {
