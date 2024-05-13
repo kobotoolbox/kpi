@@ -11,10 +11,20 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {AssetContent} from 'js/dataInterface';
 import {getActiveTab} from 'js/components/processing/routes.utils';
 import styles from './sidebarDisplaySettings.module.scss';
+import MultiCheckbox from 'js/components/common/multiCheckbox';
+import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
+import cx from 'classnames';
 
-export default function SidebarDisplaySettings() {
+interface SidebarDisplaySettingsProps {
+  assetContent: AssetContent | undefined;
+}
+
+export default function SidebarDisplaySettings(
+  props: SidebarDisplaySettingsProps
+) {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -27,6 +37,24 @@ export default function SidebarDisplaySettings() {
   const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>(
     store.getDisplays(activeTab)
   );
+
+  function getInitialFields() {
+    if (!props.assetContent?.survey) {
+      return [];
+    }
+
+    const allQuestions = store.getAllSidebarQuestions();
+    const hiddenFields = store.getHiddenSidebarQuestions();
+
+    // Remove the fields hidden in the store so it persists when
+    // across navigating submissions.
+    const questionsList = allQuestions.filter(
+      (question) => !hiddenFields.includes(question.name)
+    );
+    return questionsList;
+  }
+
+  const [selectedFields, setSelectedFields] = useState(getInitialFields());
 
   // Every time user changes the tab, we need to load the stored displays list
   // for that tab.
@@ -70,6 +98,56 @@ export default function SidebarDisplaySettings() {
     );
   }
 
+  function isFieldChecked(questionName: string) {
+    return selectedFields.some((field) => field.name === questionName);
+  }
+
+  function getCheckboxes() {
+    if (!props.assetContent?.survey) {
+      return [];
+    }
+
+    const checkboxes = store.getAllSidebarQuestions().map((question) => {
+      return {
+        label: question.label,
+        checked: isFieldChecked(question.name),
+        name: question.name,
+        disabled: !selectedDisplays.includes(StaticDisplays.Data),
+      };
+    });
+
+    return checkboxes;
+  }
+
+  // To make the code a little simpler later on, we need an inverse array here
+  // to send to the the display, and a normal array to keep track of the
+  // checkboxes in this modal.
+  function onCheckboxesChange(list: MultiCheckboxItem[]) {
+    const newList = list
+      .filter((question) => question.checked)
+      .map((question) => {
+        return {name: question.name, label: question.label};
+      });
+
+    setSelectedFields(newList);
+  }
+
+  function applyFieldsSelection() {
+    const hiddenList = getCheckboxes()
+      .filter((question) => !question.checked)
+      .map((question) => question.name) || [];
+
+    store.setHiddenSidebarQuestions(hiddenList);
+  }
+
+  function resetFieldsSelection() {
+    // Since we check the store for hidden fields and use that to get our
+    // checkboxes, using `applyFieldsSelection` here would never actually
+    // reset the checkboxes visually so we explicitly set it to empty here.
+    store.setHiddenSidebarQuestions([]);
+    setSelectedFields(getInitialFields());
+  }
+
   return (
     <div className={styles.root}>
       <Button
@@ -82,7 +160,12 @@ export default function SidebarDisplaySettings() {
       />
       <KoboModal
         isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
+        onRequestClose={() => {
+          // Reset modals and checkboxes if user closed modal without applying
+          setSelectedDisplays(store.getDisplays(activeTab));
+          setSelectedFields(getInitialFields());
+          setIsModalOpen(false);
+        }}
         size='medium'
       >
         <KoboModalHeader>{t('Customize display settings')}</KoboModalHeader>
@@ -100,20 +183,37 @@ export default function SidebarDisplaySettings() {
 
               if (entry in StaticDisplays) {
                 const staticDisplay = entry as StaticDisplays;
+                const isSubmissionData = staticDisplay === StaticDisplays.Data;
+
                 return (
-                  <li className={styles.display} key={entry}>
-                    <ToggleSwitch
-                      onChange={(isChecked) => {
-                        if (isChecked) {
-                          enableDisplay(entry);
-                        } else {
-                          disableDisplay(entry);
-                        }
-                      }}
-                      checked={isEnabled}
-                      label={getStaticDisplayText(staticDisplay)}
-                    />
-                  </li>
+                  <>
+                    <li className={cx(styles.display)} key={entry}>
+                      <ToggleSwitch
+                        onChange={(isChecked) => {
+                          if (isChecked) {
+                            enableDisplay(entry);
+                          } else {
+                            disableDisplay(entry);
+                          }
+                        }}
+                        checked={isEnabled}
+                        label={getStaticDisplayText(staticDisplay)}
+                      />
+
+                      {isSubmissionData && props.assetContent?.survey && (
+                        <div className={styles.questionList}>
+                          {t('Select the submission data to display.')}
+                          <div className={styles.checkbox}>
+                            <MultiCheckbox
+                              type='bare'
+                              items={getCheckboxes()}
+                              onChange={onCheckboxesChange}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </li>
+                  </>
                 );
               } else {
                 return (
@@ -154,6 +254,7 @@ export default function SidebarDisplaySettings() {
               // Apply reset to local state of selected displays. This is needed
               // because the modal component (and its state) is kept alive even
               // when the modal is closed.
+              resetFieldsSelection();
               setSelectedDisplays(store.getDisplays(activeTab));
               setIsModalOpen(false);
             }}
@@ -166,6 +267,7 @@ export default function SidebarDisplaySettings() {
             color='light-blue'
             size='m'
             onClick={() => {
+              applyFieldsSelection();
               store.setDisplays(activeTab, selectedDisplays);
               setIsModalOpen(false);
             }}
