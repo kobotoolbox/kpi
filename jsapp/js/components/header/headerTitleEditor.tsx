@@ -39,6 +39,12 @@ class HeaderTitleEditor extends React.Component<
     this.unlisteners.push(assetStore.listen(this.onAssetLoad, this));
   }
 
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
+  }
+
   onAssetLoad() {
     this.setState({
       name: this.props.asset.name,
