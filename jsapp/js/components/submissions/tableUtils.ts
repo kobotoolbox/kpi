@@ -166,7 +166,7 @@ export function getBackgroundAudioQuestionName(
 ): string | null {
   return (
     asset?.content?.survey?.find(
-      (item) => item.type === META_QUESTION_TYPES['background-audio']
+      (item) => item.type === QUESTION_TYPES['background-audio'].id
     )?.name || null
   );
 }

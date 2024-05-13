@@ -12,12 +12,12 @@ import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
 import {escapeHtml} from '../utils';
 import {
+  QuestionTypeName,
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
   NAME_MAX_LENGTH,
-  META_QUESTION_TYPES,
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -589,7 +589,7 @@ export default Object.assign({
 
   hasBackgroundAudio() {
     return this.app?.survey?.surveyDetails.filter(
-      (sd) => sd.attributes.name === META_QUESTION_TYPES['background-audio']
+      (sd) => sd.attributes.name === QuestionTypeName['background-audio']
     )[0].attributes.value;
   },
 

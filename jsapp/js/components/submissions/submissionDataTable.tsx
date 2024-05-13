@@ -21,7 +21,11 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
-import type {MetaQuestionTypeName} from 'js/constants';
+import type {
+  AnyRowTypeName,
+  QuestionTypeName,
+  MetaQuestionTypeName,
+} from 'js/constants';
 import './submissionDataTable.scss';
 import type {
   AssetResponse,
@@ -29,6 +33,7 @@ import type {
 } from 'jsapp/js/dataInterface';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import {goToProcessing} from 'js/components/processing/routes.utils';
+import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -264,10 +269,15 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     ));
   }
 
-  renderAttachment(type: string, filename: string, name: string, xpath: string) {
+  renderAttachment(
+    type: AnyRowTypeName | null,
+    filename: string,
+    name: string,
+    xpath: string
+  ) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath);
     if (attachment && attachment instanceof Object) {
-      if (type === QUESTION_TYPES.audio.id) {
+      if (PROCESSING_QUESTION_TYPES.includes(type as QuestionTypeName)) {
         return (
           <React.Fragment>
             <AudioPlayer mediaURL={attachment.download_url} />

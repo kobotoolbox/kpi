@@ -276,7 +276,7 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
   audio: {label: t('Audio'), icon: 'qt-audio', id: QuestionTypeName.audio},
   'background-audio': {
     label: t('Background Audio'),
-    icon: 'qt-audio',
+    icon: 'qt-background-audio',
     id: QuestionTypeName['background-audio'],
   },
   barcode: {
@@ -366,7 +366,6 @@ export enum MetaQuestionTypeName {
   deviceid = 'deviceid',
   phonenumber = 'phonenumber',
   audit = 'audit',
-  'background-audio' = 'background-audio',
   'start-geopoint' = 'start-geopoint',
 }
 
@@ -378,7 +377,6 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName.deviceid,
   MetaQuestionTypeName.phonenumber,
   MetaQuestionTypeName.audit,
-  MetaQuestionTypeName['background-audio'],
   MetaQuestionTypeName['start-geopoint'],
 ]) as {[P in MetaQuestionTypeName]: MetaQuestionTypeName};
 

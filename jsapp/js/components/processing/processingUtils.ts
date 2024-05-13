@@ -1,4 +1,11 @@
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import {QuestionTypeName} from 'js/constants';
+
+/** Single Processing is capable of handling these question types. */
+export const PROCESSING_QUESTION_TYPES = [
+  QuestionTypeName.audio,
+  QuestionTypeName['background-audio']
+];
 
 type SupplementalPathPartsType = 'transcript' | 'translation' | 'qual';
 

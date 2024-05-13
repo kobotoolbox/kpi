@@ -6,6 +6,7 @@ import Icon from 'js/components/common/icon';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Select from 'react-select';
 import {
+  QuestionTypeName,
   META_QUESTION_TYPES,
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
@@ -56,6 +57,16 @@ export default class MetadataEditor extends React.Component {
         newState.metaProperties.push(Object.assign({}, detail.attributes));
       }
     });
+
+    const backgroundAudioDetail = this.getSurveyDetail(
+      QuestionTypeName['background-audio']
+    );
+    if (backgroundAudioDetail) {
+      newState.metaProperties.push(
+        Object.assign({}, backgroundAudioDetail.attributes)
+      );
+    }
+
     this.setState(newState);
   }
 
@@ -78,7 +89,7 @@ export default class MetadataEditor extends React.Component {
     );
     // Append parameters column with ODK_DEFAULT_AUDIO_QUALITY by default for
     // background-audio type
-    if (isChecked && name === META_QUESTION_TYPES['background-audio']) {
+    if (isChecked && name === QuestionTypeName['background-audio']) {
       this.getSurveyDetail(name).set(
         SURVEY_DETAIL_ATTRIBUTES.parameters.id,
         ODK_DEFAULT_AUDIO_QUALITY.value
@@ -108,7 +119,7 @@ export default class MetadataEditor extends React.Component {
   }
 
   onBackgroundAudioParametersChange(newVal) {
-    this.getSurveyDetail(META_QUESTION_TYPES['background-audio']).set(
+    this.getSurveyDetail(QuestionTypeName['background-audio']).set(
       SURVEY_DETAIL_ATTRIBUTES.parameters.id,
       newVal.value
     );
@@ -119,16 +130,12 @@ export default class MetadataEditor extends React.Component {
   }
 
   isBackgroundAudioEnabled() {
-    const metaProp = this.getMetaProperty(
-      META_QUESTION_TYPES['background-audio']
-    );
+    const metaProp = this.getMetaProperty(QuestionTypeName['background-audio']);
     return metaProp.value === true;
   }
 
   getBackgroundAudioParameters() {
-    const metaProp = this.getMetaProperty(
-      META_QUESTION_TYPES['background-audio']
-    );
+    const metaProp = this.getMetaProperty(QuestionTypeName['background-audio']);
     let foundParams = ODK_DEFAULT_AUDIO_QUALITY;
     if (metaProp.parameters) {
       foundParams = AUDIO_QUALITY_OPTIONS.find(
@@ -198,7 +205,7 @@ export default class MetadataEditor extends React.Component {
     ];
 
     let backgroundAudioProp = this.getMetaProperty(
-      META_QUESTION_TYPES['background-audio']
+      QuestionTypeName['background-audio']
     );
 
     return (
@@ -275,7 +282,7 @@ export default class MetadataEditor extends React.Component {
               }
             />
           </bem.FormModal__item>
-         </bem.FormBuilderMeta__row>
+        </bem.FormBuilderMeta__row>
 
         {this.isBackgroundAudioEnabled() && (
           <bem.FormBuilderMeta__row>
