@@ -46,13 +46,16 @@ class FormViewSideTabs extends Reflux.Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.unlisteners = [];
     autoBind(this);
   }
 
   componentDidMount() {
     // On initial load use the possibly stored asset.
-    this.setState({asset: assetStore.getAsset(this.currentAssetID())})
-    this.listenTo(assetStore, this.assetLoad);
+    this.setState({asset: assetStore.getAsset(this.currentAssetID())});
+    this.unlisteners.push(
+      this.listenTo(assetStore, this.assetLoad)
+    );
   }
 
   assetLoad(data) {

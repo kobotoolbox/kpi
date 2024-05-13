@@ -39,7 +39,10 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   componentDidMount() {
     // HACK: re-rendering this every time we navigate is not perfect. We need to
     // come up with a better solution.
-    router!.subscribe(() => this.forceUpdate());
+    const routerUnlistener = router!.subscribe(() => this.forceUpdate());
+    if (routerUnlistener) {
+      this.unlisteners.push(routerUnlistener);
+    }
 
     // Without much refactor, we ensure that the header re-renders itself,
     // whenever any linked store changes.
@@ -144,11 +147,12 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
 
             <HeaderTitleEditor asset={asset} isEditable={userCanEditAsset} />
 
-            {asset.has_deployment && asset.deployment__submission_count !== null && (
-              <bem.MainHeader__counter>
-                {asset.deployment__submission_count} {t('submissions')}
-              </bem.MainHeader__counter>
-            )}
+            {asset.has_deployment &&
+              asset.deployment__submission_count !== null && (
+                <bem.MainHeader__counter>
+                  {asset.deployment__submission_count} {t('submissions')}
+                </bem.MainHeader__counter>
+              )}
           </React.Fragment>
         )}
 
