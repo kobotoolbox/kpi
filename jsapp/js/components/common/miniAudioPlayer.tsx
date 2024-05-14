@@ -225,7 +225,6 @@ class MiniAudioPlayer extends React.Component<
       >
         <audio
           ref={this.audioRef}
-          src={this.props.mediaURL}
           // NOTE: 'metadata' causes an immediate download of part of the file
           // (to get the metadata), usually requires around 30-50KB, but it may
           // vary. Some browser may simply download whole file.
@@ -233,7 +232,9 @@ class MiniAudioPlayer extends React.Component<
           onLoadedMetadata={this.onAudioLoadedBound}
           onTimeUpdate={this.onAudioTimeUpdatedBound}
           onError={this.onAudioErrorBound}
-        />
+        >
+          <source src={this.props.mediaURL} type='audio/mpeg'/>
+        </audio>
         {this.state.isLoading && this.renderLoading()}
         {!this.state.isLoading && this.state.isBroken && this.renderError()}
         {!this.state.isLoading && !this.state.isBroken && this.renderPlayer()}

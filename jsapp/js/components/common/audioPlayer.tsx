@@ -52,7 +52,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
 
   componentDidMount() {
     // Prepare audio.
-    this.audioInterface = new Audio(this.props.mediaURL);
+    const source = document.createElement('source');
+    source.src = this.props.mediaURL;
+    source.type = 'audio/mpeg';
+    this.audioInterface.appendChild(source);
 
     // Set up listeners for audio component.
     this.audioInterface.addEventListener('loadedmetadata', this.onAudioLoadedBound);
