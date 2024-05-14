@@ -416,6 +416,12 @@ export function getTranslatedRowLabel(
   let foundRowIndex: number | undefined;
   let foundRow: SurveyChoice | SurveyRow | undefined;
 
+  // Background audio questions don't have labels, but we need something to be
+  // displayed to users.
+  if (rowName === QUESTION_TYPES['background-audio'].id) {
+    return t('Background audio');
+  }
+
   if (data === undefined) {
     return null;
   }
