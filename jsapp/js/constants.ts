@@ -37,7 +37,10 @@ export const ROOT_URL = (() => {
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
 
-export const ENKETO_ACTIONS = createEnum(['edit', 'view']);
+export enum EnketoActions {
+  edit = 'edit',
+  view = 'view'
+}
 
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,

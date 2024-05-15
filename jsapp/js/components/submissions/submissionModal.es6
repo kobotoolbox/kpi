@@ -10,12 +10,12 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {launchPrinting} from 'utils';
-import {stores} from 'js/stores';
+import pageState from 'js/pageState.store';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
   META_QUESTION_TYPES,
-  ENKETO_ACTIONS,
+  EnketoActions,
 } from 'js/constants';
 import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
@@ -167,7 +167,7 @@ class SubmissionModal extends React.Component {
   }
 
   onDeletedSubmissionCompleted() {
-    stores.pageState.hideModal();
+    pageState.hideModal();
   }
 
   launchEditSubmission() {
@@ -179,7 +179,7 @@ class SubmissionModal extends React.Component {
     enketoHandler.openSubmission(
       this.props.asset.uid,
       this.state.sid,
-      ENKETO_ACTIONS.edit
+      EnketoActions.edit
     ).then(
       () => {this.setState({isEditLoading: false});},
       () => {this.setState({isEditLoading: false});}
@@ -193,7 +193,7 @@ class SubmissionModal extends React.Component {
     enketoHandler.openSubmission(
       this.props.asset.uid,
       this.state.sid,
-      ENKETO_ACTIONS.view
+      EnketoActions.view
     ).then(
       () => {this.setState({isViewLoading: false});}
     );
@@ -203,7 +203,7 @@ class SubmissionModal extends React.Component {
     // Due to how modals are created, we must close this modal and recreate
     // an almost identical one to display the new submission with a different
     // title bar
-    stores.pageState.hideModal();
+    pageState.hideModal();
     actions.resources.duplicateSubmission(this.props.asset.uid, this.state.sid, this.state.submission);
   }
 
@@ -218,7 +218,7 @@ class SubmissionModal extends React.Component {
 
   switchSubmission(sid) {
     this.setState({ loading: true});
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: sid,
       asset: this.props.asset,
@@ -230,7 +230,7 @@ class SubmissionModal extends React.Component {
   prevTablePage() {
     this.setState({ loading: true});
 
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: false,
       page: 'prev',
@@ -240,7 +240,7 @@ class SubmissionModal extends React.Component {
   nextTablePage() {
     this.setState({ loading: true});
 
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: false,
       page: 'next',

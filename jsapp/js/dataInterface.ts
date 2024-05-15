@@ -863,6 +863,14 @@ interface DataInterface {
   [key: string]: Function;
 }
 
+export interface EnketoLinkResponse {
+  url: string;
+  version_id: string;
+  responseJSON?: {
+    detail?: string;
+  }
+}
+
 const $ajax = (o: {}) =>
   $.ajax(Object.assign({}, {dataType: 'json', method: 'GET'}, o));
 
@@ -1757,13 +1765,13 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getEnketoEditLink(uid: string, sid: string): JQuery.jqXHR<any> {
+  getEnketoEditLink(uid: string, sid: string): JQuery.jqXHR<EnketoLinkResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/edit/?return_url=false`,
       method: 'GET',
     });
   },
-  getEnketoViewLink(uid: string, sid: string): JQuery.jqXHR<any> {
+  getEnketoViewLink(uid: string, sid: string): JQuery.jqXHR<EnketoLinkResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/view/`,
       method: 'GET',

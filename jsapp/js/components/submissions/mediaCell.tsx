@@ -1,7 +1,6 @@
 import autoBind from 'react-autobind';
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import {stores} from 'js/stores';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
@@ -19,6 +18,7 @@ import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
 import Icon from 'js/components/common/icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import pageState from 'js/pageState.store';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
@@ -82,7 +82,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   launchMediaModal(evt: MouseEvent | TouchEvent) {
     evt.preventDefault();
 
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
       questionType: this.props.questionType,
       mediaAttachment: this.props.mediaAttachment,
