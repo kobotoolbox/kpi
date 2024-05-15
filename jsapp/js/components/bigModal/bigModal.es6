@@ -29,6 +29,7 @@ import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
 // This should either be more generic or else be it's own component in the account directory.
 import MFAModals from './mfaModals';
+import pageState from 'js/pageState.store';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');
@@ -62,7 +63,7 @@ function getSubmissionTitle(props) {
  * To display a modal, you need to use `pageState` store with `showModal` method:
  *
  * ```
- * stores.pageState.showModal({
+ * pageState.showModal({
  *   type: MODAL_TYPES.NEW_FORM
  * });
  * ```
@@ -273,7 +274,7 @@ class BigModal extends React.Component {
       title: title,
       message: message,
       labels: {ok: t('Close'), cancel: t('Cancel')},
-      onok: stores.pageState.hideModal,
+      onok: pageState.hideModal,
       oncancel: dialog.destroy,
     };
     dialog.set(opts).show();
@@ -289,7 +290,7 @@ class BigModal extends React.Component {
         t('You will lose all unsaved changes.')
       );
     } else {
-      stores.pageState.hideModal();
+      pageState.hideModal();
     }
   }
 

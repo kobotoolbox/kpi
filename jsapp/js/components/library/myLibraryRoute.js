@@ -7,13 +7,13 @@ import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import mixins from 'js/mixins';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
 import {validFileTypes} from 'utils';
 import myLibraryStore from './myLibraryStore';
 import AssetsTable from 'js/components/assetsTable/assetsTable';
 import {MODAL_TYPES} from 'js/constants';
 import {ROOT_BREADCRUMBS} from 'js/components/library/libraryConstants';
 import {ASSETS_TABLE_CONTEXTS} from 'js/components/assetsTable/assetsTableConstants';
+import pageState from 'js/pageState.store';
 
 class MyLibraryRoute extends React.Component {
   constructor(props) {
@@ -70,7 +70,7 @@ class MyLibraryRoute extends React.Component {
    */
   onFileDrop(files, rejectedFiles, evt) {
     if (files.length === 1) {
-      stores.pageState.switchModal({
+      pageState.switchModal({
         type: MODAL_TYPES.LIBRARY_UPLOAD,
         file: files[0],
       });

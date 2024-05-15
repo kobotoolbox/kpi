@@ -13,7 +13,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
 import assetUtils from 'js/assetUtils';
-import {stores} from 'js/stores';
+import pageState from 'js/pageState.store';
 import sessionStore from 'js/stores/session';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
@@ -345,12 +345,12 @@ class ProjectSettings extends React.Component {
    */
 
   goToFormBuilder(assetUid) {
-    stores.pageState.hideModal();
+    pageState.hideModal();
     this.props.router.navigate(`/forms/${assetUid}/edit`);
   }
 
   goToFormLanding() {
-    stores.pageState.hideModal();
+    pageState.hideModal();
 
     let targetUid;
     if (this.state.formAsset) {
@@ -369,7 +369,7 @@ class ProjectSettings extends React.Component {
   }
 
   goToProjectsList() {
-    stores.pageState.hideModal();
+    pageState.hideModal();
     this.props.router.navigate(ROUTES.FORMS);
   }
 

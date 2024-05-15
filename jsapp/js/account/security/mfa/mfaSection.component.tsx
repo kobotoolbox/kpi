@@ -5,7 +5,6 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Icon from 'js/components/common/icon';
 import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from 'js/stores';
 import type {
   MfaUserMethodsResponse,
   MfaActivatedResponse,
@@ -15,6 +14,7 @@ import {MODAL_TYPES} from 'jsapp/js/constants';
 import envStore from 'js/envStore';
 import './mfaSection.scss';
 import {formatTime, formatDate} from 'js/utils';
+import pageState from 'js/pageState.store';
 
 bem.SecurityRow = makeBem(null, 'security-row');
 bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header');
@@ -103,7 +103,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
 
   mfaActivating(response: MfaActivatedResponse) {
     if (response && !response.inModal) {
-      stores.pageState.showModal({
+      pageState.showModal({
         type: MODAL_TYPES.MFA_MODALS,
         qrCode: response.details,
         modalType: 'qr',
@@ -133,7 +133,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
     if (isActive) {
       mfaActions.activate();
     } else {
-      stores.pageState.showModal({
+      pageState.showModal({
         type: MODAL_TYPES.MFA_MODALS,
         modalType: 'deactivate',
         customModalHeader: this.renderCustomHeader(),
@@ -149,7 +149,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   ) {
     evt.preventDefault();
 
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.MFA_MODALS,
       modalType: type,
       customModalHeader: this.renderCustomHeader(),

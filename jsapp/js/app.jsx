@@ -29,12 +29,13 @@ import {
   isTOSAgreementRouteBlockerActive,
 } from 'js/router/routerUtils';
 import {isAnyProcessingRouteActive} from 'js/components/processing/routes.utils';
+import pageState from 'js/pageState.store';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = Object.assign({
-      pageState: stores.pageState.state,
+      pageState: pageState.state,
     });
   }
 
