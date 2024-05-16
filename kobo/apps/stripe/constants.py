@@ -27,10 +27,3 @@ USAGE_LIMIT_MAP = {
     'storage': 'storage_bytes',
     'submission': 'submission',
 }
-
-USAGE_LIMIT_MAP_STRIPE = {
-    'character': 'nlp_character',
-    'seconds': 'nlp_seconds',
-    'storage': 'storage_bytes',
-    'submission': 'submission',
-}
