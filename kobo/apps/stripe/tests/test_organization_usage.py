@@ -101,18 +101,17 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         if interval == 'year':
             period_offset = relativedelta(months=6)
 
-        subscription_item = baker.make(
-            SubscriptionItem, price=price, quantity=1, livemode=False
-        )
-        baker.make(
+        subscription = baker.make(
             Subscription,
             customer=self.customer,
             status='active',
-            items=[subscription_item],
             livemode=False,
             billing_cycle_anchor=self.now - period_offset,
             current_period_end=self.now + period_offset,
             current_period_start=self.now - period_offset,
+        )
+        baker.make(
+            SubscriptionItem, subscription=subscription, price=price, quantity=1, livemode=False
         )
 
     def add_nlp_trackers_for_org(self, time, num_units=1):
