@@ -5,7 +5,7 @@ interface PageStateModalParams {
   [name: string]: any;
 }
 
-interface PageStateStoreState {
+export interface PageStateStoreState {
   assetNavExpanded?: boolean;
   showFixedDrawer?: boolean;
   modal?: PageStateModalParams | false;
