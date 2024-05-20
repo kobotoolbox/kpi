@@ -502,6 +502,9 @@ class Asset(ObjectPermissionMixin,
                 settings='??',
                 path=[qpath, qual_question['uuid']],
             )
+            if field['type'] == 'qual_note':
+                # don't include note question type in exports
+                continue
             try:
                 field['choices'] = qual_question['choices']
             except KeyError:
