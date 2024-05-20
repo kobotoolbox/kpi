@@ -29,10 +29,10 @@ export const EXCLUDED_COLUMNS = [
   '_validation_status',
 ];
 
-export const SORT_VALUES = createEnum([
-  'ASCENDING',
-  'DESCENDING',
-]);
+export enum SortValues {
+  ASCENDING = 'ASCENDING',
+  DESCENDING = 'DESCENDING',
+}
 
 // This is the setting object name from `asset.settings`
 export const DATA_TABLE_SETTING = 'data-table';
@@ -79,7 +79,7 @@ export const DROPDOWN_FILTER_QUESTION_TYPES = [
  * For these question types the UI will display a text filter in Data Table for
  * the matching column.
  */
-export const TEXT_FILTER_QUESTION_TYPES = [
+export const TEXT_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
   QuestionTypeName.barcode,
   QuestionTypeName.calculate,
   QuestionTypeName.date,

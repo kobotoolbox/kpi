@@ -114,6 +114,7 @@ export const AVAILABLE_FORM_STYLES = [
   },
 ];
 
+// TODO: rename this to `ValidationStatusName`
 export type ValidationStatus =
   | 'no_status'
   | 'validation_status_not_approved'

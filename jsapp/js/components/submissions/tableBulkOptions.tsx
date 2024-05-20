@@ -1,45 +1,49 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
 import PopoverMenu from 'js/popoverMenu';
 import alertify from 'alertifyjs';
 import {
   MODAL_TYPES,
   VALIDATION_STATUSES_LIST,
 } from 'js/constants';
+import type {ValidationStatus} from 'js/constants';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
-import {renderCheckbox} from 'utils';
+import {renderCheckbox} from 'js/utils';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
 import {buildFilterQuery} from './tableUtils';
+import type {
+  AssetResponse,
+  SubmissionResponse,
+  BulkSubmissionsRequest,
+} from 'js/dataInterface';
+import pageState from 'js/pageState.store';
+import type {
+  DataTableSelectedRows,
+  ReactTableStateFilteredItem,
+} from 'js/components/submissions/table.types';
 
-/**
- * @prop asset
- * @prop pageSize
- * @prop data
- * @prop totalRowsCount
- * @prop selectedRows
- * @prop selectedAllPages
- * @prop fetchState
- * @prop onClearSelection
- */
-class TableBulkOptions extends React.Component {
-  constructor(props){
-    super(props);
+interface TableBulkOptionsProps {
+  asset: AssetResponse;
+  pageSize: number;
+  data: SubmissionResponse[];
+  totalRowsCount: number;
+  selectedRows: DataTableSelectedRows;
+  selectedAllPages: boolean;
+  fetchState: any;
+  onClearSelection: () => void;
+}
 
-    this.currentDialog = null;
-
-    autoBind(this);
-  }
+class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
+  currentDialog: AlertifyDialogInstance | null = null;
 
   componentDidMount() {
-    actions.submissions.bulkDeleteStatus.completed.listen(this.closeCurrentDialog);
-    actions.submissions.bulkDeleteStatus.failed.listen(this.closeCurrentDialog);
-    actions.submissions.bulkPatchStatus.completed.listen(this.closeCurrentDialog);
-    actions.submissions.bulkPatchStatus.failed.listen(this.closeCurrentDialog);
-    actions.submissions.bulkDelete.completed.listen(this.closeCurrentDialog);
-    actions.submissions.bulkDelete.failed.listen(this.closeCurrentDialog);
+    actions.submissions.bulkDeleteStatus.completed.listen(this.closeCurrentDialog.bind(this));
+    actions.submissions.bulkDeleteStatus.failed.listen(this.closeCurrentDialog.bind(this));
+    actions.submissions.bulkPatchStatus.completed.listen(this.closeCurrentDialog.bind(this));
+    actions.submissions.bulkPatchStatus.failed.listen(this.closeCurrentDialog.bind(this));
+    actions.submissions.bulkDelete.completed.listen(this.closeCurrentDialog.bind(this));
+    actions.submissions.bulkDelete.failed.listen(this.closeCurrentDialog.bind(this));
   }
 
   closeCurrentDialog() {
@@ -53,82 +57,88 @@ class TableBulkOptions extends React.Component {
     this.props.onClearSelection();
   }
 
-  onUpdateStatus(newStatus) {
-    const data = {};
+  onUpdateStatus(newStatus: ValidationStatus | null) {
+    const requestObj: BulkSubmissionsRequest = {};
     let selectedCount;
+
     // setting empty value requires deleting the statuses with different API call
-    const apiFn =
-      newStatus === null
-        ? actions.submissions.bulkDeleteStatus
-        : actions.submissions.bulkPatchStatus;
+    let apiFn = actions.submissions.bulkPatchStatus;
+    if (newStatus === null) {
+      apiFn = actions.submissions.bulkDeleteStatus;
+    }
 
     if (this.props.selectedAllPages) {
-      if (this.props.fetchState.filtered.length) {
-        // This is the case where user selected the all pages checkbox with some
-        // data filtering
+      if (
+        this.props.fetchState.filtered.length &&
+        this.props.asset.content?.survey
+      ) {
+        // This is the case where user selected the "all pages" checkbox with
+        // some data already being filtered.
         const filterQuery = buildFilterQuery(
           this.props.asset.content.survey,
           this.props.fetchState.filtered
         );
-        data.query = filterQuery.queryObj;
-        data['validation_status.uid'] = newStatus;
+        requestObj.query = filterQuery.queryObj;
+        requestObj['validation_status.uid'] = newStatus;
       } else {
-        // This is the case where user selected the all pages checkbox without
-        // any data filtering
-        data.confirm = true;
-        data['validation_status.uid'] = newStatus;
+        // This is the case where user selected the "all pages" checkbox without
+        // any data filtering.
+        requestObj.confirm = true;
+        requestObj['validation_status.uid'] = newStatus;
       }
       selectedCount = this.props.totalRowsCount;
     } else {
-      data.submission_ids = Object.keys(this.props.selectedRows);
-      data['validation_status.uid'] = newStatus;
-      selectedCount = data.submission_ids.length;
+      requestObj.submission_ids = Object.keys(this.props.selectedRows);
+      requestObj['validation_status.uid'] = newStatus;
+      selectedCount = requestObj.submission_ids.length;
     }
 
     this.closeCurrentDialog(); // just for safety sake
     this.currentDialog = alertify.dialog('confirm');
     const opts = {
       title: t('Update status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', selectedCount),
+      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', String(selectedCount)),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: () => {
-        apiFn(this.props.asset.uid, data);
+        apiFn(this.props.asset.uid, requestObj);
         // keep the dialog open
         return false;
       },
       oncancel: this.closeCurrentDialog,
     };
-    this.currentDialog.set(opts).show();
+    this.currentDialog?.set(opts).show();
   }
 
   onDelete() {
-    const data = {};
+    const requestObj: BulkSubmissionsRequest = {};
     let selectedCount;
 
     if (this.props.selectedAllPages) {
       if (this.props.fetchState.filtered.length) {
-        data.query = {};
-        this.props.fetchState.filtered.map((filteredItem) => {
-          data.query[filteredItem.id] = filteredItem.value;
+        this.props.fetchState.filtered.map((filteredItem: ReactTableStateFilteredItem) => {
+          if (!requestObj.query) {
+            requestObj.query = {};
+          }
+          requestObj.query[filteredItem.id] = filteredItem.value;
         });
       } else {
-        data.confirm = true;
+        requestObj.confirm = true;
       }
       selectedCount = this.props.totalRowsCount;
     } else {
-      data.submission_ids = Object.keys(this.props.selectedRows);
-      selectedCount = data.submission_ids.length;
+      requestObj.submission_ids = Object.keys(this.props.selectedRows);
+      selectedCount = requestObj.submission_ids.length;
     }
     let msg;
     let onshow;
     msg = t('You are about to permanently delete ##count## submissions. It is not possible to recover deleted submissions.')
-      .replace('##count##', selectedCount);
+      .replace('##count##', String(selectedCount));
     msg = `${renderCheckbox('dt1', msg)}`;
 
     this.closeCurrentDialog(); // just for safety sake
     this.currentDialog = alertify.dialog('confirm');
     onshow = () => {
-      let ok_button = this.currentDialog.elements.buttons.primary.firstChild;
+      let ok_button = this.currentDialog?.elements.buttons.primary.firstChild as HTMLButtonElement;
       let $els = $('.alertify-toggle input');
 
       ok_button.disabled = true;
@@ -150,17 +160,17 @@ class TableBulkOptions extends React.Component {
       labels: {ok: t('Delete selected'), cancel: t('Cancel')},
       onshow: onshow,
       onok: () => {
-        actions.submissions.bulkDelete(this.props.asset.uid, data);
+        actions.submissions.bulkDelete(this.props.asset.uid, requestObj);
         // keep the dialog open
         return false;
       },
       oncancel: this.closeCurrentDialog,
     };
-    this.currentDialog.set(opts).show();
+    this.currentDialog?.set(opts).show();
   }
 
   onEdit() {
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.BULK_EDIT_SUBMISSIONS,
       asset: this.props.asset,
       data: this.props.data,
@@ -174,7 +184,7 @@ class TableBulkOptions extends React.Component {
     if (this.props.selectedAllPages) {
       selectedCount = this.props.totalRowsCount;
     }
-    const selectedLabel = t('##count## selected').replace('##count##', selectedCount);
+    const selectedLabel = t('##count## selected').replace('##count##', String(selectedCount));
 
     const maxPageRes = Math.min(this.props.pageSize, this.props.data.length);
     const isSelectAllAvailable = (
