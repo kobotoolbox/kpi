@@ -10,7 +10,7 @@ import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AnyRowTypeName,
   AssetTypeName,
-  ValidationStatus,
+  ValidationStatusName,
   AssetFileType,
 } from 'js/constants';
 import type {PermissionCodename} from 'js/components/permissions/permConstants';
@@ -68,7 +68,7 @@ export interface BulkSubmissionsRequest {
   confirm?: boolean;
   submission_ids?: string[];
   // Needed for updating validation status
-  'validation_status.uid'?: ValidationStatus | null;
+  'validation_status.uid'?: ValidationStatusName | null;
 }
 
 interface AssetFileRequest {
@@ -179,7 +179,7 @@ export interface SubmissionResponse {
   _uuid: string;
   _validation_status: {
     timestamp?: number;
-    uid?: ValidationStatus;
+    uid?: ValidationStatusName;
     by_whom?: string;
     color?: string;
     label?: string;
@@ -876,7 +876,7 @@ interface DataInterface {
 
 export interface ValidationStatusResponse {
   timestamp: number;
-  uid: ValidationStatus;
+  uid: ValidationStatusName;
   /** username */
   by_whom: string;
   /** HEX color */
@@ -1758,7 +1758,7 @@ export const dataInterface: DataInterface = {
   updateSubmissionValidationStatus(
     uid: string,
     sid: string,
-    data: {'validation_status.uid': ValidationStatus}
+    data: {'validation_status.uid': ValidationStatusName}
   ): JQuery.jqXHR<ValidationStatusResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/validation_status/`,

@@ -114,15 +114,14 @@ export const AVAILABLE_FORM_STYLES = [
   },
 ];
 
-// TODO: rename this to `ValidationStatusName`
-export type ValidationStatus =
+export type ValidationStatusName =
   | 'no_status'
   | 'validation_status_not_approved'
   | 'validation_status_approved'
   | 'validation_status_on_hold';
 
 export const VALIDATION_STATUSES: {
-  [id in ValidationStatus]: {value: ValidationStatus | null; label: string};
+  [id in ValidationStatusName]: {value: ValidationStatusName | null; label: string};
 } = {
   no_status: {
     value: null,

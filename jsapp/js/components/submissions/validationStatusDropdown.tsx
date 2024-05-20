@@ -2,11 +2,11 @@ import React from 'react';
 import bem from 'js/bem';
 import Select, {components, OptionProps, SingleValueProps, DropdownIndicatorProps} from 'react-select';
 import {VALIDATION_STATUSES_LIST} from 'js/constants';
-import type {ValidationStatus} from 'js/constants';
+import type {ValidationStatusName} from 'js/constants';
 import './validationStatusDropdown.scss';
 
 export interface ValidationStatusOption {
-  value: ValidationStatus | '' | null;
+  value: ValidationStatusName | '' | null;
   label: string;
 }
 
@@ -67,7 +67,7 @@ function ValidationStatusDropdown(props: ValidationStatusDropdownProps) {
   }
 
   // clone the original list array
-  const optionsArray: Array<{value: ValidationStatus | '' | null; label: string}> = [...VALIDATION_STATUSES_LIST];
+  const optionsArray: Array<{value: ValidationStatusName | '' | null; label: string}> = [...VALIDATION_STATUSES_LIST];
   if (props.isForHeaderFilter) {
     optionsArray.unshift(SHOW_ALL_OPTION);
   }

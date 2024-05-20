@@ -7,7 +7,7 @@ import {
   MODAL_TYPES,
   VALIDATION_STATUSES_LIST,
 } from 'js/constants';
-import type {ValidationStatus} from 'js/constants';
+import type {ValidationStatusName} from 'js/constants';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {renderCheckbox} from 'js/utils';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
@@ -57,7 +57,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
     this.props.onClearSelection();
   }
 
-  onUpdateStatus(newStatus: ValidationStatus | null) {
+  onUpdateStatus(newStatus: ValidationStatusName | null) {
     const requestObj: BulkSubmissionsRequest = {};
     let selectedCount;
 

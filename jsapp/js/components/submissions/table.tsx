@@ -27,10 +27,7 @@ import {
   EnketoActions,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
-import type {
-  AnyRowTypeName,
-  ValidationStatus,
-} from 'js/constants';
+import type {AnyRowTypeName} from 'js/constants';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {formatTimeDateShort} from 'js/utils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
