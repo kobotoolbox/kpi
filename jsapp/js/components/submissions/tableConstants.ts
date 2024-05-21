@@ -93,6 +93,7 @@ export const TEXT_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
   // file available there, so we fallback to text filter
   QuestionTypeName.select_multiple_from_file,
   QuestionTypeName.select_one_from_file,
+  // ENDTODO
   QuestionTypeName.text,
   QuestionTypeName.time,
   META_QUESTION_TYPES.start,
