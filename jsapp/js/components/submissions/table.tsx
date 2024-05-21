@@ -412,7 +412,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen);
   }
 
-  // TODO this most probably should not be a string
   _getColumnWidth(columnId: AnyRowTypeName | string | undefined) {
     if (!columnId) {
       return DEFAULT_DATA_CELL_WIDTH;
@@ -534,10 +533,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <div className='table-submission-actions'>
             {userCanSeeCheckbox && (
               <Checkbox
-                checked={
-                  this.state.selectedRows[row.original._id] ? true : false
-                }
-                onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+                checked={Boolean(this.state.selectedRows[row.original._id])}
+                onClick={(evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => {
+                  this.onRowCheckboxClick(evt, row.original._id);
+                }}
+                onChange={() => {}}
                 disabled={
                   !(
                     userHasPermForSubmission(
@@ -1299,10 +1299,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         page = this.state.currentPage - 1;
       }
 
-      // TODO: this line was added 6 years ago, but fetch instance doesn't have
-      // `setState` so this probably did nothing for 6 years :ok:
-      // fetchInstance.setState({page: page});
-
       this.setState(
         {
           fetchInstance: fetchInstance,
@@ -1313,22 +1309,19 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
   }
 
-  // TODO migrate this to
-  // `onClick={(evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => }
-  // because window.event is deprecated and shouldn't be used
   /**
-   * Handles a given row bulk checkbox change
+   * Handles row checkbox selection for bulk actions.
    */
-  bulkUpdateChange(sid: string, isChecked: boolean) {
+  onRowCheckboxClick(
+    evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>,
+    sid: string
+  ) {
+    const isChecked = evt.currentTarget.checked;
+    const isShiftKeyPressed = Boolean(evt.shiftKey);
+
     const {selectedRows, lastChecked, shiftSelection} = this.state;
 
     if (isChecked) {
-      let isShiftKeyPressed = false;
-      if (window.event) {
-        const eventCast = window.event as any;
-        isShiftKeyPressed = Boolean(eventCast.shiftKey);
-      }
-
       const updatedSelectedRows = {...selectedRows, [sid]: true};
       const updatedShiftSelection = {
         ...shiftSelection,

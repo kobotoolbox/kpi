@@ -11,7 +11,8 @@ bem.Checkbox__label = makeBem(bem.Checkbox, 'label', 'span');
 interface CheckboxProps {
   checked: boolean;
   disabled?: boolean;
-  onChange: (isChecked: boolean) => void;
+  /** `onChange` handler is obligatory, unless `onClick` is being provided */
+  onChange?: (isChecked: boolean) => void;
   /**
    * Useful if you need to hijack the event, e.g. checkbox parent is clickable
    * and clicking the checkbox shouldn't cause that parent click - we can use
@@ -35,7 +36,9 @@ class Checkbox extends React.Component<CheckboxProps, {}> {
   }
 
   onChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.props.onChange(evt.currentTarget.checked);
+    if (this.props.onChange) {
+      this.props.onChange(evt.currentTarget.checked);
+    }
   }
 
   onClick(evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) {
