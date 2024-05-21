@@ -18,7 +18,6 @@
   table-layout: fixed;
   border-collapse: collapse;
   border-spacing: 0;
-  width: variables.$plans-page-card-width;
 
   & tr {
     border-top: 1px solid colors.$kobo-light-storm;
@@ -32,14 +31,12 @@
     padding-block: 1em;
     font-weight: 600;
     font-size: sizes.$x16;
-    overflow: hidden;
   }
 }
 
 .product,
 .price {
-  width: 100%;
-  line-height: 2em;
+  width: 50%;
 }
 
 .price {
@@ -47,12 +44,12 @@
 }
 
 .oneTimePrice {
-  width: 20%;
+  width: 15%;
   text-align: center;
   font-weight: 600;
   font-size: sizes.$x16;
   color: colors.$kobo-gray-40;
-  padding-right: 1.5%;
+  padding-right: sizes.$x15;
 }
 
 .dropDown {
@@ -73,7 +70,7 @@
 }
 
 .buy {
-  width: 30%;
+  width: 40%;
 }
 
 .oneTime {
@@ -90,23 +87,10 @@
   text-align: right;
   font-size: sizes.$x16;
   font-weight: 600;
+  padding-right: sizes.$x10;
 }
 
 @media screen and (min-width: breakpoints.$b1000) {
-  .table {
-    padding: 1em;
-    width: variables.$plans-page-max-width;
-  }
-
-  .price {
-    margin-left: sizes.$x600;
-    margin-top: -(sizes.$x30);
-  }
-
-  .buy {
-    width: 15%;
-  }
-
   .table td:nth-child(2) {
     margin-inline-end: 10em;
   }

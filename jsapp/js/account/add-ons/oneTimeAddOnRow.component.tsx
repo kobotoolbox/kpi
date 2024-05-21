@@ -147,7 +147,7 @@ export const OneTimeAddOnRow = ({
           {displayName === 'File Storage' ? (
             <KoboSelect3
               size={'fit'}
-              name='prices'
+              name={t('prices')}
               options={priceOptions}
               onChange={onChangePrice}
               value={selectedPrice.id}
@@ -155,7 +155,7 @@ export const OneTimeAddOnRow = ({
           ) : (
             <KoboSelect3
               size={'fit'}
-              name='quantity'
+              name={t('quantity')}
               options={quantityOptions}
               onChange={onChangeQuantity}
               value={quantity}
@@ -172,7 +172,7 @@ export const OneTimeAddOnRow = ({
         {isSubscribedAddOnPrice && (
           <BillingButton
             size={'m'}
-            label='Buy now'
+            label={t('Buy now')}
             isDisabled={Boolean(selectedPrice) && isBusy}
             onClick={onClickBuy}
             isFullWidth
