@@ -21,7 +21,7 @@ from ...exceptions import (
     TranscriptionResultsNotFound,
 )
 
-REQUEST_TIMEOUT = 5  # seconds
+REQUEST_TIMEOUT = 10  # seconds
 # https://cloud.google.com/speech-to-text/quotas#content
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
 SYNC_MAX_LENGTH = timedelta(seconds=59)
@@ -43,7 +43,7 @@ class GoogleTransXEngine(ABC):
         self.bucket = self.storage_client.bucket(bucket_name=settings.GS_BUCKET_NAME)
 
     @abstractmethod
-    def begin_async_google_operation(self) -> (object, int):
+    def begin_async_google_operation(self, *args: str) -> (object, int):
         return ({}, 0)
 
     @property
@@ -62,46 +62,42 @@ class GoogleTransXEngine(ABC):
             self.asset.id,
         )
 
-    def handle_google_task_asynchronously(self, api_name, api_version, user_id, *args):
-        cache_key = make_async_cache_key(user_id, *args)
-        transcript = []
+    @abstractmethod
+    def append_operations_response(self, results, *args) -> [object]:
+        pass
+
+    @abstractmethod
+    def append_api_response(self, results, *args) -> [object]:
+        pass
+
+    def handle_google_task_asynchronously(self, api_name, api_version, resource, *args):
+        cache_key = make_async_cache_key(*args)
         # Stop Me If You Think You've Heard This One Before
         if operation_name := cache.get(cache_key):
             google_service = discovery.build(api_name, api_version, credentials=self.credentials)
-            operation = google_service.operations().get(name=operation_name).execute()
-            if not operation["done"]:
+            resource_path = resource.split('.')
+            for subresource in resource_path:
+                google_service = getattr(google_service, subresource)()
+            operation = google_service.get(name=operation_name)
+            operation = operation.execute()
+            print(operation)
+            if not (operation.get('done') or operation.get('state') == 'SUCCEEDED'):
                 raise SubsequenceTimeoutError
 
-            try:
-                results = operation['response']['results']
-            except KeyError:
-                raise TranscriptionResultsNotFound
-
-            # operations api uses a dict, while speech api uses objects
-            for result in results:
-                alternatives = result['alternatives']
-                transcript.append({
-                    'transcript': alternatives[0]['transcript'],
-                    'confidence': alternatives[0]['confidence'],
-                })
+            transcript = self.append_operations_response(operation, *args)
         else:
-            (results, amount) = self.begin_async_google_operation()
-
+            print(f'--couldn\'t find key {cache_key}')
+            (results, amount) = self.begin_async_google_operation(*args)
+            print(results.operation)
             cache.set(cache_key, results.operation.name, GOOGLE_CACHE_TIMEOUT)
-
+            print(cache.get(cache_key))
             self.update_counters(amount)
 
             try:
                 result = results.result(timeout=REQUEST_TIMEOUT)
             except TimeoutError as err:
                 raise SubsequenceTimeoutError from err
-            # ensure this object based version matches operations api version
-            for result in result.results:
-                alternatives = result.alternatives
-                transcript.append({
-                    'transcript': alternatives[0].transcript,
-                    'confidence': alternatives[0].confidence,
-                })
+            transcript = self.append_api_response(result, *args)
 
         cache.delete(cache_key)
         return transcript
@@ -118,9 +114,7 @@ class AutoTranscription:
 class GoogleTranscribeEngine(AutoTranscription, GoogleTransXEngine):
     def __init__(self):
         super().__init__()
-        self.asset = None
         self.destination_path = None
-        self.credentials = google_credentials_from_constance_config()
         self.storage_client = storage.Client(credentials=self.credentials)
         self.bucket = self.storage_client.bucket(bucket_name=settings.GS_BUCKET_NAME)
 
@@ -167,18 +161,15 @@ class GoogleTranscribeEngine(AutoTranscription, GoogleTransXEngine):
         to check if operation is finished and return results
         """
         self.asset = asset
-        self.xpath = xpath
-        self.submission_id = submission_id
-        self.source = source
         self.user = user
 
-        return self.handle_google_task_asynchronously('speech', 'v1', user.pk, submission_id, xpath, source)
+        return self.handle_google_task_asynchronously('speech', 'v1', 'operations', user.pk, submission_id, xpath, source)
 
-    def begin_async_google_operation(self):
+    def begin_async_google_operation(self, submission_id, xpath, source):
         # get the audio file in a Google supported format
         flac_content, duration = self.get_converted_audio(
-            xpath=self.xpath,
-            submission_id=self.submission_id,
+            xpath=xpath,
+            submission_id=submission_id,
             user=self.user,
         )
         total_seconds = int(duration.total_seconds())
@@ -187,7 +178,7 @@ class GoogleTranscribeEngine(AutoTranscription, GoogleTransXEngine):
             credentials=self.credentials
         )
         config = speech.RecognitionConfig(
-            language_code=self.source,
+            language_code=source,
             enable_automatic_punctuation=True,
         )
 
@@ -207,3 +198,29 @@ class GoogleTranscribeEngine(AutoTranscription, GoogleTransXEngine):
     @property
     def counter_name(self):
         return 'google_asr_seconds'
+
+    def append_operations_response(self, operation, *args):
+        # operations api uses a dict, while speech api uses objects
+        try:
+            results = operation['response']['results']
+        except KeyError:
+            raise TranscriptionResultsNotFound
+        transcript = []
+        for result in results:
+            alternatives = result['alternatives']
+            transcript.append({
+                'transcript': alternatives[0]['transcript'],
+                'confidence': alternatives[0]['confidence'],
+            })
+        return transcript
+
+    def append_api_response(self, results, *args):
+        # ensure this object based version matches operations api version
+        transcript = []
+        for result in results:
+            alternatives = result.alternatives
+            transcript.append({
+                'transcript': alternatives[0].transcript,
+                'confidence': alternatives[0].confidence,
+            })
+        return transcript

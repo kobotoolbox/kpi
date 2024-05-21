@@ -100,7 +100,7 @@ interface SubmissionsEditIds {
   }>;
 }
 
-interface AutoTranscriptionEvent {
+interface AutoTransXEvent {
   response: ProcessingDataResponse;
   submissionEditId: string;
 }
@@ -123,6 +123,7 @@ interface SingleProcessingStoreData {
   /** Marks some backend calls being in progress. */
   isFetchingData: boolean;
   isPollingForTranscript: boolean;
+  isPollingForTranslation: boolean;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -152,6 +153,7 @@ class SingleProcessingStore extends Reflux.Store {
     isPristine: true,
     isFetchingData: false,
     isPollingForTranscript: false,
+    isPollingForTranslation: false,
   };
 
   /** Clears all data - useful before making initialisation call */
@@ -272,6 +274,9 @@ class SingleProcessingStore extends Reflux.Store {
     );
     processingActions.requestAutoTranslation.completed.listen(
       this.onRequestAutoTranslationCompleted.bind(this)
+    );
+    processingActions.requestAutoTranslation.completed.listen(
+      this.onRequestAutoTranslationInProgress.bind(this)
     );
     processingActions.requestAutoTranslation.failed.listen(
       this.onAnyCallFailed.bind(this)
@@ -640,22 +645,22 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private isAutoTranscriptionEventApplicable(event: AutoTranscriptionEvent) {
+  private isAutoTranscriptionEventApplicable(event: AutoTransXEvent) {
     // Note: previously initiated automatic transcriptions may no longer be
     // applicable to the current route
-    const googleTsResponse =
-      event.response[this.currentQuestionQpath]?.googlets;
+    const googleTxResponse =
+      event.response[this.currentQuestionQpath]?.googletx;
     return (
       event.submissionEditId === this.currentSubmissionEditId &&
-      googleTsResponse &&
+      googleTxResponse &&
       this.data.transcriptDraft &&
-      (googleTsResponse.languageCode ===
+      (googleTxResponse.languageCode ===
         this.data.transcriptDraft.languageCode ||
-        googleTsResponse.languageCode === this.data.transcriptDraft.regionCode)
+        googleTxResponse.languageCode === this.data.transcriptDraft.regionCode)
     );
   }
 
-  private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
+  private onRequestAutoTranscriptionCompleted(event: AutoTransXEvent) {
     if (
       !this.currentQuestionQpath ||
       !this.data.isPollingForTranscript ||
@@ -673,7 +678,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptionInProgress(event: AutoTranscriptionEvent) {
+  private onRequestAutoTranscriptionInProgress(event: AutoTransXEvent) {
     setTimeout(() => {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
@@ -696,8 +701,22 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
-    const googleTxResponse = response[this.currentQuestionQpath]?.googletx;
+  private isAutoTranslationEventApplicable(event: AutoTransXEvent) {
+    const googleTxResponse =
+      event.response[this.currentQuestionQpath]?.googletx;
+    return (
+      event.submissionEditId === this.currentSubmissionEditId &&
+      googleTxResponse &&
+      this.data.translationDraft &&
+      (googleTxResponse.languageCode ===
+        this.data.translationDraft.languageCode ||
+        googleTxResponse.languageCode === this.data.translationDraft.regionCode)
+    );
+  }
+
+  private onRequestAutoTranslationCompleted(event: AutoTransXEvent) {
+    const googleTxResponse =
+      event.response[this.currentQuestionQpath]?.googletx;
 
     this.data.isFetchingData = false;
     if (
@@ -712,6 +731,23 @@ class SingleProcessingStore extends Reflux.Store {
 
     this.setNotPristine();
     this.trigger(this.data);
+  }
+
+  private onRequestAutoTranslationInProgress(event: AutoTransXEvent) {
+    setTimeout(() => {
+      // make sure to check for applicability *after* the timeout fires, not
+      // before. someone can do a lot of navigating in 5 seconds
+      if (this.isAutoTranslationEventApplicable(event)) {
+        this.data.isPollingForTranslation = true;
+        console.log('trying to poll!');
+        this.requestAutoTranslation(
+          event.response[this.currentQuestionQpath]!.googlets!.languageCode
+        );
+      } else {
+        console.log('no more poling!');
+        this.data.isPollingForTranslation = false;
+      }
+    }, 5000);
   }
 
   /**
@@ -964,10 +1000,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** Returns available displays for given tab */
   getAvailableDisplays(tabName: ProcessingTab) {
-    const outcome: DisplaysList = [
-      StaticDisplays.Audio,
-      StaticDisplays.Data,
-    ];
+    const outcome: DisplaysList = [StaticDisplays.Audio, StaticDisplays.Data];
     if (tabName !== ProcessingTab.Transcript && this.data.transcript) {
       outcome.push(StaticDisplays.Transcript);
     }

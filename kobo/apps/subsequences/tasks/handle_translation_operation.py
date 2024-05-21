@@ -24,7 +24,6 @@ def handle_google_translation_operation(
     operation_name: str,
     operation_dir: str,
     blob_name_includes: str,
-
     submission_uuid: str,
     xpath: str,
     target_lang: str,

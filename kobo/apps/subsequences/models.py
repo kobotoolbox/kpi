@@ -106,37 +106,32 @@ class SubmissionExtras(models.Model):
                 tx_engine = GoogleTranslationEngine()
                 # FIXME Code is hardcoded and should be dynamic
                 service = TranslationService.objects.get(code='goog')
-                update_nlp_counter(
-                    'google_mt_characters',
-                    len(content),
-                    self.asset.owner_id,
-                    self.asset.id
-                )
                 if tx_engine.translation_must_be_async(content):
                     # must queue
-                    followup_params = tx_engine.translate_async(
-                        # the string to translate
-                        content=content,
-                        # field IDs to tell us where to save results
-                        submission_uuid=self.submission_uuid,
-                        xpath=key,
-                        # username is used in the label of the request
-                        username=self.asset.owner.username,
-                        # the rest
-                        source_lang=service.get_language_code(source_lang),
-                        target_lang=service.get_language_code(target_lang),
-                    )
-                    handle_google_translation_operation.apply_async(
-                        kwargs=followup_params,
-                        countdown=ASYNC_TRANSLATION_DELAY_INTERVAL,
-                    )
+                    try:
+                        (response, _) = tx_engine.translate_async(
+                            asset=self.asset,
+                            # the string to translate
+                            content=content,
+                            # field IDs to tell us where to save results
+                            submission_uuid=self.submission_uuid,
+                            xpath=key,
+                            # username is used in the label of the request
+                            username=self.asset.owner.username,
+                            # the rest
+                            source_lang=service.get_language_code(source_lang),
+                            target_lang=service.get_language_code(target_lang),
+                        )
+                    except SubsequenceTimeoutError:
+                        continue
                     # FIXME: clobbers previous translations; we want a record
                     # of what Google returned, and another async translation
                     # could be in progress
                     vals[GOOGLETX] = {
-                        'status': 'in_progress',
+                        'status': 'complete',
                         'source': source_lang,
                         'languageCode': target_lang,
+                        'value': response,
                     }
                 else:
                     results = tx_engine.translate_sync(
@@ -149,6 +144,7 @@ class SubmissionExtras(models.Model):
                     # of what Google returned
                     vals[GOOGLETX] = {
                         'status': 'complete',
+                        'source': source_lang,
                         'languageCode': target_lang,
                         'value': results,
                     }

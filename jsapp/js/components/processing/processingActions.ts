@@ -85,7 +85,10 @@ interface TranscriptRequest {
 
 /** Object we send to Back end when requesting an automatic transcription. */
 interface AutoTranscriptRequest {
-  [qpath: string]: string | undefined | {googlets: AutoTranscriptRequestEngineParams};
+  [qpath: string]:
+    | string
+    | undefined
+    | {googlets: AutoTranscriptRequestEngineParams};
   submission?: string;
 }
 interface AutoTranscriptRequestEngineParams {
@@ -96,7 +99,10 @@ interface AutoTranscriptRequestEngineParams {
 
 /** Object we send to Back end when updating translation text manually. */
 interface TranslationRequest {
-  [qpath: string]: string | undefined | {translation: TranslationsRequestObject};
+  [qpath: string]:
+    | string
+    | undefined
+    | {translation: TranslationsRequestObject};
   submission?: string;
 }
 interface TranslationsRequestObject {
@@ -105,7 +111,10 @@ interface TranslationsRequestObject {
 
 /** Object we send to Back end when requesting an automatic translation. */
 interface AutoTranslationRequest {
-  [qpath: string]: string | undefined | {googletx: AutoTranslationRequestEngineParams};
+  [qpath: string]:
+    | string
+    | undefined
+    | {googletx: AutoTranslationRequestEngineParams};
   submission?: string;
 }
 interface AutoTranslationRequestEngineParams {
@@ -160,7 +169,7 @@ const processingActions: ProcessingActionsDefinition = Reflux.createActions({
   // Translation stuff
   setTranslation: {children: ['completed', 'failed']},
   deleteTranslation: {children: ['completed', 'failed']},
-  requestAutoTranslation: {children: ['completed', 'failed']},
+  requestAutoTranslation: {children: ['completed', 'in_progress', 'failed']},
 });
 
 /**
@@ -714,7 +723,14 @@ interface RequestAutoTranslationFn {
 }
 interface RequestAutoTranslationDefinition extends RequestAutoTranslationFn {
   listen: (fn: RequestAutoTranslationFn) => void;
-  completed: ListenableCallback<ProcessingDataResponse>;
+  completed: ListenableCallback<{
+    response: ProcessingDataResponse;
+    submissionEditId: string;
+  }>;
+  in_progress: ListenableCallback<{
+    response: ProcessingDataResponse;
+    submissionEditId: string;
+  }>;
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.requestAutoTranslation.listen(
@@ -743,7 +759,19 @@ processingActions.requestAutoTranslation.listen(
         url: processingUrl,
         data: JSON.stringify(data),
       })
-        .done(processingActions.requestAutoTranslation.completed)
+        .done((response: ProcessingDataResponse) => {
+          if (response[qpath]?.googlets?.status === 'complete') {
+            processingActions.requestAutoTranslation.completed({
+              response,
+              submissionEditId,
+            });
+          } else {
+            processingActions.requestAutoTranslation.in_progress({
+              response,
+              submissionEditId,
+            });
+          }
+        })
         .fail(processingActions.requestAutoTranslation.failed);
     }
   }
