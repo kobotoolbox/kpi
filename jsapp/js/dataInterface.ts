@@ -10,7 +10,6 @@ import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AnyRowTypeName,
   AssetTypeName,
-  ValidationStatusName,
   AssetFileType,
 } from 'js/constants';
 import type {PermissionCodename} from 'js/components/permissions/permConstants';
@@ -25,6 +24,7 @@ import type {UserResponse} from 'js/users/userExistence.store';
 import type {ReportsResponse} from 'js/components/reports/reportsConstants';
 import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 import type {SortValues} from 'js/components/submissions/tableConstants';
+import type {ValidationStatusName} from 'js/components/submissions/validationStatus.constants';
 
 interface AssetsRequestData {
   q?: string;
@@ -68,7 +68,7 @@ export interface BulkSubmissionsRequest {
   confirm?: boolean;
   submission_ids?: string[];
   // Needed for updating validation status
-  'validation_status.uid'?: ValidationStatusName | null;
+  'validation_status.uid'?: ValidationStatusName;
 }
 
 interface AssetFileRequest {

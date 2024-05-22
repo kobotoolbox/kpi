@@ -3,11 +3,15 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import PopoverMenu from 'js/popoverMenu';
 import alertify from 'alertifyjs';
+import {MODAL_TYPES} from 'js/constants';
 import {
-  MODAL_TYPES,
-  VALIDATION_STATUSES_LIST,
-} from 'js/constants';
-import type {ValidationStatusName} from 'js/constants';
+  ValidationStatusAdditionalName,
+  VALIDATION_STATUS_OPTIONS,
+} from 'js/components/submissions/validationStatus.constants';
+import type {
+  ValidationStatusName,
+  ValidationStatusOptionName,
+} from 'js/components/submissions/validationStatus.constants';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {renderCheckbox} from 'js/utils';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
@@ -57,13 +61,13 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
     this.props.onClearSelection();
   }
 
-  onUpdateStatus(newStatus: ValidationStatusName | null) {
+  onUpdateStatus(newStatus: ValidationStatusOptionName) {
     const requestObj: BulkSubmissionsRequest = {};
     let selectedCount;
 
     // setting empty value requires deleting the statuses with different API call
     let apiFn = actions.submissions.bulkPatchStatus;
-    if (newStatus === null) {
+    if (newStatus === ValidationStatusAdditionalName.no_status) {
       apiFn = actions.submissions.bulkDeleteStatus;
     }
 
@@ -79,17 +83,17 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
           this.props.fetchState.filtered
         );
         requestObj.query = filterQuery.queryObj;
-        requestObj['validation_status.uid'] = newStatus;
+        requestObj['validation_status.uid'] = newStatus as ValidationStatusName;
       } else {
         // This is the case where user selected the "all pages" checkbox without
         // any data filtering.
         requestObj.confirm = true;
-        requestObj['validation_status.uid'] = newStatus;
+        requestObj['validation_status.uid'] = newStatus as ValidationStatusName;
       }
       selectedCount = this.props.totalRowsCount;
     } else {
       requestObj.submission_ids = Object.keys(this.props.selectedRows);
-      requestObj['validation_status.uid'] = newStatus;
+      requestObj['validation_status.uid'] = newStatus as ValidationStatusName;
       selectedCount = requestObj.submission_ids.length;
     }
 
@@ -104,7 +108,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         // keep the dialog open
         return false;
       },
-      oncancel: this.closeCurrentDialog,
+      oncancel: this.closeCurrentDialog.bind(this),
     };
     this.currentDialog?.set(opts).show();
   }
@@ -164,7 +168,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         // keep the dialog open
         return false;
       },
-      oncancel: this.closeCurrentDialog,
+      oncancel: this.closeCurrentDialog.bind(this),
     };
     this.currentDialog?.set(opts).show();
   }
@@ -197,7 +201,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         {selectedCount > 1 &&
           <bem.KoboLightBadge>
             {selectedLabel}
-            <a className='bulk-clear-badge-icon' onClick={this.onClearSelection}>&times;</a>
+            <a className='bulk-clear-badge-icon' onClick={this.onClearSelection.bind(this)}>&times;</a>
           </bem.KoboLightBadge>
         }
 
@@ -206,7 +210,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         {Object.keys(this.props.selectedRows).length > 0 &&
           <PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Change status')} >
             {(userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)) &&
-              VALIDATION_STATUSES_LIST.map((item, n) => {
+              VALIDATION_STATUS_OPTIONS.map((item, n) => {
                 return (
                   <bem.PopoverMenu__link
                     onClick={this.onUpdateStatus.bind(this, item.value)}
@@ -223,7 +227,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         {Object.keys(this.props.selectedRows).length > 0 && this.props.asset.deployment__active && (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
           <bem.KoboLightButton
             m='blue'
-            onClick={this.onEdit}
+            onClick={this.onEdit.bind(this)}
             disabled={this.props.selectedAllPages && isSelectAllAvailable}
           >
             <i className='k-icon k-icon-edit table-meta__additional-text'/>
@@ -234,7 +238,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         {Object.keys(this.props.selectedRows).length > 0 && (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
           <bem.KoboLightButton
             m='red'
-            onClick={this.onDelete}
+            onClick={this.onDelete.bind(this)}
           >
             <i className='k-icon k-icon-trash table-meta__additional-text'/>
             {t('Delete')}

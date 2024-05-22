@@ -11,14 +11,19 @@ import pageState from 'js/pageState.store';
 import type {PageStateStoreState} from 'js/pageState.store';
 import ReactTable from 'react-table';
 import type {CellInfo} from 'react-table';
-import ValidationStatusDropdown, {
-  SHOW_ALL_OPTION,
-} from 'js/components/submissions/validationStatusDropdown';
-import type {ValidationStatusOption} from 'js/components/submissions/validationStatusDropdown';
+import ValidationStatusDropdown from 'js/components/submissions/validationStatusDropdown';
+import type {
+  ValidationStatusOption,
+  ValidationStatusOptionName,
+} from 'js/components/submissions/validationStatus.constants';
+import {
+  ValidationStatusAdditionalName,
+  VALIDATION_STATUS_OPTIONS,
+  VALIDATION_STATUS_SHOW_ALL_OPTION,
+  VALIDATION_STATUS_NO_OPTION,
+} from 'js/components/submissions/validationStatus.constants';
 import {DebounceInput} from 'react-debounce-input';
 import {
-  VALIDATION_STATUSES,
-  VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
   QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
@@ -363,14 +368,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   /**
    * @param {object} originalRow
-   * @returns {object} one of VALIDATION_STATUSES
+   * @returns {object} one of ValidationStatusOption
    */
-  getValidationStatusOption(originalRow: SubmissionResponse): ValidationStatusOption {
-    if (originalRow._validation_status && originalRow._validation_status.uid) {
-      return VALIDATION_STATUSES[originalRow._validation_status.uid];
-    } else {
-      return VALIDATION_STATUSES.no_status;
-    }
+  getCurrentValidationStatusOption(originalRow: SubmissionResponse): ValidationStatusOption {
+    const foundOption = VALIDATION_STATUS_OPTIONS.find((option) =>
+      option.value === originalRow._validation_status?.uid
+    );
+
+    // If submission doesn't have a validation status, we return the no option option :)
+    return foundOption || VALIDATION_STATUS_NO_OPTION;
   }
 
   /**
@@ -378,11 +384,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    */
   onValidationStatusChange(
     sid: string,
-    newValidationStatus: ValidationStatusOption['value']
+    newValidationStatus: ValidationStatusOptionName
   ) {
     const _this = this;
 
-    if (newValidationStatus === null) {
+    if (newValidationStatus === ValidationStatusAdditionalName.no_status) {
       actions.resources.removeSubmissionValidationStatus(
         _this.props.asset.uid,
         sid
@@ -624,13 +630,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
       Filter: ({filter, onChange}) => {
-        let currentOption: ValidationStatusOption = VALIDATION_STATUSES_LIST.find(
+        let currentOption: ValidationStatusOption = VALIDATION_STATUS_OPTIONS.find(
           (item) => item.value === filter?.value
-        ) || SHOW_ALL_OPTION;
+        ) || VALIDATION_STATUS_SHOW_ALL_OPTION;
 
         return (
           <ValidationStatusDropdown
-            onChange={onChange}
+            onChange={(newValue) => {
+              // For `show_all` option we need to pass empty string
+              if (newValue === ValidationStatusAdditionalName.show_all) {
+                onChange('');
+              } else {
+                onChange(newValue);
+              }
+            }}
             currentValue={currentOption}
             isForHeaderFilter
           />
@@ -641,7 +654,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           onChange={(newValue) => {
             this.onValidationStatusChange(row.original._id, newValue);
           }}
-          currentValue={this.getValidationStatusOption(row.original)}
+          currentValue={this.getCurrentValidationStatusOption(row.original)}
           isDisabled={
             !userHasPermForSubmission(
               PERMISSIONS_CODENAMES.validate_submissions,
@@ -1290,14 +1303,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       pageState.modal.type === MODAL_TYPES.SUBMISSION &&
       !pageState.modal.sid
     ) {
-      let page = 0;
       const fetchInstance = this.state.fetchInstance;
-      if (pageState.modal.page === 'next') {
-        page = this.state.currentPage + 1;
-      }
-      if (pageState.modal.page === 'prev') {
-        page = this.state.currentPage - 1;
-      }
 
       this.setState(
         {

@@ -114,40 +114,6 @@ export const AVAILABLE_FORM_STYLES = [
   },
 ];
 
-export type ValidationStatusName =
-  | 'no_status'
-  | 'validation_status_not_approved'
-  | 'validation_status_approved'
-  | 'validation_status_on_hold';
-
-export const VALIDATION_STATUSES: {
-  [id in ValidationStatusName]: {value: ValidationStatusName | null; label: string};
-} = {
-  no_status: {
-    value: null,
-    label: '—',
-  },
-  validation_status_not_approved: {
-    value: 'validation_status_not_approved',
-    label: t('Not approved'),
-  },
-  validation_status_approved: {
-    value: 'validation_status_approved',
-    label: t('Approved'),
-  },
-  validation_status_on_hold: {
-    value: 'validation_status_on_hold',
-    label: t('On hold'),
-  },
-};
-
-export const VALIDATION_STATUSES_LIST = [
-  VALIDATION_STATUSES.no_status,
-  VALIDATION_STATUSES.validation_status_not_approved,
-  VALIDATION_STATUSES.validation_status_approved,
-  VALIDATION_STATUSES.validation_status_on_hold,
-];
-
 /**
  * All possible asset types.
  */
@@ -626,8 +592,6 @@ const constants = {
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
   AVAILABLE_FORM_STYLES,
-  VALIDATION_STATUSES,
-  VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
   ASSET_FILE_TYPES,
   QUESTION_TYPES,

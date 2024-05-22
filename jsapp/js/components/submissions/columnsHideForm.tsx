@@ -140,7 +140,7 @@ class ColumnsHideForm extends React.Component<
 
         <TextBox
           value={this.state.filterPhrase}
-          onChange={this.onFilterPhraseChange}
+          onChange={this.onFilterPhraseChange.bind(this)}
           placeholder={t('Find a field')}
         />
 
@@ -172,7 +172,7 @@ class ColumnsHideForm extends React.Component<
         <bem.ColumnsHideForm__footer>
           <bem.KoboLightButton
             m={['red', 'full-width']}
-            onClick={this.onReset}
+            onClick={this.onReset.bind(this)}
             disabled={this.state.isPending}
           >
             {t('Reset')}
@@ -180,7 +180,7 @@ class ColumnsHideForm extends React.Component<
 
           <bem.KoboLightButton
             m={['blue', 'full-width']}
-            onClick={this.onApply}
+            onClick={this.onApply.bind(this)}
             disabled={this.state.isPending}
           >
             {t('Apply')}

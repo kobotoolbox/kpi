@@ -1,29 +1,33 @@
 import React from 'react';
 import bem from 'js/bem';
-import Select, {components, OptionProps, SingleValueProps, DropdownIndicatorProps} from 'react-select';
-import {VALIDATION_STATUSES_LIST} from 'js/constants';
-import type {ValidationStatusName} from 'js/constants';
+import Select, {
+  components,
+  OptionProps,
+  SingleValueProps,
+  DropdownIndicatorProps
+} from 'react-select';
+import {
+  VALIDATION_STATUS_OPTIONS,
+  VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL,
+  ValidationStatusAdditionalName,
+} from 'js/components/submissions/validationStatus.constants';
+import type {
+  ValidationStatusOption,
+  ValidationStatusOptionName,
+} from 'js/components/submissions/validationStatus.constants';
 import './validationStatusDropdown.scss';
 
-export interface ValidationStatusOption {
-  value: ValidationStatusName | '' | null;
-  label: string;
-}
-
-export const SHOW_ALL_OPTION: ValidationStatusOption = Object.freeze({
-  value: '',
-  label: t('Show All'),
-});
-
 interface ValidationStatusDropdownProps {
-  onChange: (newValue: ValidationStatusOption['value']) => void;
+  /** Calls back with `value`, not option object */
+  onChange: (newValue: ValidationStatusOptionName) => void;
+  /** This is the whole option object */
   currentValue: ValidationStatusOption;
   isDisabled?: boolean;
   /** For gray background, includes additional option */
   isForHeaderFilter?: boolean;
 }
 
-function ValidationStatusDropdown(props: ValidationStatusDropdownProps) {
+export default function ValidationStatusDropdown(props: ValidationStatusDropdownProps) {
   // for rendering options as colorful badges
   function CustomOption(innerProps: OptionProps<ValidationStatusOption>) {
     const badgeModifiers = [String(innerProps.getValue())];
@@ -67,9 +71,9 @@ function ValidationStatusDropdown(props: ValidationStatusDropdownProps) {
   }
 
   // clone the original list array
-  const optionsArray: Array<{value: ValidationStatusName | '' | null; label: string}> = [...VALIDATION_STATUSES_LIST];
+  let optionsArray = VALIDATION_STATUS_OPTIONS;
   if (props.isForHeaderFilter) {
-    optionsArray.unshift(SHOW_ALL_OPTION);
+    optionsArray = VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL;
   }
 
   const selectClassNames = [
@@ -93,11 +97,23 @@ function ValidationStatusDropdown(props: ValidationStatusDropdownProps) {
       isSearchable={false}
       value={props.currentValue}
       options={optionsArray}
-      onChange={(newValue) => {
-        if (newValue !== null && 'value' in newValue) {
-          props.onChange(newValue.value);
-        } else {
-          props.onChange(null);
+      onChange={(newSelectedOption) => {
+        if (
+          // This should not happen, as we are dealing with `isClearable={false}`
+          newSelectedOption === null ||
+          // This should not happen, as we are dealing with not `isMulti`
+          Array.isArray(newSelectedOption)
+        ) {
+          //
+          if (props.isForHeaderFilter) {
+            props.onChange(ValidationStatusAdditionalName.show_all);
+          } else {
+            props.onChange(ValidationStatusAdditionalName.no_status);
+          }
+        }
+
+        if (newSelectedOption !== null && 'value' in newSelectedOption) {
+          props.onChange(newSelectedOption.value);
         }
       }}
       className={selectClassNames.join(' ')}
@@ -106,5 +122,3 @@ function ValidationStatusDropdown(props: ValidationStatusDropdownProps) {
     />
   );
 }
-
-export default ValidationStatusDropdown;

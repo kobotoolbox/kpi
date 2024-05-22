@@ -4,8 +4,8 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
-  VALIDATION_STATUSES,
 } from 'js/constants';
+import {ValidationStatusAdditionalName} from 'js/components/submissions/validationStatus.constants';
 import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
@@ -317,7 +317,7 @@ export function buildFilterQuery(
         break;
       }
       case VALIDATION_STATUS_ID_PROP: {
-        if (filter.value === VALIDATION_STATUSES.no_status.value) {
+        if (filter.value === ValidationStatusAdditionalName.no_status) {
           output.queryObj[filter.id] = null;
         } else {
           output.queryObj[filter.id] = filter.value;
