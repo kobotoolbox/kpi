@@ -9,9 +9,13 @@ from django_request_cache import cache_for_request
 from kobo.apps.organizations.types import UsageType
 
 if settings.STRIPE_ENABLED:
-   from djstripe.models import Customer, Subscription
-   from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, ORGANIZATION_USAGE_MAX_CACHE_AGE, \
-     USAGE_LIMIT_MAP
+    from djstripe.models import Customer, Subscription
+    from kobo.apps.stripe.constants import (
+        ACTIVE_STRIPE_STATUSES,
+        ORGANIZATION_USAGE_MAX_CACHE_AGE,
+        USAGE_LIMIT_MAP_STRIPE,
+        USAGE_LIMIT_MAP,
+    )
 from functools import partial
 
 from organizations.abstract import (
@@ -85,7 +89,7 @@ class Organization(AbstractOrganization):
             # TODO: re-fetch service usage data if stale
             pass
         cached_usage = self.serializable_value(f'{USAGE_LIMIT_MAP[limit_type]}_limit')
-        stripe_key = f'{USAGE_LIMIT_MAP[limit_type]}_limit'
+        stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[limit_type]}_limit'
         current_limit = Organization.objects.filter(
             id=self.id,
             djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,

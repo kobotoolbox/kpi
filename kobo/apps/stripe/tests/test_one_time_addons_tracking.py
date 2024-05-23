@@ -71,7 +71,7 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
                 'product_type': 'plan',
                 'plan_type': 'enterprise',
                 'organizations': True,
-                'asr_seconds_limit': self.subscription_limit,
+                'nlp_seconds_limit': self.subscription_limit,
             },
         )
         price = baker.make(
