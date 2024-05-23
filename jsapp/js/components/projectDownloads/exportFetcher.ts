@@ -16,7 +16,8 @@ export function getExponentialDelayTime(callCount: number) {
   // This magic number gives a nice grow for the delays.
   const magicFactor = 1.666;
 
-  return Math.round(1000 * Math.max(
+  const count = 
+     Math.round(1000 * Math.max(
     envStore.data.min_retry_time, // Bottom limit
     Math.min(
       envStore.data.max_retry_time, // Top limit
@@ -26,6 +27,10 @@ export function getExponentialDelayTime(callCount: number) {
       )
     )
   ));
+
+  console.log('callCount', callCount);
+  console.log('delay ms:', count);
+  return count;
 }
 
 /**

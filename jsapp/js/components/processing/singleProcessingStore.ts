@@ -34,6 +34,7 @@ import {
   getCurrentProcessingRouteParts,
   ProcessingTab,
 } from 'js/components/processing/routes.utils';
+import {getExponentialDelayTime} from '../projectDownloads/exportFetcher';
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -125,6 +126,7 @@ interface SingleProcessingStoreData {
   isFetchingData: boolean;
   isPollingForTranscript: boolean;
   hiddenSidebarQuestions: string[];
+  exponentialBackoffCount: number;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -155,6 +157,7 @@ class SingleProcessingStore extends Reflux.Store {
     isFetchingData: false,
     isPollingForTranscript: false,
     hiddenSidebarQuestions: [],
+    exponentialBackoffCount: 1,
   };
 
   /** Clears all data - useful before making initialisation call */
@@ -167,6 +170,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.data.isPristine = true;
+    this.data.exponentialBackoffCount = 1;
   }
 
   public get currentAssetUid() {
@@ -680,13 +684,16 @@ class SingleProcessingStore extends Reflux.Store {
     setTimeout(() => {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
+      console.log('this.data befoer the if', this.data);
       if (this.isAutoTranscriptionEventApplicable(event)) {
+        this.incrementExponentialBackoffCount();
         this.data.isPollingForTranscript = true;
         this.requestAutoTranscription();
       } else {
         this.data.isPollingForTranscript = false;
+        console.log('done?');
       }
-    }, 5000);
+    }, getExponentialDelayTime(this.data.exponentialBackoffCount));
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
@@ -714,6 +721,11 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     this.setNotPristine();
+    this.trigger(this.data);
+  }
+
+  private incrementExponentialBackoffCount() {
+    this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1;
     this.trigger(this.data);
   }
 
@@ -967,10 +979,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** Returns available displays for given tab */
   getAvailableDisplays(tabName: ProcessingTab) {
-    const outcome: DisplaysList = [
-      StaticDisplays.Audio,
-      StaticDisplays.Data,
-    ];
+    const outcome: DisplaysList = [StaticDisplays.Audio, StaticDisplays.Data];
     if (tabName !== ProcessingTab.Transcript && this.data.transcript) {
       outcome.push(StaticDisplays.Transcript);
     }
