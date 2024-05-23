@@ -14,13 +14,11 @@ export default function ColumnsHideDropdown(props: ColumnsHideFormProps) {
       name='columns-hide-dropdown'
       triggerContent={
         <span className='columns-hide-dropdown-trigger'>
-          <i className='k-icon k-icon-hide'/>
+          <i className='k-icon k-icon-hide' />
           {t('hide fields')}
         </span>
       }
-      menuContent={
-        <ColumnsHideForm {...props}/>
-      }
+      menuContent={<ColumnsHideForm {...props} />}
       hideOnMenuClick={false}
     />
   );

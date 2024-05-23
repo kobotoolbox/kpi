@@ -54,17 +54,23 @@ class ColumnsHideForm extends React.Component<
 
   componentDidMount() {
     this.unlisteners.push(
-      actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted.bind(this))
+      actions.table.updateSettings.completed.listen(
+        this.onTableUpdateSettingsCompleted.bind(this)
+      )
     );
     this.prepareColumns();
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   prepareColumns() {
-    const allColumnsIds = [...tableStore.getHideableColumns(this.props.submissions)];
+    const allColumnsIds = [
+      ...tableStore.getHideableColumns(this.props.submissions),
+    ];
 
     const allColumns: ColumnsHideColumn[] = [];
     allColumnsIds.forEach((fieldId) => {
@@ -74,7 +80,7 @@ class ColumnsHideForm extends React.Component<
           this.props.asset,
           fieldId,
           this.props.showGroupName,
-          this.props.translationIndex,
+          this.props.translationIndex
         ),
       });
     });
@@ -118,13 +124,16 @@ class ColumnsHideForm extends React.Component<
 
   getFilteredFieldsList(): ColumnsHideColumn[] {
     if (this.state.filterPhrase !== '') {
-      const fuse = new Fuse(this.state.allColumns, {...FUSE_OPTIONS, keys: ['fieldId', 'label']});
+      const fuse = new Fuse(this.state.allColumns, {
+        ...FUSE_OPTIONS,
+        keys: ['fieldId', 'label'],
+      });
       const fuseResults = fuse.search(this.state.filterPhrase);
       const fuseResultsAsColumns = fuseResults.map((fuseResult) => {
         return {
           fieldId: fuseResult.item.fieldId,
           label: fuseResult.item.label,
-        }
+        };
       });
     }
     return this.state.allColumns;
@@ -144,13 +153,15 @@ class ColumnsHideForm extends React.Component<
           placeholder={t('Find a field')}
         />
 
-        {filteredFieldsList.length !== 0 &&
+        {filteredFieldsList.length !== 0 && (
           <bem.ColumnsHideForm__list>
             {filteredFieldsList.map((fieldObj) => {
               return (
                 <bem.ColumnsHideForm__listItem key={fieldObj.fieldId}>
                   <ToggleSwitch
-                    checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
+                    checked={this.state.selectedColumns.includes(
+                      fieldObj.fieldId
+                    )}
                     onChange={(isSelected: boolean) => {
                       this.onFieldToggleChange(fieldObj.fieldId, isSelected);
                     }}
@@ -161,13 +172,13 @@ class ColumnsHideForm extends React.Component<
               );
             })}
           </bem.ColumnsHideForm__list>
-        }
+        )}
 
-        {filteredFieldsList.length === 0 &&
+        {filteredFieldsList.length === 0 && (
           <bem.ColumnsHideForm__message>
             {t('No results')}
           </bem.ColumnsHideForm__message>
-        }
+        )}
 
         <bem.ColumnsHideForm__footer>
           <bem.KoboLightButton

@@ -41,7 +41,11 @@ export function TableBulkCheckbox(props: TableBulkCheckboxProps) {
         onChange={onToggleCurrentPage}
       />
 
-      <PopoverMenu type='table-bulk-checkbox' triggerLabel='' additionalModifiers={['right']}>
+      <PopoverMenu
+        type='table-bulk-checkbox'
+        triggerLabel=''
+        additionalModifiers={['right']}
+      >
         <bem.PopoverMenu__link onClick={onSelectAllPages}>
           {t('Select all results (##count##)').replace('##count##', String(props.totalRowsCount))}
         </bem.PopoverMenu__link>

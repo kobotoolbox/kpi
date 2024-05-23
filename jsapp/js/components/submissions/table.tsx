@@ -213,7 +213,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     );
 
     // TODO: why this line is needed? Why not use `assetStore`?
-    stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded.bind(this));
+    stores.allAssets.whenLoaded(
+      this.props.asset.uid,
+      this.whenLoaded.bind(this)
+    );
   }
 
   componentWillUnmount() {
@@ -304,7 +307,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onGetSubmissionsCompleted(
     response: PaginatedResponse<SubmissionResponse>,
     /** The parameters that the call was made with. */
-    options: GetSubmissionsOptions,
+    options: GetSubmissionsOptions
   ) {
     const results = response.results;
     if (results && results.length > 0) {
@@ -370,9 +373,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * @param {object} originalRow
    * @returns {object} one of ValidationStatusOption
    */
-  getCurrentValidationStatusOption(originalRow: SubmissionResponse): ValidationStatusOption {
-    const foundOption = VALIDATION_STATUS_OPTIONS.find((option) =>
-      option.value === originalRow._validation_status?.uid
+  getCurrentValidationStatusOption(
+    originalRow: SubmissionResponse
+  ): ValidationStatusOption {
+    const foundOption = VALIDATION_STATUS_OPTIONS.find(
+      (option) => option.value === originalRow._validation_status?.uid
     );
 
     // If submission doesn't have a validation status, we return the no option option :)
@@ -567,7 +572,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             )}
 
             <button
-              onClick={() => {this.launchSubmissionModal(row, row.original._id);}}
+              onClick={() => {
+                this.launchSubmissionModal(row, row.original._id);
+              }}
               className='table-link'
               data-tip={t('Open')}
             >
@@ -581,7 +588,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 row.original
               ) && (
                 <button
-                  onClick={() => {this.launchEditSubmission(row.original._id);}}
+                  onClick={() => {
+                    this.launchEditSubmission(row.original._id);
+                  }}
                   className='table-link'
                   data-tip={t('Edit')}
                 >
@@ -630,9 +639,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
       Filter: ({filter, onChange}) => {
-        let currentOption: ValidationStatusOption = VALIDATION_STATUS_OPTIONS.find(
-          (item) => item.value === filter?.value
-        ) || VALIDATION_STATUS_SHOW_ALL_OPTION;
+        let currentOption: ValidationStatusOption =
+          VALIDATION_STATUS_OPTIONS.find(
+            (item) => item.value === filter?.value
+          ) || VALIDATION_STATUS_SHOW_ALL_OPTION;
 
         return (
           <ValidationStatusDropdown
@@ -954,7 +964,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 return <span className='trimmed-text'>{row.value}</span>;
               }
             }
-            if (q && q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
+            if (
+              q &&
+              q.type === QUESTION_TYPES.select_multiple.id &&
+              row.value &&
+              !tableStore.getTranslationIndex()
+            ) {
               const values = row.value.split(' ');
               const labels: string[] = [];
               values.forEach(function (valueItem: string) {
@@ -1030,7 +1045,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               return '';
             }
           } else {
-            return <span className='trimmed-text' dir='auto'>{row.value}</span>;
+            return (
+              <span className='trimmed-text' dir='auto'>
+                {row.value}
+              </span>
+            );
           }
         },
       });
@@ -1050,7 +1069,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     columnsToRender.forEach((col: TableColumn) => {
       const columnQuestionType = col.question?.type;
 
-      if (columnQuestionType && columnQuestionType in DROPDOWN_FILTER_QUESTION_TYPES) {
+      if (
+        columnQuestionType &&
+        columnQuestionType in DROPDOWN_FILTER_QUESTION_TYPES
+      ) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <select
@@ -1232,7 +1254,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         const mediaAttachment = getMediaAttachment(
           row.original,
           row.original[backgroundAudioName],
-          META_QUESTION_TYPES['background-audio'],
+          META_QUESTION_TYPES['background-audio']
         );
 
         let backgroundAudioUrl;

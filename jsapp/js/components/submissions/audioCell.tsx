@@ -22,20 +22,19 @@ interface AudioCellProps {
  * An alternative component to MediaCell for audio columns. It's a transitional
  * component created with Processing View in mind. It omits the modal.
  */
-export default function AudioCell (props: AudioCellProps) {
+export default function AudioCell(props: AudioCellProps) {
   return (
     <bem.AudioCell>
-      {typeof props.mediaAttachment === 'string' &&
+      {typeof props.mediaAttachment === 'string' && (
         <span data-tip={props.mediaAttachment}>
-          <Icon name='alert' color='red' size='s'/>
+          <Icon name='alert' color='red' size='s' />
         </span>
-      }
+      )}
 
-      {(typeof props.mediaAttachment === 'object' && props.mediaAttachment?.download_url) &&
-        <MiniAudioPlayer
-          mediaURL={props.mediaAttachment?.download_url}
-        />
-      }
+      {typeof props.mediaAttachment === 'object' &&
+        props.mediaAttachment?.download_url && (
+          <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />
+        )}
 
       <Button
         type='full'

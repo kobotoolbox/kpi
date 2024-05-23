@@ -481,16 +481,22 @@ export interface TableSortBySetting {
  * None of these are actually stored as `null`s, but we use this interface for
  * a new settings draft too and it's simpler that way.
  */
-export interface AssetTableSettings {
+interface AssetTableSettingsObject {
   'selected-columns'?: string[] | null;
   'frozen-column'?: string | null;
   'show-group-name'?: boolean | null;
   'translation-index'?: number | null;
   'show-hxl-tags'?: boolean | null;
   'sort-by'?: TableSortBySetting | null;
-  'data-table'?: {
-    // TODO
-  }
+}
+
+/**
+ * This interface consists of properties from `AssetTableSettingsObject` and one
+ * more property that holds a temporary copy of `AssetTableSettingsObject`
+ */
+export interface AssetTableSettings extends AssetTableSettingsObject {
+  /** This is the same object as AssetTableSettings */
+  'data-table'?: AssetTableSettingsObject
 }
 
 export interface AssetSettings {

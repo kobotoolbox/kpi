@@ -14,10 +14,10 @@ interface TableColumnSortDropdownProps {
   /** one of table columns */
   fieldId: string;
   sortValue: SortValues | null;
-  onSortChange: (fieldId: string, sortValue: SortValues | null)=> void;
-  onHide: (fieldId: string)=> void;
+  onSortChange: (fieldId: string, sortValue: SortValues | null) => void;
+  onHide: (fieldId: string) => void;
   isFieldFrozen: boolean;
-  onFrozenChange: (fieldId: string, isFrozen: boolean)=> void;
+  onFrozenChange: (fieldId: string, isFrozen: boolean) => void;
   /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
@@ -29,7 +29,9 @@ interface TableColumnSortDropdownProps {
 /**
  * A wrapper around KoboDropdown to be used in table header to sort columns.
  */
-export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
+export default function TableColumnSortDropdown(
+  props: TableColumnSortDropdownProps
+) {
   function renderTrigger() {
     let sortIcon = ['k-icon'];
     if (props.sortValue && props.sortValue === SortValues.ASCENDING) {
@@ -42,11 +44,9 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     return (
       <div className='table-column-sort-dropdown-trigger'>
         {props.additionalTriggerContent}
-        {props.sortValue &&
-          <i className={sortIcon.join(' ')}/>
-        }
-        <i className='k-icon k-icon-caret-up'/>
-        <i className='k-icon k-icon-caret-down'/>
+        {props.sortValue && <i className={sortIcon.join(' ')} />}
+        <i className='k-icon k-icon-caret-up' />
+        <i className='k-icon k-icon-caret-down' />
       </div>
     );
   }
@@ -55,7 +55,10 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     props.onSortChange(props.fieldId, null);
   }
 
-  function changeSort(sortValue: SortValues, evt: React.MouseEvent<HTMLButtonElement>) {
+  function changeSort(
+    sortValue: SortValues,
+    evt: React.MouseEvent<HTMLButtonElement>
+  ) {
     const eventTarget = evt.target as HTMLButtonElement;
 
     // When clicking on clear icon button, we need to avoid triggering also the
@@ -82,23 +85,29 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
           'sort-dropdown-menu-button': true,
           'sort-dropdown-menu-button--active': props.sortValue === buttonSortValue
         })}
-        onClick={(evt) => {changeSort(buttonSortValue, evt);}}
+        onClick={(evt) => {
+          changeSort(buttonSortValue, evt);
+        }}
       >
         {buttonSortValue === SortValues.ASCENDING && [
-          <i key='0' className='k-icon k-icon-sort-ascending'/>,
+          <i key='0' className='k-icon k-icon-sort-ascending' />,
           <span key='1'>{t('Sort A→Z')}</span>,
         ]}
         {buttonSortValue === SortValues.DESCENDING && [
-          <i key='0' className='k-icon k-icon-sort-descending'/>,
+          <i key='0' className='k-icon k-icon-sort-descending' />,
           <span key='1'>{t('Sort Z→A')}</span>,
         ]}
 
-        {props.sortValue === buttonSortValue &&
+        {props.sortValue === buttonSortValue && (
           <i
             onClick={clearSort}
-            className={classNames('k-icon', 'k-icon-close', CLEAR_BUTTON_CLASS_NAME)}
+            className={classNames(
+              'k-icon',
+              'k-icon-close',
+              CLEAR_BUTTON_CLASS_NAME
+            )}
           />
-        }
+        )}
       </button>
     );
   }
@@ -113,30 +122,29 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
           {renderSortButton(SortValues.ASCENDING)}
           {renderSortButton(SortValues.DESCENDING)}
 
-          {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) &&
-            <button
-              className='sort-dropdown-menu-button'
-              onClick={hideField}
-            >
-              <i className='k-icon k-icon-hide'/>
+          {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
+            <button className='sort-dropdown-menu-button' onClick={hideField}>
+              <i className='k-icon k-icon-hide' />
               <span>{t('Hide field')}</span>
             </button>
-          }
-          {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) &&
+          )}
+          {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
             <button
               className='sort-dropdown-menu-button'
-              onClick={() => {changeFieldFrozen(!props.isFieldFrozen)}}
+              onClick={() => {
+                changeFieldFrozen(!props.isFieldFrozen);
+              }}
             >
               {props.isFieldFrozen && [
-                <i key='0' className='k-icon k-icon-unfreeze'/>,
+                <i key='0' className='k-icon k-icon-unfreeze' />,
                 <span key='1'>{t('Unfreeze field')}</span>,
               ]}
               {!props.isFieldFrozen && [
-                <i key='0' className='k-icon k-icon-freeze'/>,
+                <i key='0' className='k-icon k-icon-freeze' />,
                 <span key='1'>{t('Freeze field')}</span>,
               ]}
             </button>
-          }
+          )}
         </React.Fragment>
       }
     />

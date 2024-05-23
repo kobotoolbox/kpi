@@ -11,10 +11,10 @@ export interface PageStateStoreState {
   modal?: PageStateModalParams | false;
 }
 
-// DEPRECATED
+// TODO:
 // This is some old weird store that is responsible for two things:
-// 1. toggling mobile menu
-// 2. handling modal from `bigModal.es6`
+// 1. toggling mobile menu - should be moved to some other place
+// 2. handling modal from `bigModal.es6` - should be moved somewhere near the modal files
 class PageStateStore extends Reflux.Store {
   state: PageStateStoreState = {
     assetNavExpanded: false,
@@ -47,8 +47,10 @@ class PageStateStore extends Reflux.Store {
     });
   }
 
-  // use it when you have one modal opened and want to display different one
-  // because just calling showModal has weird outcome
+  /**
+   * Use it when you have one modal opened and want to display different one
+   * (because just calling showModal has weird outcome).
+   */
   switchModal(params: PageStateModalParams) {
     this.hideModal();
     // HACK switch to setState callback after updating to React 16+
@@ -57,6 +59,9 @@ class PageStateStore extends Reflux.Store {
     }, 0);
   }
 
+  /**
+   * Use it when you have modal opened and want to go back to previous one.
+   */
   switchToPreviousModal() {
     if (this.state.modal) {
       this.switchModal({

@@ -27,7 +27,7 @@ interface CheckboxProps {
 
 /** A checkbox generic component. */
 class Checkbox extends React.Component<CheckboxProps, {}> {
-  constructor(props: CheckboxProps){
+  constructor(props: CheckboxProps) {
     if (typeof props.onChange !== 'function') {
       throw new Error('onChange callback missing!');
     }
@@ -71,11 +71,9 @@ class Checkbox extends React.Component<CheckboxProps, {}> {
             data-cy={this.props['data-cy']}
           />
 
-          {this.props.label &&
-            <bem.Checkbox__label>
-              {this.props.label}
-            </bem.Checkbox__label>
-          }
+          {this.props.label && (
+            <bem.Checkbox__label>{this.props.label}</bem.Checkbox__label>
+          )}
         </bem.Checkbox__wrapper>
       </bem.Checkbox>
     );

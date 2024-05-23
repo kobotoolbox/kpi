@@ -70,7 +70,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
       ),
       mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
       mfaActions.confirmCode.completed.listen(this.mfaActivated.bind(this)),
-      mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
+      mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this))
     );
 
     mfaActions.getUserMethods();
@@ -202,7 +202,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
                 />
               </bem.SecurityRow__buttons>
             </bem.SecurityRow__switch>
-        </bem.SecurityRow__header>
+          </bem.SecurityRow__header>
 
           {this.state.isMfaActive && this.state.isMfaAvailable && (
             <bem.MFAOptions>

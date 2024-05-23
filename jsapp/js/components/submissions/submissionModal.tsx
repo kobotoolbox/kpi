@@ -8,11 +8,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {launchPrinting} from 'js/utils';
 import pageState from 'js/pageState.store';
-import {
-  MODAL_TYPES,
-  META_QUESTION_TYPES,
-  EnketoActions,
-} from 'js/constants';
+import {MODAL_TYPES, META_QUESTION_TYPES, EnketoActions} from 'js/constants';
 import {
   VALIDATION_STATUS_OPTIONS,
   ValidationStatusAdditionalName,
@@ -22,15 +18,17 @@ import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
 import Button from 'js/components/common/button';
 import KoboSelect from 'js/components/common/koboSelect';
-import {userHasPermForSubmission, userCan} from 'js/components/permissions/utils';
+import {
+  userHasPermForSubmission,
+  userCan,
+} from 'js/components/permissions/utils';
 import CenteredMessage from 'js/components/common/centeredMessage.component';
 import type {
   FailResponse,
   AssetResponse,
   SubmissionResponse,
   ValidationStatusResponse,
-}
-from 'js/dataInterface';
+} from 'js/dataInterface';
 import './submissionModal.scss';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
@@ -42,11 +40,13 @@ interface SubmissionModalProps {
   isDuplicated: boolean;
   duplicatedSubmission: SubmissionResponse | null;
   backgroundAudioUrl: string;
-  tableInfo: {
-    resultsTotal: number;
-    pageSize: number;
-    currentPage: number;
-  } | boolean;
+  tableInfo:
+    | {
+        resultsTotal: number;
+        pageSize: number;
+        currentPage: number;
+      }
+    | boolean;
 }
 
 interface TranslationOption {
@@ -80,7 +80,10 @@ interface SubmissionModalState {
   isValidationStatusChangePending: boolean;
 }
 
-class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionModalState> {
+class SubmissionModal extends React.Component<
+  SubmissionModalProps,
+  SubmissionModalState
+> {
   private unlisteners: Function[] = [];
 
   constructor(props: SubmissionModalProps) {
@@ -138,7 +141,9 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   refreshSubmissionValidationStatus(result: ValidationStatusResponse) {
@@ -164,52 +169,62 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
   }
 
   getSubmission(assetUid: string, sid: string) {
-    dataInterface.getSubmission(assetUid, sid).done((data: SubmissionResponse) => {
-      let prev = -1;
-      let next = -1;
+    dataInterface
+      .getSubmission(assetUid, sid)
+      .done((data: SubmissionResponse) => {
+        let prev = -1;
+        let next = -1;
 
-      if (this.props.ids && sid) {
-        const c = this.props.ids.findIndex((k) => k === parseInt(sid));
-        let tableInfo = this.props.tableInfo || false;
-        if (this.props.ids[c - 1]) {
-          prev = this.props.ids[c - 1];
-        }
-        if (this.props.ids[c + 1]) {
-          next = this.props.ids[c + 1];
-        }
-
-        // table submissions pagination
-        if (typeof tableInfo !== 'boolean') {
-          const nextAvailable = tableInfo.resultsTotal > (tableInfo.currentPage + 1) * tableInfo.pageSize;
-          if (c + 1 === this.props.ids.length && nextAvailable) {
-            next = -2;
+        if (this.props.ids && sid) {
+          const c = this.props.ids.findIndex((k) => k === parseInt(sid));
+          let tableInfo = this.props.tableInfo || false;
+          if (this.props.ids[c - 1]) {
+            prev = this.props.ids[c - 1];
+          }
+          if (this.props.ids[c + 1]) {
+            next = this.props.ids[c + 1];
           }
 
-          if (tableInfo.currentPage > 0 && prev === -1) {
-            prev = -2;
+          // table submissions pagination
+          if (typeof tableInfo !== 'boolean') {
+            const nextAvailable =
+              tableInfo.resultsTotal >
+              (tableInfo.currentPage + 1) * tableInfo.pageSize;
+            if (c + 1 === this.props.ids.length && nextAvailable) {
+              next = -2;
+            }
+
+            if (tableInfo.currentPage > 0 && prev === -1) {
+              prev = -2;
+            }
           }
         }
-      }
 
-      this.setState({
-        submission: data,
-        loading: false,
-        next: next,
-        previous: prev,
-      });
-    }).fail((error: FailResponse) => {
-      if (error.responseText) {
-        let error_message = error.responseText;
-        if (error_message === DETAIL_NOT_FOUND) {
-          error_message = t('The submission could not be found. It may have been deleted. Submission ID: ##id##').replace('##id##', sid);
-        }
-        this.setState({error: error_message, loading: false});
-      } else if (error.statusText) {
+        this.setState({
+          submission: data,
+          loading: false,
+          next: next,
+          previous: prev,
+        });
+      })
+      .fail((error: FailResponse) => {
+        if (error.responseText) {
+          let error_message = error.responseText;
+          if (error_message === DETAIL_NOT_FOUND) {
+            error_message = t(
+              'The submission could not be found. It may have been deleted. Submission ID: ##id##'
+            ).replace('##id##', sid);
+          }
+          this.setState({error: error_message, loading: false});
+        } else if (error.statusText) {
           this.setState({error: error.statusText, loading: false});
-      } else {
-        this.setState({error: t('Error: could not load data.'), loading: false});
-      }
-    });
+        } else {
+          this.setState({
+            error: t('Error: could not load data.'),
+            loading: false,
+          });
+        }
+      });
   }
 
   static getDerivedStateFromProps(
@@ -239,7 +254,10 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
       message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
       labels: {ok: t('Delete'), cancel: t('Cancel')},
       onok: () => {
-        actions.resources.deleteSubmission(this.props.asset.uid, this.props.sid);
+        actions.resources.deleteSubmission(
+          this.props.asset.uid,
+          this.props.sid
+        );
       },
       oncancel: () => {
         dialog.destroy();
@@ -258,27 +276,27 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
       isEditLoading: true,
       isEditingDuplicate: true,
     });
-    enketoHandler.openSubmission(
-      this.props.asset.uid,
-      this.state.sid,
-      EnketoActions.edit
-    ).then(
-      () => {this.setState({isEditLoading: false});},
-      () => {this.setState({isEditLoading: false});}
-    );
+    enketoHandler
+      .openSubmission(this.props.asset.uid, this.state.sid, EnketoActions.edit)
+      .then(
+        () => {
+          this.setState({isEditLoading: false});
+        },
+        () => {
+          this.setState({isEditLoading: false});
+        }
+      );
   }
 
   launchViewSubmission() {
     this.setState({
       isViewLoading: true,
     });
-    enketoHandler.openSubmission(
-      this.props.asset.uid,
-      this.state.sid,
-      EnketoActions.view
-    ).then(
-      () => {this.setState({isViewLoading: false});}
-    );
+    enketoHandler
+      .openSubmission(this.props.asset.uid, this.state.sid, EnketoActions.view)
+      .then(() => {
+        this.setState({isViewLoading: false});
+      });
   }
 
   duplicateSubmission() {
@@ -286,7 +304,11 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
     // an almost identical one to display the new submission with a different
     // title bar
     pageState.hideModal();
-    actions.resources.duplicateSubmission(this.props.asset.uid, this.state.sid, this.state.submission);
+    actions.resources.duplicateSubmission(
+      this.props.asset.uid,
+      this.state.sid,
+      this.state.submission
+    );
   }
 
   triggerRefresh() {
@@ -299,7 +321,7 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
   }
 
   switchSubmission(prevOrNext: number) {
-    this.setState({ loading: true});
+    this.setState({loading: true});
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: prevOrNext,
@@ -310,7 +332,7 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
   }
 
   prevTablePage() {
-    this.setState({ loading: true});
+    this.setState({loading: true});
 
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
@@ -320,7 +342,7 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
   }
 
   nextTablePage() {
-    this.setState({ loading: true});
+    this.setState({loading: true});
 
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
@@ -357,7 +379,9 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
   }
 
   onLanguageChange(newValue: string | null) {
-    let index = this.state.translationOptions.findIndex((x) => x.value === newValue);
+    let index = this.state.translationOptions.findIndex(
+      (x) => x.value === newValue
+    );
     this.setState({
       translationIndex: index || 0,
     });
@@ -376,7 +400,7 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
 
     return (
       <div className='submission-modal-dropdowns'>
-        {this.state.translationOptions.length > 1 &&
+        {this.state.translationOptions.length > 1 && (
           <div className='switch--label-language'>
             <KoboSelect
               label={t('Language')}
@@ -384,13 +408,15 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
               type='outline'
               size='s'
               options={this.state.translationOptions}
-              selectedOption={this.state.translationOptions[this.state.translationIndex].value}
+              selectedOption={
+                this.state.translationOptions[this.state.translationIndex].value
+              }
               onChange={(newSelectedOption: string | null) => {
                 this.onLanguageChange(newSelectedOption);
               }}
             />
           </div>
-        }
+        )}
         <div className='switch--validation-status'>
           <KoboSelect
             label={t('Validation status:')}
@@ -398,7 +424,9 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
             type='outline'
             size='s'
             options={VALIDATION_STATUS_OPTIONS}
-            selectedOption={this.state.submission._validation_status?.uid || null}
+            selectedOption={
+              this.state.submission._validation_status?.uid || null
+            }
             onChange={(newSelectedOption: string | null) => {
               if (newSelectedOption !== null) {
                 const castOption = newSelectedOption as ValidationStatusOptionName;
@@ -408,10 +436,16 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
               }
             }}
             isPending={this.state.isValidationStatusChangePending}
-            isDisabled={!(
-              userCan('validate_submissions', this.props.asset) ||
-              userHasPermForSubmission('validate_submissions', this.props.asset, this.state.submission)
-            )}
+            isDisabled={
+              !(
+                userCan('validate_submissions', this.props.asset) ||
+                userHasPermForSubmission(
+                  'validate_submissions',
+                  this.props.asset,
+                  this.state.submission
+                )
+              )
+            }
           />
         </div>
       </div>
@@ -420,19 +454,15 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
 
   render() {
     if (this.state.loading) {
-      return (<LoadingSpinner/>);
+      return <LoadingSpinner />;
     }
 
     if (typeof this.state.error === 'string') {
-      return (
-        <CenteredMessage message={this.state.error} />
-      );
+      return <CenteredMessage message={this.state.error} />;
     }
 
     if (!this.state.submission) {
-      return (
-        <CenteredMessage message={t('Unknown error')} />
-      );
+      return <CenteredMessage message={t('Unknown error')} />;
     }
 
     const s = this.state.submission;
@@ -440,26 +470,28 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
     // Use this modal if we just duplicated a submission, but not if we are
     // editing it
     if (this.state.isDuplicated && !this.state.isEditingDuplicate) {
-      return(
+      return (
         <>
-          <h1 className='submission-duplicate__header'>{t('Duplicate created')}</h1>
+          <h1 className='submission-duplicate__header'>
+            {t('Duplicate created')}
+          </h1>
           <p className='submission-duplicate__text'>
-            {t('A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.')}
-            <br/>
-            <br/>
+            {t(
+              'A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.'
+            )}
+            <br />
+            <br />
             {t('Source submission uuid:' + ' ')}
             <code>{this.state.duplicatedSubmission?._uuid}</code>
           </p>
 
           <div className='submission-modal-duplicate-actions'>
-            {(
-              userCan('change_submissions', this.props.asset) ||
+            {(userCan('change_submissions', this.props.asset) ||
               userHasPermForSubmission(
                 'change_submissions',
                 this.props.asset,
                 this.state.submission
-              )
-            ) &&
+              )) && (
               <Button
                 onClick={this.launchEditSubmission.bind(this)}
                 color='blue'
@@ -468,16 +500,14 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                 isDisabled={!this.isSubmissionEditable()}
                 label={this.state.isEditLoading ? t('Loading…') : t('Edit')}
               />
-            }
+            )}
 
-            {(
-              userCan('delete_submissions', this.props.asset) ||
+            {(userCan('delete_submissions', this.props.asset) ||
               userHasPermForSubmission(
                 'delete_submissions',
                 this.props.asset,
                 this.state.submission
-              )
-            ) &&
+              )) && (
               <Button
                 onClick={this.deleteSubmission.bind(this)}
                 color='red'
@@ -488,19 +518,19 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                 tooltip={t('Discard duplicated submission')}
                 classNames={['submission-duplicate__button']}
               />
-            }
+            )}
           </div>
 
           {this.renderDropdowns()}
 
-          {this.state.submission &&
+          {this.state.submission && (
             <SubmissionDataTable
               asset={this.props.asset}
               submissionData={this.state.submission}
               translationIndex={this.state.translationIndex}
               showXMLNames={this.state.showXMLNames}
             />
-          }
+          )}
         </>
       );
     }
@@ -509,9 +539,13 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
     if (!this.state.isDuplicated || this.state.isEditingDuplicate) {
       return (
         <>
-          {this.state.promptRefresh &&
+          {this.state.promptRefresh && (
             <div className='submission-modal-warning'>
-              <p>{t('Click on the button below to load the most recent data for this submission. ')}</p>
+              <p>
+                {t(
+                  'Click on the button below to load the most recent data for this submission. '
+                )}
+              </p>
 
               <Button
                 onClick={this.triggerRefresh.bind(this)}
@@ -521,45 +555,47 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                 label={t('Refresh submission')}
               />
             </div>
-          }
+          )}
 
           <section className='submission-modal-section'>
-          {this.hasBackgroundAudio() &&
-            <bem.BackgroundAudioPlayer>
-              <bem.BackgroundAudioPlayer__label>
-                {t('Background audio recording')}
-              </bem.BackgroundAudioPlayer__label>
+            {this.hasBackgroundAudio() && (
+              <bem.BackgroundAudioPlayer>
+                <bem.BackgroundAudioPlayer__label>
+                  {t('Background audio recording')}
+                </bem.BackgroundAudioPlayer__label>
 
-              <bem.BackgroundAudioPlayer__audio
-                controls
-                src={this.props?.backgroundAudioUrl}
-              />
-            </bem.BackgroundAudioPlayer>
-          }
+                <bem.BackgroundAudioPlayer__audio
+                  controls
+                  src={this.props?.backgroundAudioUrl}
+                />
+              </bem.BackgroundAudioPlayer>
+            )}
 
-          {this.renderDropdowns()}
+            {this.renderDropdowns()}
           </section>
 
           <section className='submission-modal-section'>
+            {this.state.isEditingDuplicate && (
+              <div className='preserveFlexCSS' />
+            )}
 
-            {this.state.isEditingDuplicate &&
-              <div className='preserveFlexCSS'/>
-            }
-
-            {!this.state.isEditingDuplicate &&
+            {!this.state.isEditingDuplicate && (
               <div className='submission-pager'>
                 {/* don't display previous button if `previous` is -1 */}
-                {this.state.previous > -1 &&
+                {this.state.previous > -1 && (
                   <Button
-                    onClick={this.switchSubmission.bind(this, this.state.previous)}
+                    onClick={this.switchSubmission.bind(
+                      this,
+                      this.state.previous
+                    )}
                     color='blue'
                     type='bare'
                     size='l'
                     label={t('Previous')}
                     startIcon='angle-left'
                   />
-                }
-                {this.state.previous === -2 &&
+                )}
+                {this.state.previous === -2 && (
                   <Button
                     onClick={this.prevTablePage.bind(this)}
                     color='blue'
@@ -568,10 +604,10 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                     label={t('Previous')}
                     startIcon='angle-left'
                   />
-                }
+                )}
 
                 {/* don't display next button if `next` is -1 */}
-                {this.state.next > -1 &&
+                {this.state.next > -1 && (
                   <Button
                     onClick={this.switchSubmission.bind(this, this.state.next)}
                     color='blue'
@@ -580,8 +616,8 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                     label={t('Next')}
                     endIcon='angle-right'
                   />
-                }
-                {this.state.next === -2 &&
+                )}
+                {this.state.next === -2 && (
                   <Button
                     onClick={this.nextTablePage.bind(this)}
                     color='blue'
@@ -590,9 +626,9 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                     label={t('Next')}
                     endIcon='angle-right'
                   />
-                }
+                )}
               </div>
-            }
+            )}
 
             <div className='submission-modal-actions'>
               <Checkbox
@@ -601,14 +637,12 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                 label={t('Display XML names')}
               />
 
-              {(
-                userCan('change_submissions', this.props.asset) ||
+              {(userCan('change_submissions', this.props.asset) ||
                 userHasPermForSubmission(
                   'change_submissions',
                   this.props.asset,
                   this.state.submission
-                )
-              ) &&
+                )) && (
                 <Button
                   onClick={this.launchEditSubmission.bind(this)}
                   color='blue'
@@ -618,17 +652,15 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                   classNames={['submission-duplicate__button']}
                   label={this.state.isEditLoading ? t('Loading…') : t('Edit')}
                 />
-              }
+              )}
 
-              {(
-                userCan('view_submissions', this.props.asset) ||
+              {(userCan('view_submissions', this.props.asset) ||
                 userHasPermForSubmission(
                   'view_submissions',
                   this.props.asset,
                   this.state.submission
-                )
-              ) &&
-                 <Button
+                )) && (
+                <Button
                   onClick={this.launchViewSubmission.bind(this)}
                   color='blue'
                   type='full'
@@ -637,16 +669,14 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                   classNames={['submission-duplicate__button']}
                   label={this.state.isViewLoading ? t('Loading…') : t('View')}
                 />
-              }
+              )}
 
-              {(
-                userCan('change_submissions', this.props.asset) ||
+              {(userCan('change_submissions', this.props.asset) ||
                 userHasPermForSubmission(
                   'change_submissions',
                   this.props.asset,
                   this.state.submission
-                )
-              ) &&
+                )) && (
                 <Button
                   onClick={this.duplicateSubmission.bind(this)}
                   color='blue'
@@ -656,7 +686,7 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                   classNames={['submission-duplicate__button']}
                   label={t('Duplicate')}
                 />
-              }
+              )}
 
               <Button
                 onClick={launchPrinting}
@@ -669,14 +699,12 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                 tooltipPosition='right'
               />
 
-              {(
-                userCan('delete_submissions', this.props.asset) ||
+              {(userCan('delete_submissions', this.props.asset) ||
                 userHasPermForSubmission(
                   'delete_submissions',
                   this.props.asset,
                   this.state.submission
-                )
-              ) &&
+                )) && (
                 <Button
                   onClick={this.deleteSubmission.bind(this)}
                   color='red'
@@ -686,18 +714,18 @@ class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionMo
                   tooltip={t('Delete submission')}
                   tooltipPosition='right'
                 />
-              }
+              )}
             </div>
           </section>
 
-          {this.state.submission &&
+          {this.state.submission && (
             <SubmissionDataTable
               asset={this.props.asset}
               submissionData={this.state.submission}
               translationIndex={this.state.translationIndex}
               showXMLNames={this.state.showXMLNames}
             />
-          }
+          )}
         </>
       );
     }
