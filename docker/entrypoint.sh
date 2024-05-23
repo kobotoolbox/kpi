@@ -36,7 +36,7 @@ fi
 /bin/bash "${INIT_PATH}/wait_for_postgres.bash"
 
 echo 'Running migrations…'
-gosu "${UWSGI_USER}" python manage.py migrate --noinput
+gosu "${UWSGI_USER}" scripts/migrate.sh
 
 echo 'Creating superuser…'
 gosu "${UWSGI_USER}" python manage.py create_kobo_superuser

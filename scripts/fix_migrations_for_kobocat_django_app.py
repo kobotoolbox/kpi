@@ -9,13 +9,13 @@ def run():
 
 def delete_kobocat_form_disclaimer_app():
     """
-    Kobocat form_disclaimer app does not exist anymore but its migrations
+    KoboCAT form_disclaimer app does not exist anymore but its migrations
     create conflicts and must be deleted before applying migration.
     """
     with connections[settings.OPENROSA_DB_ALIAS].cursor() as kc_cursor:
         kc_cursor.execute(
             "DELETE FROM django_migrations "
-            "WHERE app_label = 'form_disclaimer';"
+            "WHERE app = 'form_disclaimer';"
         )
 
 
