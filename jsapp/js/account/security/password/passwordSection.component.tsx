@@ -1,9 +1,9 @@
 import React from 'react';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {PATHS} from 'js/router/routerConstants';
 import Button from 'jsapp/js/components/common/button';
 import styles from './passwordSection.module.scss';
 import {NavLink} from 'react-router-dom';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 const HIDDEN_TOKEN_VALUE = '● '.repeat(10);
 
@@ -21,13 +21,18 @@ export default function PasswordSection() {
       <div className={styles.optionsSection}>
         <a href={PATHS.RESET}>{t('forgot password')}</a>
 
-        <NavLink to={`${ACCOUNT_ROUTES.CHANGE_PASSWORD}`} className={styles.passwordLink}>
+        <NavLink
+          to={`${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}
+          className={styles.passwordLink}
+        >
           <Button
             label='Update'
             size='m'
             color='blue'
             type='frame'
-            onClick={() => {/*TODO: Handle NavLink and Button*/}}
+            onClick={() => {
+              /*TODO: Handle NavLink and Button*/
+            }}
           />
         </NavLink>
       </div>

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {
   ProjectFieldDefinition,
@@ -7,12 +7,9 @@ import type {
 import type {ProjectsTableOrder} from './projectsTable';
 import tableStyles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
-import styles from './projectsTableHeader.module.scss';
 import classNames from 'classnames';
-import Icon from 'js/components/common/icon';
-import KoboDropdown from 'js/components/common/koboDropdown';
-import Button from 'jsapp/js/components/common/button';
 import ColumnResizer from './columnResizer';
+import SortableProjectColumnHeader from './sortableProjectColumnHeader';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
@@ -24,8 +21,6 @@ interface ProjectsTableHeaderProps {
 }
 
 export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
-  // We track the menu visibility for the trigger icon.
-  const [visibleMenuNames, setVisibleMenuNames] = useState<string[]>([]);
 
   const renderColumn = (field: ProjectFieldDefinition) => {
     // Hide not visible fields.
@@ -33,121 +28,20 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
       return null;
     }
 
-    const isMenuVisible = visibleMenuNames.includes(field.name);
+    // Generate a unique key for each rendered column
+    const key = `${field.name}_${field.label}`;
 
     return (
-      <div
-        title={field.label}
-        className={classNames({
-          [styles.columnRoot]: true,
-          [styles.isMenuVisible]: isMenuVisible,
-          [rowStyles.cell]: true,
-          [rowStyles.cellHighlighted]: props.highlightedFields.includes(
-            field.name
-          ),
-        })}
-        // This attribute is being used for styling and for ColumnResizer
-        data-field={field.name}
-        key={field.name}
-      >
-        <KoboDropdown
-          name={field.name}
-          placement={'down-left'}
-          hideOnMenuClick
-          onMenuVisibilityChange={(isVisible: boolean) => {
-            let newVisibleMenuNames = Array.from(visibleMenuNames);
-            if (isVisible) {
-              newVisibleMenuNames.push(field.name);
-            } else {
-              newVisibleMenuNames = newVisibleMenuNames.filter(
-                (item) => item !== field.name
-              );
-            }
-            setVisibleMenuNames(newVisibleMenuNames);
-          }}
-          triggerContent={
-            <div className={styles.trigger}>
-              <Icon
-                size='xxs'
-                name={isMenuVisible ? 'caret-up' : 'caret-down'}
-              />
-
-              <label className={rowStyles.headerLabel}>{field.label}</label>
-
-              {props.order.fieldName === field.name && (
-                <Icon
-                  name={
-                    props.order.direction === 'descending'
-                      ? 'sort-descending'
-                      : 'sort-ascending'
-                  }
-                  size='s'
-                />
-              )}
-            </div>
-          }
-          menuContent={
-            <div className={styles.dropdownContent}>
-              {props.orderableFields.includes(field.name) && (
-                <Button
-                  type='bare'
-                  color='storm'
-                  size='m'
-                  label={t('Default sort')}
-                  startIcon='sort-default'
-                  onClick={() => {
-                    props.onChangeOrderRequested({});
-                  }}
-                />
-              )}
-              {props.orderableFields.includes(field.name) && (
-                <Button
-                  type='bare'
-                  color='storm'
-                  size='m'
-                  label={t('Sort A→Z')}
-                  startIcon='sort-ascending'
-                  onClick={() => {
-                    props.onChangeOrderRequested({
-                      fieldName: field.name,
-                      direction: 'ascending',
-                    });
-                  }}
-                />
-              )}
-              {props.orderableFields.includes(field.name) && (
-                <Button
-                  type='bare'
-                  color='storm'
-                  size='m'
-                  label={t('Sort Z→A')}
-                  startIcon='sort-descending'
-                  onClick={() => {
-                    props.onChangeOrderRequested({
-                      fieldName: field.name,
-                      direction: 'descending',
-                    });
-                  }}
-                />
-              )}
-              {/* The `name` field is always visible, no need for the button */}
-              {field.name !== 'name' && (
-                <Button
-                  type='bare'
-                  color='storm'
-                  size='m'
-                  label={t('Hide field')}
-                  startIcon='hide'
-                  onClick={() => {
-                    props.onHideFieldRequested(field.name);
-                  }}
-                />
-              )}
-            </div>
-          }
-        />
-        <div className={styles.resizer} data-resize-fieldname={field.name} />
-      </div>
+      <SortableProjectColumnHeader
+        key={key}
+        styling
+        field={field}
+        highlightedFields={props.highlightedFields}
+        orderableFields={props.orderableFields}
+        order={props.order}
+        onChangeOrderRequested={props.onChangeOrderRequested}
+        onHideFieldRequested={props.onHideFieldRequested}
+      />
     );
   };
 

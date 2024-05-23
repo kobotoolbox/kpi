@@ -1,0 +1,98 @@
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+.root {
+  width: auto;
+  padding-bottom: sizes.$x40;
+  padding-top: sizes.$x15;
+  margin: 0 sizes.$x40;
+  height: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block-end: sizes.$x60;
+}
+
+table th {
+  padding: 0 sizes.$x8;
+}
+
+.projects {
+  padding-right: 15%;
+  padding-left: sizes.$x8;
+}
+
+th {
+  font-weight: 700;
+  font-size: sizes.$x13;
+  color: colors.$kobo-gray-40;
+  text-align: left;
+  padding-block: 1.5%;
+}
+
+tr {
+  font-weight: 400;
+  font-size: sizes.$x16;
+  color: colors.$kobo-gray-24;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+}
+
+td {
+  padding: sizes.$x18 sizes.$x8;
+}
+
+
+.link {
+  color: colors.$kobo-dark-blue;
+  font-weight: 600;
+}
+
+.currentMonth {
+  font-weight: 600;
+}
+
+.pagination {
+  font-weight: 400;
+  font-size: sizes.$x14;
+  color: colors.$kobo-gray-24;
+  position: fixed;
+  bottom: sizes.$x20;
+  background-color: white;
+  border: sizes.$x1 solid colors.$kobo-gray-85;
+  width: sizes.$x150;
+  border-radius: sizes.$x4;
+  padding: sizes.$x5 0;
+  display: flex;
+  align-items: center;
+  height: sizes.$x36;
+}
+
+button {
+  background: transparent;
+  border: none;
+  padding: 0 sizes.$x8 0 sizes.$x8;
+  color: colors.$kobo-gray-85;
+  cursor: pointer;
+
+  &.active {
+    color: colors.$kobo-gray-24;
+  }
+}
+
+.range {
+  padding: sizes.$x6 sizes.$x6;
+  border-right: sizes.$x1 solid colors.$kobo-gray-85;
+  border-left: sizes.$x1 solid colors.$kobo-gray-85;
+  flex: 1;
+  text-align: center;
+}
+
+.emptyMessage {
+  padding: sizes.$x40;
+  font-size: 1.2rem;
+  justify-content: center;
+  text-align: center;
+}

@@ -1,6 +1,7 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/breakpoints';
 @use 'scss/sizes';
+@use 'scss/_variables';
 
 .header {
   font-size: sizes.$r18;
@@ -15,8 +16,7 @@
 
 .table {
   table-layout: fixed;
-  border-collapse: collapse;
-  border-spacing: 0;
+  border-spacing: 1em;
 
   & tr {
     border-top: 1px solid colors.$kobo-light-storm;
@@ -28,35 +28,43 @@
 
   & td {
     padding-block: 1em;
-    font-weight: 700;
-    overflow: hidden;
+    font-weight: 600;
+    font-size: sizes.$x16;;
   }
 }
 
 .product,
 .price {
-  width: 40%;
+  line-height: 2em;
+}
+
+.price {
+  color: colors.$kobo-gray-40;
+}
+
+.productName {
+  margin-right: sizes.$x12;
 }
 
 .buy {
-  width: max(20%, 40em);
+  width: 30%;
 }
 
-@media screen and (min-width: breakpoints.$b1140) {
+@media screen and (min-width: breakpoints.$b1000) {
   .table {
     padding: 1em;
-  }
-
-  .product {
-    width: 65%;
+    width: variables.$plans-page-max-width;
+    border-collapse: collapse;
+    border-spacing: 0;
   }
 
   .price {
-    width: auto;
+    margin-left: sizes.$x600;
+    margin-top: -(sizes.$x30);
   }
 
   .buy {
-    width: 15%;
+    width: 8em;
   }
 
   .table td:nth-child(2) {
