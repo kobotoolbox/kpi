@@ -4,13 +4,13 @@
 #
 #    pip-compile dependencies/pip/dev_requirements.in
 #
--e git+https://github.com/kobotoolbox/django-digest@ae76cb8300d3d973e4cc1e923653d1fe85956706#egg=django_digest
+-e git+https://github.com/kobotoolbox/django-digest@43f3100a7e257942c313ad79057e6a0b1612a74a#egg=django_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/formpack.git@443a8e940756976a9f88fb577dbbc53510726536#egg=formpack
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/kobo-service-account.git@8ee76730106ff8dc0ee2539c8e6a567aea4ed9ee#egg=kobo-service-account
+-e git+https://github.com/kobotoolbox/kobo-service-account.git@55fd110215b93ff1f1b8cb6a3df4e531aa67f59e#egg=kobo-service-account
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
