@@ -10,7 +10,7 @@ To run tests, you need to do 2 things:
 If you normally run kpi with `./manage.py runserver 0.0.0.0:8000`, you can use:
 
 ```
-kpi$ DJANGO_SETTINGS_MODULE=kobo.settings.testing  \
+kpi$ DJANGO_SETTINGS_MODULE=kobo.settings.cypress  \
      ./manage.py cypress_testserver                \
        --addrport 0.0.0.0:8000                     \
        --noinput
@@ -22,7 +22,7 @@ If you're using kobo-docker / kobo-install, the process will look like this:
 kobo-install$  ./run.py -cf exec kpi bash
 root@kpi:/srv/src/kpi#  sv stop uwsgi
 ok: down: uwsgi: 0s, normally up
-root@kpi:/srv/src/kpi# DJANGO_SETTINGS_MODULE=kobo.settings.testing ./manage.py cypress_testserver --addrport 0.0.0.0:8000 --noinput                                     
+root@kpi:/srv/src/kpi# DJANGO_SETTINGS_MODULE=kobo.settings.cypress ./manage.py cypress_testserver --addrport 0.0.0.0:8000 --noinput
 ```
 
 <details><summary>About cypress_testserver</summary>
@@ -32,13 +32,13 @@ root@kpi:/srv/src/kpi# DJANGO_SETTINGS_MODULE=kobo.settings.testing ./manage.py 
 The **cypress_testserver** provides fixtures for the Cypress tests.
 
 ```
-DJANGO_SETTINGS_MODULE=kobo.settings.testing (1) Use test server settings
+DJANGO_SETTINGS_MODULE=kobo.settings.cypress (1) Use test server settings
               ./manage.py cypress_testserver (2) Run the test server
                      --addrport 0.0.0.0:8000 (3) Bind :8000 (check this)
                      --noinput               (4) Skip 'delete database' prompt
 ```
 
-1. `DJANGO_SETTINGS_MODULE=kobo.settings.testing` switches the server away from using your default kpi database. Source: [kpi/kobo/settings/testing.py](../kobo/settings/testing.py) 
+1. `DJANGO_SETTINGS_MODULE=kobo.settings.cypress` switches the server away from using your default kpi database. Source: [kpi/kobo/settings/cypress.py](../kobo/settings/cypress.py)
 2. `./manage.py cypress_testserver`  is a custom management command. Starts a test server with fixtures created in Python specifically for Cypress tests.
     - [kpi/management/commands/cypress_testserver.py](../kpi/management/commands/cypress_testserver.py) - Add or change fixtures here.
     - [django-admin/#testserver](https://docs.djangoproject.com/en/4.0/ref/django-admin/#testserver) - Django's built-in `testserver`, which this is based on.
@@ -55,8 +55,8 @@ Between subsequent Cypress test runs, you'll need to restart the test server to 
 
 ### Installing Cypress
 
-1. Navigate to the `cypress` folder. 
-2. Install cypress with `npm install`. 
+1. Navigate to the `cypress` folder.
+2. Install cypress with `npm install`.
 
 Cypress will likely ask you to install [some OS dependencies](https://on.cypress.io/required-dependencies) (about .5 GB) when you try to run a test.
 </details>
@@ -86,7 +86,7 @@ If you're on a computer with limited resources, you may wish to use these:
   screenshotOnRunFailure=false    Disable screenshots of Cypress tests
 ```
 
-For example, to run the command-line only tests with the above options, use `npx cypress run --config video=false,screenshotOnRunFailure=false`. 
+For example, to run the command-line only tests with the above options, use `npx cypress run --config video=false,screenshotOnRunFailure=false`.
 
 Alternatively, you could set the environment variables `CYPRESS_VIDEO` and `CYPRESS_SCREENSHOT_ON_RUN_FAILURE`.
 
