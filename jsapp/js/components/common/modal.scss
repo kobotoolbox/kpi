@@ -856,7 +856,7 @@ $modal-custom-header-height: sizes.$x60;
 }
 
 // TODO: rework all these media queries to mobile first
-@media screen and (max-width: 480px) {
+@media screen and (width < 480px) {
   .table-media-preview-header {
     margin-right: 0 !important;
     display: block !important;
@@ -875,20 +875,20 @@ $modal-custom-header-height: sizes.$x60;
   }
 }
 
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
+@media screen and (width < breakpoints.$b768) {
   .modal.modal--open {
     min-width: 90%;
     max-width: 90%;
   }
 }
 
-@media screen and (max-width: 1175px) {
+@media screen and (width < 1175px) {
   .form-media__upload-url {
     width: 100%;
   }
 }
 
-@media screen and (max-width: 597px) {
+@media screen and (width < 597px) {
   .form-media__upload-url {
     width: 100%;
     padding-left: 0px;
@@ -903,7 +903,7 @@ $modal-custom-header-height: sizes.$x60;
 
 // FIXME: Due to the need to hardcode height of mfa modals, we allow scrolling
 // on mobile until we standardize all modals (see comment on mfaModals.scss)
-@media screen and (max-height: 800px) {
+@media screen and (height < 800px) {
   .modal.modal--mfa-setup {
     .modal__body {
       overflow-y: auto;

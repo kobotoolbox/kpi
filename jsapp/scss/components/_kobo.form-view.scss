@@ -690,7 +690,7 @@ $side-tabs-width-mobile: 70px;
 }
 
 // TODO: rework all these media queries to mobile first
-@media screen and (max-width: #{breakpoints.$b768 - 1px}) {
+@media screen and (width < breakpoints.$b768) {
   .form-view__sidetabs {
     width: $side-tabs-width-mobile;
 

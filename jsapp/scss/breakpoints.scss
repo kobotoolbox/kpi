@@ -25,22 +25,22 @@ The names for screen sizes and the breakpoints that divides them are:
 */
 @mixin breakpoint($breakpointName) {
   @if $breakpointName == veryNarrow {
-    @media (max-width: #{$b600 - 1px}) {@content;}
+    @media (width < $b600) {@content;}
   }
   @else if $breakpointName == narrow {
-    @media (min-width: $b600) and (max-width: #{$b960 - 1px}) {@content;}
+    @media (min-width: $b600) and (width < $b960) {@content;}
   }
   @else if $breakpointName == narrowAndUp {
     @media (min-width: $b600) {@content;}
   }
   @else if $breakpointName == medium {
-    @media (min-width: $b960) and (max-width: #{$b1140 - 1px}) {@content;}
+    @media (min-width: $b960) and (width < $b1140) {@content;}
   }
   @else if $breakpointName == mediumAndUp {
     @media (min-width: $b960) {@content;}
   }
   @else if $breakpointName == wide {
-    @media (min-width: $b1140) and (max-width: #{$b1440 - 1px}) {@content;}
+    @media (min-width: $b1140) and (width < $b1440) {@content;}
   }
   @else if $breakpointName == wideAndUp {
     @media (min-width: $b1140) {@content;}
