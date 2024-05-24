@@ -1,4 +1,5 @@
 # coding: utf-8
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -113,9 +114,13 @@ class Command(BaseCommand):
             'submission_retryer',
         ]
         for user in users:
-            user_obj = User(username=user)
+            email = f'{user}@fake.kbtdev.org'
+            user_obj = User(username=user, email=email)
             user_obj.set_password(user)
             user_obj.save()
+            EmailAddress.objects.create(
+                user=user_obj, email=email, verified=True, primary=True
+            )
 
         # Create an "empty" survey with no questions other than the defaults
         # added by the form builder
