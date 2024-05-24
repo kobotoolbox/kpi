@@ -29,12 +29,13 @@ $side-tabs-width-mobile: 70px;
 // form landing takes .form-view__toptabs into account
 .page-wrapper__content--form-landing {
   .form-view,
-  > *[class*='loadingSpinner'] {
+  .loadingSpinner {
     height: calc(100% - 48px);
   }
 
-  .form-view__sidetabs + *[class*='loadingSpinner'] {
-    // Without this, it gets pushed down, outside the layout
+  .loadingSpinner {
+    // Without this, it sometimes gets pushed down (outside the layout), when
+    // some sibling nodes are present
     width: auto;
     margin-left: auto;
     margin-right: auto;
