@@ -27,6 +27,7 @@ from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_database_user
 
 
+@override_settings(STRIPE_LIVE_MODE=True)
 class EnvironmentTests(BaseTestCase):
     fixtures = ['test_data']
 
@@ -71,14 +72,15 @@ class EnvironmentTests(BaseTestCase):
             'project_metadata_fields': lambda x: self.assertEqual(
                 len(x),
                 len(to_python_object(constance.config.PROJECT_METADATA_FIELDS)),
-            ) and self.assertIn({'name': 'organization', 'required': False}, x),
+            )
+            and self.assertIn({'name': 'organization', 'required': False}, x),
             'user_metadata_fields': lambda x: self.assertEqual(
                 len(x),
-                len(to_python_object(constance.config.USER_METADATA_FIELDS))
-            ) and self.assertIn({'name': 'sector', 'required': False}, x),
-            'sector_choices': lambda x: self.assertGreater(
-                len(x), 10
-            ) and self.assertIn(
+                len(to_python_object(constance.config.USER_METADATA_FIELDS)),
+            )
+            and self.assertIn({'name': 'sector', 'required': False}, x),
+            'sector_choices': lambda x: self.assertGreater(len(x), 10)
+            and self.assertIn(
                 (
                     "Humanitarian - Sanitation, Water & Hygiene",
                     "Humanitarian - Sanitation, Water & Hygiene",
@@ -86,9 +88,8 @@ class EnvironmentTests(BaseTestCase):
                 x,
             ),
             'operational_purpose_choices': (('', ''),),
-            'country_choices': lambda x: self.assertGreater(
-                len(x), 200
-            ) and self.assertIn(('KEN', 'Kenya'), x),
+            'country_choices': lambda x: self.assertGreater(len(x), 200)
+            and self.assertIn(('KEN', 'Kenya'), x),
             'interface_languages': lambda x: self.assertEqual(
                 len(x), len(settings.LANGUAGES)
             ),
@@ -111,7 +112,9 @@ class EnvironmentTests(BaseTestCase):
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
             'stripe_public_key': (
                 str(
-                    APIKey.objects.get(type='publishable', livemode=True).secret
+                    APIKey.objects.get(
+                        type='publishable', livemode=settings.STRIPE_LIVE_MODE
+                    ).secret
                 )
                 if settings.STRIPE_ENABLED
                 else None
