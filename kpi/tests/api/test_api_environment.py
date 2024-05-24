@@ -11,6 +11,7 @@ from django.template import RequestContext, Template
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from djstripe.models import APIKey
 from markdown import markdown
 from model_bakery import baker
 from rest_framework import status
@@ -44,6 +45,7 @@ class EnvironmentTests(BaseTestCase):
       ]
     }
 
+    @override_settings(STRIPE_ENABLED=False)
     def setUp(self):
         self.url = reverse('environment')
         self.user = User.objects.get(username='someuser')
@@ -99,7 +101,11 @@ class EnvironmentTests(BaseTestCase):
             ),
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
             'stripe_public_key': (
-                settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
+                str(
+                    APIKey.objects.get(type='publishable', livemode=True).secret
+                )
+                if settings.STRIPE_ENABLED
+                else None
             ),
             'free_tier_thresholds': to_python_object(
                 constance.config.FREE_TIER_THRESHOLDS
@@ -323,3 +329,21 @@ class EnvironmentTests(BaseTestCase):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['terms_of_service__sitewidemessage__exists']
+
+    @override_settings(STRIPE_ENABLED=False)
+    def test_stripe_public_key_when_stripe_disabled(self):
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['stripe_public_key'] is None
+
+    @override_settings(STRIPE_ENABLED=True)
+    def test_stripe_public_key_when_stripe_enabled(self):
+        APIKey.objects.create(
+            type='publishable',
+            livemode=True,
+            secret='fake_public_key'
+        )
+
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['stripe_public_key'] == 'fake_public_key'
