@@ -174,16 +174,16 @@ class EnvironmentView(APIView):
 
             try:
                 data['stripe_public_key'] = str(
-                    APIKey.objects.get(type='publishable', livemode=True).secret
+                    APIKey.objects.get(type='publishable', livemode=settings.STRIPE_LIVE_MODE).secret
                 )
-            except MultipleObjectsReturned:
+            except MultipleObjectsReturned as e:
                 raise MultipleObjectsReturned(
                     'Remove extra api keys from the django admin.'
-                )
-            except APIKey.DoesNotExist:
+                ) from e
+            except APIKey.DoesNotExist as e:
                 raise APIKey.DoesNotExist(
                     'Add a stripe api key to the django admin.'
-                )
+                ) from e
         else:
             data['stripe_public_key'] = None
 
