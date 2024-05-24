@@ -347,12 +347,6 @@ class EnvironmentTests(BaseTestCase):
 
     @override_settings(STRIPE_ENABLED=True)
     def test_stripe_public_key_when_stripe_enabled(self):
-        # APIKey.objects.create(
-        #     type='publishable',
-        #     livemode=True,
-        #     secret='fake_public_key'
-        # )
-
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] == 'fake_public_key'
