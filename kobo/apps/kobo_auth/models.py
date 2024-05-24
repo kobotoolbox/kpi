@@ -34,7 +34,7 @@ class User(AbstractUser):
                     return super().has_perm(perm, obj)
 
         if perm in get_model_permission_codenames():
-            with use_db(settings.OPENROA_DB_ALIAS):
+            with use_db(settings.OPENROSA_DB_ALIAS):
                 return super().has_perm(perm, obj)
 
         # Otherwise, check in KPI DB
