@@ -20,6 +20,10 @@ $plan-badge-height: 38px;
   row-gap: $plans-page-gap;
 }
 
+.accountPlan.showAddOns {
+  padding: sizes.$x15 0 0 0;
+}
+
 .wait {
   cursor: wait;
 }
@@ -169,6 +173,13 @@ $plan-badge-height: 38px;
   width: auto;
   display: inline-flex;
   margin-right: sizes.$x12;
+}
+
+.selectableFeature {
+  display: inline-flex;
+  align-items: center;
+  gap: sizes.$x6;
+  margin-top: -(sizes.$x10);
 }
 
 .enterprisePlanContainer {

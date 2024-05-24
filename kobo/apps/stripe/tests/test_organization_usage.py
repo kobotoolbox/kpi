@@ -1,21 +1,26 @@
+import pytest
 import timeit
 
-import pytest
-from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
+from djstripe.models import Customer
 from model_bakery import baker
 
 from kobo.apps.organizations.models import Organization, OrganizationUser
+from kobo.apps.stripe.tests.utils import generate_enterprise_subscription, generate_plan_subscription
 from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
+from kpi.models.asset import Asset
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
+from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
+from rest_framework import status
 
 
-class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
+
+class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
     """
     Test organization service usage when Stripe is enabled.
 
@@ -33,19 +38,15 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         super().setUpTestData()
         cls.now = timezone.now()
 
-        anotheruser = User.objects.get(username='anotheruser')
-        organization = baker.make(Organization, id=cls.org_id, name='test organization')
-        organization.add_user(cls.anotheruser, is_admin=True)
+        cls.organization = baker.make(Organization, id=cls.org_id, name='test organization')
+        cls.organization.add_user(cls.anotheruser, is_admin=True)
         assets = create_mock_assets([cls.anotheruser], cls.assets_per_user)
-
-        cls.customer = baker.make(Customer, subscriber=organization, livemode=False)
-        organization.save()
 
         users = baker.make(User, _quantity=cls.user_count - 1, _bulk_create=True)
         baker.make(
             OrganizationUser,
             user=users.__iter__(),
-            organization=organization,
+            organization=cls.organization,
             is_admin=False,
             _quantity=cls.user_count - 1,
             _bulk_create=True,
@@ -62,31 +63,6 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
 
     def tearDown(self):
         cache.clear()
-
-    def generate_subscription(self, metadata: dict):
-        """Create a subscription for a product with custom metadata"""
-        product = baker.make(Product, active=True, metadata={
-            'product_type': 'plan',
-            **metadata,
-        })
-        price = baker.make(
-            Price,
-            active=True,
-            id='price_sfmOFe33rfsfd36685657',
-            product=product,
-        )
-
-        subscription_item = baker.make(SubscriptionItem, price=price, quantity=1, livemode=False)
-        baker.make(
-            Subscription,
-            customer=self.customer,
-            status='active',
-            items=[subscription_item],
-            livemode=False,
-            billing_cycle_anchor=self.now - relativedelta(weeks=2),
-            current_period_end=self.now + relativedelta(weeks=2),
-            current_period_start=self.now - relativedelta(weeks=2),
-        )
 
     def test_usage_doesnt_include_org_users_without_subscription(self):
         """
@@ -107,12 +83,7 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         when viewing /service_usage/{organization_id}/
         """
 
-        self.generate_subscription(
-            {
-                'plan_type': 'enterprise',
-                'organizations': True,
-            }
-        )
+        generate_enterprise_subscription(self.organization)
 
         # the user should see usage for everyone in their org
         response = self.client.get(self.detail_url)
@@ -128,7 +99,7 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         when subscribed to a product that doesn't include org access
         """
 
-        self.generate_subscription({})
+        generate_plan_subscription(self.organization)
 
         response = self.client.get(self.detail_url)
         # without the proper subscription, the user should only see their usage
@@ -143,12 +114,7 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         # get the average request time for 10 hits to the endpoint
         single_user_time = timeit.timeit(lambda: self.client.get(self.detail_url), number=10)
 
-        self.generate_subscription(
-            {
-                'plan_type': 'enterprise',
-                'organizations': True,
-            }
-        )
+        generate_enterprise_subscription(self.organization)
 
         # get the average request time for 10 hits to the endpoint
         multi_user_time = timeit.timeit(lambda: self.client.get(self.detail_url), number=10)
@@ -161,17 +127,12 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         """
         Test that multiple hits to the endpoint from the same origin are properly cached
         """
-        self.generate_subscription(
-            {
-                'plan_type': 'enterprise',
-                'organizations': True,
-            }
-        )
+        generate_enterprise_subscription(self.organization)
 
-        response = self.client.get(self.detail_url)
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
-        assert response.data['total_storage_bytes'] == (
+        first_response = self.client.get(self.detail_url)
+        assert first_response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
+        assert first_response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
+        assert first_response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
 
@@ -186,3 +147,67 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
+
+
+class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
+    """
+    Test organization asset usage when Stripe is enabled.
+    """
+
+    def setUp(self):
+        self.org_id = 'orgBGRFJskafsngf'
+        self.url = reverse(self._get_endpoint('organizations-list'))
+        self.detail_url = f'{self.url}{self.org_id}/asset_usage/'
+        self.organization = baker.make(
+            Organization, id=self.org_id, name='test organization'
+        )
+
+        self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.newuser = baker.make(User, username='newuser')
+        self.organization.add_user(self.anotheruser, is_admin=True)
+        baker.make(Customer, subscriber=self.organization)
+        self.client.force_login(self.anotheruser)
+
+    def test_unauthorized_user(self):
+        self.client.logout()
+        response = self.client.get(self.detail_url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        self.client.force_login(self.anotheruser)
+
+    def test_nonexistent_organization(self):
+        non_org_id = 'lkdjalkfewkl'
+        url_with_non_org_id = f'{self.url}{non_org_id}/asset_usage/'
+        response = self.client.get(url_with_non_org_id)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_user_not_member_of_organization(self):
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.detail_url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_successful_retrieval(self):
+        generate_enterprise_subscription(self.organization)
+        create_mock_assets([self.anotheruser])
+        response = self.client.get(self.detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['asset__name'] == 'test'
+        assert response.data['results'][0]['deployment_status'] == 'deployed'
+
+    def test_aggregates_usage_for_enterprise_org(self):
+        generate_enterprise_subscription(self.organization)
+        self.organization.add_user(self.newuser)
+        # create 2 additional assets, one per user
+        create_mock_assets([self.anotheruser, self.newuser])
+        response = self.client.get(self.detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 2
+
+    def test_users_without_enterprise_see_only_their_usage(self):
+        generate_plan_subscription(self.organization)
+        self.organization.add_user(self.newuser)
+        create_mock_assets([self.anotheruser, self.newuser])
+        response = self.client.get(self.detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1

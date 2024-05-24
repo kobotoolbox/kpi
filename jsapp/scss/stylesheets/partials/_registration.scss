@@ -310,6 +310,11 @@
   }
 }
 
+// hide the redundant django-allauth "Forgot your password?" link
+form.registration--login > p > span.helptext{
+  display: none;
+}
+
 .registration .registration__kc-domain + input {
   display: inline-block;
 }
