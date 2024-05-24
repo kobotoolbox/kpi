@@ -45,7 +45,16 @@ class EnvironmentTests(BaseTestCase):
       ]
     }
 
-    @override_settings(STRIPE_ENABLED=False)
+    @classmethod
+    def setUpTestData(cls):
+        # Create a fake APIKey object for testing
+        cls.api_key = APIKey.objects.create(
+            type='publishable',
+            livemode=True,
+            secret='fake_public_key'
+        )
+
+    @override_settings(STRIPE_ENABLED=True)
     def setUp(self):
         self.url = reverse('environment')
         self.user = User.objects.get(username='someuser')
@@ -301,7 +310,7 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.data['free_tier_thresholds'], FREE_TIER_NO_THRESHOLDS)
         self.assertEqual(response.data['free_tier_display'], FREE_TIER_EMPTY_DISPLAY)
 
-    @override_settings(SOCIALACCOUNT_PROVIDERS={})
+    @override_settings(SOCIALACCOUNT_PROVIDERS={}, STRIPE_ENABLED=False)
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
@@ -338,11 +347,11 @@ class EnvironmentTests(BaseTestCase):
 
     @override_settings(STRIPE_ENABLED=True)
     def test_stripe_public_key_when_stripe_enabled(self):
-        APIKey.objects.create(
-            type='publishable',
-            livemode=True,
-            secret='fake_public_key'
-        )
+        # APIKey.objects.create(
+        #     type='publishable',
+        #     livemode=True,
+        #     secret='fake_public_key'
+        # )
 
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
