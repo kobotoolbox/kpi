@@ -1,6 +1,5 @@
 import uuid
 
-from django.contrib.auth.models import User
 from django.http import QueryDict
 from django.urls import reverse
 from rest_framework import status
