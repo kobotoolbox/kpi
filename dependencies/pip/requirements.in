@@ -5,7 +5,7 @@
 -e git+https://github.com/kobotoolbox/formpack.git@443a8e940756976a9f88fb577dbbc53510726536#egg=formpack
 
 # service-account
--e git+https://github.com/kobotoolbox/kobo-service-account.git@55fd110215b93ff1f1b8cb6a3df4e531aa67f59e#egg=kobo-service-account
+-e git+https://github.com/kobotoolbox/kobo-service-account.git@cb52c6221b68af9b13237d0a1157e3f1965a82b1#egg=kobo-service-account
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
