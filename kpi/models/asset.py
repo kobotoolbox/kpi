@@ -471,7 +471,10 @@ class Asset(ObjectPermissionMixin,
             # Remove newlines and tabs (they are stripped in front end anyway)
             self.name = re.sub(r'[\n\t]+', '', _title)
 
-    def analysis_form_json(self):
+    def analysis_form_json(self, omit_question_types=None):
+        if omit_question_types is None:
+            omit_question_types = []
+
         additional_fields = list(self._get_additional_fields())
         engines = dict(self._get_engines())
         output = {'engines': engines, 'additional_fields': additional_fields}
@@ -502,8 +505,7 @@ class Asset(ObjectPermissionMixin,
                 settings='??',
                 path=[qpath, qual_question['uuid']],
             )
-            if field['type'] == 'qual_note':
-                # don't include note question type in exports
+            if field['type'] in omit_question_types:
                 continue
             try:
                 field['choices'] = qual_question['choices']
