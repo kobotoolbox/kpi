@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
     help = 'Runs a development server with data to facilitate Cypress testing.'
 
-    requires_system_checks = False
+    requires_system_checks = []
 
     def add_arguments(self, parser):
         parser.add_argument(
