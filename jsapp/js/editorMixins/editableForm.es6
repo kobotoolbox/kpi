@@ -600,7 +600,7 @@ export default Object.assign({
             <i className='k-icon k-icon-kobo' />
           </bem.FormBuilderHeader__cell>
 
-          <bem.FormBuilderHeader__cell m={'name'} >
+          <bem.FormBuilderHeader__cell m='name' >
             <bem.FormModal__item>
               {this.renderAssetLabel()}
               <input

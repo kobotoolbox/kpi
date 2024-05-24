@@ -106,7 +106,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
               updateChoiceLabel(choice.uuid, newLabel)
             }
             placeholder={t('Type option name')}
-            customClassNames={[styles.labelInput]}
+            className={styles.labelInput}
             size='m'
             renderFocused
           />

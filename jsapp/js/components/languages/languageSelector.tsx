@@ -345,7 +345,7 @@ class LanguageSelector extends React.Component<
         }
         <bem.LanguageSelector__searchBox>
           {this.store.isLoading &&
-            <Icon name='spinner' size='s' classNames={['k-spin']}/>
+            <Icon name='spinner' size='s' className='k-spin' />
           }
           {!this.store.isLoading &&
             <Icon name='search' size='m'/>

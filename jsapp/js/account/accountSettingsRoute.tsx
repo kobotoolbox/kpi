@@ -142,7 +142,7 @@ const AccountSettings = observer(() => {
       <bem.AccountSettings__actions>
         <Button
           type={'full'}
-          classNames={['account-settings-save']}
+          className='account-settings-save'
           color={'blue'}
           size={'l'}
           isSubmit

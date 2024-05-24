@@ -1,3 +1,4 @@
+import cx from 'classnames';
 import type {ButtonProps} from 'js/components/common/button';
 import Button from 'js/components/common/button';
 import React from 'react';
@@ -15,7 +16,7 @@ export default function BillingButton(props: Partial<ButtonProps>) {
       color='blue'
       size='l'
       {...props}
-      classNames={props.classNames ? [button, ...props.classNames] : [button]}
+      className={cx([button, props.className])}
       isFullWidth
     />
   );

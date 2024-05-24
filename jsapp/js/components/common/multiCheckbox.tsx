@@ -25,44 +25,37 @@ interface MultiCheckboxProps {
   /** Returns whole list whenever any item changes */
   onChange: (items: MultiCheckboxItem[]) => void;
   /** Additional class names. */
-  classNames?: string[];
+  className?: string;
 }
 
 /**
  * A MultiCheckbox generic component.
  * Use optional `bem.MultiCheckbox__wrapper` to display a frame around it.
  */
-class MultiCheckbox extends React.Component<MultiCheckboxProps> {
-  onChange(itemIndex: number, isChecked: boolean) {
-    const updatedList = this.props.items;
+export default function MultiCheckbox (props: MultiCheckboxProps) {
+  function onChange(itemIndex: number, isChecked: boolean) {
+    const updatedList = props.items;
     updatedList[itemIndex].checked = isChecked;
-    this.props.onChange(updatedList);
+    props.onChange(updatedList);
   }
 
-  render() {
-    let customClassNames: string[] = [];
-    if (this.props.classNames) {
-      customClassNames = this.props.classNames;
-    }
-
-    return (
-      <bem.MultiCheckbox
-        m={`type-${this.props.type}`}
-        className={customClassNames.join(' ')}
-      >
-        {this.props.items.map((item, itemIndex) => (
-          <bem.MultiCheckbox__item key={itemIndex}>
-            <Checkbox
-              checked={item.checked}
-              disabled={this.props.disabled || item.disabled}
-              onChange={this.onChange.bind(this, itemIndex)}
-              label={item.label}
-            />
-          </bem.MultiCheckbox__item>
-        ))}
-      </bem.MultiCheckbox>
-    );
-  }
+  return (
+    <bem.MultiCheckbox
+      m={`type-${props.type}`}
+      className={props.className}
+    >
+      {props.items.map((item, itemIndex) => (
+        <bem.MultiCheckbox__item key={itemIndex}>
+          <Checkbox
+            checked={item.checked}
+            disabled={props.disabled || item.disabled}
+            onChange={(isChecked: boolean) => {
+              onChange(itemIndex, isChecked);
+            }}
+            label={item.label}
+          />
+        </bem.MultiCheckbox__item>
+      ))}
+    </bem.MultiCheckbox>
+  );
 }
-
-export default MultiCheckbox;

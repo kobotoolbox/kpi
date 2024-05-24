@@ -444,7 +444,7 @@ class ConnectProjects extends React.Component {
           {this.renderSelect()}
 
           <TextBox
-            customClassNames={['connect-projects-textbox']}
+            className='connect-projects-textbox'
             placeholder={t('Give a unique name to the import')}
             value={this.state.newFilename}
             size='m'
