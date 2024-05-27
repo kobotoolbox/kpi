@@ -1362,7 +1362,7 @@ if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
         }
 else:
     KOBOCAT_DEFAULT_FILE_STORAGE = global_settings.STORAGES['default']['BACKEND']
-    KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
+    KOBOCAT_MEDIA_ROOT = os.environ.get('KOBOCAT_MEDIA_ROOT', MEDIA_ROOT)
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
