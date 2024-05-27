@@ -26,7 +26,6 @@ ENV = 'testing'
 # Run all Celery tasks synchronously during testing
 CELERY_TASK_ALWAYS_EAGER = True
 
-
 MONGO_CONNECTION_URL = 'mongodb://fakehost/formhub_test'
 mongo_client = MockMongoClient(
     MONGO_CONNECTION_URL, connect=False, journal=True, tz_aware=True

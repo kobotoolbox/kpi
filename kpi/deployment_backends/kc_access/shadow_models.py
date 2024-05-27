@@ -179,7 +179,7 @@ class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
             # (out of ASCII character set) and must be encoded to let NGINX serve
             # them
             protected_url = urlquote(attachment_file_path.replace(
-                settings.KOBOCAT_MEDIA_PATH, '/protected')
+                settings.KOBOCAT_MEDIA_ROOT, '/protected')
             )
         else:
             # Double-encode the S3 URL to take advantage of NGINX's

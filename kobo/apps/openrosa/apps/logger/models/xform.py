@@ -47,9 +47,8 @@ title_pattern = re.compile(r"<h:title>([^<]+)</h:title>")
 
 def upload_to(instance, filename):
     return os.path.join(
-        instance.user.username,
-        'xls',
-        os.path.split(filename)[1])
+        instance.user.username, 'xls', os.path.split(filename)[1]
+    )
 
 
 class XFormWithoutPendingDeletedManager(models.Manager):
