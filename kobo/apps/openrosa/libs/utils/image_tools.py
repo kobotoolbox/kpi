@@ -5,12 +5,14 @@ from tempfile import NamedTemporaryFile
 import requests
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.core.files.storage import FileSystemStorage
 from PIL import Image
 
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_path
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+
 
 def flat(*nums):
     """
@@ -67,11 +69,9 @@ def _save_thumbnails(image, original_path, size, suffix):
 
 
 def resize(filename):
-    is_local = default_storage.__class__.__name__ == 'FileSystemStorage'
     image = None
-    original_path = None
 
-    if is_local:
+    if isinstance(default_storage, FileSystemStorage):
         path = default_storage.path(filename)
         image = Image.open(path)
         original_path = path
