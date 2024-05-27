@@ -139,14 +139,16 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     );
   }
 
-  renderResponseData(
-    item: DisplayResponse
-    // type: AnyRowTypeName | null,
-    // data: string | null,
-    // listName?: string
-  ) {
-    if (item.data === null) {
+  renderResponseData(item: DisplayResponse) {
+    if (item.data === null || item.data === undefined) {
       return null;
+    }
+
+    if (typeof item.data !== 'string') {
+      // We are only expecting strings at this point in the code, if we get
+      // anything else, we fall back to displaying raw data as a string (better
+      // than displaying nothing)
+      return String(item.data);
     }
 
     let choice;

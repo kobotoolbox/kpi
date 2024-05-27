@@ -184,7 +184,7 @@ export type SubmissionResponseValue =
   | Array<{[questionName: string]: SubmissionResponseValue}>
   | undefined;
 
-export interface SubmissionResponse extends SubmissionResponseGeneric {
+export interface SubmissionResponse {
   // `SubmissionResponseValue` covers all possible values (responses to form
   // questions and other submission properties)
   [propName: string]: SubmissionResponseValue;
