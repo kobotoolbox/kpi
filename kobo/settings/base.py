@@ -145,24 +145,6 @@ INSTALLED_APPS = (
     'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
 )
 
-# BEFORE KOBOCAT migration
-# MIDDLEWARE = [
-#     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
-#     'corsheaders.middleware.CorsMiddleware',
-#     'django.middleware.security.SecurityMiddleware',
-#     'django.contrib.sessions.middleware.SessionMiddleware',
-#     'hub.middleware.LocaleMiddleware',
-#     'allauth.account.middleware.AccountMiddleware',
-#     'django.middleware.common.CommonMiddleware',
-#     'django.middleware.csrf.CsrfViewMiddleware',
-#     'django.contrib.auth.middleware.AuthenticationMiddleware',
-#     'django.contrib.messages.middleware.MessageMiddleware',
-#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-#     'hub.middleware.UsernameInResponseHeaderMiddleware',
-#     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
-#     'django_request_cache.middleware.RequestCacheMiddleware',
-# ]
-
 MIDDLEWARE = [
     'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
     'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
