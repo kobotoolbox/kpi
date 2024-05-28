@@ -18,13 +18,7 @@ import MultiCheckbox from 'js/components/common/multiCheckbox';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import cx from 'classnames';
 
-interface SidebarDisplaySettingsProps {
-  assetContent: AssetContent | undefined;
-}
-
-export default function SidebarDisplaySettings(
-  props: SidebarDisplaySettingsProps
-) {
+export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -39,9 +33,6 @@ export default function SidebarDisplaySettings(
   );
 
   function getInitialFields() {
-    if (!props.assetContent?.survey) {
-      return [];
-    }
 
     const allQuestions = store.getAllSidebarQuestions();
     const hiddenFields = store.getHiddenSidebarQuestions();
@@ -54,7 +45,9 @@ export default function SidebarDisplaySettings(
     return questionsList;
   }
 
-  const [selectedFields, setSelectedFields] = useState(getInitialFields());
+  const [selectedFields, setSelectedFields] = useState(() =>
+    getInitialFields()
+  );
 
   // Every time user changes the tab, we need to load the stored displays list
   // for that tab.
@@ -65,6 +58,8 @@ export default function SidebarDisplaySettings(
   const transcript = store.getTranscript();
   const availableDisplays = store.getAvailableDisplays(activeTab);
 
+  // Returns the list of available displays for the current tab.
+  // I.e., if we are on the transcript tab, hide the transcript option.
   function getStaticDisplayText(display: StaticDisplays) {
     if (display === StaticDisplays.Transcript) {
       if (transcript) {
@@ -103,10 +98,6 @@ export default function SidebarDisplaySettings(
   }
 
   function getCheckboxes() {
-    if (!props.assetContent?.survey) {
-      return [];
-    }
-
     const checkboxes = store.getAllSidebarQuestions().map((question) => {
       return {
         label: question.label,
@@ -200,7 +191,7 @@ export default function SidebarDisplaySettings(
                         label={getStaticDisplayText(staticDisplay)}
                       />
 
-                      {isSubmissionData && props.assetContent?.survey && (
+                      {isSubmissionData && (
                         <div className={styles.questionList}>
                           {t('Select the submission data to display.')}
                           <div className={styles.checkbox}>
