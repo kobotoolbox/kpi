@@ -2,6 +2,7 @@ import base64
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -40,6 +41,7 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         self.user = get_user_model().objects.get(username='someuser')
         self.user_token, _ = Token.objects.get_or_create(user=self.user)
 
+    @override_settings(STRIPE_ENABLED=False)
     def test_access_forbidden_with_invalid_password(self):
         # Ensure password is valid first
         self.user.extra_details.validated_password = True
