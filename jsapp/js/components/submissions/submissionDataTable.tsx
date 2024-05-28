@@ -132,7 +132,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
           }
         </bem.SubmissionDataTable__column>
 
-        <bem.SubmissionDataTable__column m='data'>
+        <bem.SubmissionDataTable__column m={['data', `type-${item.type}`]}>
           {this.renderResponseData(item)}
         </bem.SubmissionDataTable__column>
       </bem.SubmissionDataTable__row>
@@ -202,17 +202,15 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             {formatTimeDate(item.data)}
           </bem.SubmissionDataTable__value>
         );
-      case QUESTION_TYPES.geopoint.id:
-        return this.renderPointData(item.data);
       case QUESTION_TYPES.image.id:
       case QUESTION_TYPES.audio.id:
       case QUESTION_TYPES.video.id:
       case QUESTION_TYPES.file.id:
         return this.renderAttachment(item.type, item.data, item.name, item.xpath);
+      case QUESTION_TYPES.geopoint.id:
       case QUESTION_TYPES.geotrace.id:
-        return this.renderMultiplePointsData(item.data);
       case QUESTION_TYPES.geoshape.id:
-        return this.renderMultiplePointsData(item.data);
+        return this.renderPointsData(item.data);
       default:
         // all types not specified above just returns raw data
         return (
@@ -229,41 +227,54 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     );
   }
 
-  renderPointData(data: string) {
-    const parts = data.split(' ');
-    return (
-      <ul>
-        <li>
-          {t('latitude (x.y °):') + ' '}
-          <bem.SubmissionDataTable__value>{parts[0]}</bem.SubmissionDataTable__value>
-        </li>
-        <li>
-          {t('longitude (x.y °):') + ' '}
-          <bem.SubmissionDataTable__value>{parts[1]}</bem.SubmissionDataTable__value>
-        </li>
-        <li>
-          {t('altitude (m):') + ' '}
-          <bem.SubmissionDataTable__value>{parts[2]}</bem.SubmissionDataTable__value>
-        </li>
-        <li>
-          {t('accuracy (m):') + ' '}
-          <bem.SubmissionDataTable__value>{parts[3]}</bem.SubmissionDataTable__value>
-        </li>
-      </ul>
-    );
-  }
+  renderPointsData(data: string) {
+    const pointsArray: string[][] = data.split(';').map((pointString) => pointString.split(' '));
 
-  renderMultiplePointsData(data: string) {
-    return (data.split(';').map((pointData, pointIndex) =>
-      <bem.SubmissionDataTable__row m={['columns', 'point']} key={pointIndex}>
-        <bem.SubmissionDataTable__column>
-          P<sub>{pointIndex + 1}</sub>
-        </bem.SubmissionDataTable__column>
-        <bem.SubmissionDataTable__column>
-          {this.renderPointData(pointData)}
-        </bem.SubmissionDataTable__column>
-      </bem.SubmissionDataTable__row>
-    ));
+    return(
+      <bem.SimpleTable>
+        <bem.SimpleTable__header>
+          <bem.SimpleTable__row>
+            <bem.SimpleTable__cell>
+              {t('Point')}
+            </bem.SimpleTable__cell>
+            <bem.SimpleTable__cell>
+              {t('latitude (x.y °):')}
+            </bem.SimpleTable__cell>
+            <bem.SimpleTable__cell>
+              {t('longitude (x.y °):')}
+            </bem.SimpleTable__cell>
+            <bem.SimpleTable__cell>
+              {t('altitude (m):')}
+            </bem.SimpleTable__cell>
+            <bem.SimpleTable__cell>
+              {t('accuracy (m):')}
+            </bem.SimpleTable__cell>
+          </bem.SimpleTable__row>
+        </bem.SimpleTable__header>
+
+        <bem.SimpleTable__body>
+          {pointsArray.map((pointArray, pointIndex) => (
+            <bem.SimpleTable__row>
+              <bem.SimpleTable__cell>
+                P<sub>{pointIndex + 1}</sub>
+              </bem.SimpleTable__cell>
+              <bem.SimpleTable__cell>
+                {pointArray[0]}
+              </bem.SimpleTable__cell>
+              <bem.SimpleTable__cell>
+                {pointArray[1]}
+              </bem.SimpleTable__cell>
+              <bem.SimpleTable__cell>
+                {pointArray[2]}
+              </bem.SimpleTable__cell>
+              <bem.SimpleTable__cell>
+                {pointArray[3]}
+              </bem.SimpleTable__cell>
+            </bem.SimpleTable__row>
+          ))}
+        </bem.SimpleTable__body>
+      </bem.SimpleTable>
+    );
   }
 
   renderAttachment(type: string, filename: string, name: string, xpath: string) {
