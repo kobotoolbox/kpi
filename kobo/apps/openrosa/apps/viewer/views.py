@@ -20,6 +20,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils.translation import gettext as t
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.http import require_POST
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -43,6 +44,7 @@ media_file_logger = logging.getLogger('media_files')
 
 @login_required
 @require_POST
+@xframe_options_exempt
 def create_export(request, username, id_string, export_type):
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
@@ -87,6 +89,7 @@ def create_export(request, username, id_string, export_type):
         )
 
 
+@xframe_options_exempt
 def export_list(request, username, id_string, export_type):
     try:
         Export.EXPORT_TYPE_DICT[export_type]
@@ -110,6 +113,7 @@ def export_list(request, username, id_string, export_type):
     return render(request, 'export_list.html', data)
 
 
+@xframe_options_exempt
 def export_progress(request, username, id_string, export_type):
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
@@ -146,6 +150,7 @@ def export_progress(request, username, id_string, export_type):
         json.dumps(statuses), content_type='application/json')
 
 
+@xframe_options_exempt
 def export_download(request, username, id_string, export_type, filename):
 
     helper_auth_helper(request)
@@ -177,6 +182,7 @@ def export_download(request, username, id_string, export_type, filename):
 
 @login_required
 @require_POST
+@xframe_options_exempt
 def delete_export(request, username, id_string, export_type):
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
