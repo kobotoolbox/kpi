@@ -71,17 +71,17 @@ class AttachmentViewSet(
             request,
             submission_id_or_uuid,
             attachment_id=pk,
-            size=kwargs.get('size'),
+            suffix=kwargs.get('suffix'),
         )
 
     @action(
         detail=True,
         methods=['GET'],
-        url_path=f'(?P<size>({thumbnail_suffixes_pattern}))'
+        url_path=f'(?P<suffix>({thumbnail_suffixes_pattern}))'
     )
-    def thumb(self, request, pk, size, *args, **kwargs):
-        if size != 'original':
-            kwargs['size'] = size
+    def thumb(self, request, pk, suffix, *args, **kwargs):
+        if suffix != 'original':
+            kwargs['suffix'] = suffix
         return self.retrieve(request, pk, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
@@ -101,7 +101,7 @@ class AttachmentViewSet(
         submission_id_or_uuid: Union[str, int],
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
-        size: Optional[str] = None,
+        suffix: Optional[str] = None,
     ) -> Response:
 
         try:
@@ -122,7 +122,7 @@ class AttachmentViewSet(
         try:
             protected_path = attachment.protected_path(
                 format_=request.accepted_renderer.format,
-                size=size,
+                suffix=suffix,
             )
         except FFMpegException:
             raise serializers.ValidationError({

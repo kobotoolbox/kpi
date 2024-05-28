@@ -171,20 +171,19 @@ class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
         return f'{self.storage_path}.mp3'
 
     def protected_path(
-        self, format_: Optional[str] = None, size: Optional[str] = None
+        self, format_: Optional[str] = None, suffix: Optional[str] = None
     ) -> str:
         """
         Return path to be served as protected file served by NGINX
         """
-
         if format_ == 'mp3':
             attachment_file_path = self.absolute_mp3_path
         else:
             attachment_file_path = self.absolute_path
 
-        if size and self.mimetype.startswith('image/'):
+        if suffix and self.mimetype.startswith('image/'):
             optimized_image_path = get_optimized_image_path(
-                self.media_file.name, size
+                self.media_file.name, suffix
             )
             if not default_kobocat_storage.exists(optimized_image_path):
                 resize(self.media_file.name)

@@ -177,8 +177,7 @@ class DataDictionary(XForm):
                 self._survey = \
                     builder.create_survey_element_from_json(self.json)
             except ValueError:
-                xml = bytes(bytearray(self.xml, encoding='utf-8'))
-                self._survey = create_survey_element_from_xml(xml)
+                self._survey = create_survey_element_from_xml(self.xml)
         return self._survey
 
     survey = property(get_survey)
