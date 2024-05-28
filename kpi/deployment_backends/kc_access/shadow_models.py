@@ -181,25 +181,33 @@ class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
         else:
             attachment_file_path = self.absolute_path
 
+        optimized_image_path = None
         if suffix and self.mimetype.startswith('image/'):
             optimized_image_path = get_optimized_image_path(
                 self.media_file.name, suffix
             )
             if not default_kobocat_storage.exists(optimized_image_path):
                 resize(self.media_file.name)
-            attachment_file_path = default_kobocat_storage.path(optimized_image_path)
 
         if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
             # Django normally sanitizes accented characters in file names during
             # save on disk but some languages have extra letters
             # (out of ASCII character set) and must be encoded to let NGINX serve
             # them
+            if optimized_image_path:
+                attachment_file_path = default_kobocat_storage.path(
+                    optimized_image_path
+                )
             protected_url = urlquote(attachment_file_path.replace(
                 settings.KOBOCAT_MEDIA_ROOT, '/protected')
             )
         else:
             # Double-encode the S3 URL to take advantage of NGINX's
             # otherwise troublesome automatic decoding
+            if optimized_image_path:
+                attachment_file_path = default_kobocat_storage.url(
+                    optimized_image_path
+                )
             protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
 
         return protected_url
