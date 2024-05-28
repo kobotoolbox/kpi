@@ -19,7 +19,14 @@ from django.db import (
 from django.utils import timezone
 from django_digest.models import PartialDigest
 
+from kobo.apps.openrosa.libs.utils.image_tools import (
+    get_optimized_image_path,
+    resize,
+)
 from kpi.constants import SHADOW_MODEL_APP_LABEL
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage,
+)
 from kpi.exceptions import (
     BadContentTypeException,
 )
@@ -163,7 +170,9 @@ class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
         """
         return f'{self.storage_path}.mp3'
 
-    def protected_path(self, format_: Optional[str] = None):
+    def protected_path(
+        self, format_: Optional[str] = None, size: Optional[str] = None
+    ) -> str:
         """
         Return path to be served as protected file served by NGINX
         """
@@ -172,6 +181,14 @@ class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
             attachment_file_path = self.absolute_mp3_path
         else:
             attachment_file_path = self.absolute_path
+
+        if size and self.mimetype.startswith('image/'):
+            optimized_image_path = get_optimized_image_path(
+                self.media_file.name, size
+            )
+            if not default_kobocat_storage.exists(optimized_image_path):
+                resize(self.media_file.name)
+            attachment_file_path = default_kobocat_storage.path(optimized_image_path)
 
         if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
             # Django normally sanitizes accented characters in file names during

@@ -42,6 +42,7 @@ from kpi.utils.xml import (
     xml_tostring,
 )
 
+
 class BaseDeploymentBackend(abc.ABC):
     """
     Defines the interface for a deployment backend.
@@ -775,20 +776,42 @@ class BaseDeploymentBackend(abc.ABC):
         )
 
         for attachment in submission['_attachments']:
-            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
-                # We should use 'attachment-list' with `?xpath=` but we do not
-                # know what the XPath is here. Since the primary key is already
-                # exposed, let's use it to build the url with 'attachment-detail'
-                kpi_url = reverse(
-                    'attachment-detail',
-                    args=(self.asset.uid, submission['_id'], attachment['id']),
-                    request=request,
-                )
-                key = f'download{suffix}_url'
-                try:
+            # We should use 'attachment-list' with `?xpath=` but we do not
+            # know what the XPath is here. Since the primary key is already
+            # exposed, let's use it to build the url.
+            kpi_url = reverse(
+                'attachment-detail',
+                args=(
+                    self.asset.uid,
+                    submission['_id'],
+                    attachment['id'],
+                ),
+                request=request,
+            )
+            key = f'download_url'
+            attachment[key] = kpi_url
+            if attachment['mimetype'].startswith('image/'):
+                for suffix in settings.THUMB_CONF.keys():
+                    kpi_url = reverse(
+                        'attachment-thumb',
+                        args=(
+                            self.asset.uid,
+                            submission['_id'],
+                            attachment['id'],
+                            suffix,
+                        ),
+                        request=request,
+                    )
+                    key = f'download_{suffix}_url'
                     attachment[key] = kpi_url
-                except KeyError:
-                    continue
+            else:
+                for suffix in settings.THUMB_CONF.keys():
+                    try:
+                        key = f'download_{suffix}_url'
+                        del attachment[key]
+                    except KeyError:
+                        continue
+
             filename = attachment['filename']
             attachment['filename'] = os.path.join(
                 self.asset.owner.username,

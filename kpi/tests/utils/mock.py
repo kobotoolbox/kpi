@@ -134,11 +134,13 @@ class MockAttachment(AudioTranscodingMixin):
     def absolute_path(self):
         return self.media_file.path
 
-    def protected_path(self, format_: Optional[str] = None):
+    def protected_path(
+        self, format_: Optional[str] = None, size: Optional[str] = None
+    ) -> str:
         if format_ == 'mp3':
-            suffix = f'.mp3'
+            suffix = '.mp3'
             with NamedTemporaryFile(suffix=suffix) as f:
-                self.content = self.get_transcoded_audio('mp3')
+                self.content = self.get_transcoded_audio(format_)
             return f.name
         else:
             return self.absolute_path
