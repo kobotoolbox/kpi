@@ -61,7 +61,7 @@ export default function StepEditor() {
             isPending={singleProcessingStore.data.isFetchingData}
             isDisabled={
               !singleProcessingStore.hasUnsavedTranscriptDraftValue() ||
-              !hasManagePermissionsToCurrentAsset
+              !hasManagePermissionsToCurrentAsset()
             }
           />
         </nav>

@@ -79,8 +79,8 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             onClick={openEditor}
             tooltip={t('Edit')}
             isDisabled={
-              !hasManagePermissionsToCurrentAsset() ||
-              singleProcessingStore.data.isFetchingData
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
             }
           />
 
@@ -91,12 +91,8 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             startIcon='trash'
             onClick={deleteTranslation}
             tooltip={t('Delete')}
-            isPending={
-              singleProcessingStore.data.isFetchingData
-            }
-            isDisabled={
-              !hasManagePermissionsToCurrentAsset()
-            }
+            isPending={singleProcessingStore.data.isFetchingData}
+            isDisabled={!hasManagePermissionsToCurrentAsset()}
           />
         </div>
       </header>
