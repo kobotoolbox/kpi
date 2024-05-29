@@ -2,8 +2,8 @@
 
 To run tests, you need to do 2 things:
 
-1. Start the **test server.** This is like a kpi server, but in a special cypress_testserver mode. (You will also need to restart it between Cypress test runs.)
-2. Use the **Cypress test runner.** You can run this in command-line mode, or open an interactive browser window.
+1. [Start the **test server.**](#how-to-start-the-test-server) This is like a kpi server, but in a special cypress_testserver mode. (You will also need to restart it between Cypress test runs.)
+2. [Use the **Cypress test runner.**](#how-to-run-cypress-tests) You can run this in command-line mode, or open an interactive browser window.
 
 ## How to start the test server
 
@@ -16,13 +16,26 @@ kpi$ DJANGO_SETTINGS_MODULE=kobo.settings.cypress  \
        --noinput
 ```
 
-If you're using kobo-docker / kobo-install, the process will look like this:
+If you're using [kobo-install](https//github.com/kobotoolbox/kobo-install):
 
 ```console
+# Enter a bash session in the kpi container
 kobo-install$  ./run.py -cf exec kpi bash
-root@kpi:/srv/src/kpi#  sv stop uwsgi
-ok: down: uwsgi: 0s, normally up
-root@kpi:/srv/src/kpi# DJANGO_SETTINGS_MODULE=kobo.settings.cypress ./manage.py cypress_testserver --addrport 0.0.0.0:8000 --noinput
+
+# Stop the server that is already running
+root@kpi:/srv/src/kpi#   sv stop uwsgi
+  ok: down: uwsgi: 0s, normally up
+
+# Start the test server
+root@kpi:/srv/src/kpi#   DJANGO_SETTINGS_MODULE=kobo.settings.cypress ./manage.py cypress_testserver --addrport 0.0.0.0:8000 --noinput
+```
+
+Note: If you get a ModuleNotFoundError, you may need to install
+the dev dependencies. In your container:
+
+```console
+# Install dev dependencies (so you can run tests)
+pip install -r dependencies/pip/dev_requirements.txt
 ```
 
 <details><summary>About cypress_testserver</summary>
@@ -61,7 +74,7 @@ Between subsequent Cypress test runs, you'll need to restart the test server to 
 Cypress will likely ask you to install [some OS dependencies](https://on.cypress.io/required-dependencies) (about .5 GB) when you try to run a test.
 </details>
 
-(Make sure `$KOBOFORM_URL` or `$CYPRESS_BASE_URL` points to your test server.)
+Make sure `$KOBOFORM_URL` or `$CYPRESS_BASE_URL` points to your test server.
 
 ### Command line only tests
 
@@ -94,8 +107,7 @@ Alternatively, you could set the environment variables `CYPRESS_VIDEO` and `CYPR
 
 We have configured Cypress to read its baseUrl from `KOBOFORM_URL` because it's likely you'll already have that set from kpi or kobo-install.
 
-You can override this with `CYPRESS_BASE_URL`, or any other method of configuration.
-
+You can override this with `CYPRESS_BASE_URL`, or the config option equivalent, `baseUrl`.
 
 # Writing tests
 
