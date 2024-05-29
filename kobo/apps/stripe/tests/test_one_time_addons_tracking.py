@@ -152,13 +152,13 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
         self.organization.update_usage_cache(
             {
                 'total_nlp_usage': {
-                    'asr_seconds_current_month': self.subscription_limit + 1,
+                    'asr_seconds_current_month': self.subscription_limit,
                     'mt_characters_current_month': 0,
                 }
             }
         )
 
-        seconds_used = 1500
+        seconds_used = 1000
 
         update_nlp_counter(
             'mock_asr_seconds', seconds_used, self.anotheruser.id, self.asset.id
@@ -173,11 +173,26 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
             == self.addon_limit - seconds_used
         )
 
+        more_seconds_used = 500
+
+        update_nlp_counter(
+            'mock_asr_seconds', more_seconds_used, self.anotheruser.id, self.asset.id
+        )
+
+        counter = NLPUsageCounter.objects.first()
+        addon = PlanAddOn.objects.first()
+
+        assert counter.counters['addon_used_asr_seconds'] == seconds_used + more_seconds_used
+        assert (
+            addon.limits_remaining['asr_seconds_limit']
+            == self.addon_limit - (seconds_used + more_seconds_used)
+        )
+
     def test_increment_addon_usage_over_limit(self):
         self.organization.update_usage_cache(
             {
                 'total_nlp_usage': {
-                    'asr_seconds_current_month': self.subscription_limit + 1,
+                    'asr_seconds_current_month': self.subscription_limit,
                     'mt_characters_current_month': 0,
                 }
             }

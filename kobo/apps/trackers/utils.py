@@ -5,8 +5,7 @@ from django.db.models import F
 from django.utils import timezone
 
 from kpi.utils.django_orm_helper import (
-    IncrementValue,
-    UpdateJSONFieldAttributes,
+    IncrementValues,
 )
 
 
@@ -46,7 +45,10 @@ def update_nlp_counter(
 
     # Update the total counters by the usage amount to keep them current
     kwargs = {}
-    addon_amount_used = 0
+    keys_to_update = [service]
+    values_to_update = [amount]
+    addon_used_key_prefix = 'addon_used_'
+
     if service.endswith('asr_seconds'):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
         if asset_id is not None:
@@ -54,7 +56,9 @@ def update_nlp_counter(
             remaining = PlanAddOn.increment_add_ons_for_user(
                 user_id, 'seconds', amount
             )
-            addon_amount_used = amount - remaining
+            keys_to_update.append(addon_used_key_prefix + 'asr_seconds')
+            values_to_update.append(amount - remaining)
+
 
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
@@ -62,20 +66,13 @@ def update_nlp_counter(
             remaining = PlanAddOn.increment_add_ons_for_user(
                 user_id, 'character', amount
             )
-            addon_amount_used = amount - remaining
+            keys_to_update.append(addon_used_key_prefix + 'mt_characters')
+            values_to_update.append(amount - remaining)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
-        counters=IncrementValue('counters', keyname=service, increment=amount),
-        **kwargs,
-    )
-
-    # TODO: This needs to be replaced by a better approach.
-    # It is only included at the moment for dev testing 
-    NLPUsageCounter.objects.filter(pk=counter_id).update(
-        counters=UpdateJSONFieldAttributes(
+        counters=IncrementValues(
             'counters',
-            updates={
-                'addon_used_asr_seconds': addon_amount_used,
-            },
+            keynames=keys_to_update,
+            increments=values_to_update
         )
     )

@@ -78,9 +78,11 @@ class Organization(AbstractOrganization):
         return self.save()
 
     @cache_for_request
-    def is_organization_over_plan_limit(self, limit_type: UsageType) -> Union[bool, None]:
+    def check_usage_exceeds_plan_limit(self, limit_type: UsageType, new_usage = 0) -> Union[bool, None]:
         """
-        Check if an organization is over their plan's limit for a given usage type
+        Check if an organization is at or over their plan's limit for a given usage type or,
+        if 'new_usage' kwarg is supplied, whether new usage will put them over their limit
+        Returns True if limit is/will be exceeded, false if not.
         Returns None if Stripe isn't enabled or the limit status couldn't be determined
         """
         if not settings.STRIPE_ENABLED:
@@ -103,7 +105,7 @@ class Organization(AbstractOrganization):
         else:
             # TODO: get the limits from the community plan, overrides
             relevant_limit = 2000
-        return int(relevant_limit) and cached_usage > int(relevant_limit)
+        return int(relevant_limit) and cached_usage + new_usage >= int(relevant_limit)
 
 
 class OrganizationUser(AbstractOrganizationUser):

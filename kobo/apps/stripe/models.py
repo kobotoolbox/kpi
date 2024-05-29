@@ -180,7 +180,9 @@ class PlanAddOn(models.Model):
         ).order_by(metadata_key)
         remaining = amount
         for add_on in add_ons.iterator():
-            if not add_on.organization.is_organization_over_plan_limit(add_on_type):
+            if not add_on.organization.check_usage_exceeds_plan_limit(
+                add_on_type, remaining
+            ):
                 return remaining
             if add_on.is_available():
                 remaining -= add_on.increment(limit_type=limit_key, amount_used=remaining)
