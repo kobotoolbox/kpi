@@ -5,6 +5,7 @@ import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import {destroyConfirm} from 'js/alertify';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
 
 interface StepSingleViewerProps {
   /** Uses languageCode. */
@@ -64,7 +65,10 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             startIcon='plus'
             label={t('new translation')}
             onClick={addTranslation}
-            isDisabled={singleProcessingStore.data.isFetchingData}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
 
           <Button
@@ -74,7 +78,10 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.data.isFetchingData}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
 
           <Button
@@ -85,6 +92,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             onClick={deleteTranslation}
             tooltip={t('Delete')}
             isPending={singleProcessingStore.data.isFetchingData}
+            isDisabled={!hasManagePermissionsToCurrentAsset()}
           />
         </div>
       </header>
