@@ -131,7 +131,7 @@ function MyProjectsRoute() {
             <Icon
               name='information'
               color='blue'
-              classNames={[styles.bannerIcon]}
+              className={styles.bannerIcon}
             />
 
             {invite.status === TransferStatuses.Declined && (
@@ -165,7 +165,7 @@ function MyProjectsRoute() {
               onClick={() => {
                 setBanner(false);
               }}
-              classNames={[styles.bannerButton]}
+              className={styles.bannerButton}
             />
           </div>
         )}

@@ -404,7 +404,7 @@ class ConnectProjects extends React.Component {
 
           {this.state.isSharingAnyQuestions &&
             <div className='connect-projects__export-multicheckbox'>
-              <span>
+              <span className='connect-projects__export-hint'>
                 {t('Select any questions you want to share in the right side table')}
                 {this.state.isLoading &&
                   <LoadingSpinner message={t('Updating shared questions')}/>
@@ -443,19 +443,21 @@ class ConnectProjects extends React.Component {
           {this.renderSelect()}
 
           <TextBox
-            customClassNames={['connect-projects-textbox']}
+            className='connect-projects-textbox'
             placeholder={t('Give a unique name to the import')}
             value={this.state.newFilename}
+            size='m'
             onChange={this.onFilenameChange}
             errors={this.state.fieldsErrors.filename}
           />
 
-          <bem.KoboButton
-            m='blue'
+          <Button
+            type='full'
+            color='blue'
+            size='m'
             onClick={this.onConfirmAttachment}
-          >
-            {t('Import')}
-          </bem.KoboButton>
+            label={t('Import')}
+          />
         </div>
 
         {/* Display attached projects */}

@@ -5,6 +5,7 @@ import logging
 import constance
 from allauth.socialaccount.models import SocialApp
 from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from hub.models.sitewide_message import SitewideMessage
@@ -167,9 +168,24 @@ class EnvironmentView(APIView):
             request.user
         )
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
-        data['stripe_public_key'] = (
-            settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
-        )
+
+        if settings.STRIPE_ENABLED:
+            from djstripe.models import APIKey
+
+            try:
+                data['stripe_public_key'] = str(
+                    APIKey.objects.get(type='publishable', livemode=settings.STRIPE_LIVE_MODE).secret
+                )
+            except MultipleObjectsReturned as e:
+                raise MultipleObjectsReturned(
+                    'Remove extra api keys from the django admin.'
+                ) from e
+            except APIKey.DoesNotExist as e:
+                raise APIKey.DoesNotExist(
+                    'Add a stripe api key to the django admin.'
+                ) from e
+        else:
+            data['stripe_public_key'] = None
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
         if request.user.id:

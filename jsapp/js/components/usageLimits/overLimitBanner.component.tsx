@@ -76,7 +76,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           label={t('Monitor usage')}
           onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
           aria-label={t('monitor usage')}
-          classNames={[styles.bannerBtn]}
+          className={styles.bannerBtn}
         />
       )}
       {(!props.warning || props.accountPage) && (
@@ -88,7 +88,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           label={t('Upgrade now')}
           onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
           aria-label={t('upgrade now')}
-          classNames={[styles.bannerBtn]}
+          className={styles.bannerBtn}
         />
       )}
     </div>

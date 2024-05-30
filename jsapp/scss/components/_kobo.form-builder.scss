@@ -1,4 +1,5 @@
 @use 'scss/z-indexes';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 $s-form-builder-header: 125px;
@@ -102,6 +103,7 @@ $s-form-builder-content-width: 1024px;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
+    gap: 20px;
 
     &.form-builder-header__row--primary {
       background-color: colors.$kobo-white;
@@ -122,6 +124,7 @@ $s-form-builder-content-width: 1024px;
 
   .form-builder-header__cell {
     &.form-builder-header__cell--logo {
+      position: relative;
       background-color: colors.$kobo-teal;
       width: 75px;
       text-align: center;
@@ -159,7 +162,6 @@ $s-form-builder-content-width: 1024px;
 
     &.form-builder-header__cell--name {
       flex: 1;
-      margin-left: 20px;
 
       label::first-letter {
         text-transform: uppercase;
@@ -191,12 +193,10 @@ $s-form-builder-content-width: 1024px;
     }
 
     &.form-builder-header__cell--buttonsTopRight {
-      text-align: right;
-      margin: 0 10px;
-
-      button {
-        margin-left: 10px;
-      }
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      padding-right: 10px;
     }
 
     &.form-builder-header__cell--close {
@@ -276,7 +276,6 @@ $s-form-builder-content-width: 1024px;
 
   &.form-builder-header__button--create,
   &.form-builder-header__button--save {
-    margin-left: 10px;
     text-transform: uppercase;
     min-width: 85px;
 
@@ -460,26 +459,35 @@ $s-form-builder-content-width: 1024px;
 
 // FORM BUILDER SMALL SCREEN ADJUSTMENTS
 
-@media screen and (max-width: 767px) {
-  .form-builder-header__cell--logo {
-    display: none;
-  }
+// TODO: we should rework all these media queries to mobile first, but it's
+// possible we would rewrite form builder, so it would be useless
 
-  .form-builder-header__cell--buttonsTopRight {
-    .form-builder-header__button--save {
-      max-width: 120px;
-      text-overflow: ellipsis;
+@media screen and (width < breakpoints.$b768) {
+  .form-builder-header {
+    .form-builder-header__row {
+      gap: 10px;
     }
-  }
 
-  .form-builder-header__button--panel-toggle {
-    .panel-toggle-name {
-      display: none;
+    .form-builder-header__cell.form-builder-header__cell--logo {
+      width: 50px;
+    }
+
+    .form-builder-header__cell--buttonsTopRight {
+      .form-builder-header__button--save {
+        max-width: 120px;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .form-builder-header__button--panel-toggle {
+      .panel-toggle-name {
+        display: none;
+      }
     }
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (width < breakpoints.$b768) {
   .form-builder-header__cell--library-toggle {
     display: none;
   }

@@ -1,4 +1,5 @@
 @use 'scss/sizes';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 .root {
@@ -15,8 +16,10 @@
 
 .bar {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
 
   .transferButton {
     max-width: sizes.$x180;
@@ -52,17 +55,10 @@
   margin-right: sizes.$x8;
 }
 
-@media screen and (max-width: 768px) {
+@include breakpoints.breakpoint(mediumAndUp) {
   .bar {
-    flex-direction: column;
-    align-items: flex-start;
-
-    .transferButton {
-      margin-top: sizes.$x12;
-    }
-  }
-
-  .description {
-    margin: 0 0 sizes.$x12 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
   }
 }

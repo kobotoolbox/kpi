@@ -753,11 +753,9 @@ export class FormMap extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <bem.uiPanel>
-          <bem.uiPanel__body>
-            <CenteredMessage message={this.state.error} />
-          </bem.uiPanel__body>
-        </bem.uiPanel>
+        <bem.FormView m='ui-panel'>
+          <CenteredMessage message={this.state.error} />
+        </bem.FormView>
       );
     }
 
