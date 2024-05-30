@@ -37,9 +37,18 @@ def update_autofield_sequence(model):
     Fixes the PostgreSQL sequence for the first (and only?) `AutoField` on
     `model`, à la `manage.py sqlsequencereset`
     """
+    # Updating sequences on fresh environments fails because the only user
+    # in the DB is django-guardian AnonymousUser and `max(pk)` returns -1.
+    # Error:
+    #   > setval: value -1 is out of bounds for sequence
+    # Using abs() and testing if max(pk) equals -1, leaves the sequence alone.
     sql_template = (
-        "SELECT setval(pg_get_serial_sequence('{table}','{column}'), "
-        "coalesce(max({column}), 1), max({column}) IS NOT null) FROM {table};"
+        "SELECT setval("
+        "   pg_get_serial_sequence('{table}','{column}'), "
+        "   abs(coalesce(max({column}), 1)), "
+        "   max({column}) IS NOT null and max({column}) != -1"
+        ") "
+        "FROM {table};"
     )
     autofield = None
     for f in model._meta.get_fields():
@@ -455,7 +464,7 @@ class KobocatUser(ShadowModel):
     @transaction.atomic
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
-        # upon PKs being synchronized between KPI and KoBoCAT
+        # upon PKs being synchronized between KPI and KoboCAT
         kc_auth_user = cls.get_kc_user(auth_user)
         kc_auth_user.password = auth_user.password
         kc_auth_user.last_login = auth_user.last_login
@@ -473,7 +482,7 @@ class KobocatUser(ShadowModel):
         # `auth_user_id_seq` now lags behind `max(id)`. Fix it now!
         update_autofield_sequence(cls)
 
-        # Update django-digest `PartialDigest`s in KoBoCAT.  This is only
+        # Update django-digest `PartialDigest`s in KoboCAT.  This is only
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
 

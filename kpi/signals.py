@@ -49,9 +49,10 @@ def default_permissions_post_save(sender, instance, created, raw, **kwargs):
 def save_kobocat_user(sender, instance, created, raw, **kwargs):
     """
     Sync auth_user table between KPI and KC, and, if the user is newly created,
-    grant all KoBoCAT model-level permissions for the content types listed in
+    grant all KoboCAT model-level permissions for the content types listed in
     `settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES`
     """
+
     if not settings.TESTING:
         with kc_transaction_atomic():
             KobocatUser.sync(instance)

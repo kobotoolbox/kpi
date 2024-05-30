@@ -72,6 +72,16 @@ SHADOW_MODEL_APP_LABELS = [
     'superuser_stats',
 ]
 
+SHARED_APP_LABELS = [
+    'auth',
+    'contenttypes',
+    'django_digest',
+    'kobo_auth',
+    'reversion',
+    'sessions',
+]
+
+
 # List of nested attributes which bypass 'dots' encoding
 NESTED_MONGO_RESERVED_ATTRIBUTES = [
     "_validation_status",

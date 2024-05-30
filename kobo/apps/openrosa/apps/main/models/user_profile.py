@@ -18,6 +18,7 @@ from kobo.apps.openrosa.libs.utils.gravatar import (
     gravatar_exists,
 )
 from kpi.utils.database import use_db
+from kpi.utils.permissions import is_user_anonymous
 
 
 class UserProfile(models.Model):
@@ -75,6 +76,10 @@ class UserProfile(models.Model):
 # 1) KC Token object is created when KPI calls `KobocatToken.sync()`
 #    in `kpi.signals.save_kobocat_token()`
 def create_auth_token(sender, instance=None, created=False, **kwargs):
+
+    if is_user_anonymous(instance):
+        return
+
     if created:
         with use_db(settings.OPENROSA_DB_ALIAS):
             if User.objects.filter(pk=instance.pk).exists() or settings.TESTING:

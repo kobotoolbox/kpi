@@ -2,7 +2,8 @@
 from datetime import timedelta
 import sys
 
-from django.db import transaction, models, router, connection
+from django.conf import settings
+from django.db import transaction, models, router, connections
 from django.utils import timezone
 from reversion.models import Revision, Version
 from reversion.management.commands.deleterevisions import Command as RevisionCommand
@@ -137,7 +138,9 @@ class Command(RevisionCommand):
 
         print("Done!")
 
-    def _do_vacuum(self, full=False):
+    @staticmethod
+    def _do_vacuum(full=False):
+        connection = connections[settings.OPENROSA_DB_ALIAS]
         cursor = connection.cursor()
         if full:
             print("Vacuuming (full) table {}...".format(Revision._meta.db_table))
@@ -150,4 +153,3 @@ class Command(RevisionCommand):
             print("Vacuuming table {}...".format(Version._meta.db_table))
             cursor.execute("VACUUM {}".format(Version._meta.db_table))
         connection.commit()
-
