@@ -3,9 +3,25 @@ from django.db import connection, connections
 
 
 def run():
+    if not are_migration_already_applied():
+        return
+
     if migrate_custom_user_model():
         # Only run it when custom user model migrations have been fixed
         delete_kobocat_form_disclaimer_app()
+
+
+def are_migration_already_applied():
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT EXISTS ("
+            "    SELECT FROM pg_tables"
+            "    WHERE  schemaname = 'public'"
+            "   AND    tablename  = 'django_migrations'"
+            ");"
+        )
+        row = cursor.fetchone()
+        return bool(row[0])
 
 
 def delete_kobocat_form_disclaimer_app():
