@@ -5,6 +5,7 @@ import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import {destroyConfirm} from 'js/alertify';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import styles from './stepSingleViewer.module.scss';
 import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
 
 interface StepSingleViewerProps {
@@ -63,7 +64,14 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             color='storm'
             size='s'
             startIcon='plus'
-            label={t('new translation')}
+            label={(<>
+              <span className={styles.newButtonLabel}>
+                {t('new translation')}
+              </span>
+              <span className={styles.newButtonLabelShort}>
+                {t('new')}
+              </span>
+            </>)}
             onClick={addTranslation}
             isDisabled={
               singleProcessingStore.data.isFetchingData ||

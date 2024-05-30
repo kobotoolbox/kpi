@@ -512,13 +512,7 @@ export default function Plan(props: PlanProps) {
                 </div>
                 {shouldShowExtras && (
                   <div className={styles.enterprisePlanContainer}>
-                    <div
-                      className={
-                        expandComparison
-                          ? `${styles.enterprisePlan} ${styles.expandedEnterprisePlan}`
-                          : styles.enterprisePlan
-                      }
-                    >
+                    <div className={styles.enterprisePlan}>
                       <h1 className={styles.enterpriseTitle}>
                         {' '}
                         {t('Want more?')}

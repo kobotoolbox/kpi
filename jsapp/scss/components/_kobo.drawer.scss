@@ -4,20 +4,25 @@
 
 // drawer (sidebar)
 
+.page-wrapper--fixed-drawer .k-drawer {
+  left: 0;
+}
+
 .k-drawer {
+  @include box-shadow-mid;
+
+  position: fixed;
+  z-index: z-indexes.$z-kobo-drawer;
+  // We need some pxs more as there is shadow on the drawer.
+  left: -1 * $s-drawer-width - 10px;
+  transition: left 0.5s;
+  background-color: colors.$kobo-white;
   height: calc(100% - #{$layout-desktop-header-height});
   top: $layout-desktop-header-height;
   width: $s-drawer-width;
-  position: absolute;
-  left: 0;
   display: flex;
   flex-direction: row;
   border-right: 2px solid colors.$kobo-gray-92;
-}
-
-// only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
-.k-drawer + .mdl-layout__content {
-  margin-left: $s-drawer-width; // for drawer
 }
 
 .k-drawer__primary-icons {
@@ -89,23 +94,19 @@
   }
 }
 
-@media screen and (max-width: breakpoints.$b1280) {
+@media screen and (min-width: breakpoints.$bMobileMenu) {
   .k-drawer {
-    position: fixed;
-    z-index: z-indexes.$z-kobo-drawer;
-    // We need some pxs more as there is shadow on the drawer.
-    left: -1 * $s-drawer-width - 10px;
-    transition: left 0.5s;
-    background-color: colors.$kobo-white;
-
-    @include box-shadow-mid;
+    position: absolute;
+    left: 0;
+    transition: none;
   }
 
   .page-wrapper--fixed-drawer .k-drawer {
-    left: 0;
+    left: unset;
   }
 
+  // only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
   .k-drawer + .mdl-layout__content {
-    margin-left: 0;
+    margin-left: $s-drawer-width; // for drawer
   }
 }

@@ -25,6 +25,7 @@ import type {IconName} from 'jsapp/fonts/k-icons';
 import MainHeaderBase from './mainHeaderBase.component';
 import MainHeaderLogo from './mainHeaderLogo.component';
 import GitRev from './gitRev.component';
+import styles from './mainHeader.module.scss';
 
 interface MainHeaderProps extends WithRouterProps {
   assetUid: string | null;
@@ -109,9 +110,12 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
         <GitRev />
 
         {sessionStore.isLoggedIn && (
-          <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-            <i className='k-icon k-icon-menu' />
-          </bem.Button>
+          <button
+            className={styles.mobileMenuToggle}
+            onClick={this.toggleFixedDrawer}
+          >
+            <Icon name='menu' size='xl' />
+          </button>
         )}
 
         <MainHeaderLogo />
