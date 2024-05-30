@@ -3,14 +3,15 @@ from django.db import connection, connections
 
 
 def run():
-    migrate_custom_user_model()
-    delete_kobocat_form_disclaimer_app()
+    if migrate_custom_user_model():
+        # Only run it when custom user model migrations have been fixed
+        delete_kobocat_form_disclaimer_app()
 
 
 def delete_kobocat_form_disclaimer_app():
     """
     KoboCAT form_disclaimer app does not exist anymore but its migrations
-    create conflicts and must be deleted before applying migration.
+    create conflicts and must be deleted before applying other migrations.
     """
     with connections[settings.OPENROSA_DB_ALIAS].cursor() as kc_cursor:
         kc_cursor.execute(
@@ -55,7 +56,9 @@ def migrate_custom_user_model():
                         "UPDATE django_content_type SET app_label = 'kobo_auth' "
                         "WHERE app_label = 'auth' and model = 'user';"
                     )
+                return True
             else:
                 print('Migration kobo_auth.0001 already applied. Skip!')
+                return False
         else:
             raise Exception('Run `./manage.py migrate auth` first')
