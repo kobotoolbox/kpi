@@ -3,6 +3,7 @@ import cx from 'classnames';
 import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
 
 export default function StepBegin() {
   function begin() {
@@ -28,6 +29,7 @@ export default function StepBegin() {
         size='l'
         label={t('begin')}
         onClick={begin}
+        isDisabled={!hasManagePermissionsToCurrentAsset()}
       />
     </div>
   );
