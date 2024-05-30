@@ -59,7 +59,6 @@ def update_nlp_counter(
             keys_to_update.append(addon_used_key_prefix + 'asr_seconds')
             values_to_update.append(amount - remaining)
 
-
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
         if asset_id is not None:
@@ -71,8 +70,7 @@ def update_nlp_counter(
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValues(
-            'counters',
-            keynames=keys_to_update,
-            increments=values_to_update
-        )
+            'counters', keynames=keys_to_update, increments=values_to_update
+        ),
+        **kwargs,
     )
