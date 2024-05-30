@@ -516,7 +516,7 @@ class SubmissionModal extends React.Component<
                 isDisabled={!this.isSubmissionEditable()}
                 label={t('Discard')}
                 tooltip={t('Discard duplicated submission')}
-                classNames={['submission-duplicate__button']}
+                className='submission-duplicate__button'
               />
             )}
           </div>
@@ -649,7 +649,7 @@ class SubmissionModal extends React.Component<
                   type='full'
                   size='l'
                   isDisabled={!this.isSubmissionEditable()}
-                  classNames={['submission-duplicate__button']}
+                  className='submission-duplicate__button'
                   label={this.state.isEditLoading ? t('Loading…') : t('Edit')}
                 />
               )}
@@ -666,7 +666,7 @@ class SubmissionModal extends React.Component<
                   type='full'
                   size='l'
                   isDisabled={this.state.isViewLoading}
-                  classNames={['submission-duplicate__button']}
+                  className='submission-duplicate__button'
                   label={this.state.isViewLoading ? t('Loading…') : t('View')}
                 />
               )}
@@ -683,7 +683,7 @@ class SubmissionModal extends React.Component<
                   type='full'
                   size='l'
                   isDisabled={!this.isSubmissionEditable()}
-                  classNames={['submission-duplicate__button']}
+                  className='submission-duplicate__button'
                   label={t('Duplicate')}
                 />
               )}
@@ -694,7 +694,7 @@ class SubmissionModal extends React.Component<
                 type='bare'
                 size='l'
                 startIcon='print'
-                classNames={['report-button__print']}
+                className='report-button__print'
                 tooltip={t('Print')}
                 tooltipPosition='right'
               />
