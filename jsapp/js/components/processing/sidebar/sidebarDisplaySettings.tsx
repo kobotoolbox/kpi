@@ -17,7 +17,7 @@ import styles from './sidebarDisplaySettings.module.scss';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import cx from 'classnames';
-import KoboSelect from '../../common/koboSelect';
+import KoboSelect from 'js/components/common/koboSelect';
 
 interface SidebarDisplaySettingsProps {
   assetContent: AssetContent | undefined;

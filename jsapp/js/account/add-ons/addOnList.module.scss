@@ -1,7 +1,7 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/breakpoints';
 @use 'scss/sizes';
-@use 'scss/_variables';
+@use 'js/account/plans/plan.module';
 
 .header {
   font-size: sizes.$r18;
@@ -18,9 +18,10 @@
   table-layout: fixed;
   border-collapse: collapse;
   border-spacing: 0;
-  width: variables.$plans-page-card-width;
+  width: 100%;
+  max-width: plan.$plans-page-max-width;
 
-  & tr {
+  tr {
     border-top: 1px solid colors.$kobo-light-storm;
 
     &:last-child {
@@ -28,17 +29,14 @@
     }
   }
 
-  & td {
+  td {
     padding-block: 1em;
     font-weight: 600;
-    font-size: sizes.$x16;
-    overflow: hidden;
+    font-size: sizes.$x16;;
   }
 }
 
-.product,
-.price {
-  width: 100%;
+.productAndPrice {
   line-height: 2em;
 }
 
@@ -46,26 +44,21 @@
   color: colors.$kobo-gray-40;
 }
 
-.buy {
-  width: 30%;
+.productName {
+  margin-right: sizes.$x12;
 }
 
-@media screen and (min-width: breakpoints.$b1000) {
-  .table {
-    padding: 1em;
-    width: variables.$plans-page-max-width;
-  }
+.buy {
+  width: 140px;
+  padding-left: 20px;
+}
 
-  .price {
-    margin-left: sizes.$x600;
-    margin-top: -(sizes.$x30);
-  }
-
-  .buy {
-    width: 15%;
-  }
-
-  .table td:nth-child(2) {
-    margin-inline-end: 10em;
+@include breakpoints.breakpoint(mediumAndUp) {
+  .productAndPrice {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 20px;
   }
 }

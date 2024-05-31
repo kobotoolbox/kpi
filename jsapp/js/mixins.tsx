@@ -265,9 +265,12 @@ const mixins: MixinsObject = {
     },
 
     componentDidMount() {
-      this.dmixAssetStoreCancelListener = assetStore.listen((data: AssetStoreData) => {
-        this.dmixAssetStoreChange(data);
-      }, this);
+      this.dmixAssetStoreCancelListener = assetStore.listen(
+        (data: AssetStoreData) => {
+          this.dmixAssetStoreChange(data);
+        },
+        this
+      );
 
       // TODO 2/2
       // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -277,7 +280,7 @@ const mixins: MixinsObject = {
       if (uid && this.props.initialAssetLoadNotNeeded) {
         this.setState(Object.assign({}, assetStore.data[uid]));
       } else if (uid) {
-        actions.resources.loadAsset({id: uid});
+        actions.resources.loadAsset({id: uid}, true);
       }
     },
 
@@ -400,11 +403,14 @@ const mixins: MixinsObject = {
                       )
                     );
                     if (params.assetUid) {
-                      router!.navigate(ROUTES.FORM.replace(':uid', params.assetUid));
+                      router!.navigate(
+                        ROUTES.FORM.replace(':uid', params.assetUid)
+                      );
                     }
                   } else {
                     if (
-                      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+                      this.props.context ===
+                        PROJECT_SETTINGS_CONTEXTS.REPLACE &&
                       routerIsActive(ROUTES.FORMS)
                     ) {
                       actions.resources.loadAsset({id: assetUid});

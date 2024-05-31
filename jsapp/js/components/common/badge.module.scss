@@ -35,6 +35,11 @@ $badge-font-l: sizes.$x14;
   background-color: colors.$kobo-bg-blue;
 }
 
+.color-light-red {
+  color: colors.$kobo-dark-red;
+  background-color: colors.$kobo-light-red;  
+}
+
 .color-light-teal {
   color: colors.$kobo-dark-teal;
   background-color: colors.$kobo-light-teal;

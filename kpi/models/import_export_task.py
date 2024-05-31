@@ -859,7 +859,9 @@ class ExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
-            pack.extend_survey(source.analysis_form_json())
+            pack.extend_survey(
+                source.analysis_form_json(omit_question_types=['qual_note'])
+            )
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp

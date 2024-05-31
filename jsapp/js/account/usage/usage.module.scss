@@ -7,7 +7,6 @@
 }
 
 .headerText {
-  margin-bottom: sizes.$x28;
   font-size: sizes.$r18;
   font-weight: 700;
   color: hsl(225, 33%, 59%);
@@ -72,13 +71,13 @@
   font-size: sizes.$x14;
 }
 
-@media screen and (min-width: breakpoints.$b600) {
+@include breakpoints.breakpoint(narrowAndUp) {
   .subrow {
     flex-wrap: nowrap;
   }
 }
 
-@media screen and (min-width: breakpoints.$b1440) {
+@include breakpoints.breakpoint(veryWide) {
   .row {
     flex-wrap: nowrap;
   }

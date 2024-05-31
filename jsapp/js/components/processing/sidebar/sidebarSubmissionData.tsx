@@ -6,7 +6,6 @@ import {META_QUESTION_TYPES, ADDITIONAL_SUBMISSION_PROPS} from 'js/constants';
 import styles from './sidebarSubmissionData.module.scss';
 
 interface SidebarSubmissionDataProps {
-  assetContent: AssetContent | undefined;
   asset: AssetResponse;
 }
 
@@ -17,7 +16,7 @@ export default function SidebarSubmissionData(
 
   const submissionData = store.getSubmissionData();
 
-  if (!props.assetContent) {
+  if (!props.asset.content) {
     return null;
   }
 

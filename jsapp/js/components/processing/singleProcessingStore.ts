@@ -35,7 +35,7 @@ import {
   getCurrentProcessingRouteParts,
   ProcessingTab,
 } from 'js/components/processing/routes.utils';
-import type {KoboSelectOption} from '../common/koboSelect';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -127,6 +127,7 @@ interface SingleProcessingStoreData {
   isFetchingData: boolean;
   isPollingForTranscript: boolean;
   hiddenSidebarQuestions: string[];
+  currentlyDisplayedLanguage: LanguageCode | string;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -151,14 +152,13 @@ class SingleProcessingStore extends Reflux.Store {
 
   private analysisTabHasUnsavedWork = false;
 
-  private currentlyDisplayedLanguage: LanguageCode | string = this.getInitialDisplayedLanguage();
-
   public data: SingleProcessingStoreData = {
     translations: [],
     isPristine: true,
     isFetchingData: false,
     isPollingForTranscript: false,
     hiddenSidebarQuestions: [],
+    currentlyDisplayedLanguage: this.getInitialDisplayedLanguage(),
   };
 
   /** Clears all data - useful before making initialisation call */
@@ -992,7 +992,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   getCurrentlyDisplayedLanguage() {
-    return this.currentlyDisplayedLanguage;
+    return this.data.currentlyDisplayedLanguage;
   }
 
   getInitialDisplays(): SidebarDisplays {
@@ -1032,7 +1032,7 @@ class SingleProcessingStore extends Reflux.Store {
     if (asset?.content?.survey) {
       const questionsList = getFlatQuestionsList(
         asset.content.survey,
-        getLanguageIndex(asset, this.currentlyDisplayedLanguage)
+        getLanguageIndex(asset, this.data.currentlyDisplayedLanguage)
       )
         .filter((question) => !(question.name === this.currentQuestionName))
         .map((question) => {
@@ -1106,9 +1106,9 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   setCurrentlyDisplayedLanguage(language: LanguageCode) {
-    this.currentlyDisplayedLanguage = language;
+    this.data.currentlyDisplayedLanguage = language;
 
-    this.trigger(this.currentlyDisplayedLanguage);
+    this.trigger(this.data);
   }
 }
 

@@ -14,7 +14,8 @@ const DefaultSize = 's';
 interface IconProps {
   name: IconName;
   size?: IconSize;
-  classNames?: string[];
+  /** Additional class names. */
+  className?: string;
   /**
    * Useful if you need some color for the icon, and the color doesn't come from
    * parent component (e.g. Button).
@@ -28,11 +29,8 @@ interface IconProps {
 class Icon extends React.Component<IconProps, {}> {
   render() {
     let classNames: string[] = [];
-    if (
-      Array.isArray(this.props.classNames) &&
-      typeof this.props.classNames[0] === 'string'
-    ) {
-      classNames = this.props.classNames;
+    if (this.props.className) {
+      classNames.push(this.props.className);
     }
 
     const size = this.props.size || DefaultSize;

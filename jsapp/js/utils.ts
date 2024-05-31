@@ -26,7 +26,8 @@ const cookies = new Cookies();
 const notify = (
   msg: Toast['message'],
   atype = 'success',
-  opts?: ToastOptions
+  opts?: ToastOptions,
+  consoleMsg?: Toast['message'],
 ): Toast['id'] => {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
@@ -44,40 +45,41 @@ const notify = (
   }
 
   /* eslint-disable no-console */
+  // If a specific console message is provided, display that instead of the default msg
   switch (atype) {
     case 'success':
-      console.log('[notify] ✅ ' + msg);
+      console.log('[notify] ✅ ' + (consoleMsg || msg));
       return toast.success(msg, opts);
 
     case 'error':
-      console.error('[notify] ❌ ' + msg);
+      console.error('[notify] ❌ ' + (consoleMsg || msg));
       return toast.error(msg, opts);
 
     case 'warning':
-      console.warn('[notify] ⚠️ ' + msg);
+      console.warn('[notify] ⚠️ ' + (consoleMsg || msg));
       return toast(msg, Object.assign({icon: '⚠️'}, opts));
 
     case 'empty':
-      console.log('[notify] 📢 ' + msg);
+      console.log('[notify] 📢 ' + (consoleMsg || msg));
       return toast(msg, opts); // No icon
 
     // Defensively render empty if we're passed an unknown atype,
     // in case we missed something.
     //   e.g. notify('mystery!', '?') //
     default:
-      console.log('[notify] 📢 ' + msg);
+      console.log('[notify] 📢 ' + (consoleMsg || msg));
       return toast(msg, opts); // No icon
   }
   /* eslint-enable no-console */
 };
 
 // Convenience functions for code readability, consolidated here
-notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
-  notify(msg, 'error', opts);
-notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
-  notify(msg, 'warning', opts);
-notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] =>
-  notify(msg, 'success', opts);
+notify.error = (msg: Toast['message'], opts?: ToastOptions, consoleMsg?: Toast['message']): Toast['id'] =>
+  notify(msg, 'error', opts, consoleMsg);
+notify.warning = (msg: Toast['message'], opts?: ToastOptions, consoleMsg?: Toast['message']): Toast['id'] =>
+  notify(msg, 'warning', opts, consoleMsg);
+notify.success = (msg: Toast['message'], opts?: ToastOptions, consoleMsg?: Toast['message']): Toast['id'] =>
+  notify(msg, 'success', opts, consoleMsg);
 
 export {notify};
 
@@ -121,6 +123,14 @@ export function formatDate(
     myMoment = myMoment.local();
   }
   return myMoment.format(format);
+}
+
+/**
+ * Takes a Unix timestamp. Returns a UTC string
+ */
+export function convertUnixTimestampToUtc(time: number): string {
+  const date = new Date(time * 1000); //seconds to milliseconds
+  return date.toISOString();
 }
 
 /**

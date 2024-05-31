@@ -1,3 +1,4 @@
+import cx from 'classnames';
 import React, {useEffect, useState} from 'react';
 import KoboModal from '../modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
@@ -5,12 +6,9 @@ import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import Button from 'js/components/common/button';
 import sessionStore from 'js/stores/session';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
-import Icon from 'js/components/common/icon';
-import {limitBannerContainer} from './overLimitBanner.module.scss';
-import cx from 'classnames';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface OverLimitModalProps {
   show: boolean;
@@ -81,22 +79,6 @@ function OverLimitModal(props: OverLimitModalProps) {
               </a>
               {'.'}
             </div>
-            {
-              // removed to make the message less scary
-              /* <p className={cx(limitBannerContainer, styles.consequences)}>
-              <Icon
-                name='warning'
-                size='m'
-                color='red'
-                classNames={[styles.warningIcon]}
-              />
-              <span>
-                {t(
-                  'Users who have exceeded their submission or storage limits may be temporarily blocked from collecting data. Repeatedly exceeding usage limits may result in account suspension.'
-                )}
-              </span>
-            </p> */
-            }
           </div>
         </KoboModalContent>
 
@@ -107,7 +89,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={handleClose}
             label={t('remind me later')}
-            classNames={[styles.button, styles.frame]}
+            className={cx([styles.button, styles.frame])}
           />
 
           <Button
@@ -116,7 +98,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
             label={t('upgrade now')}
-            classNames={[styles.button, styles.full]}
+            className={cx([styles.button, styles.full])}
           />
         </KoboModalFooter>
       </KoboModal>
