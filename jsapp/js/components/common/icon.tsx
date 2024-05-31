@@ -28,8 +28,8 @@ interface IconProps {
  */
 export default function Icon(props: IconProps) {
   let classNames: string[] = [];
-  if (this.props.className) {
-    classNames.push(this.props.className);
+  if (props.className) {
+    classNames.push(props.className);
   }
 
   const size = props.size || DefaultSize;
