@@ -1,7 +1,5 @@
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
-from django.core.cache import cache
-from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import (
     Charge,
@@ -14,52 +12,43 @@ from djstripe.models import (
 )
 from model_bakery import baker
 
-from kobo.apps.organizations.models import Organization, OrganizationUser
+from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.trackers.submission_utils import (
     create_mock_assets,
 )
-from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.trackers.utils import update_nlp_counter
-from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
+from kpi.tests.base_test_case import BaseTestCase
 
 
-class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
+class OneTimeAddonTrackingTestCase(BaseTestCase):
     """
-    Test OT addon tracking when Stripe is enabled.
+    Tests tracking of one-time addon usage when Stripe is enabled.
     """
+    fixtures = ['test_data']
 
-    org_id = 'orgAKWMFskafsngf'
-    subscription_limit = 1000
-    addon_limit = 2000
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.now = timezone.now()
-
-        anotheruser = User.objects.get(username='anotheruser')
-        cls.organization = baker.make(
-            Organization, id=cls.org_id, name='test organization'
-        )
-        cls.organization.add_user(cls.anotheruser, is_admin=True)
-        assets = create_mock_assets([cls.anotheruser], 1)
-        cls.asset = assets[0]
-
-        cls.customer = baker.make(
-            Customer, subscriber=cls.organization, livemode=False
-        )
-        cls.organization.save()
+    subscription_asr_limit = 1000
+    addon_asr_limit = 2000
 
     def setUp(self):
         super().setUp()
-        url = reverse(self._get_endpoint('organizations-list'))
-        self.detail_url = f'{url}{self.org_id}/service_usage/'
-        self._generate_subscription()
-        self._create_payment()
+        self.now = timezone.now()
 
-    def tearDown(self):
-        cache.clear()
+        self.user = User.objects.get(username='anotheruser')
+        self.organization = baker.make(
+            Organization, name='test organization'
+        )
+        self.organization.add_user(self.user, is_admin=True)
+        assets = create_mock_assets([self.user], 1)
+        self.asset = assets[0]
+
+        self.customer = baker.make(
+            Customer, subscriber=self.organization, livemode=False
+        )
+        self.organization.save()
+        self._generate_subscription()
+        self._generate_addon()
 
     def _generate_subscription(
         self,
@@ -71,7 +60,7 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
                 'product_type': 'plan',
                 'plan_type': 'enterprise',
                 'organizations': True,
-                'nlp_seconds_limit': self.subscription_limit,
+                'nlp_seconds_limit': self.subscription_asr_limit,
             },
         )
         price = baker.make(
@@ -99,12 +88,12 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
             livemode=False,
         )
 
-    def _create_payment(
+    def _generate_addon(
         self, payment_status='succeeded', refunded=False, quantity=1
     ):
         metadata = {
             'product_type': 'addon_onetime',
-            'asr_seconds_limit': self.addon_limit,
+            'asr_seconds_limit': self.addon_asr_limit,
             'valid_tags': 'all',
         }
         product = baker.make(
@@ -129,7 +118,7 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
             Charge,
             customer=self.customer,
             refunded=refunded,
-            created=timezone.now(),
+            created=self.now,
             payment_intent=payment_intent,
             paid=True,
             status=payment_status,
@@ -152,7 +141,7 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
         self.organization.update_usage_cache(
             {
                 'total_nlp_usage': {
-                    'asr_seconds_current_month': self.subscription_limit,
+                    'asr_seconds_current_month': self.subscription_asr_limit,
                     'mt_characters_current_month': 0,
                 }
             }
@@ -161,7 +150,7 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
         seconds_used = 1000
 
         update_nlp_counter(
-            'mock_asr_seconds', seconds_used, self.anotheruser.id, self.asset.id
+            'mock_asr_seconds', seconds_used, self.user.id, self.asset.id
         )
 
         counter = NLPUsageCounter.objects.first()
@@ -170,29 +159,29 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
         assert counter.counters['addon_used_asr_seconds'] == seconds_used
         assert (
             addon.limits_remaining['asr_seconds_limit']
-            == self.addon_limit - seconds_used
+            == self.addon_asr_limit - seconds_used
         )
 
         more_seconds_used = 500
 
         update_nlp_counter(
-            'mock_asr_seconds', more_seconds_used, self.anotheruser.id, self.asset.id
+            'mock_asr_seconds', more_seconds_used, self.user.id, self.asset.id
         )
 
-        counter = NLPUsageCounter.objects.first()
-        addon = PlanAddOn.objects.first()
+        counter.refresh_from_db()
+        addon.refresh_from_db()
 
         assert counter.counters['addon_used_asr_seconds'] == seconds_used + more_seconds_used
         assert (
             addon.limits_remaining['asr_seconds_limit']
-            == self.addon_limit - (seconds_used + more_seconds_used)
+            == self.addon_asr_limit - (seconds_used + more_seconds_used)
         )
 
     def test_increment_addon_usage_over_limit(self):
         self.organization.update_usage_cache(
             {
                 'total_nlp_usage': {
-                    'asr_seconds_current_month': self.subscription_limit,
+                    'asr_seconds_current_month': self.subscription_asr_limit,
                     'mt_characters_current_month': 0,
                 }
             }
@@ -201,11 +190,11 @@ class OneTimeAddonTrackingTestCase(ServiceUsageAPIBase):
         seconds_used = 3000
 
         update_nlp_counter(
-            'mock_asr_seconds', seconds_used, self.anotheruser.id, self.asset.id
+            'mock_asr_seconds', seconds_used, self.user.id, self.asset.id
         )
 
         counter = NLPUsageCounter.objects.first()
         addon = PlanAddOn.objects.first()
 
-        assert counter.counters['addon_used_asr_seconds'] == self.addon_limit
+        assert counter.counters['addon_used_asr_seconds'] == self.addon_asr_limit
         assert addon.limits_remaining['asr_seconds_limit'] == 0
