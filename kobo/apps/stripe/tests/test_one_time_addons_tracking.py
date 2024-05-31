@@ -135,6 +135,7 @@ class OneTimeAddonTrackingTestCase(BaseTestCase):
         self.charge.save()
 
     def test_increment_addon_usage(self):
+        # TODO: Remove once cache issues have been resolved
         # update_nlp_counter will error out if cache isn't updated first
         # Also note that the used asr_seconds_current_month has to be > subscription limit,
         # otherwise the addon will not be incremented (and neither will the counter, therefore)
@@ -178,6 +179,7 @@ class OneTimeAddonTrackingTestCase(BaseTestCase):
         )
 
     def test_increment_addon_usage_over_limit(self):
+        # TODO: Remove once cache issues have been resolved
         self.organization.update_usage_cache(
             {
                 'total_nlp_usage': {
