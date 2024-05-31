@@ -5,7 +5,7 @@ from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kpi.utils.database import get_thread_local
-from .constants import SHADOW_MODEL_APP_LABELS
+from .constants import SHADOW_MODEL_APP_LABELS, SHARED_APP_LABELS
 from .exceptions import ReadOnlyModelError
 
 
@@ -52,6 +52,9 @@ class DefaultDatabaseRouter:
         """
         All default models end up in this pool.
         """
+        if app_label in SHARED_APP_LABELS:
+            return True
+
         if db == DEFAULT_DB_ALIAS and app_label in OPENROSA_APP_LABELS:
             return False
 
