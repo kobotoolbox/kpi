@@ -137,7 +137,7 @@ const AddOnList = (props: {
                         )}
                     </span>
                     <Badge color={color} size={'s'} label={badgeLabel} />
-                    <p className={styles.description}>
+                    <p className={styles.addonDescription}>
                       {t('Added on ##date##').replace(
                         '##date##',
                         formatDate(oneTimeAddOn.created)
