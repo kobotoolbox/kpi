@@ -142,5 +142,16 @@
             "slug": "welcome_message_fr",
             "body": "Le message de bienvenue"
         }
+    },
+    {
+        "model": "djstripe.apikey",
+        "pk": 1,
+        "fields": {
+            "type": "publishable",
+            "livemode": true,
+            "secret": "fake_public_key",
+            "djstripe_created": "2024-05-31T00:00:00Z",
+            "djstripe_updated": "2024-05-31T00:10:00Z"
+        }
     }
 ]

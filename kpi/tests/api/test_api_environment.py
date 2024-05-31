@@ -46,15 +46,6 @@ class EnvironmentTests(BaseTestCase):
       ]
     }
 
-    @classmethod
-    def setUpTestData(cls):
-        # Create a fake APIKey object for testing
-        cls.api_key = APIKey.objects.create(
-            type='publishable',
-            livemode=True,
-            secret='fake_public_key'
-        )
-
     @override_settings(STRIPE_ENABLED=True)
     def setUp(self):
         self.url = reverse('environment')
