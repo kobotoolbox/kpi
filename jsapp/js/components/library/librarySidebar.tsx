@@ -1,29 +1,38 @@
 import React from 'react';
-import Reflux from 'reflux';
-import reactMixin from 'react-mixin';
-import PropTypes from 'prop-types';
-import autoBind from 'react-autobind';
 import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import myLibraryStore from './myLibraryStore';
-import { routerIsActive } from '../../router/legacy';
-import {ROUTES} from '../../router/routerConstants';
+import {routerIsActive} from 'js/router/legacy';
+import {ROUTES} from 'js/router/routerConstants';
 import {NavLink} from 'react-router-dom';
 
-class LibrarySidebar extends Reflux.Component {
-  constructor(props){
+interface LibrarySidebarProps {}
+
+interface LibrarySidebarState {
+  myLibraryCount: number;
+  isLoading: boolean;
+}
+
+/**
+ * Displays "NEW" button (for adding a Library item) and two navigation links
+ * pointing to "My Library" and "Public Collections".
+ */
+export default class LibrarySidebar extends React.Component<
+  LibrarySidebarProps,
+  LibrarySidebarState
+> {
+  constructor(props: LibrarySidebarProps) {
     super(props);
     this.state = {
       myLibraryCount: 0,
       isLoading: true
     };
-    autoBind(this);
   }
 
   componentDidMount() {
-    this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
+    myLibraryStore.listen(this.myLibraryStoreChanged.bind(this));
     this.setState({
       isLoading: false,
       myLibraryCount: myLibraryStore.getCurrentUserTotalAssets()
@@ -59,11 +68,11 @@ class LibrarySidebar extends Reflux.Component {
     }
 
     return (
-      <React.Fragment>
+      <>
         <bem.KoboButton
           m={['blue', 'fullwidth']}
           disabled={!sessionStore.isLoggedIn}
-          onClick={this.showLibraryNewModal}
+          onClick={this.showLibraryNewModal.bind(this)}
         >
           {t('new')}
         </bem.KoboButton>
@@ -94,15 +103,7 @@ class LibrarySidebar extends Reflux.Component {
             </bem.FormSidebar__label>
           </NavLink>
         </bem.FormSidebar>
-      </React.Fragment>
+      </>
     );
   }
 }
-
-LibrarySidebar.contextTypes = {
-  router: PropTypes.object
-};
-
-reactMixin(LibrarySidebar.prototype, Reflux.ListenerMixin);
-
-export default LibrarySidebar;
