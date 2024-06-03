@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+  <form class='registration registration--login'>
+    <h1>
+        {% trans 'Server error (500)' %}
+    </h1>
+
+    {% trans 'Something went wrong when trying to process your request.' %}
+  </form>
+{% endblock %}
