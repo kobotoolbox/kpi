@@ -2,6 +2,7 @@
 @use "scss/_variables";
 @use "scss/libs/_mdl";
 @use 'scss/z-indexes';
+@use 'scss/mixins';
 
 /* ==========================================================================
  * AssetsTable
@@ -104,44 +105,8 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
  * ========================================================================== */
 
 .assets-table-pagination {
-  display: inline-block;
-  color: inherit;
-}
-
-.assets-table-pagination__index {
-  display: inline;
-  margin: 0 10px;
-}
-
-.assets-table-pagination__button {
-  appearance: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  cursor: pointer;
-  color: inherit;
-  height: 20px;
-
-  &:hover {
-    opacity: 0.8;
-  }
-
-  &:active {
-    opacity: 0.6;
-  }
-
-  &[disabled] {
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  .k-icon {
-    font-size: variables.$base-font-size;
-    margin: 0 3px;
-    display: inline-block;
-    vertical-align: middle;
-  }
+  @include mixins.centerRowFlex;
+  gap: 10px;
 }
 
 /* ==========================================================================
