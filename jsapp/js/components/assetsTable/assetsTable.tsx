@@ -315,9 +315,10 @@ export default class AssetsTable extends React.Component<
    */
   renderPagination() {
     if (
-      this.props.currentPage &&
-      this.props.totalPages &&
-      this.props.onSwitchPage
+      // Note that `currentPage` and `totalPages` might be `0`
+      typeof this.props.currentPage === 'number' &&
+      typeof this.props.totalPages === 'number' &&
+      typeof this.props.onSwitchPage === 'function'
     ) {
       const naturalCurrentPage = this.props.currentPage + 1;
       return (
