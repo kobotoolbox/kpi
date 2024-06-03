@@ -23,6 +23,7 @@ import type {
   MetadataResponse,
 } from 'js/dataInterface';
 import './assetsTable.scss';
+import Button from 'js/components/common/button';
 
 bem.AssetsTable = makeBem(null, 'assets-table');
 bem.AssetsTable__header = makeBem(bem.AssetsTable, 'header');
@@ -36,8 +37,6 @@ bem.AssetsTableRow__headerLabel = makeBem(bem.AssetsTableRow, 'header-label', 's
 bem.AssetsTableRow__tags = makeBem(bem.AssetsTableRow, 'tags', 'div');
 bem.AssetsTableRow__tag = makeBem(bem.AssetsTableRow, 'tag', 'span');
 bem.AssetsTablePagination = makeBem(null, 'assets-table-pagination');
-bem.AssetsTablePagination__button = makeBem(bem.AssetsTablePagination, 'button', 'button');
-bem.AssetsTablePagination__index = makeBem(bem.AssetsTablePagination, 'index');
 
 type OrderChangeCallback = (columnId: string, columnValue: OrderDirection) => void;
 type FilterChangeCallback = (columnId: string | null, columnValue: string | null) => void;
@@ -323,26 +322,30 @@ export default class AssetsTable extends React.Component<
       const naturalCurrentPage = this.props.currentPage + 1;
       return (
         <bem.AssetsTablePagination>
-          <bem.AssetsTablePagination__button
-            disabled={this.props.currentPage === 0}
+          <Button
+            type='bare'
+            color='storm'
+            size='s'
+            startIcon='angle-left'
+            label={t('Previous')}
+            isDisabled={this.props.currentPage === 0}
             onClick={this.switchPage.bind(this, this.props.currentPage - 1)}
-          >
-            <i className='k-icon k-icon-angle-left'/>
-            {t('Previous')}
-          </bem.AssetsTablePagination__button>
+          />
 
-          <bem.AssetsTablePagination__index>
+          <span>
             {/* we avoid displaying 1/0 as it doesn't make sense to humans */}
             {naturalCurrentPage}/{this.props.totalPages || 1}
-          </bem.AssetsTablePagination__index>
+          </span>
 
-          <bem.AssetsTablePagination__button
-            disabled={naturalCurrentPage >= this.props.totalPages}
+          <Button
+            type='bare'
+            color='storm'
+            size='s'
+            endIcon='angle-right'
+            label={t('Next')}
+            isDisabled={naturalCurrentPage >= this.props.totalPages}
             onClick={this.switchPage.bind(this, this.props.currentPage + 1)}
-          >
-            {t('Next')}
-            <i className='k-icon k-icon-angle-right'/>
-          </bem.AssetsTablePagination__button>
+          />
         </bem.AssetsTablePagination>
       );
     } else {
@@ -362,13 +365,14 @@ export default class AssetsTable extends React.Component<
         {this.renderPagination()}
 
         {this.props.totalAssets !== null &&
-          <button
-            className='mdl-button'
+          <Button
+            type='bare'
+            color='storm'
+            size='s'
+            endIcon='expand'
+            label={t('Toggle fullscreen')}
             onClick={this.toggleFullscreen.bind(this)}
-          >
-            {t('Toggle fullscreen')}
-            <i className='k-icon k-icon-expand' />
-          </button>
+          />
         }
       </bem.AssetsTable__footer>
     );
