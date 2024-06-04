@@ -27,7 +27,6 @@ from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_database_user
 
 
-@override_settings(STRIPE_LIVE_MODE=True)
 class EnvironmentTests(BaseTestCase):
     fixtures = ['test_data']
 
@@ -46,16 +45,6 @@ class EnvironmentTests(BaseTestCase):
       ]
     }
 
-    @classmethod
-    def setUpTestData(cls):
-        # Create a fake APIKey object for testing
-        cls.api_key = APIKey.objects.create(
-            type='publishable',
-            livemode=True,
-            secret='fake_public_key'
-        )
-
-    @override_settings(STRIPE_ENABLED=True)
     def setUp(self):
         self.url = reverse('environment')
         self.user = User.objects.get(username='someuser')
@@ -348,7 +337,6 @@ class EnvironmentTests(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] is None
 
-    @override_settings(STRIPE_ENABLED=True)
     def test_stripe_public_key_when_stripe_enabled(self):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
