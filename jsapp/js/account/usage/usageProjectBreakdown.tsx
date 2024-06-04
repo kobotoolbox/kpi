@@ -180,7 +180,9 @@ const ProjectBreakdown = () => {
                 </td>
                 <td>{prettyBytes(project.storage_bytes)}</td>
                 <td>
-                  {project.nlp_usage_current_month.total_nlp_asr_seconds.toLocaleString()}
+                  {(project.nlp_usage_current_month.total_nlp_asr_seconds / 60)
+                    .toFixed(1)
+                    .toLocaleString()}
                 </td>
                 <td>
                   {project.nlp_usage_current_month.total_nlp_mt_characters.toLocaleString()}
