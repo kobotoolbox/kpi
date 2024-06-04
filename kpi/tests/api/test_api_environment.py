@@ -27,7 +27,6 @@ from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_database_user
 
 
-@override_settings(STRIPE_LIVE_MODE=True)
 class EnvironmentTests(BaseTestCase):
     fixtures = ['test_data']
 
