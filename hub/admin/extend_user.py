@@ -310,3 +310,10 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             message += f'View <a href="{url}">trash.</a>'
 
         return mark_safe(message)
+
+    def save_model(self, request, obj, form, change):
+        if obj.is_superuser:
+            if config.SUPERUSER_AUTH_ENFORCEMENT:
+                if obj.has_usable_password() and not config.MFA_ENABLED:
+                    raise ValidationError(("Superusers must use either MFA or SSO with an unusable password."))
+        super().save_model(request, obj, form, change)
