@@ -315,5 +315,9 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         if obj.is_superuser:
             if config.SUPERUSER_AUTH_ENFORCEMENT:
                 if obj.has_usable_password() and not config.MFA_ENABLED:
-                    raise ValidationError(("Superusers must use either MFA or SSO with an unusable password."))
+                    raise ValidationError(
+                        (
+                            'Superusers must use either MFA or SSO with an unusable password.'
+                        )
+                    )
         super().save_model(request, obj, form, change)

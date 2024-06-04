@@ -275,9 +275,9 @@ CONSTANCE_CONFIG = {
         # Use custom field for schema validation
         'i18n_text_jsonfield_schema'
     ),
-    'SUPERUSER_AUTH_ENFORCEMENT':(
+    'SUPERUSER_AUTH_ENFORCEMENT': (
         True,
-        'Superuser must either enable MFA or SSO with an “unusable” password'
+        'Superuser must either enable MFA or SSO with an “unusable” password',
     ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
