@@ -34,6 +34,7 @@ import {
   TransferStatuses,
 } from 'js/components/permissions/transferProjects/transferProjects.api';
 import Button from '../components/common/button';
+import Foo from './foo';
 
 interface InviteState {
   valid: boolean;
@@ -172,6 +173,8 @@ function MyProjectsRoute() {
 
         <header className={styles.header}>
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
+
+          <Foo/>
 
           <ProjectsFilter
             onFiltersChange={customView.setFilters.bind(customView)}
