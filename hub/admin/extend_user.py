@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+from hub.admin.validators import validate_superuser_auth
 from kobo.apps.accounts.validators import (
     USERNAME_MAX_LENGTH,
     USERNAME_INVALID_MESSAGE,
@@ -312,12 +313,5 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         return mark_safe(message)
 
     def save_model(self, request, obj, form, change):
-        if obj.is_superuser:
-            if config.SUPERUSER_AUTH_ENFORCEMENT:
-                if obj.has_usable_password() and not config.MFA_ENABLED:
-                    raise ValidationError(
-                        (
-                            'Superusers must use either MFA or SSO with an unusable password.'
-                        )
-                    )
+        validate_superuser_auth(obj)
         super().save_model(request, obj, form, change)
