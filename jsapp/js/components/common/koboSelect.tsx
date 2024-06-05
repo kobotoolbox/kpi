@@ -220,7 +220,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
             <Icon
               name='spinner'
               size={ButtonToIconMap.get(this.props.size)}
-              classNames={['k-spin']}
+              className='k-spin'
             />
           }
 
@@ -245,7 +245,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           <Icon
             name='spinner'
             size={ButtonToIconMap.get(this.props.size)}
-            classNames={['k-spin']}
+            className='k-spin'
           />
         }
 

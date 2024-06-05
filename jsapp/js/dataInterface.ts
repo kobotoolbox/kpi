@@ -167,13 +167,33 @@ interface SubmissionSupplementalDetails {
   };
 }
 
+/**
+ * Value of a property found in `SubmissionResponse`, it can be either a built
+ * in submission property (e.g. `_geolocation`) or a response to a form question
+ */
+export type SubmissionResponseValue =
+  | string
+  | string[]
+  | number
+  | number[]
+  | null
+  | object
+  | SubmissionAttachment[]
+  | SubmissionSupplementalDetails
+  // This happens with responses to questions inside repeat groups
+  | Array<{[questionName: string]: SubmissionResponseValue}>
+  | undefined;
+
 export interface SubmissionResponse {
-  [questionName: string]: any;
+  // `SubmissionResponseValue` covers all possible values (responses to form
+  // questions and other submission properties)
+  [propName: string]: SubmissionResponseValue;
+  // Below are all known properties of submission response:
   __version__: string;
   _attachments: SubmissionAttachment[];
-  _geolocation: any[];
+  _geolocation: number[] | null[];
   _id: number;
-  _notes: any[];
+  _notes: string[];
   _status: string;
   _submission_time: string;
   _submitted_by: string | null;

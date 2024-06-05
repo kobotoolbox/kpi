@@ -1,4 +1,5 @@
 @use 'scss/sizes';
+@use 'scss/breakpoints';
 @use 'scss/_variables';
 @use 'scss/z-indexes';
 @use '~kobo-common/src/styles/colors';
@@ -27,8 +28,17 @@ $side-tabs-width-mobile: 70px;
 
 // form landing takes .form-view__toptabs into account
 .page-wrapper__content--form-landing {
-  .form-view {
+  .form-view,
+  .loadingSpinner {
     height: calc(100% - 48px);
+  }
+
+  .loadingSpinner {
+    // Without this, it sometimes gets pushed down (outside the layout), when
+    // some sibling nodes are present
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -592,44 +602,6 @@ $side-tabs-width-mobile: 70px;
       clear: both;
     }
   }
-
-  .form-view__cell--exports-table {
-    .form-view__label {
-      text-align: left;
-      padding: 4px 10px;
-
-      &--type {
-        width: 10%;
-        text-transform: uppercase;
-      }
-
-      &--action {
-        flex-grow: 1;
-        text-align: right;
-        line-height: 40px;
-      }
-
-      &--lang {
-        flex-shrink: 1;
-      }
-    }
-
-    .form-view__group--headings {
-      padding: 8px 0;
-
-      .form-view__label--type {
-        text-transform: none;
-      }
-    }
-
-    @media screen and (max-width: 980px) {
-      .form-view__label--date,
-      .form-view__label--include-groups,
-      .form-view__label--multi-versioned {
-        display: none;
-      }
-    }
-  }
 }
 
 .form-view__cell--iframe {
@@ -718,7 +690,8 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-@media screen and (max-width: 767px) {
+// TODO: rework all these media queries to mobile first
+@media screen and (width < breakpoints.$b768) {
   .form-view__sidetabs {
     width: $side-tabs-width-mobile;
 
@@ -821,24 +794,11 @@ $side-tabs-width-mobile: 70px;
   left: 1em;
 }
 
-// Compensate for when sidebar(s) messes up modal a bit
-@media
-  (min-width: 770px) and (max-width: 1020px),
-  (max-width: 560px) {
-    .bulk-options {
-      display: block !important;
-
-      .bulk-options__buttons {
-        margin-top: 6px;
-        text-align: center;
-      }
-    }
-
-    .multi-checkbox {
-      overflow-x: scroll !important;
-    }
-}
-
 .form-view--library-asset {
   background: colors.$kobo-white;
+}
+
+// Temporary legacy code replacement. We needed this to remove bem.uiPanel
+.form-view--ui-panel {
+  padding: 10px;
 }

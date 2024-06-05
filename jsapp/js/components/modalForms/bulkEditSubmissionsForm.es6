@@ -563,7 +563,7 @@ class BulkEditRowForm extends React.Component {
             <h2>{this.props.question.label}</h2>
 
             <TextBox
-              customClassNames={['bulk-edit-response-textbox']}
+              className='bulk-edit-response-textbox'
               type='text-multiline'
               value={inputValue}
               onChange={this.onChange}

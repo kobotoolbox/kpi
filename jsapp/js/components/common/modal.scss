@@ -1,7 +1,8 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/sizes";
-@use "scss/libs/_mdl";
-@use "scss/_variables";
+@use 'scss/breakpoints';
+@use 'scss/sizes';
+@use 'scss/libs/_mdl';
+@use 'scss/_variables';
 
 $z-modal-backdrop: 1101;
 $z-enketo-iframe-icon: 1100;
@@ -496,7 +497,7 @@ $modal-custom-header-height: sizes.$x60;
   .modal & {
     width: 100%;
 
-    @media screen and (min-width: 768px) {
+    @media screen and (min-width: breakpoints.$b768) {
       min-width: 600px;
     }
   }
@@ -534,7 +535,7 @@ $modal-custom-header-height: sizes.$x60;
       min-height: 120px;
       box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
 
-      @media screen and (min-width: 768px) {
+      @media screen and (min-width: breakpoints.$b768) {
         margin: $buttons-spacing;
         padding: 2*$buttons-spacing;
         width: calc(50% - #{2*$buttons-spacing});
@@ -856,7 +857,9 @@ $modal-custom-header-height: sizes.$x60;
 .remove-encryption {
   float: right;
 }
-@media screen and (max-width: 480px) {
+
+// TODO: rework all these media queries to mobile first
+@media screen and (width < 480px) {
   .table-media-preview-header {
     margin-right: 0 !important;
     display: block !important;
@@ -875,20 +878,20 @@ $modal-custom-header-height: sizes.$x60;
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (width < breakpoints.$b768) {
   .modal.modal--open {
     min-width: 90%;
     max-width: 90%;
   }
 }
 
-@media screen and (max-width: 1175px) {
+@media screen and (width < 1175px) {
   .form-media__upload-url {
     width: 100%;
   }
 }
 
-@media screen and (max-width: 597px) {
+@media screen and (width < 597px) {
   .form-media__upload-url {
     width: 100%;
     padding-left: 0px;
@@ -903,7 +906,7 @@ $modal-custom-header-height: sizes.$x60;
 
 // FIXME: Due to the need to hardcode height of mfa modals, we allow scrolling
 // on mobile until we standardize all modals (see comment on mfaModals.scss)
-@media screen and (max-height: 800px) {
+@media screen and (height < 800px) {
   .modal.modal--mfa-setup {
     .modal__body {
       overflow-y: auto;
