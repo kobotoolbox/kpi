@@ -277,7 +277,7 @@ CONSTANCE_CONFIG = {
     ),
     'SUPERUSER_AUTH_ENFORCEMENT': (
         True,
-        'Superuser must either enable MFA or SSO with an “unusable” password',
+        'Require MFA for superusers with a usable password',
     ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
