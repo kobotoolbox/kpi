@@ -93,7 +93,8 @@ $s-data-table-font: 13px;
         color: colors.$kobo-gray-55;
         vertical-align: top;
         display: inline-block;
-        margin-right: 3px;
+        // Needed for the RTL content to look nice
+        margin-inline-end: 3px;
       }
     }
 

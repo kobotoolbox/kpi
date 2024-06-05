@@ -166,7 +166,7 @@ const ProjectBreakdown = () => {
           <tbody>
             {projectData.results.map((project) => (
               <tr key={project.asset}>
-                <td>
+                <td dir='auto'>
                   <Link
                     className={styles.link}
                     to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}

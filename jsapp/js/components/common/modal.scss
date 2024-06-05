@@ -731,7 +731,10 @@ $modal-custom-header-height: sizes.$x60;
       &:not(:first-child) {margin-left: 10px;}
       &.form-view__cell--lang-name {flex: 3;}
       &.form-view__cell--lang-code {flex: 2;}
-      &.form-view__cell--submit-button {padding-top: 10px;}
+      &.form-view__cell--submit-button {
+        // This is the size of the label of textboxes on the left of the button
+        padding-top: 20px;
+      }
     }
   }
 }

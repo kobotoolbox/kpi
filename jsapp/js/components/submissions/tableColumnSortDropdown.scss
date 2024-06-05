@@ -45,19 +45,14 @@
   .table-column-sort-dropdown-trigger {
     @include mixins.centerRowFlex;
     align-items: flex-start;
-    text-align: left;
+    // We need to override the default "center" from react-table, but it also
+    // needs to work with `dir="auto"`
+    text-align: initial;
     line-height: sizes.$x20;
+    gap: 5px;
 
     .column-header-title {
       flex: 1;
-
-      &:not(:last-child) {
-        margin-right: sizes.$x5;
-      }
-
-      &:not(:first-child) {
-        margin-left: sizes.$x5;
-      }
     }
 
     .k-icon.k-icon-sort-ascending,

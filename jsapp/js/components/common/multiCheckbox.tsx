@@ -39,7 +39,7 @@ class MultiCheckbox extends React.Component<MultiCheckboxProps> {
 
   render() {
     return (
-      <bem.MultiCheckbox m={`type-${this.props.type}`}>
+      <bem.MultiCheckbox m={`type-${this.props.type}`} dir='auto'>
         {this.props.items.map((item, itemIndex) => (
           <bem.MultiCheckbox__item key={itemIndex}>
             <Checkbox

@@ -77,7 +77,7 @@ export default class SubmissionDataList extends React.Component<
     const items = getFlatQuestionsList(this.props.assetContent.survey, 0);
 
     return (
-      <bem.SubmissionDataList>
+      <bem.SubmissionDataList dir='auto'>
         {items.map(this.renderQuestion.bind(this))}
       </bem.SubmissionDataList>
     );

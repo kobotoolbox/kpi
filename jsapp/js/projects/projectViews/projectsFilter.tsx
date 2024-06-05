@@ -25,6 +25,11 @@ interface ProjectsFilterProps {
   excludedFields?: ProjectFieldName[];
 }
 
+/**
+ * This module displays a button for opening a modal with a list of filters.
+ * Each filter is being rendered and modified by a separate
+ * `ProjectsFilterEditor` component.
+ */
 export default function ProjectsFilter(props: ProjectsFilterProps) {
   const getInitialFilters = () => {
     if (props.filters.length === 0) {

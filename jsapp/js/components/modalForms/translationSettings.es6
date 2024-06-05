@@ -40,7 +40,7 @@ export class TranslationSettings extends React.Component {
       asset: props.asset,
       translations: translations,
       showAddLanguageForm: false,
-      isUpdatingDefaultLanguage: false,
+      isUpdatingAsset: false,
       renameLanguageIndex: -1,
     };
     autoBind(this);
@@ -66,8 +66,9 @@ export class TranslationSettings extends React.Component {
       asset: asset,
       translations: asset.content.translations || [],
       showAddLanguageForm: false,
-      isUpdatingDefaultLanguage: false,
+      isUpdatingAsset: false,
       renameLanguageIndex: -1,
+      isUpdatingAsset: false,
     });
 
     stores.pageState.showModal({
@@ -236,7 +237,7 @@ export class TranslationSettings extends React.Component {
       ).replace('##lang##', escapeHtml(langString)),
       labels: {ok: t('Confirm'), cancel: t('Cancel')},
       onok: () => {
-        this.setState({isUpdatingDefaultLanguage: true});
+        this.setState({isUpdatingAsset: true});
         const content = this.state.asset.content;
         content.settings.default_language = langString;
         this.updateAsset(content);
@@ -247,6 +248,8 @@ export class TranslationSettings extends React.Component {
     dialog.set(opts).show();
   }
   updateAsset(content) {
+    this.setState({isUpdatingAsset: true});
+
     actions.resources.updateAsset(
       this.state.asset.uid,
       {content: JSON.stringify(content)},
@@ -324,7 +327,8 @@ export class TranslationSettings extends React.Component {
           </bem.FormView__cell>
           <bem.FormView__cell m='update-language-form'>
             <LanguageForm
-              onLanguageChange={this.onLanguageChange}
+              isPending={this.state.isUpdatingAsset}
+              onLanguageChange={this.onLanguageChange.bind(this)}
               existingLanguages={this.getAllLanguages()}
               isDefault
             />
@@ -365,7 +369,7 @@ export class TranslationSettings extends React.Component {
                         data-index={i}
                         onClick={this.changeDefaultLanguage}
                         disabled={
-                          this.state.isUpdatingDefaultLanguage ||
+                          this.state.isUpdatingAsset ||
                           !this.canEditLanguages()
                         }
                         data-tip={t('Make default')}
@@ -380,7 +384,7 @@ export class TranslationSettings extends React.Component {
                       data-index={i}
                       onClick={this.toggleRenameLanguageForm}
                       disabled={
-                        this.state.isUpdatingDefaultLanguage ||
+                        this.state.isUpdatingAsset ||
                         !this.canEditLanguages()
                       }
                       data-tip={t('Edit language')}
@@ -398,7 +402,7 @@ export class TranslationSettings extends React.Component {
                       data-index={i}
                       data-string={this.state.translations[i]}
                       onClick={this.launchTranslationTableModal}
-                      disabled={this.state.isUpdatingDefaultLanguage}
+                      disabled={this.state.isUpdatingAsset}
                       data-tip={t('Update translations')}
                       className='right-tooltip'
                     >
@@ -410,7 +414,7 @@ export class TranslationSettings extends React.Component {
                         data-index={i}
                         onClick={this.deleteLanguage}
                         disabled={
-                          this.state.isUpdatingDefaultLanguage ||
+                          this.state.isUpdatingAsset ||
                           !this.canEditLanguages()
                         }
                         data-tip={t('Delete language')}
@@ -425,9 +429,10 @@ export class TranslationSettings extends React.Component {
                 {this.state.renameLanguageIndex === i && (
                   <bem.FormView__cell m='update-language-form'>
                     <LanguageForm
+                      isPending={this.state.isUpdatingAsset}
                       langString={l}
                       langIndex={i}
-                      onLanguageChange={this.onLanguageChange}
+                      onLanguageChange={this.onLanguageChange.bind(this)}
                       existingLanguages={this.getAllLanguages(l)}
                     />
                   </bem.FormView__cell>
@@ -455,7 +460,8 @@ export class TranslationSettings extends React.Component {
                 {t('Add a new language')}
               </bem.FormView__cell>
               <LanguageForm
-                onLanguageChange={this.onLanguageChange}
+                isPending={this.state.isUpdatingAsset}
+                onLanguageChange={this.onLanguageChange.bind(this)}
                 existingLanguages={this.getAllLanguages()}
               />
             </bem.FormView__cell>

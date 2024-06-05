@@ -40,7 +40,7 @@ class TableColumnSortDropdown extends React.Component {
     }
 
     return (
-      <div className='table-column-sort-dropdown-trigger'>
+      <div className='table-column-sort-dropdown-trigger' dir='auto'>
         {this.props.additionalTriggerContent}
         {this.props.sortValue &&
           <i className={sortIcon.join(' ')}/>
