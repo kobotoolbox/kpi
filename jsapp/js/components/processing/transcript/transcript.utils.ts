@@ -28,8 +28,8 @@ export function getAttachmentForProcessing(
     assetContent.survey,
     submissionData
   );
-  // We need row data to go further.
-  if (!rowData) {
+  // We need row data to go further. And we are expecting a string (filename).
+  if (!rowData || typeof rowData !== 'string') {
     return errorMessage;
   }
 

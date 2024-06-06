@@ -288,7 +288,7 @@ export interface TableFilterQuery {
     [key: string]:
       | string
       | null
-      | {$in: string[]}
+      | {$in: number[]}
       | {$regex: string; $options: string};
   };
 }
@@ -313,7 +313,7 @@ export function buildFilterQuery(
   filters.forEach((filter) => {
     switch (filter.id) {
       case '_id': {
-        output.queryObj[filter.id] = {$in: [filter.value]};
+        output.queryObj[filter.id] = {$in: [parseInt(filter.value)]};
         break;
       }
       case VALIDATION_STATUS_ID_PROP: {
