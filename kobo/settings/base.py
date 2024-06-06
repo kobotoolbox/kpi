@@ -276,7 +276,7 @@ CONSTANCE_CONFIG = {
         'i18n_text_jsonfield_schema'
     ),
     'SUPERUSER_AUTH_ENFORCEMENT': (
-        True,
+        False,
         'Require MFA for superusers with a usable password',
     ),
     'ASR_MT_INVITEE_USERNAMES': (
