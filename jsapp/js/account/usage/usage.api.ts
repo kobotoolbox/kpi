@@ -10,11 +10,15 @@ export interface AssetUsage {
   results: AssetWithUsage[];
 }
 
-interface AssetWithUsage {
+export interface AssetWithUsage {
   asset: string;
   uid: string;
   asset__name: string;
   nlp_usage_current_month: {
+    total_nlp_asr_seconds: number;
+    total_nlp_mt_characters: number;
+  };
+  nlp_usage_current_year: {
     total_nlp_asr_seconds: number;
     total_nlp_mt_characters: number;
   };
@@ -24,6 +28,7 @@ interface AssetWithUsage {
   };
   storage_bytes: number;
   submission_count_current_month: number;
+  submission_count_current_year: number;
   submission_count_all_time: number;
   deployment_status: string;
 }

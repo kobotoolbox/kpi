@@ -5,12 +5,13 @@ import {ROUTES} from 'jsapp/js/router/routerConstants';
 import AssetStatusBadge from 'jsapp/js/components/common/assetStatusBadge';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import prettyBytes from 'pretty-bytes';
-import type {AssetUsage} from 'js/account/usage/usage.api';
+import type {AssetUsage, AssetWithUsage} from 'js/account/usage/usage.api';
 import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
 import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
+import {truncateNumber} from 'jsapp/js/utils';
 import {UsageContext, useUsage} from './useUsage.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 
@@ -118,6 +119,43 @@ const ProjectBreakdown = () => {
     setOrder(newOrder);
   };
 
+  const renderProjectRow = (project: AssetWithUsage) => {
+    const periodSubmissions =
+      usage.trackingPeriod === 'year'
+        ? project.submission_count_current_year
+        : project.submission_count_current_month;
+    const periodASRSeconds =
+      usage.trackingPeriod === 'year'
+        ? project.nlp_usage_current_year.total_nlp_asr_seconds
+        : project.nlp_usage_current_month.total_nlp_asr_seconds;
+    const periodMTCharacters =
+      usage.trackingPeriod === 'year'
+        ? project.nlp_usage_current_year.total_nlp_mt_characters
+        : project.nlp_usage_current_month.total_nlp_mt_characters;
+    return (
+      <tr key={project.asset}>
+        <td>
+          <Link
+            className={styles.link}
+            to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}
+          >
+            {project.asset__name}
+          </Link>
+        </td>
+        <td>{project.submission_count_all_time.toLocaleString()}</td>
+        <td className={styles.currentMonth}>
+          {periodSubmissions.toLocaleString()}
+        </td>
+        <td>{prettyBytes(project.storage_bytes)}</td>
+        <td>{truncateNumber(periodASRSeconds / 60, 1).toLocaleString()}</td>
+        <td>{periodMTCharacters.toLocaleString()}</td>
+        <td className={styles.badge}>
+          <AssetStatusBadge deploymentStatus={project.deployment_status} />
+        </td>
+      </tr>
+    );
+  };
+
   return (
     <div className={styles.root}>
       <table>
@@ -164,36 +202,7 @@ const ProjectBreakdown = () => {
           </tbody>
         ) : (
           <tbody>
-            {projectData.results.map((project) => (
-              <tr key={project.asset}>
-                <td>
-                  <Link
-                    className={styles.link}
-                    to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}
-                  >
-                    {project.asset__name}
-                  </Link>
-                </td>
-                <td>{project.submission_count_all_time.toLocaleString()}</td>
-                <td className={styles.currentMonth}>
-                  {project.submission_count_current_month.toLocaleString()}
-                </td>
-                <td>{prettyBytes(project.storage_bytes)}</td>
-                <td>
-                  {(project.nlp_usage_current_month.total_nlp_asr_seconds / 60)
-                    .toFixed(1)
-                    .toLocaleString()}
-                </td>
-                <td>
-                  {project.nlp_usage_current_month.total_nlp_mt_characters.toLocaleString()}
-                </td>
-                <td className={styles.badge}>
-                  <AssetStatusBadge
-                    deploymentStatus={project.deployment_status}
-                  />
-                </td>
-              </tr>
-            ))}
+            {projectData.results.map((project) => renderProjectRow(project))}
           </tbody>
         )}
       </table>
