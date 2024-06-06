@@ -68,7 +68,6 @@ export class TranslationSettings extends React.Component {
       showAddLanguageForm: false,
       isUpdatingAsset: false,
       renameLanguageIndex: -1,
-      isUpdatingAsset: false,
     });
 
     stores.pageState.showModal({
@@ -237,7 +236,6 @@ export class TranslationSettings extends React.Component {
       ).replace('##lang##', escapeHtml(langString)),
       labels: {ok: t('Confirm'), cancel: t('Cancel')},
       onok: () => {
-        this.setState({isUpdatingAsset: true});
         const content = this.state.asset.content;
         content.settings.default_language = langString;
         this.updateAsset(content);
