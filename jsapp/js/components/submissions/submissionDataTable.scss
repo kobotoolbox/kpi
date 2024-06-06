@@ -86,19 +86,11 @@ $submission-data-table-space: sizes.$x12;
 
 .submission-data-table__row--response .submission-data-table__column.submission-data-table__column--data {
   @include mixins.centerRowFlex;
-
   flex: 1;
-
-  .audio-player:first-child {
-    padding-right: sizes.$x30;
-  }
+  gap: 20px;
 
   > *:first-child {
     flex: 1;
-  }
-
-  > *:not(:last-child) {
-    margin-right: sizes.$x20;
   }
 }
 
