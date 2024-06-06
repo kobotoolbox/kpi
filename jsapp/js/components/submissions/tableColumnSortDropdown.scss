@@ -14,7 +14,7 @@
     background-color: colors.$kobo-gray-40;
     @include mdl.box-shadow;
     padding: sizes.$x8 0;
-    text-align: left;
+    text-align: initial;
     line-height: sizes.$x20;
     min-width: sizes.$x150;
 
@@ -86,7 +86,7 @@
   display: block;
   width: 100%;
   padding: sizes.$x5 sizes.$x10;
-  text-align: left;
+  text-align: initial;
   font-size: sizes.$x12;
   line-height: inherit;
 

@@ -228,7 +228,7 @@ $z-modal-x: 10;
       .switch--label-language,
       .switch--validation-status {
         width: 45%;
-        text-align: left;
+        text-align: initial;
 
         label, .kobo-select {
           display: inline-block;
@@ -244,7 +244,7 @@ $z-modal-x: 10;
         width: 100%;
         text-align: right;
         .kobo-select {
-          text-align: left;
+          text-align: initial;
         }
       }
 
@@ -508,7 +508,7 @@ $modal-custom-header-height: sizes.$x60;
 
   .intro {
     margin-bottom: 20px;
-    text-align: left;
+    text-align: initial;
   }
 
   .form-modal__item[disabled] {
