@@ -19,6 +19,7 @@ from rest_framework import status
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.models import SocialAppCustomData
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
@@ -311,10 +312,28 @@ class EnvironmentTests(BaseTestCase):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=app,
+            is_public=True
+        )
+        custom_data.save()
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
+
+    @override_settings(SOCIALACCOUNT_PROVIDERS={}, STRIPE_ENABLED=False)
+    def test_social_apps_no_custom_data(self):
+        SocialAppCustomData.objects.all().delete()
+        self.client.get(self.url, format='json')
+        queries = FuzzyInt(18, 25)
+        with self.assertNumQueries(queries):
+            response = self.client.get(self.url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'social_app')
+        self.assertNotContains(response, 'app.name')
+
 
     def test_tos_sitewide_message(self):
         # Check that fixtures properly stores terms of service
