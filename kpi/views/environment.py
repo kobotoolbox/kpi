@@ -6,6 +6,7 @@ import constance
 from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from hub.models.sitewide_message import SitewideMessage
@@ -159,18 +160,11 @@ class EnvironmentView(APIView):
     def process_other_configs(request):
         data = {}
 
-        if SocialAppCustomData.objects.exists():
-            data['social_apps'] = list(
-            SocialApp.objects.filter(custom_data__is_public=True).values(
+        data['social_apps'] = list(
+            (SocialApp.objects.filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))).values(
                 'provider', 'name', 'client_id', 'provider_id'
             )
         )
-        else:
-            data['social_apps'] = list(
-                SocialApp.objects.filter(custom_data__isnull=True).values(
-                    'provider', 'name', 'client_id', 'provider_id'
-                )
-            )
 
         data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
             request.user
