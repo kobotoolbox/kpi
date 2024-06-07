@@ -10,7 +10,6 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from hub.models.sitewide_message import SitewideMessage
-from kobo.apps.accounts.models import SocialAppCustomData
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
