@@ -129,12 +129,10 @@ class ColumnsHideForm extends React.Component<
         keys: ['fieldId', 'label'],
       });
       const fuseResults = fuse.search(this.state.filterPhrase);
-      const fuseResultsAsColumns = fuseResults.map((fuseResult) => {
-        return {
-          fieldId: fuseResult.item.fieldId,
-          label: fuseResult.item.label,
-        };
-      });
+      return fuseResults.map((fuseResult) => ({
+        fieldId: fuseResult.item.fieldId,
+        label: fuseResult.item.label,
+      }));
     }
     return this.state.allColumns;
   }
