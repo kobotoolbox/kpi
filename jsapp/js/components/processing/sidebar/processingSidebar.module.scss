@@ -8,6 +8,11 @@
   padding-top: 12px;
 }
 
+.settingsWrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .displays {
   flex: 1;
   display: flex;

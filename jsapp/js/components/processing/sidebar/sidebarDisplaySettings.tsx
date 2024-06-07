@@ -17,7 +17,6 @@ import styles from './sidebarDisplaySettings.module.scss';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import cx from 'classnames';
-import KoboSelect from 'js/components/common/koboSelect';
 
 interface SidebarDisplaySettingsProps {
   assetContent: AssetContent | undefined;
@@ -65,7 +64,6 @@ export default function SidebarDisplaySettings(
 
   const transcript = store.getTranscript();
   const availableDisplays = store.getAvailableDisplays(activeTab);
-  const displayedLanguageList = store.getDisplayedLanguagesList();
 
   function getStaticDisplayText(display: StaticDisplays) {
     if (display === StaticDisplays.Transcript) {
@@ -152,21 +150,6 @@ export default function SidebarDisplaySettings(
 
   return (
     <div className={styles.root}>
-      <div className={styles.selectWrapper}>
-      <KoboSelect
-        label={t('Select displayed language')}
-        name='displayedLanguage'
-        type='outline'
-        size='s'
-        options={displayedLanguageList}
-        selectedOption={store.getCurrentlyDisplayedLanguage()}
-        onChange={(languageCode) => {
-          if (languageCode) {
-            store.setCurrentlyDisplayedLanguage(languageCode);
-          }
-        }}
-      />
-      </div>
       <Button
         size='m'
         type='bare'

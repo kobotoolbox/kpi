@@ -4,6 +4,7 @@ import singleProcessingStore, {
 } from 'js/components/processing/singleProcessingStore';
 import TransxDisplay from './transxDisplay';
 import SidebarDisplaySettings from 'js/components/processing/sidebar/sidebarDisplaySettings';
+import SidebarLabelsSettings from 'js/components/processing/sidebar/sidebarLabelsSettings.component';
 import type {AssetResponse} from 'jsapp/js/dataInterface';
 import SidebarSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';
 import SidebarSubmissionMedia from 'js/components/processing/sidebar/sidebarSubmissionMedia';
@@ -23,7 +24,10 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
 
   return (
     <div className={styles.root}>
-      <SidebarDisplaySettings assetContent={props.asset.content}/>
+      <div className={styles.settingsWrapper}>
+        <SidebarLabelsSettings />
+        <SidebarDisplaySettings assetContent={props.asset.content} />
+      </div>
 
       <div className={styles.displays}>
         {Array.from(translations).map((translation) => {
