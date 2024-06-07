@@ -63,8 +63,7 @@ class UserChangeForm(DjangoUserChangeForm):
                 f'User is in <a href="{url}">trash</a> and cannot be reactivated'
                 f' from here.'
             ))
-        is_superuser = cleaned_data.get('is_superuser', False)
-        if is_superuser and not validate_superuser_auth(self.instance):
+        if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(self.instance):
             raise ValidationError(
                 "Superusers with a usable password must enable MFA."
             )
