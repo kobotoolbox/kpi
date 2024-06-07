@@ -1,36 +1,53 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
-import {
-  notify
-} from 'js/utils';
+import {notify} from 'js/utils';
+import type {AssetResponse} from 'js/dataInterface';
+
+interface AssetPublicButtonProps {
+  asset: AssetResponse;
+}
+
+interface AssetPublicButtonState {
+  isPublicPending: boolean;
+  isAwaitingFreshPermissions: boolean;
+}
 
 /**
- * @prop asset
+ * Button for making asset (works only for `collection` type) public or non-public.
  */
-class AssetPublicButton extends React.Component {
-  constructor(props){
+export default class AssetPublicButton extends React.Component<
+  AssetPublicButtonProps,
+  AssetPublicButtonState
+> {
+  private unlisteners: Function[] = [];
+
+  constructor(props: AssetPublicButtonProps) {
     super(props);
     this.state = {
       isPublicPending: false,
       isAwaitingFreshPermissions: false
     };
-    autoBind(this);
   }
 
   componentDidMount() {
-    actions.permissions.setAssetPublic.completed.listen(this.onSetAssetPublicCompleted);
-    actions.permissions.setAssetPublic.failed.listen(this.onSetAssetPublicFailed);
+    this.unlisteners.push(
+      actions.permissions.setAssetPublic.completed.listen(this.onSetAssetPublicCompleted.bind(this)),
+      actions.permissions.setAssetPublic.failed.listen(this.onSetAssetPublicFailed.bind(this))
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   componentWillReceiveProps() {
     this.setState({isAwaitingFreshPermissions: false});
   }
 
-  onSetAssetPublicCompleted(assetUid) {
+  onSetAssetPublicCompleted(assetUid: string) {
     if (this.props.asset.uid === assetUid) {
       this.setState({
         isPublicPending: false,
@@ -39,7 +56,7 @@ class AssetPublicButton extends React.Component {
     }
   }
 
-  onSetAssetPublicFailed(assetUid) {
+  onSetAssetPublicFailed(assetUid: string) {
     if (this.props.asset.uid === assetUid) {
       this.setState({isPublicPending: false});
       notify(t('Failed to change asset public status.'), 'error');
@@ -86,7 +103,7 @@ class AssetPublicButton extends React.Component {
         {!isPublic &&
           <bem.AssetActionButtons__button
             m='on'
-            onClick={this.makePublic}
+            onClick={this.makePublic.bind(this)}
             disabled={this.isSetPublicButtonDisabled()}
           >
             <i className='k-icon k-icon-globe-alt'/>
@@ -96,7 +113,7 @@ class AssetPublicButton extends React.Component {
         {isPublic &&
           <bem.AssetActionButtons__button
             m='off'
-            onClick={this.makePrivate}
+            onClick={this.makePrivate.bind(this)}
             disabled={this.isSetPublicButtonDisabled()}
           >
             <i className='k-icon k-icon-close'/>
@@ -107,5 +124,3 @@ class AssetPublicButton extends React.Component {
     );
   }
 }
-
-export default AssetPublicButton;
