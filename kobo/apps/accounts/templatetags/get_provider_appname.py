@@ -3,8 +3,6 @@ from django import template
 from django.conf import settings
 from django.db.models import Q
 
-from kobo.apps.accounts.models import SocialAppCustomData
-
 register = template.Library()
 
 
