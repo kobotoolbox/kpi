@@ -2,6 +2,8 @@ from allauth.socialaccount.models import SocialApp
 from django import template
 from django.conf import settings
 
+from kobo.apps.accounts.models import SocialAppCustomData
+
 register = template.Library()
 
 
@@ -36,4 +38,7 @@ def get_provider_appname(context, provider=None):
 
 @register.simple_tag()
 def get_social_apps():
-    return SocialApp.objects.filter(custom_data__is_public=True)
+    if SocialAppCustomData.objects.exists():
+        return SocialApp.objects.filter(custom_data__is_public=True)
+    else:
+        return SocialApp.objects.filter(custom_data__isnull=True)

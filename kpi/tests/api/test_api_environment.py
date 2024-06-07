@@ -307,7 +307,7 @@ class EnvironmentTests(BaseTestCase):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 25)
+        queries = FuzzyInt(18, 26)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -321,6 +321,19 @@ class EnvironmentTests(BaseTestCase):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
+
+    @override_settings(SOCIALACCOUNT_PROVIDERS={}, STRIPE_ENABLED=False)
+    def test_social_apps_no_custom_data(self):
+        SocialAppCustomData.objects.all().delete()
+        self.client.get(self.url, format='json')
+        queries = FuzzyInt(18, 26)
+        with self.assertNumQueries(queries):
+            response = self.client.get(self.url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'social_app')
+        self.assertNotContains(response, 'app.name')
+
 
     def test_tos_sitewide_message(self):
         # Check that fixtures properly stores terms of service

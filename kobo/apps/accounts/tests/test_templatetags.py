@@ -32,6 +32,10 @@ class TemplateTagsTestCase(TestCase):
             provider="Test App",
         )
 
+    def test_no_social_apps_no_custom_data(self):
+        assert not SocialAppCustomData.objects.exists()
+        assert get_social_apps()
+
     def test_has_social_apps_no_public_apps(self):
         custom_data = SocialAppCustomData(social_app=self.social_app)
         custom_data.save()
