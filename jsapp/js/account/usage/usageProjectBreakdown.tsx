@@ -13,6 +13,8 @@ import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/consta
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
 import {truncateNumber} from 'jsapp/js/utils';
 import {UsageContext, useUsage} from './useUsage.hook';
+import Button from 'js/components/common/button';
+import Icon from 'js/components/common/icon';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 
 type ButtonType = 'back' | 'forward';
@@ -26,6 +28,7 @@ const ProjectBreakdown = () => {
     results: [],
   });
   const [order, setOrder] = useState({});
+  const [showIntervalBanner, setShowIntervalBanner] = useState(true);
   const [loading, setLoading] = useState(true);
   const [usage] = useContext(UsageContext);
   const [organization] = useContext(OrganizationContext);
@@ -58,6 +61,10 @@ const ProjectBreakdown = () => {
 
   if (loading) {
     return <LoadingSpinner />;
+  }
+
+  function dismissIntervalBanner() {
+    setShowIntervalBanner(false);
   }
 
   const calculateRange = (): string => {
@@ -158,6 +165,25 @@ const ProjectBreakdown = () => {
 
   return (
     <div className={styles.root}>
+      {showIntervalBanner && (
+        <div className={styles.intervalBanner}>
+          <div className={styles.intervalBannerContent}>
+            <Icon name={'information'} size='m' color='blue' />
+            <div className={styles.intervalBannerText}>
+              {t(
+                'Submissions, transcription minutes, and translation characters reflect usage for the current ##INTERVAL## based on your plan settings.'
+              ).replace('##INTERVAL##', usage.trackingPeriod)}
+            </div>
+          </div>
+          <Button
+            color='storm'
+            size='s'
+            type='bare'
+            startIcon='close'
+            onClick={dismissIntervalBanner}
+          />
+        </div>
+      )}
       <table>
         <thead className={styles.headerFont}>
           <tr>
@@ -171,11 +197,7 @@ const ProjectBreakdown = () => {
               />
             </th>
             <th>{t('Submissions (Total)')}</th>
-            <th>
-              {usage.trackingPeriod === 'year'
-                ? t('Submissions (This year)')
-                : t('Submissions (This month)')}
-            </th>
+            <th>{t('Submissions')}</th>
             <th>{t('Data storage')}</th>
             <th>{t('Transcript minutes')}</th>
             <th>{t('Translation characters')}</th>
