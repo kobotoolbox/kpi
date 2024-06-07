@@ -128,17 +128,21 @@ const ProjectBreakdown = () => {
 
   const renderProjectRow = (project: AssetWithUsage) => {
     const periodSubmissions =
-      usage.trackingPeriod === 'year'
-        ? project.submission_count_current_year
-        : project.submission_count_current_month;
-    const periodASRSeconds =
-      usage.trackingPeriod === 'year'
-        ? project.nlp_usage_current_year.total_nlp_asr_seconds
-        : project.nlp_usage_current_month.total_nlp_asr_seconds;
+      project[
+        `submission_count_current_${usage.trackingPeriod}`
+      ].toLocaleString();
+
+    const periodASRSeconds = truncateNumber(
+      project[`nlp_usage_current_${usage.trackingPeriod}`]
+        .total_nlp_asr_seconds / 60,
+      1
+    ).toLocaleString();
+
     const periodMTCharacters =
-      usage.trackingPeriod === 'year'
-        ? project.nlp_usage_current_year.total_nlp_mt_characters
-        : project.nlp_usage_current_month.total_nlp_mt_characters;
+      project[
+        `nlp_usage_current_${usage.trackingPeriod}`
+      ].total_nlp_mt_characters.toLocaleString();
+
     return (
       <tr key={project.asset}>
         <td>
@@ -151,11 +155,11 @@ const ProjectBreakdown = () => {
         </td>
         <td>{project.submission_count_all_time.toLocaleString()}</td>
         <td className={styles.currentMonth}>
-          {periodSubmissions.toLocaleString()}
+          {periodSubmissions}
         </td>
         <td>{prettyBytes(project.storage_bytes)}</td>
-        <td>{truncateNumber(periodASRSeconds / 60, 1).toLocaleString()}</td>
-        <td>{periodMTCharacters.toLocaleString()}</td>
+        <td>{periodASRSeconds}</td>
+        <td>{periodMTCharacters}</td>
         <td className={styles.badge}>
           <AssetStatusBadge deploymentStatus={project.deployment_status} />
         </td>
