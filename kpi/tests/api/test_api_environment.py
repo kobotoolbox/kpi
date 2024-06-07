@@ -13,13 +13,13 @@ from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import APIKey
 from markdown import markdown
-from kobo.apps.accounts.models import SocialAppCustomData
 from model_bakery import baker
 from rest_framework import status
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.models import SocialAppCustomData
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
