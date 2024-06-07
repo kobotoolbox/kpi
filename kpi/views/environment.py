@@ -159,7 +159,7 @@ class EnvironmentView(APIView):
         data = {}
 
         data['social_apps'] = list(
-            SocialApp.objects.filter(custom_data__isnull=True).values(
+            SocialApp.objects.filter(custom_data__is_public=True).values(
                 'provider', 'name', 'client_id', 'provider_id'
             )
         )

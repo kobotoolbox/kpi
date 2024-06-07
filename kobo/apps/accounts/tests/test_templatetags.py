@@ -38,4 +38,9 @@ class TemplateTagsTestCase(TestCase):
         assert not get_social_apps()
 
     def test_has_social_apps_public_app(self):
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            is_public=True
+        )
+        custom_data.save()
         assert list(get_social_apps()) == [self.social_app]

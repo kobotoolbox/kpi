@@ -36,4 +36,4 @@ def get_provider_appname(context, provider=None):
 
 @register.simple_tag()
 def get_social_apps():
-    return SocialApp.objects.filter(custom_data__isnull=True)
+    return SocialApp.objects.filter(custom_data__is_public=True)
