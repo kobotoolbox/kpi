@@ -622,7 +622,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             fieldId={VALIDATION_STATUS_ID_PROP}
             sortValue={tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange.bind(this)}
-            onHide={this.onHideField}
+            onHide={this.onHideField.bind(this)}
             isFieldFrozen={tableStore.isFieldFrozen(VALIDATION_STATUS_ID_PROP)}
             onFrozenChange={this.onFieldFrozenChange.bind(this)}
             additionalTriggerContent={
@@ -1533,7 +1533,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             <bem.Button
               m='icon'
               className='report-button__expand right-tooltip'
-              onClick={this.toggleFullscreen}
+              onClick={this.toggleFullscreen.bind(this)}
               data-tip={t('Toggle fullscreen')}
             >
               <i className='k-icon k-icon-expand' />
@@ -1542,7 +1542,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             <bem.Button
               m='icon'
               className='report-button__expand right-tooltip'
-              onClick={this.showTableColumnsOptionsModal}
+              onClick={this.showTableColumnsOptionsModal.bind(this)}
               data-tip={t('Display options')}
             >
               <i className='k-icon k-icon-settings' />
