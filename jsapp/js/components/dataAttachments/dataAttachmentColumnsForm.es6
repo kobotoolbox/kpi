@@ -5,6 +5,7 @@ import MultiCheckbox from 'js/components/common/multiCheckbox';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Button from 'js/components/common/button';
 
 /**
  * Attributes from source needed to generate `columnsToDisplay`
@@ -182,7 +183,7 @@ class DataAttachmentColumnsForm extends React.Component {
 
   render() {
     return (
-      // TODO: Use BEM elements
+      // TODO: Don't use BEM elements
       // See: https://github.com/kobotoolbox/kpi/issues/3912
       <bem.FormModal__form m='data-attachment-columns'>
         <div className='header'>
@@ -234,14 +235,16 @@ class DataAttachmentColumnsForm extends React.Component {
         }
 
         <footer className='modal__footer'>
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={this.state.isLoading}
-          >
-            {t('Accept')}
-          </bem.KoboButton>
+          <Button
+            type='full'
+            color='blue'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={this.state.isLoading}
+            label={t('Accept')}
+            className='data-attachment-modal-footer-button'
+          />
         </footer>
 
       </bem.FormModal__form>

@@ -17,6 +17,7 @@ import {ROUTES, PROJECTS_ROUTES} from 'js/router/routerConstants';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {router, routerIsActive, withRouter} from '../router/legacy';
+import Button from 'js/components/common/button';
 
 const AccountSidebar = lazy(() => import('js/account/accountSidebar'));
 
@@ -67,16 +68,20 @@ const FormSidebar = observer(
     }
     render() {
       return (
-        <React.Fragment>
-          <bem.KoboButton
-            m={['blue', 'fullwidth']}
-            disabled={!sessionStore.isLoggedIn}
-            onClick={this.newFormModal}
-          >
-            {t('new')}
-          </bem.KoboButton>
+        <>
+          <Button
+            type='full'
+            color='blue'
+            size='l'
+            isFullWidth
+            isDisabled={!sessionStore.isLoggedIn}
+            onClick={this.newFormModal.bind(this)}
+            label={t('new')}
+            className='new-asset-button'
+          />
+
           <SidebarFormsList />
-        </React.Fragment>
+        </>
       );
     }
     onRouteChange() {

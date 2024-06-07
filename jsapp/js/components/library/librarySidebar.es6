@@ -11,6 +11,7 @@ import myLibraryStore from './myLibraryStore';
 import { routerIsActive } from '../../router/legacy';
 import {ROUTES} from '../../router/routerConstants';
 import {NavLink} from 'react-router-dom';
+import Button from 'js/components/common/button';
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
@@ -60,13 +61,16 @@ class LibrarySidebar extends Reflux.Component {
 
     return (
       <React.Fragment>
-        <bem.KoboButton
-          m={['blue', 'fullwidth']}
-          disabled={!sessionStore.isLoggedIn}
-          onClick={this.showLibraryNewModal}
-        >
-          {t('new')}
-        </bem.KoboButton>
+        <Button
+          type='full'
+          color='blue'
+          size='l'
+          isFullWidth
+          isDisabled={!sessionStore.isLoggedIn}
+          onClick={this.showLibraryNewModal.bind(this)}
+          label={t('new')}
+          className='new-asset-button'
+        />
 
         <bem.FormSidebar m={sidebarModifier}>
           <NavLink

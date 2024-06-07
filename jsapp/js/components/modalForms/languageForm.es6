@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import TextBox from 'js/components/common/textBox';
+import Button from 'js/components/common/button';
 import {getLangAsObject} from 'js/utils';
 import {toTitleCase} from 'js/textUtils';
 
@@ -143,13 +144,15 @@ class LanguageForm extends React.Component {
         </bem.FormView__cell>
 
         <bem.FormView__cell m='submit-button'>
-          <bem.KoboButton
-            m='blue'
-            onClick={this.onSubmit} type='submit'
-            disabled={isAnyFieldEmpty}
-          >
-            {this.props.langIndex !== undefined ? t('Update') : (this.props.isDefault) ? t('Set') : t('Add')}
-          </bem.KoboButton>
+          <Button
+            type='full'
+            color='blue'
+            size='l'
+            onClick={this.onSubmit.bind(this)}
+            isSubmit
+            isDisabled={isAnyFieldEmpty}
+            label={this.props.langIndex !== undefined ? t('Update') : (this.props.isDefault) ? t('Set') : t('Add')}
+          />
         </bem.FormView__cell>
       </bem.FormView__form>
       );
