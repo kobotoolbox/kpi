@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import APIKey
 from markdown import markdown
+from kobo.apps.accounts.models import SocialAppCustomData
 from model_bakery import baker
 from rest_framework import status
 
@@ -311,6 +312,11 @@ class EnvironmentTests(BaseTestCase):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=app,
+            is_public=True
+        )
+        custom_data.save()
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
