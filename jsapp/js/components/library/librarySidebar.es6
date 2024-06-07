@@ -3,7 +3,6 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
@@ -12,6 +11,7 @@ import { routerIsActive } from '../../router/legacy';
 import {ROUTES} from '../../router/routerConstants';
 import {NavLink} from 'react-router-dom';
 import Button from 'js/components/common/button';
+import pageState from 'js/pageState.store';
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
@@ -40,7 +40,7 @@ class LibrarySidebar extends Reflux.Component {
 
   showLibraryNewModal(evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
   }

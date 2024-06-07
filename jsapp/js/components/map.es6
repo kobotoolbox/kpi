@@ -4,7 +4,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import bem from 'js/bem';
-import {stores} from '../stores';
 import {actions} from '../actions';
 import PopoverMenu from 'js/popoverMenu';
 import Modal from 'js/components/common/modal';
@@ -19,6 +18,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
+import pageState from 'js/pageState.store';
 
 import {
   ASSET_FILE_TYPES,
@@ -672,7 +672,7 @@ export class FormMap extends React.Component {
       ids.push(r._id);
     });
 
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: evt.layer.options.sId,
       asset: this.props.asset,

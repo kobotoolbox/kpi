@@ -8,6 +8,7 @@ import {router, routerIsActive} from 'js/router/legacy';
 import {ROUTES} from './router/routerConstants';
 import {stores} from './stores';
 import {getExponentialDelayTime} from 'js/components/projectDownloads/exportFetcher';
+import pageState from 'js/pageState.store';
 
 const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed');
 
@@ -153,7 +154,7 @@ function onImportOneAmongMany(
   const isLastFileInBatch = fileIndex + 1 === totalFilesInBatch;
 
   // We open the modal that displays the message with total files count.
-  stores.pageState.showModal({
+  pageState.showModal({
     type: MODAL_TYPES.UPLOADING_XLS,
     filename: t('## files').replace('##', String(totalFilesInBatch)),
   });
@@ -179,7 +180,7 @@ function onImportOneAmongMany(
       // the edges).
       if (isLastFileInBatch) {
         // After the last import is created, we hide the modal…
-        stores.pageState.hideModal();
+        pageState.hideModal();
         // …and display a helpful toast
         notify.warning(
           t(

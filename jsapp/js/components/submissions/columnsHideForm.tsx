@@ -1,5 +1,4 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import Fuse from 'fuse.js';
 import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
@@ -9,6 +8,7 @@ import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
 import {FUSE_OPTIONS} from 'js/constants';
 import koboDropdownActions from 'js/components/common/koboDropdownActions';
+import type {AssetResponse, SubmissionResponse} from 'js/dataInterface';
 import './columnsHideDropdown.scss';
 
 bem.ColumnsHideForm = makeBem(null, 'columns-hide-form', 'section');
@@ -17,14 +17,32 @@ bem.ColumnsHideForm__list = makeBem(bem.ColumnsHideForm, 'list', 'ul');
 bem.ColumnsHideForm__listItem = makeBem(bem.ColumnsHideForm, 'list-item', 'li');
 bem.ColumnsHideForm__footer = makeBem(bem.ColumnsHideForm, 'footer', 'footer');
 
-/**
- * @prop {object} asset
- * @prop {object[]} submissions
- * @prop {boolean} showGroupName
- * @prop {number} translationIndex
- */
-class ColumnsHideForm extends React.Component {
-  constructor(props){
+export interface ColumnsHideFormProps {
+  asset: AssetResponse;
+  submissions: SubmissionResponse[];
+  showGroupName: boolean;
+  translationIndex: number;
+}
+
+interface ColumnsHideColumn {
+  fieldId: string;
+  label: string;
+}
+
+interface ColumnsHideFormState {
+  isPending: boolean;
+  filterPhrase: string;
+  allColumns: ColumnsHideColumn[];
+  selectedColumns: string[];
+}
+
+class ColumnsHideForm extends React.Component<
+  ColumnsHideFormProps,
+  ColumnsHideFormState
+> {
+  private unlisteners: Function[] = [];
+
+  constructor(props: ColumnsHideFormProps) {
     super(props);
     this.state = {
       isPending: false, // for saving
@@ -32,25 +50,29 @@ class ColumnsHideForm extends React.Component {
       allColumns: [], // {object[]}
       selectedColumns: [], // {string[]}
     };
-    this.unlisteners = [];
-    autoBind(this);
   }
 
   componentDidMount() {
     this.unlisteners.push(
-      actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted)
+      actions.table.updateSettings.completed.listen(
+        this.onTableUpdateSettingsCompleted.bind(this)
+      )
     );
     this.prepareColumns();
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   prepareColumns() {
-    const allColumnsIds = [...tableStore.getHideableColumns(this.props.submissions)];
+    const allColumnsIds = [
+      ...tableStore.getHideableColumns(this.props.submissions),
+    ];
 
-    const allColumns = [];
+    const allColumns: ColumnsHideColumn[] = [];
     allColumnsIds.forEach((fieldId) => {
       allColumns.push({
         fieldId: fieldId,
@@ -58,7 +80,7 @@ class ColumnsHideForm extends React.Component {
           this.props.asset,
           fieldId,
           this.props.showGroupName,
-          this.props.translationIndex,
+          this.props.translationIndex
         ),
       });
     });
@@ -86,7 +108,7 @@ class ColumnsHideForm extends React.Component {
     );
   }
 
-  onFieldToggleChange(fieldId, isSelected) {
+  onFieldToggleChange(fieldId: string, isSelected: boolean) {
     let newSelectedColumns = [...this.state.selectedColumns];
     if (isSelected) {
       newSelectedColumns.push(fieldId);
@@ -96,14 +118,21 @@ class ColumnsHideForm extends React.Component {
     this.setState({selectedColumns: newSelectedColumns});
   }
 
-  onFilterPhraseChange(newPhrase) {
+  onFilterPhraseChange(newPhrase: string) {
     this.setState({filterPhrase: newPhrase});
   }
 
-  getFilteredFieldsList() {
+  getFilteredFieldsList(): ColumnsHideColumn[] {
     if (this.state.filterPhrase !== '') {
-      let fuse = new Fuse(this.state.allColumns, {...FUSE_OPTIONS, keys: ['fieldId', 'label']});
-      return fuse.search(this.state.filterPhrase);
+      const fuse = new Fuse(this.state.allColumns, {
+        ...FUSE_OPTIONS,
+        keys: ['fieldId', 'label'],
+      });
+      const fuseResults = fuse.search(this.state.filterPhrase);
+      return fuseResults.map((fuseResult) => ({
+        fieldId: fuseResult.item.fieldId,
+        label: fuseResult.item.label,
+      }));
     }
     return this.state.allColumns;
   }
@@ -118,40 +147,41 @@ class ColumnsHideForm extends React.Component {
 
         <TextBox
           value={this.state.filterPhrase}
-          onChange={this.onFilterPhraseChange}
+          onChange={this.onFilterPhraseChange.bind(this)}
           placeholder={t('Find a field')}
         />
 
-        {filteredFieldsList.length !== 0 &&
+        {filteredFieldsList.length !== 0 && (
           <bem.ColumnsHideForm__list>
             {filteredFieldsList.map((fieldObj) => {
-              // fieldObj can be either one of allColumns or a fuse result object
-              let fieldId = fieldObj.fieldId || fieldObj.item.fieldId;
-              let label = fieldObj.label || fieldObj.item.label;
               return (
-                <bem.ColumnsHideForm__listItem key={fieldId}>
+                <bem.ColumnsHideForm__listItem key={fieldObj.fieldId}>
                   <ToggleSwitch
-                    checked={this.state.selectedColumns.includes(fieldId)}
-                    onChange={this.onFieldToggleChange.bind(this, fieldId)}
+                    checked={this.state.selectedColumns.includes(
+                      fieldObj.fieldId
+                    )}
+                    onChange={(isSelected: boolean) => {
+                      this.onFieldToggleChange(fieldObj.fieldId, isSelected);
+                    }}
                     disabled={this.state.isPending}
-                    label={label}
+                    label={fieldObj.label}
                   />
                 </bem.ColumnsHideForm__listItem>
               );
             })}
           </bem.ColumnsHideForm__list>
-        }
+        )}
 
-        {filteredFieldsList.length === 0 &&
+        {filteredFieldsList.length === 0 && (
           <bem.ColumnsHideForm__message>
             {t('No results')}
           </bem.ColumnsHideForm__message>
-        }
+        )}
 
         <bem.ColumnsHideForm__footer>
           <bem.KoboLightButton
             m={['red', 'full-width']}
-            onClick={this.onReset}
+            onClick={this.onReset.bind(this)}
             disabled={this.state.isPending}
           >
             {t('Reset')}
@@ -159,7 +189,7 @@ class ColumnsHideForm extends React.Component {
 
           <bem.KoboLightButton
             m={['blue', 'full-width']}
-            onClick={this.onApply}
+            onClick={this.onApply.bind(this)}
             disabled={this.state.isPending}
           >
             {t('Apply')}

@@ -5,7 +5,6 @@ import autoBind from 'react-autobind';
 import {observer} from 'mobx-react';
 import Reflux from 'reflux';
 import {NavLink} from 'react-router-dom';
-import {stores} from '../stores';
 import sessionStore from '../stores/session';
 import bem from 'js/bem';
 import {searches} from '../searches';
@@ -18,6 +17,7 @@ import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {router, routerIsActive, withRouter} from '../router/legacy';
 import Button from 'js/components/common/button';
+import pageState from 'js/pageState.store';
 
 const AccountSidebar = lazy(() => import('js/account/accountSidebar'));
 
@@ -40,12 +40,12 @@ const FormSidebar = observer(
           currentAssetId: false,
           files: [],
         },
-        stores.pageState.state
+        pageState.state
       );
       this.state = Object.assign(INITIAL_STATE, this.state);
 
       this.unlisteners = [];
-      this.stores = [stores.pageState];
+      this.stores = [pageState];
       autoBind(this);
     }
     componentDidMount() {
@@ -62,7 +62,7 @@ const FormSidebar = observer(
     }
     newFormModal(evt) {
       evt.preventDefault();
-      stores.pageState.showModal({
+      pageState.showModal({
         type: MODAL_TYPES.NEW_FORM,
       });
     }
@@ -146,7 +146,7 @@ const Drawer = observer(
     constructor(props) {
       super(props);
       autoBind(this);
-      this.stores = [stores.pageState];
+      this.stores = [pageState];
     }
 
     isAccount() {
