@@ -1,0 +1,6 @@
+@use "scss/mixins";
+@use "scss/libs/_mdl";
+
+.res-service-editor__sub-row {
+    @include mixins.form-subrow;
+}

@@ -107,6 +107,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                     "status_code": KOBO_INTERNAL_ERROR_STATUS_CODE}
         status_code = status.HTTP_200_OK
         hook_log = self.get_object()
+        response["event"] = hook_log.event
 
         if hook_log.can_retry():
             hook_log.change_status()
