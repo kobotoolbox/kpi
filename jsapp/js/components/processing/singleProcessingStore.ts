@@ -34,7 +34,8 @@ import {
   getCurrentProcessingRouteParts,
   ProcessingTab,
 } from 'js/components/processing/routes.utils';
-import {getExponentialDelayTime} from '../projectDownloads/exportFetcher';
+import {getExponentialDelayTime} from 'jsapp/js/utils';
+import envStore from 'jsapp/js/envStore';
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -684,16 +685,18 @@ class SingleProcessingStore extends Reflux.Store {
     setTimeout(() => {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
-      console.log('this.data befoer the if', this.data);
       if (this.isAutoTranscriptionEventApplicable(event)) {
         this.incrementExponentialBackoffCount();
         this.data.isPollingForTranscript = true;
         this.requestAutoTranscription();
       } else {
         this.data.isPollingForTranscript = false;
-        console.log('done?');
       }
-    }, getExponentialDelayTime(this.data.exponentialBackoffCount));
+    }, getExponentialDelayTime(
+      this.data.exponentialBackoffCount,
+      envStore.data.min_retry_time,
+      envStore.data.max_retry_time
+    ));
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
