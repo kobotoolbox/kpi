@@ -527,7 +527,5 @@ export function getExponentialDelayTime(
       )
   );
 
-  console.log('we are at: ' + count);
-
   return count;
 }
