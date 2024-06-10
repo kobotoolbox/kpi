@@ -37,7 +37,7 @@
   {% endif %}
   {% if config.logo_small %}
     <style>
-      @media screen and (max-width: 767px) {
+      @media screen and (width < 768px) {
         .mdl-layout__header .header__logo {
           background-image: url('{{ config.logo_small }}') !important;
         }
