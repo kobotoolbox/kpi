@@ -1,4 +1,5 @@
 import json
+import os
 from django.core.management.base import BaseCommand
 from allauth.socialaccount.models import SocialApp
 from kobo.apps.accounts.models import SocialAppCustomData
@@ -47,17 +48,14 @@ class Command(BaseCommand):
         provider_id = kwargs['provider_id']
         name = kwargs['name']
         client_id = kwargs['client_id']
-        secret = kwargs['secret']
+        secret = os.getenv('SOCIAL_APP_SECRET') or kwargs['secret']
         key = kwargs['key']
         settings_json = kwargs['settings']
 
         try:
             settings = json.loads(settings_json)
-        except json.JSONDecodeError as e:
-            self.stderr.write(
-                f'Invalid JSON for settings: {e}'
-            )
-            return
+        except TypeError:
+            raise json.JSONDecodeError
 
         social_app_data = {
             'provider': provider,
@@ -78,7 +76,9 @@ class Command(BaseCommand):
                 f'Social app for {social_app.name} already exists'
             )
         else:
-            self.stdout.write(f'Successfully created social app for {social_app.name}')
+            self.stdout.write(
+                f'Successfully created social app for {social_app.name}'
+            )
 
         social_app_custom_data_exists = SocialAppCustomData.objects.filter(
             social_app=social_app
@@ -87,7 +87,7 @@ class Command(BaseCommand):
         if not social_app_custom_data_exists:
             SocialAppCustomData.objects.create(
                 social_app=social_app,
-                is_public=True,
+                is_public=False,
             )
             self.stdout.write(
                 f'Successfully created custom data for {social_app.name}'
