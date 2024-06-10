@@ -6,6 +6,7 @@ import constance
 from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from hub.models.sitewide_message import SitewideMessage
@@ -159,7 +160,7 @@ class EnvironmentView(APIView):
         data = {}
 
         data['social_apps'] = list(
-            SocialApp.objects.filter(custom_data__isnull=True).values(
+            (SocialApp.objects.filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))).values(
                 'provider', 'name', 'client_id', 'provider_id'
             )
         )

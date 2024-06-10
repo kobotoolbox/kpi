@@ -56,6 +56,9 @@ class Command(BaseCommand):
             # Optionally import any fixtures specified on the command line into
             # the database.
             call_command('loaddata', *fixture_labels, **{'verbosity': verbosity})
+        else:
+            # Load the `test_data` fixture by default
+            call_command('loaddata', ['test_data'], **{'verbosity': verbosity})
 
         # Insert fixture data that are written here as Python code
         self.insert_test_data()
