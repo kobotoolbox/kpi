@@ -13,6 +13,7 @@ import {
   escapeHtml,
 } from 'js/utils';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html';
 
@@ -107,12 +108,13 @@ export default class RESTServicesList extends React.Component {
 
   renderModalButton() {
     return (
-      <bem.KoboButton
-        m='blue'
+      <Button
+        type='full'
+        color='blue'
+        size='l'
         onClick={this.openNewRESTServiceModal}
-      >
-        {t('Register a New Service')}
-      </bem.KoboButton>
+        label={t('Register a New Service')}
+      />
     );
   }
 

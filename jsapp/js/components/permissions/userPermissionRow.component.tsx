@@ -9,6 +9,7 @@ import permConfig from './permConfig';
 import type {PermissionBase, PermissionResponse} from 'js/dataInterface';
 import type {AssignablePermsMap} from './sharingForm.component';
 import {getPermLabel, getFriendlyPermName} from './utils';
+import Button from 'js/components/common/button';
 
 interface UserPermissionRowProps {
   assetUid: string;
@@ -167,21 +168,21 @@ export default class UserPermissionRow extends React.Component<
             <React.Fragment>
               {this.renderPermissions(this.props.permissions)}
 
-              <bem.Button m='icon' onClick={this.toggleEditForm.bind(this)}>
-                {this.state.isEditFormVisible && (
-                  <i className='k-icon k-icon-close' />
-                )}
-                {!this.state.isEditFormVisible && (
-                  <i className='k-icon k-icon-edit' />
-                )}
-              </bem.Button>
+              <Button
+                type='bare'
+                color='storm'
+                size='m'
+                startIcon={this.state.isEditFormVisible ? 'close' : 'edit'}
+                onClick={this.toggleEditForm.bind(this)}
+              />
 
-              <bem.Button
-                m='icon'
+              <Button
+                type='bare'
+                color='red'
+                size='m'
+                startIcon='trash'
                 onClick={this.showRemovePermissionsPrompt.bind(this)}
-              >
-                <i className='k-icon k-icon-trash' />
-              </bem.Button>
+              />
             </React.Fragment>
           )}
         </bem.UserRow__info>

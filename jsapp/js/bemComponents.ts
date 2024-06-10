@@ -9,7 +9,7 @@ import bem, {makeBem} from 'js/bem';
 // DEPRECATED: please don't use this component. From now on, we will only use
 // the `Button` component (from `js/components/common/button`) as it covers
 // all possible cases.
-bem.Button = makeBem(null, 'mdl-button', 'button');
+// `.mdl-button` is harder to track, but also should be removed
 bem.KoboButton = makeBem(null, 'kobo-button', 'button');
 bem.KoboLightButton = makeBem(null, 'kobo-light-button', 'button');
 bem.KoboTextButton = makeBem(null, 'kobo-text-button', 'button');

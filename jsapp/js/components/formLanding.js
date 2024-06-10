@@ -30,6 +30,7 @@ import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import AnonymousSubmission from './anonymousSubmission.component';
 import NewFeatureDialog from './newFeatureDialog.component';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
@@ -327,16 +328,24 @@ class FormLanding extends React.Component {
         </bem.FormView__cell>
         {this.state.deployed_versions.count > 1 && (
           <bem.FormView__cell m={['centered']}>
-            <bem.Button m='colored' onClick={this.toggleDeploymentHistory}>
-              {this.state.historyExpanded
-                ? t('Hide full history')
-                : t('Show full history')}
-            </bem.Button>
+            <Button
+              type='bare'
+              color='blue'
+              size='m'
+              startIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
+              onClick={this.toggleDeploymentHistory.bind(this)}
+              label={this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
+            />
+
             {this.state.historyExpanded &&
               this.state.DVCOUNT_LIMIT < dvcount && (
-                <bem.Button m='colored' onClick={this.loadMoreVersions}>
-                  {t('Load more')}
-                </bem.Button>
+                <Button
+                  type='bare'
+                  color='blue'
+                  size='m'
+                  onClick={this.loadMoreVersions.bind(this)}
+                  label={t('Load more')}
+                />
               )}
           </bem.FormView__cell>
         )}

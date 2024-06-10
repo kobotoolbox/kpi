@@ -3,6 +3,7 @@
 @use 'scss/sizes';
 @use 'scss/libs/_mdl';
 @use 'scss/_variables';
+@use 'scss/mixins';
 
 $z-modal-backdrop: 1101;
 $z-enketo-iframe-icon: 1100;
@@ -466,32 +467,14 @@ $modal-custom-header-height: sizes.$x60;
 
 .form-modal__item--http-headers {
   .form-modal__item--http-header-row {
+    @include mixins.centerRowFlex;
+    gap: 10px;
+
     margin-top: 10px;
 
     input[type="text"] {
-      width: calc(50% - 20px);
       background-color: rgba(colors.$kobo-gray-24, 0.05);
-      padding-left: 5px;
-      padding-right: 5px;
-
-      &:not(:first-child) {
-        margin-left: 10px;
-      }
-    }
-  }
-
-  .http-header-row-remove {
-    height: 30px;
-    min-height: 30px;
-    line-height: 30px;
-    width: 30px;
-    vertical-align: top;
-    padding: 0;
-    &:hover {color: colors.$kobo-red;}
-
-    .k-icon {
-      font-size: 1.2em;
-      vertical-align: middle;
+      padding: 5px;
     }
   }
 }

@@ -5,6 +5,7 @@ import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import ChartTypePicker from './chartTypePicker.component';
 import ChartColorsPicker from './chartColorsPicker';
+import Button from 'js/components/common/button';
 
 export default class QuestionGraphSettings extends React.Component {
   constructor(props) {
@@ -139,19 +140,22 @@ export default class QuestionGraphSettings extends React.Component {
           {(reportStyle.report_type ||
             reportStyle.report_colors ||
             reportStyle.width) && (
-            <bem.Button
-              className='reset'
+            <Button
+              type='full'
+              color='red'
+              size='l'
               onClick={this.saveQS.bind(this, true)}
-            >
-              {t('Reset')}
-            </bem.Button>
+              label={t('Reset')}
+            />
           )}
-          <bem.Button
-            className='primary'
+
+          <Button
+            type='full'
+            color='blue'
+            size='l'
             onClick={this.saveQS.bind(this, false)}
-          >
-            {t('Save')}
-          </bem.Button>
+            label={t('Save')}
+          />
         </Modal.Footer>
       </bem.GraphSettings>
     );
