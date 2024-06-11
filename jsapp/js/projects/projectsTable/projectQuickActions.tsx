@@ -19,6 +19,7 @@ import customViewStore from 'js/projects/customViewStore';
 
 interface ProjectQuickActionsProps {
   asset: AssetResponse | ProjectViewAsset;
+  isProjectView: boolean;
 }
 
 /**
@@ -93,7 +94,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
 
       {/* Share */}
       <Button
-        isDisabled={!isManagingPossible}
+        isDisabled={!isManagingPossible && !props.isProjectView}
         type='bare'
         color='storm'
         size='s'
