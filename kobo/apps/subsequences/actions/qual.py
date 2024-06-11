@@ -1,3 +1,4 @@
+from ..constants import QUAL_SOURCE_TYPES
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 from ..jsonschemas.qual_schema import DEFINITIONS as QUAL_DEFINITIONS
 
@@ -9,7 +10,7 @@ class QualAction(BaseAction):
     def build_params(kls, survey_content):
         _fields = []
         for row in survey_content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in QUAL_SOURCE_TYPES:
                 _fields.append(row['name'])
         return {'values': _fields}
 
@@ -30,7 +31,7 @@ class QualAction(BaseAction):
         '''
         values = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in QUAL_SOURCE_TYPES:
                 values.append(kls.get_qpath(kls, row))
         return values
 

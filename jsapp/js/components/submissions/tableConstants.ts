@@ -50,7 +50,7 @@ export const TABLE_MEDIA_TYPES = createEnum([
   QuestionTypeName.image,
   QuestionTypeName.audio,
   QuestionTypeName.video,
-  META_QUESTION_TYPES['background-audio'],
+  QuestionTypeName['background-audio'],
 ]);
 
 export const DEFAULT_DATA_CELL_WIDTH = 140;
@@ -63,7 +63,7 @@ CELLS_WIDTH_OVERRIDES[ADDITIONAL_SUBMISSION_PROPS._id] = 100;
 CELLS_WIDTH_OVERRIDES[QuestionTypeName.image] = 110;
 CELLS_WIDTH_OVERRIDES[QuestionTypeName.audio] = 170;
 CELLS_WIDTH_OVERRIDES[QuestionTypeName.video] = 110;
-CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES['background-audio']] = 170;
+CELLS_WIDTH_OVERRIDES[QuestionTypeName['background-audio']] = 170;
 Object.freeze(CELLS_WIDTH_OVERRIDES);
 
 /**
@@ -101,7 +101,6 @@ export const TEXT_FILTER_QUESTION_TYPES = [
   META_QUESTION_TYPES.deviceid,
   META_QUESTION_TYPES.phonenumber,
   META_QUESTION_TYPES.today,
-  META_QUESTION_TYPES['background-audio'],
   MiscRowTypeName.score__row,
   MiscRowTypeName.rank__level,
 ];

@@ -840,7 +840,7 @@ export class DataTable extends React.Component {
 
               if (
                 q.type === QUESTION_TYPES.audio.id ||
-                q.type === META_QUESTION_TYPES['background-audio']
+                q.type === QUESTION_TYPES['background-audio'].id
               ) {
                 const {original} = row;
                 const submissionEditId =
@@ -1155,7 +1155,7 @@ export class DataTable extends React.Component {
         const backgroundAudioUrl = getMediaAttachment(
           row.original,
           row.original[backgroundAudioName],
-          META_QUESTION_TYPES['background-audio'],
+          QUESTION_TYPES['background-audio'].id,
         )?.download_medium_url;
 
         this.submissionModalProcessing(

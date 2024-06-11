@@ -12,9 +12,9 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {launchPrinting} from 'utils';
 import {stores} from 'js/stores';
 import {
+  QuestionTypeName,
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
-  META_QUESTION_TYPES,
   ENKETO_ACTIONS,
 } from 'js/constants';
 import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
@@ -268,7 +268,7 @@ class SubmissionModal extends React.Component {
 
   hasBackgroundAudio() {
     return this.props?.asset?.content?.survey.some(
-      (question) => question.type === META_QUESTION_TYPES['background-audio']
+      (question) => question.type === QuestionTypeName['background-audio']
     );
   }
 

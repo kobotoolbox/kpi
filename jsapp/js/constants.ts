@@ -212,6 +212,7 @@ export const USAGE_ASSETS_PER_PAGE = 8;
 export enum QuestionTypeName {
   acknowledge = 'acknowledge',
   audio = 'audio',
+  'background-audio' = 'background-audio',
   barcode = 'barcode',
   calculate = 'calculate',
   date = 'date',
@@ -275,6 +276,11 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
     id: QuestionTypeName.acknowledge,
   },
   audio: {label: t('Audio'), icon: 'qt-audio', id: QuestionTypeName.audio},
+  'background-audio': {
+    label: t('Background Audio'),
+    icon: 'qt-background-audio',
+    id: QuestionTypeName['background-audio'],
+  },
   barcode: {
     label: t('Barcode / QR Code'),
     icon: 'qt-barcode',
@@ -362,7 +368,6 @@ export enum MetaQuestionTypeName {
   deviceid = 'deviceid',
   phonenumber = 'phonenumber',
   audit = 'audit',
-  'background-audio' = 'background-audio',
   'start-geopoint' = 'start-geopoint',
 }
 
@@ -374,7 +379,6 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName.deviceid,
   MetaQuestionTypeName.phonenumber,
   MetaQuestionTypeName.audit,
-  MetaQuestionTypeName['background-audio'],
   MetaQuestionTypeName['start-geopoint'],
 ]) as {[P in MetaQuestionTypeName]: MetaQuestionTypeName};
 

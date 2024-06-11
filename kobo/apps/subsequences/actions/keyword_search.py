@@ -1,4 +1,5 @@
 import copy
+from ..constants import QUAL_SOURCE_TYPES
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 
 class KeywordSearchAction(BaseAction):
@@ -9,7 +10,7 @@ class KeywordSearchAction(BaseAction):
     def build_params(kls, params, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in QUAL_SOURCE_TYPES:
                 possible_transcribed_fields.append(kls.get_qpath(kls, row))
         params = {'values': possible_transcribed_fields}
         return params
@@ -19,7 +20,7 @@ class KeywordSearchAction(BaseAction):
     def get_values_for_content(kls, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in QUAL_SOURCE_TYPES:
                 possible_transcribed_fields.append(kls.get_qpath(kls, row))
         return possible_transcribed_fields
 

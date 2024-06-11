@@ -416,6 +416,12 @@ export function getTranslatedRowLabel(
   let foundRowIndex: number | undefined;
   let foundRow: SurveyChoice | SurveyRow | undefined;
 
+  // Background audio questions don't have labels, but we need something to be
+  // displayed to users.
+  if (rowName === QUESTION_TYPES['background-audio'].id) {
+    return t('Background audio');
+  }
+
   if (data === undefined) {
     return null;
   }
@@ -473,9 +479,7 @@ export function getRowTypeIcon(rowType: AnyRowTypeName | undefined) {
     return QUESTION_TYPES[rowTypeAsQuestionType].icon;
   }
 
-  if (rowType === META_QUESTION_TYPES['background-audio']) {
-    return 'background-rec';
-  } else if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
+  if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
     return 'qt-meta-default';
   }
 

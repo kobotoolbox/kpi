@@ -5,12 +5,8 @@ import {stores} from 'js/stores';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
-  META_QUESTION_TYPES,
 } from 'js/constants';
-import type {
-  QuestionTypeName,
-  MetaQuestionTypeName,
-} from 'js/constants';
+import type {QuestionTypeName} from 'js/constants';
 import Button from 'js/components/common/button';
 import {truncateString} from 'js/utils';
 import {goToProcessing} from 'js/components/processing/routes.utils';
@@ -19,6 +15,7 @@ import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
 import Icon from 'js/components/common/icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
@@ -33,7 +30,7 @@ bem.MediaCellIconWrapper = makeBem(null, 'icon-wrapper');
 bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
 
 interface MediaCellProps {
- questionType: MetaQuestionTypeName | QuestionTypeName;
+ questionType: QuestionTypeName;
  /** It's `null` for text questions. */
  mediaAttachment: SubmissionAttachment;
  /** Backend stored media attachment file name or the content of a text question. */
@@ -59,13 +56,13 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   getQuestionIcon(): IconName {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
-        return 'qt-photo';
+        return QUESTION_TYPES.image.icon;
       case QUESTION_TYPES.audio.id:
-        return 'qt-audio';
-      case META_QUESTION_TYPES['background-audio']:
-        return 'background-rec';
+        return QUESTION_TYPES.audio.icon;
+      case QUESTION_TYPES['background-audio'].id:
+        return QUESTION_TYPES['background-audio'].icon;
       case QUESTION_TYPES.video.id:
-        return 'qt-video';
+        return QUESTION_TYPES.video.icon;
       default:
         return 'media-files';
     }
@@ -141,7 +138,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
             </a>
           }
 
-          {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
+          {PROCESSING_QUESTION_TYPES.includes(this.props.questionType) &&
             <Button
               type='frame'
               size='s'

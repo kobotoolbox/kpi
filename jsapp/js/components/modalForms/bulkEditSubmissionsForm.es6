@@ -8,7 +8,7 @@ import {
   renderQuestionTypeIcon,
 } from 'js/assetUtils';
 import {
-  QUESTION_TYPES,
+  QuestionTypeName,
   FUSE_OPTIONS,
 } from 'js/constants';
 import bem from 'js/bem';
@@ -24,6 +24,15 @@ const EMPTY_VALUE_LABEL = t('n/d');
 const EMPTY_VALUE = null;
 const MULTIPLE_VALUES_LABEL = t('Multiple responses');
 const HELP_ARTICLE_URL = 'howto_edit_multiple_submissions.html';
+
+/** These types are not compatible with bulk editing. */
+const EXCLUDED_TYPES = [
+  QuestionTypeName.audio,
+  QuestionTypeName['background-audio'],
+  QuestionTypeName.video,
+  QuestionTypeName.image,
+  QuestionTypeName.file
+];
 
 /**
  * The content of the BULK_EDIT_SUBMISSIONS modal
@@ -174,9 +183,9 @@ class BulkEditSubmissionsForm extends React.Component {
     questions = questions.filter((question) => {
       // let's hide rows that don't carry any submission data
       if (
-        question.type === QUESTION_TYPES.calculate.id ||
-        question.type === QUESTION_TYPES.note.id ||
-        question.type === QUESTION_TYPES.hidden.id
+        question.type === QuestionTypeName.calculate ||
+        question.type === QuestionTypeName.note ||
+        question.type === QuestionTypeName.hidden
       ) {
         return false;
       }
@@ -213,9 +222,7 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   isEditDisabled(questionType) {
-    return ['audio', 'background-audio', 'video', 'image', 'file'].includes(
-      questionType
-    );
+    return EXCLUDED_TYPES.includes(questionType);
   }
 
   renderRow(questionData, itemIndex) {
