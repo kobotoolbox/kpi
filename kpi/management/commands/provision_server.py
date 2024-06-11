@@ -55,12 +55,15 @@ class Command(BaseCommand):
             help='Settings in json format enclosed with single quotes',
         )
 
-        # Subcommand for managing configurations
+        # Subcommand for managing constance configurations
         config_parser = subparsers.add_parser(
             'config', help='Update application configuration'
         )
         config_parser.add_argument(
-            'config_kv_pairs', nargs='+', type=str, help='Constance configuration values as key=value pairs'
+            'config_kv_pairs',
+            nargs='+',
+            type=str,
+            help='Constance configuration values as key=value pairs',
         )
 
     def handle(self, *args, **kwargs):
@@ -130,39 +133,52 @@ class Command(BaseCommand):
     def handle_config(self, kwargs):
         config_kv_pairs = kwargs['config_kv_pairs']
         for pair in config_kv_pairs:
-                key, value = pair.split('=')
-                if hasattr(config, key):
-                    try:
-                        if value.lower() == 'true':
-                            value = True
-                        elif value.lower() == 'false':
-                            value = False
-                        else:
-                            # Specific handling for fields taking JSON arrays
-                            if key in ['PROJECT_METADATA_FIELDS', 'USER_METADATA_FIELDS']:
-                                if value.startswith('[') and value.endswith(']'):
-                                    try:
-                                        value = json.loads(value)
-                                        value = json.dumps(value)
-                                    except json.JSONDecodeError as e:
-                                        self.stdout.write(f'Invalid JSON array value for key {key}. {e}')
-                                        continue
-                                else:
-                                    self.stdout.write(f'Invalid JSON array format for key {key}. Should start and end with "[" and "]".')
+            key, value = pair.split('=')
+            if hasattr(config, key):
+                try:
+                    if value.lower() == 'true':
+                        value = True
+                    elif value.lower() == 'false':
+                        value = False
+                    else:
+                        # Specific handling for fields taking JSON arrays
+                        if key in [
+                            'PROJECT_METADATA_FIELDS',
+                            'USER_METADATA_FIELDS',
+                        ]:
+                            if value.startswith('[') and value.endswith(']'):
+                                try:
+                                    value = json.loads(value)
+                                    value = json.dumps(value)
+                                except json.JSONDecodeError as e:
+                                    self.stdout.write(
+                                        f'Invalid JSON array value for key {key}. {e}'
+                                    )
                                     continue
-                            # Handling for other keys that should be JSON objects
                             else:
-                                if value.startswith('{') and value.endswith('}'):
-                                    try:
-                                        value = json.loads(value)
-                                        value = json.dumps(value)
-                                    except json.JSONDecodeError as e:
-                                        self.stdout.write(f'Invalid JSON object value for key {key}. {e}')
-                                        continue
+                                self.stdout.write(
+                                    f'Invalid JSON array format for key {key}. Should start and end with "[" and "]".'
+                                )
+                                continue
+                        # Handling for other keys that should be JSON objects
+                        else:
+                            if value.startswith('{') and value.endswith('}'):
+                                try:
+                                    value = json.loads(value)
+                                    value = json.dumps(value)
+                                except json.JSONDecodeError as e:
+                                    self.stdout.write(
+                                        f'Invalid JSON object value for key {key}. {e}'
+                                    )
+                                    continue
 
-                        setattr(config, key, value)
-                        self.stdout.write(f'Successfully updated configuration for {key}')
-                    except Exception as e:
-                        self.stdout.write(f'Error setting configuration for {key}: {e}')
-                else:
-                    self.stdout.write(f'Configuration key {key} does not exist')
+                    setattr(config, key, value)
+                    self.stdout.write(
+                        f'Successfully updated configuration for {key}'
+                    )
+                except Exception as e:
+                    self.stdout.write(
+                        f'Error setting configuration for {key}: {e}'
+                    )
+            else:
+                self.stdout.write(f'Configuration key {key} does not exist')

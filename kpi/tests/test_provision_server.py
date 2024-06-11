@@ -146,13 +146,16 @@ class ProvisionServerCommandTest(TestCase):
             'config',
             'TEST_JSON_KEY={"key": "value"}',
         )
-        self.assertEqual(getattr(mock_config, 'TEST_JSON_KEY'), '{"key": "value"}')
+        self.assertEqual(
+            getattr(mock_config, 'TEST_JSON_KEY'), '{"key": "value"}'
+        )
 
         call_command(
             'provision_server',
             'config',
-            'PROJECT_METADATA_FIELDS=[{"key": "value"}]'
+            'PROJECT_METADATA_FIELDS=[{"key": "value"}]',
         )
-        self.assertEqual(getattr(mock_config, 'PROJECT_METADATA_FIELDS'), '[{"key": "value"}]')
-
-
+        self.assertEqual(
+            getattr(mock_config, 'PROJECT_METADATA_FIELDS'),
+            '[{"key": "value"}]',
+        )
