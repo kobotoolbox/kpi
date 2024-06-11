@@ -116,8 +116,7 @@ class ProvisionServerCommandTest(TestCase):
         call_command(
             'provision_server',
             'config',
-            'TEST_CONFIG_KEY',
-            'new_value',
+            'TEST_CONFIG_KEY=new_value',
         )
         self.assertEqual(getattr(mock_config, 'TEST_CONFIG_KEY'), 'new_value')
 
@@ -127,8 +126,33 @@ class ProvisionServerCommandTest(TestCase):
         call_command(
             'provision_server',
             'config',
-            'NON_EXISTENT_KEY',
-            'new_value',
+            'NON_EXISTENT_KEY=new_value',
         )
 
         self.assertFalse(hasattr(mock_config, 'NON_EXISTENT_KEY'))
+
+    @patch('kpi.management.commands.provision_server.config')
+    def test_update_config_key_with_different_data_types(self, mock_config):
+
+        call_command(
+            'provision_server',
+            'config',
+            'TEST_BOOL_KEY=True',
+        )
+        self.assertEqual(getattr(mock_config, 'TEST_BOOL_KEY'), True)
+
+        call_command(
+            'provision_server',
+            'config',
+            'TEST_JSON_KEY={"key": "value"}',
+        )
+        self.assertEqual(getattr(mock_config, 'TEST_JSON_KEY'), '{"key": "value"}')
+
+        call_command(
+            'provision_server',
+            'config',
+            'PROJECT_METADATA_FIELDS=[{"key": "value"}]'
+        )
+        self.assertEqual(getattr(mock_config, 'PROJECT_METADATA_FIELDS'), '[{"key": "value"}]')
+
+
