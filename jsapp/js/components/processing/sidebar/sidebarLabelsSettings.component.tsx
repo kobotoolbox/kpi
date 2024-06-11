@@ -5,9 +5,8 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import KoboSelect from 'js/components/common/koboSelect';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-
 import styles from './sidebarLabelsSettings.module.scss';
-import {LanguageCode} from '../../languages/languagesStore';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 export default function SidebarLabelsSettings() {
   const [store] = useState(() => singleProcessingStore);
@@ -32,12 +31,19 @@ export default function SidebarLabelsSettings() {
       <KoboModal
         isOpen={isModalOpen}
         onRequestClose={() => {
-          // Reset modals and checkboxes if user closed modal without applying
+          setLabelLanguage(store.getCurrentlyDisplayedLanguage());
           setIsModalOpen(false);
         }}
         size='medium'
       >
-        <KoboModalHeader>{t('Change label language')}</KoboModalHeader>
+        <KoboModalHeader
+          onRequestCloseByX={() => {
+            setLabelLanguage(store.getCurrentlyDisplayedLanguage());
+            setIsModalOpen(false);
+          }}
+        >
+          {t('Change label language')}
+        </KoboModalHeader>
         <div className={styles.selectWrapper}>
           <KoboSelect
             label={t('Select displayed language')}
