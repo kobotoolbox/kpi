@@ -1,11 +1,14 @@
+import json
+from unittest.mock import patch
+
 from django.core.management import call_command
 from django.test import TestCase
-from unittest.mock import patch
+
 from allauth.socialaccount.models import SocialApp
 from kobo.apps.accounts.models import SocialAppCustomData
-import json
 
-class InsertSocialAppCommandTest(TestCase):
+
+class ProvisionServerCommandTest(TestCase):
 
     @patch('os.getenv')
     def test_handle_successful_creation(self, mock_getenv):
@@ -15,8 +18,15 @@ class InsertSocialAppCommandTest(TestCase):
         self.assertEqual(SocialAppCustomData.objects.count(), 0)
 
         call_command(
-            'insert_social_app',
-            'openid_connect', 'test_provider_id', 'Test Organization', 'test_client_id', 'test_secret', '', '{"key": "value"}'
+            'provision_server',
+            'socialapp',
+            'openid_connect',
+            'test_provider_id',
+            'Test Organization',
+            'test_client_id',
+            'test_secret',
+            '',
+            '{"key": "value"}',
         )
 
         self.assertEqual(SocialApp.objects.count(), 1)
@@ -41,14 +51,21 @@ class InsertSocialAppCommandTest(TestCase):
             client_id='test_client_id',
             secret='test_secret',
             key='',
-            settings={'key': 'value'}
+            settings={'key': 'value'},
         )
 
         self.assertEqual(SocialApp.objects.count(), 1)
 
         call_command(
-            'insert_social_app',
-            'openid_connect', 'test_provider_id', 'Test Organization', 'test_client_id', 'test_secret', '', '{"key": "value"}'
+            'provision_server',
+            'socialapp',
+            'openid_connect',
+            'test_provider_id',
+            'Test Organization',
+            'test_client_id',
+            'test_secret',
+            '',
+            '{"key": "value"}',
         )
 
         self.assertEqual(SocialApp.objects.count(), 1)
@@ -60,8 +77,15 @@ class InsertSocialAppCommandTest(TestCase):
 
         with self.assertRaises(json.JSONDecodeError):
             call_command(
-                'insert_social_app',
-                'openid_connect', 'test_provider_id', 'Test Organization', 'test_client_id', 'test_secret', '', '{"invalid_json"}'
+                'provision_server',
+                'socialapp',
+                'openid_connect',
+                'test_provider_id',
+                'Test Organization',
+                'test_client_id',
+                'test_secret',
+                '',
+                '{"invalid_json"}',
             )
 
     @patch('os.getenv')
@@ -71,10 +95,40 @@ class InsertSocialAppCommandTest(TestCase):
         self.assertEqual(SocialApp.objects.count(), 0)
 
         call_command(
-            'insert_social_app',
-            'openid_connect', 'test_provider_id', 'Test Organization', 'test_client_id', 'test_secret', '', '{"key": "value"}'
+            'provision_server',
+            'socialapp',
+            'openid_connect',
+            'test_provider_id',
+            'Test Organization',
+            'test_client_id',
+            'test_secret',
+            '',
+            '{"key": "value"}',
         )
 
         self.assertEqual(SocialApp.objects.count(), 1)
         social_app = SocialApp.objects.first()
         self.assertEqual(social_app.secret, 'env_secret')
+
+    @patch('kpi.management.commands.provision_server.config')
+    def test_update_existing_config_key(self, mock_config):
+        setattr(mock_config, 'TEST_CONFIG_KEY', 'old_value')
+        call_command(
+            'provision_server',
+            'config',
+            'TEST_CONFIG_KEY',
+            'new_value',
+        )
+        self.assertEqual(getattr(mock_config, 'TEST_CONFIG_KEY'), 'new_value')
+
+    @patch('kpi.management.commands.provision_server.config')
+    def test_update_non_existing_config_key(self, mock_config):
+        delattr(mock_config, 'NON_EXISTENT_KEY')
+        call_command(
+            'provision_server',
+            'config',
+            'NON_EXISTENT_KEY',
+            'new_value',
+        )
+
+        self.assertFalse(hasattr(mock_config, 'NON_EXISTENT_KEY'))
