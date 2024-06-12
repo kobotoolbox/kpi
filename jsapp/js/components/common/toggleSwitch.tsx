@@ -21,11 +21,6 @@ class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
   }
 
   render() {
-    const modifiers = [];
-    if (this.props.disabled) {
-      modifiers.push('is-disabled');
-    }
-
     return (
       <bem.ToggleSwitch>
         <bem.ToggleSwitch__wrapper m={this.props.disabled ? 'is-disabled' : ''}>
