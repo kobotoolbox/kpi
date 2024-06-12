@@ -21,9 +21,14 @@ class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
   }
 
   render() {
+    const modifiers = [];
+    if (this.props.disabled) {
+      modifiers.push('is-disabled');
+    }
+
     return (
       <bem.ToggleSwitch>
-        <bem.ToggleSwitch__wrapper>
+        <bem.ToggleSwitch__wrapper m={this.props.disabled ? 'is-disabled' : ''}>
           <bem.ToggleSwitch__input
             type='checkbox'
             name={this.props.name}
@@ -33,15 +38,13 @@ class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
             disabled={this.props.disabled}
             data-cy={this.props['data-cy']}
           />
-          <bem.ToggleSwitch__slider
-            disabled={this.props.disabled}
-          />
+          <bem.ToggleSwitch__slider disabled={this.props.disabled} />
 
-          {this.props.label &&
+          {this.props.label && (
             <bem.ToggleSwitch__label htmlFor={this.props.id}>
               {this.props.label}
             </bem.ToggleSwitch__label>
-          }
+          )}
         </bem.ToggleSwitch__wrapper>
       </bem.ToggleSwitch>
     );

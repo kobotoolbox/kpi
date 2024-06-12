@@ -22,6 +22,7 @@ interface PublicShareSettingsProps {
   publicPerms: PermissionResponse[];
   assetUid: string;
   deploymentActive: boolean;
+  disableControls: boolean;
 }
 
 class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
@@ -87,6 +88,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           >
             <AnonymousSubmission
               checked={anonCanAddData}
+              disabled={this.props.disableControls}
               onChange={this.togglePerms.bind(this, 'add_submissions')}
             />
           </NewFeatureDialog>
@@ -99,6 +101,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
         <bem.FormModal__item>
           <Checkbox
             checked={anonCanView}
+            disabled={this.props.disableControls}
             onChange={this.togglePerms.bind(this, 'view_asset')}
             label={t('Anyone can view this form')}
           />
@@ -108,6 +111,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           <bem.FormModal__item>
             <Checkbox
               checked={anonCanViewData}
+              disabled={this.props.disableControls}
               onChange={this.togglePerms.bind(this, 'view_submissions')}
               label={t('Anyone can view submissions made to this form')}
             />
