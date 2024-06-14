@@ -177,34 +177,32 @@ export default function SidebarDisplaySettings() {
                 const isSubmissionData = staticDisplay === StaticDisplays.Data;
 
                 return (
-                  <>
-                    <li className={cx(styles.display)} key={entry}>
-                      <ToggleSwitch
-                        onChange={(isChecked) => {
-                          if (isChecked) {
-                            enableDisplay(entry);
-                          } else {
-                            disableDisplay(entry);
-                          }
-                        }}
-                        checked={isEnabled}
-                        label={getStaticDisplayText(staticDisplay)}
-                      />
+                  <li className={cx(styles.display)} key={entry}>
+                    <ToggleSwitch
+                      onChange={(isChecked) => {
+                        if (isChecked) {
+                          enableDisplay(entry);
+                        } else {
+                          disableDisplay(entry);
+                        }
+                      }}
+                      checked={isEnabled}
+                      label={getStaticDisplayText(staticDisplay)}
+                    />
 
-                      {isSubmissionData && (
-                        <div className={styles.questionList}>
-                          {t('Select the submission data to display.')}
-                          <div className={styles.checkbox}>
-                            <MultiCheckbox
-                              type='bare'
-                              items={getCheckboxes()}
-                              onChange={onCheckboxesChange}
-                            />
-                          </div>
+                    {isSubmissionData && (
+                      <div className={styles.questionList}>
+                        {t('Select the submission data to display.')}
+                        <div className={styles.checkbox}>
+                          <MultiCheckbox
+                            type='bare'
+                            items={getCheckboxes()}
+                            onChange={onCheckboxesChange}
+                          />
                         </div>
-                      )}
-                    </li>
-                  </>
+                      </div>
+                    )}
+                  </li>
                 );
               } else {
                 return (
