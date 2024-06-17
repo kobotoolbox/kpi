@@ -512,7 +512,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
         pass
 
     @abc.abstractmethod

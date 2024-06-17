@@ -673,7 +673,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
 
-    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
         NLPUsageCounter.objects.filter(
             asset=self.asset, user=self.asset.owner
         ).update(user=new_owner)
