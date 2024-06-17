@@ -1,10 +1,12 @@
 # coding: utf-8
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from ..models import CorsModel
 
 
+@override_settings(STRIPE_ENABLED=False)
 class CorsTests(APITestCase):
     def setUp(self):
         self.innocuous_url = reverse('environment')

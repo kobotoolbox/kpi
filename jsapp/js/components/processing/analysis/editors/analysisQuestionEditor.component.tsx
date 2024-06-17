@@ -182,7 +182,7 @@ export default function AnalysisQuestionEditor(
             onChange={onTextBoxChange}
             errors={errorMessage}
             placeholder={t('Type question')}
-            customClassNames={[styles.labelInput]}
+            className={styles.labelInput}
             renderFocused
             size='m'
           />
