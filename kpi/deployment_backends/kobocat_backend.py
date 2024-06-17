@@ -1309,7 +1309,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         )
 
-    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
 
         NLPUsageCounter.objects.filter(
             asset=self.asset, user=self.asset.owner
