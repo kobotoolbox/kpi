@@ -28,6 +28,7 @@ import {
   isInvalidatedPasswordRouteBlockerActive,
   isTOSAgreementRouteBlockerActive,
 } from 'js/router/routerUtils';
+import {isAnyProcessingRouteActive} from 'js/components/processing/routes.utils';
 
 class App extends React.Component {
   constructor(props) {
@@ -51,6 +52,16 @@ class App extends React.Component {
     if (this.state.pageState.modal) {
       stores.pageState.hideModal();
     }
+  }
+
+  /** Whether to display the top header navigation and the side menu. */
+  shouldDisplayMainLayoutElements() {
+    return (
+      // Hide in Form Builder
+      !this.isFormBuilder() &&
+      // Hide in Single Processing View
+      !isAnyProcessingRouteActive()
+    );
   }
 
   render() {
@@ -84,13 +95,21 @@ class App extends React.Component {
       ] = true;
     }
 
+    // TODO: We have multiple routes that shouldn't display `MainHeader`,
+    // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
+    // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
+    // opt for a more sane, and singluar(!) solution.
     return (
       <DocumentTitle title='KoboToolbox'>
-        <React.Fragment>
+        <>
           <RootContextProvider>
             <Tracking />
             <ToasterConfig />
-            <div className='header-stretch-bg' />
+
+            {this.shouldDisplayMainLayoutElements() &&
+              <div className='header-stretch-bg' />
+            }
+
             <bem.PageWrapper
               m={pageWrapperModifiers}
               className='mdl-layout mdl-layout--fixed-header'
@@ -99,28 +118,29 @@ class App extends React.Component {
                 <BigModal params={this.state.pageState.modal} />
               )}
 
-              {!this.isFormBuilder() && (
-                <React.Fragment>
+              {this.shouldDisplayMainLayoutElements() && (
+                <>
                   <MainHeader assetUid={assetid} />
                   <Drawer />
-                </React.Fragment>
+                </>
               )}
 
               <bem.PageWrapper__content
                 className='mdl-layout__content'
                 m={pageWrapperContentModifiers}
               >
-                {!this.isFormBuilder() && (
-                  <React.Fragment>
+                {this.shouldDisplayMainLayoutElements() && (
+                  <>
                     {this.isFormSingle() && <ProjectTopTabs />}
                     <FormViewSideTabs show={this.isFormSingle()} />
-                  </React.Fragment>
+                  </>
                 )}
+
                 <Outlet />
               </bem.PageWrapper__content>
             </bem.PageWrapper>
           </RootContextProvider>
-        </React.Fragment>
+        </>
       </DocumentTitle>
     );
   }

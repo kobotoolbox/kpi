@@ -31,17 +31,13 @@ export default class FormJson extends React.Component {
     }
 
     return (
-      <bem.uiPanel>
-        <bem.uiPanel__body>
-          <bem.FormView>
-            <pre>
-              <code>
-                {content}
-              </code>
-            </pre>
-          </bem.FormView>
-        </bem.uiPanel__body>
-      </bem.uiPanel>
+      <bem.FormView m='ui-panel'>
+        <pre>
+          <code>
+            {content}
+          </code>
+        </pre>
+      </bem.FormView>
     );
   }
 }

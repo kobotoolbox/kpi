@@ -197,9 +197,6 @@ bem.UserRow__perms = makeBem(bem.UserRow, 'perms');
 bem.UserRow__perm = makeBem(bem.UserRow, 'perm');
 bem.UserRow__editor = makeBem(bem.UserRow, 'editor');
 
-bem.uiPanel = makeBem(null, 'ui-panel');
-bem.uiPanel__body = makeBem(bem.uiPanel, 'body');
-
 bem.FormSidebarWrapper = makeBem(null, 'form-sidebar-wrapper');
 bem.FormSidebar = makeBem(null, 'form-sidebar');
 bem.FormSidebar__item = makeBem(bem.FormSidebar, 'item', 'a');

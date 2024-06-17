@@ -3,10 +3,8 @@
 @use 'scss/variables';
 @use 'scss/breakpoints';
 
-@media screen and (min-width: breakpoints.$b960) {
-  .report-view {
-    padding: 0 sizes.$x40;
-  }
+.report-view {
+  padding: 12px;
 }
 
 .form-view__cell--reportLimit {
@@ -88,13 +86,6 @@
   }
 }
 
-@media screen and (min-width: breakpoints.$b960) {
-  .report-view__itemContent table {
-    width: 80%;
-    margin-left: 10%;
-  }
-}
-
 .report-view__chart {
   margin: 0 auto;
   padding: sizes.$x20 sizes.$x50;
@@ -110,7 +101,7 @@
 
 // report buttons
 .form-view__reportButtons {
-  padding: sizes.$x15 0;
+  margin-bottom: 12px;
 
   button:not(.mdl-button--icon) {
     text-transform: uppercase;
@@ -137,29 +128,13 @@
   }
 }
 
-@media screen and (max-width: breakpoints.$b1000) {
-  .form-view__reportButtons {
-    padding-left: sizes.$x12;
-    padding-right: sizes.$x12;
-  }
+.form-view__reportButtons button.report-button__print {
+  display: none;
 }
 
-@media screen and (max-width: breakpoints.$b768) {
-  .form-view__reportButtons {
-    button.mdl-button {
-      font-size: sizes.$x13;
-    }
-
-    button.report-button__print {
-      display: none;
-    }
-
-    button.report-button__expand {
-      margin-left: 0;
-      padding-left: sizes.$x4;
-      padding-right: sizes.$x4;
-    }
-  }
+.form-view__reportButtons button.report-button__expand {
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 // report graph settings
@@ -306,14 +281,27 @@
   text-align: right;
 }
 
-@media screen and (max-width: breakpoints.$b768) {
-  .form-view__reportButtons button.custom-reports {
-    margin-left: sizes.$x8;
+@include breakpoints.breakpoint(mediumAndUp) {
+  .report-view {
+    padding: 12px 40px;
   }
 
-  .form-view__reportButtons button.report-button__expand,
+  .report-view__itemContent table {
+    width: 80%;
+    margin-left: 10%;
+  }
+
+  .form-view__reportButtons {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .form-view__reportButtons button.report-button__print {
-    margin-left: 0;
-    padding: 0 sizes.$x4;
+    display: initial;
+  }
+
+  .form-view__reportButtons button.report-button__expand {
+    padding-left: 0;
+    padding-right: 0;
   }
 }

@@ -120,6 +120,11 @@ input[class].input.input {
   }
 }
 
+textarea[class].input.input {
+  // Disallows resizing resizeable textarea to tiny size
+  min-height: 20px;
+}
+
 .startIcon,
 .endIcon {
   color: colors.$kobo-gray-40;

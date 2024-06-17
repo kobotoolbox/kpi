@@ -194,6 +194,11 @@ class BaseDeploymentBackend(abc.ABC):
     def connect(self, active=False):
         pass
 
+    @property
+    @abc.abstractmethod
+    def form_uuid(self):
+        pass
+
     @abc.abstractmethod
     def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
         pass
@@ -816,7 +821,8 @@ class BaseDeploymentBackend(abc.ABC):
             attachment['filename'] = os.path.join(
                 self.asset.owner.username,
                 'attachments',
-                submission['formhub/uuid'],
+                # KoboCAT accepts submissions even when they lack `formhub/uuid`
+                self.form_uuid or submission['formhub/uuid'],
                 submission['_uuid'],
                 os.path.basename(filename)
             )
