@@ -294,6 +294,10 @@ CONSTANCE_CONFIG = {
         # Use custom field for schema validation
         'i18n_text_jsonfield_schema'
     ),
+    'SUPERUSER_AUTH_ENFORCEMENT': (
+        False,
+        'Require MFA for superusers with a usable password',
+    ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
         'List of invited usernames, one per line, who will have access to NLP '
@@ -656,6 +660,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MFA_ISSUER_NAME',
         'MFA_ENABLED',
         'MFA_LOCALIZED_HELP_TEXT',
+        'SUPERUSER_AUTH_ENFORCEMENT',
     ),
     'Metadata options': (
         'USER_METADATA_FIELDS',
@@ -1018,10 +1023,7 @@ else:
 
 
 ''' Stripe configuration intended for kf.kobotoolbox.org only, tracks usage limit exceptions '''
-STRIPE_ENABLED = False
-if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
-    STRIPE_ENABLED = True
-
+STRIPE_ENABLED = env.bool("STRIPE_ENABLED", False)
 
 def dj_stripe_request_callback_method():
     # This method exists because dj-stripe's documentation doesn't reflect reality.

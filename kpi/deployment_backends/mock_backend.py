@@ -97,6 +97,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
         )
 
+    @property
+    def form_uuid(self):
+        return 'formhub-uuid'  # to match existing tests
+
     def nlp_tracking_data(self, start_date=None):
         """
         Get the NLP tracking data since a specified date

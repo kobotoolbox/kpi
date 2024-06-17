@@ -84,5 +84,7 @@ class SocialAppCustomData(models.Model):
         related_name="custom_data",
     )
 
+    is_public = models.BooleanField(default=False, help_text='Display social login on login page')
+
     def __str__(self):
         return f"{self.social_app.name} Custom Data"

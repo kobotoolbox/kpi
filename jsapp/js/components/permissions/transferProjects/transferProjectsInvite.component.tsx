@@ -124,7 +124,7 @@ export default function TransferProjectsInvite(
               name='information'
               size='s'
               color='blue'
-              classNames={[styles.noteIcon]}
+              className={styles.noteIcon}
             />
 
             {isDeclined && asset ? (

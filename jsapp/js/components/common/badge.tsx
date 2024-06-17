@@ -38,7 +38,7 @@ export default function Badge(props: BadgeProps) {
       {props.icon && (
         <Icon
           size={ButtonToIconMap.get(props.size)}
-          classNames={[styles.icon]}
+          className={styles.icon}
           name={props.icon}
         />
       )}

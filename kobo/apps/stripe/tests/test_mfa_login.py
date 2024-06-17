@@ -63,7 +63,6 @@ class TestStripeMFALogin(KpiTestCase):
         )
 
     @override_config(MFA_ENABLED=True)
-    @override_settings(STRIPE_ENABLED=True)
     def test_no_mfa_login_without_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -83,7 +82,6 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
     @override_config(MFA_ENABLED=True)
-    @override_settings(STRIPE_ENABLED=True)
     def test_mfa_login_works_with_paid_subscription(self):
         """
         Validate that multi-factor authentication form is displayed after
@@ -101,7 +99,6 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertContains(response, 'verification token')
 
     @override_config(MFA_ENABLED=True)
-    @override_settings(STRIPE_ENABLED=True)
     def test_no_mfa_login_with_free_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -123,7 +120,6 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
     @override_config(MFA_ENABLED=True)
-    @override_settings(STRIPE_ENABLED=True)
     def test_no_mfa_login_with_canceled_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -145,7 +141,6 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
     @override_config(MFA_ENABLED=True)
-    @override_settings(STRIPE_ENABLED=True)
     def test_no_mfa_login_with_wrong_password(self):
         """
         Test if MFA by-pass does not create a hole and let the
@@ -166,7 +161,6 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertIsInstance(response.context_data['form'], MfaLoginForm)
 
     @override_config(MFA_ENABLED=True)
-    @override_settings(STRIPE_ENABLED=True)
     def test_mfa_login_per_user_availability_no_subscription(self):
         """
         Validate that multi-factor authentication form is displayed after
@@ -184,7 +178,6 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertContains(response, 'verification token')
 
     @override_config(MFA_ENABLED=False)
-    @override_settings(STRIPE_ENABLED=True)
     def test_mfa_globally_disabled_as_user_with_paid_subscription(self):
         """
         Validate that multi-factor authentication form isn't displayed after

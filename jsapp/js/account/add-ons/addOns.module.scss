@@ -3,7 +3,7 @@
 @use 'scss/sizes';
 
 .root {
-  padding: sizes.$x40;
+  padding: sizes.$x20;
 }
 
 .headerText {
@@ -27,3 +27,8 @@
   align-items: center;
 }
 
+@include breakpoints.breakpoint(narrowAndUp) {
+  .root {
+    padding: sizes.$x40;
+  }
+}

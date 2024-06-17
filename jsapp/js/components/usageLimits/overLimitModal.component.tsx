@@ -1,3 +1,4 @@
+import cx from 'classnames';
 import React, {useEffect, useState} from 'react';
 import KoboModal from '../modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
@@ -88,7 +89,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={handleClose}
             label={t('remind me later')}
-            classNames={[styles.button, styles.frame]}
+            className={cx([styles.button, styles.frame])}
           />
 
           <Button
@@ -97,7 +98,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
             label={t('upgrade now')}
-            classNames={[styles.button, styles.full]}
+            className={cx([styles.button, styles.full])}
           />
         </KoboModalFooter>
       </KoboModal>
