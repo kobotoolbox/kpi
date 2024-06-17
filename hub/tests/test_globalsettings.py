@@ -3,8 +3,10 @@ import constance
 from constance.test import override_config
 from django.urls import reverse
 from django.test import TestCase
+from django.test import override_settings
 
 
+@override_settings(STRIPE_ENABLED=False)
 class GlobalSettingsTestCase(TestCase):
 
     fixtures = ['test_data']

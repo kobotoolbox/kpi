@@ -73,7 +73,7 @@ export interface ButtonProps {
   /** Simply changes the width. */
   isFullWidth?: boolean;
   /** Additional class names. */
-  classNames?: string[];
+  className?: string;
   /** You don't need to pass the callback for `isSubmit` option. */
   onClick?: (event: any) => void;
   'data-cy'?: string;
@@ -98,8 +98,8 @@ const Button = (props: ButtonProps) => {
   let classNames: string[] = [];
 
   // Additional class names.
-  if (props.classNames) {
-    classNames = props.classNames;
+  if (props.className) {
+    classNames.push(props.className);
   }
 
   // Base class with mandatory ones.
@@ -179,7 +179,7 @@ const Button = (props: ButtonProps) => {
       )}
 
       {props.isPending && (
-        <Icon name='spinner' size={iconSize} classNames={['k-spin']} />
+        <Icon name='spinner' size={iconSize} className='k-spin' />
       )}
     </button>
   );

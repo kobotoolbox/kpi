@@ -165,7 +165,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
 
           {transfer.inviteStatus === TransferStatuses.Pending && (
             <Button
-              classNames={[styles.transferButton]}
+              className={styles.transferButton}
               label={t('Cancel transfer')}
               isFullWidth
               onClick={cancelCurrentInvite}
@@ -177,7 +177,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
 
           {transfer.inviteStatus !== TransferStatuses.Pending && (
             <Button
-              classNames={[styles.transferButton]}
+              className={styles.transferButton}
               label={t('Transfer')}
               isFullWidth
               onClick={toggleModal}
@@ -221,7 +221,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
                   name='warning'
                   size='s'
                   color='red'
-                  classNames={styles.warningIcon}
+                  className={styles.warningIcon}
                 />
 
                 <div className={styles.warningCopy}>

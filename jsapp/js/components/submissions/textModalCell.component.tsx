@@ -52,7 +52,7 @@ export default function TextModalCell(
           size='s'
           startIcon='expand-arrow'
           onClick={() => setIsModalOpen(true)}
-          classNames={[styles.modalOpener]}
+          className={styles.modalOpener}
         />
       </div>
 

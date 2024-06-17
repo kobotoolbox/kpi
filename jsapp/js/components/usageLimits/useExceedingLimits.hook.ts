@@ -87,9 +87,10 @@ export const useExceedingLimits = () => {
 
   // Check if usage is more than limit
   useEffect(() => {
-    if ((!usageStatus.error && !usageStatus.pending) || !areLimitsLoaded) {
+    if (usageStatus.error || usageStatus.pending || !areLimitsLoaded) {
       return;
     }
+    setExceedList(() => []);
     isOverLimit(subscribedStorageLimit, usage.storage, 'storage');
     isOverLimit(subscribedSubmissionLimit, usage.submissions, 'submission');
     isOverLimit(
