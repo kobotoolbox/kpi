@@ -6,6 +6,7 @@ from django.utils.translation import gettext as t
 from rest_framework import serializers
 from formpack import FormPack
 
+from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.log import logging
 from .constants import (
     FUZZY_VERSION_ID_KEY,
@@ -20,6 +21,10 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     then only the newest version of the form is considered, and all submissions
     are assumed to have been collected with that version of the form.
     """
+
+    # Cope with kobotoolbox/formpack#322, which wrote invalid content into the
+    # database
+    repair_file_column_content_and_save(asset)
 
     if asset.has_deployment:
         if use_all_form_versions:
