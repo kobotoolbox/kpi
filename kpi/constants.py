@@ -79,6 +79,7 @@ SHARED_APP_LABELS = [
     'kobo_auth',
     'reversion',
     'sessions',
+    'taggit',
 ]
 
 
