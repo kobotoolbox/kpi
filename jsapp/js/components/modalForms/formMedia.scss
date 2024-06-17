@@ -1,5 +1,6 @@
 @use 'scss/sizes';
 @use 'scss/mixins';
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 @use 'scss/_variables';
 
@@ -126,11 +127,5 @@
     font-weight: 500;
     font-size: 22px;
     display: block;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .media-settings--upload-file {
-    width: auto;
   }
 }

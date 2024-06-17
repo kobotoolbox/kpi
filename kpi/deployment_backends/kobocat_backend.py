@@ -173,6 +173,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             }
         )
 
+    @property
+    def form_uuid(self):
+        try:
+            return self.backend_response['uuid']
+        except KeyError:
+            logging.warning(
+                'KoboCAT backend response has no `uuid`', exc_info=True
+            )
+            return None
+
     @staticmethod
     def nlp_tracking_data(asset_ids, start_date=None):
         """

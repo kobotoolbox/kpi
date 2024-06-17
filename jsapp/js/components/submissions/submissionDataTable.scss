@@ -62,31 +62,8 @@ $submission-data-table-space: sizes.$x12;
     }
   }
 
-  &.submission-data-table__row--response,
-  &.submission-data-table__row--point {
+  &.submission-data-table__row--response {
     background-color: colors.$kobo-white;
-  }
-
-  &.submission-data-table__row--point {
-    & + & {
-      border-top: sizes.$x1 dotted colors.$kobo-gray-92;
-    }
-
-    &:first-child .submission-data-table__column {
-      padding-top: 0;
-    }
-
-    &:last-child .submission-data-table__column {
-      padding-bottom: 0;
-    }
-
-    .submission-data-table__column:first-child {
-      padding-left: 0;
-    }
-
-    .submission-data-table__column:last-child {
-      padding-right: 0;
-    }
   }
 }
 

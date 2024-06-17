@@ -170,12 +170,17 @@ const AddOnList = (props: {
       <tbody>
         {addOnProducts.map((product) =>
           product.prices.map((price) => (
-            <tr className={styles.row} key={price.id}>
-              <td className={styles.product}>
-                <span className={styles.productName}>{product.name}</span>
-                {renderUpdateBadge(price)}
+            <tr key={price.id}>
+              <td>
+                <div className={styles.productAndPrice}>
+                  <div>
+                    <span className={styles.productName}>{product.name}</span>
+                    {renderUpdateBadge(price)}
+                  </div>
+                  <div className={styles.price}>{price.human_readable_price}</div>
+                </div>
               </td>
-              <td className={styles.price}>{price.human_readable_price}</td>
+
               <td className={styles.buy}>
                 {isSubscribedAddOnPrice(price) && (
                   <BillingButton
