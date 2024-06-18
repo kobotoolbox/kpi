@@ -168,7 +168,13 @@ export default function SidebarDisplaySettings(
         }}
         size='medium'
       >
-        <KoboModalHeader>{t('Customize display settings')}</KoboModalHeader>
+        <KoboModalHeader
+          onRequestCloseByX={() => {
+            setSelectedDisplays(store.getDisplays(activeTab));
+            setSelectedFields(getInitialFields());
+            setIsModalOpen(false);
+          }}
+        >{t('Customize display settings')}</KoboModalHeader>
 
         <KoboModalContent>
           <p className={styles.description}>
@@ -245,7 +251,7 @@ export default function SidebarDisplaySettings(
         <KoboModalFooter alignment='center'>
           {/* This button resets the displays for current tab. */}
           <Button
-            label={<strong>{t('Reset')}</strong>}
+            label={t('Reset')}
             type='frame'
             color='light-blue'
             size='m'
@@ -262,7 +268,7 @@ export default function SidebarDisplaySettings(
 
           {/* Applies current selection of displays to the sidebar. */}
           <Button
-            label={<strong>{t('Apply selection')}</strong>}
+            label={t('Apply selection')}
             type='full'
             color='light-blue'
             size='m'

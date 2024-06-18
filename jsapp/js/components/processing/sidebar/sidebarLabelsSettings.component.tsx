@@ -61,7 +61,7 @@ export default function SidebarLabelsSettings() {
         </div>
         <KoboModalFooter>
           <Button
-            label={<strong>{t('Apply')}</strong>}
+            label={t('Apply')}
             type='frame'
             color='light-blue'
             size='m'

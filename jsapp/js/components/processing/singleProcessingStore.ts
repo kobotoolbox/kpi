@@ -171,6 +171,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.data.isPristine = true;
+    this.data.currentlyDisplayedLanguage = this.getInitialDisplayedLanguage();
   }
 
   public get currentAssetUid() {
@@ -966,17 +967,19 @@ class SingleProcessingStore extends Reflux.Store {
 
     languagesList.push({label: t('XML names'), value: 'xml_names'});
     const asset = assetStore.getAsset(this.currentAssetUid);
+    let label = t('Labels');
+
     if (asset?.summary?.languages && asset?.summary?.languages.length > 0) {
       asset.summary.languages.forEach((language) => {
         if (language !== null) {
           languagesList.push({
-            label: language,
+            label: label += ` - ${language}`,
             value: language,
           });
         }
       });
     } else {
-      languagesList.push({label: t('Default'), value: 'default'});
+      languagesList.push({label: label, value: ''});
     }
 
     return languagesList;
