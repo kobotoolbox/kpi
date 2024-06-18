@@ -2,13 +2,12 @@ import React from 'react';
 import type {FileWithPreview} from 'react-dropzone';
 import type {CreateImportRequest, ImportResponse} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
-import {escapeHtml, join, log, notify} from 'js/utils';
+import {escapeHtml, join, log, notify, getExponentialDelayTime} from 'js/utils';
 import {MODAL_TYPES} from './constants';
 import {router, routerIsActive} from 'js/router/legacy';
 import {ROUTES} from './router/routerConstants';
-import {stores} from './stores';
-import {getExponentialDelayTime} from 'js/components/projectDownloads/exportFetcher';
 import pageState from 'js/pageState.store';
+import envStore from './envStore';
 
 const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed');
 
@@ -105,7 +104,11 @@ function onImportSingleXLSFormFile(
           // value, so we use `setTimout` instead).
           timeoutId = window.setTimeout(
             makeIntervalStatusCheck,
-            getExponentialDelayTime(callCount)
+            getExponentialDelayTime(
+              callCount,
+              envStore.data.min_retry_time,
+              envStore.data.max_retry_time
+            )
           );
         }
 
