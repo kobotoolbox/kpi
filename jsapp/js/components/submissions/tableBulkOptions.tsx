@@ -26,6 +26,7 @@ import type {
   DataTableSelectedRows,
   ReactTableStateFilteredItem,
 } from 'js/components/submissions/table.types';
+import Button from 'js/components/common/button';
 
 interface TableBulkOptionsProps {
   asset: AssetResponse;
@@ -225,24 +226,28 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         }
 
         {Object.keys(this.props.selectedRows).length > 0 && this.props.asset.deployment__active && (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
-          <bem.KoboLightButton
-            m='blue'
+          <Button
+            type='frame'
+            color='blue'
+            size='s'
             onClick={this.onEdit.bind(this)}
-            disabled={this.props.selectedAllPages && isSelectAllAvailable}
-          >
-            <i className='k-icon k-icon-edit table-meta__additional-text'/>
-            {t('Edit')}
-          </bem.KoboLightButton>
+            isDisabled={this.props.selectedAllPages && isSelectAllAvailable}
+            startIcon='edit'
+            label={t('Edit')}
+            className='table-meta__additional-text'
+          />
         }
 
         {Object.keys(this.props.selectedRows).length > 0 && (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
-          <bem.KoboLightButton
-            m='red'
+          <Button
+            type='frame'
+            color='red'
+            size='s'
             onClick={this.onDelete.bind(this)}
-          >
-            <i className='k-icon k-icon-trash table-meta__additional-text'/>
-            {t('Delete')}
-          </bem.KoboLightButton>
+            startIcon='trash'
+            label={t('Delete')}
+            className='table-meta__additional-text'
+          />
         }
       </bem.TableMeta__bulkOptions>
     );

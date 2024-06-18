@@ -197,23 +197,25 @@ class DataAttachmentColumnsForm extends React.Component {
             </span>
 
             <div className='bulk-options__buttons'>
-              <bem.KoboLightButton
-                m='blue'
-                onClick={this.onBulkSelect}
-              >
-                {t('Select all')}
-              </bem.KoboLightButton>
+              <Button
+                type='frame'
+                color='blue'
+                size='s'
+                onClick={this.onBulkSelect.bind(this)}
+                label={t('Select all')}
+              />
 
               <span>
                 {t('|')}
               </span>
 
-              <bem.KoboLightButton
-                m='blue'
-                onClick={this.onBulkDeselect}
-              >
-                {t('Deselect all')}
-              </bem.KoboLightButton>
+              <Button
+                type='frame'
+                color='blue'
+                size='s'
+                onClick={this.onBulkDeselect.bind(this)}
+                label={t('Deselect all')}
+              />
             </div>
           </div>
         </div>

@@ -245,10 +245,12 @@
       &:last-child() {
         text-align: right;
       }
+    }
 
-      .kobo-light-button:not(:first-child) {
-        margin-left: 5px;
-      }
+    .export-list-buttons {
+      @include mixins.centerRowFlex;
+      justify-content: flex-end;
+      gap: 5px;
     }
   }
 

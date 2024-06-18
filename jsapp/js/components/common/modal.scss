@@ -287,24 +287,6 @@ $modal-custom-header-height: sizes.$x60;
           font-size: 20px;
         }
       }
-
-      .kobo-light-button {
-        border-width: 2px;
-        line-height: 12px;
-
-        i.k-icon {
-          margin-right: -3px;
-        }
-
-        i.k-icon-download {
-          font-weight: 800;
-          margin-left: 3px;
-        }
-
-        &:not(:last-child) {
-          margin-right: 12px;
-        }
-      }
     }
   }
 
@@ -708,14 +690,6 @@ $modal-custom-header-height: sizes.$x60;
 
     .table-media-preview-header__title {
       display: flex;
-    }
-
-    .kobo-light-button {
-      display: block;
-      width: 90%;
-      margin-left: auto;
-      margin-right: auto;
-      margin-top: 12px;
     }
   }
 }
