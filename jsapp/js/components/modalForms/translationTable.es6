@@ -19,6 +19,7 @@ import {
   hasAssetRestriction,
 } from 'js/components/locking/lockingUtils';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -337,17 +338,22 @@ export class TranslationTable extends React.Component {
         </div>
 
         <bem.Modal__footer>
-          <bem.KoboButton m='whitegray' onClick={this.onBack.bind(this)}>
-            {t('Back')}
-          </bem.KoboButton>
+          <Button
+            type='frame'
+            color='storm'
+            size='l'
+            onClick={this.onBack.bind(this)}
+            label={t('Back')}
+          />
 
-          <bem.KoboButton
-            m='blue'
+          <Button
+            type='full'
+            color='blue'
+            size='l'
             onClick={this.saveChanges.bind(this)}
-            disabled={this.state.isSaveChangesButtonPending}
-          >
-            {this.state.saveChangesButtonText}
-          </bem.KoboButton>
+            isDisabled={this.state.isSaveChangesButtonPending}
+            label={this.state.saveChangesButtonText}
+          />
         </bem.Modal__footer>
       </bem.FormModal>
     );

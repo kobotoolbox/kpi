@@ -20,6 +20,7 @@ import {
   escapeHtml,
 } from 'utils';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -438,13 +439,14 @@ export class TranslationSettings extends React.Component {
           })}
           {!this.state.showAddLanguageForm && (
             <bem.FormView__cell m='add-language'>
-              <bem.KoboButton
-                m='blue'
-                onClick={this.showAddLanguageForm}
+              <Button
+                type='full'
+                color='blue'
+                size='l'
+                onClick={this.showAddLanguageForm.bind(this)}
                 disabled={!this.canAddLanguages() || !this.canEditLanguages()}
-              >
-                {t('Add language')}
-              </bem.KoboButton>
+                label={t('Add language')}
+              />
             </bem.FormView__cell>
           )}
           {this.state.showAddLanguageForm && (

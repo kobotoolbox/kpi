@@ -6,6 +6,7 @@ import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import ChartTypePicker from './chartTypePicker.component';
 import ChartColorsPicker from './chartColorsPicker';
+import Button from 'js/components/common/button';
 
 export default class ReportStyleSettings extends React.Component {
   constructor(props) {
@@ -186,9 +187,13 @@ export default class ReportStyleSettings extends React.Component {
               )}
           </div>
           <Modal.Footer>
-            <bem.KoboButton m='blue' onClick={this.saveReportStyles}>
-              {t('Save')}
-            </bem.KoboButton>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              onClick={this.saveReportStyles.bind(this)}
+              label={t('Save')}
+            />
           </Modal.Footer>
         </Modal.Body>
       </bem.GraphSettings>

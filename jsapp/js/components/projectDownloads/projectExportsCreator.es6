@@ -33,6 +33,7 @@ import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
 import {userCan} from 'js/components/permissions/utils';
+import Button from 'js/components/common/button';
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
 
@@ -792,17 +793,18 @@ export default class ProjectExportsCreator extends React.Component {
                 }
               </bem.ProjectDownloads__exportsSelector>
 
-              <bem.KoboButton
-                m='blue'
-                type='submit'
-                onClick={this.onSubmit}
-                disabled={
+              <Button
+                type='full'
+                color='blue'
+                size='l'
+                isSubmit
+                onClick={this.onSubmit.bind(this)}
+                isDisabled={
                   (this.state.isCustomSelectionEnabled && this.state.selectedRows.size === 0) ||
                   this.state.isPending
                 }
-              >
-                {t('Export')}
-              </bem.KoboButton>
+                label={t('Export')}
+              />
             </bem.ProjectDownloads__submitRow>
           </bem.FormView__form>
       </bem.FormView__cell>

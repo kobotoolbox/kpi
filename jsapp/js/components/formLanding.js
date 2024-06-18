@@ -150,28 +150,34 @@ class FormLanding extends React.Component {
         </bem.FormView__cell>
         <bem.FormView__cell m='buttons'>
           {userCanEdit && this.state.deployment_status === 'deployed' && (
-            <a
-              className='kobo-button kobo-button--blue'
-              onClick={this.deployAsset}
-            >
-              {t('redeploy')}
-            </a>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isUpperCase
+              onClick={this.deployAsset.bind(this)}
+              label={t('redeploy')}
+            />
           )}
           {userCanEdit && this.state.deployment_status === 'draft' && (
-            <a
-              className='kobo-button kobo-button--blue'
-              onClick={this.deployAsset}
-            >
-              {t('deploy')}
-            </a>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isUpperCase
+              onClick={this.deployAsset.bind(this)}
+              label={t('deploy')}
+            />
           )}
           {userCanEdit && this.state.deployment_status === 'archived' && (
-            <a
-              className='kobo-button kobo-button--blue'
-              onClick={this.callUnarchiveAsset}
-            >
-              {t('unarchive')}
-            </a>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isUpperCase
+              onClick={this.callUnarchiveAsset.bind(this)}
+              label={t('unarchive')}
+            />
           )}
         </bem.FormView__cell>
       </bem.FormView__cell>

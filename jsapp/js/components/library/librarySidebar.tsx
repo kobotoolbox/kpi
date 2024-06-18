@@ -62,10 +62,10 @@ export default class LibrarySidebar extends React.Component<
           color='blue'
           size='l'
           isFullWidth
+          isUpperCase
           isDisabled={!sessionStore.isLoggedIn}
           onClick={this.showLibraryNewModal.bind(this)}
           label={t('new')}
-          className='new-asset-button'
         />
 
         <bem.FormSidebar m={sidebarModifier}>

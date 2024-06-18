@@ -74,10 +74,10 @@ const FormSidebar = observer(
             color='blue'
             size='l'
             isFullWidth
+            isUpperCase
             isDisabled={!sessionStore.isLoggedIn}
             onClick={this.newFormModal.bind(this)}
             label={t('new')}
-            className='new-asset-button'
           />
 
           <SidebarFormsList />
