@@ -18,7 +18,6 @@
   table-layout: fixed;
   border-collapse: collapse;
   border-spacing: 0;
-  width: variables.$plans-page-card-width;
 
   & tr {
     border-top: 1px solid colors.$kobo-light-storm;
@@ -32,53 +31,44 @@
     padding-block: 1em;
     font-weight: 600;
     font-size: sizes.$x16;
-    overflow: hidden;
   }
 }
 
-.product,
-.price {
-  width: 100%;
-  line-height: 2em;
+.product {
+  width: 60%;
 }
 
 .price {
   color: colors.$kobo-gray-40;
+  display: flex;
+  width: 100%;
+  justify-content: center;
 }
 
 .oneTimePrice {
-  width: 20%;
+  width: 100%;
   text-align: center;
   font-weight: 600;
   font-size: sizes.$x16;
   color: colors.$kobo-gray-40;
-  padding-right: 1.5%;
+  padding-right: sizes.$x15;
 }
-
-.dropDown {
-  width: 40%;
-}
-
 
 .productName {
-  width: 25%;
+  display: flex;
   margin-right: sizes.$x12;
   font-size: sizes.$x16;
   font-weight: 600;
 }
 
 .description {
-  font-size: sizes.$x14;
-  font-weight: 400;
-}
-
-.buy {
-  width: 30%;
+  display: none;
 }
 
 .oneTime {
   display: flex;
-  justify-content: center;
+  width: 100%;
+  justify-content: right;
 }
 
 .purchasedAddOns {
@@ -92,22 +82,71 @@
   font-weight: 600;
 }
 
-@media screen and (min-width: breakpoints.$b1000) {
-  .table {
-    padding: 1em;
-    width: variables.$plans-page-max-width;
-  }
+.addonDescription {
+  display: flex;
+  font-size: sizes.$x14;
+  font-weight: 400;
+}
 
-  .price {
-    margin-left: sizes.$x600;
-    margin-top: -(sizes.$x30);
-  }
+.row {
+  display: table;
+  width: 100%;
+  align-items: center;
+}
 
-  .buy {
-    width: 15%;
-  }
+.buy {
+  width: sizes.$x200;
+}
 
+.mobileView {
+  display: flex;
+  vertical-align: center;
+  flex: 1;
+  align-items: center;
+}
+
+.fullScreen {
+  display: none;
+}
+
+@media screen and (min-width: breakpoints.$b600) {
   .table td:nth-child(2) {
     margin-inline-end: 10em;
+  }
+
+  .description {
+    display: flex;
+    font-size: sizes.$x14;
+    font-weight: 400;
+  }
+
+  .productName {
+    display: table-cell;
+    width: 40%;
+  }
+
+  .fullScreen,
+  .price {
+    display: table-cell;
+    width: 30%;
+  }
+
+  .mobileView {
+    display: none;
+  }
+
+  .oneTimePrice,
+  .buy {
+    display: table-cell;
+    vertical-align: middle;
+    justify-content: center;
+  }
+
+  .oneTimePrice {
+    width: 50%;
+  }
+
+  .oneTime {
+    justify-content: center;
   }
 }

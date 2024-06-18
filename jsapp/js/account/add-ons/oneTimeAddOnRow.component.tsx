@@ -127,11 +127,44 @@ export const OneTimeAddOnRow = ({
       .catch(() => setIsBusy(false));
   };
 
+  const priceTableCells = (
+    <>
+      <div className={styles.oneTimePrice}>
+        {selectedPrice.recurring?.interval === 'year'
+          ? selectedPrice.human_readable_price
+          : displayPrice}
+      </div>
+      <div className={styles.buy}>
+        {isSubscribedAddOnPrice && (
+          <BillingButton
+            size={'m'}
+            label={t('Buy now')}
+            isDisabled={Boolean(selectedPrice) && isBusy}
+            onClick={onClickBuy}
+            isFullWidth
+          />
+        )}
+        {!isSubscribedAddOnPrice && (
+          <BillingButton
+            size={'m'}
+            label={t('Buy now')}
+            isDisabled={Boolean(selectedPrice) && isBusy}
+            onClick={onClickBuy}
+            isFullWidth
+          />
+        )}
+      </div>
+    </>
+  );
+
   return (
     <tr className={styles.row}>
       <td className={styles.productName}>
         {displayName}
         {description && <p className={styles.description}>{description}</p>}
+        <div className={styles.mobileView}>
+          {priceTableCells}
+        </div>
       </td>
       <td className={styles.price}>
         <div className={styles.oneTime}>
@@ -147,7 +180,7 @@ export const OneTimeAddOnRow = ({
           {displayName === 'File Storage' ? (
             <KoboSelect3
               size={'fit'}
-              name='prices'
+              name={t('prices')}
               options={priceOptions}
               onChange={onChangePrice}
               value={selectedPrice.id}
@@ -155,7 +188,7 @@ export const OneTimeAddOnRow = ({
           ) : (
             <KoboSelect3
               size={'fit'}
-              name='quantity'
+              name={t('quantity')}
               options={quantityOptions}
               onChange={onChangeQuantity}
               value={quantity}
@@ -163,30 +196,8 @@ export const OneTimeAddOnRow = ({
           )}
         </div>
       </td>
-      <td className={styles.oneTimePrice}>
-        {selectedPrice.recurring?.interval === 'year'
-          ? selectedPrice.human_readable_price
-          : displayPrice}
-      </td>
-      <td className={styles.buy}>
-        {isSubscribedAddOnPrice && (
-          <BillingButton
-            size={'m'}
-            label='Buy now'
-            isDisabled={Boolean(selectedPrice) && isBusy}
-            onClick={onClickBuy}
-            isFullWidth
-          />
-        )}
-        {!isSubscribedAddOnPrice && (
-          <BillingButton
-            size={'m'}
-            label={t('Buy now')}
-            isDisabled={Boolean(selectedPrice) && isBusy}
-            onClick={onClickBuy}
-            isFullWidth
-          />
-        )}
+      <td className={styles.fullScreen}>
+        {priceTableCells}
       </td>
     </tr>
   );
