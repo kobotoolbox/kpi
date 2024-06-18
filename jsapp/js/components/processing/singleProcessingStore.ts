@@ -676,6 +676,7 @@ class SingleProcessingStore extends Reflux.Store {
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
       this.data.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
+      this.data.exponentialBackoffCount = 1;
     }
     this.setNotPristine();
     this.trigger(this.data);
@@ -686,7 +687,7 @@ class SingleProcessingStore extends Reflux.Store {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
       if (this.isAutoTranscriptionEventApplicable(event)) {
-        this.incrementExponentialBackoffCount();
+        this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1;
         this.data.isPollingForTranscript = true;
         this.requestAutoTranscription();
       } else {
@@ -724,11 +725,6 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     this.setNotPristine();
-    this.trigger(this.data);
-  }
-
-  private incrementExponentialBackoffCount() {
-    this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1;
     this.trigger(this.data);
   }
 

@@ -504,13 +504,12 @@ export function getAudioDuration(src: string): Promise<number> {
  *
  * Note: min and max retry times should come from envStore. It's not in the
  * function itself to avoid a circular dependency.
- *
- * @param {number} minRetryTime - should probably use `min_retry_time` from env store.
- * @param {number} maxRetryTime - should probably use `max_retry_time` from env store.
  */
 export function getExponentialDelayTime(
   callCount: number,
+  /** minRetryTime - should probably use `min_retry_time` from env store. */
   minRetryTime: number,
+  /** maxRetryTime - should probably use `max_retry_time` from env store. */
   maxRetryTime: number
 ) {
   // This magic number gives a nice grow for the delays.

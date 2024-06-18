@@ -109,10 +109,10 @@ export default class TransxAutomaticButton extends React.Component<
   }
 
   render() {
-    //if (!envStore.data.asr_mt_features_enabled) {
-    //  // We hide button for users that don't have access to the feature.
-    //  return null;
-    //} else {
+    if (!envStore.data.asr_mt_features_enabled) {
+      // We hide button for users that don't have access to the feature.
+      return null;
+    } else {
       return (
         <Button
           type='full'
@@ -127,5 +127,5 @@ export default class TransxAutomaticButton extends React.Component<
         />
       );
     }
-  //}
+  }
 }
