@@ -259,19 +259,18 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          <bem.KoboTextButton
-            m={this.isEditDisabled(question.type) ? 'grey' : 'blue'}
-            onClick={(event) => {
+          <Button
+            type='frame'
+            color='blue'
+            size='m'
+            onClick={() => {
               if (!this.isEditDisabled(question.type)) {
                 this.selectQuestion(question);
-              } else {
-                event.preventDefault();
               }
             }}
-            aria-disabled={this.isEditDisabled(question.type)}
-          >
-            {t('Edit')}
-          </bem.KoboTextButton>
+            isDisabled={this.isEditDisabled(question.type)}
+            label={t('Edit')}
+          />
         </bem.SimpleTable__cell>
       </bem.SimpleTable__row>
     );
@@ -536,12 +535,13 @@ class BulkEditRowForm extends React.Component {
         <bem.SimpleTable__cell>{count}</bem.SimpleTable__cell>
         <bem.SimpleTable__cell>{percentage}</bem.SimpleTable__cell>
         <bem.SimpleTable__cell>
-          <bem.KoboTextButton
-            m='blue'
+          <Button
+            type='frame'
+            color='blue'
+            size='m'
             onClick={this.onChange.bind(this, responseValue)}
-          >
-            {t('Select')}
-          </bem.KoboTextButton>
+            label={t('Select')}
+          />
         </bem.SimpleTable__cell>
       </bem.SimpleTable__row>
     );

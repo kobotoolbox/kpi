@@ -6,13 +6,6 @@
 
 import bem, {makeBem} from 'js/bem';
 
-// DEPRECATED: please don't use this component. From now on, we will only use
-// the `Button` component (from `js/components/common/button`) as it covers
-// all possible cases.
-// `.mdl-button` is harder to track, but also should be removed
-bem.KoboTextButton = makeBem(null, 'kobo-text-button', 'button');
-// END DEPRECATED
-
 bem.KoboLightBadge = makeBem(null, 'kobo-light-badge', 'span');
 
 bem.KoboSelect = makeBem(null, 'kobo-select');
@@ -243,13 +236,11 @@ bem.ProjectDownloads__advancedView = makeBem(bem.ProjectDownloads, 'advanced-vie
 bem.ProjectDownloads__column = makeBem(bem.ProjectDownloads, 'column');
 bem.ProjectDownloads__columnRow = makeBem(bem.ProjectDownloads, 'column-row');
 bem.ProjectDownloads__title = makeBem(bem.ProjectDownloads, 'title', 'span');
-bem.ProjectDownloads__textButton = makeBem(bem.ProjectDownloads, 'text-button', 'button');
 bem.ProjectDownloads__selectorRow = makeBem(bem.ProjectDownloads, 'selector-row');
 bem.ProjectDownloads__anonymousRow = makeBem(bem.ProjectDownloads, 'anonymous-row');
 bem.ProjectDownloads__legacyIframeWrapper = makeBem(bem.ProjectDownloads, 'legacy-iframe-wrapper');
 bem.ProjectDownloads__submitRow = makeBem(bem.ProjectDownloads, 'submit-row', 'footer');
 bem.ProjectDownloads__exportsSelector = makeBem(bem.ProjectDownloads, 'exports-selector');
-bem.ProjectDownloads__deleteSettingsButton = makeBem(bem.ProjectDownloads, 'delete-settings-button', 'button');
 bem.ProjectDownloads__exportsCreator = makeBem(bem.ProjectDownloads, 'exports-creator');
 
 bem.BackgroundAudioPlayer = makeBem(null, 'background-audio-player');

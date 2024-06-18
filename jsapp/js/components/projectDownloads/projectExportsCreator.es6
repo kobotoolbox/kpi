@@ -669,28 +669,32 @@ export default class ProjectExportsCreator extends React.Component {
               label={t('Select questions to be exported')}
             />
 
-            <bem.ProjectDownloads__textButton
-              disabled={(
+            <Button
+              type='frame'
+              color='blue'
+              size='s'
+              isDisabled={(
                 !this.state.isCustomSelectionEnabled ||
                 this.state.selectedRows.size === this.state.selectableRowsCount
               )}
-              onClick={this.selectAllRows}
-            >
-              {t('Select all')}
-            </bem.ProjectDownloads__textButton>
+              onClick={this.selectAllRows.bind(this)}
+              label={t('Select all')}
+            />
 
             <span className='project-downloads__vr'/>
 
-            <bem.ProjectDownloads__textButton
-              disabled={(
+            <Button
+              type='frame'
+              color='blue'
+              size='s'
+              isDisabled={(
                 !this.state.isCustomSelectionEnabled ||
                 // We check vs 1 as `_uuid` is always required.
                 this.state.selectedRows.size <= 1
               )}
-              onClick={this.clearSelectedRows}
-            >
-              {t('Deselect all')}
-            </bem.ProjectDownloads__textButton>
+              onClick={this.clearSelectedRows.bind(this)}
+              label={t('Deselect all')}
+            />
           </bem.ProjectDownloads__columnRow>
 
           {this.renderRowsSelector()}
@@ -743,15 +747,15 @@ export default class ProjectExportsCreator extends React.Component {
             </label>
           </bem.ProjectDownloads__selectorRow>
 
-          <bem.ProjectDownloads__textButton onClick={this.toggleAdvancedView}>
-            {t('Advanced options')}
-            {this.state.isAdvancedViewVisible && (
-              <i className='k-icon k-icon-angle-up' />
-            )}
-            {!this.state.isAdvancedViewVisible && (
-              <i className='k-icon k-icon-angle-down' />
-            )}
-          </bem.ProjectDownloads__textButton>
+          <Button
+            type='bare'
+            color='blue'
+            size='s'
+            onClick={this.toggleAdvancedView.bind(this)}
+            label={t('Advanced options')}
+            endIcon={this.state.isAdvancedViewVisible ? 'angle-up' : 'angle-down'}
+            className='project-downloads__advanced-button'
+          />
 
           <hr />
 
@@ -780,14 +784,17 @@ export default class ProjectExportsCreator extends React.Component {
 
                   {this.state.selectedDefinedExport &&
                     userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
-                    <bem.ProjectDownloads__deleteSettingsButton
-                      onClick={this.onDeleteExportSetting.bind(
-                        this,
-                        this.state.selectedDefinedExport.data.uid
-                      )}
-                      >
-                        <i className='k-icon k-icon-trash'/>
-                      </bem.ProjectDownloads__deleteSettingsButton>
+                      <Button
+                        type='bare'
+                        color='red'
+                        size='m'
+                        onClick={this.onDeleteExportSetting.bind(
+                          this,
+                          this.state.selectedDefinedExport.data.uid
+                        )}
+                        startIcon='trash'
+                        className='project-downloads__delete-settings-button'
+                      />
                     }
                   </React.Fragment>
                 }
