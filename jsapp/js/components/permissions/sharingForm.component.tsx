@@ -174,7 +174,7 @@ export default class SharingForm extends React.Component<
   }
 
   /** Display pending owner if not already included in list of user permissions */
-  renderPendingOwner(displayControls: boolean) {
+  renderPendingOwner(userCanEditPerms: boolean) {
     if (
       this.state.asset?.project_ownership?.status ===
         TransferStatuses.Pending &&
@@ -186,7 +186,7 @@ export default class SharingForm extends React.Component<
       return (
         <UserPermissionRow
           assetUid={this.props.assetUid}
-          displayControls={displayControls}
+          userCanEditPerms={userCanEditPerms}
           nonOwnerPerms={this.state.nonOwnerPerms}
           assignablePerms={this.state.assignablePerms}
           permissions={[]}
@@ -252,7 +252,7 @@ export default class SharingForm extends React.Component<
               <UserPermissionRow
                 key={`perm.${this.props.assetUid}.${perm.user.name}`}
                 assetUid={this.props.assetUid}
-                displayControls={isManagingPossible}
+                userCanEditPerms={isManagingPossible}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 assignablePerms={this.state.assignablePerms}
                 permissions={perm.permissions}
@@ -303,7 +303,7 @@ export default class SharingForm extends React.Component<
                 publicPerms={this.state.publicPerms}
                 assetUid={this.props.assetUid}
                 deploymentActive={this.state.asset.deployment__active}
-                disableControls={!isManagingPossible}
+                userCanShare={isManagingPossible}
               />
             </bem.FormModal__item>
           </>

@@ -19,20 +19,20 @@ import customViewStore from 'js/projects/customViewStore';
 
 interface ProjectQuickActionsProps {
   asset: AssetResponse | ProjectViewAsset;
-  isProjectView?: boolean;
 }
 
 /**
  * Quick Actions (Archive, Share, Delete) buttons. Use these when a single
  * project is selected in the Project Table.
  */
-const ProjectQuickActions = ({asset, isProjectView = false}: ProjectQuickActionsProps) => {
+const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
   // The `userCan` method requires `permissions` property to be present in the
   // `asset` object. For performance reasons `ProjectViewAsset` doesn't have
   // that property, and it is fine, as we don't expect Project View to have
   // a lot of options available.
   const isChangingPossible = userCan('change_asset', asset);
   const isManagingPossible = userCan('manage_asset', asset);
+  const isProjectViewAsset = !("permissions" in asset);
 
   return (
     <div className={styles.root}>
@@ -94,7 +94,7 @@ const ProjectQuickActions = ({asset, isProjectView = false}: ProjectQuickActions
 
       {/* Share */}
       <Button
-        isDisabled={!isManagingPossible && !isProjectView}
+        isDisabled={!isManagingPossible && !isProjectViewAsset}
         type='bare'
         color='storm'
         size='s'

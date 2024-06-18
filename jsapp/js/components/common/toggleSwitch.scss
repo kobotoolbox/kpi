@@ -10,7 +10,7 @@
     cursor: pointer;
   }
 
-  .toggle-switch__wrapper.toggle-switch__wrapper--is-disabled {
+  &.toggle-switch--is-disabled .toggle-switch__wrapper {
     cursor: default;
   }
 

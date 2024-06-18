@@ -113,7 +113,6 @@ function CustomViewRoute() {
           <div className={styles.actions}>
             <ProjectQuickActions
               asset={selectedAssets[0]}
-              isProjectView={true}
             />
           </div>
         )}

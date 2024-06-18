@@ -22,8 +22,8 @@ class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
 
   render() {
     return (
-      <bem.ToggleSwitch>
-        <bem.ToggleSwitch__wrapper m={this.props.disabled ? 'is-disabled' : ''}>
+      <bem.ToggleSwitch m={this.props.disabled ? 'is-disabled' : ''}>
+        <bem.ToggleSwitch__wrapper>
           <bem.ToggleSwitch__input
             type='checkbox'
             name={this.props.name}
