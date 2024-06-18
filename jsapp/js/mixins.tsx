@@ -39,6 +39,7 @@ import {
   deployAsset,
 } from 'js/assetQuickActions';
 import type {DropFilesEventHandler} from 'react-dropzone';
+import pageState from 'js/pageState.store';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -357,7 +358,7 @@ const mixins: MixinsObject = {
       params = Object.assign({library: isLibrary}, params);
 
       if (params.base64Encoded) {
-        stores.pageState.showModal({
+        pageState.showModal({
           type: MODAL_TYPES.UPLOADING_XLS,
           filename: multipleFiles
             ? t('## files').replace('##', String(totalFiles))
@@ -455,7 +456,7 @@ const mixins: MixinsObject = {
                 notify.error(t('Import Failed!'));
                 log('import failed', failData);
               });
-            stores.pageState.hideModal();
+            pageState.hideModal();
           }, 2500);
         },
         (jqxhr: string) => {

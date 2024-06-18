@@ -16,7 +16,8 @@ export type KoboDropdownPlacement =
 const DEFAULT_PLACEMENT: KoboDropdownPlacement = 'down-center';
 
 interface KoboDropdownProps {
-  placement: KoboDropdownPlacement;
+  /** Defaults to DEFAULT_PLACEMENT :wink: */
+  placement?: KoboDropdownPlacement;
   isRequired?: boolean;
   /** Disables the dropdowns trigger, thus disallowing opening dropdown. */
   isDisabled?: boolean;

@@ -4,9 +4,8 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
-  VALIDATION_STATUSES,
 } from 'js/constants';
-import type {QuestionTypeName, MetaQuestionTypeName} from 'js/constants';
+import {ValidationStatusAdditionalName} from 'js/components/submissions/validationStatus.constants';
 import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
@@ -27,6 +26,7 @@ import {
 } from 'js/assetUtils';
 import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
 import type {Filter} from 'react-table';
+import type {TableColumn} from 'js/components/submissions/table.types';
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -317,7 +317,7 @@ export function buildFilterQuery(
         break;
       }
       case VALIDATION_STATUS_ID_PROP: {
-        if (filter.value === VALIDATION_STATUSES.no_status.value) {
+        if (filter.value === ValidationStatusAdditionalName.no_status) {
           output.queryObj[filter.id] = null;
         } else {
           output.queryObj[filter.id] = filter.value;
@@ -352,20 +352,12 @@ export function buildFilterQuery(
   return output;
 }
 
-// TODO: this needs to be build up while typescriptizing table.es6
-interface TableColumn {
-  id: string;
-  question?: {
-    type: QuestionTypeName | MetaQuestionTypeName;
-  };
-}
-
 /**
  * For checking if given column from Data Table should display a filter. It
  * works for columns associated with form questions and for other columns too.
  */
 export function isTableColumnFilterable(column: TableColumn) {
-  if (column.question?.type) {
+  if (column.question?.type && column.question?.type in TEXT_FILTER_QUESTION_TYPES) {
     return TEXT_FILTER_QUESTION_TYPES.includes(column.question.type);
   } else {
     return TEXT_FILTER_QUESTION_IDS.includes(column.id);

@@ -3,11 +3,11 @@ import autoBind from 'react-autobind';
 import {observer} from 'mobx-react';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import pageState from 'js/pageState.store';
 
 /**
  * @param {Object} asset - Modal asset.
@@ -39,7 +39,7 @@ export const AssetTagsForm = observer(class AssetTagsForm extends React.Componen
 
   onUpdateAssetCompleted() {
     this.setState({isPending: false});
-    stores.pageState.hideModal();
+    pageState.hideModal();
   }
 
   onUpdateAssetFailed() {
