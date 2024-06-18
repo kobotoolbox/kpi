@@ -10,6 +10,7 @@ import AssetsTable from 'js/components/assetsTable/assetsTable';
 import {MODAL_TYPES} from 'js/constants';
 import {ROOT_BREADCRUMBS} from 'js/components/library/libraryConstants';
 import {AssetsTableContextName} from 'js/components/assetsTable/assetsTableConstants';
+import pageState from 'js/pageState.store';
 import type {MyLibraryStoreData} from './myLibraryStore';
 import type {OrderDirection} from 'js/projects/projectViews/constants';
 import type {FileWithPreview} from 'react-dropzone';
@@ -75,7 +76,7 @@ export default class MyLibraryRoute extends React.Component<
     evt: DragEvent<HTMLDivElement>
   ) {
     if (acceptedFiles.length === 1) {
-      stores.pageState.switchModal({
+      pageState.switchModal({
         type: MODAL_TYPES.LIBRARY_UPLOAD,
         file: acceptedFiles[0],
       });

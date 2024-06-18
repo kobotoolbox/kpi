@@ -13,6 +13,7 @@ import {
   ASSET_TYPES,
   ACCESS_TYPES,
 } from 'js/constants';
+import pageState from 'js/pageState.store';
 
 export class ListSearch extends React.Component {
   constructor(props) {
@@ -243,7 +244,7 @@ export class ListExpandToggle extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      assetNavExpanded: stores.pageState.state.assetNavExpanded,
+      assetNavExpanded: pageState.state.assetNavExpanded,
     };
     autoBind(this);
   }
@@ -257,7 +258,7 @@ export class ListExpandToggle extends React.Component {
   }
 
   onExpandedToggleChange(isChecked) {
-    stores.pageState.setState({assetNavExpanded: isChecked});
+    pageState.setState({assetNavExpanded: isChecked});
     this.setState({assetNavExpanded: isChecked});
   }
 

@@ -6,7 +6,6 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
-import {stores} from '../../stores';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
@@ -14,6 +13,7 @@ import TextBox from 'js/components/common/textBox';
 import {KEY_CODES} from 'js/constants';
 import envStore from 'js/envStore';
 import {notify} from 'js/utils';
+import pageState from 'js/pageState.store';
 
 const EXPORT_TYPES = {
   json: {
@@ -252,7 +252,7 @@ export default class RESTServicesForm extends React.Component {
 
     const callbacks = {
       onComplete: () => {
-        stores.pageState.hideModal();
+        pageState.hideModal();
         actions.resources.loadAsset({id: this.state.assetUid});
       },
       onFail: (data) => {

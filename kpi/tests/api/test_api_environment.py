@@ -19,6 +19,7 @@ from rest_framework import status
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.models import SocialAppCustomData
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
@@ -27,7 +28,6 @@ from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_database_user
 
 
-@override_settings(STRIPE_LIVE_MODE=True)
 class EnvironmentTests(BaseTestCase):
     fixtures = ['test_data']
 
@@ -46,16 +46,6 @@ class EnvironmentTests(BaseTestCase):
       ]
     }
 
-    @classmethod
-    def setUpTestData(cls):
-        # Create a fake APIKey object for testing
-        cls.api_key = APIKey.objects.create(
-            type='publishable',
-            livemode=True,
-            secret='fake_public_key'
-        )
-
-    @override_settings(STRIPE_ENABLED=True)
     def setUp(self):
         self.url = reverse('environment')
         self.user = User.objects.get(username='someuser')
@@ -322,10 +312,28 @@ class EnvironmentTests(BaseTestCase):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=app,
+            is_public=True
+        )
+        custom_data.save()
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
+
+    @override_settings(SOCIALACCOUNT_PROVIDERS={}, STRIPE_ENABLED=False)
+    def test_social_apps_no_custom_data(self):
+        SocialAppCustomData.objects.all().delete()
+        self.client.get(self.url, format='json')
+        queries = FuzzyInt(18, 25)
+        with self.assertNumQueries(queries):
+            response = self.client.get(self.url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'social_app')
+        self.assertNotContains(response, 'app.name')
+
 
     def test_tos_sitewide_message(self):
         # Check that fixtures properly stores terms of service
@@ -348,7 +356,6 @@ class EnvironmentTests(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] is None
 
-    @override_settings(STRIPE_ENABLED=True)
     def test_stripe_public_key_when_stripe_enabled(self):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK

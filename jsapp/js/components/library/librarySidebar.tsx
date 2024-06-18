@@ -1,5 +1,4 @@
 import React from 'react';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
@@ -7,6 +6,7 @@ import myLibraryStore from './myLibraryStore';
 import {routerIsActive} from 'js/router/legacy';
 import {ROUTES} from 'js/router/routerConstants';
 import {NavLink} from 'react-router-dom';
+import pageState from 'js/pageState.store';
 
 interface LibrarySidebarState {
   myLibraryCount: number | null;
@@ -43,7 +43,7 @@ export default class LibrarySidebar extends React.Component<
 
   showLibraryNewModal(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
   }
