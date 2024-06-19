@@ -218,7 +218,7 @@ export default class ProjectExportsList extends React.Component {
               startIcon='download'
               label={t('Download')}
               onClick={() => {
-                window.location.assign(exportData.result);
+                window.open(exportData.result, '_blank');
               }}
             />
           }

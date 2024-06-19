@@ -15,6 +15,7 @@ import {
   HOOK_LOG_STATUSES,
   MODAL_TYPES
 } from '../../constants';
+import Button from 'js/components/common/button';
 
 export default class RESTServiceLogs extends React.Component {
   constructor(props){
@@ -203,13 +204,16 @@ export default class RESTServiceLogs extends React.Component {
   renderHeader() {
     return (
       <header className='rest-services-list__header'>
-        <a
-          className='rest-services-list__header-back-button'
-          href={`/#/forms/${this.state.assetUid}/settings/rest`}
-        >
-          <i className='k-icon k-icon-angle-left' />
-          {t('Back to REST Services')}
-        </a>
+        <Button
+          type='frame'
+          color='storm'
+          size='m'
+          onClick={() => {
+            window.location.assign(`/#/forms/${this.state.assetUid}/settings/rest`);
+          }}
+          startIcon='angle-left'
+          label={t('Back to REST Services')}
+        />
 
         <h2 className='rest-services-list__header-label rest-services-list__header-label--big'>
           {this.state.hookName}

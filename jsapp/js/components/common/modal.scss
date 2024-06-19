@@ -669,17 +669,19 @@ $modal-custom-header-height: sizes.$x60;
   padding-bottom: 12px;
 }
 
-.encrypt-help {
-  color: colors.$kobo-gray-40;
-  background: transparent;
-  border: 0;
-  font-size: 28px;
-  vertical-align: middle;
-  cursor: pointer;
+.encrypt-form-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 5px;
 }
 
-.remove-encryption {
-  float: right;
+.encrypt-form-footer-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
 }
 
 // TODO: rework all these media queries to mobile first

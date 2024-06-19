@@ -273,7 +273,7 @@ class MapSettings extends React.Component {
     var modalTabs = tabs.map(function(tabId, i) {
       return (
         <button
-          className={`mdl-button mdl-button--tab ${
+          className={`map-modal-tab-button ${
             this.state.activeModalTab === tabId ? 'active' : ''
           }`}
           onClick={this.switchTab}

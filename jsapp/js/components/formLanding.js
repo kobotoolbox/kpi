@@ -335,7 +335,7 @@ class FormLanding extends React.Component {
         {this.state.deployed_versions.count > 1 && (
           <bem.FormView__cell m={['centered']}>
             <Button
-              type='bare'
+              type='frame'
               color='blue'
               size='m'
               startIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
@@ -346,7 +346,7 @@ class FormLanding extends React.Component {
             {this.state.historyExpanded &&
               this.state.DVCOUNT_LIMIT < dvcount && (
                 <Button
-                  type='bare'
+                  type='frame'
                   color='blue'
                   size='m'
                   onClick={this.loadMoreVersions.bind(this)}
@@ -404,8 +404,11 @@ class FormLanding extends React.Component {
               </PopoverMenu>
             </bem.FormView__cell>
 
-            <bem.FormView__cell>{this.renderCollectLink()}</bem.FormView__cell>
+            <bem.FormView__cell className='collect-header-actions'>
+              {this.renderCollectLink()}
+            </bem.FormView__cell>
           </bem.FormView__cell>
+
           <bem.FormView__cell m={['small-padding', 'collect-meta']}>
             {chosenMethod !== COLLECTION_METHODS.android.id &&
               COLLECTION_METHODS[chosenMethod].desc}
@@ -479,13 +482,15 @@ class FormLanding extends React.Component {
 
     if (chosenMethod === COLLECTION_METHODS.android.id) {
       return (
-        <a
-          className='mdl-button mdl-button--colored'
-          target='_blank'
-          href={COLLECTION_METHODS.android.url}
-        >
-          {t('Download KoboCollect')}
-        </a>
+        <Button
+          type='frame'
+          color='blue'
+          size='m'
+          onClick={() => {
+            window.open(COLLECTION_METHODS.android.url, '_blank');
+          }}
+          label={t('Download KoboCollect')}
+        />
       );
     }
 
@@ -512,9 +517,12 @@ class FormLanding extends React.Component {
           }}
           options={{format: 'text/plain'}}
         >
-          <button className='copy mdl-button mdl-button--colored'>
-            {t('Copy')}
-          </button>
+          <Button
+            type='frame'
+            color='blue'
+            size='m'
+            label={t('Copy')}
+          />
         </CopyToClipboard>
       );
     }
@@ -528,18 +536,23 @@ class FormLanding extends React.Component {
           }}
           options={{format: 'text/plain'}}
         >
-          <button className='copy mdl-button mdl-button--colored'>
-            {t('Copy')}
-          </button>
+          <Button
+            type='frame'
+            color='blue'
+            size='m'
+            label={t('Copy')}
+          />
         </CopyToClipboard>
 
-        <a
-          className='mdl-button mdl-button--colored'
-          target='_blank'
-          href={chosenMethodLink}
-        >
-          {t('Open')}
-        </a>
+        <Button
+          type='frame'
+          color='blue'
+          size='m'
+          onClick={() => {
+            window.open(chosenMethodLink, '_blank');
+          }}
+          label={t('Open')}
+        />
       </React.Fragment>
     );
   }

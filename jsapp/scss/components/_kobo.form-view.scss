@@ -3,6 +3,7 @@
 @use 'scss/_variables';
 @use 'scss/z-indexes';
 @use '~kobo-common/src/styles/colors';
+@use 'scss/mixins';
 
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
@@ -635,6 +636,11 @@ $side-tabs-width-mobile: 70px;
       font-size: 24px;
     }
   }
+}
+
+.collect-header-actions {
+  @include mixins.centerRowFlex;
+  gap: 10px;
 }
 
 .form-view__cell--collect-meta {
