@@ -101,13 +101,12 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
       {choicesToDisplay.map((choice) => (
         <div className={styles.choice} key={choice.uuid}>
           <TextBox
-            type='text-multiline'
             value={choice.labels._default}
             onChange={(newLabel: string) =>
               updateChoiceLabel(choice.uuid, newLabel)
             }
             placeholder={t('Type option name')}
-            customClassNames={[styles.labelInput]}
+            className={styles.labelInput}
             size='m'
             renderFocused
           />

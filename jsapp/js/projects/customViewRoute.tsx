@@ -25,9 +25,6 @@ import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
-import {ProductsContext, useProducts} from 'js/account/useProducts.hook';
-import {OneTimeAddOnsContext, useOneTimeAddOns} from '../account/useOneTimeAddonList.hook';
-import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -39,9 +36,6 @@ function CustomViewRoute() {
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const oneTimeAddOns = useOneTimeAddOns();
-  const products = useProducts();
-  const usage = useUsage();
 
   useEffect(() => {
     customView.setUp(
@@ -127,13 +121,7 @@ function CustomViewRoute() {
           </div>
         )}
       </header>
-      <UsageContext.Provider value={usage}>
-        <ProductsContext.Provider value={products}>
-          <OneTimeAddOnsContext.Provider value={oneTimeAddOns}>
-            <LimitNotifications useModal />
-          </OneTimeAddOnsContext.Provider>
-        </ProductsContext.Provider>
-      </UsageContext.Provider>
+      <LimitNotifications useModal />
       <ProjectsTable
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}

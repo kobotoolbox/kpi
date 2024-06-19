@@ -236,11 +236,26 @@ export const PlanContainer = ({
     }
   };
 
+  const asrMinutes = useMemo(() => {
+    return (
+      (adjustedQuantity *
+        (parseInt(product.metadata?.nlp_seconds_limit || '0') ||
+          parseInt(product.price.metadata?.nlp_seconds_limit || '0'))) /
+      60
+    );
+  }, [adjustedQuantity, product]);
+
+  const mtCharacters = useMemo(() => {
+    return (
+      adjustedQuantity *
+      (parseInt(product.metadata?.nlp_character_limit || '0') ||
+        parseInt(product.price.metadata?.nlp_character_limit || '0'))
+    );
+  }, [adjustedQuantity, product]);
+
   return (
     <>
       {isSubscribedProduct(product, submissionQuantity) ? (
-        <div className={styles.currentPlan}>{t('Your plan')}</div>
-      ) : isSubscribedProduct(product, submissionQuantity) ? (
         <div className={styles.currentPlan}>{t('Your plan')}</div>
       ) : null}
       <div
@@ -280,18 +295,10 @@ export const PlanContainer = ({
                     color={product.price.unit_amount ? 'teal' : 'storm'}
                   />
                 </div>
-                {t('##asr_minutes## minutes of automated transcription /month')
-                  .replace(
-                    '##asr_minutes##',
-                    (
-                      (adjustedQuantity *
-                        (parseInt(product.metadata?.nlp_seconds_limit || '0') ||
-                          parseInt(
-                            product.price.metadata?.nlp_seconds_limit || '0'
-                          ))) /
-                      60
-                    ).toLocaleString()
-                  )
+                {t(
+                  '##asr_minutes## minutes of automated transcription /##plan_interval##'
+                )
+                  .replace('##asr_minutes##', asrMinutes.toLocaleString())
                   .replace(
                     '##plan_interval##',
                     product.price.recurring!.interval
@@ -308,16 +315,7 @@ export const PlanContainer = ({
                 {t(
                   '##mt_characters## characters of machine translation /##plan_interval##'
                 )
-                  .replace(
-                    '##mt_characters##',
-                    (
-                      adjustedQuantity *
-                      (parseInt(product.metadata?.nlp_character_limit || '0') ||
-                        parseInt(
-                          product.price.metadata?.nlp_character_limit || '0'
-                        ))
-                    ).toLocaleString()
-                  )
+                  .replace('##mt_characters##', mtCharacters.toLocaleString())
                   .replace(
                     '##plan_interval##',
                     product.price.recurring!.interval
@@ -328,7 +326,7 @@ export const PlanContainer = ({
           {Object.keys(product.metadata).map(
             (featureItem: string) =>
               featureItem.includes('feature_list_') && (
-                <li key={featureItem}>
+                <li key={featureItem + product.id}>
                   <div className={styles.iconContainer}>
                     <Icon
                       name='check'
@@ -372,7 +370,6 @@ export const PlanContainer = ({
             showManage={shouldShowManage(product)}
             isBusy={isDisabled}
             setIsBusy={setIsBusy}
-            organization={state.organization}
           />
         </div>
       </div>

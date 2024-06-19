@@ -1,12 +1,15 @@
-import datetime
 import uuid
 
 from constance.test import override_config
+from datetime import timedelta
+from dateutil.parser import isoparse
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from mock import patch, MagicMock
 from rest_framework import status
 from rest_framework.reverse import reverse
+from unittest.mock import ANY
 
 from kobo.apps.project_ownership.models import (
     Invite,
@@ -375,7 +378,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
     )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):
-        today = datetime.date.today()
+        today = timezone.now()
         expected_data = {
             'total_nlp_usage': {
                 'asr_seconds_current_year': 120,
@@ -391,8 +394,8 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 1,
                 'current_month': 1,
             },
-            'current_month_start': datetime.date(today.year, today.month, 1),
-            'current_year_start': datetime.date(today.year, 1, 1),
+            'current_month_start': today.replace(day=1).strftime('%Y-%m-%d'),
+            'current_year_start': today.replace(month=1, day=1).strftime('%Y-%m-%d'),
             'billing_period_end': None,
         }
 
@@ -411,8 +414,8 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 0,
                 'current_month': 0,
             },
-            'current_month_start': datetime.date(today.year, today.month, 1),
-            'current_year_start': datetime.date(today.year, 1, 1),
+            'current_month_start': today.replace(day=1).strftime('%Y-%m-%d'),
+            'current_year_start': today.replace(month=1, day=1).strftime('%Y-%m-%d'),
             'billing_period_end': None,
         }
 

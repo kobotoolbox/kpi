@@ -146,7 +146,7 @@ export interface Organization {
   created: string;
   modified: string;
   slug: string;
-  owner_username: string;
+  is_owner: boolean;
 }
 
 export enum PlanNames {

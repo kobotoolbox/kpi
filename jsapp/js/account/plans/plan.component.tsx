@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import {getOrganization, postCheckout, postCustomerPortal} from '../stripe.api';
+import {postCheckout, postCustomerPortal} from '../stripe.api';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -17,7 +17,6 @@ import {notify} from 'js/utils';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import useWhen from 'js/hooks/useWhen.hook';
 import AddOnList from 'js/account/add-ons/addOnList.component';
 import subscriptionStore from 'js/account/subscriptionStore';
@@ -36,16 +35,16 @@ import type {
 } from 'js/account/stripe.types';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
-import Session from 'js/stores/session';
-import InlineMessage from 'js/components/common/inlineMessage';
 import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
+import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
 
 export interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
   intervalFilter: string;
   filterToggle: boolean;
-  organization: null | Organization;
   featureTypes: string[];
 }
 
@@ -76,7 +75,6 @@ const initialState: PlanState = {
   subscribedProduct: null,
   intervalFilter: 'month',
   filterToggle: true,
-  organization: null,
   featureTypes: ['advanced', 'support', 'addons'],
 };
 
@@ -84,8 +82,6 @@ const subscriptionUpgradeMessageDuration = 8000;
 
 function planReducer(state: PlanState, action: DataUpdates): PlanState {
   switch (action.type) {
-    case 'initialOrg':
-      return {...state, organization: action.prodData};
     case 'initialSub':
       return {...state, subscribedProduct: action.prodData};
     case 'month':
@@ -117,7 +113,10 @@ export default function Plan(props: PlanProps) {
   const [activeSubscriptions, setActiveSubscriptions] = useState<
     SubscriptionInfo[]
   >([]);
-  const productsContext = useContext(ProductsContext);
+  const [products, loadProducts, productsStatus] = useContext(ProductsContext);
+  useRefreshApiFetcher(loadProducts, productsStatus);
+  const [organization, loadOrg, orgStatus] = useContext(OrganizationContext);
+  useRefreshApiFetcher(loadOrg, orgStatus);
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
     newPrice: null,
     products: [],
@@ -125,8 +124,6 @@ export default function Plan(props: PlanProps) {
     quantity: 1,
   });
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default']);
-  const [session, setSession] = useState(() => Session);
-  const [isUnauthorized, setIsUnauthorized] = useState(false);
 
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
@@ -152,18 +149,11 @@ export default function Plan(props: PlanProps) {
 
   const isDataLoading = useMemo(
     (): boolean =>
-      !(
-        productsContext.isLoaded &&
-        state.organization &&
-        state.subscribedProduct
-      ),
-    [productsContext.isLoaded, state.organization, state.subscribedProduct]
+      !(products.isLoaded && organization && state.subscribedProduct),
+    [products.isLoaded, organization, state.subscribedProduct]
   );
 
-  const isDisabled = useMemo(
-    () => isBusy || isUnauthorized,
-    [isBusy, isUnauthorized]
-  );
+  const isDisabled = useMemo(() => isBusy, [isBusy]);
 
   const hasManageableStatus = useCallback(
     (subscription: SubscriptionInfo) =>
@@ -218,43 +208,29 @@ export default function Plan(props: PlanProps) {
         navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
         return;
       }
-      const fetchPromises = [];
 
-      if (!subscriptionStore.isInitialised || !subscriptionStore.isPending) {
+      if (!subscriptionStore.isInitialised) {
         subscriptionStore.fetchSubscriptionInfo();
       }
 
-      fetchPromises[1] = getOrganization().then((data) => {
+      when(() => subscriptionStore.isInitialised).then(() => {
         dispatch({
-          type: 'initialOrg',
-          prodData: data.results[0],
+          type: 'initialSub',
+          prodData: subscriptionStore.planResponse,
         });
-      });
-      fetchPromises[2] = when(() => subscriptionStore.isInitialised).then(
-        () => {
-          dispatch({
-            type: 'initialSub',
-            prodData: subscriptionStore.planResponse,
-          });
-          setActiveSubscriptions(subscriptionStore.activeSubscriptions);
-        }
-      );
-      Promise.all(fetchPromises).then(() => {
+        setActiveSubscriptions(subscriptionStore.activeSubscriptions);
         setIsBusy(false);
       });
     },
     [searchParams, shouldRevalidate]
   );
 
-  // we need to show a message and disable the page if the user is not the owner of their org
+  // if the user is not the owner of their org, send them back to the settings page
   useEffect(() => {
-    if (
-      state.organization &&
-      state.organization.owner_username !== session.currentAccount.username
-    ) {
-      setIsUnauthorized(true);
+    if (!organization?.is_owner) {
+      navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
-  }, [state.organization]);
+  }, [organization]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {
@@ -333,8 +309,8 @@ export default function Plan(props: PlanProps) {
 
   // An array of all the prices that should be displayed in the UI
   const filteredPriceProducts = useMemo((): SinglePricedProduct[] => {
-    if (productsContext.products.length) {
-      const filterAmount = productsContext.products.map(
+    if (products.products.length) {
+      const filterAmount = products.products.map(
         (product: Product): SinglePricedProduct => {
           const filteredPrices = product.prices.filter((price: Price) => {
             const interval = price.recurring?.interval;
@@ -360,7 +336,7 @@ export default function Plan(props: PlanProps) {
       return filterAmount.filter((price) => price.price);
     }
     return [];
-  }, [productsContext.products, state.intervalFilter, visiblePlanTypes]);
+  }, [products.products, state.intervalFilter, visiblePlanTypes]);
 
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
@@ -386,7 +362,7 @@ export default function Plan(props: PlanProps) {
       }
       return false;
     },
-    [state.subscribedProduct, state.intervalFilter, productsContext.products]
+    [state.subscribedProduct, state.intervalFilter, products.products]
   );
 
   const dismissConfirmModal = () => {
@@ -395,8 +371,8 @@ export default function Plan(props: PlanProps) {
     });
   };
 
-  const buySubscription = (price: Price, quantity: number = 1) => {
-    if (!price.id || isDisabled || !state.organization?.id) {
+  const buySubscription = (price: Price, quantity = 1) => {
+    if (!price.id || isDisabled || !organization?.id) {
       return;
     }
     setIsBusy(true);
@@ -404,14 +380,14 @@ export default function Plan(props: PlanProps) {
       if (!isDowngrade(activeSubscriptions, price, quantity)) {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
-        postCustomerPortal(state.organization.id, price.id, quantity)
+        postCustomerPortal(organization.id, price.id, quantity)
           .then(processCheckoutResponse)
           .catch(() => setIsBusy(false));
       } else {
         // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
         // this will downgrade the subscription at the end of the current billing period
         setConfirmModal({
-          products: productsContext.products,
+          products: products.products,
           newPrice: price,
           currentSubscription: activeSubscriptions[0],
           quantity: quantity,
@@ -419,7 +395,7 @@ export default function Plan(props: PlanProps) {
       }
     } else {
       // just send the user to the checkout page
-      postCheckout(price.id, state.organization.id, quantity)
+      postCheckout(price.id, organization.id, quantity)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false));
     }
@@ -427,7 +403,7 @@ export default function Plan(props: PlanProps) {
 
   const hasMetaFeatures = () => {
     let expandBool = false;
-    if (productsContext.products.length) {
+    if (products.products.length) {
       filteredPriceProducts.map((product) => {
         for (const featureItem in product.metadata) {
           if (
@@ -446,11 +422,7 @@ export default function Plan(props: PlanProps) {
 
   useEffect(() => {
     hasMetaFeatures();
-  }, [productsContext.products]);
-
-  if (!productsContext.products.length || !state.organization) {
-    return null;
-  }
+  }, [products.products]);
 
   const comparisonButton = () =>
     hasMetaFeatures() && (
@@ -466,170 +438,141 @@ export default function Plan(props: PlanProps) {
               : t('Display full comparison')
           }
           onClick={() => setExpandComparison(!expandComparison)}
-          aria-label={
-            expandComparison
-              ? t('Collapse full comparison')
-              : t('Display full comparison')
-          }
         />
       </div>
     );
 
+  if (!products.products.length || !organization) {
+    return null;
+  }
+
+  if (isDataLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <>
-      {isDataLoading ? (
-        <LoadingSpinner />
-      ) : (
-        <>
-          {isUnauthorized && (
-            <InlineMessage
-              classNames={[styles.sticky]}
-              message={t(
-                'Please contact your organization owner for any changes to your plan or add-ons.'
-              )}
-              type={'warning'}
-            />
-          )}
-          <div
-            ref={pageBody}
-            className={classnames(styles.accountPlan, {
-              [styles.wait]: isBusy,
-              [styles.unauthorized]: isUnauthorized,
-              [styles.showAddOns]: props.showAddOns,
-            })}
-          >
-            {!props.showAddOns && (
-              <>
-                <div className={styles.plansSection}>
-                  <form className={styles.intervalToggle}>
-                    <input
-                      type='radio'
-                      id='switch_left'
-                      name='switchToggle'
-                      value='month'
-                      aria-label={t('show monthly plans')}
-                      onChange={() => !isDisabled && dispatch({type: 'month'})}
-                      aria-disabled={isDisabled}
-                      checked={state.filterToggle}
+      <div
+        ref={pageBody}
+        className={classnames(styles.accountPlan, {
+          [styles.wait]: isBusy,
+          [styles.showAddOns]: props.showAddOns,
+        })}
+      >
+        {!props.showAddOns && (
+          <>
+            <div className={styles.plansSection}>
+              <form className={styles.intervalToggle}>
+                <input
+                  type='radio'
+                  id='switch_left'
+                  name='switchToggle'
+                  value='month'
+                  aria-label={t('show monthly plans')}
+                  onChange={() => !isDisabled && dispatch({type: 'month'})}
+                  aria-disabled={isDisabled}
+                  checked={state.filterToggle}
+                />
+                <label htmlFor='switch_left'> {t('Monthly')}</label>
+
+                <input
+                  type='radio'
+                  id='switch_right'
+                  name='switchToggle'
+                  value='year'
+                  onChange={() => !isDisabled && dispatch({type: 'year'})}
+                  aria-disabled={isDisabled}
+                  checked={!state.filterToggle}
+                  aria-label={t('show annual plans')}
+                />
+                <label htmlFor='switch_right'>{t('Annual')}</label>
+              </form>
+
+              <div className={styles.allPlans}>
+                {filteredPriceProducts.map((product: SinglePricedProduct) => (
+                  <div className={styles.stripePlans} key={product.id}>
+                    <PlanContainer
+                      key={product.price.id}
+                      freeTierOverride={freeTierOverride}
+                      expandComparison={expandComparison}
+                      isSubscribedProduct={isSubscribedProduct}
+                      product={product}
+                      filteredPriceProducts={filteredPriceProducts}
+                      hasManageableStatus={hasManageableStatus}
+                      setIsBusy={setIsBusy}
+                      isDisabled={isDisabled}
+                      state={state}
+                      buySubscription={buySubscription}
+                      activeSubscriptions={activeSubscriptions}
                     />
-                    <label htmlFor='switch_left'> {t('Monthly')}</label>
-
-                    <input
-                      type='radio'
-                      id='switch_right'
-                      name='switchToggle'
-                      value='year'
-                      onChange={() => !isDisabled && dispatch({type: 'year'})}
-                      aria-disabled={isDisabled}
-                      checked={!state.filterToggle}
-                      aria-label={t('show annual plans')}
-                    />
-                    <label htmlFor='switch_right'>{t('Annual')}</label>
-                  </form>
-
-                  <div className={styles.allPlans}>
-                    {filteredPriceProducts.map(
-                      (product: SinglePricedProduct) => (
-                        <div className={styles.stripePlans} key={product.id}>
-                          <PlanContainer
-                            key={product.price.id}
-                            freeTierOverride={freeTierOverride}
-                            expandComparison={expandComparison}
-                            isSubscribedProduct={isSubscribedProduct}
-                            product={product}
-                            filteredPriceProducts={filteredPriceProducts}
-                            hasManageableStatus={hasManageableStatus}
-                            setIsBusy={setIsBusy}
-                            isDisabled={isDisabled}
-                            state={state}
-                            buySubscription={buySubscription}
-                            activeSubscriptions={activeSubscriptions}
-                          />
-                        </div>
-                      )
-                    )}
-                    {shouldShowExtras && (
-                      <div className={styles.enterprisePlanContainer}>
-                        <div
-                          className={
-                            expandComparison
-                              ? `${styles.enterprisePlan} ${styles.expandedEnterprisePlan}`
-                              : styles.enterprisePlan
-                          }
-                        >
-                          <h1 className={styles.enterpriseTitle}>
-                            {' '}
-                            {t('Want more?')}
-                          </h1>
-                          <div className={styles.priceTitle}>
-                            {t('Contact us')}
-                          </div>
-                          <p className={styles.enterpriseDetails}>
-                            {t(
-                              'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
-                            )}
-                            <a
-                              href='https://www.kobotoolbox.org/contact/'
-                              target='_blanks'
-                              className={styles.enterpriseLink}
-                            >
-                              {t('Enterprise Plan')}
-                            </a>
-                            .
-                          </p>
-                          <p className={styles.enterpriseDetails}>
-                            {t(
-                              'We also offer custom solutions and private servers for large organizations. '
-                            )}
-                            <br />
-                            <a
-                              href='https://www.kobotoolbox.org/contact/'
-                              target='_blanks'
-                              className={styles.enterpriseLink}
-                            >
-                              {t('Contact our team')}
-                            </a>
-                            {t(' for more information.')}
-                          </p>
-                        </div>
-                      </div>
-                    )}
                   </div>
-                  <div className={styles.minimizedCards}>
-                    {comparisonButton()}
-                  </div>
-
-                  <div className={styles.maximizedCards}>
-                    {comparisonButton()}
-                  </div>
+                ))}
+                <div className={styles.minimizedCards}>
+                  {comparisonButton()}
                 </div>
-              </>
-            )}
-            {props.showAddOns && (
-              <AddOnList
-                isBusy={isBusy}
-                setIsBusy={setIsBusy}
-                products={productsContext.products}
-                organization={state.organization}
-                onClickBuy={buySubscription}
-              />
-            )}
-            {showGoTop && (
-              <button
-                onClick={handleScrollUp}
-                className={styles.scrollToTopButton}
-              >
-                <i className='k-icon k-icon-arrow-up k-icon--size-m' />
-              </button>
-            )}
-            <ConfirmChangeModal
-              onRequestClose={dismissConfirmModal}
-              setIsBusy={setIsBusy}
-              {...confirmModal}
-            />
-          </div>
-        </>
-      )}
+                {shouldShowExtras && (
+                  <div className={styles.enterprisePlanContainer}>
+                    <div className={styles.enterprisePlan}>
+                      <h1 className={styles.enterpriseTitle}>
+                        {' '}
+                        {t('Want more?')}
+                      </h1>
+                      <div className={styles.priceTitle}>{t('Contact us')}</div>
+                      <p className={styles.enterpriseDetails}>
+                        {t(
+                          'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
+                        )}
+                        <a
+                          href='https://www.kobotoolbox.org/contact/'
+                          target='_blanks'
+                          className={styles.enterpriseLink}
+                        >
+                          {t('Enterprise Plan')}
+                        </a>
+                        .
+                      </p>
+                      <p className={styles.enterpriseDetails}>
+                        {t(
+                          'We also offer custom solutions and private servers for large organizations. '
+                        )}
+                        <br />
+                        <a
+                          href='https://www.kobotoolbox.org/contact/'
+                          target='_blanks'
+                          className={styles.enterpriseLink}
+                        >
+                          {t('Contact our team')}
+                        </a>
+                        {t(' for more information.')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className={styles.maximizedCards}>{comparisonButton()}</div>
+            </div>
+          </>
+        )}
+        {props.showAddOns && (
+          <AddOnList
+            isBusy={isBusy}
+            setIsBusy={setIsBusy}
+            products={products.products}
+            organization={organization}
+            onClickBuy={buySubscription}
+          />
+        )}
+        {showGoTop && (
+          <button onClick={handleScrollUp} className={styles.scrollToTopButton}>
+            <i className='k-icon k-icon-arrow-up k-icon--size-m' />
+          </button>
+        )}
+        <ConfirmChangeModal
+          onRequestClose={dismissConfirmModal}
+          setIsBusy={setIsBusy}
+          {...confirmModal}
+        />
+      </div>
     </>
   );
 }

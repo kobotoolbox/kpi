@@ -134,6 +134,8 @@ const ConfirmChangeModal = ({
     changeSubscription(newPrice.id, currentSubscription.id, quantity)
       .then((data) => {
         processChangePlanResponse(data);
+        setPendingChange(false);
+        onClickCancel();
       })
       .catch(() => {
         notify.error(
@@ -145,11 +147,8 @@ const ConfirmChangeModal = ({
           }
         );
         setIsBusy(false);
-        onClickCancel();
-      })
-      .finally(() => {
         setPendingChange(false);
-        setIsLoading(false);
+        onClickCancel();
       });
   };
 

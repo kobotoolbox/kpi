@@ -1,8 +1,9 @@
-import {createContext, useEffect, useState} from 'react';
-import type {RecurringInterval} from 'js/account/stripe.types';
+import {createContext, useCallback} from 'react';
+import type {Organization, RecurringInterval} from 'js/account/stripe.types';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
 import {formatRelativeTime, truncateNumber} from 'js/utils';
-import {getUsageForOrganization} from 'js/account/usage/usage.api';
+import {getUsage} from 'js/account/usage/usage.api';
+import {useApiFetcher, withApiFetcher} from 'js/hooks/useApiFetcher.hook';
 
 export interface UsageState {
   storage: number;
@@ -13,9 +14,7 @@ export interface UsageState {
   currentYearStart: string;
   billingPeriodEnd: string | null;
   trackingPeriod: RecurringInterval;
-  isPeriodLoaded: boolean;
   lastUpdated?: String | null;
-  isLoaded: boolean;
 }
 
 const INITIAL_USAGE_STATE: UsageState = Object.freeze({
@@ -27,70 +26,57 @@ const INITIAL_USAGE_STATE: UsageState = Object.freeze({
   currentYearStart: '',
   billingPeriodEnd: null,
   trackingPeriod: 'month',
-  isPeriodLoaded: false,
   lastUpdated: '',
-  isLoaded: false,
 });
 
-export function useUsage() {
-  const [usage, setUsage] = useState<UsageState>(INITIAL_USAGE_STATE);
-
-  // get subscription interval (monthly, yearly) from the subscriptionStore when ready
-  useEffect(() => {
-    getSubscriptionInterval().then((subscriptionInterval) => {
-      setUsage((prevState) => {
-        return {
-          ...prevState,
-          trackingPeriod: subscriptionInterval || 'month',
-          isPeriodLoaded: true,
-        };
-      });
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!usage.isPeriodLoaded) {
-      return;
+const loadUsage = async (
+  organizationId: string | null
+): Promise<UsageState | undefined> => {
+  if (!organizationId) {
+    throw Error(t('No organization found'));
+  }
+  const trackingPeriod = await getSubscriptionInterval();
+  const usage = await getUsage(organizationId);
+  if (!usage) {
+    throw Error(t("Couldn't get usage data"));
+  }
+  let lastUpdated: UsageState['lastUpdated'] = null;
+  if ('headers' in usage && usage.headers instanceof Headers) {
+    const lastUpdateDate = usage.headers.get('date');
+    if (lastUpdateDate) {
+      lastUpdated = formatRelativeTime(lastUpdateDate);
     }
-    getUsageForOrganization().then((data) => {
-      if (!data) {
-        return;
-      }
-      let lastUpdated: UsageState['lastUpdated'] = null;
-      if ('headers' in data && data.headers instanceof Headers) {
-        const lastUpdateDate = data.headers.get('date');
-        if (lastUpdateDate) {
-          lastUpdated = formatRelativeTime(lastUpdateDate);
-        }
-      }
-      setUsage((prevState) => {
-        return {
-          ...prevState,
-          storage: data.total_storage_bytes,
-          submissions:
-            data.total_submission_count[`current_${usage.trackingPeriod}`],
-          transcriptionMinutes: Math.floor(
-            truncateNumber(
-              data.total_nlp_usage[
-                `asr_seconds_current_${usage.trackingPeriod}`
-              ] / 60
-            )
-          ), // seconds to minutes
-          translationChars:
-            data.total_nlp_usage[
-              `mt_characters_current_${usage.trackingPeriod}`
-            ],
-          currentMonthStart: data.current_month_start,
-          currentYearStart: data.current_year_start,
-          billingPeriodEnd: data.billing_period_end,
-          lastUpdated: lastUpdated,
-          isLoaded: true,
-        };
-      });
-    });
-  }, [usage.isPeriodLoaded]);
+  }
+  return {
+    storage: usage.total_storage_bytes,
+    submissions: usage.total_submission_count[`current_${trackingPeriod}`],
+    transcriptionMinutes: Math.floor(
+      truncateNumber(
+        usage.total_nlp_usage[`asr_seconds_current_${trackingPeriod}`] / 60
+      )
+    ), // seconds to minutes
+    translationChars:
+      usage.total_nlp_usage[`mt_characters_current_${trackingPeriod}`],
+    currentMonthStart: usage.current_month_start,
+    currentYearStart: usage.current_year_start,
+    billingPeriodEnd: usage.billing_period_end,
+    trackingPeriod,
+    lastUpdated,
+  };
+};
 
-  return usage;
-}
+export const useUsage = (organizationId: string | null) => {
+  const fetcher = useApiFetcher(
+    () => {
+      return loadUsage(organizationId);
+    },
+    INITIAL_USAGE_STATE,
+    {
+      reloadEverySeconds: 15 * 60,
+      skipInitialLoad: !organizationId,
+    }
+  );
 
-export const UsageContext = createContext<UsageState>(INITIAL_USAGE_STATE);
+  return fetcher;
+};
+export const UsageContext = createContext(withApiFetcher(INITIAL_USAGE_STATE));

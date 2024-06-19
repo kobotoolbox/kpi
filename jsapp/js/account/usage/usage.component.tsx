@@ -18,6 +18,7 @@ import moment from 'moment';
 import {YourPlan} from 'js/account/usage/yourPlan.component';
 import cx from 'classnames';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
 
 interface LimitState {
   storageByteRemainingLimit: LimitAmount;
@@ -33,9 +34,10 @@ interface LimitState {
 }
 
 export default function Usage() {
-  const productsContext = useContext(ProductsContext);
-  const usage = useContext(UsageContext);
+  const [products] = useContext(ProductsContext);
+  const [usage, loadUsage, usageStatus] = useContext(UsageContext);
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext);
+  useRefreshApiFetcher(loadUsage, usageStatus);
 
   const [limits, setLimits] = useState<LimitState>({
     storageByteRemainingLimit: Limits.unlimited,
@@ -54,13 +56,14 @@ export default function Usage() {
 
   const isFullyLoaded = useMemo(
     () =>
-      usage.isLoaded &&
-      (productsContext.isLoaded || !limits.stripeEnabled) &&
+      !usageStatus.pending &&
+      !usageStatus.error &&
+      (products.isLoaded || !limits.stripeEnabled) &&
       limits.isLoaded &&
       oneTimeAddOnsContext.isLoaded,
     [
-      usage.isLoaded,
-      productsContext.isLoaded,
+      usageStatus,
+      products.isLoaded,
       limits.isLoaded,
       limits.stripeEnabled,
       oneTimeAddOnsContext.isLoaded,
@@ -71,7 +74,9 @@ export default function Usage() {
     let startDate: string;
     const endDate = usage.billingPeriodEnd
       ? formatDate(usage.billingPeriodEnd)
-      : formatDate(moment().endOf('month').toISOString());
+      : formatDate(
+          moment(usage.currentMonthStart).add(1, 'month').toISOString()
+        );
     switch (usage.trackingPeriod) {
       case 'year':
         startDate = formatDate(usage.currentYearStart);
@@ -97,7 +102,7 @@ export default function Usage() {
       let limits: AccountLimitDetail;
       if (envStore.data.stripe_public_key) {
         limits = await getAccountLimits(
-          productsContext.products,
+          products.products,
           oneTimeAddOnsContext.oneTimeAddOns
         );
       } else {
@@ -136,7 +141,7 @@ export default function Usage() {
     };
 
     getLimits();
-  }, [productsContext.isLoaded, oneTimeAddOnsContext.isLoaded]);
+  }, [products.isLoaded, oneTimeAddOnsContext.isLoaded]);
 
   function filterAddOns(type: USAGE_TYPE) {
     const availableAddons = oneTimeAddOnsContext.oneTimeAddOns.filter(

@@ -39,6 +39,7 @@ import {
   deployAsset,
 } from 'js/assetQuickActions';
 import type {DropFilesEventHandler} from 'react-dropzone';
+import pageState from 'js/pageState.store';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -265,9 +266,12 @@ const mixins: MixinsObject = {
     },
 
     componentDidMount() {
-      this.dmixAssetStoreCancelListener = assetStore.listen((data: AssetStoreData) => {
-        this.dmixAssetStoreChange(data);
-      }, this);
+      this.dmixAssetStoreCancelListener = assetStore.listen(
+        (data: AssetStoreData) => {
+          this.dmixAssetStoreChange(data);
+        },
+        this
+      );
 
       // TODO 2/2
       // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -277,7 +281,7 @@ const mixins: MixinsObject = {
       if (uid && this.props.initialAssetLoadNotNeeded) {
         this.setState(Object.assign({}, assetStore.data[uid]));
       } else if (uid) {
-        actions.resources.loadAsset({id: uid});
+        actions.resources.loadAsset({id: uid}, true);
       }
     },
 
@@ -354,7 +358,7 @@ const mixins: MixinsObject = {
       params = Object.assign({library: isLibrary}, params);
 
       if (params.base64Encoded) {
-        stores.pageState.showModal({
+        pageState.showModal({
           type: MODAL_TYPES.UPLOADING_XLS,
           filename: multipleFiles
             ? t('## files').replace('##', String(totalFiles))
@@ -400,11 +404,14 @@ const mixins: MixinsObject = {
                       )
                     );
                     if (params.assetUid) {
-                      router!.navigate(ROUTES.FORM.replace(':uid', params.assetUid));
+                      router!.navigate(
+                        ROUTES.FORM.replace(':uid', params.assetUid)
+                      );
                     }
                   } else {
                     if (
-                      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+                      this.props.context ===
+                        PROJECT_SETTINGS_CONTEXTS.REPLACE &&
                       routerIsActive(ROUTES.FORMS)
                     ) {
                       actions.resources.loadAsset({id: assetUid});
@@ -449,7 +456,7 @@ const mixins: MixinsObject = {
                 notify.error(t('Import Failed!'));
                 log('import failed', failData);
               });
-            stores.pageState.hideModal();
+            pageState.hideModal();
           }, 2500);
         },
         (jqxhr: string) => {

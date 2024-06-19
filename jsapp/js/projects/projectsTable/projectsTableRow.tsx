@@ -34,14 +34,17 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
     switch (field.name) {
       case 'name':
         return (
-          <Link to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}>
+          <Link
+            to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}
+            data-cy="asset"
+          >
             <AssetName asset={props.asset} />
           </Link>
         );
       case 'description':
         return props.asset.settings.description;
       case 'status':
-        return <AssetStatusBadge asset={props.asset} />;
+        return <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />;
       case 'ownerUsername':
         if (isSelfOwned(props.asset)) {
           return t('me');

@@ -5,7 +5,6 @@ import autoBind from 'react-autobind';
 import {observer} from 'mobx-react';
 import Reflux from 'reflux';
 import {NavLink} from 'react-router-dom';
-import {stores} from '../stores';
 import sessionStore from '../stores/session';
 import bem from 'js/bem';
 import {searches} from '../searches';
@@ -17,6 +16,7 @@ import {ROUTES, PROJECTS_ROUTES} from 'js/router/routerConstants';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {router, routerIsActive, withRouter} from '../router/legacy';
+import pageState from 'js/pageState.store';
 
 const AccountSidebar = lazy(() => import('js/account/accountSidebar'));
 
@@ -39,11 +39,12 @@ const FormSidebar = observer(
           currentAssetId: false,
           files: [],
         },
-        stores.pageState.state
+        pageState.state
       );
       this.state = Object.assign(INITIAL_STATE, this.state);
 
-      this.stores = [stores.pageState];
+      this.unlisteners = [];
+      this.stores = [pageState];
       autoBind(this);
     }
     componentDidMount() {
@@ -51,11 +52,16 @@ const FormSidebar = observer(
       // in dev environment. Unfortunately `router.subscribe` doesn't return
       // a cancel function, so we can't make it stop.
       // TODO: when refactoring this file, make sure not to use the legacy code.
-      router.subscribe(this.onRouteChange.bind(this));
+      this.unlisteners.push(
+        router.subscribe(this.onRouteChange.bind(this))
+      );
+    }
+    componentWillUnmount() {
+      this.unlisteners.forEach((clb) => {clb();});
     }
     newFormModal(evt) {
       evt.preventDefault();
-      stores.pageState.showModal({
+      pageState.showModal({
         type: MODAL_TYPES.NEW_FORM,
       });
     }
@@ -135,7 +141,7 @@ const Drawer = observer(
     constructor(props) {
       super(props);
       autoBind(this);
-      this.stores = [stores.pageState];
+      this.stores = [pageState];
     }
 
     isAccount() {

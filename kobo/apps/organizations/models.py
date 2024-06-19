@@ -39,7 +39,7 @@ class Organization(AbstractOrganization):
         """
         return self.owner.organization_user.user.email
 
-    @property
+    @cache_for_request
     def active_subscription_billing_details(self):
         """
         Retrieve the billing dates, interval, and product/price metadata for the organization's newest subscription

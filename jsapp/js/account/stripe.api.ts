@@ -37,18 +37,20 @@ export async function getOneTimeAddOns() {
 }
 
 export async function changeSubscription(
-  priceId: string,
-  subscriptionId: string,
+  price_id: string,
+  subscription_id: string,
   quantity = 1
 ) {
-  return fetchGet<ChangePlan>(
-    `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}&quantity=${quantity}`,
-    {
-      errorMessageDisplay: t(
-        "We couldn't make the requested change to your plan.\nYour current plan has not been changed."
-      ),
-    }
-  );
+  const params = new URLSearchParams({
+    price_id,
+    subscription_id,
+    quantity: quantity.toString(),
+  });
+  return fetchGet<ChangePlan>(`${endpoints.CHANGE_PLAN_URL}?${params}`, {
+    errorMessageDisplay: t(
+      "We couldn't make the requested change to your plan.\nYour current plan has not been changed."
+    ),
+  });
 }
 
 export async function getOrganization() {
@@ -109,7 +111,7 @@ export async function getSubscriptionInterval() {
       ACTIVE_STRIPE_STATUSES.includes(sub.status)
     );
     if (activeSubscription) {
-      return activeSubscription.items[0].price.recurring?.interval;
+      return activeSubscription.items[0].price.recurring?.interval || 'month';
     }
   }
   return 'month';

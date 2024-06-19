@@ -1,3 +1,4 @@
+@use 'scss/breakpoints';
 @use '~kobo-common/src/styles/colors';
 
 .form-view__group.form-view__group--items {
@@ -177,7 +178,7 @@
   }
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: breakpoints.$b768) {
   .form-view--summary {
     display: flex;
 

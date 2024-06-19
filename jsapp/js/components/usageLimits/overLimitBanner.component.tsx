@@ -1,10 +1,10 @@
 import React from 'react';
 import cx from 'classnames';
 import Button from 'js/components/common/button';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitBanner.module.scss';
 import Icon from 'js/components/common/icon';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface OverLimitBannerProps {
   warning?: boolean;
@@ -22,7 +22,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     <div
       className={cx(styles.limitBannerContainer, {
         [styles.warningBanner]: props.warning,
-        [styles.accountPage]: props.accountPage
+        [styles.accountPage]: props.accountPage,
       })}
     >
       <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'red'} />
@@ -32,7 +32,10 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           : t('You have reached your')}
         <strong>
           {' '}
-          {props.interval === 'month' ? t('monthly') : t('yearly')}{' '}
+          {(props.limits.length > 1 || props.limits[0] !== 'storage') &&
+          props.interval === 'month'
+            ? t('monthly')
+            : t('yearly')}{' '}
           {props.limits.map((item, i) => (
             <span key={i}>
               {i > 0 && props.limits.length > 2 && ', '}
@@ -40,8 +43,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
               {item}
             </span>
           ))}{' '}
-          {t('limit')}
-          {props.limits.length > 1 && 's'}
+          {props.limits.length > 1 ? t('limit') : t('limits')}
         </strong>
         {'. '}
         {props.warning && (
@@ -74,7 +76,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           label={t('Monitor usage')}
           onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
           aria-label={t('monitor usage')}
-          classNames={[styles.bannerBtn]}
+          className={styles.bannerBtn}
         />
       )}
       {(!props.warning || props.accountPage) && (
@@ -86,7 +88,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           label={t('Upgrade now')}
           onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
           aria-label={t('upgrade now')}
-          classNames={[styles.bannerBtn]}
+          className={styles.bannerBtn}
         />
       )}
     </div>
