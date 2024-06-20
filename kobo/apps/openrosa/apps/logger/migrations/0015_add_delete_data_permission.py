@@ -1,9 +1,12 @@
 # coding: utf-8
 import sys
 
-from django.db import migrations
+from django.conf import settings
 from django.contrib.auth.management import create_permissions
 from django.contrib.auth.models import AnonymousUser
+from django.db import migrations
+
+from kpi.utils.database import use_db
 
 
 def create_new_perms(apps):
@@ -14,7 +17,9 @@ def create_new_perms(apps):
     """
     for app_config in apps.get_app_configs():
         app_config.models_module = True
-        create_permissions(app_config, apps=apps, verbosity=0)
+        create_permissions(
+            app_config, apps=apps, verbosity=0, using=settings.OPENROSA_DB_ALIAS
+        )
         app_config.models_module = None
 
 
@@ -26,27 +31,28 @@ def grant_model_level_perms(apps):
     Permission = apps.get_model('auth', 'Permission')  # noqa
     ThroughModel = User.user_permissions.through  # noqa
 
-    permission = Permission.objects.get(
-        content_type__app_label='logger', codename='delete_data_xform'
-    )
-    user_ids = User.objects.values_list('pk', flat=True).exclude(
-        pk=AnonymousUser().pk
-    )
-
-    through_models = []
-    for user_id in user_ids:
-        through_models.append(
-            ThroughModel(user_id=user_id, permission_id=permission.pk)
+    with use_db(settings.OPENROSA_DB_ALIAS):
+        permission = Permission.objects.get(
+            content_type__app_label='logger', codename='delete_data_xform'
+        )
+        user_ids = User.objects.values_list('pk', flat=True).exclude(
+            pk=AnonymousUser().pk
         )
 
-    sys.stderr.write(
-        'Creating {} model-level permission assignments...\n'.format(
-            len(through_models)
+        through_models = []
+        for user_id in user_ids:
+            through_models.append(
+                ThroughModel(user_id=user_id, permission_id=permission.pk)
+            )
+
+        sys.stderr.write(
+            'Creating {} model-level permission assignments...\n'.format(
+                len(through_models)
+            )
         )
-    )
-    sys.stderr.flush()
-    # Django 1.8 does not support `ignore_conflicts=True`
-    ThroughModel.objects.bulk_create(through_models)
+        sys.stderr.flush()
+        # Django 1.8 does not support `ignore_conflicts=True`
+        ThroughModel.objects.bulk_create(through_models)
 
 
 def remove_model_level_perms(apps):
@@ -57,12 +63,13 @@ def remove_model_level_perms(apps):
     Permission = apps.get_model('auth', 'Permission')  # noqa
     ThroughModel = User.user_permissions.through  # noqa
 
-    permission = Permission.objects.get(
-        content_type__app_label='logger', codename='delete_data_xform'
-    )
-    ThroughModel.objects.filter(permission=permission).exclude(
-        user_id=AnonymousUser().pk
-    ).delete()
+    with use_db(settings.OPENROSA_DB_ALIAS):
+        permission = Permission.objects.get(
+            content_type__app_label='logger', codename='delete_data_xform'
+        )
+        ThroughModel.objects.filter(permission=permission).exclude(
+            user_id=AnonymousUser().pk
+        ).delete()
 
 
 def grant_object_level_perms(apps):
@@ -72,31 +79,30 @@ def grant_object_level_perms(apps):
     """
     User = apps.get_model('kobo_auth', 'User')  # noqa
     Permission = apps.get_model('auth', 'Permission')  # noqa
-    UserObjectPermission = apps.get_model(
-        'guardian', 'UserObjectPermission'
-    )  # noqa
+    UserObjectPermission = apps.get_model('guardian', 'UserObjectPermission') # noqa
 
-    new_perm = Permission.objects.get(
-        content_type__app_label='logger', codename='delete_data_xform'
-    )
-    old_perm = Permission.objects.get(
-        content_type__app_label='logger', codename='change_xform'
-    )
-    new_perm_objects = []
-    for old_assign in UserObjectPermission.objects.filter(
-        permission=old_perm
-    ).iterator():
-        old_assign.pk = None
-        old_assign.permission = new_perm
-        new_perm_objects.append(old_assign)
-    sys.stderr.write(
-        'Creating {} object-level permission assignments...\n'.format(
-            len(new_perm_objects)
+    with use_db(settings.OPENROSA_DB_ALIAS):
+        new_perm = Permission.objects.get(
+            content_type__app_label='logger', codename='delete_data_xform'
         )
-    )
-    sys.stderr.flush()
-    # Django 1.8 does not support `ignore_conflicts=True`
-    UserObjectPermission.objects.bulk_create(new_perm_objects)
+        old_perm = Permission.objects.get(
+            content_type__app_label='logger', codename='change_xform'
+        )
+        new_perm_objects = []
+        for old_assign in UserObjectPermission.objects.filter(
+            permission=old_perm
+        ).iterator():
+            old_assign.pk = None
+            old_assign.permission = new_perm
+            new_perm_objects.append(old_assign)
+        sys.stderr.write(
+            'Creating {} object-level permission assignments...\n'.format(
+                len(new_perm_objects)
+            )
+        )
+        sys.stderr.flush()
+        # Django 1.8 does not support `ignore_conflicts=True`
+        UserObjectPermission.objects.bulk_create(new_perm_objects)
 
 
 def remove_object_level_perms(apps):
@@ -104,13 +110,12 @@ def remove_object_level_perms(apps):
     Remove all object-level 'delete_submissions' permission assignments
     """
     Permission = apps.get_model('auth', 'Permission')  # noqa
-    UserObjectPermission = apps.get_model(
-        'guardian', 'UserObjectPermission'
-    )  # noqa
-    perm = Permission.objects.get(
-        content_type__app_label='logger', codename='delete_data_xform'
-    )
-    UserObjectPermission.objects.filter(permission=perm).delete()
+    UserObjectPermission = apps.get_model('guardian', 'UserObjectPermission')  # noqa
+    with use_db(settings.OPENROSA_DB_ALIAS):
+        perm = Permission.objects.get(
+            content_type__app_label='logger', codename='delete_data_xform'
+        )
+        UserObjectPermission.objects.filter(permission=perm).delete()
 
 
 def forwards_func(apps, schema_editor):

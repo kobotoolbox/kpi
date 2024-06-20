@@ -98,7 +98,7 @@ def move_to_trash(
     Projects and accounts stay in trash for `grace_period` and then are
     hard-deleted when their related scheduled task runs.
 
-    If `retain_placeholder` is True, in instance of `auth.User` with the same
+    If `retain_placeholder` is True, in instance of `kobo_auth.User` with the same
     username and primary key is retained after deleting all other data.
     """
 

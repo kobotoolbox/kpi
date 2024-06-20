@@ -90,18 +90,18 @@ class Attachment(models.Model):
     def filename(self):
         return os.path.basename(self.media_file.name)
 
-    def secure_url(self, suffix="original"):
+    def secure_url(self, suffix: str = 'original'):
         """
-        Returns image URL through kobocat redirector.
+        Returns image URL through KoboCAT redirector.
         :param suffix: str. original|large|medium|small
         :return: str
         """
-        if suffix != "original" and suffix not in settings.THUMB_CONF.keys():
-            raise Exception("Invalid image thumbnail")
+        if suffix != 'original' and suffix not in settings.THUMB_CONF.keys():
+            raise Exception('Invalid image thumbnail')
 
-        return "{kobocat_url}{media_url}{suffix}?{media_file}".format(
+        return '{kobocat_url}{media_url}{suffix}?{media_file}'.format(
             kobocat_url=settings.KOBOCAT_URL,
             media_url=settings.MEDIA_URL,
             suffix=suffix,
-            media_file=urlencode({"media_file": self.media_file.name})
+            media_file=urlencode({'media_file': self.media_file.name})
         )

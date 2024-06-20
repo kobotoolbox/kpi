@@ -43,12 +43,6 @@ urlpatterns = [
         service_health_minimal,
         name='legacy-service-health-minimal',
     ),
-    re_path(r'^api/', RedirectView.as_view(url='/api/v1/')),
-    re_path(r'^api/v1', RedirectView.as_view(url='/api/v1/')),
-
-    # FIXME conflicts with KPI
-    # oath2_provider
-    # re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
     # main website views
     re_path(

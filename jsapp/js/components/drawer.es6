@@ -43,6 +43,7 @@ const FormSidebar = observer(
       );
       this.state = Object.assign(INITIAL_STATE, this.state);
 
+      this.unlisteners = [];
       this.stores = [stores.pageState];
       autoBind(this);
     }
@@ -51,7 +52,12 @@ const FormSidebar = observer(
       // in dev environment. Unfortunately `router.subscribe` doesn't return
       // a cancel function, so we can't make it stop.
       // TODO: when refactoring this file, make sure not to use the legacy code.
-      router.subscribe(this.onRouteChange.bind(this));
+      this.unlisteners.push(
+        router.subscribe(this.onRouteChange.bind(this))
+      );
+    }
+    componentWillUnmount() {
+      this.unlisteners.forEach((clb) => {clb();});
     }
     newFormModal(evt) {
       evt.preventDefault();

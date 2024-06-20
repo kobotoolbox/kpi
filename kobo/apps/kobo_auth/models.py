@@ -17,11 +17,11 @@ class User(AbstractUser):
         swappable = 'AUTH_USER_MODEL'
 
     def has_perm(self, perm, obj=None):
-        # If it is a Kobocat permissions, check permission in Kobocat DB first
+        # If it is a KoboCAT permissions, check permission in KoboCAT DB first
         # 3 options:
-        # - `obj` is not None and its app_label belongs to Kobocat
+        # - `obj` is not None and its app_label belongs to KoboCAT
         # - `perm` format is <app_label>.<perm>, we check the app label
-        # - `perm` belongs to Kobocat permission codenames
+        # - `perm` belongs to KoboCAT permission codenames
         if obj:
             if obj._meta.app_label in OPENROSA_APP_LABELS:
                 with use_db(settings.OPENROSA_DB_ALIAS):

@@ -2,16 +2,11 @@
 from django.conf import settings
 from django.utils.translation import gettext as t
 from django.http import HttpResponse
-from django_digest import HttpDigestAuthenticator
-from rest_framework.authentication import (
-    BaseAuthentication,
-    BasicAuthentication,
-    get_authorization_header,
-    TokenAuthentication as DRFTokenAuthentication,
-)
+from rest_framework.authentication import BasicAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
-from kobo.apps.openrosa.libs.mixins.mfa import MFABlockerMixin
+from kpi.authentication import DigestAuthentication
+from kpi.mixins.mfa import MfaBlockerMixin
 
 
 def digest_authentication(request):
@@ -29,40 +24,7 @@ def digest_authentication(request):
             return authenticator.build_challenge_response()
 
 
-class DigestAuthentication(MFABlockerMixin, BaseAuthentication):
-
-    verbose_name = 'Digest authentication'
-
-    def __init__(self):
-        self.authenticator = HttpDigestAuthenticator()
-
-    def authenticate(self, request):
-
-        auth = get_authorization_header(request).split()
-        if not auth or auth[0].lower() != b'digest':
-            return None
-
-        if self.authenticator.authenticate(request):
-
-            # If user provided correct credentials but their account is
-            # disabled, return a 401
-            if not request.user.is_active:
-                raise AuthenticationFailed()
-
-            self.validate_mfa_not_active(request.user)
-            return request.user, None
-        else:
-            raise AuthenticationFailed(t('Invalid username/password'))
-
-    def authenticate_header(self, request):
-        response = self.build_challenge_response()
-        return response['WWW-Authenticate']
-
-    def build_challenge_response(self):
-        return self.authenticator.build_challenge_response()
-
-
-class HttpsOnlyBasicAuthentication(MFABlockerMixin, BasicAuthentication):
+class HttpsOnlyBasicAuthentication(MfaBlockerMixin, BasicAuthentication):
     """
     Extend DRF class to support MFA and authentication over HTTPS only (if
     testing mode is not activated)
@@ -97,18 +59,3 @@ class HttpsOnlyBasicAuthentication(MFABlockerMixin, BasicAuthentication):
         )
         self.validate_mfa_not_active(user)
         return user, auth
-
-
-class TokenAuthentication(MFABlockerMixin, DRFTokenAuthentication):
-    """
-    Extend DRF class to support MFA.
-
-    Token authentication should be deactivated if user has activated MFA
-    on their account (unless it has been add to `settings.MFA_SUPPORTED_AUTH_CLASSES`)
-    """
-    verbose_name = 'Token authentication'
-
-    def authenticate_credentials(self, key):
-        user, token = super().authenticate_credentials(key=key)
-        self.validate_mfa_not_active(user)
-        return user, token

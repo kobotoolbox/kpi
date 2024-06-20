@@ -83,7 +83,7 @@ class Command(BaseCommand):
         )
 
         for user in (
-            User.objects.only('username')
+            User.objects.using(settings.OPENROSA_DB_ALIAS).only('username')
             .exclude(pk=settings.ANONYMOUS_USER_ID)
             .exclude(pk__in=subquery)
             .iterator(chunk_size=self._chunks)

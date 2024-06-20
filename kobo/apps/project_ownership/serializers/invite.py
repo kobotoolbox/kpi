@@ -182,7 +182,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
         return assets
 
-    def validate_recipient(self, user: 'auth.User') -> 'auth.User':
+    def validate_recipient(self, user: 'kobo_auth.User') -> 'kobo_auth.User':
         if self.instance is None:
             return user
 

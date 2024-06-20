@@ -1,8 +1,8 @@
 import React, {useCallback} from 'react';
-import {formatTime} from 'js/utils';
 import type {Transx} from 'js/components/processing/singleProcessingStore';
 import bodyStyles from '../processingBody.module.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
+import TransxDate from 'js/components/processing/transxDate.component';
 import styles from './transxDisplay.module.scss';
 
 interface TransxDisplayProps {
@@ -18,28 +18,14 @@ export default function TransxDisplay(props: TransxDisplayProps) {
       return null;
     }
 
-    let dateText = '';
-    if (source) {
-      if (source.dateCreated !== source?.dateModified) {
-        dateText = t('last modified ##date##').replace(
-          '##date##',
-          formatTime(source.dateModified)
-        );
-      } else {
-        dateText = t('created ##date##').replace(
-          '##date##',
-          formatTime(source.dateCreated)
-        );
-      }
-    }
-
     return (
       <React.Fragment>
         <AsyncLanguageDisplayLabel code={props.transx.languageCode} />
 
-        {dateText !== '' && (
-          <time className={bodyStyles.transxHeaderDate}>{dateText}</time>
-        )}
+        <TransxDate
+          dateCreated={source.dateCreated}
+          dateModified={source.dateModified}
+        />
       </React.Fragment>
     );
   }, []);

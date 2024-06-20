@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 from io import BytesIO
 from tempfile import NamedTemporaryFile
 
@@ -8,7 +9,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from PIL import Image
 
-from kobo.apps.openrosa.libs.utils.viewer_tools import get_path
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_optimized_image_path
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -55,15 +56,16 @@ def _save_thumbnails(image, original_path, size, suffix):
         image.convert('RGB').save(nm.name)
 
     # Try to delete file with the same name if it already exists to avoid useless file.
-    # i.e if `file_<suffix>.jpg` exists, Storage will save `a_<suffix>_<random_string>.jpg`
+    # i.e. if `file_<suffix>.jpg` exists, Storage will save `a_<suffix>_<random_string>.jpg`
     # but nothing in the code is aware about this `<random_string>
     try:
-        default_storage.delete(get_path(original_path, suffix))
+        default_storage.delete(get_optimized_image_path(original_path, suffix))
     except IOError:
         pass
 
     default_storage.save(
-        get_path(original_path, suffix), ContentFile(nm.read()))
+        get_optimized_image_path(original_path, suffix), ContentFile(nm.read())
+    )
 
     nm.close()
 
@@ -84,11 +86,12 @@ def resize(filename):
             image = Image.open(im)
 
     if image:
-        conf = settings.THUMB_CONF
-        [_save_thumbnails(
-            image, original_path,
-            conf[key]['size'],
-            conf[key]['suffix']) for key in settings.THUMB_ORDER]
+        [
+            _save_thumbnails(
+                image, original_path, size, suffix
+            )
+            for suffix, size in settings.THUMB_CONF.items()
+        ]
 
 
 def image_url(attachment, suffix):
@@ -101,13 +104,20 @@ def image_url(attachment, suffix):
         return url
     else:
         if suffix in settings.THUMB_CONF:
-            size = settings.THUMB_CONF[suffix]['suffix']
             filename = attachment.media_file.name
             if default_storage.exists(filename):
-                if default_storage.exists(get_path(filename, size)) and \
-                        default_storage.size(get_path(filename, size)) > 0:
+                if (
+                    default_storage.exists(
+                        get_optimized_image_path(filename, suffix)
+                    )
+                    and default_storage.size(
+                        get_optimized_image_path(filename, suffix)
+                    )
+                    > 0
+                ):
                     url = default_storage.url(
-                        get_path(filename, size))
+                        get_optimized_image_path(filename, suffix)
+                    )
                 else:
                     resize(filename)
                     return image_url(attachment, suffix)

@@ -3,12 +3,52 @@
  */
 $b480: 480px;
 $b600: 600px;
-$b530: 530px;
-$b700: 700px;
+// 768 is a legacy breakpoint. We use it (in old code mostly), and we might or
+// might not want to use it in the future (TBD).
 $b768: 768px;
-$b860: 860px;
 $b960: 960px;
-$b1000: 1000px;
 $b1140: 1140px;
-$b1280: 1280px;
 $b1440: 1440px;
+$bMobileMenu: $b1140;
+
+/*
+
+The names for screen sizes and the breakpoints that divides them are:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~  |              ↔︎            ↔︎            ↔︎            ↔︎              |  ~
+~  |  veryNarrow  ↔︎   narrow   ↔︎   medium   ↔︎    wide    ↔︎   veryWide   |  ~
+~  |              ↔︎            ↔︎            ↔︎            ↔︎              |  ~
+~  0             600          960          1140         1440            ∞  ~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*/
+@mixin breakpoint($breakpointName) {
+  @if $breakpointName == veryNarrow {
+    @media (width < $b600) {@content;}
+  }
+  @else if $breakpointName == narrow {
+    @media (min-width: $b600) and (width < $b960) {@content;}
+  }
+  @else if $breakpointName == narrowAndUp {
+    @media (min-width: $b600) {@content;}
+  }
+  @else if $breakpointName == medium {
+    @media (min-width: $b960) and (width < $b1140) {@content;}
+  }
+  @else if $breakpointName == mediumAndUp {
+    @media (min-width: $b960) {@content;}
+  }
+  @else if $breakpointName == wide {
+    @media (min-width: $b1140) and (width < $b1440) {@content;}
+  }
+  @else if $breakpointName == wideAndUp {
+    @media (min-width: $b1140) {@content;}
+  }
+  @else if $breakpointName == veryWide {
+    @media (min-width: $b1440) {@content;}
+  }
+  @else {
+    @error 'Unknown brakpoint "#{$breakpointName}".';
+  }
+}

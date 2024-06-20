@@ -19,7 +19,14 @@ from django.db import (
 from django.utils import timezone
 from django_digest.models import PartialDigest
 
+from kobo.apps.openrosa.libs.utils.image_tools import (
+    get_optimized_image_path,
+    resize,
+)
 from kpi.constants import SHADOW_MODEL_APP_LABEL
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage,
+)
 from kpi.exceptions import (
     BadContentTypeException,
 )
@@ -37,9 +44,18 @@ def update_autofield_sequence(model):
     Fixes the PostgreSQL sequence for the first (and only?) `AutoField` on
     `model`, à la `manage.py sqlsequencereset`
     """
+    # Updating sequences on fresh environments fails because the only user
+    # in the DB is django-guardian AnonymousUser and `max(pk)` returns -1.
+    # Error:
+    #   > setval: value -1 is out of bounds for sequence
+    # Using abs() and testing if max(pk) equals -1, leaves the sequence alone.
     sql_template = (
-        "SELECT setval(pg_get_serial_sequence('{table}','{column}'), "
-        "coalesce(max({column}), 1), max({column}) IS NOT null) FROM {table};"
+        "SELECT setval("
+        "   pg_get_serial_sequence('{table}','{column}'), "
+        "   abs(coalesce(max({column}), 1)), "
+        "   max({column}) IS NOT null and max({column}) != -1"
+        ") "
+        "FROM {table};"
     )
     autofield = None
     for f in model._meta.get_fields():
@@ -163,27 +179,44 @@ class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
         """
         return f'{self.storage_path}.mp3'
 
-    def protected_path(self, format_: Optional[str] = None):
+    def protected_path(
+        self, format_: Optional[str] = None, suffix: Optional[str] = None
+    ) -> str:
         """
         Return path to be served as protected file served by NGINX
         """
-
         if format_ == 'mp3':
             attachment_file_path = self.absolute_mp3_path
         else:
             attachment_file_path = self.absolute_path
+
+        optimized_image_path = None
+        if suffix and self.mimetype.startswith('image/'):
+            optimized_image_path = get_optimized_image_path(
+                self.media_file.name, suffix
+            )
+            if not default_kobocat_storage.exists(optimized_image_path):
+                resize(self.media_file.name)
 
         if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
             # Django normally sanitizes accented characters in file names during
             # save on disk but some languages have extra letters
             # (out of ASCII character set) and must be encoded to let NGINX serve
             # them
+            if optimized_image_path:
+                attachment_file_path = default_kobocat_storage.path(
+                    optimized_image_path
+                )
             protected_url = urlquote(attachment_file_path.replace(
                 settings.KOBOCAT_MEDIA_ROOT, '/protected')
             )
         else:
             # Double-encode the S3 URL to take advantage of NGINX's
             # otherwise troublesome automatic decoding
+            if optimized_image_path:
+                attachment_file_path = default_kobocat_storage.url(
+                    optimized_image_path
+                )
             protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
 
         return protected_url
@@ -261,49 +294,6 @@ class KobocatDigestPartial(ShadowModel):
                 confirmed=partial_digest.confirmed,
                 partial_digest=partial_digest.partial_digest,
             )
-
-
-class KobocatFormDisclaimer(ShadowModel):
-
-    language_code = models.CharField(max_length=5, null=True)
-    xform = models.ForeignKey(
-        'shadow_model.KobocatXForm',
-        related_name='disclaimers',
-        null=True,
-        on_delete=models.CASCADE,
-    )
-    message = models.TextField(default='')
-    default = models.BooleanField(default=False)
-    hidden = models.BooleanField(default=False)
-
-    class Meta(ShadowModel.Meta):
-        db_table = 'form_disclaimer_formdisclaimer'
-
-    @classmethod
-    def sync(cls, form_disclaimer):
-
-        xform = None
-        language_code = None
-
-        if form_disclaimer.language:
-            language_code = form_disclaimer.language.code
-
-        if form_disclaimer.asset:
-            xform = form_disclaimer.asset.deployment.xform
-
-        try:
-            kc_form_disclaimer = cls.objects.get(
-                language_code=language_code, xform=xform
-            )
-        except cls.DoesNotExist:
-            kc_form_disclaimer = cls(
-                pk=form_disclaimer.pk, language_code=language_code, xform=xform
-            )
-
-        kc_form_disclaimer.message = form_disclaimer.message
-        kc_form_disclaimer.default = form_disclaimer.default
-        kc_form_disclaimer.hidden = form_disclaimer.hidden
-        kc_form_disclaimer.save()
 
 
 class KobocatGenericForeignKey(GenericForeignKey):
@@ -455,7 +445,7 @@ class KobocatUser(ShadowModel):
     @transaction.atomic
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
-        # upon PKs being synchronized between KPI and KoBoCAT
+        # upon PKs being synchronized between KPI and KoboCAT
         kc_auth_user = cls.get_kc_user(auth_user)
         kc_auth_user.password = auth_user.password
         kc_auth_user.last_login = auth_user.last_login
@@ -473,7 +463,7 @@ class KobocatUser(ShadowModel):
         # `auth_user_id_seq` now lags behind `max(id)`. Fix it now!
         update_autofield_sequence(cls)
 
-        # Update django-digest `PartialDigest`s in KoBoCAT.  This is only
+        # Update django-digest `PartialDigest`s in KoboCAT.  This is only
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
 

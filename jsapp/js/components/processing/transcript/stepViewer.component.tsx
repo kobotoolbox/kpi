@@ -4,6 +4,7 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import {destroyConfirm} from 'js/alertify';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
 
 export default function StepViewer() {
   function openEditor() {
@@ -34,7 +35,10 @@ export default function StepViewer() {
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.data.isFetchingData}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
 
           <Button
@@ -45,6 +49,7 @@ export default function StepViewer() {
             onClick={deleteTranscript}
             tooltip={t('Delete')}
             isPending={singleProcessingStore.data.isFetchingData}
+            isDisabled={!hasManagePermissionsToCurrentAsset()}
           />
         </nav>
       </header>

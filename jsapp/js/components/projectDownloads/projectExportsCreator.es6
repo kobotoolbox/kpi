@@ -652,7 +652,7 @@ export default class ProjectExportsCreator extends React.Component {
               value={this.state.customExportName}
               onChange={this.onAnyInputChange.bind(this, 'customExportName')}
               placeholder={t('Name your export settings')}
-              customClassNames={['custom-export-name-textbox']}
+              className='custom-export-name-textbox'
             />
           </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>

@@ -20,6 +20,7 @@ import type {
   SurveyRow,
   SurveyChoice,
   SubmissionResponse,
+  SubmissionResponseValue,
   SubmissionAttachment,
   AssetResponse,
   AnalysisFormJsonField,
@@ -104,7 +105,7 @@ export class DisplayResponse {
    */
   public listName: string | undefined;
   /** User response, `null` for no response */
-  public data: string | null = null;
+  public data: SubmissionResponseValue | null = null;
 
   constructor(
     type: AnyRowTypeName | null,
@@ -112,7 +113,7 @@ export class DisplayResponse {
     name: string,
     xpath: string,
     listName: string | undefined,
-    data?: string | null
+    data?: SubmissionResponseValue | null
   ) {
     this.type = type;
     this.label = label;
@@ -204,7 +205,7 @@ export function getSubmissionDisplayData(
     /** Rows and groups will be added to it as children. */
     parentGroup: DisplayGroup,
     /** The submissionData scoped by parent (useful for repeat groups). */
-    parentData: SubmissionResponse,
+    parentData: SubmissionResponseValue,
     /** Inside a repeat group this is the current repeat submission index. */
     repeatIndex: number | null = null
   ) {
@@ -246,7 +247,7 @@ export function getSubmissionDisplayData(
         continue;
       }
 
-      let rowData = getRowData(rowName, survey, parentData);
+      let rowData = getRowData(rowName, survey, parentData as SubmissionResponse);
 
       if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
@@ -316,7 +317,9 @@ export function getSubmissionDisplayData(
          * Start whole process again starting at this place in survey,
          * with current group as parent element and pass current repeat index.
          */
-        traverseSurvey(rowObj, rowData, repeatIndex);
+        if (rowData) {
+          traverseSurvey(rowObj, rowData, repeatIndex);
+        }
       } else if (
         Object.keys(QUESTION_TYPES).includes(row.type) ||
         row.type === SCORE_ROW_TYPE ||
@@ -405,7 +408,7 @@ function populateMatrixData(
   /** The row name. */
   matrixRowName: string,
   /** The submissionData scoped by parent (useful for repeat groups). */
-  parentData: SubmissionResponse
+  parentData: SubmissionResponseValue
 ) {
   // This should not happen, as the only DisplayGroup with null name will be of
   // the group_root type, but we need this for the types.
@@ -444,23 +447,23 @@ function populateMatrixData(
         return;
       }
 
-      /*
-       * NOTE: Submission data for a Matrix question is kept in an unusal
-       * property, so instead of:
-       * [PATH/]MATRIX/MATRIX_QUESTION
-       * it is stored in:
-       * [PATH/]MATRIX_CHOICE/MATRIX_CHOICE_QUESTION
-       */
-      let questionData = null;
+      // NOTE: Submission data for a Matrix question is kept in an unusal
+      // property, so instead of:
+      // [PATH/]MATRIX/MATRIX_QUESTION
+      // it is stored in:
+      // [PATH/]MATRIX_CHOICE/MATRIX_CHOICE_QUESTION
+      let questionData: SubmissionResponseValue = null;
       const dataProp = `${matrixGroupPath}_${matrixRowName}/${matrixGroup.name}_${matrixRowName}_${questionName}`;
       if (submissionData[dataProp]) {
         questionData = submissionData[dataProp];
-      } else if (parentData[dataProp]) {
-        /*
-         * If Matrix question is inside a repeat group, the data is stored
-         * elsewhere :tableflip:
-         */
-        questionData = parentData[dataProp];
+      } else if (
+        parentData !== null &&
+        typeof parentData === 'object' &&
+        dataProp in parentData
+      ) {
+        // Note: If Matrix question is inside a repeat group, the data is stored
+        // elsewhere :tableflip:
+        questionData = (parentData as {[key: string]: SubmissionResponseValue})[dataProp];
       }
 
       const questionObj = new DisplayResponse(
@@ -483,8 +486,8 @@ function populateMatrixData(
 export function getRowData(
   name: string,
   survey: SurveyRow[],
-  data: SubmissionResponse
-) {
+  data: SubmissionResponse | null
+): SubmissionResponseValue | null {
   if (data === null || typeof data !== 'object') {
     return null;
   }
@@ -520,7 +523,7 @@ function isRowFromCurrentGroupLevel(
   /** Null for root level rows. */
   groupPath: string | null,
   survey: SurveyRow[]
-) {
+): boolean {
   const flatPaths = getSurveyFlatPaths(survey, true);
   if (groupPath === null) {
     return flatPaths[rowName] === rowName;
@@ -536,7 +539,7 @@ export function getRepeatGroupAnswers(
   responseData: SubmissionResponse,
   /** With groups e.g. group_person/group_pets/group_pet/pet_name. */
   targetKey: string
-) {
+): string[] {
   const answers: string[] = [];
 
   // Goes through nested groups from key, looking for answers.
@@ -545,13 +548,21 @@ export function getRepeatGroupAnswers(
       .split('/')
       .slice(0, levelIndex + 1)
       .join('/');
+
+    const targetKeyData = data[targetKey];
+    const levelKeyData = data[levelKey];
+
     // Each level could be an array of repeat group answers or object with questions.
     if (levelKey === targetKey) {
-      if (Object.prototype.hasOwnProperty.call(data, targetKey)) {
-        answers.push(data[targetKey]);
+      if (targetKeyData !== undefined) {
+        answers.push(String(targetKeyData));
       }
-    } else if (Array.isArray(data[levelKey])) {
-      data[levelKey].forEach((item: SubmissionResponse) => {
+    } else if (
+      levelKeyData !== null &&
+      typeof levelKeyData === 'object' &&
+      Array.isArray(levelKeyData)
+    ) {
+      levelKeyData.forEach((item: SubmissionResponse) => {
         lookForAnswers(item, levelIndex + 1);
       });
     }
@@ -569,9 +580,9 @@ function getRegularGroupAnswers(
   data: SubmissionResponse,
   /** With groups e.g. group_person/group_pets/group_pet. */
   targetKey: string
-) {
-  // The response can be a lot of different things, so we use `any`.
-  const answers: {[questionName: string]: any} = {};
+): {[questionName: string]: SubmissionResponseValue} {
+  // The response can be a lot of different things
+  const answers: {[questionName: string]: SubmissionResponseValue} = {};
   Object.keys(data).forEach((objKey) => {
     if (objKey.startsWith(`${targetKey}/`)) {
       answers[objKey] = data[objKey];

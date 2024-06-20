@@ -28,6 +28,8 @@ def get_object_users_with_permissions(obj, exclude=None, serializable=False):
 
 @cache_for_request
 def get_model_permission_codenames():
-    return Permission.objects.using(settings.OPENROSA_DB_ALIAS).values_list(
+    kc_perms = set(Permission.objects.using(settings.OPENROSA_DB_ALIAS).values_list(
         'codename', flat=True
-    )
+    ))
+    kpi_perms = set(Permission.objects.values_list('codename', flat=True))
+    return list(kc_perms - kpi_perms)

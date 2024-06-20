@@ -135,10 +135,10 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
-    'kobo.apps.openrosa.apps.logger.LoggerAppConfig',
-    'kobo.apps.openrosa.apps.viewer',
-    'kobo.apps.openrosa.apps.main',
-    'kobo.apps.openrosa.apps.restservice',
+    'kobo.apps.openrosa.apps.logger.app.LoggerAppConfig',
+    'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
+    'kobo.apps.openrosa.apps.main.app.MainConfig',
+    'kobo.apps.openrosa.apps.restservice.app.RestServiceConfig',
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
@@ -293,6 +293,10 @@ CONSTANCE_CONFIG = {
         ),
         # Use custom field for schema validation
         'i18n_text_jsonfield_schema'
+    ),
+    'SUPERUSER_AUTH_ENFORCEMENT': (
+        False,
+        'Require MFA for superusers with a usable password',
     ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
@@ -656,6 +660,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MFA_ISSUER_NAME',
         'MFA_ENABLED',
         'MFA_LOCALIZED_HELP_TEXT',
+        'SUPERUSER_AUTH_ENFORCEMENT',
     ),
     'Metadata options': (
         'USER_METADATA_FIELDS',
@@ -930,14 +935,13 @@ OPENROSA_REST_FRAMEWORK = {
     #     'rest_framework.permissions.AllowAny',
     # ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'kobo.apps.openrosa.libs.authentication.DigestAuthentication',
+        'kpi.authentication.DigestAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-        'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
+        'kpi.authentication.TokenAuthentication',
         # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
         # Django authentication is called before DRF authentication and users get authenticated with
         # Session if it comes first (which bypass BasicAuthentication and MFA validation)
         'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
-        #'rest_framework.authentication.SessionAuthentication',
         'kpi.authentication.SessionAuthentication',
         'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
@@ -991,11 +995,7 @@ TEMPLATES = [
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
-RAVEN_JS_DSN = env.str('RAVEN_JS_DSN', None)
-if SENTRY_JS_DSN_URL := env.url(
-        'SENTRY_JS_DSN',
-        default=RAVEN_JS_DSN
-    ):
+if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
     SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
 
 # replace this with the pointer to the kobocat server, if it exists
@@ -1018,10 +1018,7 @@ else:
 
 
 ''' Stripe configuration intended for kf.kobotoolbox.org only, tracks usage limit exceptions '''
-STRIPE_ENABLED = False
-if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
-    STRIPE_ENABLED = True
-
+STRIPE_ENABLED = env.bool("STRIPE_ENABLED", False)
 
 def dj_stripe_request_callback_method():
     # This method exists because dj-stripe's documentation doesn't reflect reality.
@@ -1061,7 +1058,7 @@ ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
 ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
-ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
+ENKETO_API_KEY = os.environ.get('ENKETO_API_KEY', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
@@ -1210,7 +1207,7 @@ if 'KOBOCAT_URL' in os.environ:
     SYNC_KOBOCAT_PERMISSIONS = (
         os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
 
-CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 # Increase limits for long-running tasks
@@ -1395,7 +1392,7 @@ LOGGING = {
 ################################
 # Sentry settings              #
 ################################
-sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
+sentry_dsn = env.str('SENTRY_DSN', None)
 if sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.celery import CeleryIntegration
@@ -1569,12 +1566,6 @@ add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
-KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
-    'original': '',
-    'large': '_large',
-    'medium': '_medium',
-    'small': '_small',
-}
 
 TRENCH_AUTH = {
     'USER_MFA_MODEL': 'mfa.MfaMethod',
@@ -1720,17 +1711,16 @@ DEFAULT_VALIDATION_STATUSES = [
 ]
 
 THUMB_CONF = {
-    'large': {'size': 1280, 'suffix': '-large'},
-    'medium': {'size': 640, 'suffix': '-medium'},
-    'small': {'size': 240, 'suffix': '-small'},
+    'large': 1280,
+    'medium': 640,
+    'small': 240,
 }
-# order of thumbnails from largest to smallest
-THUMB_ORDER = ['large', 'medium', 'small']
 
 SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'image/jpeg',
     'image/png',
     'image/svg+xml',
+    'image/webp',
     'video/3gpp',
     'video/mp4',
     'video/quicktime',
@@ -1752,3 +1742,7 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/zip',
     'application/x-zip-compressed'
 ]
+
+# Silence Django Guardian warning. Authentication backend is hooked, but
+# Django Guardian does not recognize it because it is extended
+SILENCED_SYSTEM_CHECKS = ['guardian.W001']
