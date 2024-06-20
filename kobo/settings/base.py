@@ -935,14 +935,13 @@ OPENROSA_REST_FRAMEWORK = {
     #     'rest_framework.permissions.AllowAny',
     # ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'kobo.apps.openrosa.libs.authentication.DigestAuthentication',
+        'kpi.authentication.DigestAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-        'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
+        'kpi.authentication.TokenAuthentication',
         # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
         # Django authentication is called before DRF authentication and users get authenticated with
         # Session if it comes first (which bypass BasicAuthentication and MFA validation)
         'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
-        #'rest_framework.authentication.SessionAuthentication',
         'kpi.authentication.SessionAuthentication',
         'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],

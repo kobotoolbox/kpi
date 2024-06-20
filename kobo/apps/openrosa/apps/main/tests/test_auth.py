@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
+from trench.utils import get_mfa_model
 
 
 class TestAuthBase(TestBase):
@@ -18,6 +19,19 @@ class TestAuthBase(TestBase):
             'format': 'json'
         })
         self._logout()
+
+    @staticmethod
+    def activate_mfa(user: 'kobo_auth.User'):
+        get_mfa_model().objects.create(
+            user=user,
+            secret='dummy_mfa_secret',
+            name='app',
+            is_primary=True,
+            is_active=True,
+            _backup_codes='dummy_encoded_codes',
+        )
+        user.profile.is_mfa_active = True
+        user.profile.save(update_fields=['is_mfa_active'])
 
 
 class TestBasicHttpAuthentication(TestAuthBase):
@@ -49,31 +63,33 @@ class TestBasicHttpAuthentication(TestAuthBase):
 
     def test_http_auth_failed_with_mfa_active(self):
         # headers with valid user/pass
-        response = self.client.get(self.api_url,
-                                   **self._set_auth_headers('bob', 'bob'))
+        response = self.client.get(
+            self.api_url, **self._set_auth_headers('bob', 'bob')
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Activate MFA
-        self.user.profile.is_mfa_active = True
-        self.user.profile.save()
-        response = self.client.get(self.api_url,
-                                   **self._set_auth_headers('bob', 'bob'))
+        self.activate_mfa(self.user)
+        response = self.client.get(
+            self.api_url, **self._set_auth_headers('bob', 'bob')
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_http_auth_with_mfa_active_with_exception(self):
         # Activate MFA
-        self.user.profile.is_mfa_active = True
-        self.user.profile.save()
-        response = self.client.get(self.api_url,
-                                   **self._set_auth_headers('bob', 'bob'))
+        self.activate_mfa(self.user)
+        response = self.client.get(
+            self.api_url, **self._set_auth_headers('bob', 'bob')
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         # Allow Basic Auth with MFA
         with override_settings(MFA_SUPPORTED_AUTH_CLASSES=[
             'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
         ]):
-            response = self.client.get(self.api_url,
-                                       **self._set_auth_headers('bob', 'bob'))
+            response = self.client.get(
+                self.api_url, **self._set_auth_headers('bob', 'bob')
+            )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -94,8 +110,7 @@ class TestDigestAuthentication(TestAuthBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Activate MFA
-        self.user.profile.is_mfa_active = True
-        self.user.profile.save()
+        self.activate_mfa(self.user)
         digest_client = self._get_authenticated_client(
             self.api_url, 'bob', 'bob'
         )
@@ -104,8 +119,7 @@ class TestDigestAuthentication(TestAuthBase):
 
     def test_digest_auth_with_mfa_active_with_exception(self):
         # Activate MFA
-        self.user.profile.is_mfa_active = True
-        self.user.profile.save()
+        self.activate_mfa(self.user)
         digest_client = self._get_authenticated_client(
             self.api_url, 'bob', 'bob'
         )
@@ -114,7 +128,7 @@ class TestDigestAuthentication(TestAuthBase):
 
         # Allow Basic Auth with MFA
         with override_settings(MFA_SUPPORTED_AUTH_CLASSES=[
-            'kobo.apps.openrosa.libs.authentication.DigestAuthentication',
+            'kpi.authentication.DigestAuthentication',
         ]):
             digest_client = self._get_authenticated_client(
                 self.api_url, 'bob', 'bob'
@@ -139,8 +153,7 @@ class TestTokenAuthentication(TestAuthBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Activate MFA, token auth is allowed with MFA by default
-        self.user.profile.is_mfa_active = True
-        self.user.profile.save()
+        self.activate_mfa(self.user)
         response = self.client.get(
             self.api_url, **self._set_auth_headers(self.user.auth_token)
         )
@@ -148,8 +161,7 @@ class TestTokenAuthentication(TestAuthBase):
 
     def test_token_auth_with_mfa_active_with_exception(self):
         # Activate MFA
-        self.user.profile.is_mfa_active = True
-        self.user.profile.save()
+        self.activate_mfa(self.user)
 
         # Forbid token auth with MFA (it's allowed by default)
         with override_settings(MFA_SUPPORTED_AUTH_CLASSES=[]):

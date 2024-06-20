@@ -5,7 +5,7 @@ from rest_framework import authentication
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import \
     TestAbstractViewSet
 from kobo.apps.openrosa.apps.api.viewsets.connect_viewset import ConnectViewSet
-from kobo.apps.openrosa.libs.authentication import DigestAuthentication
+from kpi.authentication import DigestAuthentication
 
 
 class TestConnectViewSet(TestAbstractViewSet):

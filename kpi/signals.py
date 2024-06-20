@@ -59,27 +59,6 @@ def save_kobocat_user(sender, instance, created, raw, **kwargs):
                 grant_kc_model_level_perms(instance)
 
 
-@receiver(post_save, sender=Token)
-def save_kobocat_token(sender, instance, **kwargs):
-    """
-    Sync AuthToken table between KPI and KC
-    """
-    if not settings.TESTING:
-        KobocatToken.sync(instance)
-
-
-@receiver(post_delete, sender=Token)
-def delete_kobocat_token(sender, instance, **kwargs):
-    """
-    Delete corresponding record from KC AuthToken table
-    """
-    if not settings.TESTING:
-        try:
-            KobocatToken.objects.get(pk=instance.pk).delete()
-        except KobocatToken.DoesNotExist:
-            pass
-
-
 @receiver(post_save, sender=Tag)
 def tag_uid_post_save(sender, instance, created, raw, **kwargs):
     """ Make sure we have a TagUid object for each newly-created Tag """
