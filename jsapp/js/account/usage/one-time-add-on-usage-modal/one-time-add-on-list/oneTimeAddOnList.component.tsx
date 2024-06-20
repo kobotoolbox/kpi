@@ -10,7 +10,7 @@ interface OneTimeAddOnList {
 }
 
 function OneTimeAddOnList(props: OneTimeAddOnList) {
-  const productsContext = useContext(ProductsContext);
+  const [productsContext] = useContext(ProductsContext);
   const {limitDisplay} = useLimitDisplay();
 
   const formattedAddOns = useMemo(() => {

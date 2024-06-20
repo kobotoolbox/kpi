@@ -65,7 +65,7 @@ class Organization(AbstractOrganization):
         return None
 
     def update_usage_cache(self, service_usage: dict):
-        if not (billing_details := self.active_subscription_billing_details):
+        if not (billing_details := self.active_subscription_billing_details()):
             return None
         interval = billing_details['recurring_interval']
         self.asr_seconds_limit = service_usage['total_nlp_usage'][f'asr_seconds_current_{interval}']
