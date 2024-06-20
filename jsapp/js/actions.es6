@@ -103,9 +103,6 @@ permissionsActions.assignAssetPermission.completed.listen((uid) => {
 permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) => {
   actions.resources.loadAsset({id: targetUid});
 });
-permissionsActions.setAssetPublic.completed.listen((uid) => {
-  actions.resources.loadAsset({id: uid});
-});
 permissionsActions.removeAssetPermission.completed.listen((uid, isNonOwner) => {
   // Avoid this call if a non-owner removed their own permissions as it will fail
   if (!isNonOwner) {
