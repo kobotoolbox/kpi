@@ -296,49 +296,6 @@ class KobocatDigestPartial(ShadowModel):
             )
 
 
-class KobocatFormDisclaimer(ShadowModel):
-
-    language_code = models.CharField(max_length=5, null=True)
-    xform = models.ForeignKey(
-        'shadow_model.KobocatXForm',
-        related_name='disclaimers',
-        null=True,
-        on_delete=models.CASCADE,
-    )
-    message = models.TextField(default='')
-    default = models.BooleanField(default=False)
-    hidden = models.BooleanField(default=False)
-
-    class Meta(ShadowModel.Meta):
-        db_table = 'form_disclaimer_formdisclaimer'
-
-    @classmethod
-    def sync(cls, form_disclaimer):
-
-        xform = None
-        language_code = None
-
-        if form_disclaimer.language:
-            language_code = form_disclaimer.language.code
-
-        if form_disclaimer.asset:
-            xform = form_disclaimer.asset.deployment.xform
-
-        try:
-            kc_form_disclaimer = cls.objects.get(
-                language_code=language_code, xform=xform
-            )
-        except cls.DoesNotExist:
-            kc_form_disclaimer = cls(
-                pk=form_disclaimer.pk, language_code=language_code, xform=xform
-            )
-
-        kc_form_disclaimer.message = form_disclaimer.message
-        kc_form_disclaimer.default = form_disclaimer.default
-        kc_form_disclaimer.hidden = form_disclaimer.hidden
-        kc_form_disclaimer.save()
-
-
 class KobocatGenericForeignKey(GenericForeignKey):
 
     def get_content_type(self, obj=None, id=None, using=None):
