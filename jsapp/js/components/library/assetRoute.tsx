@@ -1,11 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import autoBind from 'react-autobind';
-import reactMixin from 'react-mixin';
-import Reflux from 'reflux';
+import clonedeep from 'lodash.clonedeep';
 import DocumentTitle from 'react-document-title';
 import bem from 'js/bem';
-import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
@@ -16,24 +12,42 @@ import AssetBreadcrumbs from './assetBreadcrumbs';
 import AssetContentSummary from './assetContentSummary';
 import CollectionAssetsTable from 'js/components/library/collectionAssetsTable';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import {getRouteAssetUid} from 'js/router/routerUtils';
+import type {AssetResponse} from 'js/dataInterface';
 
-class AssetRoute extends React.Component {
-  constructor(props) {
+interface AssetRouteProps {
+  params: {
+    uid: string;
+  }
+}
+
+interface AssetRouteState {
+  asset: AssetResponse | undefined;
+}
+
+export default class AssetRoute extends React.Component<
+  AssetRouteProps,
+  AssetRouteState
+> {
+  private unlisteners: Function[] = [];
+
+  constructor(props: AssetRouteProps) {
     super(props);
-    this.state = {asset: false};
-    this.unlisteners = [];
-    autoBind(this);
+
+    this.state = {
+      asset: undefined,
+    };
   }
 
   componentDidMount() {
     this.unlisteners.push(
-      actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted),
-      actions.library.subscribeToCollection.completed.listen(this.onSubscribeToCollectionCompleted),
-      actions.library.unsubscribeFromCollection.completed.listen(this.onUnsubscribeFromCollectionCompleted),
-      actions.resources.loadAsset.completed.listen(this.onAssetChanged),
-      actions.resources.updateAsset.completed.listen(this.onAssetChanged),
-      actions.resources.cloneAsset.completed.listen(this.onAssetChanged),
-      actions.resources.createResource.completed.listen(this.onAssetChanged),
+      actions.library.moveToCollection.completed.listen(this.onAssetChanged.bind(this)),
+      actions.library.subscribeToCollection.completed.listen(this.onSubscribeToCollectionCompleted.bind(this)),
+      actions.library.unsubscribeFromCollection.completed.listen(this.onUnsubscribeFromCollectionCompleted.bind(this)),
+      actions.resources.loadAsset.completed.listen(this.onAssetChanged.bind(this)),
+      actions.resources.updateAsset.completed.listen(this.onAssetChanged.bind(this)),
+      actions.resources.cloneAsset.completed.listen(this.onAssetChanged.bind(this)),
+      actions.resources.createResource.completed.listen(this.onAssetChanged.bind(this)),
     );
     this.loadCurrentAsset();
   }
@@ -42,16 +56,16 @@ class AssetRoute extends React.Component {
     this.unlisteners.forEach((clb) => {clb();});
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps: AssetRouteProps) {
     // trigger loading when switching assets
     if (nextProps.params.uid !== this.props.params.uid) {
-      this.setState({asset: false});
+      this.setState({asset: undefined});
       this.loadCurrentAsset();
     }
   }
 
   loadCurrentAsset() {
-    const uid = this.currentAssetID();
+    const uid = getRouteAssetUid();
     if (uid) {
       actions.resources.loadAsset({id: uid});
     }
@@ -65,35 +79,40 @@ class AssetRoute extends React.Component {
     this.onAssetAccessTypeChanged(false);
   }
 
-  onAssetAccessTypeChanged(setSubscribed) {
-    let newAsset = this.state.asset;
-    if (setSubscribed) {
-      newAsset.access_types.push(ACCESS_TYPES.subscribed);
-    } else {
-      newAsset.access_types.splice(
-        newAsset.access_types.indexOf(ACCESS_TYPES.subscribed),
-        1
-      );
+  /**
+   * This updates the local asset object, avoiding the need to fetch whole thing
+   * from Back End.
+   */
+  onAssetAccessTypeChanged(setSubscribed: boolean) {
+    let newAsset = clonedeep(this.state.asset);
+    if (newAsset) {
+      if (setSubscribed && newAsset.access_types === null) {
+        newAsset.access_types = [ACCESS_TYPES.subscribed];
+      } else if (setSubscribed && newAsset.access_types !== null) {
+        newAsset.access_types.push(ACCESS_TYPES.subscribed);
+      } else if (!setSubscribed && newAsset.access_types !== null) {
+        newAsset.access_types.splice(
+          newAsset.access_types.indexOf(ACCESS_TYPES.subscribed),
+          1
+        );
+        // Cleanup if empty array is left
+        if (newAsset.access_types.length === 0) {
+          newAsset.access_types = null;
+        }
+      }
+
+      this.setState({asset: newAsset});
     }
-    this.setState({asset: newAsset});
   }
 
-  onMoveToCollectionCompleted(asset) {
-    if (asset.parent === null) {
-      this.onAssetRemoved(asset.uid);
-    } else {
-      this.onAssetChanged(asset);
-    }
-  }
-
-  onAssetChanged(asset) {
-    if (asset.uid === this.currentAssetID()) {
+  onAssetChanged(asset: AssetResponse) {
+    if (asset.uid === getRouteAssetUid()) {
       this.setState({asset: asset});
     }
   }
 
   render() {
-    if (this.state.asset === false) {
+    if (!this.state.asset) {
       return (<LoadingSpinner/>);
     }
 
@@ -148,12 +167,3 @@ class AssetRoute extends React.Component {
     );
   }
 }
-
-reactMixin(AssetRoute.prototype, mixins.contextRouter);
-reactMixin(AssetRoute.prototype, Reflux.ListenerMixin);
-
-AssetRoute.contextTypes = {
-  router: PropTypes.object
-};
-
-export default AssetRoute;
