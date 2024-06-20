@@ -11,7 +11,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.models.hook import Hook
 from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatToken,
     KobocatUser,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -25,6 +24,15 @@ from kpi.utils.permissions import (
     grant_default_model_level_perms,
     is_user_anonymous,
 )
+
+
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if is_user_anonymous(instance):
+        return
+
+    if created:
+        Token.objects.get_or_create(user_id=instance.pk)
 
 
 @receiver(post_save, sender=User)
@@ -57,27 +65,6 @@ def save_kobocat_user(sender, instance, created, raw, **kwargs):
             KobocatUser.sync(instance)
             if created:
                 grant_kc_model_level_perms(instance)
-
-
-@receiver(post_save, sender=Token)
-def save_kobocat_token(sender, instance, **kwargs):
-    """
-    Sync AuthToken table between KPI and KC
-    """
-    if not settings.TESTING:
-        KobocatToken.sync(instance)
-
-
-@receiver(post_delete, sender=Token)
-def delete_kobocat_token(sender, instance, **kwargs):
-    """
-    Delete corresponding record from KC AuthToken table
-    """
-    if not settings.TESTING:
-        try:
-            KobocatToken.objects.get(pk=instance.pk).delete()
-        except KobocatToken.DoesNotExist:
-            pass
 
 
 @receiver(post_save, sender=Tag)

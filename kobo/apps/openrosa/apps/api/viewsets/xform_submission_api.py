@@ -19,7 +19,6 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs import filters
-from kobo.apps.openrosa.libs.authentication import DigestAuthentication
 from kobo.apps.openrosa.libs.mixins.openrosa_headers_mixin import OpenRosaHeadersMixin
 from kobo.apps.openrosa.libs.renderers.renderers import TemplateXMLRenderer
 from kobo.apps.openrosa.libs.serializers.data_serializer import SubmissionSerializer
@@ -28,6 +27,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     safe_create_instance,
     UnauthenticatedEditAttempt,
 )
+from kpi.authentication import DigestAuthentication
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 xml_error_re = re.compile('>(.*)<')

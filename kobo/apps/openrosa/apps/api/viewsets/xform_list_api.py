@@ -16,12 +16,12 @@ from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.libs import filters
-from kobo.apps.openrosa.libs.authentication import DigestAuthentication
 from kobo.apps.openrosa.libs.renderers.renderers import MediaFileContentNegotiation
 from kobo.apps.openrosa.libs.renderers.renderers import XFormListRenderer
 from kobo.apps.openrosa.libs.renderers.renderers import XFormManifestRenderer
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormListSerializer
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormManifestSerializer
+from kpi.authentication import DigestAuthentication
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 

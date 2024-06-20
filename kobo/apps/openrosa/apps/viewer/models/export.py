@@ -3,19 +3,12 @@ import os
 from tempfile import NamedTemporaryFile
 
 from django.db import models
-from django.db.models.signals import post_delete
 from django.utils.translation import gettext as t
 
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
-
-
-def export_delete_callback(sender, **kwargs):
-    export = kwargs['instance']
-    if export.filepath and default_storage.exists(export.filepath):
-        default_storage.delete(export.filepath)
 
 
 class Export(models.Model):
@@ -124,7 +117,7 @@ class Export(models.Model):
         self._update_filedir()
 
     def _update_filedir(self):
-        assert(self.filename)
+        assert self.filename
         self.filedir = os.path.join(
             self.xform.user.username,
             'exports',
@@ -183,6 +176,3 @@ class Export(models.Model):
     def is_filename_unique(cls, xform, filename):
         return Export.objects.filter(
             xform=xform, filename=filename).count() == 0
-
-
-post_delete.connect(export_delete_callback, sender=Export)

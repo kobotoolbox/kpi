@@ -25,11 +25,15 @@ SOCIALACCOUNT_PROVIDERS = {
 class TemplateTagsTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
+        # Delete any social app that could be added by migration
+        # `0007_add_providers_from_environment_to_db`
+        SocialApp.objects.all().delete()
+
         cls.social_app = SocialApp.objects.create(
-            client_id="test.service.id",
-            secret="test.service.secret",
-            name="Test App",
-            provider="Test App",
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='Test App',
         )
 
     def test_no_social_apps_no_custom_data(self):
