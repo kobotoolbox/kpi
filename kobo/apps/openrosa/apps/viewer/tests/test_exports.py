@@ -89,8 +89,9 @@ class TestExports(TestBase):
     def test_delete_file_on_export_delete(self):
         self._publish_transportation_form()
         self._submit_transport_instance()
-        export = generate_export(Export.XLS_EXPORT, 'xls', self.user.username,
-                                 self.xform.id_string)
+        export = generate_export(
+            Export.XLS_EXPORT, 'xls', self.user.username, self.xform.id_string
+        )
         self.assertTrue(default_storage.exists(export.filepath))
         # delete export object
         export.delete()
