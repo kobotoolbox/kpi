@@ -1,24 +1,15 @@
 # coding: utf-8
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import post_save
 from guardian.conf import settings as guardian_settings
-from rest_framework.authtoken.models import Token
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.libs.utils.guardian import (
-    get_perms_for_model,
-    assign_perm,
-)
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
-from kobo.apps.openrosa.apps.main.signals import set_api_permissions
 from kobo.apps.openrosa.libs.utils.country_field import COUNTRIES
 from kobo.apps.openrosa.libs.utils.gravatar import (
     get_gravatar_img_link,
     gravatar_exists,
 )
-from kpi.utils.database import use_db
-from kpi.utils.permissions import is_user_anonymous
 
 
 class UserProfile(models.Model):
@@ -67,48 +58,6 @@ class UserProfile(models.Model):
             ('can_add_xform', "Can add/upload an xform to user profile"),
             ('view_profile', "Can view user profile"),
         )
-
-
-# TODO Get rid of post signals below. There are only needed to KC unit tests.
-#  KPI does create KoboCAT object permissions and KoboCAT Token.
-#  See below:
-
-# 1) KC Token object is created when KPI calls `KobocatToken.sync()`
-#    in `kpi.signals.save_kobocat_token()`
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-
-    if is_user_anonymous(instance):
-        return
-
-    if created:
-        with use_db(settings.OPENROSA_DB_ALIAS):
-            if User.objects.filter(pk=instance.pk).exists() or settings.TESTING:
-                Token.objects.get_or_create(user_id=instance.pk)
-
-
-post_save.connect(create_auth_token, sender=User, dispatch_uid='auth_token')
-
-# 2) KC object permissions are created when KPI calls `grant_kc_model_level_perms()`
-#    in `kpi.signals.save_kobocat_user()`
-post_save.connect(
-    set_api_permissions, sender=User, dispatch_uid='set_api_permissions'
-)
-
-
-# 3) Same as #2,
-def set_object_permissions(sender, instance=None, created=False, **kwargs):
-    if created:
-        with use_db(settings.OPENROSA_DB_ALIAS):
-            if User.objects.filter(pk=instance.pk).exists() or settings.TESTING:
-                for perm in get_perms_for_model(UserProfile):
-                    assign_perm(perm.codename, instance.user, instance)
-
-
-post_save.connect(
-    set_object_permissions,
-    sender=UserProfile,
-    dispatch_uid='set_object_permissions',
-)
 
 
 # TODO, remove this in favor of `kpi.utils.object_permission.get_anonymous_user()`

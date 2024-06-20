@@ -19,7 +19,6 @@ from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.libs import filters
-from kobo.apps.openrosa.libs.authentication import DigestAuthentication
 from kobo.apps.openrosa.libs.mixins.openrosa_headers_mixin import OpenRosaHeadersMixin
 from kobo.apps.openrosa.libs.renderers.renderers import TemplateXMLRenderer
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormListSerializer
@@ -29,6 +28,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     publish_xml_form,
     get_instance_or_404,
 )
+from kpi.authentication import DigestAuthentication
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 

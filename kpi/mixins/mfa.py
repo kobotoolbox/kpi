@@ -13,10 +13,8 @@ class MfaBlockerMixin:
         Raise an exception if MFA is enabled for user's account.
         """
 
-        # This condition is kind of temporary. We can activate/deactivate
-        # class based on settings. Useful until we decide whether
-        # TokenAuthentication should be deactivated with MFA
-        # ToDo Remove the condition when kobotoolbox/kpi#3383 is released/merged
+        # We can activate/deactivate class based on settings. Useful until we
+        # decide whether TokenAuthentication should be deactivated with MFA.
         class_path = f'{self.__module__}.{self.__class__.__name__}'
         if class_path not in settings.MFA_SUPPORTED_AUTH_CLASSES:
             if get_mfa_model().objects.filter(is_active=True, user=user).exists():

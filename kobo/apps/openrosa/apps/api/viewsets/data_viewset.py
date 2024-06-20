@@ -35,10 +35,8 @@ from kobo.apps.openrosa.apps.logger.models.instance import (
     nullify_exports_time_of_last_submission,
     update_xform_submission_count_delete,
 )
-from kobo.apps.openrosa.apps.viewer.models.parsed_instance import (
-    _remove_from_mongo,
-    ParsedInstance,
-)
+from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
 from kobo.apps.openrosa.libs.renderers import renderers
 from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
     AnonymousUserPublicFormsMixin,
@@ -422,7 +420,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         postgres_query, mongo_query = self.__build_db_queries(xform, request.data)
 
         # Disconnect signals to speed-up bulk deletion
-        pre_delete.disconnect(_remove_from_mongo, sender=ParsedInstance)
+        pre_delete.disconnect(remove_from_mongo, sender=ParsedInstance)
         post_delete.disconnect(
             nullify_exports_time_of_last_submission, sender=Instance,
             dispatch_uid='nullify_exports_time_of_last_submission',
@@ -454,7 +452,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             )
         finally:
             # Pre_delete signal needs to be re-enabled for parsed instance
-            pre_delete.connect(_remove_from_mongo, sender=ParsedInstance)
+            pre_delete.connect(remove_from_mongo, sender=ParsedInstance)
             post_delete.connect(
                 nullify_exports_time_of_last_submission,
                 sender=Instance,
