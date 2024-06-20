@@ -4,9 +4,7 @@ import re
 from xml.dom import Node
 
 from django.db import models
-from django.db.models.signals import post_save
 from django.utils.encoding import smart_str
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, get_perms_for_model
 from pyxform import SurveyElementBuilder
 from pyxform.builder import create_survey_from_xls
 from pyxform.question import Question
@@ -17,8 +15,10 @@ from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse_xml
 from kobo.apps.openrosa.apps.api.mongo_helper import MongoHelper
 from kobo.apps.openrosa.libs.utils.common_tags import UUID, SUBMISSION_TIME, TAGS, NOTES
-from kobo.apps.openrosa.libs.utils.export_tools import question_types_to_exclude,\
-    DictOrganizer
+from kobo.apps.openrosa.libs.utils.export_tools import (
+    question_types_to_exclude,
+    DictOrganizer,
+)
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
 
 
@@ -425,15 +425,3 @@ class DataDictionary(XForm):
     def get_survey_elements_of_type(self, element_type):
         return [e for e in self.get_survey_elements()
                 if e.type == element_type]
-
-
-def set_object_permissions(sender, instance=None, created=False, **kwargs):
-    if created:
-        for perm in get_perms_for_model(XForm):
-            assign_perm(perm.codename, instance.user, instance)
-
-post_save.connect(
-    set_object_permissions,
-    sender=DataDictionary,
-    dispatch_uid='xform_object_permissions',
-)

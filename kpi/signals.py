@@ -11,7 +11,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.models.hook import Hook
 from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatToken,
     KobocatUser,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -25,6 +24,15 @@ from kpi.utils.permissions import (
     grant_default_model_level_perms,
     is_user_anonymous,
 )
+
+
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if is_user_anonymous(instance):
+        return
+
+    if created:
+        Token.objects.get_or_create(user_id=instance.pk)
 
 
 @receiver(post_save, sender=User)
