@@ -334,7 +334,6 @@ class EnvironmentTests(BaseTestCase):
         self.assertContains(response, 'social_app')
         self.assertNotContains(response, 'app.name')
 
-
     def test_tos_sitewide_message(self):
         # Check that fixtures properly stores terms of service
         response = self.client.get(self.url, format='json')
