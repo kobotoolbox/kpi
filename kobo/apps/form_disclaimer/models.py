@@ -60,11 +60,6 @@ class FormDisclaimer(AbstractMarkdownxModel):
             ),
         ]
 
-    def save(self, *args, **kwargs):
-
-        with transaction.atomic():
-            super().save(*args, **kwargs)
-
 
 class OverriddenFormDisclaimer(FormDisclaimer):
 
