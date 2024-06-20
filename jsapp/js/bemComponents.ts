@@ -46,8 +46,6 @@ bem.FormBuilderHeader = makeBem(null, 'form-builder-header');
 bem.FormBuilderHeader__row = makeBem(bem.FormBuilderHeader, 'row');
 bem.FormBuilderHeader__cell = makeBem(bem.FormBuilderHeader, 'cell');
 bem.FormBuilderHeader__item = makeBem(bem.FormBuilderHeader, 'item', 'span');
-bem.FormBuilderHeader__button = makeBem(bem.FormBuilderHeader, 'button', 'button');
-bem.FormBuilderHeader__close = makeBem(bem.FormBuilderHeader, 'close', 'button');
 
 bem.FormMedia = makeBem(null, 'form-media');
 bem.FormMedia__title = makeBem(bem.FormMedia, 'title');

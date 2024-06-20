@@ -204,23 +204,6 @@
   }
 }
 
-.popover-menu--new-menu {
-  width: 100%;
-  margin-bottom: 10px;
-
-  .popover-menu__content {
-    right: 0px;
-    width: 100%;
-  }
-}
-
-.popover-menu--new-menu .popover-menu__toggle {
-  @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-  border-radius: 6px;
-
-  width: 100%;
-}
-
 .popover-menu--assets-table {
   .popover-menu__content {
     max-height: 26px * 7.5;
@@ -252,10 +235,12 @@
 
 .popover-menu--custom-reports {
   .popover-menu__toggle {
-    @extend .mdl-button;
-
+    border-radius: 6px;
+    border: 1px solid currentcolor;
     text-transform: uppercase;
-    padding-left: 0px;
+    padding: 0 12px;
+    line-height: 38px;
+    height: 38px;
 
     &::after {
       content: '\25BC';

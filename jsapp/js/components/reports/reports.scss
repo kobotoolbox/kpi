@@ -117,6 +117,7 @@
 
 .form-view__report-buttons-left {
   @include mixins.centerRowFlex;
+  gap: 5px;
   flex: 1;
 }
 

@@ -15,6 +15,7 @@ import {
 import { dataInterface } from '../dataInterface';
 import {userCan} from 'js/components/permissions/utils';
 import Button from 'js/components/common/button';
+import cx from 'classnames';
 
 // see kobo.map.marker-colors.scss for styling details of each set
 const COLOR_SETS = ['a', 'b', 'c', 'd', 'e'];
@@ -273,9 +274,10 @@ class MapSettings extends React.Component {
     var modalTabs = tabs.map(function(tabId, i) {
       return (
         <button
-          className={`map-modal-tab-button ${
-            this.state.activeModalTab === tabId ? 'active' : ''
-          }`}
+          className={cx({
+            'legacy-modal-tab-button': true,
+            'legacy-modal-tab-button--active': this.state.activeModalTab === tabId,
+          })}
           onClick={this.switchTab}
           data-tabid={tabId}
           key={i}

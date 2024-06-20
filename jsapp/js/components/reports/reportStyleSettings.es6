@@ -7,6 +7,7 @@ import Modal from 'js/components/common/modal';
 import ChartTypePicker from './chartTypePicker.component';
 import ChartColorsPicker from './chartColorsPicker';
 import Button from 'js/components/common/button';
+import cx from 'classnames';
 
 export default class ReportStyleSettings extends React.Component {
   constructor(props) {
@@ -123,17 +124,13 @@ export default class ReportStyleSettings extends React.Component {
     }
 
     var modalTabs = tabs.map(function (tab, i) {
-      let tabClassNames = [
-        'mdl-button',
-        'mdl-button--tab',
-      ];
-      if (this.state.activeModalTab === i) {
-        tabClassNames.push('active');
-      }
       return (
         <button
-          className={tabClassNames.join(' ')}
-          onClick={this.toggleTab}
+          className={cx({
+            'legacy-modal-tab-button': true,
+            'legacy-modal-tab-button--active': this.state.activeModalTab === i,
+          })}
+          onClick={this.toggleTab.bind(this)}
           data-index={i}
           key={i}
         >
