@@ -4,10 +4,8 @@ from typing import Optional
 from django.apps import apps
 from django.utils import timezone
 
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatAttachment,
-    KobocatMetadata,
-)
+from kobo.apps.openrosa.apps.logger.models import Attachment as KobocatAttachment
+from kobo.apps.openrosa.apps.main.models import MetaData as KobocatMetadata
 from kpi.models.asset import AssetFile
 from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 from .exceptions import AsyncTaskException

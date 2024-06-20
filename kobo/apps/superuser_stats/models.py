@@ -1,5 +1,5 @@
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatMonthlyXFormSubmissionCounter,
+from kobo.apps.openrosa.apps.logger.models import (
+    MonthlyXFormSubmissionCounter as KobocatMonthlyXFormSubmissionCounter,
 )
 
 

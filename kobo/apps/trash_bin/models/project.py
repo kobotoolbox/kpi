@@ -4,12 +4,14 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils.timezone import now
 
+from kobo.apps.openrosa.apps.logger.models import (
+    XForm as KobocatXForm,
+)
 from kobo.apps.project_ownership.models import (
     Invite,
     InviteStatusChoices,
     Transfer,
 )
-from kpi.deployment_backends.kc_access.shadow_models import KobocatUser, KobocatXForm
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
@@ -49,7 +51,7 @@ class ProjectTrash(BaseTrash):
             kc_filter_params = {'kpi_asset_uid__in': asset_uids}
             filter_params = {'uid__in': asset_uids}
         else:
-            kc_filter_params = {'user': KobocatUser.get_kc_user(owner)}
+            kc_filter_params = {'user_id': owner.pk}
             filter_params = {'owner': owner}
 
         kc_update_params = {'downloadable': active}

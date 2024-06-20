@@ -28,15 +28,17 @@ from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
+
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatMonthlyXFormSubmissionCounter,
-    KobocatXForm,
-    KobocatUser,
-    KobocatUserProfile,
-    ReadOnlyKobocatInstance,
+from kobo.apps.openrosa.apps.logger.models import (
+    Instance as ReadOnlyKobocatInstance,
+    MonthlyXFormSubmissionCounter as KobocatMonthlyXFormSubmissionCounter,
+    XForm as KobocatXForm,
+)
+from kobo.apps.openrosa.apps.main.models import (
+    UserProfile as KobocatUserProfile,
 )
 from kpi.models.asset import Asset, AssetDeploymentStatus
 
@@ -364,11 +366,11 @@ def generate_user_report(output_filename: str):
         else:
             return d
 
-    def get_row_for_user(u: KobocatUser) -> list:
+    def get_row_for_user(u: 'kobo_auth.User') -> list:
         row_ = []
 
         try:
-            profile = KobocatUserProfile.objects.get(user=u)
+            profile = KobocatUserProfile.objects.get(user_id=u.pk)
         except KobocatUserProfile.DoesNotExist:
             profile = None
 
@@ -437,9 +439,7 @@ def generate_user_report(output_filename: str):
     with default_storage.open(output_filename, 'w') as output_file:
         writer = csv.writer(output_file)
         writer.writerow(columns)
-        kc_users = KobocatUser.objects.exclude(
-            pk=settings.ANONYMOUS_USER_ID
-        ).order_by('pk')
+        kc_users = User.objects.exclude(pk=settings.ANONYMOUS_USER_ID).order_by('pk')
         for kc_user in kc_users.iterator(CHUNK_SIZE):
             try:
                 row = get_row_for_user(kc_user)

@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.db import models
 
-from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
+from kobo.apps.openrosa.apps.main.models import (
+    UserProfile as KobocatUserProfile,
+)
 from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
 

@@ -5,9 +5,9 @@ from django.conf import settings
 from django.utils import timezone
 from model_bakery import baker
 
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatDailyXFormSubmissionCounter,
-    KobocatXForm,
+from kobo.apps.openrosa.apps.logger.models import (
+    DailyXFormSubmissionCounter as KobocatDailyXFormSubmissionCounter,
+    XForm as KobocatXForm,
 )
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
