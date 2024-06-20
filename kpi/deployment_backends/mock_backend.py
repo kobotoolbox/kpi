@@ -39,6 +39,7 @@ from kpi.exceptions import (
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.tests.utils.mock import MockAttachment
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
 from kpi.utils.xml import fromstring_preserve_root_xmlns
 from .base_backend import BaseDeploymentBackend
@@ -649,7 +650,16 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def transfer_counters_ownership(self, new_owner: 'auth.User'):
         NLPUsageCounter.objects.filter(
             asset=self.asset, user=self.asset.owner
-        ).update(user=new_owner)
+        ).update(
+            user=new_owner,
+            counters=UpdateJSONFieldAttributes(
+                'counters',
+                updates={
+                    'addon_used_asr_seconds': 0,
+                    'addon_used_mt_characters': 0,
+                },
+            ),
+        )
 
         # Kobocat models are not implemented, but mocked in unit tests.
 

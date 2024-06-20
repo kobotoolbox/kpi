@@ -1,7 +1,10 @@
+from dateutil import relativedelta
+
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db.models import Sum, Q, OuterRef, Subquery, QuerySet
-from django.db.models.functions import Coalesce
+from django.db.models import IntegerField, Sum, Q, OuterRef, Subquery, QuerySet
+from django.db.models.fields.json import KeyTransform
+from django.db.models.functions import Cast, Coalesce
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import empty
@@ -102,6 +105,7 @@ class ServiceUsageSerializer(serializers.Serializer):
     total_nlp_usage = serializers.SerializerMethodField()
     total_storage_bytes = serializers.SerializerMethodField()
     total_submission_count = serializers.SerializerMethodField()
+    addon_usage = serializers.SerializerMethodField()
     current_month_start = serializers.SerializerMethodField()
     current_year_start = serializers.SerializerMethodField()
     billing_period_end = serializers.SerializerMethodField()
@@ -112,6 +116,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._total_nlp_usage = {}
         self._total_storage_bytes = 0
         self._total_submission_count = {}
+        self._addon_usage = {}
         self._current_month_start = None
         self._current_year_start = None
         self._anchor_date = None
@@ -129,6 +134,9 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def get_total_storage_bytes(self, user):
         return self._total_storage_bytes
+
+    def get_addon_usage(self, user):
+        return self._addon_usage
 
     def get_current_month_start(self, user):
         return self._current_month_start
@@ -182,27 +190,67 @@ class ServiceUsageSerializer(serializers.Serializer):
         return Q(user_id__in=user_ids)
 
     def _get_nlp_user_counters(self, month_filter, year_filter):
-        nlp_tracking = NLPUsageCounter.objects.only(
-            'date', 'total_asr_seconds', 'total_mt_characters'
-        ).filter(self._user_id_query).aggregate(
-            asr_seconds_current_year=Coalesce(
-                Sum('total_asr_seconds', filter=year_filter), 0
-            ),
-            mt_characters_current_year=Coalesce(
-                Sum('total_mt_characters', filter=year_filter), 0
-            ),
-            asr_seconds_current_month=Coalesce(
-                Sum('total_asr_seconds', filter=month_filter), 0
-            ),
-            mt_characters_current_month=Coalesce(
-                Sum('total_mt_characters', filter=month_filter), 0
-            ),
-            asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
-            mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
+        addon_period_filter = year_filter if self._subscription_interval == "year" else month_filter
+
+        nlp_tracking = (
+            NLPUsageCounter.objects.only(
+                'date', 'total_asr_seconds', 'total_mt_characters', 'counters'
+            )
+            .filter(self._user_id_query)
+            .annotate(
+                addon_used_asr_seconds=Cast(
+                    KeyTransform(
+                        'addon_used_asr_seconds',
+                        'counters',
+                    ),
+                    IntegerField(),
+                ),
+                addon_used_mt_characters=Cast(
+                    KeyTransform(
+                        'addon_used_mt_characters',
+                        'counters',
+                    ),
+                    IntegerField(),
+                ),
+            )
+            .aggregate(
+                addon_used_asr_seconds_current_period=Coalesce(
+                    Sum(
+                        'addon_used_asr_seconds',
+                        filter=addon_period_filter,
+                    ),
+                    0,
+                ),
+                addon_used_mt_characters_current_period=Coalesce(
+                    Sum(
+                        'addon_used_mt_characters',
+                        filter=addon_period_filter,
+                    ),
+                    0,
+                ),
+                asr_seconds_current_year=Coalesce(
+                    Sum('total_asr_seconds', filter=year_filter), 0
+                ),
+                mt_characters_current_year=Coalesce(
+                    Sum('total_mt_characters', filter=year_filter), 0
+                ),
+                asr_seconds_current_month=Coalesce(
+                    Sum('total_asr_seconds', filter=month_filter), 0
+                ),
+                mt_characters_current_month=Coalesce(
+                    Sum('total_mt_characters', filter=month_filter), 0
+                ),
+                asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
+                mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
+            )
         )
 
-        for nlp_key, count in nlp_tracking.items():
-            self._total_nlp_usage[nlp_key] = count if count is not None else 0
+        for key, count in nlp_tracking.items():
+            if key.startswith("addon_used_"):
+                addon_key = key.replace("addon_used_", "")
+                self._addon_usage[addon_key] = count if count is not None else 0
+            else:
+                self._total_nlp_usage[key] = count if count is not None else 0
 
     def _get_organization_details(self, user_id: int):
         # Get the organization ID from the request

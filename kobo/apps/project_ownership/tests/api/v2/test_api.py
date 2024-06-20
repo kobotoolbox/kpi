@@ -14,6 +14,7 @@ from kobo.apps.project_ownership.models import (
     Transfer,
 )
 from kobo.apps.project_ownership.tests.utils import MockServiceUsageSerializer
+from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.trackers.utils import update_nlp_counter
 
 from kpi.constants import PERM_VIEW_ASSET
@@ -306,6 +307,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.asset.deploy(backend='mock', active=True)
         self.__add_submissions()
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
+
         # Add fake NLP usage
         update_nlp_counter(
             service='mock_nlp_service_asr_seconds',
@@ -319,6 +321,14 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             user_id=self.someuser.pk,
             asset_id=self.asset.pk,
         )
+
+        # Adding addon usage manually to avoid having to create stripe objects
+        counter = NLPUsageCounter.objects.first()
+        counter_dict = counter.counters
+        counter_dict["addon_used_asr_seconds"] = 120
+        counter_dict['addon_used_mt_characters'] = 1000
+        counter.counters = counter_dict
+        counter.save()
 
     def __add_submissions(self):
         submissions = []
@@ -385,6 +395,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'asr_seconds_all_time': 120,
                 'mt_characters_all_time': 1000,
             },
+            'addon_usage': {
+                'asr_seconds_current_period': 120,
+                'mt_characters_current_period': 1000,
+            },
             'total_storage_bytes': 15000,
             'total_submission_count': {
                 'all_time': 1,
@@ -404,6 +418,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'mt_characters_current_month': 0,
                 'asr_seconds_all_time': 0,
                 'mt_characters_all_time': 0,
+            },
+            'addon_usage': {
+                'asr_seconds_current_period': 0,
+                'mt_characters_current_period': 0,
             },
             'total_storage_bytes': 0,
             'total_submission_count': {
@@ -450,6 +468,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         # someuser should have no usage reported anymore
         response = self.client.get(service_usage_url)
         assert response.data == expected_empty_data
+
+        # Addon usage should not transfer
+        expected_data['addon_usage']['asr_seconds_current_period'] = 0
+        expected_data['addon_usage']['mt_characters_current_period'] = 0
 
         # anotheruser should now have usage reported
         self.client.login(username='anotheruser', password='anotheruser')

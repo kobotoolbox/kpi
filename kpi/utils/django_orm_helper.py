@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from typing import Optional, Literal
 
 from django.db.models import Lookup, Field
 from django.db.models.expressions import Func, Value
@@ -38,6 +37,109 @@ class IncrementValue(Func):
             increment=increment,
             **extra,
         )
+
+
+class IncrementValues(Func):
+    """
+    Like IncrementValue, but handles several properties at once.
+    Usage:
+    ```
+    Model.objects.filter(pk=<pk>).update(
+        <field>=IncrementValues(
+            '<field>',
+            keynames=['attr1', ..., 'attrN'],
+            increments=['value1', ..., 'valueN']
+        )
+    )
+    ```
+    """
+
+    function = 'jsonb_build_object'
+    arity = 1
+
+    def __init__(
+        self,
+        expression: str,
+        keynames: list[str],
+        increments: list[int],
+        **extra
+    ):
+        if len(keynames) != len(increments):
+            raise ValueError(
+                '`keynames` and `increments` must have the same length'
+            )
+
+        super().__init__(
+            expression,
+            keynames=keynames,
+            increments=increments,
+            **extra,
+        )
+
+    def as_sql(
+        self,
+        compiler,
+        connection,
+        function=None,
+        template=None,
+        arg_joiner=None,
+        **extra_context,
+    ):
+        template = self._get_template()
+        # Empty `self.extra` since replacement is done in `_get_template()` and
+        self.extra = {}
+        result = super().as_sql(
+            compiler,
+            connection,
+            function,
+            template,
+            arg_joiner,
+            **extra_context
+        )
+        return result
+
+    def _get_template(self) -> str:
+        """
+        Build template dynamically based on the context of `keynames` and
+        `increments` arguments passed to the constructor of the class.
+
+        Example:
+        If `keynames` and `increments` are respectively `['foo', 'bar']` and
+        [1, 2], it should return something like:
+
+        ```
+        %(expressions)
+          || %(function)s(
+                'foo', COALESCE((%(expressions) ->> 'foo')::int + 1::int, 1::int)
+            )
+          || %(function)s(
+                'bar', COALESCE((%(expressions) ->> 'bar')::int + 2::int, 2::int)
+            )
+        ```
+
+        %(expressions) and %(function) are left in place as placeholders and should
+        be handled by `as_sql()` when the whole SQL query is build.
+        """
+
+        placeholder = (
+            "%(function)s("
+            "   '{keyname}', "
+            "   COALESCE("
+            "       (%(expressions)s ->> '{keyname}')::int + {increment}::int, "
+            "       {increment}::int"
+            "   )"
+            ")"
+        )
+        template_list = ['%(expressions)s']
+
+        for idx, keyname in enumerate(self.extra['keynames']):
+            values = {
+                'keyname': keyname,
+                'increment': self.extra['increments'][idx]
+            }
+            template_list.append(placeholder.format(**values))
+
+        return ' || '.join(template_list)
 
 
 class OrderCustomCharField(Func):

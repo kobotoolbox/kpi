@@ -1,7 +1,14 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import Customer, PaymentIntent, Charge, Price, Product
+from djstripe.models import (
+    Customer,
+    PaymentIntent,
+    Charge,
+    Price,
+    Product,
+    Subscription,
+)
 from model_bakery import baker
 from rest_framework import status
 
@@ -20,25 +27,38 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self.organization = baker.make(Organization)
         self.organization.add_user(self.someuser, is_admin=True)
         self.customer = baker.make(Customer, subscriber=self.organization)
+        baker.make(
+            Subscription,
+            customer=self.customer,
+            status='active',
+        )
 
     def _create_product(self, metadata=None):
         if not metadata:
-            metadata = {'product_type': 'addon', 'submissions_limit': 2000}
+            metadata = {
+                'product_type': 'addon_onetime',
+                'submission_limit': 2000,
+                'valid_tags': 'all',
+            }
         self.product = baker.make(
             Product,
             active=True,
             metadata=metadata,
         )
-        self.price = baker.make(Price, active=True, product=self.product, type='one_time')
+        self.price = baker.make(
+            Price, active=True, product=self.product, type='one_time'
+        )
         self.product.save()
 
-    def _create_payment(self, payment_status='succeeded', refunded=False, quantity=1):
+    def _create_payment(
+        self, payment_status='succeeded', refunded=False, quantity=1
+    ):
         payment_total = quantity * 2000
         self.payment_intent = baker.make(
             PaymentIntent,
             customer=self.customer,
             status=payment_status,
-            payment_method_types=["card"],
+            payment_method_types=['card'],
             livemode=False,
             amount=payment_total,
             amount_capturable=payment_total,
@@ -87,13 +107,21 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert response.data['count'] == 3
 
     def test_no_addons_for_invalid_product_metadata(self):
-        self._create_product(metadata={'product_type': 'subscription', 'submissions_limit': 2000})
+        self._create_product(
+            metadata={'product_type': 'subscription', 'submission_limit': 2000}
+        )
         self._create_payment()
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 0
 
-        self._create_product(metadata={'product_type': 'addon', 'not_a_real_limit_key': 2000})
+        self._create_product(
+            metadata={
+                'product_type': 'addon_onetime',
+                'not_a_real_limit_key': 2000,
+                'valid_tags': 'all'
+            }
+        )
         self._create_payment()
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
@@ -118,12 +146,20 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
     def test_total_limits_reflect_addon_quantity(self):
         limit = 2000
         quantity = 9
-        self._create_product(metadata={'product_type': 'addon', 'asr_seconds_limit': limit})
+        self._create_product(
+            metadata={
+                'product_type': 'addon_onetime',
+                'asr_seconds_limit': limit,
+                'valid_tags': 'all',
+            }
+        )
         self._create_payment(quantity=quantity)
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
-        asr_seconds = response.data['results'][0]['total_usage_limits']['asr_seconds_limit']
+        asr_seconds = response.data['results'][0]['total_usage_limits'][
+            'asr_seconds_limit'
+        ]
         assert asr_seconds == limit * quantity
 
     def test_anonymous_user(self):

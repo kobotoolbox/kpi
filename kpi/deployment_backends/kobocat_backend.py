@@ -1286,9 +1286,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def transfer_counters_ownership(self, new_owner: 'auth.User'):
 
+        # Addon usage is not relevant to new owner, so we zero it
         NLPUsageCounter.objects.filter(
             asset=self.asset, user=self.asset.owner
-        ).update(user=new_owner)
+        ).update(
+            user=new_owner,
+            counters=UpdateJSONFieldAttributes(
+                'counters',
+                updates={
+                    'addon_used_asr_seconds': 0,
+                    'addon_used_mt_characters': 0,
+                },
+            ),
+        )
         KobocatDailyXFormSubmissionCounter.objects.filter(
             xform=self.xform, user_id=self.asset.owner.pk
         ).update(user=new_owner)

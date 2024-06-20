@@ -4,7 +4,9 @@ from django.apps import apps
 from django.db.models import F
 from django.utils import timezone
 
-from kpi.utils.django_orm_helper import IncrementValue
+from kpi.utils.django_orm_helper import (
+    IncrementValues,
+)
 
 
 def update_nlp_counter(
@@ -43,17 +45,32 @@ def update_nlp_counter(
 
     # Update the total counters by the usage amount to keep them current
     kwargs = {}
+    keys_to_update = [service]
+    values_to_update = [amount]
+    addon_used_key_prefix = 'addon_used_'
+
     if service.endswith('asr_seconds'):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
         if asset_id is not None:
             # If we're not updating the catch-all counter, increment any NLP add-ons the user may have
-            PlanAddOn.increment_add_ons_for_user(user_id, 'seconds', amount)
+            remaining = PlanAddOn.increment_add_ons_for_user(
+                user_id, 'seconds', amount
+            )
+            keys_to_update.append(addon_used_key_prefix + 'asr_seconds')
+            values_to_update.append(amount - remaining)
+
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
         if asset_id is not None:
-            PlanAddOn.increment_add_ons_for_user(user_id, 'character', amount)
+            remaining = PlanAddOn.increment_add_ons_for_user(
+                user_id, 'character', amount
+            )
+            keys_to_update.append(addon_used_key_prefix + 'mt_characters')
+            values_to_update.append(amount - remaining)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
-        counters=IncrementValue('counters', keyname=service, increment=amount),
+        counters=IncrementValues(
+            'counters', keynames=keys_to_update, increments=values_to_update
+        ),
         **kwargs,
     )

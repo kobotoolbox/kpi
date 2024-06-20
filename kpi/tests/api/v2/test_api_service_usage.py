@@ -89,6 +89,8 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
         counter_1 = {
             'google_asr_seconds': 4586,
             'google_mt_characters': 5473,
+            'addon_used_asr_seconds': 100,
+            'addon_used_mt_characters': 500,
         }
         NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
@@ -104,6 +106,8 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
         counter_2 = {
             'google_asr_seconds': 142,
             'google_mt_characters': 1253,
+            'addon_used_asr_seconds': 100,
+            'addon_used_mt_characters': 500,
         }
         NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
@@ -234,6 +238,8 @@ class ServiceUsageAPITestCase(ServiceUsageAPIBase):
         assert (
             response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
         )
+        assert response.data['addon_usage']['asr_seconds_current_period'] == 100
+        assert response.data['addon_usage']['mt_characters_current_period'] == 500
         assert (
             response.data['total_storage_bytes'] == self.expected_file_size()
         )

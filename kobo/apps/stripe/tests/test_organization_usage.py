@@ -7,11 +7,21 @@ from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
+from djstripe.models import (
+    Customer,
+    Price,
+    Product,
+    Subscription,
+    SubscriptionItem,
+)
 from model_bakery import baker
 
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
+from kobo.apps.trackers.models import NLPUsageCounter
+from kobo.apps.trackers.submission_utils import (
+    create_mock_assets,
+    add_mock_submissions,
+)
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
 
 
@@ -37,20 +47,23 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         organization = baker.make(Organization, id=cls.org_id, name='test organization')
         organization.add_user(cls.anotheruser, is_admin=True)
         assets = create_mock_assets([cls.anotheruser], cls.assets_per_user)
+        cls.asset = assets[0]
 
-        cls.customer = baker.make(Customer, subscriber=organization, livemode=False)
+        cls.customer = baker.make(
+            Customer, subscriber=organization, livemode=False
+        )
         organization.save()
 
-        users = baker.make(User, _quantity=cls.user_count - 1, _bulk_create=True)
+        cls.users = baker.make(User, _quantity=cls.user_count - 1, _bulk_create=True)
         baker.make(
             OrganizationUser,
-            user=users.__iter__(),
+            user=cls.users.__iter__(),
             organization=organization,
             is_admin=False,
             _quantity=cls.user_count - 1,
             _bulk_create=True,
         )
-        assets = assets + create_mock_assets(users, cls.assets_per_user)
+        assets = assets + create_mock_assets(cls.users, cls.assets_per_user)
         add_mock_submissions(assets, cls.submissions_per_asset)
 
     def setUp(self):
@@ -63,42 +76,94 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
     def tearDown(self):
         cache.clear()
 
-    def generate_subscription(self, metadata: dict):
+    def generate_subscription(self, metadata: dict, monthly_interval: bool = True):
         """Create a subscription for a product with custom metadata"""
-        product = baker.make(Product, active=True, metadata={
-            'product_type': 'plan',
-            **metadata,
-        })
+        interval = 'month' if monthly_interval else 'year'
+
+        product = baker.make(
+            Product,
+            active=True,
+            metadata={
+                'product_type': 'plan',
+                **metadata,
+            },
+        )
         price = baker.make(
             Price,
             active=True,
             id='price_sfmOFe33rfsfd36685657',
+            recurring={'interval': interval},
             product=product,
         )
 
-        subscription_item = baker.make(SubscriptionItem, price=price, quantity=1, livemode=False)
-        baker.make(
+        period_offset = relativedelta(weeks=2)
+
+        if interval == 'year':
+            period_offset = relativedelta(months=6)
+
+        subscription = baker.make(
             Subscription,
             customer=self.customer,
             status='active',
-            items=[subscription_item],
             livemode=False,
-            billing_cycle_anchor=self.now - relativedelta(weeks=2),
-            current_period_end=self.now + relativedelta(weeks=2),
-            current_period_start=self.now - relativedelta(weeks=2),
+            billing_cycle_anchor=self.now - period_offset,
+            current_period_end=self.now + period_offset,
+            current_period_start=self.now - period_offset,
         )
+        baker.make(
+            SubscriptionItem, subscription=subscription, price=price, quantity=1, livemode=False
+        )
+
+    def add_nlp_trackers_for_org(self, time, num_units=1):
+        """
+        Add specified usage per user for specified period
+        """
+        # this month
+        counter = {
+            'google_asr_seconds': num_units,
+            'google_mt_characters': num_units,
+            'addon_used_asr_seconds': num_units,
+            'addon_used_mt_characters': num_units,
+        }
+  
+        NLPUsageCounter.objects.create(
+            user_id=self.anotheruser.id,
+            asset_id=self.asset.id,
+            date=time,
+            counters=counter,
+            total_asr_seconds=counter['google_asr_seconds'],
+            total_mt_characters=counter['google_mt_characters'],
+        )
+
+        for user in self.users:
+            NLPUsageCounter.objects.create(
+                user_id=user.id,
+                asset_id=self.asset.id,
+                date=time,
+                counters=counter,
+                total_asr_seconds=counter['google_asr_seconds'],
+                total_mt_characters=counter['google_mt_characters'],
+            )
+
 
     def test_usage_doesnt_include_org_users_without_subscription(self):
         """
         Test that the endpoint *only* returns usage for the logged-in user
         if they don't have a subscription that includes Organizations.
         """
+        self.add_nlp_trackers_for_org(self.now)
         response = self.client.get(self.detail_url)
         # without a plan, the user should only see their usage
         assert response.data['total_submission_count']['all_time'] == self.expected_submissions_single
         assert response.data['total_submission_count']['current_month'] == self.expected_submissions_single
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_single
+        )
+        assert (
+            response.data['addon_usage']['asr_seconds_current_period'] == 1
+        )
+        assert (
+            response.data['addon_usage']['mt_characters_current_period'] == 1
         )
 
     def test_usage_for_plans_with_org_access(self):
@@ -111,15 +176,53 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
             {
                 'plan_type': 'enterprise',
                 'organizations': True,
-            }
+            },
         )
 
+        self.add_nlp_trackers_for_org(self.now)
         # the user should see usage for everyone in their org
         response = self.client.get(self.detail_url)
         assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
         assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
+        )
+        assert response.data['addon_usage']['asr_seconds_current_period'] == self.user_count
+        assert (
+            response.data['addon_usage']['mt_characters_current_period']
+            == self.user_count
+        )
+
+    def test_annual_addon_usage_aggregation(self):
+        """
+        Test that the endpoint aggregates usage data for yearly plans correctly
+        """
+
+        self.generate_subscription(
+            {
+                'plan_type': 'enterprise',
+                'organizations': True,
+            },
+            monthly_interval=False,
+        )
+        self.add_nlp_trackers_for_org(self.now)
+
+        last_month = self.now - relativedelta(months=1)
+        self.add_nlp_trackers_for_org(last_month)
+
+        # Adding these to make sure they aren't included in aggregation
+        last_year = self.now - relativedelta(months=12)
+        self.add_nlp_trackers_for_org(last_year, 50)
+
+        response = self.client.get(self.detail_url)
+
+        assert (
+            response.data['addon_usage']['asr_seconds_current_period']
+            == self.user_count * 2
+        )
+        assert (
+            response.data['addon_usage']['mt_characters_current_period']
+            == self.user_count * 2
         )
 
     def test_doesnt_include_org_users_with_invalid_plan(self):
@@ -129,6 +232,7 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         """
 
         self.generate_subscription({})
+        self.add_nlp_trackers_for_org(self.now)
 
         response = self.client.get(self.detail_url)
         # without the proper subscription, the user should only see their usage
@@ -136,6 +240,12 @@ class OrganizationUsageAPITestCase(ServiceUsageAPIBase):
         assert response.data['total_submission_count']['all_time'] == self.expected_submissions_single
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_single
+        )
+        assert (
+            response.data['addon_usage']['asr_seconds_current_period'] == 1
+        )
+        assert (
+            response.data['addon_usage']['mt_characters_current_period'] == 1
         )
 
     @pytest.mark.performance
