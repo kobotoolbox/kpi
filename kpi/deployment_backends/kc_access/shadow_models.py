@@ -13,7 +13,6 @@ from django.db import (
     ProgrammingError,
     connections,
     models,
-    router,
     transaction,
 )
 from django.utils import timezone
@@ -67,7 +66,7 @@ def update_autofield_sequence(model):
     query = sql_template.format(
         table=model._meta.db_table, column=autofield.column
     )
-    connection = connections[router.db_for_write(model)]
+    connection = connections[settings.OPENROSA_DB_ALIAS]
     with connection.cursor() as cursor:
         cursor.execute(query)
 
