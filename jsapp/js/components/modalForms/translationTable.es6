@@ -114,21 +114,21 @@ export class TranslationTable extends React.Component {
         },
       },
       {
-        Header: () => {
-          return (
+        Header: () =>
+          (
             <React.Fragment>
-              <bem.FormView__iconButton
+              <Button
+                type='bare'
+                color='storm'
+                size='m'
                 onClick={this.toggleRenameLanguageForm.bind(this)}
-                disabled={!this.canEditLanguages()}
-                className='right-tooltip form-view__icon-button-edit'
-              >
-                {this.state.showLanguageForm && <i className='k-icon k-icon-close' />}
-                {!this.state.showLanguageForm && <i className='k-icon k-icon-edit' />}
-              </bem.FormView__iconButton>
+                isDisabled={!this.canEditLanguages()}
+                startIcon={this.state.showLanguageForm ? 'close' : 'edit'}
+              />
               {`${translations[langIndex]} ${editableColTitle}`}
             </React.Fragment>
-          );
-        },
+          )
+        ,
         accessor: 'translation',
         className: 'translation',
         Cell: (cellInfo) => {

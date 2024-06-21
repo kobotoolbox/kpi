@@ -345,12 +345,6 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__cell--buttons {
     text-align: right;
-
-    a.mdl-button {
-      text-transform: uppercase;
-      padding-left: 30px;
-      padding-right: 30px;
-    }
   }
 
   &.form-view__cell--version {
@@ -437,20 +431,6 @@ $side-tabs-width-mobile: 70px;
     padding: 6px;
     background-color: colors.$kobo-green;
     border-radius: 2px;
-  }
-}
-
-.form-view__icon-button {
-  @extend .mdl-button, .mdl-button--icon;
-
-  overflow: visible;
-  padding: 0;
-  height: 32px;
-  line-height: 32px;
-  min-height: 32px;
-
-  > i {
-    vertical-align: -0.34375em;
   }
 }
 

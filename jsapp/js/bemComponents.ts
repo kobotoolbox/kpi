@@ -112,7 +112,6 @@ bem.FormView__sidetabs = makeBem(bem.FormView, 'sidetabs');
 bem.FormView__label = makeBem(bem.FormView, 'label');
 bem.FormView__group = makeBem(bem.FormView, 'group');
 bem.FormView__item = makeBem(bem.FormView, 'item');
-bem.FormView__iconButton = makeBem(bem.FormView, 'icon-button', 'button');
 
 bem.FormView__row = makeBem(bem.FormView, 'row');
 bem.FormView__cell = makeBem(bem.FormView, 'cell');

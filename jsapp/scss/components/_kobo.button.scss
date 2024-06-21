@@ -22,10 +22,6 @@
 
   NOTE: Please __do not @extend__ this component. If possible use
   `bem.KoboButton` or raw class names.
-
-  NOTE: Our current go-to button solution (`_mdl.buttons.scss`) turned out to be
-  chaotic-neutral and hard to maintain, so we should transition here all buttons
-  that use: `.mdl-button.mdl-button--colored.mdl-button--raised`.
 */
 
 .kobo-button {

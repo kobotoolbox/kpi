@@ -489,28 +489,6 @@ $modal-custom-header-height: sizes.$x60;
       flex-direction: row;
       align-items: center;
     }
-
-    .form-view__cell--translation-name .form-view__icon-button {
-      opacity: 0;
-      visibility: hidden;
-      transition: 250ms;
-    }
-
-    &:hover .form-view__cell--translation-name .form-view__icon-button {
-      opacity: 1;
-      visibility: visible;
-
-      // Hide the on hover button completely if disabled
-      &:disabled {
-        display: none;
-      }
-    }
-
-    .form-view__icon-button.right-tooltip {
-      &:disabled {
-        color: colors.$kobo-gray-65;
-      }
-    }
   }
 
   .form-view__cell--translation-actions {
