@@ -315,16 +315,15 @@ class FormLanding extends React.Component {
                       {formatTime(item.date_deployed)}
                     </bem.FormView__label>
                     {isLoggedIn && (
-                      <bem.FormView__label m='clone' className='right-tooltip'>
-                        <bem.FormView__link
-                          m='clone'
-                          data-version-id={item.uid}
-                          data-tip={t('Clone this version as a new project')}
-                          onClick={this.saveCloneAs}
-                        >
-                          <i className='k-icon k-icon-duplicate' />
-                        </bem.FormView__link>
-                      </bem.FormView__label>
+                      <Button
+                        type='bare'
+                        color='storm'
+                        size='m'
+                        onClick={() => {this.saveCloneAs(item.uid);}}
+                        startIcon='duplicate'
+                        tooltip={t('Clone this version as a new project')}
+                        tooltipPosition='right'
+                      />
                     )}
                   </bem.FormView__group>
                 );
@@ -591,53 +590,70 @@ class FormLanding extends React.Component {
     return (
       <React.Fragment>
         {userCanEdit ? (
-          <Link
-            to={`/forms/${this.state.uid}/edit`}
-            className='form-view__link form-view__link--edit'
-            data-tip={t('Edit in Form Builder')}
-          >
-            <i className='k-icon k-icon-edit' data-cy='edit' />
+          <Link to={`/forms/${this.state.uid}/edit`}>
+            {/*
+              We put non clickable button inside Link, so that it's possible
+              to open it in new tab.
+            */}
+            <Button
+              type='bare'
+              color='storm'
+              size='m'
+              startIcon='edit'
+              data-cy='edit'
+              tooltip={t('Edit in Form Builder')}
+              tooltipPosition='right'
+            />
           </Link>
         ) : (
-          <bem.FormView__link
-            m={['edit', 'disabled']}
-            className='right-tooltip'
-            data-tip={t(
-              'Editing capabilities not granted, you can only view this form'
-            )}
-          >
-            <i className='k-icon k-icon-edit' />
-          </bem.FormView__link>
+          <Button
+            type='bare'
+            color='storm'
+            size='m'
+            startIcon='edit'
+            tooltip={t('Editing capabilities not granted, you can only view this form')}
+            tooltipPosition='right'
+            isDisabled
+          />
         )}
 
-        <bem.FormView__link
-          m='preview'
-          onClick={this.enketoPreviewModal}
-          data-tip={t('Preview')}
-        >
-          <i className='k-icon k-icon-view' />
-        </bem.FormView__link>
+        <Button
+          type='bare'
+          color='storm'
+          size='m'
+          startIcon='view'
+          tooltip={t('Preview')}
+          tooltipPosition='right'
+          onClick={this.enketoPreviewModal.bind(this)}
+        />
 
         {userCanEdit && (
-          <bem.FormView__link
-            m='upload'
-            data-tip={t('Replace form')}
-            onClick={this.showReplaceProjectModal}
-          >
-            <i className='k-icon k-icon-replace' />
-          </bem.FormView__link>
+          <Button
+            type='bare'
+            color='storm'
+            size='m'
+            startIcon='replace'
+            tooltip={t('Replace form')}
+            tooltipPosition='right'
+            onClick={this.showReplaceProjectModal.bind(this)}
+          />
         )}
 
         <PopoverMenu
           type='formLanding-menu'
           triggerLabel={
-            <div data-tip={t('More actions')}>
-              <i className='k-icon k-icon-more' />
-            </div>
+            <Button
+              type='bare'
+              color='storm'
+              size='m'
+              startIcon='more'
+              tooltip={t('More actions')}
+              tooltipPosition='right'
+            />
           }
         >
-          {downloads.map((dl) => {
-            return (
+          {downloads.map((dl) =>
+            (
               <bem.PopoverMenu__link
                 m={`dl-${dl.format}`}
                 href={dl.url}
@@ -647,8 +663,8 @@ class FormLanding extends React.Component {
                 {t('Download')}&nbsp;
                 {dl.format.toString().toUpperCase()}
               </bem.PopoverMenu__link>
-            );
-          })}
+            )
+          )}
 
           {userCanEdit && (
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
@@ -665,7 +681,7 @@ class FormLanding extends React.Component {
           )}
 
           {isLoggedIn && (
-            <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+            <bem.PopoverMenu__link onClick={this.saveCloneAs.bind(this)}>
               <i className='k-icon k-icon-duplicate' />
               {t('Clone this project')}
             </bem.PopoverMenu__link>
@@ -710,21 +726,24 @@ class FormLanding extends React.Component {
             t('This project has no languages defined yet')}
           {this.hasLanguagesDefined(translations) && (
             <ul>
-              {translations.map((langString, n) => {
-                return <li key={n}>{langString || t('Unnamed language')}</li>;
-              })}
+              {translations.map((langString, n) =>
+                <li key={n}>{langString || t('Unnamed language')}</li>
+              )}
             </ul>
           )}
         </bem.FormView__cell>
 
         {canEdit && (
           <bem.FormView__cell>
-            <bem.FormView__link
-              data-tip={t('Manage translations')}
-              onClick={this.showLanguagesModal}
-            >
-              <i className='k-icon k-icon-language' />
-            </bem.FormView__link>
+            <Button
+              type='bare'
+              color='storm'
+              size='m'
+              startIcon='language'
+              tooltip={t('Manage translations')}
+              tooltipPosition='right'
+              onClick={this.showLanguagesModal.bind(this)}
+            />
           </bem.FormView__cell>
         )}
       </bem.FormView__cell>

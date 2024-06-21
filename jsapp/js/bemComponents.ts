@@ -119,7 +119,6 @@ bem.FormView__cellLabel = makeBem(bem.FormView, 'cell-label');
 bem.FormView__column = makeBem(bem.FormView, 'column');
 
 bem.FormView__banner = makeBem(bem.FormView, 'banner');
-bem.FormView__link = makeBem(bem.FormView, 'link', 'a');
 bem.FormView__secondaryButtons = makeBem(bem.FormView, 'secondaryButtons');
 bem.FormView__secondaryButton = makeBem(bem.FormView, 'secondaryButton', 'button');
 bem.FormView__reportButtons = makeBem(bem.FormView, 'reportButtons');

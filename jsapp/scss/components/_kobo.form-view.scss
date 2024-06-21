@@ -384,6 +384,10 @@ $side-tabs-width-mobile: 70px;
     margin: -8px 0;
   }
 
+  &.form-view__cell--action-buttons {
+    @include mixins.centerRowFlex;
+  }
+
   &.form-view__cell--date {
     font-weight: normal;
     opacity: 0.8;
@@ -434,26 +438,6 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-// buttons in forms
-.form-view__link {
-  font-size: 26px;
-  line-height: 18px;
-  padding: 0 5px;
-  color: colors.$kobo-gray-40;
-  cursor: pointer;
-  vertical-align: middle;
-  display: inline-block;
-
-  &:hover {
-    color: colors.$kobo-blue;
-  }
-
-  &--disabled,
-  &--disabled:hover {
-    color: colors.$kobo-gray-65;
-  }
-}
-
 @keyframes recent {
   0% {
     background-color: colors.$kobo-white;
@@ -495,33 +479,10 @@ $side-tabs-width-mobile: 70px;
       }
     }
 
-    .form-view__link {
-      opacity: 0.8;
-    }
-
-    .form-view__link--export-download {
-      opacity: 0.9;
-      font-size: 42px;
-    }
-
-    .form-view__link--export-delete {
-      opacity: 0.9;
-      vertical-align: middle;
-      color: lighten(colors.$kobo-red, 10%);
-      font-size: 24px;
-
-      &:hover {
-        color: colors.$kobo-red;
-        opacity: 1;
-      }
-    }
-
     &.recent {
       background-color: lighten(colors.$kobo-blue, 40%);
       animation: recent 5s 1;
     }
-
-
   }
 
   .form-view__group--deployments {

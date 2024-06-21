@@ -513,10 +513,10 @@ $modal-custom-header-height: sizes.$x60;
     padding: 15px;
     position: relative;
 
-    .form-view__link--close {
+    .add-language-form-close {
       position: absolute;
-      right: 0px;
-      top: 6px;
+      right: 5px;
+      top: 5px;
 
       i {
         font-size: 18px;
@@ -563,10 +563,10 @@ $modal-custom-header-height: sizes.$x60;
     padding: 15px;
     position: relative;
 
-    .form-view__link--close {
+    .add-language-form-close {
       position: absolute;
-      right: 0px;
-      top: 6px;
+      right: 5px;
+      top: 5px;
 
       i {
         font-size: 18px;

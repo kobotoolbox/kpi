@@ -63,11 +63,6 @@
   &:hover {
     color: colors.$kobo-blue;
   }
-
-  i {
-    margin: 3px;
-    font-size: 26px;
-  }
 }
 
 .popover-menu__content {
@@ -197,8 +192,6 @@
 }
 
 .popover-menu--formLanding-menu {
-  margin-left: 4px;
-
   .popover-menu__content {
     right: 10px;
   }

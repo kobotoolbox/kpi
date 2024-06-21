@@ -449,12 +449,19 @@ export class TranslationSettings extends React.Component {
           )}
           {this.state.showAddLanguageForm && (
             <bem.FormView__cell m='add-language-form'>
-              <bem.FormView__link m='close' onClick={this.hideAddLanguageForm}>
-                <i className='k-icon k-icon-close' />
-              </bem.FormView__link>
+              <Button
+                className='add-language-form-close'
+                type='bare'
+                color='storm'
+                size='m'
+                onClick={this.hideAddLanguageForm.bind(this)}
+                startIcon='close'
+              />
+
               <bem.FormView__cell m='label'>
                 {t('Add a new language')}
               </bem.FormView__cell>
+
               <LanguageForm
                 onLanguageChange={this.onLanguageChange}
                 existingLanguages={this.getAllLanguages()}
