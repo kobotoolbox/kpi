@@ -1,6 +1,7 @@
 # coding: utf-8
 import logging
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 from django.db.models.signals import (
@@ -12,6 +13,7 @@ from django.dispatch import receiver
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -60,6 +62,10 @@ def pre_delete_attachment(instance, **kwargs):
         # `attachment.save()` behind the scene which would call again the `post_save`
         # signal below. Bonus: it avoids an extra query 😎.
         default_storage.delete(media_file_name)
+        for suffix in settings.THUMB_CONF:
+            default_storage.delete(
+                get_optimized_image_path(media_file_name, suffix)
+            )
     except Exception as e:
         logging.error('Failed to delete attachment: ' + str(e), exc_info=True)
 

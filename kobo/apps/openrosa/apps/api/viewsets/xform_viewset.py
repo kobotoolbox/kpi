@@ -28,7 +28,6 @@ from kobo.apps.openrosa.libs.mixins.labels_mixin import LabelsMixin
 from kobo.apps.openrosa.libs.renderers import renderers
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME
-from kobo.apps.openrosa.libs.utils.csv_import import submit_csv
 from kobo.apps.openrosa.libs.utils.export_tools import (
     generate_export,
     should_create_new_export,
@@ -532,28 +531,6 @@ class XFormViewSet(
     > Response
     >
     >        HTTP 200 OK
-
-    ## Import CSV data to existing form
-
-    - `csv_file` a valid csv file with exported \
-    data (instance/submission per row)
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v1/forms/<code>{pk}</code>/csv_import
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://example.com/api/v1/forms/123/csv_import \
-    -F csv_file=@/path/to/csv_import.csv
-    >
-    > Response
-    >
-    >        HTTP 200 OK
-    >       {
-    >           "additions": 9,
-    >           "updates": 0
-    >       }
     """
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [
         renderers.XLSRenderer,
@@ -654,30 +631,6 @@ class XFormViewSet(
             return super().retrieve(request, *args, **kwargs)
 
         return custom_response_handler(request, xform, query, export_type)
-
-    @action(detail=True, methods=['POST'])
-    def csv_import(self, request, *args, **kwargs):
-        """
-        Endpoint for CSV data imports
-
-        Calls :py:func:`kobo.apps.openrosa.libs.utils.csv_import.submit_csv`
-        passing with the `request.FILES.get('csv_file')` upload for import.
-        """
-        xform = self.get_object()
-        if request.user != xform.user:
-            # Access control for this endpoint previously relied on testing
-            # that the user had `logger.add_xform` on this specific XForm,
-            # which is meaningless but does get assigned to the XForm owner by
-            # the post-save signal handler
-            # `kobo.apps.openrosa.apps.logger.models.xform.set_object_permissions()`.
-            # For safety and clarity, this endpoint now explicitly denies
-            # access to all non-owners.
-            raise exceptions.PermissionDenied
-        resp = submit_csv(request, xform, request.FILES.get('csv_file'))
-        return Response(
-            data=resp,
-            status=status.HTTP_200_OK if resp.get('error') is None else
-            status.HTTP_400_BAD_REQUEST)
 
     def perform_destroy(self, instance):
         username = instance.user.username
