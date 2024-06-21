@@ -35,9 +35,9 @@ def format_date_for_mongo(x):
     )
 
 
-def get_path(path, suffix):
-    fileName, fileExtension = os.path.splitext(path)
-    return fileName + suffix + fileExtension
+def get_optimized_image_path(path: str, suffix: str) -> str:
+    file_name, ext = os.path.splitext(path)
+    return f'{file_name}-{suffix}{ext}'
 
 
 def image_urls_dict(instance):
@@ -51,10 +51,8 @@ def image_urls_dict(instance):
     :return: dict
     """
     urls = dict()
-    # Remove leading dash from suffix
-    suffix = settings.THUMB_CONF['medium']['suffix'][1:]
     for a in instance.attachments.all():
-        urls[a.filename] = a.secure_url(suffix=suffix)
+        urls[a.filename] = a.secure_url(suffix='medium')
     return urls
 
 

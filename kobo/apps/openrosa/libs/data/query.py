@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.conf import settings
-from django.db import connection
+from django.db import connections
 
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME
 
@@ -27,7 +27,7 @@ def _dictfetchall(cursor):
 
 
 def _execute_query(query, to_dict=True):
-    cursor = connection.cursor()
+    cursor = connections[settings.OPENROSA_DB_ALIAS].cursor()
     cursor.execute(query)
     return _dictfetchall(cursor) if to_dict else cursor
 

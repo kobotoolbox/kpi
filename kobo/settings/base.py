@@ -1566,12 +1566,6 @@ add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
-KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
-    'original': '',
-    'large': '_large',
-    'medium': '_medium',
-    'small': '_small',
-}
 
 TRENCH_AUTH = {
     'USER_MFA_MODEL': 'mfa.MfaMethod',
@@ -1717,12 +1711,10 @@ DEFAULT_VALIDATION_STATUSES = [
 ]
 
 THUMB_CONF = {
-    'large': {'size': 1280, 'suffix': '-large'},
-    'medium': {'size': 640, 'suffix': '-medium'},
-    'small': {'size': 240, 'suffix': '-small'},
+    'large': 1280,
+    'medium': 640,
+    'small': 240,
 }
-# order of thumbnails from largest to smallest
-THUMB_ORDER = ['large', 'medium', 'small']
 
 SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'image/jpeg',
