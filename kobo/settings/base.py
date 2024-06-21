@@ -1628,7 +1628,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Needed to avoid Constance to create permissions on Kobocat database
+# Needed to avoid Constance to create permissions on KoboCAT database
 CONSTANCE_DBS = [
     'default'
 ]
