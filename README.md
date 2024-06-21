@@ -6,9 +6,17 @@
 
 We're open for [contributions](./CONTRIBUTING.md)!
 
+## Important notice when upgrading from any release older than [`2.024.19`](https://github.com/kobotoolbox/kpi/releases/tag/2.024.19)
+
+Prior to release [`2.024.19`](https://github.com/kobotoolbox/kpi/releases/tag/2.024.19), this project (KPI) and [KoboCAT](https://github.com/kobotoolbox/kobocat) were two separated projects.
+KoboCAT is now part of KPI code base and its repository has been archived.
+
+KoboCAT deprecation notices will be maintained in this repository.
+[More details here](./kobo/apps/openrosa/README.md)
+
 ## Important notice when upgrading from any release older than [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18)
 
-Prior to release [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18), this project (KPI) and [KoBoCAT](https://github.com/kobotoolbox/kobocat) both shared a common Postgres database. They now each have their own. **If you are upgrading an existing single-database installation, you must follow [these instructions](https://community.kobotoolbox.org/t/upgrading-to-separate-databases-for-kpi-and-kobocat/7202)** to migrate the KPI tables to a new database and adjust your configuration appropriately.
+Prior to release [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18), this project (KPI) and [KoboCAT](https://github.com/kobotoolbox/kobocat) both shared a common Postgres database. They now each have their own. **If you are upgrading an existing single-database installation, you must follow [these instructions](https://community.kobotoolbox.org/t/upgrading-to-separate-databases-for-kpi-and-kobocat/7202)** to migrate the KPI tables to a new database and adjust your configuration appropriately.
 
 If you do not want to upgrade at this time, please use the [`shared-database-obsolete`](https://github.com/kobotoolbox/kpi/tree/shared-database-obsolete) branch instead.
 
@@ -35,7 +43,7 @@ syntax, see the documentation at the top of
 
 ## Admin reports
 
-There are several types of data reports available to superusers. 
+There are several types of data reports available to superusers.
 * Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi base url>/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
 * Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`
 
