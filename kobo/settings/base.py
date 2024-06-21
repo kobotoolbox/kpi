@@ -995,11 +995,7 @@ TEMPLATES = [
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
-RAVEN_JS_DSN = env.str('RAVEN_JS_DSN', None)
-if SENTRY_JS_DSN_URL := env.url(
-        'SENTRY_JS_DSN',
-        default=RAVEN_JS_DSN
-    ):
+if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
     SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
 
 # replace this with the pointer to the kobocat server, if it exists
@@ -1062,7 +1058,7 @@ ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
 ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
-ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
+ENKETO_API_KEY = os.environ.get('ENKETO_API_KEY', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
@@ -1211,7 +1207,7 @@ if 'KOBOCAT_URL' in os.environ:
     SYNC_KOBOCAT_PERMISSIONS = (
         os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
 
-CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 # Increase limits for long-running tasks
@@ -1396,7 +1392,7 @@ LOGGING = {
 ################################
 # Sentry settings              #
 ################################
-sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
+sentry_dsn = env.str('SENTRY_DSN', None)
 if sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.celery import CeleryIntegration
@@ -1570,12 +1566,6 @@ add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
-KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
-    'original': '',
-    'large': '_large',
-    'medium': '_medium',
-    'small': '_small',
-}
 
 TRENCH_AUTH = {
     'USER_MFA_MODEL': 'mfa.MfaMethod',
@@ -1721,12 +1711,10 @@ DEFAULT_VALIDATION_STATUSES = [
 ]
 
 THUMB_CONF = {
-    'large': {'size': 1280, 'suffix': '-large'},
-    'medium': {'size': 640, 'suffix': '-medium'},
-    'small': {'size': 240, 'suffix': '-small'},
+    'large': 1280,
+    'medium': 640,
+    'small': 240,
 }
-# order of thumbnails from largest to smallest
-THUMB_ORDER = ['large', 'medium', 'small']
 
 SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'image/jpeg',
@@ -1754,3 +1742,7 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/zip',
     'application/x-zip-compressed'
 ]
+
+# Silence Django Guardian warning. Authentication backend is hooked, but
+# Django Guardian does not recognize it because it is extended
+SILENCED_SYSTEM_CHECKS = ['guardian.W001']

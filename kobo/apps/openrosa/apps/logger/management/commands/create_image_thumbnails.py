@@ -10,7 +10,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.image_tools import resize
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
-from kobo.apps.openrosa.libs.utils.viewer_tools import get_path
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_optimized_image_path
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -60,12 +60,10 @@ class Command(BaseCommand):
 
         for att in queryset_iterator(attachments_qs):
             filename = att.media_file.name
-            full_path = get_path(
-                filename, settings.THUMB_CONF['small']['suffix']
-            )
+            full_path = get_optimized_image_path(filename, 'small')
             if kwargs.get('force') is not None:
-                for s in settings.THUMB_CONF.keys():
-                    fp = get_path(filename, settings.THUMB_CONF[s]['suffix'])
+                for suffix in settings.THUMB_CONF.keys():
+                    fp = get_optimized_image_path(filename, suffix)
                     if default_storage.exists(fp):
                         default_storage.delete(fp)
 
@@ -73,10 +71,7 @@ class Command(BaseCommand):
                 try:
                     resize(filename)
                     if default_storage.exists(
-                        get_path(
-                            filename,
-                            '%s' % settings.THUMB_CONF['small']['suffix'],
-                        )
+                        get_optimized_image_path(filename, 'small')
                     ):
                         print(
                             'Thumbnails created for %(file)s'

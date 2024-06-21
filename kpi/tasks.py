@@ -89,7 +89,7 @@ def enketo_flush_cached_preview(server_url, form_id):
     response = requests.delete(
         f'{settings.ENKETO_URL}/{settings.ENKETO_FLUSH_CACHE_ENDPOINT}',
         # bare tuple implies basic auth
-        auth=(settings.ENKETO_API_TOKEN, ''),
+        auth=(settings.ENKETO_API_KEY, ''),
         data=dict(server_url=server_url, form_id=form_id),
     )
     response.raise_for_status()

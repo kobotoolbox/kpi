@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 source /etc/profile
 
 echo 'KPI initializing…'
@@ -14,8 +13,8 @@ if [[ -z $DATABASE_URL ]]; then
 fi
 
 # Handle Python dependencies BEFORE attempting any `manage.py` commands
-KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
-if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
+WSGI="${WSGI:-uWSGI}"
+if [[ "${WSGI}" == 'uWSGI' ]]; then
     # `diff` returns exit code 1 if it finds a difference between the files
     if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/requirements.txt" "${TMP_DIR}/pip_dependencies.txt"
     then
@@ -37,7 +36,7 @@ fi
 /bin/bash "${INIT_PATH}/wait_for_postgres.bash"
 
 echo 'Running migrations…'
-gosu "${UWSGI_USER}" python manage.py migrate --noinput
+gosu "${UWSGI_USER}" scripts/migrate.sh
 
 echo 'Creating superuser…'
 gosu "${UWSGI_USER}" python manage.py create_kobo_superuser
@@ -77,16 +76,10 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     python manage.py compilemessages
 fi
 
-rm -rf /etc/profile.d/pydev_debugger.bash.sh
-if [[ -d /srv/pydev_orig && -n "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
-    echo 'Enabling PyDev remote debugging.'
-    "${KPI_SRC_DIR}/docker/setup_pydev.bash"
-fi
-
 echo 'Cleaning up Celery PIDs…'
 rm -rf /tmp/celery*.pid
 
-echo 'Restore permissions on Celery logs folder'
+echo 'Restore permissions on logs folder'
 chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
 
 # This can take a while when starting a container with lots of media files.
@@ -96,4 +89,12 @@ chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
 
 echo 'KPI initialization completed.'
 
-exec /usr/bin/runsvdir "${SERVICES_DIR}"
+cd "${KPI_SRC_DIR}"
+
+if [[ "${WSGI}" == 'uWSGI' ]]; then
+    echo "Running \`kpi\` container with uWSGI application server."
+    $(command -v uwsgi) --ini ${KPI_SRC_DIR}/docker/uwsgi.ini
+else
+    echo "Running \`kpi\` container with \`runserver_plus\` debugging application server."
+    python manage.py runserver_plus 0:8000
+fi

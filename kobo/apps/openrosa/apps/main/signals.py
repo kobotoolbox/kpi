@@ -7,6 +7,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.user_auth import set_api_permissions_for_user
 from kpi.utils.database import use_db
+from kpi.utils.permissions import is_user_anonymous
 
 
 # TODO Get rid of this, seems to be needed for KC unit tests only.
@@ -15,6 +16,9 @@ from kpi.utils.database import use_db
 
 @receiver(post_save, sender=User, dispatch_uid='set_api_permissions')
 def set_api_permissions(sender, instance=None, created=False, **kwargs):
+    if is_user_anonymous(instance):
+        return
+
     if created:
         with use_db(settings.OPENROSA_DB_ALIAS):
             if User.objects.filter(pk=instance.pk).exists() or settings.TESTING:

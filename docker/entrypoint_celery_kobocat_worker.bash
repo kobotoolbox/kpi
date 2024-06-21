@@ -10,9 +10,9 @@ AUTOSCALE_MIN="${CELERY_AUTOSCALE_MIN:-2}"
 AUTOSCALE_MAX="${CELERY_AUTOSCALE_MAX:-6}"
 
 exec celery -A kobo worker --loglevel=info \
-    --hostname=kobocat_main_worker@%h \
-    --logfile=${KPI_LOGS_DIR}/celery_kobocat.log \
-    --pidfile=/tmp/celery_kobocat.pid \
+    --hostname=kobocat_worker@%h \
+    --logfile=${KPI_LOGS_DIR}/celery_kobocat_worker.log \
+    --pidfile=/tmp/celery_kobocat_worker.pid \
     --queues=kobocat_queue \
     --exclude-queues=kpi_low_priority_queue,kpi_queue \
     --uid=${UWSGI_USER} \

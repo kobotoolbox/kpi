@@ -10,8 +10,8 @@ from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 
 def create_permissions(app_config, using=DEFAULT_DB_ALIAS, **kwargs):
     """
-    Avoid to create permissions on the wrong database when post signal is emitted
-    on migrations
+    Avoid to create permissions on the wrong database when post signal is
+    emitted on migrations
     """
     if (
         app_config.label in OPENROSA_APP_LABELS

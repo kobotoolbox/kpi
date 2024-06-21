@@ -689,7 +689,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             response = requests.post(
                 f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
                 # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
+                auth=(settings.ENKETO_API_KEY, ''),
                 data=data
             )
             response.raise_for_status()
@@ -802,9 +802,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         mongo_query_params['submission_ids'] = submission_ids
-        params = self.validate_submission_list_params(user,
-                                                      format_type=format_type,
-                                                      **mongo_query_params)
+        params = self.validate_submission_list_params(
+            user, format_type=format_type, **mongo_query_params
+        )
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(request, **params)
