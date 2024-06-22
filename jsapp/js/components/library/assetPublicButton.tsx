@@ -4,6 +4,7 @@ import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {notify} from 'js/utils';
+import Button from 'js/components/common/button';
 import type {AssetResponse} from 'js/dataInterface';
 
 interface AssetPublicButtonProps {
@@ -12,6 +13,10 @@ interface AssetPublicButtonProps {
 
 interface AssetPublicButtonState {
   isPublicPending: boolean;
+  /**
+   * After asset public state is changed, we wait for the asset to be loaded
+   * again, so that we know from the permissions `assetUtils.isAssetPublic`.
+   */
   isAwaitingFreshPermissions: boolean;
 }
 
@@ -51,8 +56,20 @@ export default class AssetPublicButton extends React.Component<
     if (this.props.asset.uid === assetUid) {
       this.setState({
         isPublicPending: false,
+        // Public state of asset changed, now we await fresh permissions
         isAwaitingFreshPermissions: true,
       });
+
+      // We need to get fresh asset here, so that new permissions would be
+      // available for the button code. We rely on the fact that new asset
+      // would be passed through `props` and `componentWillReceiveProps` will
+      // unlock the button again.
+      //
+      // TODO: this flow should be improved, but it might require some more
+      // thought, as the asset data flow in the whole app should be redone
+      // (after very thorough planning). Unfortunately many places in the app
+      // have this problem.
+      actions.resources.loadAsset({id: this.props.asset.uid}, true);
     }
   }
 
@@ -79,10 +96,6 @@ export default class AssetPublicButton extends React.Component<
     actions.permissions.setAssetPublic(this.props.asset, false);
   }
 
-  isSetPublicButtonDisabled() {
-    return this.state.isPublicPending || this.state.isAwaitingFreshPermissions;
-  }
-
   render() {
     if (!this.props.asset) {
       return null;
@@ -91,36 +104,39 @@ export default class AssetPublicButton extends React.Component<
     const isPublicable = this.props.asset.asset_type === ASSET_TYPES.collection.id;
     const isPublic = isPublicable && assetUtils.isAssetPublic(this.props.asset.permissions);
     const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
+    const isButtonPending = this.state.isPublicPending || this.state.isAwaitingFreshPermissions;
 
     if (!isPublicable || !isSelfOwned) {
       return null;
     }
 
-    return (
-      <React.Fragment>
-        {/* NOTE: this button is purposely available for not ready
-        collections as a means to teach users (via error notifications). */}
-        {!isPublic &&
-          <bem.AssetActionButtons__button
-            m='on'
-            onClick={this.makePublic.bind(this)}
-            disabled={this.isSetPublicButtonDisabled()}
-          >
-            <i className='k-icon k-icon-globe-alt'/>
-            {t('Make public')}
-          </bem.AssetActionButtons__button>
-        }
-        {isPublic &&
-          <bem.AssetActionButtons__button
-            m='off'
-            onClick={this.makePrivate.bind(this)}
-            disabled={this.isSetPublicButtonDisabled()}
-          >
-            <i className='k-icon k-icon-close'/>
-            {t('Make private')}
-          </bem.AssetActionButtons__button>
-        }
-      </React.Fragment>
-    );
+    // NOTE: this button is purposely made available for collections that are
+    // not ready yet (i.e. the required metadata of the collection is empty),
+    // as we display an error notification that teaches users what to do.
+    if (!isPublic) {
+      return (
+        <Button
+          type='frame'
+          color='teal'
+          size='m'
+          startIcon='globe-alt'
+          label={t('Make public')}
+          onClick={this.makePublic.bind(this)}
+          isPending={isButtonPending}
+        />
+      );
+    } else {
+      return (
+        <Button
+          type='frame'
+          color='red'
+          size='m'
+          startIcon='close'
+          label={t('Make private')}
+          onClick={this.makePrivate.bind(this)}
+          isPending={isButtonPending}
+        />
+      );
+    }
   }
 }

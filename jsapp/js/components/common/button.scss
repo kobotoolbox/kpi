@@ -223,6 +223,20 @@ $button-border-radius: sizes.$x6;
   text-transform: uppercase;
 }
 
+// teal button ↓
+
+.k-button.k-button--color-teal.k-button--type-bare {
+  @include button-bare(colors.$kobo-teal, colors.$kobo-hover-teal);
+}
+
+.k-button.k-button--color-teal.k-button--type-frame {
+  @include button-frame(colors.$kobo-teal);
+}
+
+.k-button.k-button--color-teal.k-button--type-full {
+  @include button-full(colors.$kobo-teal, colors.$kobo-hover-teal);
+}
+
 // blue button ↓
 
 .k-button.k-button--color-blue.k-button--type-bare {
