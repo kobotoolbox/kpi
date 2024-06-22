@@ -219,23 +219,6 @@
 }
 
 .popover-menu--custom-reports {
-  .popover-menu__toggle {
-    border-radius: 6px;
-    border: 1px solid currentcolor;
-    text-transform: uppercase;
-    padding: 0 12px;
-    line-height: 38px;
-    height: 38px;
-
-    &::after {
-      content: '\25BC';
-      font-size: 10px;
-      margin-left: 5px;
-      display: inline-block;
-      vertical-align: 1px;
-    }
-  }
-
   .popover-menu__content {
     max-height: 500px;
     min-width: 300px;

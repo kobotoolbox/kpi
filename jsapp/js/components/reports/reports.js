@@ -339,7 +339,18 @@ export default class Reports extends React.Component {
     return (
       <bem.FormView__reportButtons>
         <div className='form-view__report-buttons-left'>
-          <PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
+          <PopoverMenu
+            type='custom-reports'
+            triggerLabel={
+              <Button
+                type='frame'
+                color='storm'
+                size='m'
+                label={menuLabel}
+                endIcon='angle-down'
+              />
+            }
+          >
             <bem.PopoverMenu__link
               key='default'
               data-name=''
@@ -380,7 +391,7 @@ export default class Reports extends React.Component {
           <Button
             type='bare'
             color='storm'
-            size='l'
+            size='m'
             startIcon='edit'
             onClick={this.editCustomReport.bind(this)}
             tooltip={t('Edit Report Questions')}
@@ -390,7 +401,7 @@ export default class Reports extends React.Component {
           <Button
             type='bare'
             color='storm'
-            size='l'
+            size='m'
             startIcon='settings'
             onClick={this.toggleReportGraphSettings.bind(this)}
             tooltip={t('Configure Report Style')}
@@ -402,7 +413,7 @@ export default class Reports extends React.Component {
           <Button
             type='bare'
             color='storm'
-            size='l'
+            size='m'
             startIcon='print'
             onClick={launchPrinting}
             tooltip={t('Print')}
@@ -412,7 +423,7 @@ export default class Reports extends React.Component {
           <Button
             type='bare'
             color='storm'
-            size='l'
+            size='m'
             startIcon='expand'
             onClick={this.toggleFullscreen.bind(this)}
             tooltip={t('Toggle fullscreen')}
