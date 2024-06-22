@@ -318,6 +318,10 @@
   }
 }
 
+.popover-menu__link.popover-menu__link--red {
+  color: colors.$kobo-red;
+}
+
 // iframe default styles
 iframe {
   border: none;
