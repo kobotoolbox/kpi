@@ -26,9 +26,7 @@ bem.EmptyContent__button = makeBem(bem.EmptyContent, 'button', 'button');
 
 bem.ServiceRow = makeBem(null, 'service-row');
 bem.ServiceRow__column = makeBem(bem.ServiceRow, 'column');
-bem.ServiceRow__actionButton = makeBem(bem.ServiceRow, 'action-button', 'button');
 bem.ServiceRow__linkOverlay = makeBem(bem.ServiceRow, 'link-overlay', 'a');
-bem.ServiceRowButton = makeBem(null, 'service-row-button', 'button');
 
 bem.FormBuilder = makeBem(null, 'form-builder');
 bem.FormBuilder__contents = makeBem(bem.FormBuilder, 'contents');

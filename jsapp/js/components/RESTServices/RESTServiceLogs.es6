@@ -228,12 +228,14 @@ export default class RESTServiceLogs extends React.Component {
     }
 
     return (
-      <bem.ServiceRowButton
-        m={this.state.isLoadingLogs ? 'loading' : null}
-        onClick={this.loadMore}
-      >
-        {this.state.isLoadingLogs ? t('Loading…') : t('Load more')}
-      </bem.ServiceRowButton>
+      <Button
+        type='frame'
+        color='blue'
+        size='l'
+        isPending={this.state.isLoadingLogs}
+        onClick={this.loadMore.bind(this)}
+        label={t('Load more')}
+      />
     );
   }
 
@@ -265,13 +267,15 @@ export default class RESTServiceLogs extends React.Component {
               <bem.ServiceRow__column m='status'>
                 {t('Status')}
                 { this.hasAnyFailedLogs() &&
-                  <bem.ServiceRow__actionButton
+                  <Button
+                    type='bare'
+                    color='storm'
+                    size='m'
                     onClick={this.retryAll.bind(this)}
-                    data-tip={t('Retry all submissions')}
-                    disabled={!this.state.isHookActive}
-                  >
-                    <i className='k-icon k-icon-replace'/>
-                  </bem.ServiceRow__actionButton>
+                    tooltip={t('Retry all submissions')}
+                    isDisabled={!this.state.isHookActive}
+                    startIcon='replace'
+                  />
                 }
               </bem.ServiceRow__column>
               <bem.ServiceRow__column m='date'>{t('Date')}</bem.ServiceRow__column>
@@ -314,22 +318,26 @@ export default class RESTServiceLogs extends React.Component {
                     {statusLabel}
 
                     {log.status === HOOK_LOG_STATUSES.FAILED &&
-                      <bem.ServiceRow__actionButton
-                        disabled={!this.state.isHookActive}
+                      <Button
+                        type='bare'
+                        color='storm'
+                        size='m'
+                        isDisabled={!this.state.isHookActive}
                         onClick={this.retryLog.bind(this, log)}
-                        data-tip={t('Retry submission')}
-                      >
-                        <i className='k-icon k-icon-replace' />
-                      </bem.ServiceRow__actionButton>
+                        tooltip={t('Retry submission')}
+                        startIcon='replace'
+                      />
                     }
 
                     {this.hasInfoToDisplay(log) &&
-                      <bem.ServiceRow__actionButton
+                      <Button
+                        type='bare'
+                        color='storm'
+                        size='m'
                         onClick={this.showLogInfo.bind(this, log)}
-                        data-tip={t('More info')}
-                      >
-                        <i className='k-icon k-icon-information' />
-                      </bem.ServiceRow__actionButton>
+                        tooltip={t('More info')}
+                        startIcon='information'
+                      />
                     }
                   </bem.ServiceRow__column>
 

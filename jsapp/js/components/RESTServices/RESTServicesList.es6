@@ -60,17 +60,15 @@ export default class RESTServicesList extends React.Component {
     })
   }
 
-  editHook(evt) {
+  editHook(hookUid) {
     pageState.showModal({
       assetUid: this.state.assetUid,
       type: MODAL_TYPES.REST_SERVICES,
-      hookUid: evt.currentTarget.dataset.hookUid
+      hookUid: hookUid
     });
   }
 
-  deleteHookSafe(evt) {
-    const hookName = evt.currentTarget.dataset.hookName;
-    const hookUid = evt.currentTarget.dataset.hookUid;
+  deleteHookSafe(hookUid, hookName) {
     if (this.state.assetUid) {
       const dialog = alertify.dialog('confirm');
       const title = t('Are you sure you want to delete ##target?')
@@ -183,22 +181,25 @@ export default class RESTServicesList extends React.Component {
                   <bem.ServiceRow__column m='count'>{hook.failed_count}</bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='actions'>
-                    <bem.ServiceRow__actionButton
-                      onClick={this.editHook}
-                      data-hook-uid={hook.uid}
-                      data-tip={t('Edit')}
-                    >
-                      <i className='k-icon k-icon-edit' />
-                    </bem.ServiceRow__actionButton>
+                    <Button
+                      type='bare'
+                      color='storm'
+                      size='m'
+                      onClick={() => this.editHook(hook.uid)}
+                      tooltip={t('Edit')}
+                      tooltipPosition='right'
+                      startIcon='edit'
+                    />
 
-                    <bem.ServiceRow__actionButton
-                      onClick={this.deleteHookSafe.bind(this)}
-                      data-hook-name={hook.name}
-                      data-hook-uid={hook.uid}
-                      data-tip={t('Delete')}
-                    >
-                      <i className='k-icon k-icon-trash' />
-                    </bem.ServiceRow__actionButton>
+                    <Button
+                      type='bare'
+                      color='red'
+                      size='m'
+                      onClick={() => this.deleteHookSafe(hook.uid, hook.name)}
+                      tooltip={t('Delete')}
+                      tooltipPosition='right'
+                      startIcon='trash'
+                    />
                   </bem.ServiceRow__column>
                 </bem.ServiceRow>
               );
