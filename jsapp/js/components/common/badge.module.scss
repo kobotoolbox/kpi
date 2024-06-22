@@ -16,6 +16,10 @@ $badge-font-l: sizes.$x14;
   text-align: center;
 }
 
+.label {
+  white-space: nowrap;
+}
+
 .icon {
   vertical-align: top;
 }
@@ -37,7 +41,7 @@ $badge-font-l: sizes.$x14;
 
 .color-light-red {
   color: colors.$kobo-dark-red;
-  background-color: colors.$kobo-light-red;  
+  background-color: colors.$kobo-light-red;
 }
 
 .color-light-teal {
