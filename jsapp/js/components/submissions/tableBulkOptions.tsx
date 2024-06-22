@@ -27,6 +27,8 @@ import type {
   ReactTableStateFilteredItem,
 } from 'js/components/submissions/table.types';
 import Button from 'js/components/common/button';
+import Badge from 'js/components/common/badge';
+import Icon from 'js/components/common/icon';
 
 interface TableBulkOptionsProps {
   asset: AssetResponse;
@@ -200,16 +202,37 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
     return (
       <bem.TableMeta__bulkOptions>
         {selectedCount > 1 &&
-          <bem.KoboLightBadge>
-            {selectedLabel}
-            <a className='bulk-clear-badge-icon' onClick={this.onClearSelection.bind(this)}>&times;</a>
-          </bem.KoboLightBadge>
+          <Badge
+            color='light-storm'
+            size='s'
+            label={
+              <>
+                {selectedLabel}
+                &nbsp;
+                <button
+                  className='bulk-clear-badge-icon'
+                  onClick={this.onClearSelection.bind(this)}
+                >
+                  <Icon name='close' size='xxs'/>
+                </button>
+              </>
+            }
+          />
         }
 
-        {selectedCount > 1 && <span>:</span>}
-
         {Object.keys(this.props.selectedRows).length > 0 &&
-          <PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Change status')} >
+          <PopoverMenu
+            type='bulkUpdate-menu'
+            triggerLabel={
+              <Button
+                type='frame'
+                color='storm'
+                size='s'
+                label={t('Change status')}
+                endIcon='angle-down'
+              />
+            }
+          >
             {(userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)) &&
               VALIDATION_STATUS_OPTIONS.map((item, n) => {
                 return (

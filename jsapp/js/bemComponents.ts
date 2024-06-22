@@ -6,8 +6,6 @@
 
 import bem, {makeBem} from 'js/bem';
 
-bem.KoboLightBadge = makeBem(null, 'kobo-light-badge', 'span');
-
 bem.KoboSelect = makeBem(null, 'kobo-select');
 bem.KoboSelect__wrapper = makeBem(bem.KoboSelect, 'wrapper');
 bem.KoboSelect__label = makeBem(bem.KoboSelect, 'label', 'span');

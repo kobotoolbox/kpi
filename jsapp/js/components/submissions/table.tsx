@@ -572,15 +572,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               />
             )}
 
-            <button
+            <Button
+              type='bare'
+              color='storm'
+              size='s'
+              startIcon='view'
+              tooltip={t('Open')}
+              tooltipPosition='left'
               onClick={() => {
                 this.launchSubmissionModal(row, row.original._id);
               }}
-              className='table-link'
-              data-tip={t('Open')}
-            >
-              <i className='k-icon k-icon-view' />
-            </button>
+            />
 
             {userCanSeeEditIcon &&
               userHasPermForSubmission(
@@ -588,15 +590,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 this.props.asset,
                 row.original
               ) && (
-                <button
+                <Button
+                  type='bare'
+                  color='storm'
+                  size='s'
+                  startIcon='edit'
+                  tooltip={t('Edit')}
+                  tooltipPosition='left'
                   onClick={() => {
                     this.launchEditSubmission(row.original._id);
                   }}
-                  className='table-link'
-                  data-tip={t('Edit')}
-                >
-                  <i className='k-icon k-icon-edit' />
-                </button>
+                />
               )}
           </div>
         ),
