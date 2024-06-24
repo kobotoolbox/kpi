@@ -978,20 +978,19 @@ class SingleProcessingStore extends Reflux.Store {
 
     languagesList.push({label: t('XML names'), value: 'xml_names'});
     const asset = assetStore.getAsset(this.currentAssetUid);
-    let label = t('Labels');
+    const baseLabel = t('Labels');
 
     if (asset?.summary?.languages && asset?.summary?.languages.length > 0) {
       asset.summary.languages.forEach((language) => {
+        let label = baseLabel;
         if (language !== null) {
-          languagesList.push({
-            label: label += ` - ${language}`,
-            value: language,
-          });
+          label += ` - ${language}`;
         }
+        languagesList.push({label: label, value: language});
       });
-    } else {
-      languagesList.push({label: label, value: ''});
-    }
+  } else {
+    languagesList.push({label: baseLabel, value: ''});
+  }
 
     return languagesList;
   }
