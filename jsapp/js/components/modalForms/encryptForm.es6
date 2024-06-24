@@ -8,6 +8,7 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import {stores} from 'js/stores';
+import pageState from 'js/pageState.store';
 
 class EncryptForm extends React.Component {
   constructor(props) {
@@ -51,7 +52,7 @@ class EncryptForm extends React.Component {
       publicKey: asset.content.settings.public_key
     });
 
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.ENCRYPT_FORM,
       asset: asset
     });

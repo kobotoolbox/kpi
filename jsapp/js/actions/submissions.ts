@@ -4,8 +4,15 @@
 
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
-import {notify} from 'utils';
+import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
+import type {
+  GetSubmissionsOptions,
+  PaginatedResponse,
+  SubmissionResponse,
+  FailResponse,
+  BulkSubmissionsRequest,
+} from 'js/dataInterface';
 
 const submissionsActions = Reflux.createActions({
   getSubmission: {children: ['completed', 'failed']},
@@ -19,24 +26,10 @@ const submissionsActions = Reflux.createActions({
 });
 
 /**
- * @typedef SortObj
- * @param {string} id - column name
- * @param {boolean} desc - `true` for descending and `false` for ascending
- */
-
-/**
  * NOTE: all of the parameters have their default values defined for
  * `dataInterface` function.
- *
- * @param {object} options
- * @param {string} options.uid - the asset uid
- * @param {number} [options.pageSize]
- * @param {number} [options.page]
- * @param {SortObj[]} [options.sort]
- * @param {string[]} [options.fields]
- * @param {string} [options.filter]
  */
-submissionsActions.getSubmissions.listen((options) => {
+submissionsActions.getSubmissions.listen((options: GetSubmissionsOptions) => {
   dataInterface.getSubmissions(
     options.uid,
     options.pageSize,
@@ -45,21 +38,20 @@ submissionsActions.getSubmissions.listen((options) => {
     options.fields,
     options.filter
   )
-    .done((response) => {
+    .done((response: PaginatedResponse<SubmissionResponse>) => {
       submissionsActions.getSubmissions.completed(response, options);
     })
-    .fail((response) => {
+    .fail((response: FailResponse) => {
       submissionsActions.getSubmissions.failed(response, options);
     });
 });
 
 /**
  * This gets an array of submission uuids
- * @param {string} assetUid
  */
-submissionsActions.getProcessingSubmissions.listen((assetUid, questionsPaths) => {
+submissionsActions.getProcessingSubmissions.listen((assetUid: string, questionsPaths: string[]) => {
   let fields = '';
-  questionsPaths.forEach((questionPath) => {
+  questionsPaths.forEach((questionPath: string) => {
     fields += `,"${questionPath}"`;
   });
 
@@ -75,7 +67,7 @@ submissionsActions.getProcessingSubmissions.failed.listen(() => {
   notify(t('Failed to get submissions uuids.'), 'error');
 });
 
-submissionsActions.getSubmission.listen((assetUid, submissionId) => {
+submissionsActions.getSubmission.listen((assetUid: string, submissionId: string) => {
   dataInterface.getSubmission(assetUid, submissionId)
     .done(submissionsActions.getSubmission.completed)
     .fail(submissionsActions.getSubmission.failed);
@@ -83,25 +75,24 @@ submissionsActions.getSubmission.listen((assetUid, submissionId) => {
 
 // There is no shortcut endpoint to get submission using uuid, so we have to
 // make a queried call over all submissions.
-submissionsActions.getSubmissionByUuid.listen((assetUid, submissionUuid) => {
+submissionsActions.getSubmissionByUuid.listen((assetUid: string, submissionUuid: string) => {
   // `_uuid` is the legacy identifier that changes (per OpenRosa spec) after every edit;
   // `meta/rootUuid` remains consistent across edits.
-  let query = {
+  const query = JSON.stringify({
     '$or': [
       {'meta/rootUuid': submissionUuid},
       {'_uuid': submissionUuid},
     ],
-  };
-  query = JSON.stringify(query);
+  });
   $.ajax({
     dataType: 'json',
     method: 'GET',
     url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?query=${query}`,
   })
-    .done((response) => {
+    .done((response: PaginatedResponse<SubmissionResponse>) => {
       // preferentially return a result matching the persistent UUID
       submissionsActions.getSubmissionByUuid.completed(
-        response.results.find((e) => e['meta/rootUuid'] === submissionUuid) ||
+        response.results.find((sub) => sub['meta/rootUuid'] === submissionUuid) ||
         response.results[0]
       );
     })
@@ -111,7 +102,7 @@ submissionsActions.getSubmissionByUuid.failed.listen(() => {
   notify(t('Failed to get submission.'), 'error');
 });
 
-submissionsActions.bulkDeleteStatus.listen((uid, data) => {
+submissionsActions.bulkDeleteStatus.listen((uid: string, data: BulkSubmissionsRequest) => {
   dataInterface.bulkRemoveSubmissionsValidationStatus(uid, data)
     .done(submissionsActions.bulkDeleteStatus.completed)
     .fail(submissionsActions.bulkDeleteStatus.failed);
@@ -120,7 +111,7 @@ submissionsActions.bulkDeleteStatus.failed.listen(() => {
   notify(t('Failed to update submissions.'), 'error');
 });
 
-submissionsActions.bulkPatchStatus.listen((uid, data) => {
+submissionsActions.bulkPatchStatus.listen((uid: string, data: BulkSubmissionsRequest) => {
   dataInterface.bulkPatchSubmissionsValidationStatus(uid, data)
     .done(submissionsActions.bulkPatchStatus.completed)
     .fail(submissionsActions.bulkPatchStatus.failed);
@@ -135,12 +126,12 @@ submissionsActions.bulkPatchStatus.failed.listen(() => {
  * @param {object} data
  * @param {string} data.<field_name_to_update> - with a new value, repeat with different fields if necessary
  */
-submissionsActions.bulkPatchValues.listen((uid, submissionIds, data) => {
+submissionsActions.bulkPatchValues.listen((uid: string, submissionIds: string[], data: BulkSubmissionsRequest) => {
   dataInterface.bulkPatchSubmissionsValues(uid, submissionIds, data)
     .done(submissionsActions.bulkPatchValues.completed)
     .fail(submissionsActions.bulkPatchValues.failed);
 });
-submissionsActions.bulkPatchValues.completed.listen((response) => {
+submissionsActions.bulkPatchValues.completed.listen((response: {failures: number}) => {
   if (response.failures !== 0) {
     notify(t('Failed to update some submissions values.'), 'error');
   }
@@ -149,7 +140,7 @@ submissionsActions.bulkPatchValues.failed.listen(() => {
   notify(t('Failed to update submissions values.'), 'error');
 });
 
-submissionsActions.bulkDelete.listen((uid, data) => {
+submissionsActions.bulkDelete.listen((uid: string, data: BulkSubmissionsRequest) => {
   dataInterface.bulkDeleteSubmissions(uid, data)
     .done(submissionsActions.bulkDelete.completed)
     .fail(submissionsActions.bulkDelete.failed);

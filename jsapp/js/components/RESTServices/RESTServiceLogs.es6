@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {stores} from '../../stores';
+import pageState from 'js/pageState.store';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
@@ -174,7 +174,7 @@ export default class RESTServiceLogs extends React.Component {
 
   openSubmissionModal(log) {
     const currentAsset = this.currentAsset();
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: log.submission_id,
       asset: currentAsset,

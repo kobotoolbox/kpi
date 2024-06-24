@@ -3,7 +3,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link, NavLink } from 'react-router-dom';
-import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import bem from 'js/bem';
 import DocumentTitle from 'react-document-title';
@@ -18,6 +17,7 @@ import './formSummary.scss';
 import {userCan} from 'js/components/permissions/utils';
 import FormSummaryProjectInfo from './formSummaryProjectInfo';
 import SubmissionsCountGraph from 'js/project/submissionsCountGraph.component';
+import pageState from 'js/pageState.store';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -111,7 +111,7 @@ class FormSummary extends React.Component {
 
   sharingModal (evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.SHARING,
       assetid: this.state.uid,
     });
@@ -119,7 +119,7 @@ class FormSummary extends React.Component {
 
   enketoPreviewModal (evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
       assetid: this.state.uid,
     });

@@ -55,8 +55,9 @@ from kpi.serializers.v2.asset import (
     AssetListSerializer,
     AssetSerializer,
 )
-from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
+from kpi.utils.bugfix import repair_file_column_content_and_save
+from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.utils.object_permission import (
@@ -403,6 +404,16 @@ class AssetViewSet(
                 raise Http404
 
             self.check_object_permissions(self.request, asset)
+
+            # Cope with kobotoolbox/formpack#322, which wrote invalid content
+            # into the database. For performance, consider only the current
+            # content, not previous versions. Previous versions are handled in
+            # `kobo.apps.reports.report_data.build_formpack()`
+            if self.request.method == 'GET':
+                repair_file_column_content_and_save(
+                    asset, include_versions=False
+                )
+
             return asset
 
         return super().get_object()
