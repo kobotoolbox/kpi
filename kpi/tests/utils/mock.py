@@ -16,6 +16,10 @@ from kobo.apps.openrosa.libs.utils.image_tools import (
     get_optimized_image_path,
     resize,
 )
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage,
+    KobocatFileSystemStorage,
+)
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
@@ -153,7 +157,14 @@ class MockAttachment(AudioTranscodingMixin):
 
     @property
     def absolute_path(self):
-        return self.media_file.path
+        """
+        Return the absolute path on local file system of the attachment.
+        Otherwise, return the AWS url (e.g. https://...)
+        """
+        if isinstance(default_kobocat_storage, KobocatFileSystemStorage):
+            return self.media_file.path
+
+        return self.media_file.url
 
     def protected_path(
         self, format_: Optional[str] = None, suffix: Optional[str] = None
@@ -170,6 +181,9 @@ class MockAttachment(AudioTranscodingMixin):
                 )
                 if not default_storage.exists(optimized_image_path):
                     resize(self.media_file.name)
-                return default_storage.path(optimized_image_path)
+                if isinstance(default_kobocat_storage, KobocatFileSystemStorage):
+                    return default_kobocat_storage.path(optimized_image_path)
+                else:
+                    return default_kobocat_storage.url(optimized_image_path)
             else:
                 return self.absolute_path
