@@ -21,6 +21,7 @@ import managedCollectionsStore from 'js/components/library/managedCollectionsSto
 import envStore from 'js/envStore';
 import {withRouter} from 'js/router/legacy';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -276,14 +277,14 @@ export class LibraryAssetFormComponent extends React.Component {
         <bem.Modal__footer>
           {renderBackButton(this.state.isPending)}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={!this.isSubmitEnabled()}
-          >
-            {this.getSubmitButtonLabel()}
-          </bem.KoboButton>
+          <Button
+            type='full'
+            color='blue'
+            size='l'
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={!this.isSubmitEnabled()}
+            label={this.getSubmitButtonLabel()}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );

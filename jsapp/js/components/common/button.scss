@@ -219,6 +219,10 @@ $button-border-radius: sizes.$x6;
   justify-content: center;
 }
 
+.k-button.k-button--upper-case {
+  text-transform: uppercase;
+}
+
 // teal button ↓
 
 .k-button.k-button--color-teal.k-button--type-bare {

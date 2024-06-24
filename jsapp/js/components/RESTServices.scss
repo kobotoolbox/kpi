@@ -53,14 +53,6 @@
   }
 
   .rest-services-list__header-right {float: right;}
-
-  .rest-services-list__header-back-button {
-    @extend .mdl-button, .mdl-button--icon;
-
-    i {
-      vertical-align: middle;
-    }
-  }
 }
 
 // custom styles for RESTServicesForm
