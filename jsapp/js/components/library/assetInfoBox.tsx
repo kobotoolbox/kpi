@@ -10,6 +10,7 @@ import {
 } from 'js/utils';
 import './assetInfoBox.scss';
 import type {AssetResponse, AccountResponse} from 'js/dataInterface';
+import Button from 'js/components/common/button';
 
 interface AssetInfoBoxProps {
   asset: AssetResponse;
@@ -153,10 +154,14 @@ export default class AssetInfoBox extends React.Component<
         </bem.AssetInfoBox__column>
 
         <bem.AssetInfoBox__column m='toggle'>
-          <bem.AssetInfoBox__toggle onClick={this.toggleDetails.bind(this)}>
-            {this.state.areDetailsVisible ? <i className='k-icon k-icon-angle-up'/> : <i className='k-icon k-icon-angle-down'/>}
-            {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
-          </bem.AssetInfoBox__toggle>
+          <Button
+            type='bare'
+            color='blue'
+            size='s'
+            onClick={this.toggleDetails.bind(this)}
+            startIcon={this.state.areDetailsVisible ? 'angle-up' : 'angle-down'}
+            label={this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
+          />
         </bem.AssetInfoBox__column>
       </bem.AssetInfoBox>
     );

@@ -1,4 +1,6 @@
 @use '~kobo-common/src/styles/colors';
+@use 'scss/mixins';
+@use 'scss/breakpoints';
 
 .table-meta {
   flex-grow: 1;
@@ -6,19 +8,6 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-
-  .bulk-clear-badge-icon {
-    margin-right: -5px;
-    cursor: pointer;
-    padding: 0 5px;
-    border-radius: 50%;
-    color: colors.$kobo-gray-24;
-
-    &:hover {
-      color: colors.$kobo-white;
-      background-color: colors.$kobo-red;
-    }
-  }
 
   .table-meta__bulk-options {
     > *:not(:first-child) {
@@ -43,12 +32,29 @@
   }
 }
 
+.bulk-clear-badge-icon {
+  border: none;
+  background: transparent;
+  margin-right: -5px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 50%;
+  color: colors.$kobo-gray-24;
+
+  &:hover {
+    color: colors.$kobo-white;
+    background-color: colors.$kobo-red;
+  }
+}
+
 .table-bulk-checkbox {
   z-index: 1;
   position: absolute;
   top: 100%;
   left: 0;
-  height: $data-table-row-height;
+  height: 36px;
   display: block;
   line-height: 20px;
 
@@ -68,7 +74,7 @@
     margin-top: 10px;
 
     .popover-menu__toggle::after {
-      content: "\25BC";
+      content: '\25BC';
       font-size: 16px;
       display: inline-block;
       vertical-align: 1px;
@@ -78,5 +84,15 @@
     .popover-menu__content {
       left: 5px;
     }
+  }
+}
+
+.table-meta__additional-text {
+  display: none;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .table-meta__additional-text {
+    display: initial;
   }
 }
