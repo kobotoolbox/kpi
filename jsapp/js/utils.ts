@@ -12,6 +12,7 @@ import type {Toast, ToastOptions} from 'react-hot-toast';
 import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
 import * as Sentry from '@sentry/react';
+import random from 'lodash.random';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -27,7 +28,7 @@ const notify = (
   msg: Toast['message'],
   atype = 'success',
   opts?: ToastOptions,
-  consoleMsg?: Toast['message'],
+  consoleMsg?: Toast['message']
 ): Toast['id'] => {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
@@ -74,12 +75,21 @@ const notify = (
 };
 
 // Convenience functions for code readability, consolidated here
-notify.error = (msg: Toast['message'], opts?: ToastOptions, consoleMsg?: Toast['message']): Toast['id'] =>
-  notify(msg, 'error', opts, consoleMsg);
-notify.warning = (msg: Toast['message'], opts?: ToastOptions, consoleMsg?: Toast['message']): Toast['id'] =>
-  notify(msg, 'warning', opts, consoleMsg);
-notify.success = (msg: Toast['message'], opts?: ToastOptions, consoleMsg?: Toast['message']): Toast['id'] =>
-  notify(msg, 'success', opts, consoleMsg);
+notify.error = (
+  msg: Toast['message'],
+  opts?: ToastOptions,
+  consoleMsg?: Toast['message']
+): Toast['id'] => notify(msg, 'error', opts, consoleMsg);
+notify.warning = (
+  msg: Toast['message'],
+  opts?: ToastOptions,
+  consoleMsg?: Toast['message']
+): Toast['id'] => notify(msg, 'warning', opts, consoleMsg);
+notify.success = (
+  msg: Toast['message'],
+  opts?: ToastOptions,
+  consoleMsg?: Toast['message']
+): Toast['id'] => notify(msg, 'success', opts, consoleMsg);
 
 export {notify};
 
@@ -483,4 +493,38 @@ export function getAudioDuration(src: string): Promise<number> {
     });
     audio.src = src;
   });
+}
+
+/**
+ * Exponentially increases the returned time each time this method is being
+ * called, with some randomness included. You have to handle `callCount`
+ * increasing yourself.
+ *
+ * Returns number in milliseconds.
+ *
+ * Note: min and max retry times should come from envStore. It's not in the
+ * function itself to avoid a circular dependency.
+ */
+export function getExponentialDelayTime(
+  callCount: number,
+  /** minRetryTime - should probably use `min_retry_time` from env store. */
+  minRetryTime: number,
+  /** maxRetryTime - should probably use `max_retry_time` from env store. */
+  maxRetryTime: number
+) {
+  // This magic number gives a nice grow for the delays.
+  const magicFactor = 1.666;
+
+  const count = Math.round(
+    1000 *
+      Math.max(
+        minRetryTime, // Bottom limit
+        Math.min(
+          maxRetryTime, // Top limit
+          random(magicFactor ** callCount, magicFactor ** (callCount + 1))
+        )
+      )
+  );
+
+  return count;
 }

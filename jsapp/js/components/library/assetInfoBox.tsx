@@ -1,7 +1,4 @@
 import React from 'react';
-import reactMixin from 'react-mixin';
-import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import sessionStore from 'js/stores/session';
@@ -10,37 +7,57 @@ import {ASSET_TYPES} from 'js/constants';
 import {
   notify,
   formatTime,
-} from 'utils';
+} from 'js/utils';
 import './assetInfoBox.scss';
+import type {AssetResponse, AccountResponse} from 'js/dataInterface';
+
+interface AssetInfoBoxProps {
+  asset: AssetResponse;
+}
+
+interface AssetInfoBoxState {
+  areDetailsVisible: boolean;
+  ownerData: AccountResponse | {username: string; date_joined: string} | null;
+}
 
 /**
- * @prop asset
+ * Displays some meta information about given asset.
  */
-class AssetInfoBox extends React.Component {
-  constructor(props){
+export default class AssetInfoBox extends React.Component<
+  AssetInfoBoxProps,
+  AssetInfoBoxState
+> {
+  private unlisteners: Function[] = [];
+
+  constructor(props: AssetInfoBoxProps){
     super(props);
     this.state = {
       areDetailsVisible: false,
       ownerData: null,
     };
-    autoBind(this);
   }
 
   componentDidMount() {
     if (!assetUtils.isSelfOwned(this.props.asset)) {
-      this.listenTo(actions.misc.getUser.completed, this.onGetUserCompleted);
-      this.listenTo(actions.misc.getUser.failed, this.onGetUserFailed);
+      this.unlisteners.push(
+        actions.misc.getUser.completed.listen(this.onGetUserCompleted.bind(this)),
+        actions.misc.getUser.failed.listen(this.onGetUserFailed.bind(this))
+      )
       actions.misc.getUser(this.props.asset.owner);
     } else {
       this.setState({ownerData: sessionStore.currentAccount});
     }
   }
 
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
   toggleDetails() {
     this.setState({areDetailsVisible: !this.state.areDetailsVisible});
   }
 
-  onGetUserCompleted(userData) {
+  onGetUserCompleted(userData: AccountResponse) {
     this.setState({ownerData: userData});
   }
 
@@ -136,7 +153,7 @@ class AssetInfoBox extends React.Component {
         </bem.AssetInfoBox__column>
 
         <bem.AssetInfoBox__column m='toggle'>
-          <bem.AssetInfoBox__toggle onClick={this.toggleDetails}>
+          <bem.AssetInfoBox__toggle onClick={this.toggleDetails.bind(this)}>
             {this.state.areDetailsVisible ? <i className='k-icon k-icon-angle-up'/> : <i className='k-icon k-icon-angle-down'/>}
             {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
           </bem.AssetInfoBox__toggle>
@@ -145,7 +162,3 @@ class AssetInfoBox extends React.Component {
     );
   }
 }
-
-reactMixin(AssetInfoBox.prototype, Reflux.ListenerMixin);
-
-export default AssetInfoBox;

@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@443a8e940756976a9f88fb577dbbc53510726536#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@451df4cd2a0d614be69a3b3309259c67369f7efb#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/kobo-service-account.git@8ee76730106ff8dc0ee2539c8e6a567aea4ed9ee#egg=kobo-service-account
     # via -r dependencies/pip/requirements.in
@@ -443,11 +443,6 @@ shortuuid==1.0.13
 six==1.16.0
     # via
     #   azure-core
-    #   click-repl
-    #   django-organizations
-    #   google-auth
-    #   google-auth-httplib2
-    #   grpcio
     #   isodate
     #   python-dateutil
 smsapi-client==2.9.5

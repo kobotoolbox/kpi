@@ -1,6 +1,5 @@
 import React from 'react';
 import {observer} from 'mobx-react';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
 import bem from 'js/bem';
@@ -25,6 +24,7 @@ import type {IconName} from 'jsapp/fonts/k-icons';
 import MainHeaderBase from './mainHeaderBase.component';
 import MainHeaderLogo from './mainHeaderLogo.component';
 import GitRev from './gitRev.component';
+import pageState from 'js/pageState.store';
 import styles from './mainHeader.module.scss';
 
 interface MainHeaderProps extends WithRouterProps {
@@ -79,7 +79,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   }
 
   toggleFixedDrawer() {
-    stores.pageState.toggleFixedDrawer();
+    pageState.toggleFixedDrawer();
   }
 
   render() {

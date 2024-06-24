@@ -10,7 +10,6 @@ import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
@@ -21,6 +20,7 @@ import mixins from 'js/mixins';
 import managedCollectionsStore from 'js/components/library/managedCollectionsStore';
 import envStore from 'js/envStore';
 import {withRouter} from 'js/router/legacy';
+import pageState from 'js/pageState.store';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -94,7 +94,7 @@ export class LibraryAssetFormComponent extends React.Component {
   onCreateResourceCompleted(response) {
     this.setState({isPending: false});
     notify(t('##type## ##name## created').replace('##type##', this.getFormAssetType()).replace('##name##', response.name));
-    stores.pageState.hideModal();
+    pageState.hideModal();
     if (this.getFormAssetType() === ASSET_TYPES.collection.id) {
       this.props.router.navigate(`/library/asset/${response.uid}`);
     } else if (this.getFormAssetType() === ASSET_TYPES.template.id) {
@@ -109,7 +109,7 @@ export class LibraryAssetFormComponent extends React.Component {
 
   onUpdateAssetCompleted() {
     this.setState({isPending: false});
-    stores.pageState.hideModal();
+    pageState.hideModal();
   }
 
   onUpdateAssetFailed() {

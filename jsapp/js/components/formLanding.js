@@ -5,7 +5,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import bem from 'js/bem';
 import {dataInterface} from '../dataInterface';
-import {stores} from '../stores';
 import sessionStore from 'js/stores/session';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -30,6 +29,7 @@ import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import AnonymousSubmission from './anonymousSubmission.component';
 import NewFeatureDialog from './newFeatureDialog.component';
+import pageState from 'js/pageState.store';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
@@ -46,7 +46,6 @@ class FormLanding extends React.Component {
       nextPagesVersions: [],
       anonymousSubmissions: false,
       anonymousPermissions: [],
-      shouldShowNewFeatureDialog: false,
     };
     autoBind(this);
   }
@@ -113,7 +112,7 @@ class FormLanding extends React.Component {
   }
   enketoPreviewModal(evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
       assetid: this.state.uid,
     });
@@ -179,17 +178,14 @@ class FormLanding extends React.Component {
   }
   showSharingModal(evt) {
     evt.preventDefault();
-    stores.pageState._onHideModal = () => {
-      this.setState({shouldShowNewFeatureDialog: true});
-    };
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.SHARING,
       assetid: this.state.uid,
     });
   }
   showReplaceProjectModal(evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.REPLACE_PROJECT,
       asset: this.state,
     });
@@ -221,14 +217,14 @@ class FormLanding extends React.Component {
   }
   showLanguagesModal(evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
       asset: this.state,
     });
   }
   showEncryptionModal(evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.ENCRYPT_FORM,
       asset: this.state,
     });
@@ -446,7 +442,7 @@ class FormLanding extends React.Component {
                   envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
                 }
                 featureKey='anonymousSubmissions'
-                disabled={stores.pageState.state?.modal}
+                disabled={pageState.state?.modal}
                 pointerClass='anonymousSubmissionPointer'
                 dialogClass='anonymousSubmissionDialog'
               >

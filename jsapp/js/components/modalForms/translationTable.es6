@@ -18,6 +18,7 @@ import {
   hasRowRestriction,
   hasAssetRestriction,
 } from 'js/components/locking/lockingUtils';
+import pageState from 'js/pageState.store';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -226,7 +227,7 @@ export class TranslationTable extends React.Component {
   }
 
   showManageLanguagesModal() {
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
       asset: this.props.asset,
     });

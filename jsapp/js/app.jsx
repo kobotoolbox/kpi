@@ -29,12 +29,13 @@ import {
   isTOSAgreementRouteBlockerActive,
 } from 'js/router/routerUtils';
 import {isAnyProcessingRouteActive} from 'js/components/processing/routes.utils';
+import pageState from 'js/pageState.store';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = Object.assign({
-      pageState: stores.pageState.state,
+      pageState: pageState.state,
     });
   }
 
@@ -45,12 +46,12 @@ class App extends React.Component {
   onRouteChange() {
     // slide out drawer overlay on every page change (better mobile experience)
     if (this.state.pageState.showFixedDrawer) {
-      stores.pageState.setState({showFixedDrawer: false});
+      pageState.setState({showFixedDrawer: false});
     }
 
     // hide modal on every page change
     if (this.state.pageState.modal) {
-      stores.pageState.hideModal();
+      pageState.hideModal();
     }
   }
 
@@ -148,7 +149,7 @@ class App extends React.Component {
 
 App.contextTypes = {router: PropTypes.object};
 
-reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
+reactMixin(App.prototype, Reflux.connect(pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);
 
 export default withRouter(App);

@@ -19,6 +19,7 @@ import {
   notify,
   escapeHtml,
 } from 'utils';
+import pageState from 'js/pageState.store';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -70,7 +71,7 @@ export class TranslationSettings extends React.Component {
       renameLanguageIndex: -1,
     });
 
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
       asset: asset,
     });
@@ -101,7 +102,7 @@ export class TranslationSettings extends React.Component {
   launchTranslationTableModal(evt) {
     const index = evt.currentTarget.dataset.index;
     const langString = evt.currentTarget.dataset.string;
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.FORM_TRANSLATIONS_TABLE,
       asset: this.state.asset,
       langString: langString,

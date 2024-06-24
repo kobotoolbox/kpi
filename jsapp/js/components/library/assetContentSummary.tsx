@@ -1,28 +1,38 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import {
   getFlatQuestionsList,
   renderQuestionTypeIcon,
 } from 'js/assetUtils';
-import {QUESTION_TYPES} from 'js/constants';
+import {ANY_ROW_TYPE_NAMES} from 'js/constants';
+import type {FlatQuestion} from 'js/assetUtils';
+import type {AssetResponse} from 'js/dataInterface';
+
+interface AssetContentSummaryProps {
+  asset: AssetResponse;
+}
+
+interface AssetContentSummaryState {
+  isExpanded: boolean;
+}
 
 const DISPLAY_LIMIT = 8;
 
 /**
- * AKA "Quick Look" component
+ * AKA "Quick Look" component, it displays a list of questions from given asset.
  */
-
-class AssetContentSummary extends React.Component {
-  constructor(props){
+export default class AssetContentSummary extends React.Component<
+  AssetContentSummaryProps,
+  AssetContentSummaryState
+> {
+  constructor(props: AssetContentSummaryProps) {
     super(props);
     this.state = {
       isExpanded: false,
     };
-    autoBind(this);
   }
 
-  renderQuestion(question, itemIndex) {
+  renderQuestion(question: FlatQuestion, itemIndex: number) {
     const modifiers = ['columns', 'padding-small'];
     if (itemIndex !== 0) {
       modifiers.push('bordertop');
@@ -47,9 +57,9 @@ class AssetContentSummary extends React.Component {
     );
   }
 
-  filterRealQuestions(questions) {
+  filterRealQuestions(questions: FlatQuestion[]) {
     return questions.filter((question) => {
-      return QUESTION_TYPES[question.type];
+      return Object.values(ANY_ROW_TYPE_NAMES).includes(question.type);
     });
   }
 
@@ -58,7 +68,7 @@ class AssetContentSummary extends React.Component {
   }
 
   render() {
-    if (!this.props.asset) {
+    if (!this.props.asset?.content?.survey) {
       return null;
     }
 
@@ -82,12 +92,12 @@ class AssetContentSummary extends React.Component {
     return (
       <React.Fragment>
         <bem.FormView__cell m={['box', 'bordered']}>
-          {items.map(this.renderQuestion)}
+          {items.map(this.renderQuestion.bind(this))}
         </bem.FormView__cell>
 
         {isExpandable &&
           <bem.FormView__cell m={['toggle-details']}>
-            <button onClick={this.toggleExpanded}>
+            <button onClick={this.toggleExpanded.bind(this)}>
               {this.state.isExpanded ? <i className='k-icon k-icon-angle-up'/> : <i className='k-icon k-icon-angle-down'/>}
               {this.state.isExpanded ? t('Show less') : t('Show more')}
             </button>
@@ -97,5 +107,3 @@ class AssetContentSummary extends React.Component {
     );
   }
 }
-
-export default AssetContentSummary;

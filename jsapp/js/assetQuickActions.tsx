@@ -30,6 +30,7 @@ import permConfig from './components/permissions/permConfig';
 import toast from 'react-hot-toast';
 import {userCan} from './components/permissions/utils';
 import {renderJSXMessage} from './alertify';
+import pageState from 'js/pageState.store';
 
 export function openInFormBuilder(uid: string) {
   if (routerIsActive(ROUTES.LIBRARY)) {
@@ -533,12 +534,12 @@ export function deployAsset(
 
 /** Opens a modal for sharing asset. */
 export function manageAssetSharing(uid: string) {
-  stores.pageState.showModal({type: MODAL_TYPES.SHARING, uid: uid});
+  pageState.showModal({type: MODAL_TYPES.SHARING, uid: uid});
 }
 
 /** Opens a modal for replacing an asset using a file. */
 export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
-  stores.pageState.showModal({type: MODAL_TYPES.REPLACE_PROJECT, asset: asset});
+  pageState.showModal({type: MODAL_TYPES.REPLACE_PROJECT, asset: asset});
 }
 
 /**
@@ -547,7 +548,7 @@ export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
  * up front via `asset` parameter.
  */
 export function manageAssetLanguages(uid: string, asset?: AssetResponse) {
-  stores.pageState.showModal({
+  pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
     assetUid: uid,
     asset: asset,
@@ -555,12 +556,12 @@ export function manageAssetLanguages(uid: string, asset?: AssetResponse) {
 }
 
 export function manageAssetEncryption(uid: string) {
-  stores.pageState.showModal({type: MODAL_TYPES.ENCRYPT_FORM, assetUid: uid});
+  pageState.showModal({type: MODAL_TYPES.ENCRYPT_FORM, assetUid: uid});
 }
 
 /** Opens a modal for modifying asset tags (also editable in Details Modal). */
 export function modifyAssetTags(asset: AssetResponse | ProjectViewAsset) {
-  stores.pageState.showModal({type: MODAL_TYPES.ASSET_TAGS, asset: asset});
+  pageState.showModal({type: MODAL_TYPES.ASSET_TAGS, asset: asset});
 }
 
 /**
@@ -575,7 +576,7 @@ export function manageAssetSettings(asset: AssetResponse) {
     modalType = MODAL_TYPES.LIBRARY_COLLECTION;
   }
   if (modalType) {
-    stores.pageState.showModal({
+    pageState.showModal({
       type: modalType,
       asset: asset,
     });

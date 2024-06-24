@@ -24,10 +24,7 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
 
   return (
     <div className={styles.root}>
-      <div className={styles.settingsWrapper}>
-        <SidebarLabelsSettings />
-        <SidebarDisplaySettings assetContent={props.asset.content} />
-      </div>
+      <SidebarDisplaySettings />
 
       <div className={styles.displays}>
         {Array.from(translations).map((translation) => {

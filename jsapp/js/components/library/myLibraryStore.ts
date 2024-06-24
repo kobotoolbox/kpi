@@ -21,7 +21,7 @@ import type {
 import type {AssetTypeName} from 'js/constants';
 import {reaction} from 'mobx';
 
-interface MyLibraryStoreData {
+export interface MyLibraryStoreData {
   isFetchingData: boolean;
   currentPage: number;
   totalPages: number | null;
