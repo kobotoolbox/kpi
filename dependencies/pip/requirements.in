@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@443a8e940756976a9f88fb577dbbc53510726536#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@451df4cd2a0d614be69a3b3309259c67369f7efb#egg=formpack
 
 # service-account
 -e git+https://github.com/kobotoolbox/kobo-service-account.git@cb52c6221b68af9b13237d0a1157e3f1965a82b1#egg=kobo-service-account
@@ -30,7 +30,7 @@ celery[redis]
 dict2xml
 dj-static
 dj-stripe
-django-allauth<0.58  # Backwards incompatible changes
+django-allauth
 django-braces
 django-celery-beat
 django-constance

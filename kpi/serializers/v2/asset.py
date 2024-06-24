@@ -893,6 +893,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return {**self.instance.settings, **settings}
 
     def _content(self, obj):
+        # FIXME: Is this dead code?
         return json.dumps(obj.content)
 
     def _get_status(self, perm_assignments):
