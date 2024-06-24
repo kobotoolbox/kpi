@@ -13,6 +13,7 @@ import Button from 'js/components/common/button';
 
 interface UserPermissionRowProps {
   assetUid: string;
+  userCanEditPerms: boolean;
   nonOwnerPerms: PermissionBase[];
   assignablePerms: AssignablePermsMap;
   permissions: PermissionResponse[];
@@ -167,22 +168,25 @@ export default class UserPermissionRow extends React.Component<
           {!this.props.isUserOwner && !this.props.isPendingOwner && (
             <React.Fragment>
               {this.renderPermissions(this.props.permissions)}
+              {this.props.userCanEditPerms && (
+                <>
+                  <Button
+                    type='bare'
+                    color='storm'
+                    size='m'
+                    startIcon={this.state.isEditFormVisible ? 'close' : 'edit'}
+                    onClick={this.toggleEditForm.bind(this)}
+                  />
 
-              <Button
-                type='bare'
-                color='storm'
-                size='m'
-                startIcon={this.state.isEditFormVisible ? 'close' : 'edit'}
-                onClick={this.toggleEditForm.bind(this)}
-              />
-
-              <Button
-                type='bare'
-                color='red'
-                size='m'
-                startIcon='trash'
-                onClick={this.showRemovePermissionsPrompt.bind(this)}
-              />
+                  <Button
+                    type='bare'
+                    color='red'
+                    size='m'
+                    startIcon='trash'
+                    onClick={this.showRemovePermissionsPrompt.bind(this)}
+                  />
+                </>
+              )}
             </React.Fragment>
           )}
         </bem.UserRow__info>
