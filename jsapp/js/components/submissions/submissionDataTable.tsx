@@ -29,6 +29,7 @@ import type {
 } from 'jsapp/js/dataInterface';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import {goToProcessing} from 'js/components/processing/routes.utils';
+import AttachmentActionsDropdown from './attachmentActionsDropdown.component';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -302,6 +303,8 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               label={t('Download')}
               onClick={downloadUrl.bind(this, attachment.download_url)}
             />
+
+            <AttachmentActionsDropdown attachment={attachment} />
           </React.Fragment>
         );
       } else if (type === QUESTION_TYPES.image.id) {
