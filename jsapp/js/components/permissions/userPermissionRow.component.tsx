@@ -12,6 +12,7 @@ import {getPermLabel, getFriendlyPermName} from './utils';
 
 interface UserPermissionRowProps {
   assetUid: string;
+  userCanEditPerms: boolean;
   nonOwnerPerms: PermissionBase[];
   assignablePerms: AssignablePermsMap;
   permissions: PermissionResponse[];
@@ -166,22 +167,25 @@ export default class UserPermissionRow extends React.Component<
           {!this.props.isUserOwner && !this.props.isPendingOwner && (
             <React.Fragment>
               {this.renderPermissions(this.props.permissions)}
+              {this.props.userCanEditPerms && (
+                <>
+                  <bem.Button m='icon' onClick={this.toggleEditForm.bind(this)}>
+                    {this.state.isEditFormVisible && (
+                      <i className='k-icon k-icon-close' />
+                    )}
+                    {!this.state.isEditFormVisible && (
+                      <i className='k-icon k-icon-edit' />
+                    )}
+                  </bem.Button>
 
-              <bem.Button m='icon' onClick={this.toggleEditForm.bind(this)}>
-                {this.state.isEditFormVisible && (
-                  <i className='k-icon k-icon-close' />
-                )}
-                {!this.state.isEditFormVisible && (
-                  <i className='k-icon k-icon-edit' />
-                )}
-              </bem.Button>
-
-              <bem.Button
-                m='icon'
-                onClick={this.showRemovePermissionsPrompt.bind(this)}
-              >
-                <i className='k-icon k-icon-trash' />
-              </bem.Button>
+                  <bem.Button
+                    m='icon'
+                    onClick={this.showRemovePermissionsPrompt.bind(this)}
+                  >
+                    <i className='k-icon k-icon-trash' />
+                  </bem.Button>
+                </>
+              )}
             </React.Fragment>
           )}
         </bem.UserRow__info>
