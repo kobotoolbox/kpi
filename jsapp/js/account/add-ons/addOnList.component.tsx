@@ -176,6 +176,10 @@ const AddOnList = (props: {
                 {renderUpdateBadge(price)}
               </td>
               <td className={styles.price}>{price.human_readable_price}</td>
+              <td>
+                <div className={styles.product}>{product.name}</div>
+                <div className={styles.price}>{price.human_readable_price}</div>
+              </td>
               <td className={styles.buy}>
                 {isSubscribedAddOnPrice(price) && (
                   <BillingButton

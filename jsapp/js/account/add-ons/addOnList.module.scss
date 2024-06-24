@@ -16,7 +16,9 @@
 
 .table {
   table-layout: fixed;
-  border-spacing: 1em;
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: variables.$plans-page-card-width;
 
   & tr {
     border-top: 1px solid colors.$kobo-light-storm;
@@ -29,12 +31,14 @@
   & td {
     padding-block: 1em;
     font-weight: 600;
-    font-size: sizes.$x16;;
+    font-size: sizes.$x16;
+    overflow: hidden;
   }
 }
 
 .product,
 .price {
+  width: 100%;
   line-height: 2em;
 }
 
@@ -54,8 +58,6 @@
   .table {
     padding: 1em;
     width: variables.$plans-page-max-width;
-    border-collapse: collapse;
-    border-spacing: 0;
   }
 
   .price {
@@ -64,7 +66,7 @@
   }
 
   .buy {
-    width: 8em;
+    width: 15%;
   }
 
   .table td:nth-child(2) {
