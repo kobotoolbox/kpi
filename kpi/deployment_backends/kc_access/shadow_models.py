@@ -263,38 +263,6 @@ class KobocatDailyXFormSubmissionCounter(ShadowModel):
         unique_together = [['date', 'xform', 'user'], ['date', 'user']]
 
 
-class KobocatDigestPartial(ShadowModel):
-
-    user = models.ForeignKey('KobocatUser', on_delete=models.CASCADE)
-    login = models.CharField(max_length=128, db_index=True)
-    partial_digest = models.CharField(max_length=100)
-    confirmed = models.BooleanField(default=True)
-
-    class Meta(ShadowModel.Meta):
-        db_table = "django_digest_partialdigest"
-
-    @classmethod
-    def sync(cls, user):
-        """
-        Mimics the behavior of `django_digest.models._store_partial_digests()`,
-        but updates `KobocatDigestPartial` in the KoBoCAT database instead of
-        `PartialDigest` in the KPI database
-        """
-
-        # No need to decorate this method with a `kc_transaction_atomic` because
-        # it is only used in KobocatUser.sync() which is called only in
-        # `save_kobocat_user()` inside a (KoBoCAT) transaction.
-        cls.objects.filter(user=user).delete()
-        # Query for `user_id` since user PKs are synchronized
-        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-            cls.objects.create(
-                user=user,
-                login=partial_digest.login,
-                confirmed=partial_digest.confirmed,
-                partial_digest=partial_digest.partial_digest,
-            )
-
-
 class KobocatGenericForeignKey(GenericForeignKey):
 
     def get_content_type(self, obj=None, id=None, using=None):
@@ -461,10 +429,6 @@ class KobocatUser(ShadowModel):
         # We've manually set a primary key, so `last_value` in the sequence
         # `auth_user_id_seq` now lags behind `max(id)`. Fix it now!
         update_autofield_sequence(cls)
-
-        # Update django-digest `PartialDigest`s in KoboCAT.  This is only
-        # necessary if the user's password has changed, but we do it always
-        KobocatDigestPartial.sync(kc_auth_user)
 
     @classmethod
     def get_kc_user(cls, auth_user: settings.AUTH_USER_MODEL) -> KobocatUser:

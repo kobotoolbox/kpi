@@ -75,7 +75,6 @@ SHADOW_MODEL_APP_LABELS = [
 SHARED_APP_LABELS = [
     'auth',
     'contenttypes',
-    'django_digest',
     'kobo_auth',
     'reversion',
     'sessions',
