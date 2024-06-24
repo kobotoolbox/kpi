@@ -51,14 +51,14 @@ from kobo.apps.openrosa.apps.logger.models.attachment import (
 from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
     get_id_string_from_xml_str,
-    update_xform_daily_counter,
-    update_xform_monthly_counter,
-    update_xform_submission_count,
 )
 from kobo.apps.openrosa.apps.logger.models.xform import XLSFormError
 from kobo.apps.openrosa.apps.logger.signals import (
     post_save_attachment,
     pre_delete_attachment,
+    update_xform_daily_counter,
+    update_xform_monthly_counter,
+    update_xform_submission_count,
 )
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     InstanceEmptyError,

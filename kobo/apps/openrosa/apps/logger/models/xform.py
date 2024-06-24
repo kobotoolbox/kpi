@@ -10,17 +10,12 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.db import models
-from django.db.models.signals import post_save, post_delete, pre_delete
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
-from kobo.apps.openrosa.apps.logger.models.daily_xform_submission_counter import DailyXFormSubmissionCounter
-from kobo.apps.openrosa.apps.logger.models.monthly_xform_submission_counter import (
-    MonthlyXFormSubmissionCounter,
-)
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
 from kobo.apps.openrosa.libs.models.base_model import BaseModel
@@ -332,48 +327,3 @@ class XForm(BaseModel):
     @property
     def xml_with_disclaimer(self):
         return XMLFormWithDisclaimer(self).get_object().xml
-
-
-def update_profile_num_submissions(sender, instance, **kwargs):
-    profile_qs = User.profile.get_queryset()
-    try:
-        profile = profile_qs.select_for_update()\
-            .get(pk=instance.user.profile.pk)
-    except ObjectDoesNotExist:
-        pass
-    else:
-        profile.num_of_submissions -= instance.num_of_submissions
-        if profile.num_of_submissions < 0:
-            profile.num_of_submissions = 0
-        profile.save(update_fields=['num_of_submissions'])
-
-
-post_delete.connect(update_profile_num_submissions, sender=XForm,
-                    dispatch_uid='update_profile_num_submissions')
-
-
-def set_object_permissions(sender, instance=None, created=False, **kwargs):
-    if created:
-        for perm in get_perms_for_model(XForm):
-            assign_perm(perm.codename, instance.user, instance)
-
-
-post_save.connect(set_object_permissions, sender=XForm,
-                  dispatch_uid='xform_object_permissions')
-
-
-# signals are fired during cascade deletion (i.e. deletion initiated by the
-# removal of a related object), whereas the `delete()` model method is not
-# called. We need call this signal before cascade deletion. Otherwise,
-# MonthlySubmissionCounter objects will be deleted before the signal is fired.
-pre_delete.connect(
-    MonthlyXFormSubmissionCounter.update_catch_all_counter_on_delete,
-    sender=XForm,
-    dispatch_uid='update_catch_all_monthly_xform_submission_counter',
-)
-
-pre_delete.connect(
-    DailyXFormSubmissionCounter.update_catch_all_counter_on_delete,
-    sender=XForm,
-    dispatch_uid='update_catch_all_daily_xform_submission_counter',
-)

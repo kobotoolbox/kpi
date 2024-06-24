@@ -1,10 +1,13 @@
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from guardian.shortcuts import assign_perm, get_perms_for_model
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.libs.utils.guardian import (
+    assign_perm,
+    get_perms_for_model
+)
 from kobo.apps.openrosa.libs.utils.user_auth import set_api_permissions_for_user
 from kpi.utils.database import use_db
 from kpi.utils.permissions import is_user_anonymous

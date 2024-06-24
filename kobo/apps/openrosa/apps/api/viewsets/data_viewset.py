@@ -32,6 +32,8 @@ from kobo.apps.openrosa.apps.api.tools import (
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.models.instance import (
     Instance,
+)
+from kobo.apps.openrosa.apps.logger.signals import (
     nullify_exports_time_of_last_submission,
     update_xform_submission_count_delete,
 )

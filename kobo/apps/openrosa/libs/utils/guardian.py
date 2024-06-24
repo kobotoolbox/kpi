@@ -6,6 +6,7 @@ from guardian.shortcuts import (
     get_users_with_perms as guardian_get_users_with_perms,
     remove_perm as guardian_remove_perm,
 )
+
 from kpi.utils.database import use_db
 
 # These utilities use `use_db` context manager to force to use KoboCAT database,
@@ -27,9 +28,14 @@ def get_objects_for_user(*args, **kwargs):
         return guardian_get_objects_for_user(*args, **kwargs)
 
 
-def get_perms_for_model(*args, **kwargs):
+def get_perms_for_model(cls):
+    # The use of the generator permits to evaluate the permission codenames
+    # in the database context (and retrieve their real name in KoboCAT tables
+    # and not KPI with equivalent PK)
     with use_db(settings.OPENROSA_DB_ALIAS):
-        for perm in guardian_get_perms_for_model(*args, **kwargs):
+        for perm in guardian_get_perms_for_model(cls).select_related(
+            'content_type'
+        ):
             yield perm
 
 
