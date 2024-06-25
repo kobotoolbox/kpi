@@ -570,8 +570,9 @@ class ExportTaskBase(ImportExportTask):
     }
 
     TIMESTAMP_KEY = '_submission_time'
-    # Above 244 seems to cause 'Download error' in Chrome 64/Linux
-    MAXIMUM_FILENAME_LENGTH = 240
+    # Above 244 seems to cause 'Download error' in Chrome 64/Linux and above
+    # 207 causes a 'Filename too long' error in Excel
+    MAXIMUM_FILENAME_LENGTH = 207
 
     class InaccessibleData(Exception):
         def __str__(self):
