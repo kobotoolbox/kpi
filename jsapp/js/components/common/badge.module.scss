@@ -1,4 +1,5 @@
 @use 'scss/sizes';
+@use 'scss/mixins';
 @use '~kobo-common/src/styles/colors';
 
 $badge-height-s: sizes.$x24;
@@ -14,10 +15,8 @@ $badge-font-l: sizes.$x14;
   display: inline-block;
   vertical-align: middle;
   text-align: center;
-}
-
-.label {
-  white-space: nowrap;
+  @include mixins.textEllipsis;
+  max-width: 100%;
 }
 
 .icon {

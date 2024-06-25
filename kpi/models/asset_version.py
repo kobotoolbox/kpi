@@ -29,6 +29,8 @@ class AssetVersion(models.Model):
                                               )
     version_content = models.JSONField()
     uid_aliases = models.JSONField(null=True)
+    # Tee hee, `deployed_content` is never written to the database!
+    # TODO: It should be changed to a property instead, no?
     deployed_content = models.JSONField(null=True)
     _deployment_data = models.JSONField(default=dict)
     deployed = models.BooleanField(default=False)
