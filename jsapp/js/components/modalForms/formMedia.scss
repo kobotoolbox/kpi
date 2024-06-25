@@ -1,7 +1,7 @@
 @use 'scss/sizes';
 @use 'scss/mixins';
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/_variables';
 
 .form-view--form-media {

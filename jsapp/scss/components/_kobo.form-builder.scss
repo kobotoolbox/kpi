@@ -1,6 +1,6 @@
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 $s-form-builder-header: 125px;
 $s-form-builder-aside: 400px;

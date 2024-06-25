@@ -2,7 +2,7 @@
 @use 'scss/breakpoints';
 @use 'scss/_variables';
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but

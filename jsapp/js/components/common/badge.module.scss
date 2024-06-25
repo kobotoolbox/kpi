@@ -1,5 +1,5 @@
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 $badge-height-s: sizes.$x24;
 $badge-font-s: sizes.$x12;
@@ -37,7 +37,7 @@ $badge-font-l: sizes.$x14;
 
 .color-light-red {
   color: colors.$kobo-dark-red;
-  background-color: colors.$kobo-light-red;  
+  background-color: colors.$kobo-light-red;
 }
 
 .color-light-teal {
