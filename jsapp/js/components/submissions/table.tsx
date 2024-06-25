@@ -98,6 +98,7 @@ import type {
   ReactTableInstance,
   DataTableSelectedRows,
 } from 'js/components/submissions/table.types';
+import Button from 'js/components/common/button';
 
 const DEFAULT_PAGE_SIZE = 30;
 
@@ -571,15 +572,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               />
             )}
 
-            <button
+            <Button
+              type='bare'
+              color='storm'
+              size='s'
+              startIcon='view'
+              tooltip={t('Open')}
+              tooltipPosition='left'
               onClick={() => {
                 this.launchSubmissionModal(row, row.original._id);
               }}
-              className='table-link'
-              data-tip={t('Open')}
-            >
-              <i className='k-icon k-icon-view' />
-            </button>
+            />
 
             {userCanSeeEditIcon &&
               userHasPermForSubmission(
@@ -587,15 +590,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 this.props.asset,
                 row.original
               ) && (
-                <button
+                <Button
+                  type='bare'
+                  color='storm'
+                  size='s'
+                  startIcon='edit'
+                  tooltip={t('Edit')}
+                  tooltipPosition='left'
                   onClick={() => {
                     this.launchEditSubmission(row.original._id);
                   }}
-                  className='table-link'
-                  data-tip={t('Edit')}
-                >
-                  <i className='k-icon k-icon-edit' />
-                </button>
+                />
               )}
           </div>
         ),
@@ -1530,23 +1535,25 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           {this.renderBulkSelectUI()}
 
           <bem.FormView__item m='table-buttons'>
-            <bem.Button
-              m='icon'
-              className='report-button__expand right-tooltip'
+            <Button
+              type='bare'
+              color='storm'
+              size='m'
+              startIcon='expand'
               onClick={this.toggleFullscreen.bind(this)}
-              data-tip={t('Toggle fullscreen')}
-            >
-              <i className='k-icon k-icon-expand' />
-            </bem.Button>
+              tooltip={t('Toggle fullscreen')}
+              tooltipPosition='right'
+            />
 
-            <bem.Button
-              m='icon'
-              className='report-button__expand right-tooltip'
+            <Button
+              type='bare'
+              color='storm'
+              size='m'
+              startIcon='settings'
               onClick={this.showTableColumnsOptionsModal.bind(this)}
-              data-tip={t('Display options')}
-            >
-              <i className='k-icon k-icon-settings' />
-            </bem.Button>
+              tooltip={t('Display options')}
+              tooltipPosition='right'
+            />
           </bem.FormView__item>
         </bem.FormView__group>
 

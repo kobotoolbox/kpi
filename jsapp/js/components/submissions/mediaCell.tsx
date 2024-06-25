@@ -129,14 +129,17 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         <bem.TableMediaPreviewHeader__options>
           {mediaURL &&
             <a
-              className='kobo-light-button kobo-light-button--blue'
               // TODO: once we get this button to `save as`, remove this target
               target='_blank'
               href={mediaURL}
             >
-              {t('download')}
-
-              <i className='k-icon k-icon-download'/>
+              <Button
+                type='frame'
+                color='blue'
+                size='s'
+                startIcon='download'
+                label={t('download')}
+              />
             </a>
           }
 

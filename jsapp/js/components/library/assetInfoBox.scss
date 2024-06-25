@@ -28,29 +28,6 @@
       }
     }
   }
-
-  .asset-info-box__toggle {
-    cursor: pointer;
-    color: colors.$kobo-blue;
-    background: transparent;
-    border: 0;
-    width: 100%;
-    text-align: center;
-
-    &:hover {
-      color: colors.$kobo-dark-blue;
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
-
-    .k-icon {
-      font-size: 18px;
-      margin-right: 3px;
-      vertical-align: -5px;
-    }
-  }
 }
 
 .asset-info-box__cell {
