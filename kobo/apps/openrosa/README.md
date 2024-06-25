@@ -17,7 +17,7 @@ please refer to
 
 As features are migrated, we will list them here along with the last
 release where each was present:
-  - Starting from version [2.024.19](https://github.com/kobotoolbox/kobocat/releases/tag/2.024.19),
+  - Starting from version [2.024.25](https://github.com/kobotoolbox/kobocat/releases/tag/2.024.25),
     the ability to import submissions in CSV to KoboCAT was
     removed (i.e: `https://kobocat.domain.tld/api/v1/forms/<form_id>/csv_import`)
     .
