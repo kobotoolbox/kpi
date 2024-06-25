@@ -8,6 +8,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Button from 'js/components/common/button';
 import InlineMessage from 'js/components/common/inlineMessage';
+import {userCan} from 'js/components/permissions/utils';
 import {replaceBracketsWithLink} from 'js/textUtils';
 import {ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
 import {ASSET_TYPES} from 'js/constants';
@@ -173,7 +174,7 @@ export default class SharingForm extends React.Component<
   }
 
   /** Display pending owner if not already included in list of user permissions */
-  renderPendingOwner() {
+  renderPendingOwner(userCanEditPerms: boolean) {
     if (
       this.state.asset?.project_ownership?.status ===
         TransferStatuses.Pending &&
@@ -185,6 +186,7 @@ export default class SharingForm extends React.Component<
       return (
         <UserPermissionRow
           assetUid={this.props.assetUid}
+          userCanEditPerms={userCanEditPerms}
           nonOwnerPerms={this.state.nonOwnerPerms}
           assignablePerms={this.state.assignablePerms}
           permissions={[]}
@@ -204,6 +206,7 @@ export default class SharingForm extends React.Component<
     }
 
     const assetType = this.state.asset.asset_type;
+    const isManagingPossible = userCan('manage_asset', this.state.asset);
 
     const isRequireAuthWarningVisible =
       'extra_details' in sessionStore.currentAccount &&
@@ -249,6 +252,7 @@ export default class SharingForm extends React.Component<
               <UserPermissionRow
                 key={`perm.${this.props.assetUid}.${perm.user.name}`}
                 assetUid={this.props.assetUid}
+                userCanEditPerms={isManagingPossible}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 assignablePerms={this.state.assignablePerms}
                 permissions={perm.permissions}
@@ -258,11 +262,12 @@ export default class SharingForm extends React.Component<
               />
             );
           })}
-          {this.renderPendingOwner()}
+          {this.renderPendingOwner(isManagingPossible)}
 
           {!this.state.isAddUserEditorVisible && (
             <Button
               color='blue'
+              isDisabled={!isManagingPossible}
               type='full'
               size='l'
               onClick={this.toggleAddUserEditor.bind(this)}
@@ -299,26 +304,31 @@ export default class SharingForm extends React.Component<
                 publicPerms={this.state.publicPerms}
                 assetUid={this.props.assetUid}
                 deploymentActive={this.state.asset.deployment__active}
+                userCanShare={isManagingPossible}
               />
             </bem.FormModal__item>
           </>
         )}
 
         {/* copying permissions from other assets */}
-        {assetType !== ASSET_TYPES.collection.id &&
-          this.state.allAssetsCount === 0 && (
-            <>
-              <bem.Modal__hr />
-              {t('Waiting for all projects to load…')}
-            </>
-          )}
-        {assetType !== ASSET_TYPES.collection.id &&
-          this.state.allAssetsCount >= 2 && (
-            <>
-              <bem.Modal__hr />
-              <CopyTeamPermissions assetUid={this.props.assetUid} />
-            </>
-          )}
+        {isManagingPossible && (
+          <>
+            {assetType !== ASSET_TYPES.collection.id &&
+              this.state.allAssetsCount === 0 && (
+                <>
+                  <bem.Modal__hr />
+                  {t('Waiting for all projects to load…')}
+                </>
+              )}
+            {assetType !== ASSET_TYPES.collection.id &&
+              this.state.allAssetsCount >= 2 && (
+                <>
+                  <bem.Modal__hr />
+                  <CopyTeamPermissions assetUid={this.props.assetUid} />
+                </>
+              )}
+          </>
+        )}
       </bem.FormModal>
     );
   }

@@ -294,6 +294,26 @@ $button-border-radius: sizes.$x6;
   );
 }
 
+// dark-red button ↓
+
+.k-button.k-button--color-dark-red.k-button--type-bare {
+  @include button-bare(
+    colors.$kobo-dark-red,
+    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
+  );
+}
+
+.k-button.k-button--color-dark-red.k-button--type-frame {
+  @include button-frame(colors.$kobo-dark-red);
+}
+
+.k-button.k-button--color-dark-red.k-button--type-full {
+  @include button-full(
+    colors.$kobo-dark-red,
+    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
+  );
+}
+
 // storm button ↓
 
 .k-button.k-button--color-storm.k-button--type-bare {
