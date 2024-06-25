@@ -8,6 +8,7 @@ import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
 } from 'js/components/assetsTable/assetsTableConstants';
+import type {OrderDirection} from 'js/projects/projectViews/constants';
 import type {AssetsTableColumn} from 'js/components/assetsTable/assetsTableConstants';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
@@ -22,17 +23,17 @@ import type {
 } from 'js/dataInterface';
 import {reaction} from 'mobx';
 
-interface PublicCollectionsStoreData {
+export interface PublicCollectionsStoreData {
   isFetchingData: boolean;
   currentPage: number;
   totalPages: number | null;
   totalSearchAssets: number | null;
   assets: AssetResponse[];
   metadata: MetadataResponse;
-  orderColumnId?: string;
-  orderValue?: string | null;
-  filterColumnId?: string | null;
-  filterValue?: string | null;
+  orderColumnId: string;
+  orderValue: OrderDirection | null | undefined;
+  filterColumnId: string | null;
+  filterValue: string | null;
 }
 
 class PublicCollectionsStore extends Reflux.Store {
@@ -60,6 +61,10 @@ class PublicCollectionsStore extends Reflux.Store {
       sectors: [],
       organizations: [],
     },
+    orderColumnId: this.DEFAULT_ORDER_COLUMN.id,
+    orderValue: this.DEFAULT_ORDER_COLUMN.defaultValue,
+    filterColumnId: null,
+    filterValue: null,
   };
 
   init() {
@@ -339,7 +344,7 @@ class PublicCollectionsStore extends Reflux.Store {
     this.fetchData();
   }
 
-  setOrder(orderColumnId: string, orderValue: string) {
+  setOrder(orderColumnId: string, orderValue: OrderDirection) {
     if (
       this.data.orderColumnId !== orderColumnId ||
       this.data.orderValue !== orderValue

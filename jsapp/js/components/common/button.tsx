@@ -20,6 +20,7 @@ import {useId} from 'js/hooks/useId.hook';
  */
 export type ButtonType = 'bare' | 'frame' | 'full';
 export type ButtonColor =
+  | 'teal'
   | 'blue'
   | 'light-blue'
   | 'red'

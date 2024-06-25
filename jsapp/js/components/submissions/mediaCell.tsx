@@ -1,16 +1,12 @@
 import autoBind from 'react-autobind';
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import {stores} from 'js/stores';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
-import type {
-  QuestionTypeName,
-  MetaQuestionTypeName,
-} from 'js/constants';
+import type {AnyRowTypeName} from 'js/constants';
 import Button from 'js/components/common/button';
 import {truncateString} from 'js/utils';
 import {goToProcessing} from 'js/components/processing/routes.utils';
@@ -19,6 +15,7 @@ import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
 import Icon from 'js/components/common/icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import pageState from 'js/pageState.store';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
@@ -33,9 +30,9 @@ bem.MediaCellIconWrapper = makeBem(null, 'icon-wrapper');
 bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
 
 interface MediaCellProps {
- questionType: MetaQuestionTypeName | QuestionTypeName;
- /** It's `null` for text questions. */
- mediaAttachment: SubmissionAttachment;
+ questionType: AnyRowTypeName;
+ /** If string is passed it's an error message. */
+ mediaAttachment: SubmissionAttachment | string;
  /** Backend stored media attachment file name or the content of a text question. */
  mediaName: string;
  /** Index of the submission for text questions. */
@@ -82,19 +79,21 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   launchMediaModal(evt: MouseEvent | TouchEvent) {
     evt.preventDefault();
 
-    stores.pageState.showModal({
-      type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
-      questionType: this.props.questionType,
-      mediaAttachment: this.props.mediaAttachment,
-      mediaName: this.props.mediaName,
-      customModalHeader: this.renderMediaModalCustomHeader(
-        this.getQuestionIcon(),
-        this.props.mediaAttachment?.download_url,
-        this.props.mediaName,
-        this.props.submissionIndex,
-        this.props.submissionTotal,
-      ),
-    });
+    if (typeof this.props.mediaAttachment !== 'string') {
+      pageState.showModal({
+        type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
+        questionType: this.props.questionType,
+        mediaAttachment: this.props.mediaAttachment,
+        mediaName: this.props.mediaName,
+        customModalHeader: this.renderMediaModalCustomHeader(
+          this.getQuestionIcon(),
+          this.props.mediaAttachment?.download_url,
+          this.props.mediaName,
+          this.props.submissionIndex,
+          this.props.submissionTotal,
+        ),
+      });
+    }
   }
 
   renderMediaModalCustomHeader(
@@ -141,7 +140,9 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
             </a>
           }
 
-          {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
+          {
+            this.props.questionType === QUESTION_TYPES.audio.id ||
+            this.props.questionType === META_QUESTION_TYPES['background-audio'] &&
             <Button
               type='frame'
               size='s'
@@ -157,6 +158,18 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   }
 
   render() {
+    const hasError = typeof this.props.mediaAttachment === 'string';
+
+    if (hasError) {
+      return (
+        <bem.MediaCell>
+          <bem.MediaCellIconWrapper data-tip={this.props.mediaAttachment}>
+            <Icon name='alert' color='red' size='s'/>
+          </bem.MediaCellIconWrapper>
+        </bem.MediaCell>
+      );
+    }
+
     return (
       <bem.MediaCell>
         <bem.MediaCellIconWrapper>

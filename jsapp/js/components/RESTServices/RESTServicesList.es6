@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {stores} from '../../stores';
 import {actions} from '../../actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -13,6 +12,7 @@ import {
   notify,
   escapeHtml,
 } from 'js/utils';
+import pageState from 'js/pageState.store';
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html';
 
@@ -60,7 +60,7 @@ export default class RESTServicesList extends React.Component {
   }
 
   editHook(evt) {
-    stores.pageState.showModal({
+    pageState.showModal({
       assetUid: this.state.assetUid,
       type: MODAL_TYPES.REST_SERVICES,
       hookUid: evt.currentTarget.dataset.hookUid
@@ -92,7 +92,7 @@ export default class RESTServicesList extends React.Component {
   }
 
   openNewRESTServiceModal() {
-    stores.pageState.showModal({
+    pageState.showModal({
       assetUid: this.state.assetUid,
       // hookUid: not provided intentionally
       type: MODAL_TYPES.REST_SERVICES
