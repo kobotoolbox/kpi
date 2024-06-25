@@ -5,6 +5,7 @@ from django.test import TestCase
 from hub.models import PerUserSetting
 from kobo.apps.kobo_auth.shortcuts import User
 
+
 class PerUserSettingTestCase(TestCase):
 
     def setUp(self):
