@@ -3,6 +3,7 @@
 @use 'scss/breakpoints';
 @use 'js/components/common/checkbox';
 @use 'sass:color';
+@use 'scss/mixins';
 
 // These are custom styles for Table View table.
 
@@ -22,7 +23,7 @@ $s-data-table-font: 13px;
   background: colors.$kobo-white;
 
   .form-view__group--table-header {
-    padding: 10px 0px 0px 0px;
+    padding: 15px 0px 5px 0px;
     display: flex;
     justify-content: space-between;
     align-content: center;
@@ -34,12 +35,8 @@ $s-data-table-font: 13px;
     }
 
     .form-view__item--table-buttons {
-      text-align: right;
-
-      button {
-        overflow: visible;
-        margin-left: 10px;
-      }
+      @include mixins.centerRowFlex;
+      gap: 5px;
     }
   }
 }
@@ -495,53 +492,6 @@ $s-data-table-font: 13px;
   }
 }
 
-.table-meta {
-  flex-grow: 1;
-  min-height: 30px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .bulk-clear-badge-icon {
-    margin-right: -5px;
-    cursor: pointer;
-    padding: 0 5px;
-    border-radius: 50%;
-    color: colors.$kobo-gray-24;
-
-    &:hover {
-      color: colors.$kobo-white;
-      background-color: colors.$kobo-red;
-    }
-  }
-
-  .table-meta__bulk-options {
-    > *:not(:first-child) {
-      margin-left: 10px;
-    }
-  }
-
-  .table-meta__counter {
-    display: inline;
-    white-space: nowrap;
-  }
-}
-
-.table-meta__additional-text {
-  display: none;
-}
-
-.table-meta__bulk-options {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .popover-menu .popover-menu__toggle {
-    // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
-    height: auto;
-  }
-}
-
 @include breakpoints.breakpoint(veryNarrow) {
   .form-view--table .ReactTable .-pagination .-previous,
   .form-view--table .ReactTable .-pagination .-next {
@@ -576,11 +526,5 @@ $s-data-table-font: 13px;
 
   .form-view--table .ReactTable .pagination-bottom {
     margin-bottom: 20px;
-  }
-}
-
-@include breakpoints.breakpoint(mediumAndUp) {
-  .table-meta__additional-text {
-    display: initial;
   }
 }

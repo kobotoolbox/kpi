@@ -277,13 +277,14 @@ export default class SharingForm extends React.Component<
 
           {this.state.isAddUserEditorVisible && (
             <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
-              <bem.Button
-                m='icon'
+              <Button
+                color='storm'
+                type='bare'
+                size='l'
+                startIcon='close'
                 className='user-permissions-editor-closer'
                 onClick={this.toggleAddUserEditor.bind(this)}
-              >
-                <i className='k-icon k-icon-close' />
-              </bem.Button>
+              />
 
               <UserAssetPermsEditor
                 assetUid={this.props.assetUid}
