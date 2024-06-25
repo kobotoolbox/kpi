@@ -1,7 +1,6 @@
-// Libraries
+// Libraries:
 import React, {useState} from 'react';
-
-// Components
+// Components:
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import KoboDropdown from 'js/components/common/koboDropdown';
@@ -10,20 +9,24 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import bem from 'js/bem';
-
-// Utilities
-import {generateUuid, notify} from 'js/utils';
-
-// Types
-import type {SubmissionAttachment} from 'js/dataInterface';
-
-// Styles
-// import styles from './attachmentActionsDropdown.module.scss';
+// Helpers:
+import * as utils from 'js/utils';
+import {userCan} from 'js/components/permissions/utils';
+// Types:
+import type {
+  AssetResponse,
+  SubmissionAttachment,
+} from 'js/dataInterface';
 
 interface AttachmentActionsDropdownProps {
+  asset: AssetResponse;
   attachment: SubmissionAttachment;
 }
 
+/**
+ * Displays a "…" button that opens a dropdown with some actions available for
+ * provided attachment. Delete option would display a safety check modal.
+ */
 export default function AttachmentActionsDropdown(
   props: AttachmentActionsDropdownProps
 ) {
@@ -42,15 +45,18 @@ export default function AttachmentActionsDropdown(
     setTimeout(() => {
       setIsDeletePending(false);
       toggleDeleteModal();
-      notify(t('##Attachment_type## deleted').replace('##Attachment_type##', t('Image')));
+      utils.notify(t('##Attachment_type## deleted').replace('##Attachment_type##', t('Image')));
     }, 2000);
   }
 
   function requestDownloadFile() {
     console.log('requestDownloadFile', props.attachment);
+    utils.downloadUrl(props.attachment.download_url);
   }
 
-  const uniqueDropdownName = `attachment-actions-${generateUuid()}`;
+  const userCanDelete = userCan('delete_submissions', props.asset);
+
+  const uniqueDropdownName = `attachment-actions-${utils.generateUuid()}`;
 
   return (
     <>
@@ -81,7 +87,11 @@ export default function AttachmentActionsDropdown(
         }
       />
 
-      <KoboModal isOpen={isDeleteModalOpen} onRequestClose={toggleDeleteModal} size='large'>
+      <KoboModal
+        isOpen={isDeleteModalOpen}
+        onRequestClose={toggleDeleteModal}
+        size='medium'
+      >
         <KoboModalHeader onRequestCloseByX={toggleDeleteModal}>
           {t('Delete ##attachment_type##').replace('##attachment_type##', t('image'))}
         </KoboModalHeader>
@@ -101,10 +111,11 @@ export default function AttachmentActionsDropdown(
 
           <Button
             type='full'
-            color='red'
+            color='dark-red'
             size='l'
             onClick={confirmDelete}
             label={t('Delete')}
+            isDisabled={!userCanDelete}
             isPending={isDeletePending}
           />
         </KoboModalFooter>

@@ -304,7 +304,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               onClick={downloadUrl.bind(this, attachment.download_url)}
             />
 
-            <AttachmentActionsDropdown attachment={attachment} />
+            <AttachmentActionsDropdown
+              asset={this.props.asset}
+              attachment={attachment}
+            />
           </React.Fragment>
         );
       } else if (type === QUESTION_TYPES.image.id) {
