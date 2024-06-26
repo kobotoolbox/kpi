@@ -27,7 +27,7 @@ class OwnerInline(BaseOwnerInline):
 
 class OrgUserInline(admin.StackedInline):
     model = OrganizationUser
-    raw_id_fields = ("user",)
+    raw_id_fields = ('user',)
     view_on_site = False
     extra = 0
 
@@ -39,7 +39,12 @@ class OrgAdmin(BaseOrganizationAdmin):
 
 
 class OrgUserResource(resources.ModelResource):
-    user = Field(attribute='user', column_name='user', widget=ForeignKeyWidget(User, field="username"))
+    user = Field(
+        attribute='user',
+        column_name='user',
+        widget=ForeignKeyWidget(User, field='username'),
+    )
+
     class Meta:
         model = OrganizationUser
 
