@@ -69,5 +69,6 @@
 
     // Use locally-installed TypeScript instance (supports plugins in tsconfig)
     "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true
   },
 }

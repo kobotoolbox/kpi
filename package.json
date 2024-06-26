@@ -155,7 +155,7 @@
     "swc-loader": "^0.2.3",
     "terser-webpack-plugin": "^5.3.6",
     "ts-loader": "^9.4.2",
-    "typescript": "^5.0.2",
+    "typescript": "^5.5.2",
     "typescript-plugin-css-modules": "^5.0.1",
     "webpack": "^5.76.1",
     "webpack-bundle-tracker": "^1.5.0",
