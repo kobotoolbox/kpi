@@ -1,0 +1,131 @@
+{% extends 'kobocat_base.html' %}
+{% load static %}
+
+
+{% block before-content %}
+{% load i18n %}
+
+<header class="data-page__header">
+    <hgroup class="container">
+      <h1>{{ export_type_name|upper }} {% blocktrans %}Exports{% endblocktrans %}</h1>
+    </hgroup>
+</header>
+
+{% endblock %}
+
+{% block content %}
+{% load i18n %}
+
+<section id="export-downloads">
+
+    {% if user.is_authenticated %}
+    <form action="{% url "create_export" username xform.id_string export_type %}" method="post" enctype="application/x-www-form-urlencoded">
+        {% csrf_token %}
+            <span style='float:middle;'>
+              <div>
+                <input type="submit" class="btn btn-primary" value="{% trans 'New Export' %}" />
+                {% if export_type == 'xls' or export_type == 'csv' %}
+                  <a href="#advanced-export-modal" role="button" class="btn" data-toggle="modal">{% trans "Advanced Export" %}</a>
+                {% endif %}
+            </div>
+            </span>
+    </form>
+    <p>{% trans "Note: exports include only questions that remain in the most recent version of the form." %}</p>
+    {% endif %}
+
+    <div id="advanced-export-modal" class="modal hide fade">
+      <form action="{% url "create_export" username xform.id_string export_type %}" method="post" enctype="application/x-www-form-urlencoded">
+        {% csrf_token %}
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h3>{% trans "Advanced Export" %}</h3>
+        </div>
+        <div class="modal-body">
+          <label>{% trans "Delimiter to use to separate group names from field names" %}</label>
+          <select id="options-group_delimiter" name="options[group_delimiter]" class="span2">
+            <option value=".">. ({% trans "Dot" %})</option>
+            <option value="/" selected>/ ({% trans "Slash" %})</option>
+          </select>
+          <label class="checkbox">
+            <input type="checkbox" name="options[dont_split_select_multiples]" value="yes" />
+            {% trans "DONT split select multiple choice answers into separate columns" %}
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+          <input type="submit" class="btn large btn-primary" value="{% trans "Create Export" %}" />
+        </div>
+      </form>
+    </div>
+
+  <table id="forms-table" class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>{% trans "Filename" %}</th>
+        <th>{% trans "Date Created" %}</th>
+        <th>{% trans "Delete" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for export in exports %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>
+            {% if not export.is_pending %}
+                {% if export.is_successful %}
+                    <a href="{% url "export_download" username xform.id_string export.export_type export.filename %}" target="_blank">{{ export.filename }}</a>
+                {% else %}
+                    Failed
+                {% endif %}
+            {% else %}
+              <span class="status">{% trans "Pending ..." %}</span>
+              <a href="#" class="refresh-export-progress" data-role="refresh-export-progress" data-export="{{ export.id|stringformat:"d" }}">{% trans "Click to refresh" %}</a>
+            {% endif %}
+        </td>
+        <td>{{ export.created_on }}</td>
+        <td>
+            <form action="{% url "delete_export" username xform.id_string export_type %}" method="post" enctype="application/x-www-form-urlencoded">
+              {% csrf_token %}
+                <div id="delete-{{ export.id|stringformat:"d" }}" class="modal hide fade">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h3>{% trans "Delete Export" %}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>{% trans "Are you sure you want to delete this export?" %}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="#" class="btn" data-dismiss="modal">{% trans "Cancel" %}</a>
+                        <input type="submit" class="btn btn-primary" value="{% trans 'Delete' %}" />
+                    </div>
+                </div>
+              <span style="float:middle;">
+              <div>
+                  <input type="hidden" name="export_id" value="{{ export.id|stringformat:"d" }}">
+                  <a data-toggle="modal" href="#delete-{{ export.id|stringformat:"d" }}" data-backdrop="true" data-keyboard="true">
+                      <i class="fa fa-trash-o"></i>
+                  </a>
+                </div>
+              </span>
+            </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</section>
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static "kobocat/js/jquery.dataTables.js" %}"></script>
+<script type="text/javascript" src="{% static "kobocat/js/jquery.dataTables.pagination.js" %}"></script>
+<script type="text/javascript" src="{% static "kobocat/js/form_actions.js" %}"></script>
+<script type="text/javascript" charset="utf-8" src="{% static "kobocat/js/underscore-min.js" %}"></script>
+<script type="text/javascript" charset="utf-8" src="{% static "kobocat/js/export_list.js" %}"></script>
+<script type="text/javascript">
+    var progress_url = '{% url "export_progress" username xform.id_string export_type %}';
+</script>
+{% endblock %}

@@ -3,7 +3,7 @@ from django.contrib import admin, messages
 from django.db import transaction
 from django.utils.html import format_html
 
-from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from .filters import PasswordValidationAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 from ..models import ExtraUserDetail
@@ -67,10 +67,15 @@ class PasswordValidationAdmin(AdvancedSearchMixin, admin.ModelAdmin):
 
     @admin.display(description='Validated')
     def get_validated_password(self, obj):
-        value = True
+        value = False
         try:
             value = obj.extra_details.validated_password
         except obj.extra_details.RelatedObjectDoesNotExist:
+            pass
+
+        try:
+            value = value and obj.profile.validated_password
+        except obj.profile.RelatedObjectDoesNotExist:
             pass
 
         return format_html(
@@ -88,8 +93,14 @@ class PasswordValidationAdmin(AdvancedSearchMixin, admin.ModelAdmin):
             ExtraUserDetail.objects.filter(user_id__in=user_ids).update(
                 validated_password=False
             )
-            KobocatUserProfile.objects.filter(user_id__in=user_ids).update(
-                validated_password=False
+            UserProfile.objects.bulk_create(
+                [
+                    UserProfile(user_id=user_id, validated_password=False)
+                    for user_id in user_ids
+                ],
+                update_conflicts=True,
+                unique_fields=['user_id'],
+                update_fields=['validated_password'],
             )
 
         self.message_user(
@@ -107,8 +118,14 @@ class PasswordValidationAdmin(AdvancedSearchMixin, admin.ModelAdmin):
             ExtraUserDetail.objects.filter(user_id__in=user_ids).update(
                 validated_password=True
             )
-            KobocatUserProfile.objects.filter(user_id__in=user_ids).update(
-                validated_password=True
+            UserProfile.objects.bulk_create(
+                [
+                    UserProfile(user_id=user_id, validated_password=True)
+                    for user_id in user_ids
+                ],
+                update_conflicts=True,
+                unique_fields=['user_id'],
+                update_fields=['validated_password'],
             )
 
         self.message_user(

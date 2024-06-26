@@ -1,15 +1,15 @@
 # coding: utf-8
 import base64
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.test import override_settings
 from rest_framework import status
-
 from rest_framework.authtoken.models import Token
+from trench.utils import get_mfa_model
+
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from trench.utils import get_mfa_model
 
 
 class AuthenticationApiTests(BaseAssetTestCase):

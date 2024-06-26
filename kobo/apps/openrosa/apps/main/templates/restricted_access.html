@@ -1,0 +1,12 @@
+{% extends 'kobocat_base.html' %}
+{% load i18n %}
+{% block content %}
+  <h3>
+    {% trans "403 - Restricted access" %}
+  </h3>
+
+  {% blocktrans %}
+    Your access is restricted. Please reclaim your access by <a href="{{ koboform_url }}/accounts/password/reset/">changing your password</a>.
+  {% endblocktrans %}
+
+{% endblock %}

@@ -1,8 +1,8 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, ObjectPermission
 # importing module instead of the class, avoid running the tests twice

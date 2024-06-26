@@ -1,6 +1,7 @@
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 from jsonschema import Draft7Validator
+from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
 
@@ -17,7 +18,9 @@ class SubmissionExtrasContentTestCase(TestCase):
 
     def setUp(self):
         user = baker.make(
-            'User', username='johndoe', date_joined=timezone.now().today
+            settings.AUTH_USER_MODEL,
+            username='johndoe',
+            date_joined=timezone.now().today,
         )
         self.asset = Asset.objects.create(
             owner=user, content={'survey': [{'type': 'audio', 'name': 'q1'}]}

@@ -3,9 +3,11 @@ from itertools import islice
 
 from django.conf import settings
 from django.db import migrations
+from django.db.utils import ProgrammingError
 
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.constants import PERM_ADD_SUBMISSIONS, SKIP_HEAVY_MIGRATIONS_GUIDANCE
-from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
+
 
 CHUNK_SIZE = 2000
 
@@ -21,8 +23,15 @@ def assign_add_submissions_to_anonymous_users(apps, schema_editor):
     Permission = apps.get_model('auth', 'Permission')  # noqa
     permission_id = Permission.objects.get(codename=PERM_ADD_SUBMISSIONS).pk
 
+    try:
+        UserProfile.objects.first()
+    except ProgrammingError as e:
+        # Race condition when KoboCAT migrations have not run yet
+        if 'relation "main_userprofile" does not exist' in str(e):
+            return
+
     owner_iter = (
-        KobocatUserProfile.objects.filter(require_auth=False)
+        UserProfile.objects.filter(require_auth=False)
         .values_list('user_id', flat=True)
         .iterator(chunk_size=CHUNK_SIZE)
     )

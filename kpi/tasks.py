@@ -2,10 +2,10 @@
 import constance
 import requests
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.core.management import call_command
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
 from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
@@ -89,7 +89,7 @@ def enketo_flush_cached_preview(server_url, form_id):
     response = requests.delete(
         f'{settings.ENKETO_URL}/{settings.ENKETO_FLUSH_CACHE_ENDPOINT}',
         # bare tuple implies basic auth
-        auth=(settings.ENKETO_API_TOKEN, ''),
+        auth=(settings.ENKETO_API_KEY, ''),
         data=dict(server_url=server_url, form_id=form_id),
     )
     response.raise_for_status()

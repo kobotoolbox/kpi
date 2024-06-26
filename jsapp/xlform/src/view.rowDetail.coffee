@@ -474,6 +474,8 @@ module.exports = do ->
         image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
         group: ['select', ['field-list', 'Show all questions in this group on the same screen'], ['other', 'Advanced']]
+      # `repeat` is a repeating group with the same appearance options
+      types.repeat = types.group
 
       types[@model._parent.getValue('type').split(' ')[0]]
     html: ->

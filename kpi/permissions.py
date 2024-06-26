@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Union
 
+from django.conf import settings
 from django.http import Http404
 from kobo_service_account.utils import get_real_user
 from rest_framework import exceptions, permissions
@@ -84,7 +85,7 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
             return cls._get_asset(view)
 
     def _get_user_permissions(
-        self, object_: Union['kpi.Asset', 'kpi.Collection'], user: 'auth.User'
+        self, object_: Union['kpi.Asset', 'kpi.Collection'], user: settings.AUTH_USER_MODEL
     ) -> list[str]:
         """
         Returns a list of `user`'s permission for `asset`
@@ -352,7 +353,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
 
-    def _get_user_permissions(self, asset: Asset, user: 'auth.User') -> list:
+    def _get_user_permissions(self, asset: Asset, user: 'settings.AUTH_USER_MODEL') -> list:
         """
         Overrides parent method to include partial permissions (which are
         specific to submissions)

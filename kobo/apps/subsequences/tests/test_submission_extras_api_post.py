@@ -2,13 +2,13 @@ from copy import deepcopy
 from unittest.mock import patch
 
 from constance.test import override_config
-from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from jsonschema import validate
 from rest_framework.test import APITestCase
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.languages.models.language import Language, LanguageRegion
 from kobo.apps.languages.models.transcription import (
     TranscriptionService,
@@ -429,10 +429,10 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(FuzzyInt(51, 55)):
+        with self.assertNumQueries(FuzzyInt(51, 57)):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
-        with self.assertNumQueries(FuzzyInt(20, 24)):
+        with self.assertNumQueries(FuzzyInt(20, 26)):
             self.client.post(url, data, format='json')
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})

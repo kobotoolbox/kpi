@@ -6,20 +6,17 @@ from copy import deepcopy
 import pytest
 from django.conf import settings
 from django.db.models import Q
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kpi.exceptions import (
     SearchQueryTooShortException,
     QueryParserNotSupportedFieldLookup,
 )
-from kpi.models.asset import Asset
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,

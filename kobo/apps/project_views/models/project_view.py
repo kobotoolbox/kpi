@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from django import forms
+from django.conf import settings
 from django.contrib import admin
 from django.db import models
 
@@ -34,7 +35,7 @@ class ProjectView(models.Model):
         default=list,
     )
     users = models.ManyToManyField(
-        'auth.User',
+        settings.AUTH_USER_MODEL,
         related_name='project_views',
         through='AssignmentProjectViewM2M',
     )

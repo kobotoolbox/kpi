@@ -9,11 +9,7 @@ import {ROOT_URL} from 'js/constants';
 import type {PermissionCodename} from './permConstants';
 import type {PermissionResponse} from 'jsapp/js/dataInterface';
 import envStore from 'js/envStore';
-import Icon from 'js/components/common/icon';
-import ToggleSwitch from 'js/components/common/toggleSwitch';
 import AnonymousSubmission from '../anonymousSubmission.component';
-import styles from 'js/components/anonymousSubmission.module.scss';
-import {stores} from 'js/stores';
 import NewFeatureDialog from 'js/components/newFeatureDialog.component';
 
 const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
@@ -22,6 +18,7 @@ interface PublicShareSettingsProps {
   publicPerms: PermissionResponse[];
   assetUid: string;
   deploymentActive: boolean;
+  userCanShare: boolean;
 }
 
 class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
@@ -87,6 +84,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           >
             <AnonymousSubmission
               checked={anonCanAddData}
+              disabled={!this.props.userCanShare}
               onChange={this.togglePerms.bind(this, 'add_submissions')}
             />
           </NewFeatureDialog>
@@ -99,6 +97,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
         <bem.FormModal__item>
           <Checkbox
             checked={anonCanView}
+            disabled={!this.props.userCanShare}
             onChange={this.togglePerms.bind(this, 'view_asset')}
             label={t('Anyone can view this form')}
           />
@@ -108,6 +107,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           <bem.FormModal__item>
             <Checkbox
               checked={anonCanViewData}
+              disabled={!this.props.userCanShare}
               onChange={this.togglePerms.bind(this, 'view_submissions')}
               label={t('Anyone can view submissions made to this form')}
             />

@@ -1,0 +1,48 @@
+.published_forms {}
+
+.published_forms__table {
+	width: 100%;
+}
+
+.published_forms__header, .published_forms__cell {
+	text-align: left;
+	padding: 5px 12px;
+}
+
+.published_forms__cell.published_forms__cell--state,
+.published_forms__cell.published_forms__cell--submissions {
+	text-align: center;
+}
+
+.published_forms__form_created {
+	color: #999;
+	font-size: 11px;
+	font-weight: 100;
+	display: block;
+	font-style: italic;
+}
+.published_forms__header--entry, .published_forms__cell--entry,
+.published_forms__header--view, .published_forms__cell--view,
+.published_forms__header--download, .published_forms__cell--download,
+.published_forms__header--misc, .published_forms__cell--misc {
+	display: none;
+}
+
+.published_forms__header--submissions,
+.published_forms__cell--submissions,
+.published_forms__header--lastsubmission,
+.published_forms__cell--lastsubmission {
+	text-align: center;
+}
+
+.published_forms__cell--isactive, .published_forms__header--isactive {
+	display: none;
+}
+
+.published_forms__cell--isactive .ikn-active:before {
+	font-style: normal;
+	content: 'true';
+}
+.published_forms__cell--isactive .ikn-active.ikn-active--inactive:before {
+	content: 'false';
+}

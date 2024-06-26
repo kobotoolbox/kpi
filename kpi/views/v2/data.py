@@ -758,7 +758,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         response = requests.post(
             f'{settings.ENKETO_URL}/{enketo_endpoint}',
             # bare tuple implies basic auth
-            auth=(settings.ENKETO_API_TOKEN, ''),
+            auth=(settings.ENKETO_API_KEY, ''),
             data=data
         )
         if response.status_code != status.HTTP_201_CREATED:

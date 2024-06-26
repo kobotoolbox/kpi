@@ -1,0 +1,10 @@
+<form id="rg1" version="version_1">
+<question_group>
+    <answer_1>1</answer_1>
+    <answer_2>2</answer_2>
+</question_group>
+<question_group>
+    <answer_1>2</answer_1>
+    <answer_2>1</answer_2>
+</question_group>
+</form>

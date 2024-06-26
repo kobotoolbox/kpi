@@ -334,8 +334,7 @@ class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):
 
 class XMLFormWithDisclaimer:
 
-    # TODO support XForm when Kobocat becomes a Django-app
-    def __init__(self, obj: Union['kpi.AssetSnapshot']):
+    def __init__(self, obj: Union['kpi.AssetSnapshot', 'logger.XForm']):
         self._object = obj
         self._unique_id = obj.asset.uid
         self._add_disclaimer()

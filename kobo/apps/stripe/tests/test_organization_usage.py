@@ -1,8 +1,6 @@
-import pytest
 import timeit
 
-from django.conf import settings
-from django.contrib.auth.models import User
+import pytest
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
@@ -10,10 +8,10 @@ from django.utils import timezone
 from djstripe.models import Customer
 from model_bakery import baker
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.stripe.tests.utils import generate_enterprise_subscription, generate_plan_subscription
 from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
-from kpi.models.asset import Asset
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
 from rest_framework import status
