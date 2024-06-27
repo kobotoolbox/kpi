@@ -9,18 +9,19 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import bem from 'js/bem';
+// Constants
+import {QuestionTypeName, MetaQuestionTypeName} from 'js/constants';
 // Helpers:
 import * as utils from 'js/utils';
 import {userCan} from 'js/components/permissions/utils';
 // Types:
-import type {
-  AssetResponse,
-  SubmissionAttachment,
-} from 'js/dataInterface';
+import type {AnyRowTypeName} from 'js/constants';
+import type {AssetResponse} from 'js/dataInterface';
 
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse;
-  attachment: SubmissionAttachment;
+  questionType: AnyRowTypeName;
+  attachmentUrl: string;
 }
 
 /**
@@ -37,6 +38,17 @@ export default function AttachmentActionsDropdown(
     setIsDeleteModalOpen(!isDeleteModalOpen);
   };
 
+  let attachmentTypeName = t('attachment');
+  if (props.questionType === QuestionTypeName.audio) {
+    attachmentTypeName = t('audio recording');
+  } else if (props.questionType === QuestionTypeName.video) {
+    attachmentTypeName = t('video recording');
+  } else if (props.questionType === QuestionTypeName.image) {
+    attachmentTypeName = t('image');
+  } else if (props.questionType === MetaQuestionTypeName['background-audio']) {
+    attachmentTypeName = t('background audio recording');
+  }
+
   function confirmDelete() {
     console.log('confirmDelete');
 
@@ -45,13 +57,12 @@ export default function AttachmentActionsDropdown(
     setTimeout(() => {
       setIsDeletePending(false);
       toggleDeleteModal();
-      utils.notify(t('##Attachment_type## deleted').replace('##Attachment_type##', t('Image')));
+      utils.notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName));
     }, 2000);
   }
 
   function requestDownloadFile() {
-    console.log('requestDownloadFile', props.attachment);
-    utils.downloadUrl(props.attachment.download_url);
+    utils.downloadUrl(props.attachmentUrl);
   }
 
   const userCanDelete = userCan('delete_submissions', props.asset);
@@ -93,11 +104,11 @@ export default function AttachmentActionsDropdown(
         size='medium'
       >
         <KoboModalHeader onRequestCloseByX={toggleDeleteModal}>
-          {t('Delete ##attachment_type##').replace('##attachment_type##', t('image'))}
+          {t('Delete ##attachment_type##').replace('##attachment_type##', attachmentTypeName)}
         </KoboModalHeader>
 
         <KoboModalContent>
-          <p>{t('Are you sure you want to delete this ##attachment_type##?').replace('##attachment_type##', t('image'))}</p>
+          <p>{t('Are you sure you want to delete this ##attachment_type##?').replace('##attachment_type##', attachmentTypeName)}</p>
         </KoboModalContent>
 
         <KoboModalFooter>

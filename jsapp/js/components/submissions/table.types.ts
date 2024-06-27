@@ -1,10 +1,5 @@
 import type {Column} from 'react-table';
 import type {
-  QuestionTypeName,
-  MetaQuestionTypeName,
-  MiscRowTypeName,
-} from 'js/constants';
-import type {
   SurveyRow,
   SubmissionResponse,
 } from 'js/dataInterface';

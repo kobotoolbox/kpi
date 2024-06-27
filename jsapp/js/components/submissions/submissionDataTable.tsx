@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import {
-  downloadUrl,
   formatTimeDate,
   formatDate,
 } from 'js/utils';
@@ -21,7 +20,7 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
-import type {MetaQuestionTypeName} from 'js/constants';
+import type {MetaQuestionTypeName, AnyRowTypeName} from 'js/constants';
 import './submissionDataTable.scss';
 import type {
   AssetResponse,
@@ -278,47 +277,52 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     );
   }
 
-  renderAttachment(type: string, filename: string, name: string, xpath: string) {
+  renderAttachment(type: AnyRowTypeName, filename: string, name: string, xpath: string) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath);
     if (attachment && attachment instanceof Object) {
-      if (type === QUESTION_TYPES.audio.id) {
-        return (
-          <React.Fragment>
-            <AudioPlayer mediaURL={attachment.download_url} />
+      return (
+        <>
+          {type === QUESTION_TYPES.audio.id &&
+            <>
+              <AudioPlayer mediaURL={attachment.download_url} />
 
-            <Button
-              type='full'
-              size='s'
-              color='blue'
-              endIcon='arrow-up-right'
-              label={t('Open')}
-              onClick={this.openProcessing.bind(this, name)}
-            />
+              <Button
+                type='full'
+                size='s'
+                color='blue'
+                endIcon='arrow-up-right'
+                label={t('Open')}
+                onClick={this.openProcessing.bind(this, name)}
+              />
+            </>
+          }
 
-            <Button
-              type='frame'
-              size='s'
-              color='blue'
-              endIcon='download'
-              label={t('Download')}
-              onClick={downloadUrl.bind(this, attachment.download_url)}
-            />
+          {type === QUESTION_TYPES.image.id &&
+            <a href={attachment.download_url} target='_blank'>
+              <img src={attachment.download_medium_url}/>
+            </a>
+          }
 
-            <AttachmentActionsDropdown
-              asset={this.props.asset}
-              attachment={attachment}
+          {type === QUESTION_TYPES.video.id &&
+            <video
+              src={attachment.download_url}
+              controls
             />
-          </React.Fragment>
-        );
-      } else if (type === QUESTION_TYPES.image.id) {
-        return (
-          <a href={attachment.download_url} target='_blank'>
-            <img src={attachment.download_medium_url}/>
-          </a>
-        );
-      } else {
-        return (<a href={attachment.download_url} target='_blank'>{filename}</a>);
-      }
+          }
+
+          {type === QUESTION_TYPES.file.id &&
+            <a href={attachment.download_url} target='_blank'>
+              {filename}
+            </a>
+          }
+
+          <AttachmentActionsDropdown
+            asset={this.props.asset}
+            questionType={type}
+            attachmentUrl={attachment.download_url}
+          />
+        </>
+      );
     // In the case that an attachment is missing, don't crash the page
     } else {
       return attachment;
