@@ -1,5 +1,5 @@
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .modalBody {
   line-height: sizes.$x24;

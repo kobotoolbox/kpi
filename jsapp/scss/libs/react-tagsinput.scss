@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .react-tagsinput {
   &.react-tagsinput-invalid {
@@ -59,7 +59,7 @@
 .react-tags-save-button {
   float: left;
 }
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .react-tagsinput {
   &.react-tagsinput-invalid {
