@@ -6,6 +6,7 @@ from trench.settings import trench_settings
 from trench.utils import get_mfa_model
 
 from kpi.tests.kpi_test_case import BaseTestCase
+from ..models import MfaAvailableToUser
 
 
 class MfaApiTestCase(BaseTestCase):
@@ -67,3 +68,21 @@ class MfaApiTestCase(BaseTestCase):
             )
             assert first_secret != second_secret
             assert first_response.json() != second_response.json()
+
+    def test_mfa_disabled(self):
+        otheruser = User.objects.get(username='anotheruser')
+        self.client.login(username='anotheruser', password='anotheruser')
+        mfaausers = MfaAvailableToUser.objects.all()
+        method = list(trench_settings.MFA_METHODS.keys())[0]
+
+        activate_response = self.client.post(
+            reverse('mfa-activate', args=(method,))
+        )
+        assert activate_response.status_code == 403
+
+        mfa_availability = MfaAvailableToUser.objects.create(user=otheruser)
+        mfa_availability.save()
+        activate_response = self.client.post(
+            reverse('mfa-activate', args=(method,))
+        )
+        assert activate_response.status_code == 200

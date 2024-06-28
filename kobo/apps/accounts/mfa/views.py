@@ -4,10 +4,14 @@ from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
 from django.urls import reverse
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import BasePermission
 from trench.utils import get_mfa_model
+from trench.views import MFAMethodActivationView as TrenchMFAMethodActivationView
 
 from kpi.permissions import IsAuthenticated
+from kpi.utils.object_permission import get_database_user
 from .forms import MfaLoginForm, MfaTokenForm
+from .models import MfaAvailableToUser
 from .serializers import UserMfaMethodSerializer
 
 
@@ -66,3 +70,15 @@ class MfaListUserMethodsView(ListAPIView):
     def get_queryset(self) -> QuerySet:
         mfa_model = get_mfa_model()
         return mfa_model.objects.filter(user_id=self.request.user.id)
+
+
+class IsMfaEnabled(BasePermission):
+    def has_permission(self, request, view):
+        mfa_available = MfaAvailableToUser.objects.filter(
+            user=get_database_user(request.user)
+        ).exists()
+        return mfa_available
+
+
+class MfaMethodActivationView(TrenchMFAMethodActivationView):
+    permission_classes = (IsAuthenticated, IsMfaEnabled)
