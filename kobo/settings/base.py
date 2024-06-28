@@ -101,6 +101,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
     'hub.HubAppConfig',
+    'import_export',
     'loginas',
     'webpack_loader',
     'django_extensions',

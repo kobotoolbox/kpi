@@ -184,6 +184,8 @@ django-extensions==3.2.3
     #   django-organizations
 django-filter==24.1
     # via -r dependencies/pip/requirements.in
+django-import-export==4.1.0
+    # via -r dependencies/pip/requirements.in
 django-loginas==0.3.11
     # via -r dependencies/pip/requirements.in
 django-markdownx==4.0.7
