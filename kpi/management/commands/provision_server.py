@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 
@@ -8,10 +9,22 @@ from allauth.socialaccount.models import SocialApp
 from kobo.apps.accounts.models import SocialAppCustomData
 
 
+class CustomHelpFormatter(argparse.RawTextHelpFormatter):
+    pass
+
+
 class Command(BaseCommand):
     help = (
-        'Provision server settings including social apps and constance configs'
+        'Provision server settings including social apps and constance configs.\n'
+        'Example commands:\n'
+        '  ./manage.py provision_server socialapp --provider provider --provider_id id --name name --client_id abc \n'
+        '  ./manage.py provision_server config key1=value1 key2=value2\n'
     )
+
+    def create_parser(self, prog_name, subcommand):
+        parser = super().create_parser(prog_name, subcommand)
+        parser.formatter_class = CustomHelpFormatter
+        return parser
 
     def add_arguments(self, parser):
         subparsers = parser.add_subparsers(dest='command')
@@ -22,36 +35,46 @@ class Command(BaseCommand):
         )
 
         socialapp_parser.add_argument(
-            'provider', type=str, help='Either openid_connect or microsoft'
-        )
-        socialapp_parser.add_argument(
-            'provider_id', type=str, help='Provider ID used in the login url'
-        )
-        socialapp_parser.add_argument(
-            'name',
+            '--provider',
             type=str,
+            required=True,
+            help='Either openid_connect or microsoft',
+        )
+        socialapp_parser.add_argument(
+            '--provider_id',
+            type=str,
+            required=True,
+            help='Provider ID used in the login url',
+        )
+        socialapp_parser.add_argument(
+            '--name',
+            type=str,
+            required=True,
             help='Name of the organization displayed on the login page',
         )
         socialapp_parser.add_argument(
-            'client_id', type=str, help='App ID, or consumer key'
+            '--client_id',
+            type=str,
+            required=True,
+            help='App ID, or consumer key',
         )
         socialapp_parser.add_argument(
-            'secret',
-            nargs='?',
+            '--secret',
             type=str,
             default='',
             help='API secret, client secret, or consumer secret',
         )
         socialapp_parser.add_argument(
-            'key',
-            nargs='?',
+            '--key',
             type=str,
             default='',
             help='Key provided by client',
         )
         socialapp_parser.add_argument(
             'settings',
+            nargs='?',
             type=str,
+            default='{}',
             help='Settings in json format enclosed with single quotes',
         )
 
@@ -81,8 +104,8 @@ class Command(BaseCommand):
         provider_id = kwargs['provider_id']
         name = kwargs['name']
         client_id = kwargs['client_id']
-        secret = os.getenv('SOCIAL_APP_SECRET') or kwargs['secret']
-        key = kwargs['key']
+        secret = os.getenv('SOCIAL_APP_SECRET') or kwargs.get('secret', '')
+        key = kwargs.get('key', '')
         settings_json = kwargs['settings']
 
         try:
@@ -101,7 +124,7 @@ class Command(BaseCommand):
         }
 
         social_app, created = SocialApp.objects.get_or_create(
-            defaults=social_app_data
+            name=name, defaults=social_app_data
         )
 
         if not created:
@@ -113,11 +136,9 @@ class Command(BaseCommand):
                 f'Successfully created social app for {social_app.name}'
             )
 
-        social_app_custom_data_exists = SocialAppCustomData.objects.filter(
+        if not SocialAppCustomData.objects.filter(
             social_app=social_app
-        ).exists()
-
-        if not social_app_custom_data_exists:
+        ).exists():
             SocialAppCustomData.objects.create(
                 social_app=social_app,
                 is_public=False,
@@ -141,37 +162,18 @@ class Command(BaseCommand):
                     elif value.lower() == 'false':
                         value = False
                     else:
-                        # Specific handling for fields taking JSON arrays
-                        if key in [
-                            'PROJECT_METADATA_FIELDS',
-                            'USER_METADATA_FIELDS',
-                        ]:
-                            if value.startswith('[') and value.endswith(']'):
-                                try:
-                                    value = json.loads(value)
-                                    value = json.dumps(value)
-                                except json.JSONDecodeError as e:
-                                    self.stdout.write(
-                                        f'Invalid JSON array value for key {key}. {e}'
-                                    )
-                                    continue
-                            else:
+                        # Only validate if value is a json array or object
+                        if (value.startswith('[') and value.endswith(']')) or (
+                            value.startswith('{') and value.endswith('}')
+                        ):
+                            try:
+                                json.loads(value)
+                            except json.JSONDecodeError as e:
                                 self.stdout.write(
-                                    f'Invalid JSON array format for key {key}. Should start and end with "[" and "]".'
+                                    f'Invalid JSON value for key {key}. {e}'
                                 )
                                 continue
-                        # Handling for other keys that should be JSON objects
-                        else:
-                            if value.startswith('{') and value.endswith('}'):
-                                try:
-                                    value = json.loads(value)
-                                    value = json.dumps(value)
-                                except json.JSONDecodeError as e:
-                                    self.stdout.write(
-                                        f'Invalid JSON object value for key {key}. {e}'
-                                    )
-                                    continue
-
+                            json.dumps(value)
                     setattr(config, key, value)
                     self.stdout.write(
                         f'Successfully updated configuration for {key}'
