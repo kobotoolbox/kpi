@@ -214,6 +214,9 @@ $s-data-table-font: 13px;
   .rt-tr-group {
     border-bottom: $data-table-border;
     box-sizing: content-box; // to make the border be outside the cell for hover
+    // 2px is for the borders, without it borders will be covered by frozen
+    // column background color
+    max-height: $data-table-row-height + 2px;
   }
 
   .rt-tbody .rt-th,
@@ -374,6 +377,14 @@ $s-data-table-font: 13px;
   .rt-th:focus-within,
   .rt-td:focus-within {
     overflow: visible;
+  }
+
+  // For the validation status dropdown to not appear under other cells;
+  .rt-th:focus-within,
+  .rt-td:focus-within {
+    .kobo-select {
+      z-index: z-indexes.$z-data-table-frozen-column + 1;
+    }
   }
 
   // currently hovered cell will be on top - for tooltips and dropdowns

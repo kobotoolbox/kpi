@@ -572,6 +572,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               />
             )}
 
+            {/*
+            TODO: the tooltips of these two buttons appear underneath them
+            causing an unnecessary space under the last table row to happen.
+            Let's try to fix this one day by introducing better tooltips.
+            */}
             <Button
               type='bare'
               color='storm'
