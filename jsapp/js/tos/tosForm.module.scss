@@ -1,5 +1,5 @@
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .root {
   max-width: sizes.$x800;

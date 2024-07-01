@@ -1,6 +1,6 @@
 @use 'scss/sizes';
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 $badge-height-s: sizes.$x24;
 $badge-font-s: sizes.$x12;

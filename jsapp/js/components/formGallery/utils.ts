@@ -1,4 +1,4 @@
-import {Json} from '../common/common.interfaces';
+import type {Json} from '../common/common.interfaces';
 
 /**
  * Find a key anywhere in an object (supports nesting)
@@ -22,8 +22,8 @@ export function findByKey(theObject: Json, key: string): Json {
         return theObject[key];
       }
       if (
-        theObject[prop] instanceof Object ||
-        theObject[prop] instanceof Array
+        theObject[prop] instanceof Array ||
+        theObject[prop] instanceof Object
       ) {
         result = findByKey(theObject[prop], key);
         if (result) {

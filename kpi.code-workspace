@@ -15,7 +15,7 @@
       "stylelint.vscode-stylelint",     // Stylelint
       "freewil.vscode-coffeelint2",     // Coffeelint
 
-      // Status Bar Toggle for Format and AutoFix on Save
+      // Status Bar Toggle for Format on Save
       "tombonnike.vscode-status-bar-format-toggle", // Formatting Toggle
 
       // Syntax Support
@@ -41,9 +41,34 @@
     // Formatting Toggle
     "formattingToggle.affects": [
       "editor.formatOnSave",
-      "editor.codeActionsOnSave.source.fixAll.eslint",
-      "editor.codeActionsOnSave.source.fixAll.stylelint",
+      // NOTE: 6/25/24
+      //
+      //   "source.fixAll.*" has changed from true/false to "explicit"/"never".
+      //
+      //     - "explicit" - fka true - Run Action on Save
+      //     - "always" - (new option) - Run Action on Save OR Auto-Save
+      //     - "never" - fka false - Don't run action on save
+      //
+      //   Formatting toggle doesn't support these, so I'm commenting this out:
+      //
+      //       "editor.codeActionsOnSave.source.fixAll.eslint",
+      //       "editor.codeActionsOnSave.source.fixAll.stylelint",
+      //
+      //   Now, if you want to toggle auto-fix, these are the
+      //   relevant settings in your User settings.json:
+      //
+      //       "editor.codeActionsOnSave": {
+      //         "source.fixAll.eslint":    "explicit",  // "never"
+      //         "source.fixAll.stylelint": "explicit",  // "never"
+      //       },
+      //
+      //   Also useful: Run Prettier only on your "modified" lines
+      //
+      //       "editor.formatOnSaveMode": "modifications" // or "file"
     ],
+
+    // Use locally-installed TypeScript instance (supports plugins in tsconfig)
     "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true
   },
 }
