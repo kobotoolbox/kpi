@@ -317,7 +317,7 @@ class FormMedia extends React.Component {
 
                   <Button
                     type='frame'
-                    color='red'
+                    color='dark-red'
                     size='m'
                     startIcon='trash'
                     onClick={(evt) => this.onDeleteMedia(evt, item.url)}

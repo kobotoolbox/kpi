@@ -193,7 +193,7 @@ export default class RESTServicesList extends React.Component {
 
                     <Button
                       type='bare'
-                      color='red'
+                      color='dark-red'
                       size='m'
                       onClick={() => this.deleteHookSafe(hook.uid, hook.name)}
                       tooltip={t('Delete')}

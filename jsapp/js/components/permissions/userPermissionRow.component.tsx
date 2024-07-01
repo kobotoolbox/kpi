@@ -180,7 +180,7 @@ export default class UserPermissionRow extends React.Component<
 
                   <Button
                     type='bare'
-                    color='red'
+                    color='dark-red'
                     size='m'
                     startIcon='trash'
                     onClick={this.showRemovePermissionsPrompt.bind(this)}

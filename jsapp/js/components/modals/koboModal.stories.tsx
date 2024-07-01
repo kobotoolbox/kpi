@@ -61,7 +61,7 @@ const Template: ComponentStory<typeof KoboModal> = (args: any) => (
 
       <Button
         type='full'
-        color='red'
+        color='dark-red'
         size='m'
         onClick={() => {}}
         label={'some action that needs confirmation'}
