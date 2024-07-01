@@ -1,12 +1,31 @@
 @use 'scss/colors';
+@use 'scss/sizes';
+
+
+.modalBody {
+  line-height: sizes.$x24;
+  padding: 0 sizes.$x30;
+
+  p:first-of-type {
+    margin-top: 0;
+  }
+}
 
 .link {
   color: colors.$kobo-dark-blue;
   text-decoration: underline;
 }
 
-.messageGreeting {
-  margin-bottom: 20px;
+.note {
+  display: flex;
+  padding: sizes.$x12;
+  margin: sizes.$x24 0 0 0;
+  background-color: colors.$kobo-bg-blue;
+  border-radius: sizes.$x5;
+}
+
+.noteIcon {
+  margin-right: sizes.$x8;
 }
 
 .button {
@@ -27,16 +46,4 @@
   &.button.full:hover {
     background-color: colors.$kobo-dark-blue;
   }
-}
-
-.consequences {
-  background-color: colors.$kobo-light-red;
-  box-sizing: border-box;
-  margin: 1em 0;
-  padding: 1em 1em;
-  gap: 1em;
-}
-
-.warningIcon {
-  align-self: flex-start;
 }

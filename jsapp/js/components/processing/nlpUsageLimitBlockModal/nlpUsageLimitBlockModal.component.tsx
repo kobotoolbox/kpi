@@ -5,6 +5,7 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import Button from 'js/components/common/button';
+import Icon from 'js/components/common/icon';
 import {useNavigate} from 'react-router-dom';
 import styles from './nlpUsageLimitBlockModal.module.scss';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
@@ -30,11 +31,11 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
         onRequestClose={handleClose}
         size='medium'
       >
-        <KoboModalHeader>
+        <KoboModalHeader onRequestCloseByX={handleClose} headerColor='white'>
           {t('Upgrade to continue using this feature')}
         </KoboModalHeader>
 
-        <KoboModalContent>
+        <section className={styles.modalBody}>
           <div>
             <div>
               {t('You have reached the ##LIMIT## limit for this ##PERIOD##.')
@@ -44,9 +45,18 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
                 'Please consider our plans or add-ons to continue using this feature'
               )}
             </div>
-            <div>Put a blue box here</div>
+            <div className={styles.note}>
+              <Icon
+                name='information'
+                size='s'
+                color='blue'
+                className={styles.noteIcon}
+              />
+              {t('You can monitor your usage')}&nbsp;
+              <a href={'/#/account/usage'}>{t('here')}</a>.
+            </div>
           </div>
-        </KoboModalContent>
+        </section>
 
         <KoboModalFooter alignment='end'>
           <Button
