@@ -7,7 +7,6 @@ import 'jquery-ui/ui/widgets/sortable';
 import moment from 'moment';
 import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
-import {AppContainer} from 'react-hot-loader';
 import React from 'react';
 import {Cookies} from 'react-cookie';
 import {createRoot} from 'react-dom/client';
@@ -88,17 +87,6 @@ if (document.head.querySelector('meta[name=kpi-root-path]')) {
   })();
   const root = createRoot(el);
   root.render(<AllRoutes />);
-
-  if (module.hot) {
-    module.hot.accept('js/app', () => {
-      const AllRoutes = require('js/app').default;
-      root.render(
-        <AppContainer>
-          <AllRoutes />
-        </AppContainer>
-      );
-    });
-  }
 } else {
   console.warn('no kpi-root-path meta tag set. skipping react-router init');
 }
@@ -111,9 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (registrationPasswordAppEl) {
     const root = createRoot(registrationPasswordAppEl);
     root.render(
-      <AppContainer>
         <RegistrationPasswordApp />
-      </AppContainer>
     );
   }
 });

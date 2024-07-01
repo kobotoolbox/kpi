@@ -138,7 +138,6 @@
     "prettier": "^3.3.2",
     "prettier-eslint": "^16.3.0",
     "react-docgen-typescript-plugin": "^1.0.8",
-    "react-hot-loader": "3.1.0",
     "react-refresh": "^0.14.2",
     "replace-in-file": "^6.3.5",
     "sass": "^1.77.6",
