@@ -988,9 +988,9 @@ class SingleProcessingStore extends Reflux.Store {
         }
         languagesList.push({label: label, value: language});
       });
-  } else {
-    languagesList.push({label: baseLabel, value: ''});
-  }
+    } else {
+      languagesList.push({label: baseLabel, value: ''});
+    }
 
     return languagesList;
   }
