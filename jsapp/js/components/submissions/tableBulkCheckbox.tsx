@@ -2,6 +2,7 @@ import React from 'react';
 import bem from 'js/bem';
 import PopoverMenu from 'js/popoverMenu';
 import Checkbox from 'js/components/common/checkbox';
+import Icon from 'js/components/common/icon';
 import './tableBulkCheckbox.scss';
 
 interface TableBulkCheckboxProps {
@@ -43,7 +44,9 @@ export function TableBulkCheckbox(props: TableBulkCheckboxProps) {
 
       <PopoverMenu
         type='table-bulk-checkbox'
-        triggerLabel=''
+        triggerLabel={
+          <Icon name='caret-down' size='s' />
+        }
         additionalModifiers={['right']}
       >
         <bem.PopoverMenu__link onClick={onSelectAllPages}>
