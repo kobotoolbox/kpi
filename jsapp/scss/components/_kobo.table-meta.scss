@@ -49,44 +49,6 @@
   }
 }
 
-.table-bulk-checkbox {
-  z-index: 1;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  height: 36px;
-  display: block;
-  line-height: 20px;
-
-  > .checkbox {
-    position: absolute;
-    z-index: 1;
-    top: calc(50% - 10px);
-    left: 7px;
-
-    .checkbox__wrapper {
-      padding: 0;
-      display: block;
-    }
-  }
-
-  .popover-menu {
-    margin-top: 10px;
-
-    .popover-menu__toggle::after {
-      content: '\25BC';
-      font-size: 16px;
-      display: inline-block;
-      vertical-align: 1px;
-      padding: 0 5px 0 35px;
-    }
-
-    .popover-menu__content {
-      left: 5px;
-    }
-  }
-}
-
 .table-meta__additional-text {
   display: none;
 }
