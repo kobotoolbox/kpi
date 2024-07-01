@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/mixins';
 @use 'js/components/common/icon';
@@ -219,6 +219,24 @@ $button-border-radius: sizes.$x6;
   justify-content: center;
 }
 
+.k-button.k-button--upper-case {
+  text-transform: uppercase;
+}
+
+// teal button ↓
+
+.k-button.k-button--color-teal.k-button--type-bare {
+  @include button-bare(colors.$kobo-teal, colors.$kobo-hover-teal);
+}
+
+.k-button.k-button--color-teal.k-button--type-frame {
+  @include button-frame(colors.$kobo-teal);
+}
+
+.k-button.k-button--color-teal.k-button--type-full {
+  @include button-full(colors.$kobo-teal, colors.$kobo-hover-teal);
+}
+
 // blue button ↓
 
 .k-button.k-button--color-blue.k-button--type-bare {
@@ -273,6 +291,26 @@ $button-border-radius: sizes.$x6;
   @include button-full(
     colors.$kobo-red,
     color.adjust(colors.$kobo-red, $lightness: -5%)
+  );
+}
+
+// dark-red button ↓
+
+.k-button.k-button--color-dark-red.k-button--type-bare {
+  @include button-bare(
+    colors.$kobo-dark-red,
+    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
+  );
+}
+
+.k-button.k-button--color-dark-red.k-button--type-frame {
+  @include button-frame(colors.$kobo-dark-red);
+}
+
+.k-button.k-button--color-dark-red.k-button--type-full {
+  @include button-full(
+    colors.$kobo-dark-red,
+    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
   );
 }
 

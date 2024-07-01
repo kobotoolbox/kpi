@@ -162,7 +162,7 @@ class LanguageForm extends React.Component {
             label={this.props.langIndex !== undefined ? t('Update') : (this.props.isDefault) ? t('Set') : t('Add')}
             isSubmit
             isPending={this.props.isPending}
-            isDisabled={isAnyFieldEmpty || hasErrors}
+            isDisabled={isAnyFieldEmpty}
             onClick={this.onSubmit.bind(this)}
           />
         </bem.FormView__cell>

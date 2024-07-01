@@ -1,34 +1,35 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import reactMixin from 'react-mixin';
-import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
-import mixins from 'js/mixins';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
-import {validFileTypes} from 'utils';
+import mixins from 'js/mixins';
+import {validFileTypes} from 'js/utils';
 import myLibraryStore from './myLibraryStore';
 import AssetsTable from 'js/components/assetsTable/assetsTable';
 import {MODAL_TYPES} from 'js/constants';
 import {ROOT_BREADCRUMBS} from 'js/components/library/libraryConstants';
-import {ASSETS_TABLE_CONTEXTS} from 'js/components/assetsTable/assetsTableConstants';
+import {AssetsTableContextName} from 'js/components/assetsTable/assetsTableConstants';
+import pageState from 'js/pageState.store';
+import type {MyLibraryStoreData} from './myLibraryStore';
+import type {OrderDirection} from 'js/projects/projectViews/constants';
+import type {FileWithPreview} from 'react-dropzone';
+import type {DragEvent} from 'react';
 
-class MyLibraryRoute extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = this.getFreshState();
-    this.unlisteners = [];
-    autoBind(this);
-  }
+export default class MyLibraryRoute extends React.Component<
+  {},
+  MyLibraryStoreData
+> {
+  private unlisteners: Function[] = [];
 
-  getFreshState() {
+  state = this.getFreshState();
+
+  getFreshState(): MyLibraryStoreData {
     return {
-      isLoading: myLibraryStore.data.isFetchingData,
+      isFetchingData: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
       metadata: myLibraryStore.data.metadata,
-      totalAssets: myLibraryStore.data.totalSearchAssets,
+      totalUserAssets: myLibraryStore.data.totalUserAssets,
+      totalSearchAssets: myLibraryStore.data.totalSearchAssets,
       orderColumnId: myLibraryStore.data.orderColumnId,
       orderValue: myLibraryStore.data.orderValue,
       filterColumnId: myLibraryStore.data.filterColumnId,
@@ -40,7 +41,7 @@ class MyLibraryRoute extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      myLibraryStore.listen(this.myLibraryStoreChanged)
+      myLibraryStore.listen(this.myLibraryStoreChanged.bind(this), this)
     );
   }
 
@@ -52,15 +53,15 @@ class MyLibraryRoute extends React.Component {
     this.setState(this.getFreshState());
   }
 
-  onAssetsTableOrderChange(orderColumnId, orderValue) {
-    myLibraryStore.setOrder(orderColumnId, orderValue);
+  onAssetsTableOrderChange(columnId: string, value: OrderDirection) {
+    myLibraryStore.setOrder(columnId, value);
   }
 
-  onAssetsTableFilterChange(filterColumnId, filterValue) {
-    myLibraryStore.setFilter(filterColumnId, filterValue);
+  onAssetsTableFilterChange(columnId: string | null, value: string | null) {
+    myLibraryStore.setFilter(columnId, value);
   }
 
-  onAssetsTableSwitchPage(pageNumber) {
+  onAssetsTableSwitchPage(pageNumber: number) {
     myLibraryStore.setCurrentPage(pageNumber);
   }
 
@@ -68,19 +69,24 @@ class MyLibraryRoute extends React.Component {
    * If only one file was passed, then open a modal for selecting the type.
    * Otherwise just start uploading all files.
    */
-  onFileDrop(files, rejectedFiles, evt) {
-    if (files.length === 1) {
-      stores.pageState.switchModal({
+  onFileDrop(
+    acceptedFiles: FileWithPreview[],
+    rejectedFiles: FileWithPreview[],
+    evt: DragEvent<HTMLDivElement>
+  ) {
+    if (acceptedFiles.length === 1) {
+      pageState.switchModal({
         type: MODAL_TYPES.LIBRARY_UPLOAD,
-        file: files[0],
+        file: acceptedFiles[0],
       });
     } else {
-      this.dropFiles(files, rejectedFiles, evt);
+      // TODO comes from mixin
+      mixins.droppable.dropFiles(acceptedFiles, rejectedFiles, evt);
     }
   }
 
   render() {
-    let contextualEmptyMessage = t('Your search returned no results.');
+    let contextualEmptyMessage: React.ReactNode = t('Your search returned no results.');
 
     if (myLibraryStore.data.totalUserAssets === 0) {
       contextualEmptyMessage = (
@@ -96,7 +102,7 @@ class MyLibraryRoute extends React.Component {
     return (
       <DocumentTitle title={`${t('My Library')} | KoboToolbox`}>
         <Dropzone
-          onDrop={this.onFileDrop}
+          onDrop={this.onFileDrop.bind(this)}
           disableClick
           multiple
           className='dropzone'
@@ -108,19 +114,19 @@ class MyLibraryRoute extends React.Component {
           </bem.Breadcrumbs>
 
           <AssetsTable
-            context={ASSETS_TABLE_CONTEXTS.MY_LIBRARY}
-            isLoading={this.state.isLoading}
+            context={AssetsTableContextName.MY_LIBRARY}
+            isLoading={this.state.isFetchingData}
             assets={this.state.assets}
-            totalAssets={this.state.totalAssets}
+            totalAssets={this.state.totalSearchAssets}
             metadata={this.state.metadata}
             orderColumnId={this.state.orderColumnId}
-            orderValue={this.state.orderValue}
+            orderValue={this.state.orderValue || null}
             onOrderChange={this.onAssetsTableOrderChange.bind(this)}
             filterColumnId={this.state.filterColumnId}
             filterValue={this.state.filterValue}
             onFilterChange={this.onAssetsTableFilterChange.bind(this)}
             currentPage={this.state.currentPage}
-            totalPages={this.state.totalPages}
+            totalPages={typeof this.state.totalPages === 'number' ? this.state.totalPages : undefined}
             onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
             emptyMessage={contextualEmptyMessage}
           />
@@ -134,12 +140,3 @@ class MyLibraryRoute extends React.Component {
     );
   }
 }
-
-MyLibraryRoute.contextTypes = {
-  router: PropTypes.object,
-};
-
-reactMixin(MyLibraryRoute.prototype, mixins.droppable);
-reactMixin(MyLibraryRoute.prototype, Reflux.ListenerMixin);
-
-export default MyLibraryRoute;

@@ -1,6 +1,5 @@
 import React from 'react';
 import {observer} from 'mobx-react';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
 import bem from 'js/bem';
@@ -25,7 +24,9 @@ import type {IconName} from 'jsapp/fonts/k-icons';
 import MainHeaderBase from './mainHeaderBase.component';
 import MainHeaderLogo from './mainHeaderLogo.component';
 import GitRev from './gitRev.component';
+import pageState from 'js/pageState.store';
 import styles from './mainHeader.module.scss';
+import Button from 'js/components/common/button';
 
 interface MainHeaderProps extends WithRouterProps {
   assetUid: string | null;
@@ -71,15 +72,21 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   renderLoginButton() {
     return (
       <bem.LoginBox>
-        <a href={getLoginUrl()} className='kobo-button kobo-button--blue'>
-          {t('Log In')}
-        </a>
+        <Button
+          type='full'
+          color='blue'
+          size='l'
+          label={t('Log In')}
+          onClick={() => {
+            window.location.assign(getLoginUrl());
+          }}
+        />
       </bem.LoginBox>
     );
   }
 
   toggleFixedDrawer() {
-    stores.pageState.toggleFixedDrawer();
+    pageState.toggleFixedDrawer();
   }
 
   render() {

@@ -8,16 +8,19 @@ import {
   VALIDATION_STATUS_ID_PROP,
   SUBMISSION_ACTIONS_ID,
   DATA_TABLE_SETTING,
+  DATA_TABLE_SETTINGS,
 } from 'js/components/submissions/tableConstants';
+import type {SortValues} from 'js/components/submissions/tableConstants';
 import {getAllDataColumns} from 'js/components/submissions/tableUtils';
 import type {
   SubmissionResponse,
   AssetTableSettings,
   AssetSettings,
+  TableSortBySetting,
 } from 'js/dataInterface';
 import {userCan} from 'js/components/permissions/utils';
 
-interface TableStoreData {
+export interface TableStoreData {
   overrides: AssetTableSettings;
 }
 
@@ -45,20 +48,21 @@ class TableStore extends Reflux.Store {
 
     // We clone settings, as we will possibly overwrite some of them. If there
     // are no settings yet, we start with empty object.
-    const tableSettings: AssetTableSettings = clonedeep(asset?.settings[DATA_TABLE_SETTING]) || {};
+    const tableSettings: AssetTableSettings =
+      clonedeep(asset?.settings[DATA_TABLE_SETTING]) || {};
 
     // overrides take precedense over asset endpoint settings
-    if (typeof this.data.overrides['show-group-name'] !== 'undefined') {
-      tableSettings['show-group-name'] = this.data.overrides['show-group-name'];
+    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
+      tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP];
     }
-    if (typeof this.data.overrides['translation-index'] !== 'undefined') {
-      tableSettings['translation-index'] = this.data.overrides['translation-index'];
+    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
+      tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION];
     }
-    if (typeof this.data.overrides['show-hxl-tags'] !== 'undefined') {
-      tableSettings['show-hxl-tags'] = this.data.overrides['show-hxl-tags'];
+    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
+      tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL];
     }
-    if (typeof this.data.overrides['sort-by'] !== 'undefined') {
-      tableSettings['sort-by'] = this.data.overrides['sort-by'];
+    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
+      tableSettings[DATA_TABLE_SETTINGS.SORT_BY] = this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY];
     }
 
     return tableSettings;
@@ -79,21 +83,21 @@ class TableStore extends Reflux.Store {
     const newSettings: AssetSettings = clonedeep(asset?.settings) || {};
 
     // settings object doesn't even have DATA_TABLE_SETTING, we can pass newTableSettings
-    if (!newSettings['data-table']) {
-      newSettings['data-table'] = newTableSettings;
-    // settings exist, so we merge them
+    if (!newSettings[DATA_TABLE_SETTING]) {
+      newSettings[DATA_TABLE_SETTING] = newTableSettings;
+      // settings exist, so we merge them
     } else {
-      newSettings['data-table'] = Object.assign(
-        newSettings['data-table'],
+      newSettings[DATA_TABLE_SETTING] = Object.assign(
+        newSettings[DATA_TABLE_SETTING],
         newTableSettings
       );
     }
 
-    // Case 1: use can save, so we call the endpoint
+    // Case 1: user can save, so we call the endpoint
     if (asset && userCan(PERMISSIONS_CODENAMES.change_asset, asset)) {
       // Cleanup all `null` settings, as we don't want to store `null`s and `null`
       // means "delete setting"
-      const tableSettings = newSettings['data-table'];
+      const tableSettings = newSettings[DATA_TABLE_SETTING];
       Object.entries(tableSettings).forEach((key, value) => {
         if (value === null && typeof key === 'string') {
           delete tableSettings[key];
@@ -101,8 +105,8 @@ class TableStore extends Reflux.Store {
       });
       actions.table.updateSettings(asset.uid, newSettings);
     } else {
-      // Case 2: user can't save, so we store temporary overrides
-      this.setOverrides(newSettings['data-table']);
+      // Case 2: user can't save, so we store temporary overrides as nested setting
+      this.setOverrides(newSettings[DATA_TABLE_SETTING]);
     }
   }
 
@@ -110,17 +114,17 @@ class TableStore extends Reflux.Store {
    * @param {object} newOverrides
    */
   setOverrides(newOverrides: AssetTableSettings) {
-    if (typeof newOverrides['show-group-name'] !== 'undefined') {
-      this.data.overrides['show-group-name'] = newOverrides['show-group-name'];
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] = newOverrides[DATA_TABLE_SETTINGS.SHOW_GROUP];
     }
-    if (typeof newOverrides['translation-index'] !== 'undefined') {
-      this.data.overrides['translation-index'] = newOverrides['translation-index'];
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION] = newOverrides[DATA_TABLE_SETTINGS.TRANSLATION];
     }
-    if (typeof newOverrides['show-hxl-tags'] !== 'undefined') {
-      this.data.overrides['show-hxl-tags'] = newOverrides['show-hxl-tags'];
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL] = newOverrides[DATA_TABLE_SETTINGS.SHOW_HXL];
     }
-    if (typeof newOverrides['sort-by'] !== 'undefined') {
-      this.data.overrides['sort-by'] = newOverrides['sort-by'];
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] = newOverrides[DATA_TABLE_SETTINGS.SORT_BY];
     }
 
     this.trigger(this.data);
@@ -160,8 +164,8 @@ class TableStore extends Reflux.Store {
    */
   getSelectedColumns(): string[] | null {
     const tableSettings = this.getTableSettings();
-    if (Array.isArray(tableSettings['selected-columns'])) {
-      return tableSettings['selected-columns'];
+    if (Array.isArray(tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS])) {
+      return tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] || null;
     }
     return null;
   }
@@ -169,10 +173,12 @@ class TableStore extends Reflux.Store {
   getFrozenColumn(): string | null {
     let frozenColumn = null;
     const tableSettings = this.getTableSettings();
-    if (typeof tableSettings['frozen-column'] !== 'undefined') {
-      frozenColumn = tableSettings['frozen-column'];
+    if (
+      typeof tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN] !== 'undefined'
+    ) {
+      frozenColumn = tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN];
     }
-    return frozenColumn;
+    return frozenColumn || null;
   }
 
   isFieldVisible(fieldId: string) {
@@ -212,14 +218,14 @@ class TableStore extends Reflux.Store {
       newVal = fieldId;
     }
     const settingsObj: AssetTableSettings = {};
-    settingsObj['frozen-column'] = newVal;
+    settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = newVal;
     this.saveTableSettings(settingsObj);
   }
 
   /**
-   * Returns `null` for no option, or one of SORT_VALUES
+   * Returns `null` for no option, or one of SortValues
    */
-  getFieldSortValue(fieldId: string) {
+  getFieldSortValue(fieldId: string): SortValues | null {
     const sortBy = this.getSortBy();
     if (sortBy === null) {
       return null;
@@ -232,10 +238,7 @@ class TableStore extends Reflux.Store {
     return null;
   }
 
-  setSortBy(
-    fieldId: string,
-    sortValue: 'ASCENDING' | 'DESCENDING' | null
-  ) {
+  setSortBy(fieldId: string, sortValue: SortValues | null) {
     let newSortBy = null;
     if (sortValue !== null) {
       newSortBy = {
@@ -245,22 +248,22 @@ class TableStore extends Reflux.Store {
     }
 
     const settingsObj: AssetTableSettings = {};
-    settingsObj['sort-by'] = newSortBy;
+    settingsObj[DATA_TABLE_SETTINGS.SORT_BY] = newSortBy;
     this.saveTableSettings(settingsObj);
   }
 
-  getSortBy() {
+  getSortBy(): TableSortBySetting | null {
     let sortBy = null;
     const tableSettings = this.getTableSettings();
-    if (typeof tableSettings['sort-by'] !== 'undefined') {
-      sortBy = tableSettings['sort-by'];
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
+      sortBy = tableSettings[DATA_TABLE_SETTINGS.SORT_BY];
     }
-    return sortBy;
+    return sortBy || null;
   }
 
   showAllFields() {
     const settingsObj: AssetTableSettings = {};
-    settingsObj['selected-columns'] = null;
+    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = null;
     this.saveTableSettings(settingsObj);
   }
 
@@ -304,7 +307,10 @@ class TableStore extends Reflux.Store {
     this.setFieldsVisibility(submissions, newSelectedColumns);
   }
 
-  setFieldsVisibility(submissions: SubmissionResponse[], columnsToBeVisible: string[] | null) {
+  setFieldsVisibility(
+    submissions: SubmissionResponse[],
+    columnsToBeVisible: string[] | null
+  ) {
     const hideableColumns = this.getHideableColumns(submissions);
     let newSelectedColumns = columnsToBeVisible;
 
@@ -317,7 +323,7 @@ class TableStore extends Reflux.Store {
     }
 
     const settingsObj: AssetTableSettings = {};
-    settingsObj['selected-columns'] = newSelectedColumns;
+    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = newSelectedColumns;
 
     // If current frozen column is not in the newSelectedColumns, we need to
     // unfreeze it.
@@ -328,7 +334,7 @@ class TableStore extends Reflux.Store {
       !newSelectedColumns.includes(frozenColumn)
     ) {
       // Currently we allow only one frozen column, so we just set it to `null`.
-      settingsObj['frozen-column'] = null;
+      settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = null;
     }
 
     // If we are hiding the column that data is sorted by, we need to unsort it.
@@ -340,7 +346,7 @@ class TableStore extends Reflux.Store {
       !newSelectedColumns.includes(sortBy.fieldId)
     ) {
       // Currently we allow only one sort column, so we just set it to `null`.
-      settingsObj['sort-by'] = null;
+      settingsObj[DATA_TABLE_SETTINGS.SORT_BY] = null;
     }
 
     this.saveTableSettings(settingsObj);
@@ -349,8 +355,8 @@ class TableStore extends Reflux.Store {
   getShowGroupName() {
     let showGroupName;
     const tableSettings = this.getTableSettings();
-    if (typeof tableSettings['show-group-name'] !== 'undefined') {
-      showGroupName = tableSettings['show-group-name'];
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
+      showGroupName = tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP];
     } else {
       showGroupName = true;
     }
@@ -360,8 +366,8 @@ class TableStore extends Reflux.Store {
   getTranslationIndex() {
     let translationIndex = 0;
     const tableSettings = this.getTableSettings();
-    if (typeof tableSettings['translation-index'] !== 'undefined') {
-      translationIndex = tableSettings['translation-index'] || 0;
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
+      translationIndex = tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] || 0;
     }
     return translationIndex;
   }
@@ -369,8 +375,8 @@ class TableStore extends Reflux.Store {
   getShowHXLTags() {
     let showHXLTags;
     const tableSettings = this.getTableSettings();
-    if (typeof tableSettings['show-hxl-tags'] !== 'undefined') {
-      showHXLTags = tableSettings['show-hxl-tags'];
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
+      showHXLTags = tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL];
     } else {
       showHXLTags = false;
     }

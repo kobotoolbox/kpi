@@ -18,6 +18,8 @@ import {
   hasRowRestriction,
   hasAssetRestriction,
 } from 'js/components/locking/lockingUtils';
+import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -112,21 +114,21 @@ export class TranslationTable extends React.Component {
         },
       },
       {
-        Header: () => {
-          return (
+        Header: () =>
+          (
             <React.Fragment>
-              <bem.FormView__iconButton
+              <Button
+                type='bare'
+                color='storm'
+                size='m'
                 onClick={this.toggleRenameLanguageForm.bind(this)}
-                disabled={!this.canEditLanguages()}
-                className='right-tooltip form-view__icon-button-edit'
-              >
-                {this.state.showLanguageForm && <i className='k-icon k-icon-close' />}
-                {!this.state.showLanguageForm && <i className='k-icon k-icon-edit' />}
-              </bem.FormView__iconButton>
+                isDisabled={!this.canEditLanguages()}
+                startIcon={this.state.showLanguageForm ? 'close' : 'edit'}
+              />
               {`${translations[langIndex]} ${editableColTitle}`}
             </React.Fragment>
-          );
-        },
+          )
+        ,
         accessor: 'translation',
         className: 'translation',
         Cell: (cellInfo) => {
@@ -227,7 +229,7 @@ export class TranslationTable extends React.Component {
   }
 
   showManageLanguagesModal() {
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
       asset: this.props.asset,
     });
@@ -339,17 +341,22 @@ export class TranslationTable extends React.Component {
         </div>
 
         <bem.Modal__footer>
-          <bem.KoboButton m='whitegray' onClick={this.onBack.bind(this)}>
-            {t('Back')}
-          </bem.KoboButton>
+          <Button
+            type='frame'
+            color='storm'
+            size='l'
+            onClick={this.onBack.bind(this)}
+            label={t('Back')}
+          />
 
-          <bem.KoboButton
-            m='blue'
+          <Button
+            type='full'
+            color='blue'
+            size='l'
             onClick={this.saveChanges.bind(this)}
-            disabled={this.state.isSaveChangesButtonPending}
-          >
-            {this.state.saveChangesButtonText}
-          </bem.KoboButton>
+            isDisabled={this.state.isSaveChangesButtonPending}
+            label={this.state.saveChangesButtonText}
+          />
         </bem.Modal__footer>
       </bem.FormModal>
     );

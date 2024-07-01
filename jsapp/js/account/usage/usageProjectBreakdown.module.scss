@@ -1,5 +1,5 @@
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .root {
   width: auto;
@@ -8,6 +8,27 @@
   margin: 0 sizes.$x40;
   height: 100%;
   overflow-x: auto;
+}
+
+.intervalBanner {
+  background-color: colors.$kobo-bg-blue;
+  display: flex;
+  padding: 0 2%;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 75px;
+  border-radius: 0.5em;
+  margin: 2% 0% 2% 0%;
+}
+
+.intervalBannerContent {
+  display: flex;
+  align-items: center;
+  flex-basis: 100%;
+}
+
+.intervalBannerText {
+  padding: 2%;
 }
 
 .root table {

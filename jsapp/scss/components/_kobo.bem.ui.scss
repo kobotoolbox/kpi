@@ -2,7 +2,7 @@
 @use 'scss/sizes';
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 #kpiapp,
 .mdl-wrapper,
@@ -62,11 +62,6 @@
 
   &:hover {
     color: colors.$kobo-blue;
-  }
-
-  i {
-    margin: 3px;
-    font-size: 26px;
   }
 }
 
@@ -197,28 +192,9 @@
 }
 
 .popover-menu--formLanding-menu {
-  margin-left: 4px;
-
   .popover-menu__content {
     right: 10px;
   }
-}
-
-.popover-menu--new-menu {
-  width: 100%;
-  margin-bottom: 10px;
-
-  .popover-menu__content {
-    right: 0px;
-    width: 100%;
-  }
-}
-
-.popover-menu--new-menu .popover-menu__toggle {
-  @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-  border-radius: 6px;
-
-  width: 100%;
 }
 
 .popover-menu--assets-table {
@@ -235,14 +211,6 @@
     &:hover {
       color: lighten(colors.$kobo-blue, 10%);
     }
-
-    &::after {
-      content: '\25BC';
-      font-size: 8px;
-      margin-left: 3px;
-      display: inline-block;
-      vertical-align: 1px;
-    }
   }
 
   .popover-menu__content {
@@ -251,21 +219,6 @@
 }
 
 .popover-menu--custom-reports {
-  .popover-menu__toggle {
-    @extend .mdl-button;
-
-    text-transform: uppercase;
-    padding-left: 0px;
-
-    &::after {
-      content: '\25BC';
-      font-size: 10px;
-      margin-left: 5px;
-      display: inline-block;
-      vertical-align: 1px;
-    }
-  }
-
   .popover-menu__content {
     max-height: 500px;
     min-width: 300px;
@@ -338,6 +291,10 @@
       }
     }
   }
+}
+
+.popover-menu__link.popover-menu__link--red {
+  color: colors.$kobo-red;
 }
 
 // iframe default styles

@@ -8,7 +8,7 @@ import mixins from '../mixins';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {searches} from '../searches';
-import {stores} from '../stores';
+import pageState from 'js/pageState.store';
 import {COMMON_QUERIES, DEPLOYMENT_CATEGORIES} from 'js/constants';
 import AssetName from 'js/components/common/assetName';
 import {userCan} from 'js/components/permissions/utils';
@@ -30,7 +30,7 @@ class SidebarFormsList extends Reflux.Component {
         filterTags: COMMON_QUERIES.s,
       }),
     };
-    this.store = stores.pageState;
+    this.store = pageState;
     autoBind(this);
   }
   componentDidMount() {

@@ -1,29 +1,27 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import reactMixin from 'react-mixin';
-import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import bem from 'js/bem';
 import publicCollectionsStore from './publicCollectionsStore';
 import AssetsTable from 'js/components/assetsTable/assetsTable';
 import {ROOT_BREADCRUMBS} from 'js/components/library/libraryConstants';
-import {ASSETS_TABLE_CONTEXTS} from 'js/components/assetsTable/assetsTableConstants';
+import {AssetsTableContextName} from 'js/components/assetsTable/assetsTableConstants';
+import type {PublicCollectionsStoreData} from './publicCollectionsStore';
+import type {OrderDirection} from 'js/projects/projectViews/constants';
 
-class PublicCollectionsRoute extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = this.getFreshState();
-    this.unlisteners = [];
-    autoBind(this);
-  }
+export default class PublicCollectionsRoute extends React.Component<
+  {},
+  PublicCollectionsStoreData
+> {
+  private unlisteners: Function[] = [];
+
+  state = this.getFreshState();
 
   getFreshState() {
     return {
-      isLoading: publicCollectionsStore.data.isFetchingData,
+      isFetchingData: publicCollectionsStore.data.isFetchingData,
       assets: publicCollectionsStore.data.assets,
       metadata: publicCollectionsStore.data.metadata,
-      totalAssets: publicCollectionsStore.data.totalSearchAssets,
+      totalSearchAssets: publicCollectionsStore.data.totalSearchAssets,
       orderColumnId: publicCollectionsStore.data.orderColumnId,
       orderValue: publicCollectionsStore.data.orderValue,
       filterColumnId: publicCollectionsStore.data.filterColumnId,
@@ -35,7 +33,7 @@ class PublicCollectionsRoute extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      publicCollectionsStore.listen(this.publicCollectionsStoreChanged)
+      publicCollectionsStore.listen(this.publicCollectionsStoreChanged.bind(this), this)
     );
   }
 
@@ -47,15 +45,15 @@ class PublicCollectionsRoute extends React.Component {
     this.setState(this.getFreshState());
   }
 
-  onAssetsTableOrderChange(orderColumnId, orderValue) {
-    publicCollectionsStore.setOrder(orderColumnId, orderValue);
+  onAssetsTableOrderChange(columnId: string, value: OrderDirection) {
+    publicCollectionsStore.setOrder(columnId, value);
   }
 
-  onAssetsTableFilterChange(filterColumnId, filterValue) {
-    publicCollectionsStore.setFilter(filterColumnId, filterValue);
+  onAssetsTableFilterChange(columnId: string | null, value: string | null) {
+    publicCollectionsStore.setFilter(columnId, value);
   }
 
-  onAssetsTableSwitchPage(pageNumber) {
+  onAssetsTableSwitchPage(pageNumber: number) {
     publicCollectionsStore.setCurrentPage(pageNumber);
   }
 
@@ -68,19 +66,19 @@ class PublicCollectionsRoute extends React.Component {
           </bem.Breadcrumbs>
 
           <AssetsTable
-            context={ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS}
-            isLoading={this.state.isLoading}
+            context={AssetsTableContextName.PUBLIC_COLLECTIONS}
+            isLoading={this.state.isFetchingData}
             assets={this.state.assets}
-            totalAssets={this.state.totalAssets}
+            totalAssets={this.state.totalSearchAssets}
             metadata={this.state.metadata}
             orderColumnId={this.state.orderColumnId}
-            orderValue={this.state.orderValue}
+            orderValue={this.state.orderValue || null}
             onOrderChange={this.onAssetsTableOrderChange.bind(this)}
             filterColumnId={this.state.filterColumnId}
             filterValue={this.state.filterValue}
             onFilterChange={this.onAssetsTableFilterChange.bind(this)}
             currentPage={this.state.currentPage}
-            totalPages={this.state.totalPages}
+            totalPages={typeof this.state.totalPages === 'number' ? this.state.totalPages : undefined}
             onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
           />
         </div>
@@ -88,11 +86,3 @@ class PublicCollectionsRoute extends React.Component {
     );
   }
 }
-
-PublicCollectionsRoute.contextTypes = {
-  router: PropTypes.object
-};
-
-reactMixin(PublicCollectionsRoute.prototype, Reflux.ListenerMixin);
-
-export default PublicCollectionsRoute;

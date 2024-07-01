@@ -308,6 +308,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
                   this.props.triggerQuestionSettings(this.props.name)
                 }
                 tooltip={t('Override Graph Style')}
+                tooltipPosition='right'
               />
             </span>
           )}

@@ -1,8 +1,10 @@
 // DEPRECATED: please don't use this component. From now on, we will only use
 // the `Button` component (from `js/components/common/button`) as it covers
 // all possible cases.
+// This component is still here, because it's being used by few non-React places
+// like Form Builder, alertifyjs, and django templates.
 
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use "scss/sizes";
 
 /*
@@ -22,10 +24,6 @@
 
   NOTE: Please __do not @extend__ this component. If possible use
   `bem.KoboButton` or raw class names.
-
-  NOTE: Our current go-to button solution (`_mdl.buttons.scss`) turned out to be
-  chaotic-neutral and hard to maintain, so we should transition here all buttons
-  that use: `.mdl-button.mdl-button--colored.mdl-button--raised`.
 */
 
 .kobo-button {

@@ -39,6 +39,7 @@ import {
   deployAsset,
 } from 'js/assetQuickActions';
 import type {DropFilesEventHandler} from 'react-dropzone';
+import pageState from 'js/pageState.store';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -125,8 +126,7 @@ const mixins: MixinsObject = {
       notify(t('copied to clipboard'));
     },
 
-    saveCloneAs(evt: React.TouchEvent<HTMLElement>) {
-      const version_id = evt.currentTarget.dataset.versionId;
+    saveCloneAs(versionId?: string) {
       const name = `${t('Clone of')} ${this.state.name}`;
 
       const dialog = alertify.dialog('prompt');
@@ -143,7 +143,7 @@ const mixins: MixinsObject = {
             {
               uid: uid,
               name: value,
-              version_id: version_id,
+              version_id: versionId,
             },
             {
               onComplete: (asset: AssetResponse) => {
@@ -357,7 +357,7 @@ const mixins: MixinsObject = {
       params = Object.assign({library: isLibrary}, params);
 
       if (params.base64Encoded) {
-        stores.pageState.showModal({
+        pageState.showModal({
           type: MODAL_TYPES.UPLOADING_XLS,
           filename: multipleFiles
             ? t('## files').replace('##', String(totalFiles))
@@ -455,7 +455,7 @@ const mixins: MixinsObject = {
                 notify.error(t('Import Failed!'));
                 log('import failed', failData);
               });
-            stores.pageState.hideModal();
+            pageState.hideModal();
           }, 2500);
         },
         (jqxhr: string) => {

@@ -12,6 +12,7 @@ import {
   getRowName,
   getRowNameByQpath,
   getFlatQuestionsList,
+  getLanguageIndex,
 } from 'js/assetUtils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
@@ -34,6 +35,9 @@ import {
   getCurrentProcessingRouteParts,
   ProcessingTab,
 } from 'js/components/processing/routes.utils';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import {getExponentialDelayTime} from 'jsapp/js/utils';
+import envStore from 'jsapp/js/envStore';
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -125,6 +129,8 @@ interface SingleProcessingStoreData {
   isFetchingData: boolean;
   isPollingForTranscript: boolean;
   hiddenSidebarQuestions: string[];
+  currentlyDisplayedLanguage: LanguageCode | string;
+  exponentialBackoffCount: number;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -155,6 +161,8 @@ class SingleProcessingStore extends Reflux.Store {
     isFetchingData: false,
     isPollingForTranscript: false,
     hiddenSidebarQuestions: [],
+    currentlyDisplayedLanguage: this.getInitialDisplayedLanguage(),
+    exponentialBackoffCount: 1,
   };
 
   /** Clears all data - useful before making initialisation call */
@@ -167,6 +175,8 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.data.isPristine = true;
+    this.data.currentlyDisplayedLanguage = this.getInitialDisplayedLanguage();
+    this.data.exponentialBackoffCount = 1;
   }
 
   public get currentAssetUid() {
@@ -671,6 +681,7 @@ class SingleProcessingStore extends Reflux.Store {
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
       this.data.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
+      this.data.exponentialBackoffCount = 1;
     }
     this.setNotPristine();
     this.trigger(this.data);
@@ -681,12 +692,17 @@ class SingleProcessingStore extends Reflux.Store {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
       if (this.isAutoTranscriptionEventApplicable(event)) {
+        this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1;
         this.data.isPollingForTranscript = true;
         this.requestAutoTranscription();
       } else {
         this.data.isPollingForTranscript = false;
       }
-    }, 5000);
+    }, getExponentialDelayTime(
+      this.data.exponentialBackoffCount,
+      envStore.data.min_retry_time,
+      envStore.data.max_retry_time
+    ));
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
@@ -957,6 +973,41 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
+  getDisplayedLanguagesList(): KoboSelectOption[] {
+    const languagesList = [];
+
+    languagesList.push({label: t('XML names'), value: 'xml_names'});
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    const baseLabel = t('Labels');
+
+    if (asset?.summary?.languages && asset?.summary?.languages.length > 0) {
+      asset.summary.languages.forEach((language) => {
+        let label = baseLabel;
+        if (language !== null) {
+          label += ` - ${language}`;
+        }
+        languagesList.push({label: label, value: language});
+      });
+    } else {
+      languagesList.push({label: baseLabel, value: ''});
+    }
+
+    return languagesList;
+  }
+
+  getInitialDisplayedLanguage() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.summary?.languages && asset?.summary?.languages[0]) {
+      return asset?.summary?.languages[0];
+    } else {
+      return '';
+    }
+  }
+
+  getCurrentlyDisplayedLanguage() {
+    return this.data.currentlyDisplayedLanguage;
+  }
+
   getInitialDisplays(): SidebarDisplays {
     return {
       transcript: DefaultDisplays.get(ProcessingTab.Transcript) || [],
@@ -967,10 +1018,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** Returns available displays for given tab */
   getAvailableDisplays(tabName: ProcessingTab) {
-    const outcome: DisplaysList = [
-      StaticDisplays.Audio,
-      StaticDisplays.Data,
-    ];
+    const outcome: DisplaysList = [StaticDisplays.Audio, StaticDisplays.Data];
     if (tabName !== ProcessingTab.Transcript && this.data.transcript) {
       outcome.push(StaticDisplays.Transcript);
     }
@@ -992,7 +1040,10 @@ class SingleProcessingStore extends Reflux.Store {
     const asset = assetStore.getAsset(this.currentAssetUid);
 
     if (asset?.content?.survey) {
-      const questionsList = getFlatQuestionsList(asset.content.survey, 0)
+      const questionsList = getFlatQuestionsList(
+        asset.content.survey,
+        getLanguageIndex(asset, this.data.currentlyDisplayedLanguage)
+      )
         .filter((question) => !(question.name === this.currentQuestionName))
         .map((question) => {
           // We make an object to show the question label to the user but use the
@@ -1060,6 +1111,12 @@ class SingleProcessingStore extends Reflux.Store {
 
   setHiddenSidebarQuestions(list: string[]) {
     this.data.hiddenSidebarQuestions = list;
+
+    this.trigger(this.data);
+  }
+
+  setCurrentlyDisplayedLanguage(language: LanguageCode) {
+    this.data.currentlyDisplayedLanguage = language;
 
     this.trigger(this.data);
   }
