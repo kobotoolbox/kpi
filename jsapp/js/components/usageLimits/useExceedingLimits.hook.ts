@@ -2,6 +2,7 @@ import {useState, useReducer, useContext, useEffect} from 'react';
 import type {SubscriptionInfo} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import {USAGE_WARNING_RATIO} from 'js/constants';
+import {convertSecondsToMinutes} from 'jsapp/js/utils';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
@@ -47,7 +48,9 @@ export const useExceedingLimits = () => {
     getAccountLimits(productsContext.products).then((limits) => {
       setSubscribedSubmissionLimit(limits.submission_limit);
       setSubscribedStorageLimit(limits.storage_bytes_limit);
-      setTranscriptionMinutes(Number(limits.nlp_seconds_limit));
+      setTranscriptionMinutes(
+        convertSecondsToMinutes(Number(limits.nlp_seconds_limit))
+      );
       setTranslationChars(Number(limits.nlp_character_limit));
       setAreLimitsLoaded(true);
     });

@@ -24,7 +24,6 @@ export default function StepConfig() {
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] =
     useState<boolean>(false);
   const isOverLimit = useMemo(() => {
-    console.log(limits.exceedList);
     return limits.exceedList.includes('machine translation');
   }, [limits.exceedList]);
 
