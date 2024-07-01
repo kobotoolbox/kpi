@@ -2,15 +2,12 @@ import React from 'react';
 import type {FileWithPreview} from 'react-dropzone';
 import type {CreateImportRequest, ImportResponse} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
-import {escapeHtml, join, log, notify} from 'js/utils';
+import {escapeHtml, join, log, notify, getExponentialDelayTime} from 'js/utils';
 import {MODAL_TYPES} from './constants';
 import {router, routerIsActive} from 'js/router/legacy';
 import {ROUTES} from './router/routerConstants';
-import {stores} from './stores';
-import {getExponentialDelayTime} from 'js/utils';
 import envStore from './envStore'
 import pageState from 'js/pageState.store';
-
 
 const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed');
 
