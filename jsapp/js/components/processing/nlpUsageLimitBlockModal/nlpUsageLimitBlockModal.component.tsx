@@ -1,8 +1,7 @@
 import cx from 'classnames';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import KoboModal from '../../modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
-import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
@@ -42,7 +41,7 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
                 .replace('##LIMIT##', props.limit)
                 .replace('##PERIOD##', props.interval)}{' '}
               {t(
-                'Please consider our plans or add-ons to continue using this feature'
+                'Please consider our plans or add-ons to continue using this feature.'
               )}
             </div>
             <div className={styles.note}>

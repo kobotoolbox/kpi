@@ -11,11 +11,6 @@
   }
 }
 
-.link {
-  color: colors.$kobo-dark-blue;
-  text-decoration: underline;
-}
-
 .note {
   display: flex;
   padding: sizes.$x12;
@@ -42,6 +37,8 @@
   background-color: colors.$kobo-white;
 }
 
+// TODO: Abstract styling for paired buttons
+// See also overLimitModal and NLP stepConfig
 :global(.k-button) {
   &.button.full:hover {
     background-color: colors.$kobo-dark-blue;
