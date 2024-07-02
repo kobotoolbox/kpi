@@ -29,6 +29,10 @@ import type {
   SubmissionResponse,
   ValidationStatusResponse,
 } from 'js/dataInterface';
+import AttachmentActionsDropdown from './attachmentActionsDropdown.component';
+import AudioPlayer from 'js/components/common/audioPlayer';
+import {getBackgroundAudioQuestionName} from 'js/components/submissions/tableUtils';
+import {getMediaAttachment} from 'js/components/submissions/submissionUtils';
 import './submissionModal.scss';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
@@ -39,7 +43,6 @@ interface SubmissionModalProps {
   ids: number[];
   isDuplicated: boolean;
   duplicatedSubmission: SubmissionResponse | null;
-  backgroundAudioUrl: string;
   tableInfo:
     | {
         resultsTotal: number;
@@ -387,10 +390,43 @@ class SubmissionModal extends React.Component<
     });
   }
 
-  hasBackgroundAudio() {
+  /**
+   * Whether the form has background audio enabled. This means that there is
+   * a possibility that the submission could have a background audio recording.
+   * If you need to know if recording exist, please use `getBackgroundAudioUrl`.
+   */
+  hasBackgroundAudioEnabled() {
     return this.props.asset?.content?.survey?.some(
       (question) => question.type === META_QUESTION_TYPES['background-audio']
     );
+  }
+
+  getBackgroundAudioUrl() {
+    const backgroundAudioName = getBackgroundAudioQuestionName(
+      this.props.asset
+    );
+
+    if (
+      backgroundAudioName &&
+      this.state.submission &&
+      Object.keys(this.state.submission).includes(backgroundAudioName)
+    ) {
+      const response = this.state.submission[backgroundAudioName];
+      if (typeof response === 'string') {
+        const mediaAttachment = getMediaAttachment(
+          this.state.submission,
+          response,
+          META_QUESTION_TYPES['background-audio']
+        );
+        if (typeof mediaAttachment === 'string') {
+          return mediaAttachment;
+        } else {
+          return mediaAttachment.download_medium_url;
+        }
+      }
+    }
+
+    return undefined;
   }
 
   renderDropdowns() {
@@ -465,7 +501,7 @@ class SubmissionModal extends React.Component<
       return <CenteredMessage message={t('Unknown error')} />;
     }
 
-    const s = this.state.submission;
+    const bgAudioUrl = this.getBackgroundAudioUrl();
 
     // Use this modal if we just duplicated a submission, but not if we are
     // editing it
@@ -558,19 +594,6 @@ class SubmissionModal extends React.Component<
           )}
 
           <section className='submission-modal-section'>
-            {this.hasBackgroundAudio() && (
-              <bem.BackgroundAudioPlayer>
-                <bem.BackgroundAudioPlayer__label>
-                  {t('Background audio recording')}
-                </bem.BackgroundAudioPlayer__label>
-
-                <bem.BackgroundAudioPlayer__audio
-                  controls
-                  src={this.props?.backgroundAudioUrl}
-                />
-              </bem.BackgroundAudioPlayer>
-            )}
-
             {this.renderDropdowns()}
           </section>
 
@@ -717,6 +740,36 @@ class SubmissionModal extends React.Component<
               )}
             </div>
           </section>
+
+          {this.hasBackgroundAudioEnabled() && (
+            <bem.SubmissionDataTable>
+              <bem.SubmissionDataTable__row m={['columns', 'column-names']}>
+                <bem.SubmissionDataTable__column>
+                  {t('Background audio recording')}
+                </bem.SubmissionDataTable__column>
+              </bem.SubmissionDataTable__row>
+
+              <bem.SubmissionDataTable__row m={['columns', 'response', 'type-audio']}>
+                {bgAudioUrl &&
+                  <bem.SubmissionDataTable__column m={['data', 'type-audio']}>
+                    <AudioPlayer mediaURL={bgAudioUrl} />
+
+                    <AttachmentActionsDropdown
+                      asset={this.props.asset}
+                      questionType='background-audio'
+                      attachmentUrl={bgAudioUrl}
+                    />
+                  </bem.SubmissionDataTable__column>
+                }
+
+                {!bgAudioUrl &&
+                  <bem.SubmissionDataTable__column m='data'>
+                    {t('N/A')}
+                  </bem.SubmissionDataTable__column>
+                }
+              </bem.SubmissionDataTable__row>
+            </bem.SubmissionDataTable>
+          )}
 
           {this.state.submission && (
             <SubmissionDataTable

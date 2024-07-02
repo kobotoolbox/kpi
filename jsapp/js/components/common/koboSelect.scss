@@ -89,9 +89,23 @@ $k-select-menu-padding: sizes.$x6;
 
 .k-select__option {
   @include mixins.buttonReset;
+  font-weight: 400;
+  position: relative;
+
+  &:hover,
+  &.k-select__option--selected {
+    color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-gray-96;
+  }
+
+  &:focus-visible {
+    @include mixins.default-ui-focus;
+    // Needed so that option--selected never appears above focus styles
+    z-index: 1;
+  }
 
   .k-icon {
-    color: colors.$kobo-gray-85;
+    color: inherit;
   }
 }
 
@@ -132,23 +146,6 @@ $k-select-menu-padding: sizes.$x6;
     .k-select__trigger {
       background-color: colors.$kobo-light-red;
     }
-  }
-}
-
-.k-select__option {
-  font-weight: 500;
-  position: relative;
-
-  &:hover,
-  &.k-select__option--selected {
-    color: colors.$kobo-gray-24;
-    background-color: colors.$kobo-gray-96;
-  }
-
-  &:focus-visible {
-    @include mixins.default-ui-focus;
-    // Needed so that option--selected never appears above focus styles
-    z-index: 1;
   }
 }
 
