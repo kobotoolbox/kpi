@@ -407,7 +407,7 @@ export class TranslationSettings extends React.Component {
                     {i !== 0 && (
                       <Button
                         type='bare'
-                        color='red'
+                        color='dark-red'
                         size='m'
                         onClick={() => {this.deleteLanguage(i);}}
                         isDisabled={
