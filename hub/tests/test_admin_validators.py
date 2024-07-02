@@ -1,14 +1,13 @@
-from constance import config
+from constance.test import override_config
 from django.contrib.auth.models import User
 from django.test import TestCase
 from hub.admin.extend_user import validate_superuser_auth
 from kobo.apps.accounts.mfa.models import MfaMethod
 
-
+@override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
 class ValidateSuperuserMfaTest(TestCase):
 
     def setUp(self):
-        config.SUPERUSER_AUTH_ENFORCEMENT = True
         self.superuser = User.objects.create_superuser(
             username='admin', password='adminpassword'
         )
