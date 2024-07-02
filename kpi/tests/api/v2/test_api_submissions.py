@@ -1070,6 +1070,10 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self.submission_url = self.submission_url_legacy.replace(
             'edit', 'enketo/edit'
         )
+        self.submission_redirect_url = self.submission_url_legacy.replace(
+            'edit', 'enketo/redirect/edit'
+        )
+        assert 'redirect' in self.submission_redirect_url
 
     @responses.activate
     def test_get_legacy_edit_link_submission_as_owner(self):
@@ -1119,6 +1123,31 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             'version_uid': self.asset.latest_deployed_version.uid,
         }
         self.assertEqual(response.data, expected_response)
+
+    @responses.activate
+    def test_get_edit_submission_redirect_as_owner(self):
+        """
+        someuser is the owner of the project.
+        someuser can retrieve enketo edit link
+        """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
+        response = self.client.get(
+            self.submission_redirect_url, {'format': 'json'}
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert (
+            response.url
+            == f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}"
+        )
 
     def test_get_edit_link_submission_as_anonymous(self):
         """
@@ -1574,6 +1603,12 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
                 'pk': self.submission['_id'],
             },
         )
+        self.submission_view_redirect_url = (
+            self.submission_view_link_url.replace(
+                '/enketo/view/', '/enketo/redirect/view/'
+            )
+        )
+        assert 'redirect' in self.submission_view_redirect_url
 
     @responses.activate
     def test_get_view_link_submission_as_owner(self):
@@ -1600,6 +1635,32 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
             'version_uid': self.asset.latest_deployed_version.uid,
         }
         assert response.data == expected_response
+
+    @responses.activate
+    def test_get_view_submission_redirect_as_owner(self):
+        """
+        someuser is the owner of the project.
+        someuser can get enketo view link
+        """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
+        response = self.client.get(
+            self.submission_view_redirect_url, {'format': 'json'}
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert (
+            response.url
+            == f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}"
+        )
 
     def test_get_view_link_submission_as_anonymous(self):
         """
