@@ -9,6 +9,7 @@ export interface TooltipProps {
   ariaLabel: string;
   /** Position of the tooltip (centered as default) */
   alignment?: TooltipAlignment;
+  children?: React.ReactNode;
 }
 
 /**
