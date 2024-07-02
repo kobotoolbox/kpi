@@ -1,5 +1,5 @@
 import {useState, useReducer, useContext, useEffect} from 'react';
-import type {SubscriptionInfo} from 'js/account/stripe.types';
+import {SubscriptionInfo, UsageLimitTypes} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 import {convertSecondsToMinutes} from 'jsapp/js/utils';
@@ -94,17 +94,21 @@ export const useExceedingLimits = () => {
       return;
     }
     setExceedList(() => []);
-    isOverLimit(subscribedStorageLimit, usage.storage, 'storage');
-    isOverLimit(subscribedSubmissionLimit, usage.submissions, 'submission');
+    isOverLimit(subscribedStorageLimit, usage.storage, UsageLimitTypes.STORAGE);
+    isOverLimit(
+      subscribedSubmissionLimit,
+      usage.submissions,
+      UsageLimitTypes.SUBMISSION
+    );
     isOverLimit(
       subscribedTranscriptionMinutes,
       usage.transcriptionMinutes,
-      'automated transcription'
+      UsageLimitTypes.TRANSCRIPTION
     );
     isOverLimit(
       subscribedTranslationChars,
       usage.translationChars,
-      'machine translation'
+      UsageLimitTypes.TRANSLATION
     );
   }, [usageStatus, areLimitsLoaded]);
 

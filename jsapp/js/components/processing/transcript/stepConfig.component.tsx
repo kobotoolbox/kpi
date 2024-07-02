@@ -14,6 +14,7 @@ import TransxAutomaticButton from 'js/components/processing/transxAutomaticButto
 import envStore from 'js/envStore';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
 import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component';
+import {UsageLimitTypes} from 'js/account/stripe.types';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
 import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
 
@@ -23,7 +24,7 @@ export default function StepConfig() {
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] =
     useState<boolean>(false);
   const isOverLimit = useMemo(() => {
-    return limits.exceedList.includes('automated transcription');
+    return limits.exceedList.includes(UsageLimitTypes.TRANSCRIPTION);
   }, [limits.exceedList]);
 
   function dismissLimitBlockModal() {
@@ -131,7 +132,7 @@ export default function StepConfig() {
           />
           <NlpUsageLimitBlockModal
             isModalOpen={isLimitBlockModalOpen}
-            limit='automated transcription'
+            usageType={UsageLimitTypes.TRANSCRIPTION}
             dismissed={dismissLimitBlockModal}
             interval={usage.trackingPeriod}
           />

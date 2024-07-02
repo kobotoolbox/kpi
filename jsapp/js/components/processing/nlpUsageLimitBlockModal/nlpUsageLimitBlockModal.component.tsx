@@ -8,12 +8,13 @@ import Icon from 'js/components/common/icon';
 import {useNavigate} from 'react-router-dom';
 import styles from './nlpUsageLimitBlockModal.module.scss';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import { RecurringInterval, UsageLimitTypes } from 'jsapp/js/account/stripe.types';
 
 interface NlpUsageLimitBlockModalProps {
   isModalOpen: boolean;
   dismissed: () => void;
-  limit: string;
-  interval: 'month' | 'year';
+  usageType: UsageLimitTypes.TRANSLATION | UsageLimitTypes.TRANSCRIPTION;
+  interval: RecurringInterval;
 }
 
 function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
@@ -38,7 +39,7 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
           <div>
             <div>
               {t('You have reached the ##LIMIT## limit for this ##PERIOD##.')
-                .replace('##LIMIT##', props.limit)
+                .replace('##LIMIT##', props.usageType)
                 .replace('##PERIOD##', props.interval)}{' '}
               {t(
                 'Please consider our plans or add-ons to continue using this feature.'

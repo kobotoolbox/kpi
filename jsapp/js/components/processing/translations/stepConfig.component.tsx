@@ -15,6 +15,7 @@ import type {
 import envStore from 'js/envStore';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
 import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component';
+import {UsageLimitTypes} from 'js/account/stripe.types';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
 import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
 
@@ -24,7 +25,7 @@ export default function StepConfig() {
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] =
     useState<boolean>(false);
   const isOverLimit = useMemo(() => {
-    return limits.exceedList.includes('machine translation');
+    return limits.exceedList.includes(UsageLimitTypes.TRANSLATION);
   }, [limits.exceedList]);
 
   function dismissLimitBlockModal() {
@@ -140,7 +141,7 @@ export default function StepConfig() {
           />
           <NlpUsageLimitBlockModal
             isModalOpen={isLimitBlockModalOpen}
-            limit='machine translation'
+            usageType={UsageLimitTypes.TRANSLATION}
             dismissed={dismissLimitBlockModal}
             interval={usage.trackingPeriod}
           />
