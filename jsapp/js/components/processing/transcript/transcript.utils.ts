@@ -5,6 +5,7 @@ import {
   getRowData,
   getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
+import { convertSecondsToMinutes } from 'jsapp/js/utils';
 
 /**
  * Returns an error string or the attachment. It's basically a wrapper function
@@ -54,7 +55,7 @@ export function secondsToTranscriptionEstimate(sourceSeconds: number): string {
   } else if (durationSeconds >= 75 && durationSeconds < 150) {
     return t('about 2 minutes');
   } else {
-    const durationMinutes = Math.round(durationSeconds / 60);
+    const durationMinutes = convertSecondsToMinutes(durationSeconds);
     return t('about ##number## minutes').replace('##number##', String(durationMinutes));
   }
 }

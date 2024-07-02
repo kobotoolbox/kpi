@@ -157,6 +157,13 @@ export enum PlanNames {
   'ENTERPRISE' = 'Enterprise',
 }
 
+export enum UsageLimitTypes {
+  'STORAGE' = 'storage',
+  'SUBMISSION' = 'submission',
+  'TRANSCRIPTION' = 'automated transcription',
+  'TRANSLATION' = 'machine translation',
+}
+
 export enum Limits {
   'unlimited' = 'unlimited',
 }
