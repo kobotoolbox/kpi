@@ -1,7 +1,12 @@
 # coding: utf-8
 from django.urls import include, path
 
-from .views import MfaListUserMethodsView, MfaLoginView, MfaTokenView, MfaMethodActivationView
+from .views import (
+    MfaListUserMethodsView,
+    MfaLoginView,
+    MfaTokenView,
+    MfaMethodActivationView,
+)
 
 urlpatterns = [
     path('accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),

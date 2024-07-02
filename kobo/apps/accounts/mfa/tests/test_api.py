@@ -81,11 +81,10 @@ class MfaApiTestCase(BaseTestCase):
         activate_response = self.client.post(
             reverse('mfa-activate', args=(method,))
         )
-        assert activate_response.status_code == 403
+        assert activate_response.status_code == status.HTTP_403_FORBIDDEN
 
         mfa_availability = MfaAvailableToUser.objects.create(user=anotheruser)
-        mfa_availability.save()
         activate_response = self.client.post(
             reverse('mfa-activate', args=(method,))
         )
-        assert activate_response.status_code == 200
+        assert activate_response.status_code == status.HTTP_200_OK
