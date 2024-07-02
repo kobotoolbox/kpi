@@ -1,4 +1,5 @@
 # coding: utf-8
+from constance.test import override_config
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -46,6 +47,7 @@ class MfaApiTestCase(BaseTestCase):
         for field in expected_fields:
             self.assertTrue(field in results[0])
 
+    @override_config(MFA_ENABLED=True)
     def test_mfa_activation_always_creates_new_secret(self):
         self.client.login(username='anotheruser', password='anotheruser')
         anotheruser = User.objects.get(username='anotheruser')
@@ -73,7 +75,11 @@ class MfaApiTestCase(BaseTestCase):
             assert first_response.json() != second_response.json()
         mfa_availability.delete()
 
+    @override_config(MFA_ENABLED=True)
     def test_mfa_disabled(self):
+        # Enable the MFA whitelist by adding a user
+        someuser_mfa_activation = MfaAvailableToUser.objects.create(user=self.someuser)
+
         anotheruser = User.objects.get(username='anotheruser')
         self.client.login(username='anotheruser', password='anotheruser')
         method = list(trench_settings.MFA_METHODS.keys())[0]
@@ -88,3 +94,7 @@ class MfaApiTestCase(BaseTestCase):
             reverse('mfa-activate', args=(method,))
         )
         assert activate_response.status_code == status.HTTP_200_OK
+
+        # Reset MFA whitelist state
+        mfa_availability.delete()
+        someuser_mfa_activation.delete()
