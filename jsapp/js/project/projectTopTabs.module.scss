@@ -1,7 +1,7 @@
 @use 'scss/sizes';
 @use 'scss/breakpoints';
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .root {
   width: 100%;

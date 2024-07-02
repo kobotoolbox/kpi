@@ -1,5 +1,5 @@
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .form-view__group.form-view__group--items {
   > .form-view__cell {

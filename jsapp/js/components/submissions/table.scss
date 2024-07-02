@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
 @use 'js/components/common/checkbox';
@@ -80,6 +80,7 @@ $s-data-table-font: 13px;
       justify-content: space-between;
       align-items: flex-end;
       height: 100%;
+      flex-wrap: wrap; // for HXL tags
     }
 
     .column-header-title {
@@ -128,31 +129,6 @@ $s-data-table-font: 13px;
         white-space: initial;
         text-overflow: initial;
         overflow: initial;
-      }
-
-      .rt-sub-actions {
-        .table-bulk-checkbox {
-          position: absolute;
-          top: 0;
-          left: 0;
-          height: $data-table-row-height;
-
-          .popover-menu {
-            margin-top: 10px;
-
-            .popover-menu__toggle::after {
-              content: '\25BC';
-              font-size: 16px;
-              display: inline-block;
-              vertical-align: 1px;
-              padding: 0 5px 0 35px;
-            }
-
-            .popover-menu__content {
-              left: 5px;
-            }
-          }
-        }
       }
 
       .table-filter-input {
@@ -204,7 +180,7 @@ $s-data-table-font: 13px;
     .rt-resizable-header-content {
       overflow: visible;
       text-overflow: inherit;
-      min-height: $data-table-row-height - (2 * 5px);;
+      min-height: 26px;
 
       .column-header-title {
         display: -webkit-box;
@@ -217,14 +193,10 @@ $s-data-table-font: 13px;
       .column-header-hxl-tags {
         display: block;
         width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .column-header-hxl-tags {
+        @include mixins.textEllipsis;
         font-size: 12px;
         color: colors.$kobo-gray-40;
+        text-align: initial;
       }
     }
   }
@@ -240,19 +212,20 @@ $s-data-table-font: 13px;
   }
 
   .rt-tr-group {
-    max-height: $data-table-row-height;
     border-bottom: $data-table-border;
     box-sizing: content-box; // to make the border be outside the cell for hover
+    // 2px is for the borders, without it borders will be covered by frozen
+    // column background color
+    max-height: $data-table-row-height + 2px;
   }
 
   .rt-tbody .rt-th,
   .rt-tbody .rt-td,
   .rt-thead .rt-th,
   .rt-thead .rt-td {
-    padding: 5px 8px;
+    padding: 4px 8px;
     border-right: $data-table-border;
-    line-height: $data-table-row-height - (2 * 5px);
-    min-height: $data-table-row-height;
+    line-height: 20px;
     height: 100%;
   }
 
@@ -260,9 +233,13 @@ $s-data-table-font: 13px;
   .rt-th .trimmed-text {
     display: block;
     width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @include mixins.textEllipsis;
+  }
+
+  // We want to target only the data cells
+  .rt-td .trimmed-text:only-child {
+    height: 100%;
+    align-content: center;
   }
 
   .rt-thead.-filters .rt-th.rt-status {
@@ -402,6 +379,14 @@ $s-data-table-font: 13px;
     overflow: visible;
   }
 
+  // For the validation status dropdown to not appear under other cells;
+  .rt-th:focus-within,
+  .rt-td:focus-within {
+    .kobo-select {
+      z-index: z-indexes.$z-data-table-frozen-column + 1;
+    }
+  }
+
   // currently hovered cell will be on top - for tooltips and dropdowns
   .rt-th:hover.is-frozen,
   .rt-td:hover.is-frozen {
@@ -466,7 +451,6 @@ $s-data-table-font: 13px;
   .rt-th.is-frozen.is-last-frozen,
   .rt-td.is-frozen.is-last-frozen {
     order: -1;
-    min-height: $data-table-row-height;
     border-right: $data-table-border;
     border-right-width: 2px !important; // important needed due to .-filters specificity
   }
@@ -483,12 +467,6 @@ $s-data-table-font: 13px;
   .rt-th.rt-sub-actions,
   .rt-td.rt-sub-actions {
     order: -2;
-  }
-
-  &.has-hxl-tags-visible {
-    .rt-thead.-header .rt-th {
-      height: $data-table-row-height * 2;
-    }
   }
 }
 

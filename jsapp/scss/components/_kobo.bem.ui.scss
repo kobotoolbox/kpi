@@ -2,7 +2,7 @@
 @use 'scss/sizes';
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 #kpiapp,
 .mdl-wrapper,

@@ -1,7 +1,7 @@
 @use 'scss/z-indexes';
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'sass:color';
 
 .dropzone {

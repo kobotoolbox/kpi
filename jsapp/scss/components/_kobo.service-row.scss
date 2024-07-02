@@ -1,7 +1,7 @@
 @use 'sass:math';
 @use 'scss/z-indexes';
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 $s-service-row-actions: 100px;
 $s-service-row-column-spacing: 10px;
