@@ -1,4 +1,5 @@
 # coding: utf-8
+from constance.test import override_config
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -6,6 +7,7 @@ from trench.settings import trench_settings
 from trench.utils import get_mfa_model
 
 from kpi.tests.kpi_test_case import BaseTestCase
+from ..models import MfaAvailableToUser
 
 
 class MfaApiTestCase(BaseTestCase):
@@ -45,8 +47,12 @@ class MfaApiTestCase(BaseTestCase):
         for field in expected_fields:
             self.assertTrue(field in results[0])
 
+    @override_config(MFA_ENABLED=True)
     def test_mfa_activation_always_creates_new_secret(self):
         self.client.login(username='anotheruser', password='anotheruser')
+        anotheruser = User.objects.get(username='anotheruser')
+
+        mfa_availability = MfaAvailableToUser.objects.create(user=anotheruser)
         mfa_methods = trench_settings.MFA_METHODS.keys()
         for method in mfa_methods:
             first_response = self.client.post(
@@ -67,3 +73,28 @@ class MfaApiTestCase(BaseTestCase):
             )
             assert first_secret != second_secret
             assert first_response.json() != second_response.json()
+        mfa_availability.delete()
+
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_disabled(self):
+        # Enable the MFA whitelist by adding a user
+        someuser_mfa_activation = MfaAvailableToUser.objects.create(user=self.someuser)
+
+        anotheruser = User.objects.get(username='anotheruser')
+        self.client.login(username='anotheruser', password='anotheruser')
+        method = list(trench_settings.MFA_METHODS.keys())[0]
+
+        activate_response = self.client.post(
+            reverse('mfa-activate', args=(method,))
+        )
+        assert activate_response.status_code == status.HTTP_403_FORBIDDEN
+
+        mfa_availability = MfaAvailableToUser.objects.create(user=anotheruser)
+        activate_response = self.client.post(
+            reverse('mfa-activate', args=(method,))
+        )
+        assert activate_response.status_code == status.HTTP_200_OK
+
+        # Reset MFA whitelist state
+        mfa_availability.delete()
+        someuser_mfa_activation.delete()
