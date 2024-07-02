@@ -42,6 +42,15 @@ import {
 import chaiExclude from 'chai-exclude';
 chai.use(chaiExclude);
 
+// getSubmissionDisplayData might return objects with declared, undefined key:
+//    {... "label": "hi", "listName": undefined, "name": "hi" ...}
+// Assuming this is correct, test fixtures like this are equivalent enough:
+//    {... "label": "hi", "name": "hi" ...}
+// After a recent chai / deep-eql update, tests relying on this behavior would
+// fail. Hence, use this looser comparison function.
+import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
+chai.use(chaiDeepEqualIgnoreUndefined);
+
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
       const test = getSubmissionDisplayData(
@@ -53,9 +62,10 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 1, simpleSurveySubmission).children;
       const target = simpleSurveyDisplayData;
+      console.log('expected', target, 'got', test)
       expect(test)
         .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deep.equal(target);
+        .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a null data entries for a survey with no answers', () => {
@@ -70,7 +80,7 @@ describe('getSubmissionDisplayData', () => {
       const target = simpleSurveyDisplayDataEmpty;
       expect(test)
         .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deep.equal(target);
+        .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a survey with a repeat group', () => {
@@ -85,7 +95,7 @@ describe('getSubmissionDisplayData', () => {
       const target = repeatSurveyDisplayData;
       expect(test)
         .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deep.equal(target);
+        .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a survey with nested repeat groups', () => {
@@ -98,7 +108,9 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, nestedRepeatSurveySubmission).children;
       const target = nestedRepeatSurveyDisplayData;
-      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
+      expect(test)
+        .excludingEvery(['__proto__', 'xpathNodes'])
+        .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a survey with a matrix', () => {
@@ -111,7 +123,9 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, matrixSurveySubmission).children;
       const target = matrixSurveyDisplayData;
-      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
+      expect(test)
+        .excludingEvery(['__proto__', 'xpathNodes'])
+        .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a survey with all kinds of groups', () => {
@@ -124,7 +138,9 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, groupsSurveySubmission).children;
       const target = groupsSurveyDisplayData;
-      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
+      expect(test)
+        .excludingEvery(['__proto__', 'xpathNodes'])
+        .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for every possible question type', () => {
@@ -137,7 +153,9 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, everythingSurveySubmission).children;
       const target = everythingSurveyDisplayData;
-      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
+      expect(test)
+        .excludingEvery(['__proto__', 'xpathNodes'])
+        .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a matrix group inside repeat group', () => {
@@ -150,7 +168,9 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, matrixRepeatSurveySubmission).children;
       const target = matrixRepeatSurveyDisplayData;
-      expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deep.equal(target);
+      expect(test)
+        .excludingEvery(['__proto__', 'xpathNodes'])
+        .to.deepEqualIgnoreUndefined(target);
   });
 });
 
