@@ -140,7 +140,7 @@ export default function EmailSection() {
                 <Button
                   label='Remove'
                   size='m'
-                  color='red'
+                  color='dark-red'
                   type='frame'
                   onClick={deleteNewUserEmail}
                 />

@@ -363,7 +363,7 @@ export default class RESTServicesForm extends React.Component {
 
               <Button
                 type='bare'
-                color='red'
+                color='dark-red'
                 size='m'
                 className='http-header-row-remove'
                 data-index={n}

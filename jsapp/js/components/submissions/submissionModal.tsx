@@ -546,7 +546,7 @@ class SubmissionModal extends React.Component<
               )) && (
               <Button
                 onClick={this.deleteSubmission.bind(this)}
-                color='red'
+                color='dark-red'
                 type='full'
                 size='l'
                 isDisabled={!this.isSubmissionEditable()}
@@ -730,7 +730,7 @@ class SubmissionModal extends React.Component<
                 )) && (
                 <Button
                   onClick={this.deleteSubmission.bind(this)}
-                  color='red'
+                  color='dark-red'
                   type='bare'
                   size='l'
                   startIcon='trash'

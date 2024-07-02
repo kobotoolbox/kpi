@@ -495,7 +495,7 @@ class ConnectProjects extends React.Component {
                   <div className='connect-projects__import-options'>
                     <Button
                       type='frame'
-                      color='red'
+                      color='dark-red'
                       size='m'
                       startIcon='trash'
                       onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
