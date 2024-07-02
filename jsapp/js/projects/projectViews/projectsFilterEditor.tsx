@@ -11,7 +11,6 @@ import type {
 import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
 import {isFilterConditionValueRequired} from './utils';
 import envStore from 'js/envStore';
-import WrappedSelect from 'js/components/common/wrappedSelect';
 import styles from './projectsFilterEditor.module.scss';
 
 interface ProjectsFilterEditorProps {
@@ -26,6 +25,10 @@ interface ProjectsFilterEditorProps {
 
 const COUNTRIES = envStore.data.country_choices;
 
+/**
+ * This component renders a single (editable) filter row. It has few dropdowns,
+ * and textboxes, and a delete button.
+ */
 export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   const onFilterValueChange = (newValue: string) => {
     props.onFilterChange({
@@ -152,6 +155,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
               placeholder={t('Enter value')}
               // Requires field to be selected first
               disabled={!props.filter.fieldName}
+              size='m'
             />
           )}
         {isFilterConditionValueRequired(props.filter.condition) &&

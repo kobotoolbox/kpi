@@ -155,7 +155,7 @@ $button-border-radius: sizes.$x6;
   position: relative; // Needed for tooltips, pending state etc.
   font-weight: 500;
   text-decoration: none;
-  text-align: left;
+  text-align: initial;
   padding: 0;
   margin: 0;
   border-width: $button-border-width;

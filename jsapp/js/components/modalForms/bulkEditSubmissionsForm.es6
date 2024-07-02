@@ -238,7 +238,7 @@ class BulkEditSubmissionsForm extends React.Component {
           {renderQuestionTypeIcon(question.type)}
         </bem.SimpleTable__cell>
 
-        <bem.SimpleTable__cell>
+        <bem.SimpleTable__cell dir='auto'>
           {question.parents.length > 0 &&
             <small>{question.parents.join(' / ') + ' /'}</small>
           }
@@ -556,7 +556,7 @@ class BulkEditRowForm extends React.Component {
 
     return (
       <React.Fragment>
-        <bem.FormView__cell m={['columns', 'columns-top']}>
+        <bem.FormView__cell m={['columns', 'columns-top']} dir='auto'>
           <bem.FormView__cell m='column-icon'>
             {renderQuestionTypeIcon(this.props.question.type)}
           </bem.FormView__cell>

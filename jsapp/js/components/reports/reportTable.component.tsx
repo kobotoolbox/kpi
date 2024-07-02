@@ -128,7 +128,7 @@ export default class ReportTable extends React.Component<ReportTableProps> {
           {rows.map((row) => (
             <tr key={row[0]}>
               {row.map((r, i: number) => (
-                <td key={i}>{r}</td>
+                <td key={i} dir='auto'>{r}</td>
               ))}
             </tr>
           ))}

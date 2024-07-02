@@ -13,6 +13,7 @@ Properties:
 - onLanguageChange <function>: required
 - existingLanguages <langString[]>: for validation purposes
 - isDefault <boolean>: for default language only
+- isPending <boolean>: marks the submit button as pending
 */
 class LanguageForm extends React.Component {
   constructor(props) {
@@ -43,6 +44,7 @@ class LanguageForm extends React.Component {
 
     autoBind(this);
   }
+
   isLanguageNameValid() {
     if (this.props.existingLanguages) {
       let isNameUnique = true;
@@ -61,6 +63,7 @@ class LanguageForm extends React.Component {
       return true;
     }
   }
+
   isLanguageCodeValid() {
     if (this.props.existingLanguages) {
       let isCodeUnique = true;
@@ -79,14 +82,13 @@ class LanguageForm extends React.Component {
       return true;
     }
   }
+
   onSubmit(evt) {
     evt.preventDefault();
-    evt.currentTarget.disabled = true;
 
     const isNameValid = this.isLanguageNameValid();
     if (!isNameValid) {
       this.setState({nameError: t('Name must be unique!')});
-      evt.currentTarget.disabled = false;
     } else {
       this.setState({nameError: null});
     }
@@ -94,7 +96,6 @@ class LanguageForm extends React.Component {
     const isCodeValid = this.isLanguageCodeValid();
     if (!isCodeValid) {
       this.setState({codeError: t('Code must be unique!')});
-      evt.currentTarget.disabled = false;
     } else {
       this.setState({codeError: null});
     }
@@ -110,14 +111,24 @@ class LanguageForm extends React.Component {
       }, langIndex);
     }
   }
+
   onNameChange(newName) {
-    this.setState({name: toTitleCase(newName.trim().toLowerCase())});
+    this.setState({
+      name: toTitleCase(newName.trim().toLowerCase()),
+      nameError: null,
+    });
   }
+
   onCodeChange(newCode) {
-    this.setState({code: newCode.trim().toLowerCase()});
+    this.setState({
+      code: newCode.trim().toLowerCase(),
+      codeError: null,
+    });
   }
+
   render() {
-    let isAnyFieldEmpty = this.state.name.length === 0 || this.state.code.length === 0;
+    const isAnyFieldEmpty = this.state.name.length === 0 || this.state.code.length === 0;
+    const hasErrors = this.state.nameError !== null || this.state.codeError !== null;
 
     return (
       <bem.FormView__form m='add-language-fields'>
@@ -126,7 +137,7 @@ class LanguageForm extends React.Component {
             <label>{(this.props.isDefault) ? t('Default language name') : t('Language name')}</label>
             <TextBox
               value={this.state.name}
-              onChange={this.onNameChange}
+              onChange={this.onNameChange.bind(this)}
               errors={this.state.nameError}
             />
           </bem.FormModal__item>
@@ -137,7 +148,7 @@ class LanguageForm extends React.Component {
             <label>{(this.props.isDefault) ? t('Default language code') : t('Language code')}</label>
             <TextBox
               value={this.state.code}
-              onChange={this.onCodeChange}
+              onChange={this.onCodeChange.bind(this)}
               errors={this.state.codeError}
             />
           </bem.FormModal__item>
@@ -148,10 +159,11 @@ class LanguageForm extends React.Component {
             type='full'
             color='blue'
             size='l'
-            onClick={this.onSubmit.bind(this)}
-            isSubmit
-            isDisabled={isAnyFieldEmpty}
             label={this.props.langIndex !== undefined ? t('Update') : (this.props.isDefault) ? t('Set') : t('Add')}
+            isSubmit
+            isPending={this.props.isPending}
+            isDisabled={isAnyFieldEmpty}
+            onClick={this.onSubmit.bind(this)}
           />
         </bem.FormView__cell>
       </bem.FormView__form>

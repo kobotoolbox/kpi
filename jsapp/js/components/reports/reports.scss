@@ -76,7 +76,7 @@
       font-size: variables.$base-font-size;
 
       &:first-child {
-        text-align: left;
+        text-align: initial;
       }
     }
 
@@ -86,7 +86,7 @@
       text-align: right;
 
       &:first-child {
-        text-align: left;
+        text-align: initial;
       }
     }
   }

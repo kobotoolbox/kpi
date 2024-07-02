@@ -73,7 +73,9 @@ export default function FormSummaryProjectInfo(
               <bem.FormView__label>
                 {metadata.description?.label ?? t('Description')}
               </bem.FormView__label>
-              {props.asset.settings.description || '-'}
+              <div dir='auto'>
+                {props.asset.settings.description || '-'}
+              </div>
             </bem.FormView__cell>
           </bem.FormView__group>
         )}

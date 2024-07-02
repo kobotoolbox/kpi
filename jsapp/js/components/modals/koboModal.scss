@@ -79,11 +79,13 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   h1 {
     @include mixins.centerRowFlex;
 
+    flex: 1;
     color: colors.$kobo-gray-24;
     font-size: sizes.$x18;
     font-weight: 700;
     margin: 0;
     line-height: 1;
+    margin-inline-end: 10px;
 
     // If there is close button, we need to limit the width (for a long content)
     &:not(:only-child) {

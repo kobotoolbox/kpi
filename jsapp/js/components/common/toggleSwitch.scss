@@ -47,7 +47,8 @@
   }
 
   .toggle-switch__slider + .toggle-switch__label {
-    margin-left: 6px;
+    // For RTL content
+    margin-inline-start: 6px;
   }
 
   input:checked + .toggle-switch__slider {

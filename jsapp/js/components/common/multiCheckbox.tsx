@@ -43,6 +43,7 @@ export default function MultiCheckbox (props: MultiCheckboxProps) {
     <bem.MultiCheckbox
       m={`type-${props.type}`}
       className={props.className}
+      dir='auto'
     >
       {props.items.map((item, itemIndex) => (
         <bem.MultiCheckbox__item key={itemIndex}>

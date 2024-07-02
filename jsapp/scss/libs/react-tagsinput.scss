@@ -36,68 +36,7 @@
   cursor: pointer;
   color: colors.$kobo-white !important;
   opacity: 0.6;
-  margin-left: 3px;
-  vertical-align: middle;
-
-  &:hover {
-    opacity: 0.9;
-  }
-}
-
-.react-tagsinput-input {
-  background: transparent;
-  border: 0 none;
-  color: colors.$kobo-gray-40;
-  font-size: 13px;
-  font-weight: 400;
-  margin-bottom: 2px;
-  margin-top: 1px;
-  padding: 5px;
-  min-width: 90px;
-}
-
-.react-tags-save-button {
-  float: left;
-}
-@use 'scss/colors';
-
-.react-tagsinput {
-  &.react-tagsinput-invalid {
-    .react-tagsinput-input {
-      color: colors.$kobo-red;
-      border-bottom-color: colors.$kobo-red;
-    }
-  }
-
-  &.react-tagsinput-validating {
-    .react-tagsinput-input {
-      color: colors.$kobo-teal;
-      border-bottom-color: colors.$kobo-teal;
-    }
-  }
-}
-
-.react-tagsinput-tag {
-  background-color: colors.$kobo-gray-40;
-  color: colors.$kobo-white;
-  font-weight: 400;
-  margin-bottom: 4px;
-  margin-right: 4px;
-  padding: 4px 8px;
-  padding-right: 6px;
-  display: inline-block;
-  font-size: 13px;
-  border-radius: 2px;
-}
-
-/* a.k-tagsinput-remove */
-.react-tagsinput-remove {
-  @extend .k-icon, .k-icon-close;
-
-  cursor: pointer;
-  color: colors.$kobo-white !important;
-  opacity: 0.6;
-  margin-left: 3px;
+  margin-inline-start: 3px;
   vertical-align: middle;
 
   &:hover {
