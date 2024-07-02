@@ -62,7 +62,6 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 1, simpleSurveySubmission).children;
       const target = simpleSurveyDisplayData;
-      console.log('expected', target, 'got', test)
       expect(test)
         .excludingEvery(['__proto__', 'xpathNodes'])
         .to.deepEqualIgnoreUndefined(target);
