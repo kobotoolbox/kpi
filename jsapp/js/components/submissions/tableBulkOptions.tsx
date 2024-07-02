@@ -264,7 +264,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         {Object.keys(this.props.selectedRows).length > 0 && (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
           <Button
             type='frame'
-            color='red'
+            color='dark-red'
             size='s'
             onClick={this.onDelete.bind(this)}
             startIcon='trash'

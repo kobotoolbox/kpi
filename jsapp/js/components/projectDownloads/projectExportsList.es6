@@ -239,7 +239,7 @@ export default class ProjectExportsList extends React.Component {
           {userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
             <Button
               type='frame'
-              color='red'
+              color='dark-red'
               size='m'
               startIcon='trash'
               onClick={this.deleteExport.bind(this, exportData.uid)}

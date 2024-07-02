@@ -162,7 +162,7 @@ class EncryptForm extends React.Component {
 
           <Button
             type='full'
-            color='red'
+            color='dark-red'
             size='l'
             isDisabled={this.state.isPending}
             onClick={this.onRemove.bind(this)}
