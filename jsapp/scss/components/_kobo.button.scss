@@ -4,7 +4,7 @@
 // This component is still here, because it's being used by few non-React places
 // like Form Builder, alertifyjs, and django templates.
 
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use "scss/sizes";
 
 /*

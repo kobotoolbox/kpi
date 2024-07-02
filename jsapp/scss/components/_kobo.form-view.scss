@@ -2,7 +2,7 @@
 @use 'scss/breakpoints';
 @use 'scss/_variables';
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/mixins';
 
 // TODO: This file is too big and it lost it's original purpose.

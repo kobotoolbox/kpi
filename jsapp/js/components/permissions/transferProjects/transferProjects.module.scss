@@ -1,6 +1,6 @@
 @use 'scss/sizes';
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .root {
   background: colors.$kobo-white;

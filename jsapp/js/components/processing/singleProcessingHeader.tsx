@@ -1,11 +1,12 @@
 import React from 'react';
 import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
-import type {AssetContent} from 'js/dataInterface';
+import type {AssetContent, AssetResponse} from 'js/dataInterface';
 import {
   findRowByQpath,
   getRowTypeIcon,
   getTranslatedRowLabel,
   getRowName,
+  getLanguageIndex,
 } from 'js/assetUtils';
 import {ROUTES} from 'js/router/routerConstants';
 import Button from 'js/components/common/button';
@@ -22,7 +23,7 @@ import classNames from 'classnames';
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
   assetUid: string;
-  assetContent: AssetContent;
+  asset: AssetResponse;
 }
 
 interface SingleProcessingHeaderState {
@@ -86,9 +87,19 @@ class SingleProcessingHeader extends React.Component<
   getQuestionSelectorOptions() {
     const options: KoboSelectOption[] = [];
     const editIds = singleProcessingStore.getSubmissionsEditIds();
+    const assetContent = this.props.asset.content;
+    const languageIndex = getLanguageIndex(
+      this.props.asset,
+      singleProcessingStore.getCurrentlyDisplayedLanguage()
+    );
+
+    if (!assetContent) {
+      return [];
+    }
+
     if (editIds) {
       Object.keys(editIds).forEach((qpath) => {
-        const questionData = findRowByQpath(this.props.assetContent, qpath);
+        const questionData = findRowByQpath(assetContent, qpath);
         // At this point we want to find out whether the question has at least
         // one editId (i.e. there is at least one transcriptable response to
         // the question). Otherwise there's no point in having the question as
@@ -107,8 +118,8 @@ class SingleProcessingHeader extends React.Component<
             const rowName = getRowName(questionData);
             const translatedLabel = getTranslatedRowLabel(
               rowName,
-              this.props.assetContent.survey,
-              0
+              assetContent.survey,
+              languageIndex
             );
             options.push({
               value: qpath,
