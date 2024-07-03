@@ -1,7 +1,7 @@
 import re
 
-from constance.test import override_config
 import dateutil
+from constance.test import override_config
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
