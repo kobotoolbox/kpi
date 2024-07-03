@@ -50,7 +50,6 @@ class MfaApiTestCase(BaseTestCase):
     @override_config(MFA_ENABLED=True)
     def test_mfa_activation_always_creates_new_secret(self):
         self.client.login(username='anotheruser', password='anotheruser')
-
         mfa_methods = trench_settings.MFA_METHODS.keys()
         for method in mfa_methods:
             first_response = self.client.post(
@@ -88,7 +87,6 @@ class MfaApiTestCase(BaseTestCase):
         someuser_mfa_activation = MfaAvailableToUser.objects.create(
             user=self.someuser
         )
-
 
         activate_response = self.client.post(
             reverse('mfa-activate', args=(method,))
