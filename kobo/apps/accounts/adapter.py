@@ -9,6 +9,7 @@ from django.template.response import TemplateResponse
 from django.utils import timezone
 from trench.utils import get_mfa_model, user_token_generator
 
+from .mfa.permissions import mfa_allowed_for_user
 from .mfa.forms import MfaTokenForm
 from .mfa.models import MfaAvailableToUser
 from .mfa.views import MfaTokenView
@@ -25,16 +26,9 @@ class AccountAdapter(DefaultAccountAdapter):
             # validated their email address
             return parent_response
 
-        mfa_allowed = True
-        if settings.STRIPE_ENABLED:
-            mfa_allowed = (
-                user_has_paid_subscription(user.username)
-                or MfaAvailableToUser.objects.filter(user=user).exists()
-            )
-
         # If MFA is activated and allowed for the user, display the token form before letting them in
         if (
-            mfa_allowed
+            mfa_allowed_for_user(user)
             and get_mfa_model()
             .objects.filter(is_active=True, user=user)
             .exists()
