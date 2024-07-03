@@ -4,6 +4,7 @@ from django.test import TestCase
 from hub.admin.extend_user import validate_superuser_auth
 from kobo.apps.accounts.mfa.models import MfaMethod
 
+
 @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
 class ValidateSuperuserMfaTest(TestCase):
 

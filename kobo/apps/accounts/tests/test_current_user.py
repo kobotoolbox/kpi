@@ -1,9 +1,7 @@
-import json
 import re
 
-import constance
-import dateutil
 from constance.test import override_config
+import dateutil
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
@@ -12,6 +10,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.utils.json import LazyJSONSerializable
 
 
 class CurrentUserAPITestCase(APITestCase):
@@ -52,7 +51,7 @@ class CurrentUserAPITestCase(APITestCase):
         assert response_extra_details['name'] == 'SpongeBob'
 
     @override_config(
-        USER_METADATA_FIELDS=json.dumps(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
             [{'name': 'organization', 'required': True}]
         )
     )
@@ -154,7 +153,7 @@ class CurrentUserAPITestCase(APITestCase):
         assert response.data['accepted_tos'] == True
 
     @override_config(
-        USER_METADATA_FIELDS=json.dumps(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
             [
                 {'name': 'organization', 'required': True},
                 {'name': 'organization_type', 'required': True},
@@ -198,7 +197,7 @@ class CurrentUserAPITestCase(APITestCase):
         }
 
     @override_config(
-        USER_METADATA_FIELDS=json.dumps(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
             [
                 {'name': 'organization', 'required': True},
                 {'name': 'organization_website', 'required': True},
