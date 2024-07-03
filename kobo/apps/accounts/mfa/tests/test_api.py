@@ -100,3 +100,9 @@ class MfaApiTestCase(BaseTestCase):
         # Reset MFA whitelist state
         mfa_availability.delete()
         someuser_mfa_activation.delete()
+
+        # Test when whitelist is disabled
+        activate_response = self.client.post(
+            reverse('mfa-activate', args=(method,))
+        )
+        assert activate_response.status_code == status.HTTP_200_OK

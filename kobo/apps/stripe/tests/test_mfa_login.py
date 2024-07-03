@@ -13,6 +13,7 @@ from rest_framework import status
 from trench.utils import get_mfa_model
 
 from kobo.apps.accounts.mfa.forms import MfaLoginForm
+from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.tests.kpi_test_case import KpiTestCase
 
@@ -50,6 +51,10 @@ class TestStripeMFALogin(KpiTestCase):
             user=self.someuser,
             organization=self.organization,
         )
+
+        # Enable whitelist by setting available MFA for an user, if whitelist
+        # is empty, it is disabled, So we need at least one entry in it
+        MfaAvailableToUser.objects.create(user=self.anotheruser)
 
     def _create_subscription(self, unit_amount=0, billing_status='active'):
         self.customer = baker.make(Customer, subscriber=self.organization)
