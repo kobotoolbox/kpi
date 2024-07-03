@@ -50,9 +50,7 @@ class MfaApiTestCase(BaseTestCase):
     @override_config(MFA_ENABLED=True)
     def test_mfa_activation_always_creates_new_secret(self):
         self.client.login(username='anotheruser', password='anotheruser')
-        anotheruser = User.objects.get(username='anotheruser')
 
-        mfa_availability = MfaAvailableToUser.objects.create(user=anotheruser)
         mfa_methods = trench_settings.MFA_METHODS.keys()
         for method in mfa_methods:
             first_response = self.client.post(
@@ -73,18 +71,24 @@ class MfaApiTestCase(BaseTestCase):
             )
             assert first_secret != second_secret
             assert first_response.json() != second_response.json()
-        mfa_availability.delete()
 
     @override_config(MFA_ENABLED=True)
-    def test_mfa_disabled(self):
+    def test_mfa_whitelisting(self):
+        method = list(trench_settings.MFA_METHODS.keys())[0]
+        anotheruser = User.objects.get(username='anotheruser')
+        self.client.login(username='anotheruser', password='anotheruser')
+
+       # Test when whitelist is disabled
+        activate_response = self.client.post(
+            reverse('mfa-activate', args=(method,))
+        )
+        assert activate_response.status_code == status.HTTP_200_OK
+
         # Enable the MFA whitelist by adding a user
         someuser_mfa_activation = MfaAvailableToUser.objects.create(
             user=self.someuser
         )
 
-        anotheruser = User.objects.get(username='anotheruser')
-        self.client.login(username='anotheruser', password='anotheruser')
-        method = list(trench_settings.MFA_METHODS.keys())[0]
 
         activate_response = self.client.post(
             reverse('mfa-activate', args=(method,))
@@ -101,8 +105,3 @@ class MfaApiTestCase(BaseTestCase):
         mfa_availability.delete()
         someuser_mfa_activation.delete()
 
-        # Test when whitelist is disabled
-        activate_response = self.client.post(
-            reverse('mfa-activate', args=(method,))
-        )
-        assert activate_response.status_code == status.HTTP_200_OK

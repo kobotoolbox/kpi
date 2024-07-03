@@ -9,9 +9,9 @@ from django.template.response import TemplateResponse
 from django.utils import timezone
 from trench.utils import get_mfa_model, user_token_generator
 
-from .mfa.permissions import mfa_allowed_for_user
 from .mfa.forms import MfaTokenForm
 from .mfa.models import MfaAvailableToUser
+from .mfa.permissions import mfa_allowed_for_user
 from .mfa.views import MfaTokenView
 from .utils import user_has_paid_subscription
 
