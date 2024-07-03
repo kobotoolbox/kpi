@@ -65,7 +65,6 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
             size='l'
             onClick={handleClose}
             label={t('Go back')}
-            className={cx([styles.button, styles.frame])}
           />
 
           <Button
@@ -74,7 +73,6 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
             label={t('Upgrade now')}
-            className={cx([styles.button, styles.full])}
           />
         </KoboModalFooter>
       </KoboModal>

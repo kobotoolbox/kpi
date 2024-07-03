@@ -22,25 +22,3 @@
 .noteIcon {
   margin-right: sizes.$x8;
 }
-
-.button {
-  text-transform: uppercase;
-  gap: 1rem;
-  justify-content: center;
-
-  & span {
-    flex-shrink: 0;
-  }
-}
-
-.frame {
-  background-color: colors.$kobo-white;
-}
-
-// TODO: Abstract styling for paired buttons
-// See also overLimitModal and NLP stepConfig
-:global(.k-button) {
-  &.button.full:hover {
-    background-color: colors.$kobo-dark-blue;
-  }
-}
