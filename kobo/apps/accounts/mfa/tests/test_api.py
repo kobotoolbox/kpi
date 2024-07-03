@@ -78,7 +78,9 @@ class MfaApiTestCase(BaseTestCase):
     @override_config(MFA_ENABLED=True)
     def test_mfa_disabled(self):
         # Enable the MFA whitelist by adding a user
-        someuser_mfa_activation = MfaAvailableToUser.objects.create(user=self.someuser)
+        someuser_mfa_activation = MfaAvailableToUser.objects.create(
+            user=self.someuser
+        )
 
         anotheruser = User.objects.get(username='anotheruser')
         self.client.login(username='anotheruser', password='anotheruser')
