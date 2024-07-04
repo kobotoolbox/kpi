@@ -328,8 +328,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         submissions: results,
         submissionPager: false,
         resultsTotal: response.count,
+      }, () => {
+        this._prepColumns(results);
       });
-      this._prepColumns(results);
     } else if (options.filter?.length) {
       // if there are no results, but there is some filtering applied, we don't
       // want to display the "no data" message
@@ -1171,8 +1172,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         const newData = this.state.submissions;
         newData[subIndex]._validation_status = result || {};
-        this.setState({submissions: newData});
-        this._prepColumns(newData);
+        this.setState({submissions: newData}, () => {
+          this._prepColumns(newData);
+        });
       }
     }
   }

@@ -341,7 +341,7 @@ export default function Plan(props: PlanProps) {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
-    (product: SinglePricedProduct, quantity = null) => {
+    (product: SinglePricedProduct, quantity: number | undefined) => {
       if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true;
       }
@@ -356,7 +356,7 @@ export default function Plan(props: PlanProps) {
           (subscription: SubscriptionInfo) =>
             subscription.items[0].price.id === product.price.id &&
             hasManageableStatus(subscription) &&
-            quantity &&
+            quantity !== undefined &&
             quantity === subscription.quantity
         );
       }
