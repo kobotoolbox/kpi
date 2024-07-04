@@ -28,7 +28,6 @@ from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
-
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY

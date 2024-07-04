@@ -10,9 +10,6 @@ from taggit.models import Tag
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.models.hook import Hook
 from kpi.constants import PERM_ADD_SUBMISSIONS
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatUser,
-)
 
 from kpi.deployment_backends.kc_access.utils import (
     grant_kc_model_level_perms,

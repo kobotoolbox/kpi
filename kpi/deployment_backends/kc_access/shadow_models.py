@@ -11,12 +11,10 @@ from django.core.exceptions import FieldDoesNotExist
 from django.core.files.base import ContentFile
 from django.db import (
     ProgrammingError,
-    connections,
     models,
     transaction,
 )
 from django.utils import timezone
-from django_digest.models import PartialDigest
 
 from kobo.apps.openrosa.libs.utils.image_tools import (
     get_optimized_image_path,
@@ -36,39 +34,6 @@ from .storage import (
     get_kobocat_storage,
     KobocatFileSystemStorage,
 )
-
-
-def update_autofield_sequence(model):
-    """
-    Fixes the PostgreSQL sequence for the first (and only?) `AutoField` on
-    `model`, à la `manage.py sqlsequencereset`
-    """
-    # Updating sequences on fresh environments fails because the only user
-    # in the DB is django-guardian AnonymousUser and `max(pk)` returns -1.
-    # Error:
-    #   > setval: value -1 is out of bounds for sequence
-    # Using abs() and testing if max(pk) equals -1, leaves the sequence alone.
-    sql_template = (
-        "SELECT setval("
-        "   pg_get_serial_sequence('{table}','{column}'), "
-        "   abs(coalesce(max({column}), 1)), "
-        "   max({column}) IS NOT null and max({column}) != -1"
-        ") "
-        "FROM {table};"
-    )
-    autofield = None
-    for f in model._meta.get_fields():
-        if isinstance(f, models.AutoField):
-            autofield = f
-            break
-    if not autofield:
-        return
-    query = sql_template.format(
-        table=model._meta.db_table, column=autofield.column
-    )
-    connection = connections[settings.OPENROSA_DB_ALIAS]
-    with connection.cursor() as cursor:
-        cursor.execute(query)
 
 
 class ShadowModel(models.Model):

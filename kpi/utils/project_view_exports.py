@@ -2,14 +2,15 @@
 from __future__ import annotations
 import csv
 from io import StringIO
+from typing import Union
 
 from django.conf import settings
 from django.db.models import Count, F, Q
 from django.db.models.query import QuerySet
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models.xform import XForm as KobocatXForm
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.deployment_backends.kc_access.shadow_models import KobocatXForm
 from kpi.models import Asset
 from kpi.utils.project_views import get_region_for_view
 

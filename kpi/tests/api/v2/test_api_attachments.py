@@ -95,7 +95,6 @@ class AttachmentApiTests(BaseAssetTestCase):
             ),
             querystring=query_dict.urlencode()
         )
-
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'audio/mpeg'

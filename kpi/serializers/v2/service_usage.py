@@ -6,14 +6,14 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import (
+    DailyXFormSubmissionCounter as KobocatDailyXFormSubmissionCounter,
+    XForm as KobocatXForm,
+)
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import organization_month_start, organization_year_start
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatXForm,
-    KobocatDailyXFormSubmissionCounter,
-)
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models.asset import Asset
 

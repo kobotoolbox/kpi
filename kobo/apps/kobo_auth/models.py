@@ -7,7 +7,7 @@ from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
-from kpi.utils.database import use_db
+from kpi.utils.database import use_db, update_autofield_sequence
 
 
 class User(AbstractUser):
@@ -41,7 +41,8 @@ class User(AbstractUser):
         return super().has_perm(perm, obj)
 
     def sync_to_openrosa_db(self):
-        self.__class__.objects.using(settings.OPENROSA_DB_ALIAS).bulk_create(
+        User = self.__class__ # noqa
+        User.objects.using(settings.OPENROSA_DB_ALIAS).bulk_create(
             [self],
             update_conflicts=True,
             update_fields=[
@@ -57,3 +58,4 @@ class User(AbstractUser):
             ],
             unique_fields=['pk']
         )
+        update_autofield_sequence(User)
