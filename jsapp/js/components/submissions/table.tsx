@@ -1172,8 +1172,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         const newData = this.state.submissions;
         newData[subIndex]._validation_status = result || {};
-        this.setState({submissions: newData});
-        this._prepColumns(newData);
+        this.setState({submissions: newData}, () => {
+          this._prepColumns(newData);
+        });
       }
     }
   }
