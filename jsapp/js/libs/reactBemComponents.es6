@@ -38,7 +38,7 @@
 */
 import React from 'react';
 import classNames from 'classnames';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 
 const reactCreateBemElement = function(base, el='div'){
   let elUnwrap;
@@ -82,11 +82,13 @@ const reactCreateBemElement = function(base, el='div'){
       return React.createElement(el, props);
     }
   };
-  c.propTypes = {
-    m: PropTypes.any,
-    className: PropTypes.string,
-    classNames: PropTypes.any,
-  };
+
+  // TODO: replace propTypes with TS and remove the prop-types library
+  // c.propTypes = {
+  //   m: PropTypes.any,
+  //   className: PropTypes.string,
+  //   classNames: PropTypes.any,
+  // };
   c.displayName = `BEM.${base}`;
   return c;
 };
