@@ -22,7 +22,6 @@ import cx from 'classnames';
 export type ButtonType = 'bare' | 'frame' | 'full';
 export type ButtonColor =
   | 'blue'
-  | 'light-blue'
   | 'dark-red'
   | 'dark-blue';
 

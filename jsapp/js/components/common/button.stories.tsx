@@ -9,7 +9,6 @@ const buttonTypes: ButtonType[] = ['bare', 'frame', 'full'];
 
 const buttonColors: ButtonColor[] = [
   'blue',
-  'light-blue',
   'dark-red',
   'dark-blue',
 ];
