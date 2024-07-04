@@ -13,15 +13,16 @@ import bem from 'js/bem';
 import {QuestionTypeName, MetaQuestionTypeName} from 'js/constants';
 // Helpers:
 import * as utils from 'js/utils';
-import {userCan} from 'js/components/permissions/utils';
+import {userHasPermForSubmission} from 'js/components/permissions/utils';
 // Types:
 import type {AnyRowTypeName} from 'js/constants';
-import type {AssetResponse} from 'js/dataInterface';
+import type {AssetResponse, SubmissionResponse} from 'js/dataInterface';
 
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse;
   questionType: AnyRowTypeName;
   attachmentUrl: string;
+  submissionData: SubmissionResponse;
 }
 
 /**
@@ -50,11 +51,23 @@ export default function AttachmentActionsDropdown(
   }
 
   function confirmDelete() {
-    console.log('confirmDelete');
-
     setIsDeletePending(true);
 
+    // TODO: replace the timeout with actual API call that will delete
+    // the attachment.
+    console.log('confirmDelete');
     setTimeout(() => {
+      // TODO: Upon finishing we need to have the submission data being updated
+      // both here in Submission Modal and in Data Table.
+      // Validation status changing in Submission Modal works like this:
+      // 1. Does the call (both Submission Modal and Data Table listens to same call)
+      // 2. Call finishes and returns a fresh SubmissionResponse
+      // 3. Upon finishing, Submission Modal updates the submission from props
+      // 4. Upon finishing, Data Table updates the submission in the list
+      // We would need to do something similar here.
+
+      // TODO: We would need to confirm from Back-end how would the deleted
+      // attachment be marked
       setIsDeletePending(false);
       toggleDeleteModal();
       utils.notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName));
@@ -65,7 +78,16 @@ export default function AttachmentActionsDropdown(
     utils.downloadUrl(props.attachmentUrl);
   }
 
-  const userCanDelete = userCan('delete_submissions', props.asset);
+  const userCanDelete = userHasPermForSubmission(
+    'delete_submissions',
+    props.asset,
+    props.submissionData
+  );
+  const userCanChange = userHasPermForSubmission(
+    'change_submissions',
+    props.asset,
+    props.submissionData
+  );
 
   const uniqueDropdownName = `attachment-actions-${utils.generateUuid()}`;
 
@@ -90,7 +112,10 @@ export default function AttachmentActionsDropdown(
               <label>{t('Download')}</label>
             </bem.KoboSelect__option>
 
-            <bem.KoboSelect__option onClick={toggleDeleteModal}>
+            <bem.KoboSelect__option
+              onClick={toggleDeleteModal}
+              disabled={!userCanChange}
+            >
               <Icon name='trash' />
               <label>{t('Delete')}</label>
             </bem.KoboSelect__option>

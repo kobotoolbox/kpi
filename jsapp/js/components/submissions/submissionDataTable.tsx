@@ -320,6 +320,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             asset={this.props.asset}
             questionType={type}
             attachmentUrl={attachment.download_url}
+            submissionData={this.props.submissionData}
           />
         </>
       );
