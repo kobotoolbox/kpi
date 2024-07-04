@@ -152,7 +152,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         <bem.MediaCellIconWrapper>
           <Button
             type='bare'
-            color='light-blue'
+            color='dark-blue'
             size='s'
             startIcon={this.getQuestionIcon()}
             onClick={this.launchMediaModal.bind(this)}

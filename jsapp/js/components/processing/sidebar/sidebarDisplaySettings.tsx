@@ -263,7 +263,7 @@ export default function SidebarDisplaySettings() {
           <Button
             label={t('Reset')}
             type='frame'
-            color='light-blue'
+            color='dark-red'
             size='m'
             onClick={() => {
               store.resetDisplays(activeTab);
@@ -281,7 +281,7 @@ export default function SidebarDisplaySettings() {
           <Button
             label={t('Apply selection')}
             type='full'
-            color='light-blue'
+            color='blue'
             size='m'
             onClick={() => {
               applyFieldsSelection();

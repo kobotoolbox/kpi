@@ -124,8 +124,8 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
 
       <div className={styles.addOption}>
         <Button
-          type='full'
-          color='light-blue'
+          type='frame'
+          color='blue'
           size='m'
           startIcon='plus'
           label={t('Add new option')}
