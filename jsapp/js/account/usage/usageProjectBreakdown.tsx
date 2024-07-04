@@ -180,7 +180,7 @@ const ProjectBreakdown = () => {
             </div>
           </div>
           <Button
-            color='storm'
+            color='dark-blue'
             size='s'
             type='bare'
             startIcon='close'

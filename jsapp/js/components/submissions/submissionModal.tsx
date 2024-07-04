@@ -690,7 +690,7 @@ class SubmissionModal extends React.Component<
 
               <Button
                 onClick={launchPrinting}
-                color='storm'
+                color='dark-blue'
                 type='bare'
                 size='l'
                 startIcon='print'

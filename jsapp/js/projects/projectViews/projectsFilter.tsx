@@ -84,7 +84,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
         <Button
           type='bare'
           size='s'
-          color='storm'
+          color='dark-blue'
           onClick={toggleModal}
           startIcon='filter'
           label={t('filter')}
@@ -145,8 +145,8 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
 
         <footer className={styles.footer}>
           <Button
-            type='bare'
-            color='blue'
+            type='frame'
+            color='dark-blue'
             size='m'
             onClick={addFilter}
             startIcon='plus'
@@ -155,14 +155,14 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
 
           <Button
             type='frame'
-            color='storm'
+            color='dark-red'
             size='m'
             onClick={resetFilters}
             label={t('Reset')}
           />
 
           <Button
-            type='frame'
+            type='full'
             color='blue'
             size='m'
             onClick={applyFilters}

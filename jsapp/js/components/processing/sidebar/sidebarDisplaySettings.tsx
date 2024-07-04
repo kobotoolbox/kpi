@@ -150,7 +150,7 @@ export default function SidebarDisplaySettings() {
         size='m'
         type='bare'
         label={t('Display settings')}
-        color='storm'
+        color='dark-blue'
         startIcon='settings'
         onClick={() => setIsModalOpen(true)}
       />

@@ -152,7 +152,7 @@ class EncryptForm extends React.Component {
 
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               onClick={this.openEncryptionHelp.bind(this)}
               tooltip={t('Learn more about encrypting forms')}
