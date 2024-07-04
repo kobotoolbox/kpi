@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {when} from 'mobx';
@@ -355,10 +354,10 @@ class ProjectSettings extends React.Component {
     let targetUid;
     if (this.state.formAsset) {
       targetUid = this.state.formAsset.uid;
-    } else if (this.context.router && this.context.router.params.assetid) {
-      targetUid = this.context.router.params.assetid;
-    } else if (this.context.router && this.context.router.params.uid) {
-      targetUid = this.context.router.params.uid;
+    } else if (this.props.router.params.assetid) {
+      targetUid = this.props.router.params.assetid;
+    } else if (this.props.router.params.uid) {
+      targetUid = this.props.router.params.uid;
     }
 
     if (!targetUid) {
@@ -1130,7 +1129,5 @@ reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix);
-
-ProjectSettings.contextTypes = {router: PropTypes.object};
 
 export default withRouter(ProjectSettings);

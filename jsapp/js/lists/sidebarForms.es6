@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {Link} from 'react-router-dom';
@@ -148,10 +147,6 @@ class SidebarFormsList extends Reflux.Component {
     );
   }
 }
-
-SidebarFormsList.contextTypes = {
-  router: PropTypes.object,
-};
 
 reactMixin(SidebarFormsList.prototype, searches.common);
 reactMixin(SidebarFormsList.prototype, Reflux.ListenerMixin);
