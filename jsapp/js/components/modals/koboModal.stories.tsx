@@ -81,7 +81,7 @@ const Template: ComponentStory<typeof KoboModal> = (args: any) => (
           onClick: () => {},
         },
         {
-          color: 'red',
+          color: 'dark-red',
           label: 'confirm',
           onClick: () => {},
         },

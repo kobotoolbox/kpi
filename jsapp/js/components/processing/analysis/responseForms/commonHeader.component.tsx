@@ -113,7 +113,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
           },
           {
             type: 'full',
-            color: 'red',
+            color: 'dark-red',
             label: t('Delete'),
             onClick: deleteQuestion,
           },

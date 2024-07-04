@@ -67,7 +67,7 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
         },
         {
           type: 'full',
-          color: 'red',
+          color: 'dark-red',
           label: 'Delete',
           onClick: onConfirmDelete,
           isDisabled: !isDataChecked || !isFormChecked || !isRecoverChecked,
