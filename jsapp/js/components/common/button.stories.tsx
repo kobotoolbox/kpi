@@ -8,7 +8,6 @@ import {IconNames} from 'jsapp/fonts/k-icons';
 const buttonTypes: ButtonType[] = ['bare', 'frame', 'full'];
 
 const buttonColors: ButtonColor[] = [
-  'teal',
   'blue',
   'light-blue',
   'dark-red',

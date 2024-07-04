@@ -414,7 +414,7 @@ class AssetActionButtons extends React.Component<
       isPublic &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     ) {
-      let color: ButtonColor = 'teal';
+      let color: ButtonColor = 'dark-blue';
       let callbackFunction = this.subscribeToCollection.bind(this);
       let icon: IconName = 'subscribe';
       let label = t('Subscribe');
