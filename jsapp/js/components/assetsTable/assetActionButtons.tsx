@@ -228,8 +228,7 @@ class AssetActionButtons extends React.Component<
   }
 
   getFormBuilderLink() {
-    let link =
-      '#' + ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', this.props.asset.uid);
+    let link = ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', this.props.asset.uid);
 
     // when editing a child from within a collection page
     // make sure the "Return to list" button goes back to collection
