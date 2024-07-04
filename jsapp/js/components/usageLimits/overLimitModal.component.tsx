@@ -89,7 +89,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={handleClose}
             label={t('remind me later')}
-            className={cx([styles.button, styles.frame])}
+            isUpperCase
           />
 
           <Button
@@ -98,7 +98,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
             label={t('upgrade now')}
-            className={cx([styles.button, styles.full])}
+            isUpperCase
           />
         </KoboModalFooter>
       </KoboModal>
