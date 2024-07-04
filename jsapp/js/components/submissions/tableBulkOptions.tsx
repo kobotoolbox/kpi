@@ -217,6 +217,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
                 </button>
               </>
             }
+            disableShortening
           />
         }
 
