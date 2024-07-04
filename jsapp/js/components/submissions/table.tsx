@@ -328,8 +328,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         submissions: results,
         submissionPager: false,
         resultsTotal: response.count,
+      }, () => {
+        this._prepColumns(results);
       });
-      this._prepColumns(results);
     } else if (options.filter?.length) {
       // if there are no results, but there is some filtering applied, we don't
       // want to display the "no data" message
