@@ -24,7 +24,6 @@ export type ButtonColor =
   | 'teal'
   | 'blue'
   | 'light-blue'
-  | 'red'
   | 'dark-red'
   | 'storm'
   | 'light-storm'
