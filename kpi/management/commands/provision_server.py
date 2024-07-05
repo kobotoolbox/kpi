@@ -71,8 +71,7 @@ class Command(BaseCommand):
             help='Key provided by client',
         )
         socialapp_parser.add_argument(
-            'settings',
-            nargs='?',
+            '--server_settings',
             type=str,
             default='{}',
             help='Settings in json format enclosed with single quotes',
@@ -104,27 +103,26 @@ class Command(BaseCommand):
         provider_id = kwargs['provider_id']
         name = kwargs['name']
         client_id = kwargs['client_id']
-        secret = os.getenv('SOCIAL_APP_SECRET') or kwargs.get('secret', '')
+        secret = kwargs.get('secret', os.getenv('SOCIAL_APP_SECRET', ''))
         key = kwargs.get('key', '')
-        settings_json = kwargs['settings']
+        settings_json = kwargs.get('server_settings', '{}')
 
         try:
             settings = json.loads(settings_json)
-        except TypeError:
-            raise json.JSONDecodeError
-
-        social_app_data = {
-            'provider': provider,
-            'provider_id': provider_id,
-            'name': name,
-            'client_id': client_id,
-            'secret': secret,
-            'key': key,
-            'settings': settings,
-        }
+        except json.JSONDecodeError as e:
+            self.stdout.write(f"Invalid JSON for settings: {e}")
+            return
 
         social_app, created = SocialApp.objects.get_or_create(
-            name=name, defaults=social_app_data
+            name=name,
+            defaults={
+                'provider': provider,
+                'provider_id': provider_id,
+                'client_id': client_id,
+                'secret': secret,
+                'key': key,
+                'settings': settings,
+            },
         )
 
         if not created:
@@ -173,7 +171,6 @@ class Command(BaseCommand):
                                     f'Invalid JSON value for key {key}. {e}'
                                 )
                                 continue
-                            json.dumps(value)
                     setattr(config, key, value)
                     self.stdout.write(
                         f'Successfully updated configuration for {key}'
