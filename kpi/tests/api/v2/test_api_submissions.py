@@ -1571,6 +1571,16 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         req = client.post(url)
         self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_edit_submission_snapshot_missing_unauthenticated(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
