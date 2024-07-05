@@ -103,7 +103,7 @@ class Command(BaseCommand):
         provider_id = kwargs['provider_id']
         name = kwargs['name']
         client_id = kwargs['client_id']
-        secret = kwargs.get('secret', os.getenv('SOCIAL_APP_SECRET', ''))
+        secret = kwargs.get('secret', '') or os.getenv('SOCIAL_APP_SECRET')
         key = kwargs.get('key', '')
         settings_json = kwargs.get('server_settings', '{}')
 

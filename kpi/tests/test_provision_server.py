@@ -1,4 +1,4 @@
-import json
+from io import StringIO
 from unittest.mock import patch
 
 from django.core.management import call_command
@@ -32,6 +32,7 @@ class ProvisionServerCommandTest(TestCase):
             'test_secret',
             '--key',
             '',
+            '--server_settings',
             '{"key": "value"}',
         )
 
@@ -77,6 +78,7 @@ class ProvisionServerCommandTest(TestCase):
             'test_secret',
             '--key',
             '',
+            '--server_settings',
             '{"key": "value"}',
         )
 
@@ -87,7 +89,8 @@ class ProvisionServerCommandTest(TestCase):
     def test_handle_invalid_json(self, mock_getenv):
         mock_getenv.return_value = None
 
-        with self.assertRaises(json.JSONDecodeError):
+        out = StringIO()
+        with patch('sys.stdout', out):
             call_command(
                 'provision_server',
                 'socialapp',
@@ -103,8 +106,11 @@ class ProvisionServerCommandTest(TestCase):
                 'test_secret',
                 '--key',
                 '',
+                '--server_settings',
                 '{"invalid_json"}',
             )
+
+        self.assertIn("Invalid JSON for settings:", out.getvalue())
 
     @patch('os.getenv')
     def test_handle_with_env_secret(self, mock_getenv):
@@ -123,10 +129,9 @@ class ProvisionServerCommandTest(TestCase):
             'Test Organization',
             '--client_id',
             'test_client_id',
-            '--secret',
-            'test_secret',
             '--key',
             '',
+            '--server_settings',
             '{"key": "value"}',
         )
 
