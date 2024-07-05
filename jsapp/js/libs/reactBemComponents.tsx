@@ -93,7 +93,7 @@ const reactCreateBemElement = function(base: string, el='div'){
       // via "Tricky Destructuring Assignment" (https://stackoverflow.com/a/33053362)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const {m, classNames, ...newProps} = props;
-      return React.createElement(el, {...newProps, className, modifier});
+      return React.createElement(el, {...newProps, className});
     }
     static displayName = `BEM.${base}`;
   }
