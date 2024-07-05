@@ -416,7 +416,7 @@ class EditLinkSubmissionPermission(SubmissionPermission):
 
 
 class EditSubmissionPermission(EditLinkSubmissionPermission):
-    #TODO: Refactor this so we don't have to check for the object twice
+    # TODO: Refactor this so we don't have to check for the object twice
     def has_permission(self, request, view):
         try:
             return super().has_permission(request, view)
