@@ -143,6 +143,10 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
     def test_edit_submission_with_authenticated_session_but_no_digest(self):
         pass
 
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_edit_submission_snapshot_missing(self):
+        pass
+
 
 class SubmissionValidationStatusApiTests(test_api_submissions.SubmissionValidationStatusApiTests):
 
