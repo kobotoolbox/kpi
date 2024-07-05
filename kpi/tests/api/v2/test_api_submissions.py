@@ -1561,7 +1561,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         }
         assert response.data == expected_response
 
-    @responses.activate
+
     def test_edit_submission_snapshot_missing(self):
         # use non-existent snapshot id
         url = reverse(
