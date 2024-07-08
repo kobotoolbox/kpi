@@ -71,6 +71,9 @@ const jsRules = {
   'space-in-parens': [1, 'never'],
   'space-infix-ops': 1,
   strict: 1,
+
+  // React Plugin - Default to plugin:react/recommended.
+  //   https://github.com/jsx-eslint/eslint-plugin-react
 };
 
 // TypeScript rules override some of JavaScript rules plus add a few more.
@@ -206,12 +209,25 @@ module.exports = {
   },
   ignorePatterns: ['**/*.scss'],
   plugins: ['react'],
-  extends: ['eslint:recommended', 'prettier', 'plugin:storybook/recommended'],
+  extends: [
+    'eslint:recommended',
+    'plugin:react/recommended', // Use recommended rules: https://github.com/jsx-eslint/eslint-plugin-react#list-of-supported-rules
+    'plugin:react/jsx-runtime', // Use the new JSX transform
+    'prettier',
+    'plugin:storybook/recommended'],
   rules: jsRules,
   settings: {
     react: {
       version: 'detect',
     },
+    // https://github.com/jsx-eslint/eslint-plugin-react#configuration-legacy-eslintrc-
+    // Try to include all the component wrapper functions we use here
+    componentWrapperFunctions: [
+      'observer', // MobX observer
+    ],
+    linkComponenets: [
+      { name: 'Link', linkAttribute: 'to' }, // React Router Link
+    ],
   },
   overrides: [
     {
