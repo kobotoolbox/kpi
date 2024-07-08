@@ -101,6 +101,10 @@ const jsRules = {
 
   // TODO: Fix these! They should be errors, too.
   'react-hooks/rules-of-hooks': 1, // TODO: make this an error, not warning
+
+  // React Query - Default to plugin:@tanstack/eslint-plugin-query/recommended
+  //  https://tanstack.com/query/latest/docs/eslint/eslint-plugin-query
+
 };
 
 // TypeScript rules override some of JavaScript rules plus add a few more.
@@ -241,6 +245,7 @@ module.exports = {
     'plugin:react/recommended', // Use recommended rules: https://github.com/jsx-eslint/eslint-plugin-react#list-of-supported-rules
     'plugin:react/jsx-runtime', // Use the new JSX transform
     'plugin:react-hooks/recommended', // Rules of Hooks (https://github.com/facebook/react/tree/main/packages/eslint-plugin-react-hooks)
+    'plugin:@tanstack/eslint-plugin-query/recommended', // For Tanstack Query (aka react-query)
     'prettier',
     'plugin:storybook/recommended'],
   rules: jsRules,
