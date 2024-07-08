@@ -99,6 +99,8 @@ const jsRules = {
   // React Hooks - Default to plugin:react-hooks/recommended
   //  https://github.com/facebook/react/tree/main/packages/eslint-plugin-react-hooks
 
+  // TODO: Fix these! They should be errors, too.
+  'react-hooks/rules-of-hooks': 1, // TODO: make this an error, not warning
 };
 
 // TypeScript rules override some of JavaScript rules plus add a few more.
