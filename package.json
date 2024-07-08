@@ -83,6 +83,7 @@
     "@storybook/react-webpack5": "^7.0.24",
     "@storybook/testing-library": "^0.2.0",
     "@swc/core": "^1.6.6",
+    "@tanstack/eslint-plugin-query": "^5.50.1",
     "@types/chai": "^4.3.1",
     "@types/gtag.js": "^0.0.12",
     "@types/jquery": "^3.5.10",
@@ -129,7 +130,8 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-react": "^7.30.1",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-storybook": "^0.6.15",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "mocha": "^7.2.0",
@@ -173,6 +175,11 @@
     },
     "storybook": {
       "giget": "1.1.3"
+    },
+    "@tanstack/eslint-plugin-query": {
+      "@typescript-eslint/utils": "^6",
+      "@typescript-eslint/rule-tester": "^6",
+      "eslint": "$eslint"
     }
   },
   "scripts": {
