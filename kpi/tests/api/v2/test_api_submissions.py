@@ -1056,6 +1056,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
 
 class SubmissionEditApiTests(BaseSubmissionTestCase):
+    """
+    Tests for editin submissions.
+
+    WARNING: Tests in this class must work in v1 as well, or else be added to the skipped tests
+    in kpi/tests/api/v1/test_api_submissions.py
+    """
 
     def setUp(self):
         super().setUp()
