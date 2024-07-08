@@ -94,6 +94,11 @@ const jsRules = {
   'react/jsx-no-target-blank': 0, // Using target="_blank" without rel="noreferrer"
   // …not a problem for modern browsers; see 2021 update
   // (https://mathiasbynens.github.io/rel-noopener/#recommendations)
+
+
+  // React Hooks - Default to plugin:react-hooks/recommended
+  //  https://github.com/facebook/react/tree/main/packages/eslint-plugin-react-hooks
+
 };
 
 // TypeScript rules override some of JavaScript rules plus add a few more.
@@ -233,6 +238,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:react/recommended', // Use recommended rules: https://github.com/jsx-eslint/eslint-plugin-react#list-of-supported-rules
     'plugin:react/jsx-runtime', // Use the new JSX transform
+    'plugin:react-hooks/recommended', // Rules of Hooks (https://github.com/facebook/react/tree/main/packages/eslint-plugin-react-hooks)
     'prettier',
     'plugin:storybook/recommended'],
   rules: jsRules,
