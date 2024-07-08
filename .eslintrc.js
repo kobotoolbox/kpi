@@ -74,6 +74,26 @@ const jsRules = {
 
   // React Plugin - Default to plugin:react/recommended.
   //   https://github.com/jsx-eslint/eslint-plugin-react
+
+  // TODO: Set these rules back to 'error' severity and fix the affected code
+  // (1) comment these out (2) run npx eslint (...) with --quiet to list only errors
+  // ===============================================================================
+  // Deprecated API
+  'react/no-deprecated': 1, // e.g. componentWillReceiveProps
+  'react/no-find-dom-node': 1, // Do not use findDOMNode
+  'react/no-string-refs': 1, // Using string literals in ref attributes is deprecated
+  // Misuse
+  'react/jsx-key': 1, // Missing "key" prop for element in iterator
+  'react/no-direct-mutation-state': 1, // Do not mutate state directly. Use setState()
+  // Other
+  'react/display-name': 1, // "Component definition is missing display name"
+  'react/no-unescaped-entities': 1, // e.g. `"` can be escaped with `&quot;`…
+
+  // OK
+  // ==
+  'react/jsx-no-target-blank': 0, // Using target="_blank" without rel="noreferrer"
+  // …not a problem for modern browsers; see 2021 update
+  // (https://mathiasbynens.github.io/rel-noopener/#recommendations)
 };
 
 // TypeScript rules override some of JavaScript rules plus add a few more.
