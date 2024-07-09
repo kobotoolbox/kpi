@@ -144,6 +144,13 @@ class App extends React.Component {
               </bem.PageWrapper__content>
             </bem.PageWrapper>
           </RootContextProvider>
+
+          {/* React Query Devtools. Development mode only.
+              Lower button opacity to be less distracting
+              if it shows up in a screenshot. */}
+          <style>{'.tsqd-open-btn-container { opacity: 0.1 !important; };'}</style>
+          <ReactQueryDevtools />
+
         </QueryClientProvider>
       </DocumentTitle>
     );
