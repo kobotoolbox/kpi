@@ -586,7 +586,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               tooltip={t('Open')}
               tooltipPosition='left'
               onClick={() => {
-                this.launchSubmissionModal(row, row.original._id);
+                this.launchSubmissionModal(row.original._id);
               }}
             />
 
@@ -1254,39 +1254,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Opens submission modal
    * @param {object} row
    */
-  launchSubmissionModal(row: CellInfo, sid: string) {
-    if (row && row.original) {
-      const backgroundAudioName = getBackgroundAudioQuestionName(
-        this.props.asset
-      );
-      if (
-        backgroundAudioName &&
-        Object.keys(row.original).includes(backgroundAudioName)
-      ) {
-        const mediaAttachment = getMediaAttachment(
-          row.original,
-          row.original[backgroundAudioName],
-          META_QUESTION_TYPES['background-audio']
-        );
-
-        let backgroundAudioUrl;
-        if (typeof mediaAttachment === 'string') {
-          backgroundAudioUrl = mediaAttachment;
-        } else {
-          backgroundAudioUrl = mediaAttachment.download_medium_url;
-        }
-
-        this.submissionModalProcessing(
-          sid,
-          this.state.submissions,
-          false,
-          null,
-          backgroundAudioUrl
-        );
-      } else {
-        this.submissionModalProcessing(sid, this.state.submissions);
-      }
-    }
+  launchSubmissionModal(sid: string) {
+    this.submissionModalProcessing(sid, this.state.submissions);
   }
 
   /**
@@ -1297,7 +1266,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     submissions: SubmissionResponse[],
     isDuplicated: boolean = false,
     duplicatedSubmission: SubmissionResponse | null = null,
-    backgroundAudioUrl: string | null = null
   ) {
     const ids = submissions.map((item) => item._id);
 
@@ -1308,7 +1276,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       ids: ids,
       isDuplicated: isDuplicated,
       duplicatedSubmission: duplicatedSubmission,
-      backgroundAudioUrl: backgroundAudioUrl,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,
