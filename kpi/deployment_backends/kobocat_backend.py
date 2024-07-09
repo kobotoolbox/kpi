@@ -5,6 +5,7 @@ import json
 import re
 from collections import defaultdict
 from contextlib import contextmanager
+from copy import deepcopy
 from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
@@ -367,7 +368,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             if attachment_objects
             else None
         )
-
         # parse XML string to ET object
         xml_parsed = fromstring_preserve_root_xmlns(submission)
 
@@ -384,14 +384,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Rely on `meta/instanceID` being present. If it's absent, something is
         # fishy enough to warrant raising an exception instead of continuing
         # silently
+        original_uuid_formatted = xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text
         xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = (
             uuid_formatted
         )
-
         kc_response = self.store_submission(
             user, xml_tostring(xml_parsed), _uuid, attachments
         )
         if kc_response.status_code == status.HTTP_201_CREATED:
+            original_uuid = original_uuid_formatted.split(":")[-1]
+            original_extras = self.asset.submission_extras.filter(submission_uuid=original_uuid).first()
+            duplicated_extras = deepcopy(original_extras.content)
+            duplicated_extras['submission'] = _uuid
+            self.asset.update_submission_extra(duplicated_extras)
             return next(self.get_submissions(user, query={'_uuid': _uuid}))
         else:
             raise KobocatDuplicateSubmissionException
