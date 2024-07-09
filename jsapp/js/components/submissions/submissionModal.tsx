@@ -70,8 +70,8 @@ interface SubmissionModalState {
   next: number;
   sid: string;
   showBetaFieldsWarning: boolean;
-  isEditLoading: boolean;
-  isViewLoading: boolean;
+  isEnketoEditLoading: boolean;
+  isEnketoViewLoading: boolean;
   isDuplicated: boolean;
   duplicatedSubmission: SubmissionResponse | null;
   isEditingDuplicate: boolean;
@@ -82,7 +82,7 @@ interface SubmissionModalState {
   isValidationStatusChangePending: boolean;
 }
 
-class SubmissionModal extends React.Component<
+export default class SubmissionModal extends React.Component<
   SubmissionModalProps,
   SubmissionModalState
 > {
@@ -113,8 +113,8 @@ class SubmissionModal extends React.Component<
       next: -1,
       sid: props.sid,
       showBetaFieldsWarning: false,
-      isEditLoading: false,
-      isViewLoading: false,
+      isEnketoEditLoading: false,
+      isEnketoViewLoading: false,
       isDuplicated: props.isDuplicated,
       duplicatedSubmission: props.duplicatedSubmission || null,
       isEditingDuplicate: false,
@@ -148,10 +148,14 @@ class SubmissionModal extends React.Component<
     });
   }
 
+  /**
+   * A callback for submission validation status changes. We use the response
+   * to update the in-memory submission data (to avoid making another call).
+   */
   refreshSubmissionValidationStatus(result: ValidationStatusResponse) {
     this.setState({isValidationStatusChangePending: false});
 
-    if (this.state.submission === null) {
+    if (!this.state.submission) {
       return;
     }
 
@@ -166,10 +170,29 @@ class SubmissionModal extends React.Component<
     this.setState({submission: newSubmissionData});
   }
 
+  /**
+   * Whether the submission is editable at this moment. It takes into account
+   * current user permissions and few other properties.
+   */
   isSubmissionEditable() {
-    return this.props.asset.deployment__active && !this.state.isEditLoading;
+    return (
+      this.state.submission &&
+      this.props.asset.deployment__active &&
+      !this.state.isEnketoEditLoading &&
+      (
+        userCan('change_submissions', this.props.asset) ||
+        userHasPermForSubmission(
+          'change_submissions',
+          this.props.asset,
+          this.state.submission
+        )
+      )
+    );
   }
 
+  /**
+   * Loads fresh submission data. Has some error handling.
+   */
   getSubmission(assetUid: string, sid: string) {
     dataInterface
       .getSubmission(assetUid, sid)
@@ -249,6 +272,11 @@ class SubmissionModal extends React.Component<
     }
   }
 
+  /**
+   * Displays a prompt for confirming deletion.
+   *
+   * TODO: use KoboPrompt instead of alertify
+   */
   deleteSubmission() {
     let dialog = alertify.dialog('confirm');
     let opts = {
@@ -269,35 +297,45 @@ class SubmissionModal extends React.Component<
   }
 
   onDeletedSubmissionCompleted() {
+    // After successfull deletion of submission we close this modal.
     pageState.hideModal();
   }
 
+  /**
+   * Opens current submission as editable in Enketo (in new browser tab). After
+   * using Enketo and saving the submission, you will notice "Refresh" button
+   * appearing in this modal - please use it to ensure you see edited submission
+   * data.
+   */
   launchEditSubmission() {
     this.setState({
       promptRefresh: true,
-      isEditLoading: true,
+      isEnketoEditLoading: true,
       isEditingDuplicate: true,
     });
     enketoHandler
       .openSubmission(this.props.asset.uid, this.state.sid, EnketoActions.edit)
       .then(
         () => {
-          this.setState({isEditLoading: false});
+          this.setState({isEnketoEditLoading: false});
         },
         () => {
-          this.setState({isEditLoading: false});
+          this.setState({isEnketoEditLoading: false});
         }
       );
   }
 
+  /**
+   * Opens current submission as view-only in Enketo (in new browser tab).
+   */
   launchViewSubmission() {
     this.setState({
-      isViewLoading: true,
+      isEnketoViewLoading: true,
     });
     enketoHandler
       .openSubmission(this.props.asset.uid, this.state.sid, EnketoActions.view)
       .then(() => {
-        this.setState({isViewLoading: false});
+        this.setState({isEnketoViewLoading: false});
       });
   }
 
@@ -313,6 +351,9 @@ class SubmissionModal extends React.Component<
     );
   }
 
+  /**
+   * Fetches fresh submission data and triggers reload of the Data Table.
+   */
   triggerRefresh() {
     this.getSubmission(this.props.asset.uid, this.props.sid);
     this.setState({
@@ -322,6 +363,9 @@ class SubmissionModal extends React.Component<
     actions.resources.refreshTableSubmissions();
   }
 
+  /**
+   * For prev/next handling.
+   */
   switchSubmission(prevOrNext: number) {
     this.setState({loading: true});
     pageState.showModal({
@@ -428,6 +472,9 @@ class SubmissionModal extends React.Component<
     return undefined;
   }
 
+  /**
+   * Displays language and validation status dropdowns.
+   */
   renderDropdowns() {
     if (!this.props.asset.deployment__active || !this.state.submission) {
       return null;
@@ -436,348 +483,333 @@ class SubmissionModal extends React.Component<
     return (
       <div className='submission-modal-dropdowns'>
         {this.state.translationOptions.length > 1 && (
-          <div className='switch--label-language'>
-            <KoboSelect
-              label={t('Language')}
-              name='submission-modal-language-switcher'
-              type='outline'
-              size='s'
-              options={this.state.translationOptions}
-              selectedOption={
-                this.state.translationOptions[this.state.translationIndex].value
-              }
-              onChange={(newSelectedOption: string | null) => {
-                this.onLanguageChange(newSelectedOption);
-              }}
-            />
-          </div>
-        )}
-        <div className='switch--validation-status'>
           <KoboSelect
-            label={t('Validation status:')}
-            name='submission-modal-validation-status'
+            label={t('Language')}
+            name='submission-modal-language-switcher'
             type='outline'
             size='s'
-            options={VALIDATION_STATUS_OPTIONS}
+            options={this.state.translationOptions}
             selectedOption={
-              this.state.submission._validation_status?.uid || null
+              this.state.translationOptions[this.state.translationIndex].value
             }
             onChange={(newSelectedOption: string | null) => {
-              if (newSelectedOption !== null) {
-                const castOption = newSelectedOption as ValidationStatusOptionName;
-                this.onValidationStatusChange(castOption);
-              } else {
-                this.onValidationStatusChange(ValidationStatusAdditionalName.no_status);
-              }
+              this.onLanguageChange(newSelectedOption);
             }}
-            isPending={this.state.isValidationStatusChangePending}
-            isDisabled={
-              !(
-                userCan('validate_submissions', this.props.asset) ||
-                userHasPermForSubmission(
-                  'validate_submissions',
-                  this.props.asset,
-                  this.state.submission
-                )
-              )
-            }
           />
-        </div>
+        )}
+
+        <KoboSelect
+          label={t('Validation status:')}
+          name='submission-modal-validation-status'
+          type='outline'
+          size='s'
+          options={VALIDATION_STATUS_OPTIONS}
+          selectedOption={
+            this.state.submission._validation_status?.uid || null
+          }
+          onChange={(newSelectedOption: string | null) => {
+            if (newSelectedOption !== null) {
+              const castOption = newSelectedOption as ValidationStatusOptionName;
+              this.onValidationStatusChange(castOption);
+            } else {
+              this.onValidationStatusChange(ValidationStatusAdditionalName.no_status);
+            }
+          }}
+          isPending={this.state.isValidationStatusChangePending}
+          isDisabled={
+            !(
+              userCan('validate_submissions', this.props.asset) ||
+              userHasPermForSubmission(
+                'validate_submissions',
+                this.props.asset,
+                this.state.submission
+              )
+            )
+          }
+        />
       </div>
     );
   }
 
+  /**
+   * Displays some info about duplicated submission and "Edit" and "Discard"
+   * action buttons.
+   */
+  renderDuplicatedSubmissionSubheader() {
+    // For TypeScript
+    if (!this.state.submission) {
+      return null;
+    }
+
+    if (!this.state.isDuplicated || this.state.isEditingDuplicate) {
+      return null;
+    }
+
+    return (
+      <section className='submission-modal-message-box duplicated-submission-subheader'>
+        <h1 className='submission-duplicate__header'>
+          {t('Duplicate created')}
+        </h1>
+
+        <p className='submission-duplicate__text'>
+          {t(
+            'A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.'
+          )}
+          <br />
+          <br />
+          {t('Source submission uuid:' + ' ')}
+          <code>{this.state.duplicatedSubmission?._uuid}</code>
+        </p>
+
+        <div className='submission-modal-buttons-group'>
+          {this.renderEditButton()}
+
+          {(userCan('delete_submissions', this.props.asset) ||
+            userHasPermForSubmission(
+              'delete_submissions',
+              this.props.asset,
+              this.state.submission
+            )) && (
+            <Button
+              onClick={this.deleteSubmission.bind(this)}
+              color='dark-red'
+              type='full'
+              size='l'
+              isDisabled={!this.isSubmissionEditable()}
+              label={t('Discard')}
+              tooltip={t('Discard duplicated submission')}
+            />
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  /**
+   * Displays a warning/info message, prompting user to load fresh submission
+   * data (because it most probably changed on the Back end)
+   */
+  renderRefreshWarning() {
+    // We only display refresh warning if we need it (e.g. we know user was
+    // editing submission in Enketo)
+    if (!this.state.promptRefresh) {
+      return null;
+    }
+
+    return (
+      <div className='submission-modal-message-box'>
+        <p>
+          {t(
+            'Click on the button below to load the most recent data for this submission. '
+          )}
+        </p>
+
+        <Button
+          onClick={this.triggerRefresh.bind(this)}
+          color='blue'
+          type='full'
+          size='l'
+          label={t('Refresh submission')}
+        />
+      </div>
+    );
+  }
+
+  /**
+   * Displays few buttons that allows switching submission or making changes to it.
+   */
+  renderSubmissionActions() {
+    // For TypeScript
+    if (!this.state.submission) {
+      return null;
+    }
+
+    // We hide these elements of UI for duplicated submission flow.
+    // TODO: displaying those might be a better UX, we just need to check if
+    // everything works, or if it requires some work to make it usable (e.g. for
+    // duplicated submission prev/next arrows might point to wrong submissions)
+    if (this.state.isDuplicated && !this.state.isEditingDuplicate) {
+      return null;
+    }
+
+    return (
+      <section className='submission-modal-buttons'>
+        <div className='submission-modal-buttons-group'>
+          <Button
+            onClick={() => {
+              if (this.state.previous === -2) {
+                this.prevTablePage();
+              } else {
+                this.switchSubmission(this.state.previous);
+              }
+            }}
+            isDisabled={this.state.previous === -1}
+            color='blue'
+            type='bare'
+            size='l'
+            label={t('Previous')}
+            startIcon='angle-left'
+          />
+
+          <Button
+            onClick={() => {
+              if (this.state.next === -2) {
+                this.nextTablePage();
+              } else {
+                this.switchSubmission(this.state.next);
+              }
+            }}
+            isDisabled={this.state.next === -1}
+            color='blue'
+            type='bare'
+            size='l'
+            label={t('Next')}
+            endIcon='angle-right'
+          />
+        </div>
+
+        <div className='submission-modal-buttons-group'>
+          <Checkbox
+            checked={this.state.showXMLNames}
+            onChange={this.onShowXMLNamesChange.bind(this)}
+            label={t('Display XML names')}
+          />
+
+          {this.renderEditButton()}
+
+          <Button
+            onClick={this.launchViewSubmission.bind(this)}
+            color='blue'
+            type='full'
+            size='l'
+            isDisabled={
+              !userCan('view_submissions', this.props.asset) &&
+              !userHasPermForSubmission(
+                'view_submissions',
+                this.props.asset,
+                this.state.submission
+              )
+            }
+            isPending={this.state.isEnketoViewLoading}
+            label={t('View')}
+          />
+
+          <Button
+            onClick={this.duplicateSubmission.bind(this)}
+            color='blue'
+            type='full'
+            size='l'
+            isDisabled={!this.isSubmissionEditable()}
+            label={t('Duplicate')}
+          />
+
+          <Button
+            onClick={launchPrinting}
+            color='storm'
+            type='bare'
+            size='l'
+            startIcon='print'
+            className='report-button__print'
+            tooltip={t('Print')}
+            tooltipPosition='right'
+          />
+
+          <Button
+            onClick={this.deleteSubmission.bind(this)}
+            color='dark-red'
+            type='bare'
+            size='l'
+            startIcon='trash'
+            tooltip={t('Delete submission')}
+            tooltipPosition='right'
+            isDisabled={
+              !userCan('delete_submissions', this.props.asset) &&
+              !userHasPermForSubmission(
+                'delete_submissions',
+                this.props.asset,
+                this.state.submission
+              )
+            }
+          />
+        </div>
+      </section>
+    );
+  }
+
+  renderEditButton() {
+    return (
+      <Button
+        onClick={this.launchEditSubmission.bind(this)}
+        color='blue'
+        type='full'
+        size='l'
+        isDisabled={!this.isSubmissionEditable()}
+        isPending={this.state.isEnketoEditLoading}
+        label={t('Edit')}
+      />
+    );
+  }
+
   render() {
+    // Until we get all necessary data, we display a spinner
     if (this.state.loading) {
       return <LoadingSpinner />;
     }
 
+    // Error handling
     if (typeof this.state.error === 'string') {
       return <CenteredMessage message={this.state.error} />;
     }
-
     if (!this.state.submission) {
       return <CenteredMessage message={t('Unknown error')} />;
     }
 
+    // Get background audio
     const bgAudioUrl = this.getBackgroundAudioUrl();
 
-    // Use this modal if we just duplicated a submission, but not if we are
-    // editing it
-    if (this.state.isDuplicated && !this.state.isEditingDuplicate) {
-      return (
-        <>
-          <h1 className='submission-duplicate__header'>
-            {t('Duplicate created')}
-          </h1>
-          <p className='submission-duplicate__text'>
-            {t(
-              'A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.'
-            )}
-            <br />
-            <br />
-            {t('Source submission uuid:' + ' ')}
-            <code>{this.state.duplicatedSubmission?._uuid}</code>
-          </p>
+    // Each of these `renderX()` functions handle the conditional rendering
+    // by itself
+    return (
+      <>
+        {this.renderDuplicatedSubmissionSubheader()}
 
-          <div className='submission-modal-duplicate-actions'>
-            {(userCan('change_submissions', this.props.asset) ||
-              userHasPermForSubmission(
-                'change_submissions',
-                this.props.asset,
-                this.state.submission
-              )) && (
-              <Button
-                onClick={this.launchEditSubmission.bind(this)}
-                color='blue'
-                type='full'
-                size='l'
-                isDisabled={!this.isSubmissionEditable()}
-                label={this.state.isEditLoading ? t('Loading…') : t('Edit')}
-              />
-            )}
+        {this.renderRefreshWarning()}
 
-            {(userCan('delete_submissions', this.props.asset) ||
-              userHasPermForSubmission(
-                'delete_submissions',
-                this.props.asset,
-                this.state.submission
-              )) && (
-              <Button
-                onClick={this.deleteSubmission.bind(this)}
-                color='dark-red'
-                type='full'
-                size='l'
-                isDisabled={!this.isSubmissionEditable()}
-                label={t('Discard')}
-                tooltip={t('Discard duplicated submission')}
-                className='submission-duplicate__button'
-              />
-            )}
-          </div>
+        {this.renderDropdowns()}
 
-          {this.renderDropdowns()}
+        {this.renderSubmissionActions()}
 
-          {this.state.submission && (
-            <SubmissionDataTable
-              asset={this.props.asset}
-              submissionData={this.state.submission}
-              translationIndex={this.state.translationIndex}
-              showXMLNames={this.state.showXMLNames}
-            />
-          )}
-        </>
-      );
-    }
+        {this.hasBackgroundAudioEnabled() && (
+          <bem.SubmissionDataTable>
+            <bem.SubmissionDataTable__row m={['columns', 'column-names']}>
+              <bem.SubmissionDataTable__column>
+                {t('Background audio recording')}
+              </bem.SubmissionDataTable__column>
+            </bem.SubmissionDataTable__row>
 
-    // Use this modal if we are not viewing a duplicate, or we are editing one
-    if (!this.state.isDuplicated || this.state.isEditingDuplicate) {
-      return (
-        <>
-          {this.state.promptRefresh && (
-            <div className='submission-modal-warning'>
-              <p>
-                {t(
-                  'Click on the button below to load the most recent data for this submission. '
-                )}
-              </p>
-
-              <Button
-                onClick={this.triggerRefresh.bind(this)}
-                color='blue'
-                type='full'
-                size='l'
-                label={t('Refresh submission')}
-              />
-            </div>
-          )}
-
-          <section className='submission-modal-section'>
-            {this.renderDropdowns()}
-          </section>
-
-          <section className='submission-modal-section'>
-            {this.state.isEditingDuplicate && (
-              <div className='preserveFlexCSS' />
-            )}
-
-            {!this.state.isEditingDuplicate && (
-              <div className='submission-pager'>
-                {/* don't display previous button if `previous` is -1 */}
-                {this.state.previous > -1 && (
-                  <Button
-                    onClick={this.switchSubmission.bind(
-                      this,
-                      this.state.previous
-                    )}
-                    color='blue'
-                    type='bare'
-                    size='l'
-                    label={t('Previous')}
-                    startIcon='angle-left'
-                  />
-                )}
-                {this.state.previous === -2 && (
-                  <Button
-                    onClick={this.prevTablePage.bind(this)}
-                    color='blue'
-                    type='bare'
-                    size='l'
-                    label={t('Previous')}
-                    startIcon='angle-left'
-                  />
-                )}
-
-                {/* don't display next button if `next` is -1 */}
-                {this.state.next > -1 && (
-                  <Button
-                    onClick={this.switchSubmission.bind(this, this.state.next)}
-                    color='blue'
-                    type='bare'
-                    size='l'
-                    label={t('Next')}
-                    endIcon='angle-right'
-                  />
-                )}
-                {this.state.next === -2 && (
-                  <Button
-                    onClick={this.nextTablePage.bind(this)}
-                    color='blue'
-                    type='bare'
-                    size='l'
-                    label={t('Next')}
-                    endIcon='angle-right'
-                  />
-                )}
-              </div>
-            )}
-
-            <div className='submission-modal-actions'>
-              <Checkbox
-                checked={this.state.showXMLNames}
-                onChange={this.onShowXMLNamesChange.bind(this)}
-                label={t('Display XML names')}
-              />
-
-              {(userCan('change_submissions', this.props.asset) ||
-                userHasPermForSubmission(
-                  'change_submissions',
-                  this.props.asset,
-                  this.state.submission
-                )) && (
-                <Button
-                  onClick={this.launchEditSubmission.bind(this)}
-                  color='blue'
-                  type='full'
-                  size='l'
-                  isDisabled={!this.isSubmissionEditable()}
-                  className='submission-duplicate__button'
-                  label={this.state.isEditLoading ? t('Loading…') : t('Edit')}
-                />
-              )}
-
-              {(userCan('view_submissions', this.props.asset) ||
-                userHasPermForSubmission(
-                  'view_submissions',
-                  this.props.asset,
-                  this.state.submission
-                )) && (
-                <Button
-                  onClick={this.launchViewSubmission.bind(this)}
-                  color='blue'
-                  type='full'
-                  size='l'
-                  isDisabled={this.state.isViewLoading}
-                  className='submission-duplicate__button'
-                  label={this.state.isViewLoading ? t('Loading…') : t('View')}
-                />
-              )}
-
-              {(userCan('change_submissions', this.props.asset) ||
-                userHasPermForSubmission(
-                  'change_submissions',
-                  this.props.asset,
-                  this.state.submission
-                )) && (
-                <Button
-                  onClick={this.duplicateSubmission.bind(this)}
-                  color='blue'
-                  type='full'
-                  size='l'
-                  isDisabled={!this.isSubmissionEditable()}
-                  className='submission-duplicate__button'
-                  label={t('Duplicate')}
-                />
-              )}
-
-              <Button
-                onClick={launchPrinting}
-                color='storm'
-                type='bare'
-                size='l'
-                startIcon='print'
-                className='report-button__print'
-                tooltip={t('Print')}
-                tooltipPosition='right'
-              />
-
-              {(userCan('delete_submissions', this.props.asset) ||
-                userHasPermForSubmission(
-                  'delete_submissions',
-                  this.props.asset,
-                  this.state.submission
-                )) && (
-                <Button
-                  onClick={this.deleteSubmission.bind(this)}
-                  color='dark-red'
-                  type='bare'
-                  size='l'
-                  startIcon='trash'
-                  tooltip={t('Delete submission')}
-                  tooltipPosition='right'
-                />
-              )}
-            </div>
-          </section>
-
-          {this.hasBackgroundAudioEnabled() && (
-            <bem.SubmissionDataTable>
-              <bem.SubmissionDataTable__row m={['columns', 'column-names']}>
-                <bem.SubmissionDataTable__column>
-                  {t('Background audio recording')}
+            <bem.SubmissionDataTable__row m={['columns', 'response', 'type-audio']}>
+              {bgAudioUrl &&
+                <bem.SubmissionDataTable__column m={['data', 'type-audio']}>
+                  <AudioPlayer mediaURL={bgAudioUrl} />
                 </bem.SubmissionDataTable__column>
-              </bem.SubmissionDataTable__row>
+              }
 
-              <bem.SubmissionDataTable__row m={['columns', 'response', 'type-audio']}>
-                {bgAudioUrl &&
-                  <bem.SubmissionDataTable__column m={['data', 'type-audio']}>
-                    <AudioPlayer mediaURL={bgAudioUrl} />
-                  </bem.SubmissionDataTable__column>
-                }
+              {!bgAudioUrl &&
+                <bem.SubmissionDataTable__column m='data'>
+                  {t('N/A')}
+                </bem.SubmissionDataTable__column>
+              }
+            </bem.SubmissionDataTable__row>
+          </bem.SubmissionDataTable>
+        )}
 
-                {!bgAudioUrl &&
-                  <bem.SubmissionDataTable__column m='data'>
-                    {t('N/A')}
-                  </bem.SubmissionDataTable__column>
-                }
-              </bem.SubmissionDataTable__row>
-            </bem.SubmissionDataTable>
-          )}
-
-          {this.state.submission && (
-            <SubmissionDataTable
-              asset={this.props.asset}
-              submissionData={this.state.submission}
-              translationIndex={this.state.translationIndex}
-              showXMLNames={this.state.showXMLNames}
-            />
-          )}
-        </>
-      );
-    }
-
-    return null;
+        <SubmissionDataTable
+          asset={this.props.asset}
+          submissionData={this.state.submission}
+          translationIndex={this.state.translationIndex}
+          showXMLNames={this.state.showXMLNames}
+        />
+      </>
+    );
   }
 }
-
-export default SubmissionModal;
