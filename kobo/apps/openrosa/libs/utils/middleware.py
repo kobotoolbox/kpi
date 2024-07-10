@@ -143,6 +143,9 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
         if request.method == 'HEAD':
             return
 
+        if view_name in ['home']:
+            self._skipped_view = True
+
         try:
             allowed_actions = ALLOWED_VIEWS_WITH_WEAK_PASSWORD[view_name][
                 request.method
