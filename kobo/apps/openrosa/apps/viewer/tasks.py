@@ -167,7 +167,8 @@ def create_kml_export(username, id_string, export_id, query=None):
         # though export is not available when for has 0 submissions, we
         # catch this since it potentially stops celery
         gen_export = generate_kml_export(
-            Export.KML_EXPORT, 'kml', username, id_string, export_id, query)
+            Export.KML_EXPORT, 'kml', username, id_string, export_id, query
+        )
     except (Exception, NoRecordsFoundError) as e:
         export.internal_status = Export.FAILED
         export.save()
@@ -177,9 +178,12 @@ def create_kml_export(username, id_string, export_id, query=None):
             'username': username,
             'id_string': id_string
         }
-        report_exception("KML Export Exception: Export ID - "
-                         "%(export_id)s, /%(username)s/%(id_string)s"
-                         % details, e, sys.exc_info())
+        report_exception(
+            "KML Export Exception: Export ID - "
+            "%(export_id)s, /%(username)s/%(id_string)s" % details,
+            e,
+            sys.exc_info(),
+        )
         raise
     else:
         return gen_export.id
