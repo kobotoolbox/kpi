@@ -1924,10 +1924,14 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         duplicated_extra = self.asset.submission_extras.filter(
             submission_uuid=duplicated_submission['_uuid']
         ).first()
-        assert duplicated_extra.content['q1']['translation']['tx1']['value'] == \
-            dummy_extra['q1']['translation']['tx1']['value']
-        assert duplicated_extra.content['q1']['transcript']['value'] == \
-            dummy_extra['q1']['transcript']['value']
+        assert (
+            duplicated_extra.content['q1']['translation']['tx1']['value']
+            == dummy_extra['q1']['translation']['tx1']['value']
+        )
+        assert (
+            duplicated_extra.content['q1']['transcript']['value']
+            == dummy_extra['q1']['transcript']['value']
+        )
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):

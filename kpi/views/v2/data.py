@@ -546,9 +546,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission = submissions[0]
         return Response(submission)
 
-    @action(detail=True, methods=['POST'],
-            renderer_classes=[renderers.JSONRenderer],
-            permission_classes=[DuplicateSubmissionPermission])
+    @action(
+        detail=True,
+        methods=['POST'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[DuplicateSubmissionPermission],
+    )
     def duplicate(self, request, pk, *args, **kwargs):
         """
         Creates a duplicate of the submission with a given `pk`
@@ -556,11 +559,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment = self._get_deployment()
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
-        original_submission = deployment.get_submission(submission_id, request.user)
+        original_submission = deployment.get_submission(
+            submission_id, request.user, fields=['_uuid']
+        )
         duplicate_response = deployment.duplicate_submission(
             submission_id=submission_id, user=request.user
         )
-        deployment.copy_submission_extras(original_submission['_uuid'], duplicate_response['_uuid'])
+        deployment.copy_submission_extras(
+            original_submission['_uuid'], duplicate_response['_uuid']
+        )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
