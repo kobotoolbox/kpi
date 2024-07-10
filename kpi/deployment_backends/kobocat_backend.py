@@ -5,7 +5,6 @@ import json
 import re
 from collections import defaultdict
 from contextlib import contextmanager
-from copy import deepcopy
 from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
@@ -368,6 +367,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             if attachment_objects
             else None
         )
+
         # parse XML string to ET object
         xml_parsed = fromstring_preserve_root_xmlns(submission)
 
@@ -387,6 +387,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = (
             uuid_formatted
         )
+
         kc_response = self.store_submission(
             user, xml_tostring(xml_parsed), _uuid, attachments
         )
