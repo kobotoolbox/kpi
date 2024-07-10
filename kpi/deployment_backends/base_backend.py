@@ -219,6 +219,19 @@ class BaseDeploymentBackend(abc.ABC):
     ) -> dict:
         pass
 
+    def copy_submission_extras(self, origin_uuid: str, dest_uuid: str):
+        """
+        Copy the submission extras from a origin submission uuid
+        to a destination uuid
+        """
+        original_extras = self.asset.submission_extras.filter(
+            submission_uuid=origin_uuid
+        ).first()
+        if original_extras is not None:
+            duplicated_extras = copy.deepcopy(original_extras.content)
+            duplicated_extras['submission'] = dest_uuid
+            self.asset.update_submission_extra(duplicated_extras)
+
     @property
     @abc.abstractmethod
     def enketo_id(self):
