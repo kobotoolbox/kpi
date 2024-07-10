@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     # https://code.djangoproject.com/ticket/10827
     'django.contrib.contenttypes',
     'django.contrib.admin',
+    'kobo.apps.kobo_auth.KoboAuthAppConfig',
     'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -96,7 +97,6 @@ INSTALLED_APPS = (
     'django_prometheus',
     'reversion',
     'private_storage',
-    'kobo.apps.kobo_auth.KoboAuthAppConfig',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
     'allauth',
