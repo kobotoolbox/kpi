@@ -16,6 +16,7 @@ from kpi.filters import (
 )
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
+from kpi.paginators import AssetPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
@@ -56,6 +57,7 @@ class ProjectViewViewSet(
     def assets(self, request, uid):
         if not user_has_view_perms(request.user, uid):
             raise Http404
+        self._paginator = AssetPagination()
         assets = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).defer(
             'content',
             'report_styles',
