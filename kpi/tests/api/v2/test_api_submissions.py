@@ -1711,6 +1711,15 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
+        self.asset.advanced_features = {
+            'translation': {
+                'values': ['q1'],
+                'languages': ['tx1', 'tx2'],
+            },
+            'transcript': {
+                'values': ['q1'],
+            }
+        }
         current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
@@ -1892,6 +1901,37 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         response = self.client.post(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self._check_duplicate(response, submission)
+
+    def test_duplicate_submission_with_extras(self):
+        dummy_extra = {
+            'q1': {
+                'transcript': {
+                    'value': 'dummy transcription',
+                    'languageCode': 'en',
+                },
+                'translation': {
+                    'tx1': {
+                        'value': 'dummy translation',
+                        'languageCode': 'xx',
+                    }
+                },
+            },
+            'submission': self.submission['_uuid']
+        }
+        self.asset.update_submission_extra(dummy_extra)
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        duplicated_submission = response.data
+        duplicated_extra = self.asset.submission_extras.filter(
+            submission_uuid=duplicated_submission['_uuid']
+        ).first()
+        assert (
+            duplicated_extra.content['q1']['translation']['tx1']['value']
+            == dummy_extra['q1']['translation']['tx1']['value']
+        )
+        assert (
+            duplicated_extra.content['q1']['transcript']['value']
+            == dummy_extra['q1']['transcript']['value']
+        )
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
