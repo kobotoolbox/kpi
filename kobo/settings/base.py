@@ -998,18 +998,20 @@ SENTRY_JS_DSN = None
 if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
     SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
 
-# replace this with the pointer to the kobocat server, if it exists
-KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
+# replace this with the pointer to the KoboCAT server, if it exists
+KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'https://change-me.invalid')
 
-# In case server must serve two KoBoCAT domain names (e.g. during a
+# In case server must serve two KoboCAT domain names (e.g. during a
 # domain name transfer), `settings.KOBOCAT_OLD_URL` adds support for
 # the domain name.
 KOBOCAT_OLD_URL = os.environ.get('KOBOCAT_OLD_URL')
 
-KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
-                                      'http://kobocat')
+# Internal URL does not use HTTPS
+KOBOCAT_INTERNAL_URL = os.environ.get(
+    'KOBOCAT_INTERNAL_URL', 'http://change-me.invalid'
+)
 
-KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
+KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'https://change-me.invalid')
 
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
@@ -1018,7 +1020,8 @@ else:
 
 
 ''' Stripe configuration intended for kf.kobotoolbox.org only, tracks usage limit exceptions '''
-STRIPE_ENABLED = env.bool("STRIPE_ENABLED", False)
+STRIPE_ENABLED = env.bool('STRIPE_ENABLED', False)
+
 
 def dj_stripe_request_callback_method():
     # This method exists because dj-stripe's documentation doesn't reflect reality.
@@ -1030,15 +1033,15 @@ def dj_stripe_request_callback_method():
     pass
 
 
-DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
 STRIPE_LIVE_MODE = env.bool('STRIPE_LIVE_MODE', False)
-STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', "pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM")
-STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
+STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', 'pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM')
+STRIPE_LIVE_PUBLIC_KEY = 'pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P'
 if STRIPE_ENABLED:
-    INSTALLED_APPS += ('djstripe', "kobo.apps.stripe")
+    INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe')
     STRIPE_LIVE_SECRET_KEY = env.str('STRIPE_LIVE_SECRET_KEY', None)
     STRIPE_TEST_SECRET_KEY = env.str('STRIPE_TEST_SECRET_KEY', None)
     DJSTRIPE_WEBHOOK_SECRET = env.str('DJSTRIPE_WEBHOOK_SECRET', None)
@@ -1052,7 +1055,7 @@ ORGANIZATION_USER_LIMIT = env.str('ORGANIZATION_USER_LIMIT', 400)
 
 
 ''' Enketo configuration '''
-ENKETO_URL = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
+ENKETO_URL = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://change-me.invalid')
 ENKETO_URL = ENKETO_URL.rstrip('/')  # Remove any trailing slashes
 ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
@@ -1207,7 +1210,9 @@ if 'KOBOCAT_URL' in os.environ:
     SYNC_KOBOCAT_PERMISSIONS = (
         os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
 
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/1')
+CELERY_BROKER_URL = os.environ.get(
+    'CELERY_BROKER_URL', 'redis://change-me.invalid:6379/1'
+)
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 # Increase limits for long-running tasks
@@ -1517,7 +1522,7 @@ MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
 SESSION_ENGINE = 'redis_sessions.session'
 # django-redis-session expects a dictionary with `url`
 redis_session_url = env.cache_url(
-    'REDIS_SESSION_URL', default='redis://redis_cache:6380/2'
+    'REDIS_SESSION_URL', default='redis://change-me.invalid:6380/2'
 )
 SESSION_REDIS = {
     'url': redis_session_url['LOCATION'],
@@ -1527,7 +1532,7 @@ SESSION_REDIS = {
 
 CACHES = {
     # Set CACHE_URL to override
-    'default': env.cache_url(default='redis://redis_cache:6380/3'),
+    'default': env.cache_url(default='redis://change-me.invalid:6380/3'),
     'enketo_redis_main': env.cache_url(
         'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
     ),
@@ -1605,7 +1610,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 SERVICE_ACCOUNT = {
     'BACKEND': env.cache_url(
-        'SERVICE_ACCOUNT_BACKEND_URL', default='redis://redis_cache:6380/6'
+        'SERVICE_ACCOUNT_BACKEND_URL', default='redis://change-me.invalid:6380/6'
     ),
     'WHITELISTED_HOSTS': env.list('SERVICE_ACCOUNT_WHITELISTED_HOSTS', default=[]),
 }
