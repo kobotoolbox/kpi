@@ -58,30 +58,36 @@ interface TranslationOption {
 }
 
 interface SubmissionModalState {
-  /** Is `null` when it's not loaded yet */
+  /** Submission data. Is `null` when it's not loaded yet. */
   submission: SubmissionResponse | null;
-  loading: boolean;
+  isFetchingSubmissionData: boolean;
   /** 'false' (i.e. "no error") or error message */
-  error: string | boolean;
+  submissionDataFetchError: string | boolean;
   // For previous and next:
   // -1 means there is none,
   // -2 means there is but on different table page.
   previous: number;
   next: number;
+  /** Submission uid. */
   sid: string;
-  showBetaFieldsWarning: boolean;
   isEnketoEditLoading: boolean;
   isEnketoViewLoading: boolean;
   isDuplicated: boolean;
   duplicatedSubmission: SubmissionResponse | null;
   isEditingDuplicate: boolean;
-  promptRefresh: boolean;
+  isRefreshNeeded: boolean;
   translationIndex: number;
   translationOptions: TranslationOption[];
   showXMLNames: boolean;
   isValidationStatusChangePending: boolean;
 }
 
+/**
+ * This is a modal component (to be used with `BigModal`) that displays details
+ * of given submission.
+ * It also handles flow of duplicating submission (TODO: this should be somehow
+ * decoupled from this modal, as it increases already complex code).
+ */
 export default class SubmissionModal extends React.Component<
   SubmissionModalProps,
   SubmissionModalState
@@ -104,21 +110,17 @@ export default class SubmissionModal extends React.Component<
 
     this.state = {
       submission: null,
-      loading: true,
-      error: false,
-      // For previous and next:
-      // -1 means there is none,
-      // -2 means there is but on different table page.
+      isFetchingSubmissionData: true,
+      submissionDataFetchError: false,
       previous: -1,
       next: -1,
       sid: props.sid,
-      showBetaFieldsWarning: false,
       isEnketoEditLoading: false,
       isEnketoViewLoading: false,
       isDuplicated: props.isDuplicated,
       duplicatedSubmission: props.duplicatedSubmission || null,
       isEditingDuplicate: false,
-      promptRefresh: false,
+      isRefreshNeeded: false,
       translationIndex: 0,
       translationOptions: translationOptions,
       showXMLNames: false,
@@ -227,7 +229,7 @@ export default class SubmissionModal extends React.Component<
 
         this.setState({
           submission: data,
-          loading: false,
+          isFetchingSubmissionData: false,
           next: next,
           previous: prev,
         });
@@ -240,13 +242,13 @@ export default class SubmissionModal extends React.Component<
               'The submission could not be found. It may have been deleted. Submission ID: ##id##'
             ).replace('##id##', sid);
           }
-          this.setState({error: error_message, loading: false});
+          this.setState({submissionDataFetchError: error_message, isFetchingSubmissionData: false});
         } else if (error.statusText) {
-          this.setState({error: error.statusText, loading: false});
+          this.setState({submissionDataFetchError: error.statusText, isFetchingSubmissionData: false});
         } else {
           this.setState({
-            error: t('Error: could not load data.'),
-            loading: false,
+            submissionDataFetchError: t('Error: could not load data.'),
+            isFetchingSubmissionData: false,
           });
         }
       });
@@ -309,7 +311,7 @@ export default class SubmissionModal extends React.Component<
    */
   launchEditSubmission() {
     this.setState({
-      promptRefresh: true,
+      isRefreshNeeded: true,
       isEnketoEditLoading: true,
       isEditingDuplicate: true,
     });
@@ -357,7 +359,7 @@ export default class SubmissionModal extends React.Component<
   triggerRefresh() {
     this.getSubmission(this.props.asset.uid, this.props.sid);
     this.setState({
-      promptRefresh: false,
+      isRefreshNeeded: false,
     });
     // Prompt table to refresh submission list
     actions.resources.refreshTableSubmissions();
@@ -367,7 +369,7 @@ export default class SubmissionModal extends React.Component<
    * For prev/next handling.
    */
   switchSubmission(prevOrNext: number) {
-    this.setState({loading: true});
+    this.setState({isFetchingSubmissionData: true});
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: prevOrNext,
@@ -378,7 +380,7 @@ export default class SubmissionModal extends React.Component<
   }
 
   prevTablePage() {
-    this.setState({loading: true});
+    this.setState({isFetchingSubmissionData: true});
 
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
@@ -388,7 +390,7 @@ export default class SubmissionModal extends React.Component<
   }
 
   nextTablePage() {
-    this.setState({loading: true});
+    this.setState({isFetchingSubmissionData: true});
 
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
@@ -592,7 +594,7 @@ export default class SubmissionModal extends React.Component<
   renderRefreshWarning() {
     // We only display refresh warning if we need it (e.g. we know user was
     // editing submission in Enketo)
-    if (!this.state.promptRefresh) {
+    if (!this.state.isRefreshNeeded) {
       return null;
     }
 
@@ -752,13 +754,13 @@ export default class SubmissionModal extends React.Component<
 
   render() {
     // Until we get all necessary data, we display a spinner
-    if (this.state.loading) {
+    if (this.state.isFetchingSubmissionData) {
       return <LoadingSpinner />;
     }
 
     // Error handling
-    if (typeof this.state.error === 'string') {
-      return <CenteredMessage message={this.state.error} />;
+    if (typeof this.state.submissionDataFetchError === 'string') {
+      return <CenteredMessage message={this.state.submissionDataFetchError} />;
     }
     if (!this.state.submission) {
       return <CenteredMessage message={t('Unknown error')} />;
