@@ -31,6 +31,12 @@ class Paginated(LimitOffsetPagination):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
 
+class FastPaginator(Paginated):
+
+    def get_count(self, queryset):
+        return queryset.only('pk').count()
+
+
 class AssetPagination(Paginated):
 
     def get_paginated_response(self, data, metadata):
