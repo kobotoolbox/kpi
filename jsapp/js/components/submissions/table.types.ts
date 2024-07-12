@@ -4,6 +4,8 @@ import type {
   SubmissionResponse,
 } from 'js/dataInterface';
 
+export type SubmissionPageName = 'next' | 'prev';
+
 // TODO: there might be some more properties here
 export interface TableColumn extends Column<SubmissionResponse> {
   id: string;
@@ -203,4 +205,6 @@ export interface ReactTableInstance {
   sortData: Function;
   state: ReactTableState;
   updater: any;
+  /** Internal function. You can pass any of `ReactTableState` properties. */
+  setState: (params: any) => void;
 }

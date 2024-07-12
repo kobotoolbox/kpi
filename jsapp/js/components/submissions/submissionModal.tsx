@@ -32,6 +32,7 @@ import type {
 import AudioPlayer from 'js/components/common/audioPlayer';
 import {getBackgroundAudioQuestionName} from 'js/components/submissions/tableUtils';
 import {getMediaAttachment} from 'js/components/submissions/submissionUtils';
+import type {SubmissionPageName} from 'js/components/submissions/table.types';
 import './submissionModal.scss';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
@@ -196,6 +197,8 @@ export default class SubmissionModal extends React.Component<
    * Loads fresh submission data. Has some error handling.
    */
   getSubmission(assetUid: string, sid: string) {
+    this.setState({isFetchingSubmissionData: true});
+
     dataInterface
       .getSubmission(assetUid, sid)
       .done((data: SubmissionResponse) => {
@@ -277,7 +280,9 @@ export default class SubmissionModal extends React.Component<
   /**
    * Displays a prompt for confirming deletion.
    *
-   * TODO: use KoboPrompt instead of alertify
+   * TODO: use KoboPrompt instead of alertify. Also make the prompt delete
+   * button `isPending` while it waits for the call to finish, as currently
+   * there is no indication that app is doing anything in the meantime (bad UX).
    */
   deleteSubmission() {
     let dialog = alertify.dialog('confirm');
@@ -306,8 +311,8 @@ export default class SubmissionModal extends React.Component<
   /**
    * Opens current submission as editable in Enketo (in new browser tab). After
    * using Enketo and saving the submission, you will notice "Refresh" button
-   * appearing in this modal - please use it to ensure you see edited submission
-   * data.
+   * appearing in this modal - please use it to ensure you see that submission
+   * data you've just modified.
    */
   launchEditSubmission() {
     this.setState({
@@ -366,10 +371,15 @@ export default class SubmissionModal extends React.Component<
   }
 
   /**
-   * For prev/next handling.
+   * Changes submission being displayed in here to the previous/next submission
+   * from the already loaded submissions in the Data Table.
    */
-  switchSubmission(prevOrNext: number) {
+  switchSubmission(
+    /** This is a submission uid (a number) */
+    prevOrNext: number
+  ) {
     this.setState({isFetchingSubmissionData: true});
+
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: prevOrNext,
@@ -379,23 +389,17 @@ export default class SubmissionModal extends React.Component<
     });
   }
 
-  prevTablePage() {
+  /**
+   * Triggers Data Table to load the previous/next page of submissions, and then
+   * changes submission being displayed in here to previous/next taking proper
+   * order into account.
+   */
+  switchSubmissionFromOtherTablePage(newPage: SubmissionPageName) {
     this.setState({isFetchingSubmissionData: true});
-
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: false,
-      page: 'prev',
-    });
-  }
-
-  nextTablePage() {
-    this.setState({isFetchingSubmissionData: true});
-
-    pageState.showModal({
-      type: MODAL_TYPES.SUBMISSION,
-      sid: false,
-      page: 'next',
+      page: newPage,
     });
   }
 
@@ -640,7 +644,7 @@ export default class SubmissionModal extends React.Component<
           <Button
             onClick={() => {
               if (this.state.previous === -2) {
-                this.prevTablePage();
+                this.switchSubmissionFromOtherTablePage('prev');
               } else {
                 this.switchSubmission(this.state.previous);
               }
@@ -656,7 +660,7 @@ export default class SubmissionModal extends React.Component<
           <Button
             onClick={() => {
               if (this.state.next === -2) {
-                this.nextTablePage();
+                this.switchSubmissionFromOtherTablePage('next');
               } else {
                 this.switchSubmission(this.state.next);
               }
