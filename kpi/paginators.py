@@ -31,7 +31,7 @@ class Paginated(LimitOffsetPagination):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
 
-class FastPaginator(Paginated):
+class FastAssetPagination(Paginated):
     """
     Pagination class optimized for faster counting for DISTINCT queries on large tables.
 
