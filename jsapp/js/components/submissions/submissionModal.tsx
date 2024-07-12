@@ -323,12 +323,8 @@ export default class SubmissionModal extends React.Component<
     enketoHandler
       .openSubmission(this.props.asset.uid, this.state.sid, EnketoActions.edit)
       .then(
-        () => {
-          this.setState({isEnketoEditLoading: false});
-        },
-        () => {
-          this.setState({isEnketoEditLoading: false});
-        }
+        () => {this.setState({isEnketoEditLoading: false});},
+        () => {this.setState({isEnketoEditLoading: false});}
       );
   }
 
@@ -336,14 +332,13 @@ export default class SubmissionModal extends React.Component<
    * Opens current submission as view-only in Enketo (in new browser tab).
    */
   launchViewSubmission() {
-    this.setState({
-      isEnketoViewLoading: true,
-    });
+    this.setState({isEnketoViewLoading: true});
     enketoHandler
       .openSubmission(this.props.asset.uid, this.state.sid, EnketoActions.view)
-      .then(() => {
-        this.setState({isEnketoViewLoading: false});
-      });
+      .then(
+        () => {this.setState({isEnketoViewLoading: false});},
+        () => {this.setState({isEnketoViewLoading: false});}
+      );
   }
 
   duplicateSubmission() {
@@ -363,9 +358,7 @@ export default class SubmissionModal extends React.Component<
    */
   triggerRefresh() {
     this.getSubmission(this.props.asset.uid, this.props.sid);
-    this.setState({
-      isRefreshNeeded: false,
-    });
+    this.setState({isRefreshNeeded: false});
     // Prompt table to refresh submission list
     actions.resources.refreshTableSubmissions();
   }
@@ -558,11 +551,10 @@ export default class SubmissionModal extends React.Component<
         </h1>
 
         <p className='submission-duplicate__text'>
-          {t(
-            'A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.'
-          )}
-          <br />
-          <br />
+          {t('A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.')}
+        </p>
+
+        <p className='submission-duplicate__text'>
           {t('Source submission uuid:' + ' ')}
           <code>{this.state.duplicatedSubmission?._uuid}</code>
         </p>
