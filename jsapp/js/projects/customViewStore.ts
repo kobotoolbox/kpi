@@ -64,6 +64,7 @@ class CustomViewStore {
   private nextPageUrl: string | null = null;
   private ongoingFetch?: JQuery.jqXHR;
   private searchContext?: string;
+  private includeTypeFilter?: boolean;
 
   constructor() {
     makeAutoObservable(this);
@@ -93,7 +94,8 @@ class CustomViewStore {
   public setUp(
     viewUid: string,
     baseUrl: string,
-    defaultVisibleFields: ProjectFieldName[]
+    defaultVisibleFields: ProjectFieldName[],
+    includeTypeFilter: boolean = true,
   ) {
     this.viewUid = viewUid;
     this.baseUrl = baseUrl;
@@ -102,6 +104,7 @@ class CustomViewStore {
     this.isFirstLoadComplete = false;
     this.isLoading = false;
     this.nextPageUrl = null;
+    this.includeTypeFilter = includeTypeFilter;
     this.loadSettings();
 
     this.searchContext = viewUid;
@@ -178,8 +181,15 @@ class CustomViewStore {
     const url = new URL(this.baseUrl);
     const params = new URLSearchParams(url.search);
 
-    // Step 3: Build queries for Back end (for `q=`). The backend will take care of filtering down to only surveys
+    // Step 3: Build queries for Back end (for `q=`).
     const queries = buildQueriesFromFilters(this.filters);
+
+    // We are only interested in surveys, but some URLs will automatically add that query on the backend, so let the
+    // caller decide if we need to add it explicitly
+    if (this.includeTypeFilter) {
+      queries.push(COMMON_QUERIES.s);
+    }
+
     // Add search query
     const searchPhrase = (searchBoxStore.data.searchPhrase ?? '').trim();
     if (searchPhrase !== '') {
