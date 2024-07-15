@@ -178,17 +178,17 @@ class CustomViewStore {
     const url = new URL(this.baseUrl);
     const params = new URLSearchParams(url.search);
 
-    // Step 3: Build queries for Back end (for `q=`)
+    // Step 3: Build queries for Back end (for `q=`). The backend will take care of filtering down to only surveys
     const queries = buildQueriesFromFilters(this.filters);
-    // We are only interested in surveys
-    queries.push(COMMON_QUERIES.s);
     // Add search query
     const searchPhrase = (searchBoxStore.data.searchPhrase ?? '').trim();
     if (searchPhrase !== '') {
       queries.push(searchPhrase);
     }
-    const queriesString = '(' + queries.join(') AND (') + ')';
-    params.set('q', queriesString);
+    if (queries.length > 0) {
+      const queriesString = '(' + queries.join(') AND (') + ')';
+      params.set('q', queriesString);
+    }
 
     // Step 4: Build ordering string
     const orderingString = this.getOrderQuery();
