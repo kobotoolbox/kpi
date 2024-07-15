@@ -13,7 +13,7 @@ from .mfa.forms import MfaTokenForm
 from .mfa.models import MfaAvailableToUser
 from .mfa.permissions import mfa_allowed_for_user
 from .mfa.views import MfaTokenView
-from .utils import user_has_paid_subscription
+from .utils import user_has_inactive_paid_subscription
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -27,12 +27,14 @@ class AccountAdapter(DefaultAccountAdapter):
             return parent_response
 
         # If MFA is activated and allowed for the user, display the token form before letting them in
-        if (
-            mfa_allowed_for_user(user)
-            and get_mfa_model()
+        mfa_active = (
+            get_mfa_model()
             .objects.filter(is_active=True, user=user)
             .exists()
-        ):
+        )
+        mfa_allowed = mfa_allowed_for_user(user)
+        inactive_subscription = user_has_inactive_paid_subscription(user.username)
+        if  mfa_active and (mfa_allowed or inactive_subscription):
             ephemeral_token_cache = user_token_generator.make_token(user)
             mfa_token_form = MfaTokenForm(
                 initial={'ephemeral_token': ephemeral_token_cache}
