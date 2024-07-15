@@ -13,6 +13,7 @@ jobs:
         # 16.15.0 - prior pinned Node version supported by kpi
         # 20.15.1 - pinned version, to be used in releases
         node-version: ['16.15.0', '20.15.1']
+      fail-fast: false # Let each job finish
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
