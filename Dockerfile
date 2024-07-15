@@ -60,7 +60,7 @@ RUN apt-get -qq update && \
     mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
         | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
         | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get -qq update && \
     apt-get -qq -y install --no-install-recommends \
@@ -72,7 +72,8 @@ RUN apt-get -qq update && \
         less \
         libproj-dev \
         locales \
-        nodejs=$(apt-cache show nodejs | grep -F 'Version: 16.15.0' | cut -f 2 -d ' ') \
+        # to pin an exact Node version, see 'git blame' here
+        nodejs \
         postgresql-client \
         procps \
         rsync \
@@ -117,7 +118,7 @@ WORKDIR ${KPI_SRC_DIR}/
 RUN rm -rf ${KPI_NODE_PATH} && \
     mkdir -p "${TMP_DIR}/.npm" && \
     npm config set cache "${TMP_DIR}/.npm" --global && \
-    npm install -g npm@8.5.5 && \
+    # to pin an exact npm version, see 'git blame' here
     npm install -g check-dependencies@1 && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
