@@ -186,7 +186,7 @@ class TestStripeMFALogin(KpiTestCase):
         Validate MFA form is displayed after login when the user
         has free subscription and whitelist is disabled
         """
-        self._reset_whitelist([])
+        self._reset_whitelist()
         self._create_subscription()
 
         data = {
