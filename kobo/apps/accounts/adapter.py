@@ -28,21 +28,20 @@ class AccountAdapter(DefaultAccountAdapter):
 
         # If MFA is activated and allowed for the user, display the token form before letting them in
         mfa_active = (
-            get_mfa_model()
-            .objects.filter(is_active=True, user=user)
-            .exists()
+            get_mfa_model().objects.filter(is_active=True, user=user).exists()
         )
         mfa_allowed = mfa_allowed_for_user(user)
-        inactive_subscription = user_has_inactive_paid_subscription(user.username)
-        if  mfa_active and (mfa_allowed or inactive_subscription):
+        inactive_subscription = user_has_inactive_paid_subscription(
+            user.username
+        )
+        if mfa_active and (mfa_allowed or inactive_subscription):
             ephemeral_token_cache = user_token_generator.make_token(user)
             mfa_token_form = MfaTokenForm(
                 initial={'ephemeral_token': ephemeral_token_cache}
             )
 
-            next_url = (
-                kwargs.get('redirect_url')
-                or resolve_url(settings.LOGIN_REDIRECT_URL)
+            next_url = kwargs.get('redirect_url') or resolve_url(
+                settings.LOGIN_REDIRECT_URL
             )
 
             context = {
@@ -69,15 +68,15 @@ class AccountAdapter(DefaultAccountAdapter):
             extra_data = {k: form.cleaned_data[k] for k in extra_fields}
 
             # If the form contains a Terms of Service checkbox (checked)
-            if (extra_data.pop('terms_of_service', None)):
+            if extra_data.pop('terms_of_service', None):
                 # We 'pop' because we don't want to save 'terms_of_service':true
                 # in extra_details.data. Instead, save a now() date string as
                 # the last ToS acceptance time in private_data.
                 # See also: TOSView.post() in apps/accounts/tos.py, which
                 # lets the frontend accept ToS on behalf of existing users.
-                user.extra_details.private_data[
-                    'last_tos_accept_time'
-                ] = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+                user.extra_details.private_data['last_tos_accept_time'] = (
+                    timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+                )
 
             user.extra_details.data.update(extra_data)
             if commit:
