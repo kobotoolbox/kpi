@@ -420,11 +420,11 @@ class EditSubmissionPermission(EditLinkSubmissionPermission):
     def has_permission(self, request, view):
         try:
             return super().has_permission(request, view)
-        except Http404 as e:
+        except Http404:
             uid = request.parser_context['kwargs']['uid']
             # Is this a real 404 (object does not exist)? If so, raise it
             if not AssetSnapshot.objects.filter(uid=uid).exists():
-                raise e
+                raise
 
             # If we forced a 404 for permissions issues, we want to
             # change it to a 401 to allow the user log in with different credentials.
