@@ -60,7 +60,7 @@ function MyProjectsRoute() {
     customView.setUp(
       HOME_VIEW.uid,
       `${ROOT_URL}/api/v2/assets/`,
-      HOME_DEFAULT_VISIBLE_FIELDS,
+      HOME_DEFAULT_VISIBLE_FIELDS
     );
 
     const inviteParams = searchParams.get('invite');
