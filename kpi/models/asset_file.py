@@ -79,7 +79,6 @@ class AssetFile(models.Model, AbstractFormMedia):
             'application/xml',
             'application/zip',
             'application/geo+json',
-            'application/json',
         ),
         PAIRED_DATA: ('application/xml',),
         MAP_LAYER: (
