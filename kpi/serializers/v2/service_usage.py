@@ -7,8 +7,8 @@ from rest_framework.fields import empty
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import (
-    DailyXFormSubmissionCounter as KobocatDailyXFormSubmissionCounter,
-    XForm as KobocatXForm,
+    DailyXFormSubmissionCounter,
+    XForm,
 )
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import organization_month_start, organization_year_start
@@ -237,7 +237,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        xforms = KobocatXForm.objects.only('attachment_storage_bytes', 'id').exclude(
+        xforms = XForm.objects.only('attachment_storage_bytes', 'id').exclude(
             pending_delete=True
         ).filter(self._user_id_query)
 
@@ -253,7 +253,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        submission_count = KobocatDailyXFormSubmissionCounter.objects.only(
+        submission_count = DailyXFormSubmissionCounter.objects.only(
             'counter', 'user_id'
         ).filter(self._user_id_query).aggregate(
             all_time=Coalesce(Sum('counter'), 0),

@@ -4,9 +4,7 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils.timezone import now
 
-from kobo.apps.openrosa.apps.logger.models import (
-    XForm as KobocatXForm,
-)
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.project_ownership.models import (
     Invite,
     InviteStatusChoices,
@@ -92,7 +90,7 @@ class ProjectTrash(BaseTrash):
                     ).update(status=InviteStatusChoices.CANCELLED)
 
                 if not settings.TESTING:
-                    kc_updated = KobocatXForm.objects.filter(
+                    kc_updated = XForm.objects.filter(
                         **kc_filter_params
                     ).update(**kc_update_params)
                     assert updated >= kc_updated

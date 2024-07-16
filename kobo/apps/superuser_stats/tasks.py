@@ -32,13 +32,11 @@ from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kobo.apps.openrosa.apps.logger.models import (
-    Instance as ReadOnlyKobocatInstance,
-    MonthlyXFormSubmissionCounter as KobocatMonthlyXFormSubmissionCounter,
-    XForm as KobocatXForm,
+    Instance,
+    MonthlyXFormSubmissionCounter,
+    XForm,
 )
-from kobo.apps.openrosa.apps.main.models import (
-    UserProfile as KobocatUserProfile,
-)
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models.asset import Asset, AssetDeploymentStatus
 
 
@@ -63,7 +61,7 @@ def generate_country_report(
         )
         # Doing it this way because this report is focused on crises in
         # very specific time frames
-        instances_count = ReadOnlyKobocatInstance.objects.filter(
+        instances_count = Instance.objects.filter(
             xform_id__in=list(xform_ids),
             date_created__date__range=(start_date, end_date),
         ).count()
@@ -112,7 +110,7 @@ def generate_continued_usage_report(output_filename: str, end_date: str):
             date_created__date__range=(twelve_months_time, end_date),
         )
         submissions_count = (
-            KobocatMonthlyXFormSubmissionCounter.objects.annotate(
+            MonthlyXFormSubmissionCounter.objects.annotate(
                 date=Cast(
                     Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                     DateField(),
@@ -202,7 +200,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 
     # get a count of the submissions
     domain_submissions = {
-        domain: KobocatMonthlyXFormSubmissionCounter.objects.annotate(
+        domain: MonthlyXFormSubmissionCounter.objects.annotate(
             date=Cast(
                 Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                 DateField(),
@@ -272,11 +270,11 @@ def generate_forms_count_by_submission_range(output_filename: str):
 
     today = datetime.today()
     date_ = today - relativedelta(years=1)
-    no_submissions = KobocatXForm.objects.filter(
+    no_submissions = XForm.objects.filter(
         date_created__date__gte=date_,
         num_of_submissions=0
     )
-    queryset = ReadOnlyKobocatInstance.objects.values(
+    queryset = Instance.objects.values(
         'xform_id'
     ).filter(
         date_created__date__gte=date_,
@@ -300,7 +298,7 @@ def generate_forms_count_by_submission_range(output_filename: str):
 
 @shared_task
 def generate_media_storage_report(output_filename: str):
-    attachments = KobocatUserProfile.objects.all().values(
+    attachments = UserProfile.objects.all().values(
         'user__username',
         'attachment_storage_bytes',
     )
@@ -369,8 +367,8 @@ def generate_user_report(output_filename: str):
         row_ = []
 
         try:
-            profile = KobocatUserProfile.objects.get(user_id=u.pk)
-        except KobocatUserProfile.DoesNotExist:
+            profile = UserProfile.objects.get(user_id=u.pk)
+        except UserProfile.DoesNotExist:
             profile = None
 
         try:
@@ -408,7 +406,7 @@ def generate_user_report(output_filename: str):
         else:
             row_.append('')
 
-        row_.append(KobocatXForm.objects.filter(user=u).count())
+        row_.append(XForm.objects.filter(user=u).count())
 
         if profile:
             row_.append(profile.num_of_submissions)
@@ -477,7 +475,7 @@ def generate_user_statistics_report(
 
     # Get records from SubmissionCounter
     records = (
-        KobocatMonthlyXFormSubmissionCounter.objects.annotate(
+        MonthlyXFormSubmissionCounter.objects.annotate(
             date=Cast(
                 Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                 DateField(),

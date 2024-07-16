@@ -524,29 +524,6 @@ class KobocatUserProfile(ShadowModel):
         )
 
 
-class KobocatToken(ShadowModel):
-
-    key = models.CharField("Key", max_length=40, primary_key=True)
-    user = models.OneToOneField(KobocatUser,
-                                related_name='auth_token',
-                                on_delete=models.CASCADE, verbose_name="User")
-    created = models.DateTimeField("Created", auto_now_add=True)
-
-    class Meta(ShadowModel.Meta):
-        db_table = "authtoken_token"
-
-    @classmethod
-    def sync(cls, auth_token):
-        try:
-            # Token use a One-to-One relationship on User.
-            # Thus, we can retrieve tokens from users' id.
-            kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
-        except KobocatToken.DoesNotExist:
-            kc_auth_token = cls(pk=auth_token.pk, user_id=auth_token.user_id)
-
-        kc_auth_token.save()
-
-
 class KobocatXForm(ShadowModel):
 
     class Meta(ShadowModel.Meta):
