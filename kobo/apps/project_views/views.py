@@ -53,11 +53,11 @@ class ProjectViewViewSet(
         detail=True,
         methods=['GET'],
         filter_backends=[SearchFilter, AssetOrderingFilter],
+        pagination_class=FastAssetPagination,
     )
     def assets(self, request, uid):
         if not user_has_view_perms(request.user, uid):
             raise Http404
-        self._paginator = FastAssetPagination()
         assets = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).defer(
             'content',
             'report_styles',
