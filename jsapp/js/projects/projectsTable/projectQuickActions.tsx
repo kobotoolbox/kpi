@@ -46,7 +46,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
             !asset.has_deployment
           }
           type='bare'
-          color='storm'
+          color='dark-blue'
           size='s'
           startIcon='archived'
           onClick={() =>
@@ -67,7 +67,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
             !asset.has_deployment
           }
           type='bare'
-          color='storm'
+          color='dark-blue'
           size='s'
           startIcon='archived'
           onClick={() =>
@@ -84,7 +84,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
         <Button
           isDisabled
           type='bare'
-          color='storm'
+          color='dark-blue'
           size='s'
           startIcon='archived'
           tooltip={t('Draft project selected')}
@@ -96,7 +96,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
       <Button
         isDisabled={!isManagingPossible && !isProjectViewAsset}
         type='bare'
-        color='storm'
+        color='dark-blue'
         size='s'
         startIcon='user-share'
         onClick={() => manageAssetSharing(asset.uid)}
@@ -108,7 +108,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
       <Button
         isDisabled={!isChangingPossible}
         type='bare'
-        color='storm'
+        color='dark-blue'
         size='s'
         startIcon='trash'
         onClick={() =>

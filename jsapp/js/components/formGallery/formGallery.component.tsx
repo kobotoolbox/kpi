@@ -119,7 +119,7 @@ export default function FormGallery(props: FormGalleryProps) {
           <bem.Gallery__headerIcons>
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               startIcon='expand'
               onClick={() => dispatch({type: 'toggleFullscreen'})}
@@ -179,7 +179,7 @@ export default function FormGallery(props: FormGalleryProps) {
           <bem.GalleryFooter>
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               isPending={isLoading}
               label={t('Load more')}
