@@ -105,7 +105,6 @@ class AssetPagination(Paginated):
         }
 
 
-
 class AssetUsagePagination(PageNumberPagination):
     """
     Pagination class for usage project breakdown table.
