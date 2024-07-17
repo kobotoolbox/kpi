@@ -14,15 +14,6 @@ from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
 
 
-class DataPagination(LimitOffsetPagination):
-    """
-    Pagination class for submissions.
-    """
-    default_limit = settings.SUBMISSION_LIST_LIMIT
-    offset_query_param = 'start'
-    max_limit = settings.SUBMISSION_LIST_LIMIT
-
-
 class Paginated(LimitOffsetPagination):
     """ Adds 'root' to the wrapping response object. """
     root = SerializerMethodField('get_parent_url', read_only=True)
@@ -114,16 +105,25 @@ class AssetPagination(Paginated):
         }
 
 
-class TinyPaginated(PageNumberPagination):
-    """
-    Same as Paginated with a small page size
-    """
-    page_size = 50
-
-
 class AssetUsagePagination(PageNumberPagination):
     """
     Pagination class for usage project breakdown table.
     """
     page_size = 8
     page_size_query_param = 'page_size'
+
+
+class DataPagination(LimitOffsetPagination):
+    """
+    Pagination class for submissions.
+    """
+    default_limit = settings.SUBMISSION_LIST_LIMIT
+    offset_query_param = 'start'
+    max_limit = settings.SUBMISSION_LIST_LIMIT
+
+
+class TinyPaginated(PageNumberPagination):
+    """
+    Same as Paginated with a small page size
+    """
+    page_size = 50
