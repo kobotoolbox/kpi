@@ -1028,7 +1028,7 @@ class ProjectSettings extends React.Component {
                 {this.isArchived() &&
                   <Button
                     type='frame'
-                    color='blue'
+                    color='dark-blue'
                     size='l'
                     label={t('Unarchive Project')}
                     onClick={this.unarchiveProject}
@@ -1038,7 +1038,7 @@ class ProjectSettings extends React.Component {
                 {this.isArchivable() &&
                   <Button
                     type='frame'
-                    color='dark-red'
+                    color='dark-blue'
                     size='l'
                     label={t('Archive Project')}
                     onClick={this.archiveProject}
