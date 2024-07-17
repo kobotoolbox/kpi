@@ -171,7 +171,11 @@ const tsRules = Object.assign({}, jsRules, {
   'comma-dangle': 'off',
   'comma-spacing': 'off',
   'func-call-spacing': 'off',
-  'no-duplicate-imports': [1, {includeExports: true}],
+   // The 'import' plugin supports separately importing types
+   //   (@typescript-eslint/no-duplicate-imports is deprecated)
+  'import/no-duplicates': 1,
+  // Turn off ESLint's version of this rule when in TypeScript
+  'no-duplicate-imports': 'off',
   'no-nonoctal-decimal-escape': 'off',
   // It is recommended that this check is disabled for TS files, see:
   // https://typescript-eslint.io/docs/linting/troubleshooting/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
@@ -213,7 +217,18 @@ module.exports = {
     {
       files: ['**/*.ts', '**/*.tsx'],
       parser: '@typescript-eslint/parser',
-      plugins: ['react', '@typescript-eslint'],
+      plugins: [
+        'react',
+        '@typescript-eslint',
+        // For import/no-duplicates
+        // Could do more with it.
+        'import',
+      ],
+      settings: {
+        'import/resolver': {
+          typescript: true,
+        },
+      },
       extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
       parserOptions: {
         project: ['./tsconfig.json'],
