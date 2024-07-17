@@ -121,6 +121,21 @@ class DataPagination(LimitOffsetPagination):
     offset_query_param = 'start'
     max_limit = settings.SUBMISSION_LIST_LIMIT
 
+    
+class FastAssetPagination(Paginated):
+    """
+    Pagination class optimized for faster counting for DISTINCT queries on large tables.
+
+    This class overrides the get_count() method to only look at the primary key field, avoiding expensive DISTINCTs
+    comparing several fields. This may not work for queries with lots of joins, especially with one-to-many or
+    many-to-many type relationships.
+    """
+
+    def get_count(self, queryset):
+        if queryset.query.distinct:
+            return queryset.only('pk').count()
+        return super().get_count(queryset)
+
 
 class TinyPaginated(PageNumberPagination):
     """
