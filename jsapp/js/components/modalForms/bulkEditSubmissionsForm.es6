@@ -429,7 +429,7 @@ class BulkEditSubmissionsForm extends React.Component {
         <bem.Modal__footer>
           <Button
             type='frame'
-            color='storm'
+            color='dark-blue'
             size='l'
             onClick={this.goBackToList.bind(this)}
             label={t('Back')}

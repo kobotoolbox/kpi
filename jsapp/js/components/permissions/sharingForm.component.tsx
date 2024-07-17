@@ -278,7 +278,7 @@ export default class SharingForm extends React.Component<
           {this.state.isAddUserEditorVisible && (
             <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
               <Button
-                color='storm'
+                color='dark-blue'
                 type='bare'
                 size='l'
                 startIcon='close'

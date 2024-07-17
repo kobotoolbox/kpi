@@ -112,7 +112,7 @@ export default function KeywordSearchResponseForm(
             return (
               <Button
                 type='frame'
-                color='storm'
+                color='dark-blue'
                 size='m'
                 label={t('Apply search')}
                 onClick={applySearch}
