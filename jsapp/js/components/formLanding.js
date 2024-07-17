@@ -385,7 +385,16 @@ class FormLanding extends React.Component {
             <bem.FormView__cell>
               <PopoverMenu
                 type='collectData-menu'
-                triggerLabel={COLLECTION_METHODS[chosenMethod].label}
+                triggerLabel={(
+                  <Button
+                    color='blue'
+                    size='m'
+                    type='full'
+                    label={COLLECTION_METHODS[chosenMethod].label}
+                    endIcon='angle-down'
+                    isFullWidth
+                  />
+                )}
               >
                 {deployment__links_list.map((c) => {
                   return (
