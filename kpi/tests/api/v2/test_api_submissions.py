@@ -1056,6 +1056,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
 
 class SubmissionEditApiTests(BaseSubmissionTestCase):
+    """
+    Tests for editin submissions.
+
+    WARNING: Tests in this class must work in v1 as well, or else be added to the skipped tests
+    in kpi/tests/api/v1/test_api_submissions.py
+    """
 
     def setUp(self):
         super().setUp()
@@ -1560,6 +1566,27 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             'version_uid': self.asset.latest_deployed_version.uid,
         }
         assert response.data == expected_response
+
+    def test_edit_submission_snapshot_missing(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_snapshot_missing_unauthenticated(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
