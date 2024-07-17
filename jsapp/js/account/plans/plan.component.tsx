@@ -428,16 +428,16 @@ export default function Plan(props: PlanProps) {
     hasMetaFeatures() && (
       <div className={styles.comparisonButton}>
         <Button
-          type='full'
-          color='light-storm'
+          type='bare'
+          color='dark-blue'
           size='m'
-          isFullWidth
           label={
             expandComparison
               ? t('Collapse full comparison')
               : t('Display full comparison')
           }
           onClick={() => setExpandComparison(!expandComparison)}
+          endIcon={expandComparison ? 'angle-up' : 'angle-down'}
         />
       </div>
     );
