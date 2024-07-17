@@ -344,7 +344,7 @@ export default class Reports extends React.Component {
             triggerLabel={
               <Button
                 type='frame'
-                color='storm'
+                color='dark-blue'
                 size='m'
                 label={menuLabel}
                 endIcon='angle-down'
@@ -390,7 +390,7 @@ export default class Reports extends React.Component {
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             startIcon='edit'
             onClick={this.editCustomReport.bind(this)}
@@ -400,7 +400,7 @@ export default class Reports extends React.Component {
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             startIcon='settings'
             onClick={this.toggleReportGraphSettings.bind(this)}
@@ -412,7 +412,7 @@ export default class Reports extends React.Component {
         <div className='form-view__report-buttons-right'>
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             startIcon='print'
             onClick={launchPrinting}
@@ -422,7 +422,7 @@ export default class Reports extends React.Component {
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             startIcon='expand'
             onClick={this.toggleFullscreen.bind(this)}
@@ -578,7 +578,7 @@ export default class Reports extends React.Component {
 
                           <Button
                             type='full'
-                            color='storm'
+                            color='dark-blue'
                             size='s'
                             onClick={this.resetReportLimit.bind(this)}
                             label={t('Show all (##)').replace('##', this.state.reportData.length)}

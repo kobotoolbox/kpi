@@ -1087,7 +1087,7 @@ class ProjectSettings extends React.Component {
       return (
         <Button
           type='frame'
-          color='storm'
+          color='dark-blue'
           size='l'
           onClick={this.displayPreviousStep.bind(this)}
           isDisabled={isBackButtonDisabled}
