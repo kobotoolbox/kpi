@@ -2,7 +2,7 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from constance import config
 from django.conf import settings
-from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth import REDIRECT_FIELD_NAME, login
 from django.db import transaction
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
@@ -85,3 +85,9 @@ class AccountAdapter(DefaultAccountAdapter):
             )
             user.set_password(password)
             user.save()
+
+    def login(self, request, user):
+        # Override django-allauth login method to use specified authentication backend
+        super().login(request, user)
+        user.backend = settings.AUTHENTICATION_BACKENDS[0]
+        login(request, user, backend=user.backend)
