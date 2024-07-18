@@ -77,7 +77,7 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
 @receiver(post_save, sender=Hook)
 def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     """
-    Updates KoBoCAT XForm instance as soon as Asset.Hook list is updated.
+    Updates KoboCAT XForm instance as soon as Asset.Hook list is updated.
     """
     asset = instance.asset
     if asset.has_deployment:

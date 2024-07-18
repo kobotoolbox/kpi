@@ -1012,13 +1012,14 @@ KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
 KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
 
 if 'KOBOCAT_URL' in os.environ:
-    DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
+    DEFAULT_DEPLOYMENT_BACKEND = 'openrosa'
 else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
 
 
 ''' Stripe configuration intended for kf.kobotoolbox.org only, tracks usage limit exceptions '''
 STRIPE_ENABLED = env.bool("STRIPE_ENABLED", False)
+
 
 def dj_stripe_request_callback_method():
     # This method exists because dj-stripe's documentation doesn't reflect reality.

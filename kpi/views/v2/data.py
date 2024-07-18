@@ -355,14 +355,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 query=data['query'],
                 fields=['_id', '_uuid']
             )
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
             for submission in submissions:
                 audit_logs.append(AuditLog(
-                    app_label=app_label,
-                    model_name=model_name,
+                    app_label='logger',
+                    model_name='instance',
                     object_id=submission['_id'],
                     user=request.user,
                     user_uid=request.user.extra_details.uid,
@@ -399,13 +395,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
 
         if json_response['status'] == status.HTTP_204_NO_CONTENT:
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
             AuditLog.objects.create(
-                app_label=app_label,
-                model_name=model_name,
+                app_label='logger',
+                model_name='instance',
                 object_id=pk,
                 user=request.user,
                 metadata={

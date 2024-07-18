@@ -184,7 +184,6 @@ class BaseDeploymentBackend(abc.ABC):
 
         return self.prepare_bulk_update_response(kc_responses)
 
-
     @abc.abstractmethod
     def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
         pass
@@ -198,8 +197,11 @@ class BaseDeploymentBackend(abc.ABC):
     def form_uuid(self):
         pass
 
+    @staticmethod
     @abc.abstractmethod
-    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
+    def nlp_tracking_data(
+        asset_ids: list[int], start_date: Optional[datetime.date] = None
+    ):
         pass
 
     def delete(self):
@@ -446,11 +448,13 @@ class BaseDeploymentBackend(abc.ABC):
         self.save_to_db({'status': status})
 
     @abc.abstractmethod
-    def set_validation_status(self,
-                              submission_id: int,
-                              user: settings.AUTH_USER_MODEL,
-                              data: dict,
-                              method: str) -> dict:
+    def set_validation_status(
+        self,
+        submission_id: int,
+        user: settings.AUTH_USER_MODEL,
+        data: dict,
+        method: str,
+    ) -> dict:
         pass
 
     @abc.abstractmethod
