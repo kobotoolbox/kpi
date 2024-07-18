@@ -329,8 +329,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 is_good_file = int(attachment['id']) == int(attachment_id)
 
             if is_good_file:
-                print("ATTACHMENT:" + attachment['filename'], flush=True)
-                print('attachment', attachment)
                 return self._get_attachment_object(
                     attachment_id=attachment['id'],
                     submission_xml=submission_xml,
