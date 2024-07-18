@@ -639,7 +639,7 @@ export default Object.assign({
 
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='l'
               onClick={this.safeNavigateToAsset.bind(this)}
               startIcon='close'
@@ -651,7 +651,7 @@ export default Object.assign({
           <bem.FormBuilderHeader__cell m={'toolsButtons'} >
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               isDisabled={previewDisabled}
               onClick={this.previewForm.bind(this)}
@@ -662,7 +662,7 @@ export default Object.assign({
 
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               isDisabled={!showAllAvailable}
               onClick={this.showAll.bind(this)}
@@ -673,7 +673,7 @@ export default Object.assign({
 
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               isDisabled={!groupable}
               onClick={this.groupQuestions.bind(this)}
@@ -687,7 +687,7 @@ export default Object.assign({
 
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               isDisabled={this.toggleCascade === undefined}
               onClick={this.toggleCascade.bind(this)}
@@ -709,7 +709,7 @@ export default Object.assign({
           <bem.FormBuilderHeader__cell>
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               onClick={this.toggleAsideLibrarySearch.bind(this)}
               tooltip={t('Insert cascading select')}
@@ -727,7 +727,7 @@ export default Object.assign({
           <bem.FormBuilderHeader__cell>
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               onClick={this.toggleAsideLayoutSettings.bind(this)}
               tooltip={t('Insert cascading select')}

@@ -15,8 +15,11 @@ $badge-font-l: sizes.$x14;
   display: inline-block;
   vertical-align: middle;
   text-align: center;
-  @include mixins.textEllipsis;
   max-width: 100%;
+}
+
+.root:not(.disableShortening) {
+  @include mixins.textEllipsis;
 }
 
 .icon {

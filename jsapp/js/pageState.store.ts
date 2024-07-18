@@ -2,6 +2,10 @@ import Reflux from 'reflux';
 
 interface PageStateModalParams {
   type: string; // one of MODAL_TYPES
+  // TODO: this is dangerous, as we are not checking what we are passing around,
+  // but since there are multiple completely different modals that use these
+  // params, and we are planning to not use this modal component, refactoring
+  // might be too much work.
   [name: string]: any;
 }
 

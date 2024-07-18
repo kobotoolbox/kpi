@@ -183,7 +183,7 @@ export default class RESTServicesList extends React.Component {
                   <bem.ServiceRow__column m='actions'>
                     <Button
                       type='bare'
-                      color='storm'
+                      color='dark-blue'
                       size='m'
                       onClick={() => this.editHook(hook.uid)}
                       tooltip={t('Edit')}

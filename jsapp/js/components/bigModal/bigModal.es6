@@ -380,7 +380,6 @@ class BigModal extends React.Component {
                 ids={this.props.params.ids}
                 isDuplicated={this.props.params.isDuplicated}
                 duplicatedSubmission={this.props.params.duplicatedSubmission}
-                backgroundAudioUrl={this.props.params.backgroundAudioUrl}
                 tableInfo={this.props.params.tableInfo || false}
               />
             }

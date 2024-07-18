@@ -117,7 +117,7 @@ export default class AssetPublicButton extends React.Component<
       return (
         <Button
           type='frame'
-          color='teal'
+          color='dark-blue'
           size='m'
           startIcon='globe-alt'
           label={t('Make public')}

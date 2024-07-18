@@ -375,8 +375,8 @@ export default class RESTServicesForm extends React.Component {
         })}
 
         <Button
-          type='full'
-          color='storm'
+          type='frame'
+          color='dark-blue'
           size='s'
           startIcon='plus'
           onClick={this.addNewCustomHeaderRow.bind(this)}
