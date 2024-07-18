@@ -417,6 +417,12 @@ export const truncateNumber = (decimal: number, decimalPlaces = 2) =>
   parseFloat(decimal.toFixed(decimalPlaces));
 
 /**
+ * Standard method for converting seconds to minutes for billing purposes
+ */
+ export const convertSecondsToMinutes = (seconds: number) =>
+  Math.floor(truncateNumber(seconds/60, 1))
+
+/**
  * Generates a simple lowercase, underscored version of a string. Useful for
  * quick filename generation
  *

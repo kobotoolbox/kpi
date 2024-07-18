@@ -1060,9 +1060,8 @@ CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", False)
 
 CELERY_TIMEZONE = "UTC"
 
-if os.environ.get('SKIP_CELERY', 'False') == 'True':
-    # helpful for certain debugging
-    CELERY_TASK_ALWAYS_EAGER = True
+# helpful for certain debugging
+CELERY_TASK_ALWAYS_EAGER = env.bool('SKIP_CELERY', False)
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks

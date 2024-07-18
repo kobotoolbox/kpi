@@ -96,7 +96,7 @@ function CustomViewRoute() {
 
         <Button
           type='frame'
-          color='storm'
+          color='dark-blue'
           size='s'
           startIcon='download'
           label={t('Export all data')}

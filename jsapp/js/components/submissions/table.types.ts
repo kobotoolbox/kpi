@@ -1,13 +1,10 @@
 import type {Column} from 'react-table';
 import type {
-  QuestionTypeName,
-  MetaQuestionTypeName,
-  MiscRowTypeName,
-} from 'js/constants';
-import type {
   SurveyRow,
   SubmissionResponse,
 } from 'js/dataInterface';
+
+export type SubmissionPageName = 'next' | 'prev';
 
 // TODO: there might be some more properties here
 export interface TableColumn extends Column<SubmissionResponse> {
@@ -208,4 +205,6 @@ export interface ReactTableInstance {
   sortData: Function;
   state: ReactTableState;
   updater: any;
+  /** Internal function. You can pass any of `ReactTableState` properties. */
+  setState: (params: any) => void;
 }
