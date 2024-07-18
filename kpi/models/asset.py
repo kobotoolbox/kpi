@@ -74,6 +74,7 @@ from kpi.mixins import (
     XlsExportableMixin,
     StandardizeSearchableFieldMixin,
 )
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
@@ -157,10 +158,8 @@ class Asset(ObjectPermissionMixin,
             XlsExportableMixin,
             FormpackXLSFormUtilsMixin,
             StandardizeSearchableFieldMixin,
-            models.Model):
+            AbstractTimeStampedModel):
     name = models.CharField(max_length=255, blank=True, default='')
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
     date_deployed = models.DateTimeField(null=True)
     content = models.JSONField(default=dict)
     summary = models.JSONField(default=dict)
