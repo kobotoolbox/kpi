@@ -208,16 +208,20 @@ class BaseDeploymentBackend(abc.ABC):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
+    def delete_submission(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         pass
 
     @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs) -> dict:
+    def delete_submissions(
+        self, data: dict, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         pass
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, user: settings.AUTH_USER_MODEL
+        self, submission_id: int, request: 'rest_framework.request.Request',
     ) -> dict:
         pass
 
@@ -476,7 +480,6 @@ class BaseDeploymentBackend(abc.ABC):
     def stored_data_key(self):
         return self.__stored_data_key
 
-    @property
     @abc.abstractmethod
     def store_submission(
         self, user, xml_submission, submission_uuid, attachments=None
@@ -665,7 +668,7 @@ class BaseDeploymentBackend(abc.ABC):
         perm: str,
         submission_ids: list = [],
         query: dict = {},
-    ) -> list:
+    ) -> Optional[list]:
         """
         Validate whether `user` is allowed to perform write actions on
         submissions with the permission `perm`.

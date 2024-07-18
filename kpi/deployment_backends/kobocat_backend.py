@@ -338,7 +338,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return drf_response
 
     def duplicate_submission(
-        self, submission_id: int, user: 'settings.AUTH_USER_MODEL'
+        self, submission_id: int, request: 'rest_framework.request.Request',
     ) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
@@ -350,7 +350,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         submission if successful
 
         """
-
+        user = request.user
         self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
@@ -404,7 +404,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def edit_submission(
         self,
         xml_submission_file: File,
-        user: settings.AUTH_USER_MODEL,
+        request: 'rest_framework.request.Request',
         attachments: dict = None,
     ):
         """
@@ -413,6 +413,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         The returned Response should be in XML (expected format by Enketo Express)
         """
+        user = request.user
         submission_xml = xml_submission_file.read()
         try:
             xml_root = fromstring_preserve_root_xmlns(submission_xml)
@@ -465,9 +466,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             method='POST', url=self.submission_url, files=files
         )
         kc_response = self.__kobocat_proxy_request(kc_request, user)
-        return self.__prepare_as_drf_response_signature(
+        prepared_response = self.__prepare_as_drf_response_signature(
             kc_response, expected_response_format='xml'
         )
+        return prepared_response
 
     @property
     def enketo_id(self):

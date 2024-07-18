@@ -7,6 +7,7 @@ import re
 import sys
 import traceback
 from datetime import date, datetime, timezone
+from typing import Generator, Optional
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
 try:
@@ -17,6 +18,7 @@ except ImportError:
 from dict2xml import dict2xml
 from django.conf import settings
 from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.files.base import File
 from django.core.mail import mail_admins
 from django.db import IntegrityError, transaction
 from django.db.models import Q
@@ -137,12 +139,12 @@ def check_edit_submission_permissions(
 @transaction.atomic  # paranoia; redundant since `ATOMIC_REQUESTS` set to `True`
 def create_instance(
     username: str,
-    xml_file: str,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    xml_file: File,
+    media_files: Generator[File],
     status: str = 'submitted_via_web',
     uuid: str = None,
     date_created_override: datetime = None,
-    request: 'rest_framework.request.Request' = None,
+    request: Optional['rest_framework.request.Request'] = None,
 ) -> Instance:
     """
     Submission cases:
@@ -524,7 +526,13 @@ def response_with_mimetype_and_name(
     return response
 
 
-def safe_create_instance(username, xml_file, media_files, uuid, request):
+def safe_create_instance(
+    username,
+    xml_file,
+    media_files,
+    uuid: Optional[str] = None,
+    request: Optional['rest_framework.request.Request'] = None,
+):
     """Create an instance and catch exceptions.
 
     :returns: A list [error, instance] where error is None if there was no
@@ -534,7 +542,8 @@ def safe_create_instance(username, xml_file, media_files, uuid, request):
 
     try:
         instance = create_instance(
-            username, xml_file, media_files, uuid=uuid, request=request)
+            username, xml_file, media_files, uuid=uuid, request=request
+        )
     except InstanceInvalidUserError:
         error = OpenRosaResponseBadRequest(t("Username or ID required."))
     except InstanceEmptyError:
@@ -570,7 +579,7 @@ def safe_create_instance(username, xml_file, media_files, uuid, request):
 
 def save_attachments(
     instance: Instance,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    media_files: Generator[File],
     defer_counting: bool = False,
 ) -> tuple[list[Attachment], list[Attachment]]:
     """
@@ -584,15 +593,19 @@ def save_attachments(
     which avoids locking any rows in `logger_xform` or `main_userprofile`.
     """
     new_attachments = []
+
     for f in media_files:
-        attachment_filename = generate_attachment_filename(instance, f.name)
+        attachment_filename = generate_attachment_filename(
+            instance, os.path.basename(f.name)
+        )
         existing_attachment = Attachment.objects.filter(
             instance=instance,
             media_file=attachment_filename,
             mimetype=f.content_type,
         ).first()
-        if existing_attachment and (existing_attachment.file_hash ==
-                                    hash_attachment_contents(f.read())):
+        if existing_attachment and (
+            existing_attachment.file_hash == hash_attachment_contents(f.read())
+        ):
             # We already have this attachment!
             continue
         f.seek(0)
@@ -616,7 +629,7 @@ def save_submission(
     request: 'rest_framework.request.Request',
     xform: XForm,
     xml: str,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    media_files: Generator[File],
     new_uuid: str,
     status: str,
     date_created_override: datetime,

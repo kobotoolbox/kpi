@@ -56,8 +56,9 @@ from kpi.utils.xml import (
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
-class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.GenericViewSet):
+class DataViewSet(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.GenericViewSet
+):
     """
     ## List of submissions for a specific asset
 
@@ -463,10 +464,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         try:
-            submissions = deployment.get_submissions(request.user,
-                                                    format_type=format_type,
-                                                    request=request,
-                                                    **filters)
+            submissions = deployment.get_submissions(
+                request.user,
+                format_type=format_type,
+                request=request,
+                **filters
+            )
         except OperationFailure as err:
             message = str(err)
             # Don't show just any raw exception message out of fear of data leaking
@@ -549,7 +552,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
         duplicate_response = deployment.duplicate_submission(
-            submission_id=submission_id, user=request.user
+            submission_id=submission_id, request=request
         )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 

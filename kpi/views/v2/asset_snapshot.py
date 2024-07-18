@@ -242,7 +242,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
         try:
             xml_response = asset_snapshot.asset.deployment.edit_submission(
-                xml_submission_file, request.user, attachments
+                xml_submission_file, request, attachments
             )
         except SubmissionIntegrityError as e:
             raise serializers.ValidationError(str(e))

@@ -217,11 +217,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def duplicate_submission(
-        self, submission_id: int, user: settings.AUTH_USER_MODEL
+        self, submission_id: int, request: 'rest_framework.request.Request',
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
-
+        user = request.user
         self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,

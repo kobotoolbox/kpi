@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import io
-import json
-import re
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime
@@ -25,7 +22,6 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from kobo_service_account.utils import get_request_headers
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.logger.models import (
@@ -36,7 +32,8 @@ from kobo.apps.openrosa.apps.logger.models import (
     XForm,
 )
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
-from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
+from kobo.apps.openrosa.apps.logger.utils.instance import delete_instances
+from kobo.apps.openrosa.libs.utils.logger_tools import safe_create_instance, publish_xls_form
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
@@ -49,13 +46,9 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.deployment_backends.kc_access.storage import (
-    default_kobocat_storage as default_storage,
-)
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
-    KobocatCommunicationError,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
     XPathNotFoundException,
@@ -65,10 +58,10 @@ from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import (
@@ -78,8 +71,6 @@ from .kc_access.utils import (
 )
 from ..exceptions import (
     BadFormatException,
-    KobocatDeploymentException,
-    KobocatDuplicateSubmissionException,
 )
 
 
@@ -208,7 +199,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         super().delete()
 
-    # FIXME
     def delete_submission(
         self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:
@@ -226,12 +216,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         Instance.objects.filter(pk=submission_id).delete()
 
-        # FIXME
-        return 1/0
+        return {
+            'content_type': 'application/json',
+            'status': status.HTTP_204_NO_CONTENT,
+        }
 
-    # FIXME
     def delete_submissions(
-        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
+        self, data: dict, user: settings.AUTH_USER_MODEL
     ) -> dict:
         """
         Bulk delete provided submissions.
@@ -243,7 +234,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
              or
              {"query": {"Question": "response"}
         """
-
         submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
@@ -259,16 +249,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
 
-        kc_url = self.submission_list_url
-        kc_request = requests.Request(method='DELETE', url=kc_url, json=data)
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        deleted_count = delete_instances(self.xform, data)
 
-        drf_response = self.__prepare_as_drf_response_signature(kc_response)
-        return drf_response
+        return {
+            'data': {'detail': f'{deleted_count} submissions have been deleted'},
+            'content_type': 'application/json',
+            'status': status.HTTP_200_OK,
+        }
 
-    # FIXME
     def duplicate_submission(
-        self, submission_id: int, user: 'settings.AUTH_USER_MODEL'
+        self, submission_id: int, request: 'rest_framework.request.Request',
     ) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
@@ -280,7 +270,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         submission if successful
 
         """
-
+        user = request.user
         self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
@@ -294,14 +284,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         # Get attachments for the duplicated submission if there are any
-        attachment_objects = Attachment.objects.filter(
+        attachments = []
+        if attachment_objects := Attachment.objects.filter(
             instance_id=submission_id
-        )
-        attachments = (
-            {a.media_file_basename: a.media_file for a in attachment_objects}
-            if attachment_objects
-            else None
-        )
+        ):
+            attachments = (
+                ExtendedContentFile(a.media_file.read(), name=a.media_file_basename)
+                for a in attachment_objects
+            )
 
         # parse XML string to ET object
         xml_parsed = fromstring_preserve_root_xmlns(submission)
@@ -323,21 +313,22 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid_formatted
         )
 
-        #
-
-        kc_response = self.store_submission(
-            user, xml_tostring(xml_parsed), _uuid, attachments
+        safe_create_instance(
+            username=user.username,
+            xml_file=ContentFile(xml_tostring(xml_parsed)),
+            media_files=attachments,
+            uuid=_uuid,
+            request=request,
         )
-        if kc_response.status_code == status.HTTP_201_CREATED:
-            return next(self.get_submissions(user, query={'_uuid': _uuid}))
-        else:
-            raise KobocatDuplicateSubmissionException
+        return self._rewrite_json_attachment_urls(
+            next(self.get_submissions(user, query={'_uuid': _uuid})), request
+        )
 
     # FIXME
     def edit_submission(
         self,
         xml_submission_file: File,
-        user: settings.AUTH_USER_MODEL,
+        request: 'rest_framework.request.Request',
         attachments: dict = None,
     ):
         """
@@ -346,6 +337,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         The returned Response should be in XML (expected format by Enketo Express)
         """
+        user = request.user
+
         submission_xml = xml_submission_file.read()
         try:
             xml_root = fromstring_preserve_root_xmlns(submission_xml)
@@ -364,6 +357,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             )
         # Remove UUID prefix
         deprecated_uuid = deprecated_uuid[len('uuid:'):]
+
         try:
             instance = Instance.objects.get(
                 uuid=deprecated_uuid,
@@ -388,19 +382,19 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Set the In-Memory file’s current position to 0 before passing it to
         # Request.
         xml_submission_file.seek(0)
-        files = {'xml_submission_file': xml_submission_file}
 
-        # Combine all files altogether
-        if attachments:
-            files.update(attachments)
+        safe_create_instance(
+            username=user.username,
+            xml_file=xml_submission_file,
+            media_files=attachments if attachments else [],
+            request=request,
+        )
 
-        kc_request = requests.Request(
-            method='POST', url=self.submission_url, files=files
-        )
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
-        return self.__prepare_as_drf_response_signature(
-            kc_response, expected_response_format='xml'
-        )
+        return {
+            'headers': {},
+            'content_type': 'text/xml; charset=utf-8',
+            'status': status.HTTP_201_CREATED,
+        }
 
     @property
     def enketo_id(self):
@@ -709,7 +703,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self,
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
-        submission_ids: list = list,
+        submission_ids: list = None,
         request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params
     ) -> Union[Generator[dict, None, None], list]:
@@ -734,7 +728,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         See `BaseDeploymentBackend._rewrite_json_attachment_urls()`
         """
 
-        mongo_query_params['submission_ids'] = submission_ids
+        mongo_query_params['submission_ids'] = (
+            submission_ids if submission_ids else []
+        )
         params = self.validate_submission_list_params(
             user, format_type=format_type, **mongo_query_params
         )
@@ -824,7 +820,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             self.xform.has_kpi_hooks = self.asset.has_active_hooks
 
             publish_xls_form(xlsx_file, self.asset.owner, self.xform.id_string)
-
 
         # Do not call save it, asset (and its deployment) is saved right
         # after calling this method in `DeployableMixin.deploy()`
@@ -1104,19 +1099,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    # DEPRECATED
+    # @Todo DEPRECATED - to be removed
     def store_submission(
         self, user, xml_submission, submission_uuid, attachments=None
     ):
-        file_tuple = (submission_uuid, io.StringIO(xml_submission))
-        files = {'xml_submission_file': file_tuple}
-        if attachments:
-            files.update(attachments)
-        kc_request = requests.Request(
-            method='POST', url=self.submission_url, files=files
-        )
-        kc_response = self.__kobocat_proxy_request(kc_request, user=user)
-        return kc_response
+        pass
 
     @property
     def submission_count(self):
