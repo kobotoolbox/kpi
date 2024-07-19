@@ -167,7 +167,6 @@ class CustomViewStore {
    * Constructs all the parameters needed for the API call to fetch assets.
    * Left public for easier testing.
    */
-
   public constructFullQueryParams(url: URL) {
     const params = new URLSearchParams(url.search);
 
