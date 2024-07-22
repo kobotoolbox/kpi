@@ -1,10 +1,10 @@
-import {useQuery} from '@tanstack/react-query';
+import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet} from 'jsapp/js/api';
 import data from './mockAccessLogs';
 
-interface AccessLog {
+export interface AccessLog {
   source_browser: string;
   source_os: string;
   ip_address: string;
@@ -54,5 +54,6 @@ export default function useAccessLogsQuery(
   return useQuery({
     queryKey: ['accessLogs', itemLimit, pageOffset],
     queryFn: () => getAccessLogs(itemLimit, pageOffset),
+    placeholderData: keepPreviousData,
   });
 }
