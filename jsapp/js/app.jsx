@@ -3,12 +3,10 @@
  */
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
 import {Outlet} from 'react-router-dom';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {stores} from 'js/stores';
 import 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
@@ -147,7 +145,6 @@ class App extends React.Component {
   }
 }
 
-App.contextTypes = {router: PropTypes.object};
 
 reactMixin(App.prototype, Reflux.connect(pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);

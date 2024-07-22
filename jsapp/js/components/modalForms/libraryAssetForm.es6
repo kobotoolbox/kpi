@@ -6,7 +6,6 @@ import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import WrappedSelect from 'js/components/common/wrappedSelect';
-import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -294,5 +293,4 @@ export class LibraryAssetFormComponent extends React.Component {
 reactMixin(LibraryAssetFormComponent.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryAssetFormComponent.prototype, mixins.contextRouter);
 
-LibraryAssetFormComponent.contextTypes = {router: PropTypes.object};
 export const LibraryAssetForm = withRouter(LibraryAssetFormComponent);

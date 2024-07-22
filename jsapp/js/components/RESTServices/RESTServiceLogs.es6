@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
@@ -368,7 +367,3 @@ export default class RESTServiceLogs extends React.Component {
 
 reactMixin(RESTServiceLogs.prototype, Reflux.ListenerMixin);
 reactMixin(RESTServiceLogs.prototype, mixins.contextRouter);
-
-RESTServiceLogs.contextTypes = {
-  router: PropTypes.object
-};
