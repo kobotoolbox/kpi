@@ -781,6 +781,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'tr '  # Turkish
         'uk '  # Ukrainian
         'vi '  # Vietnamese
+        'yo '  # Yoruba
         'zh-hans'  # Chinese Simplified
     )
 )
