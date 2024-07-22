@@ -17,6 +17,15 @@ from .utils import user_has_paid_subscription
 
 class AccountAdapter(DefaultAccountAdapter):
 
+    def is_open_for_signup(self, request):
+        return config.REGISTRATION_OPEN
+
+    def login(self, request, user):
+        # Override django-allauth login method to use specified authentication backend
+        super().login(request, user)
+        user.backend = settings.AUTHENTICATION_BACKENDS[0]
+        login(request, user, backend=user.backend)
+
     def pre_login(self, request, user, **kwargs):
 
         if parent_response := super().pre_login(request, user, **kwargs):
@@ -61,9 +70,6 @@ class AccountAdapter(DefaultAccountAdapter):
                 context=context,
             )
 
-    def is_open_for_signup(self, request):
-        return config.REGISTRATION_OPEN
-
     def save_user(self, request, user, form, commit=True):
         # Compare allauth SignupForm with our custom field
         standard_fields = set(SignupForm().fields.keys())
@@ -85,9 +91,3 @@ class AccountAdapter(DefaultAccountAdapter):
             )
             user.set_password(password)
             user.save()
-
-    def login(self, request, user):
-        # Override django-allauth login method to use specified authentication backend
-        super().login(request, user)
-        user.backend = settings.AUTHENTICATION_BACKENDS[0]
-        login(request, user, backend=user.backend)
