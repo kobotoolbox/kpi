@@ -2,12 +2,20 @@ from django.db import models
 from django.utils import timezone
 
 
+def get_current_time():
+    """
+    Return the current time so that the timestamp is evaluated at the time of model instantiation rather than
+    at the time of class definition
+    """
+    return timezone.now()
+
+
 class AbstractTimeStampedModel(models.Model):
     """
     Abstract model to add created and modified timestamps to a model
     """
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
+    date_created = models.DateTimeField(default=get_current_time)
+    date_modified = models.DateTimeField(default=get_current_time)
 
     class Meta:
         abstract = True
