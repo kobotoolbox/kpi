@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import {createRoot} from 'react-dom/client';
 import KoboMatrix from './containers/KoboMatrix';
 import { fromJS } from 'immutable';
 
@@ -45,5 +45,6 @@ class KoboMatrixRow {
 
 export function renderKobomatrix (view, el) {
   let model = new KoboMatrixRow(view.model);
-  ReactDOM.render(<KoboMatrix model={model} />, el.get(0));
+  const root = createRoot(el.get(0));
+  root.render(<KoboMatrix model={model} />);
 }

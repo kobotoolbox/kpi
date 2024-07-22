@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -812,9 +811,5 @@ class FormLanding extends React.Component {
 
 reactMixin(FormLanding.prototype, mixins.dmix);
 reactMixin(FormLanding.prototype, Reflux.ListenerMixin);
-
-FormLanding.contextTypes = {
-  router: PropTypes.object,
-};
 
 export default withRouter(FormLanding);
