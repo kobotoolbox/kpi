@@ -1,5 +1,6 @@
 # coding: utf-8
 import logging
+import warnings
 import os
 import string
 import subprocess
@@ -1211,8 +1212,15 @@ if 'KOBOCAT_URL' in os.environ:
         os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
 
 CELERY_BROKER_URL = os.environ.get(
-    'CELERY_BROKER_URL', 'redis://change-me.invalid:6379/1'
+    'CELERY_BROKER_URL',
+    os.environ.get('KPI_BROKER_URL', 'redis://change-me.invalid:6379/1')
 )
+if 'KPI_BROKER_URL' in os.environ:
+    warnings.warn(
+        'KPI_BROKER_URL is renamed CELERY_BROKER_URL, update the environment variable.',
+        DeprecationWarning,
+    )
+
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 # Increase limits for long-running tasks
@@ -1264,8 +1272,9 @@ WEBPACK_LOADER = {
 # The default is the URL of the server. Set to blank to fit the email requirements
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 
-EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
-                               'django.core.mail.backends.filebased.EmailBackend')
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND', 'django.core.mail.backends.filebased.EmailBackend'
+)
 
 if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
     EMAIL_FILE_PATH = os.environ.get(
@@ -1302,12 +1311,19 @@ if env.str('AWS_ACCESS_KEY_ID', False):
 # Storage configuration
 STORAGES = global_settings.STORAGES
 
+default_file_storage = env.str(
+    'DEFAULT_FILE_STORAGE', env.str('KPI_DEFAULT_FILE_STORAGE', None)
+)
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
+    warnings.warn(
+        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, update the environment variable.',
+        DeprecationWarning,
+    )
+
+if default_file_storage:
 
     global_default_file_storage = STORAGES['default']['BACKEND']
-    default_file_storage = STORAGES['default']['BACKEND'] = env.str(
-        'KPI_DEFAULT_FILE_STORAGE'
-    )
+    default_file_storage = STORAGES['default']['BACKEND'] = default_file_storage
     if default_file_storage != global_default_file_storage:
         if default_file_storage.endswith('S3Boto3Storage'):
             # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
@@ -1328,8 +1344,9 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
                 'AZURE_URL_EXPIRATION_SECS', None
             )
 
-    if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
-        AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
+    aws_storage_bucket_name = env.str('AWS_STORAGE_BUCKET_NAME', env.str('KPI_AWS_STORAGE_BUCKET_NAME', None))
+    if aws_storage_bucket_name:
+        AWS_STORAGE_BUCKET_NAME = aws_storage_bucket_name
         AWS_DEFAULT_ACL = 'private'
         # django-private-storage needs its own S3 configuration
         PRIVATE_STORAGE_CLASS = \
