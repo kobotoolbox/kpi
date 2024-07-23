@@ -1309,7 +1309,7 @@ STORAGES = global_settings.STORAGES
 default_file_storage = env.str('DEFAULT_FILE_STORAGE', env.str('KPI_DEFAULT_FILE_STORAGE', None))
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
     warnings.warn(
-        "KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, update the environment variable.",
+        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, update the environment variable.',
         DeprecationWarning,
     )
 
