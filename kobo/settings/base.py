@@ -1693,23 +1693,11 @@ SUPPORT_BRIEFCASE_SUBMISSION_DATE = (
     os.environ.get('SUPPORT_BRIEFCASE_SUBMISSION_DATE') != 'True'
 )
 
-DEFAULT_VALIDATION_STATUSES = [
-    {
-        'uid': 'validation_status_not_approved',
-        'color': '#ff0000',
-        'label': 'Not Approved'
-    },
-    {
-        'uid': 'validation_status_approved',
-        'color': '#00ff00',
-        'label': 'Approved'
-    },
-    {
-        'uid': 'validation_status_on_hold',
-        'color': '#0000ff',
-        'label': 'On Hold'
-    },
-]
+DEFAULT_VALIDATION_STATUSES = {
+    'validation_status_not_approved': 'Not Approved',
+    'validation_status_approved': 'Approved',
+    'validation_status_on_hold': 'On Hold',
+}
 
 THUMB_CONF = {
     'large': 1280,

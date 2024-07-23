@@ -1,9 +1,9 @@
 import logging
+import time
 
+from django.conf import settings
 from django.db.models.signals import pre_delete, post_delete
-from kobo.apps.openrosa.apps.logger.models.instance import (
-    Instance,
-)
+
 from kobo.apps.openrosa.apps.logger.signals import (
     nullify_exports_time_of_last_submission,
     update_xform_submission_count_delete,
@@ -14,6 +14,30 @@ from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
 
 from .database_query import build_db_queries
 from ..models.xform import XForm
+from ..models.instance import Instance
+
+
+def add_validation_status_to_instance(
+    username: str, validation_status_uid: str, instance: Instance
+) -> bool:
+    """
+    Save instance validation status if it is valid.
+    To be valid, it has to belong to XForm validation statuses
+    """
+    success = False
+
+    # Payload must contain validation_status property.
+    if validation_status_uid:
+
+        validation_status = get_validation_status(
+            validation_status_uid, username
+        )
+        if validation_status:
+            instance.validation_status = validation_status
+            instance.save(update_fields=['validation_status'])
+            success = instance.parsed_instance.update_mongo(asynchronous=False)
+
+    return success
 
 
 def delete_instances(xform: XForm, request_data: dict) -> int:
@@ -67,3 +91,23 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
         )
 
     return deleted_records_count
+
+
+def get_validation_status(validation_status_uid: str, username: str) -> dict:
+    try:
+        label = settings.DEFAULT_VALIDATION_STATUSES[validation_status_uid]
+    except KeyError:
+        return {}
+
+    return {
+        'timestamp': int(time.time()),
+        'uid': validation_status_uid,
+        'by_whom': username,
+        'label': label,
+    }
+
+
+def remove_validation_status_from_instance(instance: Instance) -> bool:
+    instance.validation_status = {}
+    instance.save(update_fields=['validation_status'])
+    return instance.parsed_instance.update_mongo(asynchronous=False)

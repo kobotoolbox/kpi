@@ -25,6 +25,8 @@ from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import (
 )
 from kobo.apps.openrosa.apps.api.tools import (
     add_tags_to_instance,
+)
+from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,
     get_validation_status,
     remove_validation_status_from_instance,
@@ -562,9 +564,13 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         data = {}
 
         if request.method != 'GET':
+            username = get_real_user(request).username
+            validation_status_uid = request.data.get('validation_status.uid')
             if (
                 request.method == 'PATCH'
-                and not add_validation_status_to_instance(request, instance)
+                and not add_validation_status_to_instance(
+                    username, validation_status_uid, instance
+                )
             ):
                 http_status = status.HTTP_400_BAD_REQUEST
             elif request.method == 'DELETE':

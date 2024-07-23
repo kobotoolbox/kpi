@@ -31,6 +31,10 @@ from kobo.apps.openrosa.apps.logger.models import (
     Instance,
     XForm,
 )
+from kobo.apps.openrosa.apps.logger.utils.instance import (
+    add_validation_status_to_instance,
+    remove_validation_status_from_instance,
+)
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.apps.logger.utils.instance import delete_instances
 from kobo.apps.openrosa.libs.utils.logger_tools import safe_create_instance, publish_xls_form
@@ -324,7 +328,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             next(self.get_submissions(user, query={'_uuid': _uuid})), request
         )
 
-    # FIXME
     def edit_submission(
         self,
         xml_submission_file: File,
@@ -687,12 +690,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         except InvalidXFormException:
             return None
 
-    # FIXME Where this method is needed
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'
         return url
 
-    # FIXME where this method is needed
     def get_submission_validation_status_url(self, submission_id: int) -> str:
         url = '{detail_url}/validation_status'.format(
             detail_url=self.get_submission_detail_url(submission_id)
@@ -745,15 +746,29 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             )
         return submissions
 
-    # FIXME
     def get_validation_status(
         self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:
-        url = self.get_submission_validation_status_url(submission_id)
-        kc_request = requests.Request(method='GET', url=url)
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        submission = self.get_submission(
+            submission_id, user, fields=['_validation_status']
+        )
 
-        return self.__prepare_as_drf_response_signature(kc_response)
+        # TODO simplify response when KobocatDeploymentBackend
+        #  and MockDeploymentBackend are gone
+        if not submission:
+            return {
+                'content_type': 'application/json',
+                'status': status.HTTP_404_NOT_FOUND,
+                'data': {
+                    'detail': f'No submission found with ID: {submission_id}'
+                }
+            }
+
+        return {
+            'data': submission['_validation_status'],
+            'content_type': 'application/json',
+            'status': status.HTTP_200_OK,
+        }
 
     @property
     def mongo_userform_id(self):
@@ -1039,8 +1054,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         method: str,
     ) -> dict:
         """
-        Update validation status through KoBoCAT proxy,
-        authenticated by `user`'s API token.
+        Update validation status.
         If `method` is `DELETE`, the status is reset to `None`
 
         It returns a dictionary which can used as Response object arguments
@@ -1052,24 +1066,59 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             submission_ids=[submission_id],
         )
 
-        kc_request_params = {
-            'method': method,
-            'url': self.get_submission_validation_status_url(submission_id),
+        # TODO simplify response when KobocatDeploymentBackend
+        #  and MockDeploymentBackend are gone
+        try:
+            instance = Instance.objects.only(
+                'validation_status', 'date_modified'
+            ).get(pk=submission_id)
+        except Instance.DoesNotExist:
+            return {
+                'content_type': 'application/json',
+                'status': status.HTTP_404_NOT_FOUND,
+                'data': {
+                    'detail': f'No submission found with ID: {submission_id}'
+                }
+            }
+
+        if method == 'DELETE':
+            if remove_validation_status_from_instance(instance):
+                return {
+                    'content_type': 'application/json',
+                    'status': status.HTTP_204_NO_CONTENT,
+                }
+            else:
+                return {
+                    'content_type': 'application/json',
+                    'status': status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    'data': {
+                        'detail': 'Could not update MongoDB'
+                    }
+                }
+
+        validation_status_uid = data.get('validation_status.uid')
+
+        if not add_validation_status_to_instance(
+            user.username, validation_status_uid, instance
+        ):
+            return {
+                'content_type': 'application/json',
+                'status': status.HTTP_400_BAD_REQUEST,
+                'data': {
+                    'detail': f'Invalid validation status: `{validation_status_uid}`'
+                }
+            }
+        return {
+            'data': instance.validation_status,
+            'content_type': 'application/json',
+            'status': status.HTTP_200_OK,
         }
-
-        if method == 'PATCH':
-            kc_request_params.update({'json': data})
-
-        kc_request = requests.Request(**kc_request_params)
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
-        return self.__prepare_as_drf_response_signature(kc_response)
 
     def set_validation_statuses(
         self, user: settings.AUTH_USER_MODEL, data: dict
     ) -> dict:
         """
-        Bulk update validation status for provided submissions through
-        KoBoCAT proxy, authenticated by `user`'s API token.
+        Bulk update validation status.
 
         `data` should contain either the submission ids or the query to
         retrieve the subset of submissions chosen by then user.
@@ -1086,12 +1135,30 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
+        # Otherwise, they have full access.
         if submission_ids:
             # Remove query from `data` because all the submission ids have been
             # already retrieved
             data.pop('query', None)
             data['submission_ids'] = submission_ids
+
+
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have full access.
+        if submission_ids:
+            # Remove query from `data` because all the submission ids have been
+            # already retrieved
+            data.pop('query', None)
+            data['submission_ids'] = submission_ids
+
+        deleted_count = delete_instances(self.xform, data)
+
+        return {
+            'data': {'detail': f'{deleted_count} submissions have been deleted'},
+            'content_type': 'application/json',
+            'status': status.HTTP_200_OK,
+        }
 
         # `PATCH` KC even if KPI receives `DELETE`
         url = self.submission_list_url
@@ -1099,7 +1166,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    # @Todo DEPRECATED - to be removed
+    # @Todo DEPRECATED - to be removed when KobocatDeploymentBackend is gone
     def store_submission(
         self, user, xml_submission, submission_uuid, attachments=None
     ):
@@ -1334,11 +1401,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
-            - self.xform.attachment_storage_bytes
+                                     - self.xform.attachment_storage_bytes
         )
         UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
-            + self.xform.attachment_storage_bytes
+                                     + self.xform.attachment_storage_bytes
         )
 
     def _delete_openrosa_metadata(

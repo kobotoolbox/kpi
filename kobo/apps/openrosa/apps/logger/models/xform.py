@@ -303,24 +303,5 @@ class XForm(BaseModel):
                     return BytesIO(ff.read())
 
     @property
-    def settings(self):
-        """
-        Mimic Asset settings.
-        :return: Object
-        """
-        # As soon as we need to add custom validation statuses in Asset settings,
-        # validation in add_validation_status_to_instance
-        # (kobocat/kobo.apps.openrosa/apps/api/tools.py) should still work
-        default_validation_statuses = getattr(settings, "DEFAULT_VALIDATION_STATUSES", [])
-
-        # Later purpose, default_validation_statuses could be merged with a custom validation statuses dict
-        # for example:
-        #   self._validation_statuses.update(default_validation_statuses)
-
-        return {
-            "validation_statuses": default_validation_statuses
-        }
-
-    @property
     def xml_with_disclaimer(self):
         return XMLFormWithDisclaimer(self).get_object().xml
