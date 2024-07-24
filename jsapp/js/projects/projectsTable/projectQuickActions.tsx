@@ -105,7 +105,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
 
       {/* Delete */}
       <Button
-        isDisabled={!isChangingPossible}
+        isDisabled={!isManagingPossible}
         type='bare'
         color='storm'
         size='s'
@@ -120,7 +120,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
           )
         }
         tooltip={
-          isChangingPossible ? t('Delete 1 project') : t('Delete project')
+          isManagingPossible ? t('Delete 1 project') : t('Delete project')
         }
         tooltipPosition='right'
       />
