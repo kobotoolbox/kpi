@@ -72,6 +72,8 @@ function getSubmissionTitle(props) {
  *
  * There are also two other important methods: `hideModal` and `switchModal`.
  *
+ * The modal rendering is being handled by `app.jsx`.
+ *
  * @prop {object} params - to be passed to the custom modal component
  */
 class BigModal extends React.Component {

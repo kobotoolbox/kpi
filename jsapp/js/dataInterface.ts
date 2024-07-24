@@ -206,6 +206,12 @@ export interface SubmissionResponse {
   };
   _version_: string;
   _xform_id_string: string;
+    /**
+   * If `background-audio` is enabled for this project, submission will have it
+   * here. The value is just the filename (with extension), and the whole
+   * attachment object is to be found in `_attachments` array.
+   */
+  'background-audio'?: string;
   deviceid?: string;
   end?: string;
   'formhub/uuid': string;

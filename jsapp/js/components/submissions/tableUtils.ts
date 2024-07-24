@@ -158,6 +158,11 @@ export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   }
 }
 
+/**
+ * Finds what name is being used for background audio question. By default it's
+ * going to be "background-audio", but in case user changes it, we need to use
+ * this function :shrug:.
+ */
 export function getBackgroundAudioQuestionName(
   asset: AssetResponse
 ): string | null {

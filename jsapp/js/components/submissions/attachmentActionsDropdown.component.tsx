@@ -23,6 +23,12 @@ interface AttachmentActionsDropdownProps {
   questionType: AnyRowTypeName;
   attachmentUrl: string;
   submissionData: SubmissionResponse;
+  /**
+   * Being called after attachment was deleted succesfully. Is meant to be used
+   * by parent component to reflect this change in the data it holds, and
+   * possibly in other places in UI.
+   */
+  onDeleted: () => void;
 }
 
 /**
@@ -68,10 +74,22 @@ export default function AttachmentActionsDropdown(
 
       // TODO: We would need to confirm from Back-end how would the deleted
       // attachment be marked
-      setIsDeletePending(false);
-      toggleDeleteModal();
-      utils.notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName));
+      onAttachmentDeleted();
     }, 2000);
+  }
+
+  /**
+   * Stops pending animation, closes confirmation prompt and displays
+   * a notification. Also let the parent know through prop callback.
+   */
+  function onAttachmentDeleted() {
+    setIsDeletePending(false);
+    toggleDeleteModal();
+    utils.notify(
+      t('##Attachment_type## deleted')
+      .replace('##Attachment_type##', attachmentTypeName)
+    );
+    props.onDeleted();
   }
 
   function requestDownloadFile() {
