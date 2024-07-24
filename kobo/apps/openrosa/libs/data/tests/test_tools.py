@@ -35,13 +35,13 @@ class TestTools(TestBase):
             self.assertEqual([field, count_key], sorted(result.keys()))
             self.assertEqual(result[count_key], count)
 
+    @patch('django.utils.timezone.now')
     @patch('kobo.apps.openrosa.apps.logger.models.instance.submission_time')
     def test_get_form_submissions_grouped_by_field_datetime_to_date(
-            self, mock_time):
+            self, mock_date_created, mock_time):
         now = datetime(2014, 1, 1)
-        times = [now, now + timedelta(seconds=1), now + timedelta(seconds=2),
-                 now + timedelta(seconds=3)]
-        mock_time.side_effect = times
+        mock_time.side_effect = lambda: now
+        mock_date_created.return_value = now
         self._make_submissions()
 
         count_key = 'count'
