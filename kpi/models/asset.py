@@ -153,12 +153,14 @@ class KpiTaggableManager(_TaggableManager):
         super().add(*tags_out, **kwargs)
 
 
-class Asset(ObjectPermissionMixin,
-            DeployableMixin,
-            XlsExportableMixin,
-            FormpackXLSFormUtilsMixin,
-            StandardizeSearchableFieldMixin,
-            AbstractTimeStampedModel):
+class Asset(
+    ObjectPermissionMixin,
+    DeployableMixin,
+    XlsExportableMixin,
+    FormpackXLSFormUtilsMixin,
+    StandardizeSearchableFieldMixin,
+    AbstractTimeStampedModel,
+):
     name = models.CharField(max_length=255, blank=True, default='')
     date_deployed = models.DateTimeField(null=True)
     content = models.JSONField(default=dict)

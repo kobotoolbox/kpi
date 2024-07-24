@@ -1,8 +1,6 @@
 from django.conf import settings
 from django.db import models
 
-from django.utils.timezone import now
-
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 

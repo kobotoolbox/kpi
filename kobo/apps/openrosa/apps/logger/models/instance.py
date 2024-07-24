@@ -1,8 +1,6 @@
 # coding: utf-8
 from hashlib import sha256
 
-from kpi.models.abstract_models import AbstractTimeStampedModel
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -39,6 +37,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     SUBMITTED_BY
 )
 from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
+from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
 # need to establish id_string of the xform before we run get_dict since

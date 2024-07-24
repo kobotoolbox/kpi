@@ -117,9 +117,6 @@ class AssetUserPartialPermission(AbstractTimeStampedModel):
     )
     permissions = models.JSONField(default=dict)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
     @staticmethod
     def update_partial_perms_to_include_implied(
         asset: 'kpi.models.Asset', partial_perms: PartialPermissions

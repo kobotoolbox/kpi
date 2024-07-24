@@ -17,9 +17,6 @@ class AssetExportSettings(AbstractTimeStampedModel):
     name = models.CharField(max_length=255, blank=True, default='')
     export_settings = models.JSONField(default=dict)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
     class Meta:
         ordering = ['-date_modified']
         unique_together = ('asset', 'name')
