@@ -23,7 +23,7 @@ class AccountAdapter(DefaultAccountAdapter):
     def login(self, request, user):
         # Override django-allauth login method to use specified authentication backend
         super().login(request, user)
-        user.backend = settings.AUTHENTICATION_BACKENDS[0]
+        # user.backend = settings.AUTHENTICATION_BACKENDS[0]
         login(request, user, backend=user.backend)
 
     def pre_login(self, request, user, **kwargs):
