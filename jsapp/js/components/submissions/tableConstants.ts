@@ -70,7 +70,7 @@ Object.freeze(CELLS_WIDTH_OVERRIDES);
  * For these question types the UI will display a dropdown filter in Data Table
  * for the matching column.
  */
-export const DROPDOWN_FILTER_QUESTION_TYPES = [
+export const DROPDOWN_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
   QuestionTypeName.select_multiple,
   QuestionTypeName.select_one,
 ];
