@@ -153,6 +153,12 @@ export interface SubmissionAttachment {
   instance: number;
   xform: number;
   id: number;
+  // TODO: this is to be added by Back end, so we need to verify it later
+  /**
+   * The flag makes it easier for UI to know that the attachment existed at some
+   * point, and was deleted - in contrast to never existing.
+   */
+  is_deleted?: boolean;
 }
 
 interface SubmissionSupplementalDetails {
