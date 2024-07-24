@@ -6,13 +6,14 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Optional
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Permission
 from django.db import transaction
 from django.urls import Resolver404
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PREFIX_PARTIAL_PERMS,
@@ -34,7 +35,7 @@ ASSIGN_OWNER_ERROR_MESSAGE = "Owner's permissions cannot be assigned explicitly"
 class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     user = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail',
+        view_name='user-kpi-detail',
         lookup_field='username',
         queryset=User.objects.all(),
         style={'base_template': 'input.html'},  # Render as a simple text box

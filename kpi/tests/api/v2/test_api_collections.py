@@ -1,12 +1,13 @@
 # coding: utf-8
 import re
 
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils.translation import gettext as t
 from rest_framework import status
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,

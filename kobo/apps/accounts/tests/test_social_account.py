@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import reverse
 from model_bakery import baker
 from rest_framework.test import APITestCase
@@ -7,7 +8,7 @@ from kpi.utils.fuzzy_int import FuzzyInt
 
 class AccountsEmailTestCase(APITestCase):
     def setUp(self):
-        self.user = baker.make('auth.User')
+        self.user = baker.make(settings.AUTH_USER_MODEL)
         self.client.force_login(self.user)
         self.url_list = reverse('socialaccount-list')
 

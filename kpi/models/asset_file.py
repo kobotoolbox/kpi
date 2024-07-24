@@ -3,6 +3,7 @@ import posixpath
 from mimetypes import guess_type
 from typing import Optional
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from rest_framework.reverse import reverse
@@ -95,7 +96,7 @@ class AssetFile(models.Model, AbstractFormMedia):
                               on_delete=models.CASCADE)
     # Keep track of the uploading user, who could be anyone with `change_asset`
     # rights, not just the asset owner
-    user = models.ForeignKey('auth.User', related_name='asset_files',
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='asset_files',
                              on_delete=models.CASCADE)
     file_type = models.CharField(choices=TYPE_CHOICES, max_length=32)
     description = models.CharField(max_length=255)
