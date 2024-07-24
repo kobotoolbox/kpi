@@ -2,7 +2,6 @@
 from allauth.account.models import EmailAddress
 from constance.test import override_config
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
 from django.test import override_settings
@@ -12,6 +11,7 @@ from model_bakery import baker
 from rest_framework import status
 from trench.utils import get_mfa_model
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.accounts.mfa.forms import MfaLoginForm
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.tests.kpi_test_case import KpiTestCase

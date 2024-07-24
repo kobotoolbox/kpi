@@ -1,10 +1,10 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from trench.settings import trench_settings
 from trench.utils import get_mfa_model
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import BaseTestCase
 
 

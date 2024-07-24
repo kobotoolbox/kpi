@@ -11,10 +11,10 @@ import datetime
 import mock
 import openpyxl
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.test import TestCase
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
 from kpi.constants import (
     PERM_CHANGE_ASSET,

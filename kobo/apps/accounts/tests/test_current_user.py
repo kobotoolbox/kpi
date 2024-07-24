@@ -4,6 +4,7 @@ import re
 import constance
 import dateutil
 from constance.test import override_config
+from django.conf import settings
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
@@ -16,7 +17,7 @@ from kpi.utils.fuzzy_int import FuzzyInt
 
 class CurrentUserAPITestCase(APITestCase):
     def setUp(self):
-        self.user = baker.make('auth.User', username='spongebob', email='me@sponge.bob')
+        self.user = baker.make(settings.AUTH_USER_MODEL, username='spongebob', email='me@sponge.bob')
         self.client.force_login(self.user)
         self.url = reverse('currentuser-detail')
 

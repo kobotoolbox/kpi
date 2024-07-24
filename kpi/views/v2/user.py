@@ -1,11 +1,11 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.pagination import LimitOffsetPagination
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.filters import SearchFilter
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.permissions import IsAuthenticated

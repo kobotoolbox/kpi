@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.db import transaction
 
 from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
-from kpi.deployment_backends.kc_access.shadow_models import KobocatFormDisclaimer
 from .models import (
     FormDisclaimer,
     OverriddenFormDisclaimer,
@@ -44,7 +43,6 @@ class FormDisclaimerAdmin(MarkdownxModelAdminBase):
         to_delete_ids = list(queryset.values_list('pk', flat=True))
         with transaction.atomic():
             super().delete_queryset(request, queryset)
-            KobocatFormDisclaimer.objects.filter(pk__in=to_delete_ids).delete()
 
 
 class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):

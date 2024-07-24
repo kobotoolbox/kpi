@@ -25,7 +25,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         style={'base_template': 'input.html'}  # Render as a simple text box
     )
     owner = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail',
+        view_name='user-kpi-detail',
         lookup_field='username',
         read_only=True
     )

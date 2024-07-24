@@ -27,7 +27,7 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'), args=[self.anotheruser.username]
+                self._get_endpoint('user-kpi-detail'), args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid],
         }
