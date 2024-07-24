@@ -1,3 +1,4 @@
+import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
