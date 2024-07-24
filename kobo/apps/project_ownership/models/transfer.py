@@ -331,9 +331,6 @@ class TransferStatus(AbstractTimeStampedModel):
             f'{TransferStatusChoices(self.status).label}'
         )
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
     @classmethod
     def update_status(
         cls,

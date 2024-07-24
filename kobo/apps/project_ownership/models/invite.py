@@ -38,6 +38,3 @@ class Invite(AbstractTimeStampedModel):
             f'{self.recipient.username} '
             f'({InviteStatusChoices(self.status)})'
         )
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)

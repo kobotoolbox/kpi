@@ -55,9 +55,6 @@ class Hook(AbstractTimeStampedModel):
         self.__totals = {}
         super().__init__(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return "%s:%s - %s" % (self.asset, self.name, self.endpoint)
 
