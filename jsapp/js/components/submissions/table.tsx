@@ -423,8 +423,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen);
   }
 
-  // Matrix response values are flat while repeat groups are nested
-  // under a parent key, but their column keys will both contain `/'.
+  // We need to distinguish between repeated groups with nested values
+  // and other question types that use a flat nested key (i.e. with '/').
   // If submission response contains the parent key, we should use that.
   _selectNestedRow(
     row: SubmissionResponse,
