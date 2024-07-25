@@ -16,25 +16,7 @@ User = get_user_model()
 
 # from kobo.apps.openrosa.apps.main.models import UserProfile
 # from kobo.apps.kobo_auth.shortcuts import User
-
-# TODO refactor this and use `SOCIALACCOUNT_PROVIDERS` at only one place
-#   see test_templatetags.py
-
-SOCIALACCOUNT_PROVIDERS = {
-    'openid_connect': {
-        'SERVERS': [
-            {
-                'id': 'test-app',
-                'name': 'Test App',
-                'server_url': 'http://testserver/oauth',
-                'APP': {
-                    'client_id': 'test.service.id',
-                    'secret': 'test.service.secret',
-                },
-            }
-        ]
-    }
-}
+from .constants import SOCIALACCOUNT_PROVIDERS
 
 
 class SSOLoginTest(TestCase):
