@@ -21,15 +21,15 @@ User = get_user_model()
 #   see test_templatetags.py
 
 SOCIALACCOUNT_PROVIDERS = {
-    "openid_connect": {
-        "SERVERS": [
+    'openid_connect': {
+        'SERVERS': [
             {
-                "id": "test-app",
-                "name": "Test App",
-                "server_url": "http://testserver/oauth",
-                "APP": {
-                    "client_id": "test.service.id",
-                    "secret": "test.service.secret",
+                'id': 'test-app',
+                'name': 'Test App',
+                'server_url': 'http://testserver/oauth',
+                'APP': {
+                    'client_id': 'test.service.id',
+                    'secret': 'test.service.secret',
                 },
             }
         ]
@@ -56,7 +56,7 @@ class SSOLoginTest(TestCase):
 
         self.extra_data = {
             'username': 'testuser',
-            'sub': 'testuser',
+            'sub': 'testuser',  # `sub` is required by django allauth
             'preferred_username': 'testuser',
             'email': 'testuser@testserver',
         }
