@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
 import SubmissionDataList from 'js/components/submissions/submissionDataList';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import type {AssetContent} from 'js/dataInterface';
+import type {AssetContent, AssetResponse} from 'js/dataInterface';
 import {META_QUESTION_TYPES, ADDITIONAL_SUBMISSION_PROPS} from 'js/constants';
 import styles from './sidebarSubmissionData.module.scss';
 
 interface SidebarSubmissionDataProps {
-  asset: AssetContent | undefined;
+  asset: AssetResponse;
 }
 
 export default function SidebarSubmissionData(
@@ -16,7 +16,7 @@ export default function SidebarSubmissionData(
 
   const submissionData = store.getSubmissionData();
 
-  if (!props.asset) {
+  if (!props.asset.content) {
     return null;
   }
 
@@ -27,11 +27,13 @@ export default function SidebarSubmissionData(
 
   /** We want only the processing related data (the actual form questions) */
   function getQuestionsToHide(): string[] {
-    return [
+    const metaQuestions = [
       singleProcessingStore.currentQuestionName || '',
       ...Object.keys(ADDITIONAL_SUBMISSION_PROPS),
       ...Object.keys(META_QUESTION_TYPES),
     ];
+
+    return metaQuestions.concat(store.getHiddenSidebarQuestions());
   }
 
   return (
@@ -39,7 +41,7 @@ export default function SidebarSubmissionData(
       <div className={styles.dataListBody}>
         {submissionData && (
           <SubmissionDataList
-            assetContent={props.asset}
+            asset={props.asset}
             submissionData={submissionData}
             hideQuestions={getQuestionsToHide()}
             hideGroups

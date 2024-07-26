@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use 'js/components/common/button';
@@ -89,9 +89,23 @@ $k-select-menu-padding: sizes.$x6;
 
 .k-select__option {
   @include mixins.buttonReset;
+  font-weight: 400;
+  position: relative;
+
+  &:hover,
+  &.k-select__option--selected {
+    color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-gray-96;
+  }
+
+  &:focus-visible {
+    @include mixins.default-ui-focus;
+    // Needed so that option--selected never appears above focus styles
+    z-index: 1;
+  }
 
   .k-icon {
-    color: colors.$kobo-gray-85;
+    color: inherit;
   }
 }
 
@@ -132,23 +146,6 @@ $k-select-menu-padding: sizes.$x6;
     .k-select__trigger {
       background-color: colors.$kobo-light-red;
     }
-  }
-}
-
-.k-select__option {
-  font-weight: 500;
-  position: relative;
-
-  &:hover,
-  &.k-select__option--selected {
-    color: colors.$kobo-gray-24;
-    background-color: colors.$kobo-gray-96;
-  }
-
-  &:focus-visible {
-    @include mixins.default-ui-focus;
-    // Needed so that option--selected never appears above focus styles
-    z-index: 1;
   }
 }
 
@@ -237,7 +234,7 @@ $k-select-menu-padding: sizes.$x6;
 .k-select.k-select--type-gray {
   &.k-select--is-menu-visible {
     .k-select__trigger {
-      border-color: colors.$kobo-alt-blue;
+      border-color: colors.$kobo-mid-blue;
 
       &:focus-within {
         @include mixins.default-ui-focus;
@@ -257,25 +254,25 @@ $k-select-menu-padding: sizes.$x6;
 
 .k-select.k-select--type-blue {
   .k-select__trigger {
-    background-color: colors.$kobo-light-blue;
+    background-color: colors.$kobo-bg-blue;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
     color: colors.$kobo-gray-24;
-    background-color: darken(colors.$kobo-light-blue, 2);
+    background-color: darken(colors.$kobo-bg-blue, 2);
   }
 }
 
 .k-select.k-select--type-gray {
   .k-select__trigger {
-    background-color: colors.$kobo-cloud;
+    background-color: colors.$kobo-light-storm;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
     color: colors.$kobo-gray-24;
-    background-color: darken(colors.$kobo-cloud, 2);
+    background-color: darken(colors.$kobo-light-storm, 2);
   }
 }
 

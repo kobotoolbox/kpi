@@ -20,8 +20,8 @@ def external_service_tokens(request):
     out = {}
     if settings.GOOGLE_ANALYTICS_TOKEN:
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
-    if settings.RAVEN_JS_DSN:
-        out['raven_js_dsn'] = settings.RAVEN_JS_DSN
+    if settings.SENTRY_JS_DSN:
+        out['sentry_js_dsn'] = settings.SENTRY_JS_DSN
     return out
 
 
@@ -31,6 +31,11 @@ def email(request):
     out['kpi_protocol'] = request.META.get('wsgi.url_scheme', 'http')
     return out
 
+
+def kobocat(request):
+    return {
+        'koboform_url': settings.KOBOFORM_URL,
+    }
 
 def mfa(request):
     def get_mfa_help_text():

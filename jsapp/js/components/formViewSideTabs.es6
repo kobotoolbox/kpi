@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -46,13 +45,18 @@ class FormViewSideTabs extends Reflux.Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.unlisteners = [];
     autoBind(this);
   }
 
   componentDidMount() {
     // On initial load use the possibly stored asset.
-    this.setState({asset: assetStore.getAsset(this.currentAssetID())})
-    this.listenTo(assetStore, this.assetLoad);
+    this.setState({asset: assetStore.getAsset(this.currentAssetID())});
+    this.unlisteners.push(assetStore.listen(this.assetLoad, this));
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   assetLoad(data) {
@@ -201,9 +205,5 @@ class FormViewSideTabs extends Reflux.Component {
 
 reactMixin(FormViewSideTabs.prototype, Reflux.ListenerMixin);
 reactMixin(FormViewSideTabs.prototype, mixins.contextRouter);
-
-FormViewSideTabs.contextTypes = {
-  router: PropTypes.object,
-};
 
 export default withRouter(FormViewSideTabs);

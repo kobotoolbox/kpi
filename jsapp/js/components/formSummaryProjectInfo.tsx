@@ -82,7 +82,7 @@ export default function FormSummaryProjectInfo(
           {/* status */}
           <bem.FormView__cell m='padding'>
             <bem.FormView__label>{t('Status')}</bem.FormView__label>
-            <AssetStatusBadge asset={props.asset} />
+            <AssetStatusBadge deploymentStatus={props.asset.deployment_status}/>
           </bem.FormView__cell>
 
           {/* questions count */}

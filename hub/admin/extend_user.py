@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+from kobo.apps.accounts.mfa.models import MfaMethod
 from kobo.apps.accounts.validators import (
     USERNAME_MAX_LENGTH,
     USERNAME_INVALID_MESSAGE,
@@ -25,11 +26,22 @@ from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.deployment_backends.kc_access.shadow_models import (
-    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
+    KobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import AssetDeploymentStatus
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
+
+
+def validate_superuser_auth(obj) -> bool:
+    if (
+        obj.is_superuser
+        and config.SUPERUSER_AUTH_ENFORCEMENT
+        and obj.has_usable_password()
+        and not MfaMethod.objects.filter(user=obj, is_active=True).exists()
+    ):
+        return False
+    return True
 
 
 class UserChangeForm(DjangoUserChangeForm):
@@ -53,6 +65,10 @@ class UserChangeForm(DjangoUserChangeForm):
                 f'User is in <a href="{url}">trash</a> and cannot be reactivated'
                 f' from here.'
             ))
+        if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(self.instance):
+            raise ValidationError(
+                "Superusers with a usable password must enable MFA."
+            )
 
         return cleaned_data
 
@@ -241,7 +257,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         displayed in the Django admin user changelist page
         """
         today = timezone.now().date()
-        instances = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+        instances = KobocatMonthlyXFormSubmissionCounter.objects.filter(
             user_id=obj.id,
             year=today.year,
             month=today.month,

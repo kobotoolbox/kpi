@@ -1,6 +1,6 @@
 @use "sass:color";
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // ==========================================================================
 // Card (incl. Header and Expanded)
@@ -69,6 +69,10 @@
               font-size: 15px;
             }
         }
+    }
+
+    .card__attr--file {
+      margin: 0;
     }
 
     .card__header-title,

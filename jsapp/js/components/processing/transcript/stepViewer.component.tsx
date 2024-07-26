@@ -4,6 +4,7 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import {destroyConfirm} from 'js/alertify';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
 
 export default function StepViewer() {
   function openEditor() {
@@ -29,27 +30,31 @@ export default function StepViewer() {
         <nav className={bodyStyles.transxHeaderButtons}>
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             startIcon='trash'
             onClick={deleteTranscript}
             tooltip={t('Delete')}
-            isPending={singleProcessingStore.isFetchingData}
+            isPending={singleProcessingStore.data.isFetchingData}
+            isDisabled={!hasManagePermissionsToCurrentAsset()}
           />
         </nav>
       </header>
 
-      <article className={bodyStyles.text}>
+      <article className={bodyStyles.text} dir='auto'>
         {singleProcessingStore.getTranscript()?.value}
       </article>
     </div>

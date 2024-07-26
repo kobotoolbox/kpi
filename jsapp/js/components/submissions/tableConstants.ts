@@ -1,9 +1,11 @@
 import {
   createEnum,
-  QUESTION_TYPES,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
+  QuestionTypeName,
+  MiscRowTypeName,
 } from 'js/constants';
+import type {AnyRowTypeName} from 'js/constants';
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
 
@@ -27,10 +29,10 @@ export const EXCLUDED_COLUMNS = [
   '_validation_status',
 ];
 
-export const SORT_VALUES = createEnum([
-  'ASCENDING',
-  'DESCENDING',
-]);
+export enum SortValues {
+  ASCENDING = 'ASCENDING',
+  DESCENDING = 'DESCENDING',
+}
 
 // This is the setting object name from `asset.settings`
 export const DATA_TABLE_SETTING = 'data-table';
@@ -45,10 +47,9 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
 });
 
 export const TABLE_MEDIA_TYPES = createEnum([
-  QUESTION_TYPES.image.id,
-  QUESTION_TYPES.audio.id,
-  QUESTION_TYPES.video.id,
-  QUESTION_TYPES.text.id,
+  QuestionTypeName.image,
+  QuestionTypeName.audio,
+  QuestionTypeName.video,
   META_QUESTION_TYPES['background-audio'],
 ]);
 
@@ -59,21 +60,42 @@ CELLS_WIDTH_OVERRIDES[VALIDATION_STATUS_ID_PROP] = 125;
 CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.start] = 110;
 CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.end] = 110;
 CELLS_WIDTH_OVERRIDES[ADDITIONAL_SUBMISSION_PROPS._id] = 100;
-CELLS_WIDTH_OVERRIDES[QUESTION_TYPES.image.id] = 110;
-CELLS_WIDTH_OVERRIDES[QUESTION_TYPES.audio.id] = 170;
-CELLS_WIDTH_OVERRIDES[QUESTION_TYPES.video.id] = 110;
+CELLS_WIDTH_OVERRIDES[QuestionTypeName.image] = 110;
+CELLS_WIDTH_OVERRIDES[QuestionTypeName.audio] = 170;
+CELLS_WIDTH_OVERRIDES[QuestionTypeName.video] = 110;
 CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES['background-audio']] = 170;
 Object.freeze(CELLS_WIDTH_OVERRIDES);
 
-export const TEXT_FILTER_QUESTION_TYPES = [
-  QUESTION_TYPES.text.id,
-  QUESTION_TYPES.integer.id,
-  QUESTION_TYPES.decimal.id,
-  QUESTION_TYPES.date.id,
-  QUESTION_TYPES.time.id,
-  QUESTION_TYPES.datetime.id,
-  QUESTION_TYPES.barcode.id,
-  QUESTION_TYPES.calculate.id,
+/**
+ * For these question types the UI will display a dropdown filter in Data Table
+ * for the matching column.
+ */
+export const DROPDOWN_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
+  QuestionTypeName.select_multiple,
+  QuestionTypeName.select_one,
+];
+
+/**
+ * For these question types the UI will display a text filter in Data Table for
+ * the matching column.
+ */
+export const TEXT_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
+  QuestionTypeName.barcode,
+  QuestionTypeName.calculate,
+  QuestionTypeName.date,
+  QuestionTypeName.datetime,
+  QuestionTypeName.decimal,
+  QuestionTypeName.integer,
+  QuestionTypeName.range,
+  QuestionTypeName.rank,
+  QuestionTypeName.score,
+  // TODO: for now there is no code in `table.es6` that makes the choices from
+  // file available there, so we fallback to text filter
+  QuestionTypeName.select_multiple_from_file,
+  QuestionTypeName.select_one_from_file,
+  // ENDTODO
+  QuestionTypeName.text,
+  QuestionTypeName.time,
   META_QUESTION_TYPES.start,
   META_QUESTION_TYPES.end,
   META_QUESTION_TYPES.username,
@@ -81,12 +103,37 @@ export const TEXT_FILTER_QUESTION_TYPES = [
   META_QUESTION_TYPES.phonenumber,
   META_QUESTION_TYPES.today,
   META_QUESTION_TYPES['background-audio'],
+  MiscRowTypeName.score__row,
+  MiscRowTypeName.rank__level,
 ];
 
+/**
+ * For these question ids the UI will display a text filter in Data Table for
+ * the matching column. We need this, because these are additional submission
+ * properties, so they don't have a question type attached to them.
+ */
 export const TEXT_FILTER_QUESTION_IDS = [
   '__version__',
   ADDITIONAL_SUBMISSION_PROPS._id,
   ADDITIONAL_SUBMISSION_PROPS._uuid,
   ADDITIONAL_SUBMISSION_PROPS._submission_time,
   ADDITIONAL_SUBMISSION_PROPS._submitted_by,
+];
+
+/**
+ * These are question types that will be filtered by the exact filter value
+ * (i.e. filter value is exactly the response). Any question type not on this
+ * list will be filtered by responses that include the value (i.e. filter value
+ * is part of the response).
+ *
+ * Every type that is not listed here is using "inexact" or "partial" match.
+ */
+export const FILTER_EXACT_TYPES: AnyRowTypeName[] = [
+  QuestionTypeName.decimal,
+  QuestionTypeName.integer,
+  QuestionTypeName.range,
+  QuestionTypeName.rank,
+  QuestionTypeName.score,
+  QuestionTypeName.select_one,
+  QuestionTypeName.select_one_from_file,
 ];

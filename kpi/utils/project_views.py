@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Union
 
+from django.conf import settings
 from django.db.models import Q
 from django_request_cache import cache_for_request
 
@@ -12,7 +13,7 @@ from kpi.utils.object_permission import get_database_user
 
 @cache_for_request
 def get_project_view_user_permissions_for_asset(
-    asset: 'models.Asset', user: Union['auth.User', 'auth.AnonymousUser']
+    asset: 'models.Asset', user: Union[settings.AUTH_USER_MODEL, 'auth.AnonymousUser']
 ) -> list[str]:
     """
     Returns a flat list of permissions the user has available for a specified
@@ -36,7 +37,7 @@ def get_project_view_user_permissions_for_asset(
 @cache_for_request
 def user_has_project_view_asset_perm(
     asset: 'models.Asset',
-    user: Union['auth.User', 'auth.AnonymousUser'],
+    user: Union[settings.AUTH_USER_MODEL, 'auth.AnonymousUser'],
     perm: str,
 ) -> bool:
     """
@@ -47,7 +48,7 @@ def user_has_project_view_asset_perm(
 
 
 @cache_for_request
-def user_has_view_perms(user: 'auth.User', view: str) -> bool:
+def user_has_view_perms(user: settings.AUTH_USER_MODEL, view: str) -> bool:
     """
     Returns True if user has any permissions permission to a specified view
     """

@@ -10,24 +10,25 @@ describe('Delete Project.', function () {
 
   it('Cancels deleting a project', function () {
 
-    cy.get('[data-cy="buttons"]')
-      .invoke('attr', 'style', 'visibility: visible;')
+    // Select the project to activate the "project actions" buttons,
+    // then click the 'delete' button.
+    cy.get('[data-field="checkbox"] .checkbox__input')
+      .should('exist')
+      .click()
       .then(() => {
-        cy.get('[data-tip="More actions"]')
+        cy.get('[aria-label="Delete 1 project"]')
           .should('exist')
           .click()
       })
 
-    cy.get('a[data-action="delete"]')
-      .should('exist')
-      .click()
-
-    cy.get('[data-cy="checkbox"]')
+    // Check every checkbox in the confirmation modal,
+    // then click the confirmation "Delete" button
+    cy.get('  .ajs-dialog [data-cy="checkbox"]')
     .each(($box) => {
       cy.wrap($box)
         .click()
     }).then(() =>
-      cy.get('[data-cy="delete"]')
+      cy.get('.ajs-dialog [data-cy="delete"]')
         .click()
     )
 

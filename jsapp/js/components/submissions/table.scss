@@ -1,7 +1,9 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/z-indexes';
+@use 'scss/breakpoints';
 @use 'js/components/common/checkbox';
 @use 'sass:color';
+@use 'scss/mixins';
 
 // These are custom styles for Table View table.
 
@@ -21,7 +23,7 @@ $s-data-table-font: 13px;
   background: colors.$kobo-white;
 
   .form-view__group--table-header {
-    padding: 10px 0px 0px 0px;
+    padding: 15px 0px 5px 0px;
     display: flex;
     justify-content: space-between;
     align-content: center;
@@ -33,12 +35,8 @@ $s-data-table-font: 13px;
     }
 
     .form-view__item--table-buttons {
-      text-align: right;
-
-      button {
-        overflow: visible;
-        margin-left: 10px;
-      }
+      @include mixins.centerRowFlex;
+      gap: 5px;
     }
   }
 }
@@ -82,6 +80,7 @@ $s-data-table-font: 13px;
       justify-content: space-between;
       align-items: flex-end;
       height: 100%;
+      flex-wrap: wrap; // for HXL tags
     }
 
     .column-header-title {
@@ -130,31 +129,6 @@ $s-data-table-font: 13px;
         white-space: initial;
         text-overflow: initial;
         overflow: initial;
-      }
-
-      .rt-sub-actions {
-        .table-bulk-checkbox {
-          position: absolute;
-          top: 0;
-          left: 0;
-          height: $data-table-row-height;
-
-          .popover-menu {
-            margin-top: 10px;
-
-            .popover-menu__toggle::after {
-              content: '\25BC';
-              font-size: 16px;
-              display: inline-block;
-              vertical-align: 1px;
-              padding: 0 5px 0 35px;
-            }
-
-            .popover-menu__content {
-              left: 5px;
-            }
-          }
-        }
       }
 
       .table-filter-input {
@@ -206,7 +180,7 @@ $s-data-table-font: 13px;
     .rt-resizable-header-content {
       overflow: visible;
       text-overflow: inherit;
-      min-height: $data-table-row-height - (2 * 5px);;
+      min-height: 26px;
 
       .column-header-title {
         display: -webkit-box;
@@ -219,14 +193,10 @@ $s-data-table-font: 13px;
       .column-header-hxl-tags {
         display: block;
         width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .column-header-hxl-tags {
+        @include mixins.textEllipsis;
         font-size: 12px;
         color: colors.$kobo-gray-40;
+        text-align: initial;
       }
     }
   }
@@ -242,19 +212,20 @@ $s-data-table-font: 13px;
   }
 
   .rt-tr-group {
-    max-height: $data-table-row-height;
     border-bottom: $data-table-border;
     box-sizing: content-box; // to make the border be outside the cell for hover
+    // 2px is for the borders, without it borders will be covered by frozen
+    // column background color
+    max-height: $data-table-row-height + 2px;
   }
 
   .rt-tbody .rt-th,
   .rt-tbody .rt-td,
   .rt-thead .rt-th,
   .rt-thead .rt-td {
-    padding: 5px 8px;
+    padding: 4px 8px;
     border-right: $data-table-border;
-    line-height: $data-table-row-height - (2 * 5px);
-    min-height: $data-table-row-height;
+    line-height: 20px;
     height: 100%;
   }
 
@@ -262,9 +233,13 @@ $s-data-table-font: 13px;
   .rt-th .trimmed-text {
     display: block;
     width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @include mixins.textEllipsis;
+  }
+
+  // We want to target only the data cells
+  .rt-td .trimmed-text:only-child {
+    height: 100%;
+    align-content: center;
   }
 
   .rt-thead.-filters .rt-th.rt-status {
@@ -316,8 +291,10 @@ $s-data-table-font: 13px;
     border-top: none;
     padding: 0;
 
-    .-center {
-      flex: 2;
+    .-pageJump {
+      input {
+        appearance: none;
+      }
     }
 
     .-btn {
@@ -346,15 +323,6 @@ $s-data-table-font: 13px;
       }
     }
 
-    .-pageJump {
-      margin-left: 10px;
-      margin-right: 10px;
-
-      input {
-        appearance: none;
-      }
-    }
-
     select {
       cursor: pointer;
     }
@@ -373,7 +341,7 @@ $s-data-table-font: 13px;
 
   .pagination-bottom {
     margin-top: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
 
   .-loading {
@@ -399,6 +367,23 @@ $s-data-table-font: 13px;
 
     .rt-td.is-frozen {
       background-color: inherit;
+    }
+  }
+
+  // currently hovered or focused cell will not cut off its content - for
+  // tooltips and dropdowns
+  .rt-th:hover,
+  .rt-td:hover,
+  .rt-th:focus-within,
+  .rt-td:focus-within {
+    overflow: visible;
+  }
+
+  // For the validation status dropdown to not appear under other cells;
+  .rt-th:focus-within,
+  .rt-td:focus-within {
+    .kobo-select {
+      z-index: z-indexes.$z-data-table-frozen-column + 1;
     }
   }
 
@@ -466,7 +451,6 @@ $s-data-table-font: 13px;
   .rt-th.is-frozen.is-last-frozen,
   .rt-td.is-frozen.is-last-frozen {
     order: -1;
-    min-height: $data-table-row-height;
     border-right: $data-table-border;
     border-right-width: 2px !important; // important needed due to .-filters specificity
   }
@@ -484,69 +468,41 @@ $s-data-table-font: 13px;
   .rt-td.rt-sub-actions {
     order: -2;
   }
+}
 
-  &.has-hxl-tags-visible {
-    .rt-thead.-header .rt-th {
-      height: $data-table-row-height * 2;
-    }
+@include breakpoints.breakpoint(veryNarrow) {
+  .form-view--table .ReactTable .-pagination .-previous,
+  .form-view--table .ReactTable .-pagination .-next {
+    flex: auto;
+  }
+
+  .form-view--table .ReactTable .-pagination .-center {
+    flex: auto;
+  }
+
+  .form-view--table .ReactTable .-pagination .-pageInfo,
+  .form-view--table .ReactTable .-pagination .-pageSizeOptions {
+    margin: 0;
   }
 }
 
-@media screen and (max-width: 767px) {
-  .form-view--table {
-    padding: 0px 20px;
+@include breakpoints.breakpoint(narrowAndUp) {
+  .form-view--table .ReactTable .-pagination .-previous,
+  .form-view--table .ReactTable .-pagination .-next {
+    flex: 1;
+  }
+
+  .form-view--table .ReactTable .-pagination .-center {
+    flex: 2;
+    min-width: 300px;
+  }
+
+  .form-view--table .ReactTable .-pagination .-pageJump {
+    margin-left: 10px;
+    margin-right: 10px;
   }
 
   .form-view--table .ReactTable .pagination-bottom {
-    margin-bottom: 10px;
-  }
-}
-
-.table-meta {
-  flex-grow: 1;
-  min-height: 30px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .bulk-clear-badge-icon {
-    margin-right: -5px;
-    cursor: pointer;
-    padding: 0 5px;
-    border-radius: 50%;
-    color: colors.$kobo-gray-24;
-
-    &:hover {
-      color: colors.$kobo-white;
-      background-color: colors.$kobo-red;
-    }
-  }
-
-  .table-meta__bulk-options {
-    > *:not(:first-child) {
-      margin-left: 10px;
-    }
-  }
-
-  .table-meta__counter {
-    display: inline;
-    white-space: nowrap;
-  }
-
-  @media screen and (max-width: 1100px) {
-    .table-meta__additional-text {
-      display: none;
-    }
-  }
-}
-
-.table-meta__bulk-options {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .popover-menu .popover-menu__toggle {
-    // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
-    height: auto;
+    margin-bottom: 20px;
   }
 }

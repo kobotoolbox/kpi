@@ -79,7 +79,10 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
           }}
           onlyUnique
           addOnBlur
-          addOnPaste
+          // We set this intentionally, because we don't want the pasted text
+          // to be split, automatically transformed into tags, or already typed
+          // in text to be lost after pasting.
+          addOnPaste={false}
           disabled={!props.canEdit}
         />
       </section>

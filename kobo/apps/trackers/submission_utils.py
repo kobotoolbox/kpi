@@ -5,7 +5,10 @@ from django.conf import settings
 from django.utils import timezone
 from model_bakery import baker
 
-from kpi.deployment_backends.kc_access.shadow_models import KobocatXForm, ReadOnlyKobocatDailyXFormSubmissionCounter
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatDailyXFormSubmissionCounter,
+    KobocatXForm,
+)
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -34,6 +37,7 @@ def create_mock_assets(users: list, assets_per_user: int = 1):
             content=content_source_asset,
             owner=user,
             asset_type='survey',
+            name='test',
             _quantity=assets_per_user,
         )
 
@@ -56,7 +60,9 @@ def expected_file_size(submissions: int = 1):
     )) * submissions
 
 
-def update_xform_counters(asset: Asset, xform: KobocatXForm = None, submissions: int = 1):
+def update_xform_counters(
+    asset: Asset, xform: KobocatXForm = None, submissions: int = 1
+):
     """
     Create/update the daily submission counter and the shadow xform we use to query it
     """
@@ -67,8 +73,24 @@ def update_xform_counters(asset: Asset, xform: KobocatXForm = None, submissions:
         )
         xform.save()
     else:
+        xform_xml = (
+            f'<?xml version="1.0" encoding="utf-8"?>'
+            f'<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:odk="http://www.opendatakit.org/xforms" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
+            f'<h:head>'
+            f'   <h:title>XForm test</h:title>'
+            f'   <model odk:xforms-version="1.0.0">'
+            f'       <instance>'
+            f'           <{asset.uid} id="{asset.uid}" />'
+            f'       </instance>'
+            f'   </model>'
+            f'</h:head>'
+            f'<h:body>'
+            f'</h:body>'
+            f'</h:html>'
+        )
+
         xform = baker.make(
-            KobocatXForm,
+            'logger.XForm',
             attachment_storage_bytes=(
                 expected_file_size(submissions)
             ),
@@ -76,10 +98,12 @@ def update_xform_counters(asset: Asset, xform: KobocatXForm = None, submissions:
             date_created=today,
             date_modified=today,
             user_id=asset.owner_id,
+            xml=xform_xml,
+            json={}
         )
         xform.save()
 
-    counter = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
+    counter = KobocatDailyXFormSubmissionCounter.objects.filter(
         date=today.date(),
         user_id=asset.owner.id,
     ).first()
@@ -90,7 +114,7 @@ def update_xform_counters(asset: Asset, xform: KobocatXForm = None, submissions:
     else:
         counter = (
             baker.make(
-                ReadOnlyKobocatDailyXFormSubmissionCounter,
+                'logger.DailyXFormSubmissionCounter',
                 date=today.date(),
                 counter=submissions,
                 xform=xform,

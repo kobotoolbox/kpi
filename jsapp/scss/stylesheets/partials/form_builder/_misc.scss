@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // form_builder miscellaneous rules
 
@@ -47,10 +47,7 @@ code input[type="text"] {
   background: none;
   font-size: 11px;
   color: $linkColor;
-  float: right;
-  width: 64%;
   height: auto !important;
-  text-align: right;
 }
 
 // ==========================================================================

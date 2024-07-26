@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 /*
 Overrides to jquery tags input CSS
@@ -16,7 +16,7 @@ Overrides to jquery tags input CSS
 }
 
 div.tagsinput span.tag {
-  background: colors.$kobo-alt-blue;
+  background: colors.$kobo-mid-blue;
   border: none;
   color: colors.$kobo-white;
   font-family: $font;
@@ -41,7 +41,7 @@ div.tagsinput input {
 }
 
 div.tagsinput span.tag a {
-  color: colors.$kobo-alt-blue;
+  color: colors.$kobo-mid-blue;
   font-size: 1px;
   font-weight: normal;
   text-decoration: none;

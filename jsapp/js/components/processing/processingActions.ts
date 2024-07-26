@@ -741,6 +741,9 @@ processingActions.requestAutoTranslation.listen(
         },
       };
 
+      // FIXME: large translations can also be asynchronous, and the back end
+      // may return `in_progress`. We need the same kind of logic here as we
+      // have in `requestAutoTranscription`
       $.ajax({
         dataType: 'json',
         contentType: 'application/json',

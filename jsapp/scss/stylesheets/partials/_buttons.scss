@@ -1,5 +1,5 @@
 @use "scss/_variables";
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // ==========================================================================
 // Buttons
@@ -32,7 +32,7 @@
     position: relative;
 
     &:hover {
-        background-color: colors.$kobo-alt-blue;
+        background-color: colors.$kobo-mid-blue;
         text-decoration: none;
     }
 

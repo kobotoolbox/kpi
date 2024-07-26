@@ -3,10 +3,11 @@ import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
 import {notify} from 'js/utils';
+import * as Sentry from '@sentry/react';
 
 /**
  * Useful for handling the fail responses from API. Its main goal is to display
- * a helpful error toast notification and to pass the error message to Raven.
+ * a helpful error toast notification and to pass the error message to Sentry.
  *
  * It can detect if we got HTML string as response and uses a generic message
  * instead of spitting it out. The error message displayed to the user can be
@@ -52,21 +53,24 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   if (toastMessage || !displayMessage) {
     // display toastMessage or, if we don't have *any* message available, use a generic error
     displayMessage = toastMessage || t('An error occurred');
-    if (response.status || response.statusText) {
-      // if we have a status, add it to the displayed message
-      displayMessage += `\n\n${response.status} ${response.statusText}`;
-    } else if (!window.navigator.onLine) {
+
+    if (!window.navigator.onLine) {
       // another general case — the original fetch response.message might have
       // something more useful to say.
       displayMessage += '\n\n' + t('Your connection is offline');
     }
   }
 
-  // show the error message to the user
-  notify.error(displayMessage);
+  let errorMessageDisplay = message;
+  if (response.status || response.statusText) {
+    errorMessageDisplay = `${response.status} ${response.statusText}`;
+  }
 
-  // send the message to our error tracker (if Raven is available)
-  window.Raven?.captureMessage(message || displayMessage);
+  // show the error message to the user
+  notify.error(displayMessage, undefined, errorMessageDisplay);
+
+  // send the message to our error tracker
+  Sentry.captureMessage(message || displayMessage);
 }
 
 const JSON_HEADER = 'application/json';
@@ -94,7 +98,7 @@ interface FetchDataOptions {
    */
   notifyAboutError?: boolean;
   /**
-   * Override the default error toast message text. Raven will still receive the
+   * Override the default error toast message text. Sentry will still receive the
    * default error message, for debugging purposes.
    *
    * Only applies when `notifyAboutError` is `true`.
@@ -137,7 +141,9 @@ const fetchData = async <T>(
 
   // For when it's needed we pass authentication data
   if (method === 'DELETE' || data) {
-    const csrfCookie = document.cookie.match(/csrftoken=(\w{64})/);
+    // Need to support old token (64 characters - prior to Django 4.1)
+    // and new token (32 characters).
+    const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/);
     if (csrfCookie) {
       headers['X-CSRFToken'] = csrfCookie[1];
     }

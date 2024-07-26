@@ -4,8 +4,8 @@ Cypress.Commands.add('setupDatabase', () => {
 
 Cypress.Commands.add('login', (account, name) => {
   cy.visit('/accounts/login/')
-  cy.get('input[name="username"]').type(name)
-  cy.get('input[name="password"]').type(account.password)
+  cy.get('#id_login').type(name)
+  cy.get('#id_password').type(account.password)
   cy.contains('Login').click()
 })
 

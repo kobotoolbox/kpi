@@ -4,6 +4,7 @@ import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
 
 export default function StepEditor() {
   function discardDraft() {
@@ -45,7 +46,10 @@ export default function StepEditor() {
             size='s'
             label={discardLabel}
             onClick={discardDraft}
-            isDisabled={singleProcessingStore.isFetchingData}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
 
           <Button
@@ -54,8 +58,11 @@ export default function StepEditor() {
             size='s'
             label={t('Save')}
             onClick={saveDraft}
-            isPending={singleProcessingStore.isFetchingData}
-            isDisabled={!singleProcessingStore.hasUnsavedTranscriptDraftValue()}
+            isPending={singleProcessingStore.data.isFetchingData}
+            isDisabled={
+              !singleProcessingStore.hasUnsavedTranscriptDraftValue() ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
         </nav>
       </header>
@@ -66,7 +73,8 @@ export default function StepEditor() {
         onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => {
           setDraftValue(evt.target.value);
         }}
-        disabled={singleProcessingStore.isFetchingData}
+        disabled={singleProcessingStore.data.isFetchingData}
+        dir='auto'
       />
     </div>
   );

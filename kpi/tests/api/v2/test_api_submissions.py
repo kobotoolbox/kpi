@@ -17,13 +17,14 @@ import pytest
 import responses
 from dict2xml import dict2xml
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
+    ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
@@ -67,7 +68,7 @@ class BaseSubmissionTestCase(BaseTestCase):
     or `HTTP_ACCEPT` (other requests)
     """
 
-    fixtures = ["test_data"]
+    fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
@@ -89,10 +90,12 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submission_list_url = self.asset.deployment.submission_list_url
         self._deployment = self.asset.deployment
 
-    def get_random_submission(self, user: 'auth.User') -> dict:
+    def get_random_submission(self, user: settings.AUTH_USER_MODEL) -> dict:
         return self.get_random_submissions(user, 1)[0]
 
-    def get_random_submissions(self, user: 'auth.User', limit: int = 1) -> list:
+    def get_random_submissions(
+        self, user: settings.AUTH_USER_MODEL, limit: int = 1
+    ) -> list:
         """
         Get random submissions within all generated submissions.
         If user is the owner, we only return submissions submitted by unknown.
@@ -902,8 +905,163 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             response.data['count'], anotheruser_submission_count - 1
         )
 
+    def test_attachments_rewrite(self):
+        """
+        Test:
+        - xpath detections for repeated group, nested group and non-latin
+          characters at the same
+        - attachment endpoints related to KPI domain name
+        """
+        content = {
+            'survey': [
+                {
+                    'name': 'group_ec9yq67',
+                    'type': 'begin_group',
+                    '$kuid': 'zo3lt68',
+                    'label': ['3 levels'],
+                    'required': False,
+                },
+                {
+                    'name': 'group_dq8as25',
+                    'type': 'begin_repeat',
+                    '$kuid': 'mg3vt38',
+                    'label': ['Repeated group - Upper level'],
+                    'required': False,
+                },
+                {
+                    'name': 'group_xt0za80',
+                    'type': 'begin_repeat',
+                    '$kuid': 'pp7xz89',
+                    'label': ['Repeated group - Nested'],
+                    'required': False,
+                },
+                {
+                    'type': 'image',
+                    '$kuid': 'ra2ti71',
+                    'label': ['my_attachment'],
+                    'required': False,
+                },
+                {'type': 'end_repeat', '$kuid': '/pp7xz89'},
+                {'type': 'end_repeat', '$kuid': '/mg3vt38'},
+                {'type': 'end_group', '$kuid': '/zo3lt68'},
+            ],
+            'settings': {},
+            'translated': ['label'],
+            'translations': [None],
+        }
+
+        asset = Asset.objects.create(
+            content=content,
+            owner=self.anotheruser,
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+
+        asset.deploy(backend='mock', active=True)
+        asset.save()  # create version
+        v_uid = asset.latest_deployed_version.uid
+
+        submission = {
+            '_id': 1000,
+            '__version__': v_uid,
+            '_xform_id_string': asset.uid,
+            'formhub/uuid': 'formhub-uuid',
+            '_uuid': 'submission-uuid',
+            'group_ec9yq67/group_dq8as25': [
+                {
+                    'group_ec9yq67/group_dq8as25/group_xt0za80': [
+                        {
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'IMG_4266-11_38_22.jpg'
+                        },
+                        {
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'كوبو-رائع-10_7_41.jpg'
+                        },
+                    ]
+                },
+                {
+                    'group_ec9yq67/group_dq8as25/group_xt0za80': [
+                        {
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'Screenshot 2024-02-14 at 18.31.39-11_38_35.png'
+                        }
+                    ]
+                },
+            ],
+            '_attachments': [
+                {
+                    'download_url': 'http://kc.testserver/1.jpg',
+                    'download_large_url': 'http://kc.testserver/1.jpg',
+                    'download_medium_url': 'http://kc.testserver/1.jpg',
+                    'download_small_url': 'http://kc.testserver/1.jpg',
+                    'mimetype': 'image/jpeg',
+                    'filename': 'anotheruser/attachments/formhub-uuid/submission-uuid/IMG_4266-11_38_22.jpg',
+                    'instance': 1,
+                    'xform': 1,
+                    'id': 1,
+                },
+                {
+                    'download_url': 'http://kc.testserver/2.jpg',
+                    'download_large_url': 'http://kc.testserver/2.jpg',
+                    'download_medium_url': 'http://kc.testserver/2.jpg',
+                    'download_small_url': 'http://kc.testserver/2.jpg',
+                    'mimetype': 'image/jpeg',
+                    'filename': 'anotheruser/attachments/formhub-uuid/submission-uuid/كوبو-رايع-10_7_41.jpg',
+                    'instance': 1,
+                    'xform': 1,
+                    'id': 2,
+                },
+                {
+                    'download_url': 'http://kc.testserver/3.jpg',
+                    'download_large_url': 'http://kc.testserver/3.jpg',
+                    'download_medium_url': 'http://kc.testserver/3.jpg',
+                    'download_small_url': 'http://kc.testserver/3.jpg',
+                    'mimetype': 'image/jpeg',
+                    'filename': 'anotheruser/attachments/formhub-uuid/submission-uuid/Screenshot_2024-02-14_at_18.31.39-11_38_35.png',
+                    'instance': 1,
+                    'xform': 1,
+                    'id': 3,
+                },
+            ],
+        }
+
+        asset.deployment.mock_submissions([submission])
+        asset.deployment.set_namespace(self.URL_NAMESPACE)
+
+        self._log_in_as_another_user()
+        url = asset.deployment.get_submission_detail_url(submission['_id'])
+
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        attachments = response.data['_attachments']
+
+        expected_question_xpaths = [
+            'group_ec9yq67/group_dq8as25[1]/group_xt0za80[1]/my_attachment',
+            'group_ec9yq67/group_dq8as25[1]/group_xt0za80[2]/my_attachment',
+            'group_ec9yq67/group_dq8as25[2]/group_xt0za80[1]/my_attachment'
+        ]
+        expected_new_download_urls = [
+            'http://testserver/api/v2/assets/'
+            + asset.uid
+            + '/data/1000/attachments/1/?format=json',
+            'http://testserver/api/v2/assets/'
+            + asset.uid
+            + '/data/1000/attachments/2/?format=json',
+            'http://testserver/api/v2/assets/'
+            + asset.uid
+            + '/data/1000/attachments/3/?format=json',
+        ]
+
+        for idx, attachment in enumerate(attachments):
+            assert attachment['download_url'] == expected_new_download_urls[idx]
+            assert attachment['question_xpath'] == expected_question_xpaths[idx]
+
 
 class SubmissionEditApiTests(BaseSubmissionTestCase):
+    """
+    Tests for editin submissions.
+
+    WARNING: Tests in this class must work in v1 as well, or else be added to the skipped tests
+    in kpi/tests/api/v1/test_api_submissions.py
+    """
 
     def setUp(self):
         super().setUp()
@@ -1409,6 +1567,27 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         }
         assert response.data == expected_response
 
+    def test_edit_submission_snapshot_missing(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_snapshot_missing_unauthenticated(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
 
@@ -1559,6 +1738,15 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
+        self.asset.advanced_features = {
+            'translation': {
+                'values': ['q1'],
+                'languages': ['tx1', 'tx2'],
+            },
+            'transcript': {
+                'values': ['q1'],
+            }
+        }
         current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
@@ -1740,6 +1928,37 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         response = self.client.post(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self._check_duplicate(response, submission)
+
+    def test_duplicate_submission_with_extras(self):
+        dummy_extra = {
+            'q1': {
+                'transcript': {
+                    'value': 'dummy transcription',
+                    'languageCode': 'en',
+                },
+                'translation': {
+                    'tx1': {
+                        'value': 'dummy translation',
+                        'languageCode': 'xx',
+                    }
+                },
+            },
+            'submission': self.submission['_uuid']
+        }
+        self.asset.update_submission_extra(dummy_extra)
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        duplicated_submission = response.data
+        duplicated_extra = self.asset.submission_extras.filter(
+            submission_uuid=duplicated_submission['_uuid']
+        ).first()
+        assert (
+            duplicated_extra.content['q1']['translation']['tx1']['value']
+            == dummy_extra['q1']['translation']['tx1']['value']
+        )
+        assert (
+            duplicated_extra.content['q1']['transcript']['value']
+            == dummy_extra['q1']['transcript']['value']
+        )
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):

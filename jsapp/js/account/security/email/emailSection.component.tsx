@@ -140,7 +140,7 @@ export default function EmailSection() {
                 <Button
                   label='Remove'
                   size='m'
-                  color='red'
+                  color='dark-red'
                   type='frame'
                   onClick={deleteNewUserEmail}
                 />
@@ -170,6 +170,7 @@ export default function EmailSection() {
           value={email.newEmail}
           placeholder={t('Type new email address')}
           onChange={onTextFieldChange.bind(onTextFieldChange)}
+          type='email'
         />
 
         <Button
@@ -178,6 +179,9 @@ export default function EmailSection() {
           color='blue'
           type='frame'
           onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
+          // quick simple subtle email validation to avoid complete accidents
+          // a toast showing any API error feedback would be nicer
+          isDisabled={!/[^@]+@[^@]+\.[^@]+/.test(email.newEmail)}
         />
       </form>
     </div>

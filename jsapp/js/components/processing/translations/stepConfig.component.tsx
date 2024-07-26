@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import cx from 'classnames';
 import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
@@ -14,8 +14,23 @@ import type {
 } from 'js/components/languages/languagesStore';
 import envStore from 'js/envStore';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component';
+import {UsageLimitTypes} from 'js/account/stripe.types';
+import {UsageContext} from 'js/account/usage/useUsage.hook';
+import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
 
 export default function StepConfig() {
+  const [usage] = useContext(UsageContext);
+  const limits = useExceedingLimits();
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] =
+    useState<boolean>(false);
+  const isOverLimit = useMemo(() => {
+    return limits.exceedList.includes(UsageLimitTypes.TRANSLATION);
+  }, [limits.exceedList]);
+
+  function dismissLimitBlockModal() {
+    setIsLimitBlockModalOpen(false);
+  }
   /** Changes the draft value, preserving the other draft properties. */
   function setDraftValue(newVal: string | undefined) {
     const newDraft =
@@ -74,6 +89,14 @@ export default function StepConfig() {
     singleProcessingStore.setTranslationDraft(newDraft);
   }
 
+  function onAutomaticButtonClick() {
+    if (isOverLimit) {
+      setIsLimitBlockModalOpen(true);
+    } else {
+      selectModeAuto();
+    }
+  }
+
   const draft = singleProcessingStore.getTranslationDraft();
   const isAutoEnabled = envStore.data.asr_mt_features_enabled;
 
@@ -84,7 +107,7 @@ export default function StepConfig() {
         onLanguageChange={onLanguageChange}
         hiddenLanguages={getTranslationsLanguages()}
         suggestedLanguages={singleProcessingStore.getAssetTranslatableLanguages()}
-        isDisabled={singleProcessingStore.isFetchingData}
+        isDisabled={singleProcessingStore.data.isFetchingData}
       />
 
       <footer className={bodyStyles.footer}>
@@ -95,7 +118,7 @@ export default function StepConfig() {
           label={t('back')}
           startIcon='caret-left'
           onClick={back}
-          isDisabled={singleProcessingStore.isFetchingData}
+          isDisabled={singleProcessingStore.data.isFetchingData}
         />
 
         <div className={bodyStyles.footerRightButtons}>
@@ -107,14 +130,20 @@ export default function StepConfig() {
             onClick={selectModeManual}
             isDisabled={
               draft?.languageCode === undefined ||
-              singleProcessingStore.isFetchingData
+              singleProcessingStore.data.isFetchingData
             }
           />
 
           <TransxAutomaticButton
-            onClick={selectModeAuto}
+            onClick={onAutomaticButtonClick}
             selectedLanguage={draft?.languageCode}
             type='translation'
+          />
+          <NlpUsageLimitBlockModal
+            isModalOpen={isLimitBlockModalOpen}
+            usageType={UsageLimitTypes.TRANSLATION}
+            dismissed={dismissLimitBlockModal}
+            interval={usage.trackingPeriod}
           />
         </div>
       </footer>

@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/_variables';
 @use 'scss/sizes';
 @use 'scss/mixins';
@@ -89,11 +89,11 @@
   // Hover unchecked state
   .radio__row:hover .radio__input:not(:checked) {
     color: colors.$kobo-gray-40;
-    background-color: colors.$kobo-light-blue;
+    background-color: colors.$kobo-bg-blue;
   }
 
   // Hover checked state
   .radio__row:hover .radio__input:checked {
-    color: colors.$kobo-alt-blue;
+    color: colors.$kobo-mid-blue;
   }
 }

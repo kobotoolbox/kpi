@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // ==========================================================================
 // Card settings tabs
@@ -9,7 +9,7 @@
 }
 
 .card--selectquestion__expansion {
-  padding: 23px 10px 23px 60px;
+  padding: 25px;
 }
 
 //== ul.card__settings__tabs
@@ -113,10 +113,15 @@
   .settings__input {
     width: 65%;
     display: inline-block;
-    vertical-align: middle;
+    vertical-align: top;
 
     input.text {
       display: inline-block;
+    }
+
+    .group__appearance {
+      max-width: 100%;
+      margin-bottom: 4px;
     }
   }
 }

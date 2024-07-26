@@ -9,13 +9,16 @@ import permConfig from './permConfig';
 import type {PermissionBase, PermissionResponse} from 'js/dataInterface';
 import type {AssignablePermsMap} from './sharingForm.component';
 import {getPermLabel, getFriendlyPermName} from './utils';
+import Button from 'js/components/common/button';
 
 interface UserPermissionRowProps {
   assetUid: string;
+  userCanEditPerms: boolean;
   nonOwnerPerms: PermissionBase[];
   assignablePerms: AssignablePermsMap;
   permissions: PermissionResponse[];
   isUserOwner: boolean;
+  isPendingOwner: boolean;
   username: string;
 }
 
@@ -136,7 +139,7 @@ export default class UserPermissionRow extends React.Component<
     };
 
     const modifiers = [];
-    if (this.props.permissions.length === 0) {
+    if (!this.props.isPendingOwner && this.props.permissions.length === 0) {
       modifiers.push('deleted');
     }
     if (this.state.isBeingDeleted) {
@@ -157,25 +160,33 @@ export default class UserPermissionRow extends React.Component<
           {this.props.isUserOwner && (
             <bem.UserRow__perms>{t('is owner')}</bem.UserRow__perms>
           )}
-          {!this.props.isUserOwner && (
+
+          {this.props.isPendingOwner && (
+            <bem.UserRow__perms>{t('Pending owner')}</bem.UserRow__perms>
+          )}
+
+          {!this.props.isUserOwner && !this.props.isPendingOwner && (
             <React.Fragment>
               {this.renderPermissions(this.props.permissions)}
+              {this.props.userCanEditPerms && (
+                <>
+                  <Button
+                    type='bare'
+                    color='dark-blue'
+                    size='m'
+                    startIcon={this.state.isEditFormVisible ? 'close' : 'edit'}
+                    onClick={this.toggleEditForm.bind(this)}
+                  />
 
-              <bem.Button m='icon' onClick={this.toggleEditForm.bind(this)}>
-                {this.state.isEditFormVisible && (
-                  <i className='k-icon k-icon-close' />
-                )}
-                {!this.state.isEditFormVisible && (
-                  <i className='k-icon k-icon-edit' />
-                )}
-              </bem.Button>
-
-              <bem.Button
-                m='icon'
-                onClick={this.showRemovePermissionsPrompt.bind(this)}
-              >
-                <i className='k-icon k-icon-trash' />
-              </bem.Button>
+                  <Button
+                    type='bare'
+                    color='dark-red'
+                    size='m'
+                    startIcon='trash'
+                    onClick={this.showRemovePermissionsPrompt.bind(this)}
+                  />
+                </>
+              )}
             </React.Fragment>
           )}
         </bem.UserRow__info>

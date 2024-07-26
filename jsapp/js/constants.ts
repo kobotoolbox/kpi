@@ -37,7 +37,10 @@ export const ROOT_URL = (() => {
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
 
-export const ENKETO_ACTIONS = createEnum(['edit', 'view']);
+export enum EnketoActions {
+  edit = 'edit',
+  view = 'view'
+}
 
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
@@ -111,40 +114,6 @@ export const AVAILABLE_FORM_STYLES = [
   },
 ];
 
-export type ValidationStatus =
-  | 'no_status'
-  | 'validation_status_not_approved'
-  | 'validation_status_approved'
-  | 'validation_status_on_hold';
-
-export const VALIDATION_STATUSES: {
-  [id in ValidationStatus]: {value: ValidationStatus | null; label: string};
-} = {
-  no_status: {
-    value: null,
-    label: '—',
-  },
-  validation_status_not_approved: {
-    value: 'validation_status_not_approved',
-    label: t('Not approved'),
-  },
-  validation_status_approved: {
-    value: 'validation_status_approved',
-    label: t('Approved'),
-  },
-  validation_status_on_hold: {
-    value: 'validation_status_on_hold',
-    label: t('On hold'),
-  },
-};
-
-export const VALIDATION_STATUSES_LIST = [
-  VALIDATION_STATUSES.no_status,
-  VALIDATION_STATUSES.validation_status_not_approved,
-  VALIDATION_STATUSES.validation_status_approved,
-  VALIDATION_STATUSES.validation_status_on_hold,
-];
-
 /**
  * All possible asset types.
  */
@@ -202,6 +171,8 @@ export const ASSET_FILE_TYPES: {
     label: t('form media'),
   },
 };
+
+export const USAGE_ASSETS_PER_PAGE = 8;
 
 /**
  * These are the types of survey rows that users can create in FormBuilder and
@@ -361,6 +332,7 @@ export enum MetaQuestionTypeName {
   phonenumber = 'phonenumber',
   audit = 'audit',
   'background-audio' = 'background-audio',
+  'start-geopoint' = 'start-geopoint',
 }
 
 export const META_QUESTION_TYPES = createEnum([
@@ -372,6 +344,7 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName.phonenumber,
   MetaQuestionTypeName.audit,
   MetaQuestionTypeName['background-audio'],
+  MetaQuestionTypeName['start-geopoint'],
 ]) as {[P in MetaQuestionTypeName]: MetaQuestionTypeName};
 
 // submission data extras being added by backend. see both of these:
@@ -619,8 +592,6 @@ const constants = {
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
   AVAILABLE_FORM_STYLES,
-  VALIDATION_STATUSES,
-  VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
   ASSET_FILE_TYPES,
   QUESTION_TYPES,

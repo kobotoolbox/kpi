@@ -1,7 +1,9 @@
-@use "scss/_variables";
 @use 'scss/sizes';
+@use 'scss/breakpoints';
+@use 'scss/_variables';
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
+@use 'scss/mixins';
 
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
@@ -27,8 +29,17 @@ $side-tabs-width-mobile: 70px;
 
 // form landing takes .form-view__toptabs into account
 .page-wrapper__content--form-landing {
-  .form-view {
+  .form-view,
+  .loadingSpinner {
     height: calc(100% - 48px);
+  }
+
+  .loadingSpinner {
+    // Without this, it sometimes gets pushed down (outside the layout), when
+    // some sibling nodes are present
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -334,12 +345,6 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__cell--buttons {
     text-align: right;
-
-    a.mdl-button {
-      text-transform: uppercase;
-      padding-left: 30px;
-      padding-right: 30px;
-    }
   }
 
   &.form-view__cell--version {
@@ -377,6 +382,10 @@ $side-tabs-width-mobile: 70px;
   // visually take same amount of white space as without buttons
   &.form-view__cell--label + &.form-view__cell--action-buttons {
     margin: -8px 0;
+  }
+
+  &.form-view__cell--action-buttons {
+    @include mixins.centerRowFlex;
   }
 
   &.form-view__cell--date {
@@ -429,40 +438,6 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-.form-view__icon-button {
-  @extend .mdl-button, .mdl-button--icon;
-
-  overflow: visible;
-  padding: 0;
-  height: 32px;
-  line-height: 32px;
-  min-height: 32px;
-
-  > i {
-    vertical-align: -0.34375em;
-  }
-}
-
-// buttons in forms
-.form-view__link {
-  font-size: 26px;
-  line-height: 18px;
-  padding: 0 5px;
-  color: colors.$kobo-gray-40;
-  cursor: pointer;
-  vertical-align: middle;
-  display: inline-block;
-
-  &:hover {
-    color: colors.$kobo-blue;
-  }
-
-  &--disabled,
-  &--disabled:hover {
-    color: colors.$kobo-gray-65;
-  }
-}
-
 @keyframes recent {
   0% {
     background-color: colors.$kobo-white;
@@ -504,33 +479,10 @@ $side-tabs-width-mobile: 70px;
       }
     }
 
-    .form-view__link {
-      opacity: 0.8;
-    }
-
-    .form-view__link--export-download {
-      opacity: 0.9;
-      font-size: 42px;
-    }
-
-    .form-view__link--export-delete {
-      opacity: 0.9;
-      vertical-align: middle;
-      color: lighten(colors.$kobo-red, 10%);
-      font-size: 24px;
-
-      &:hover {
-        color: colors.$kobo-red;
-        opacity: 1;
-      }
-    }
-
     &.recent {
       background-color: lighten(colors.$kobo-blue, 40%);
       animation: recent 5s 1;
     }
-
-
   }
 
   .form-view__group--deployments {
@@ -563,10 +515,9 @@ $side-tabs-width-mobile: 70px;
 }
 
 .form-view.form-view--form-settings-sharing {
+  background: colors.$kobo-white;
   .form-modal {
-    background: colors.$kobo-white;
-    padding: 40px;
-    height: 100%;
+    padding: sizes.$x40 sizes.$x40 sizes.$x16 sizes.$x40;
     overflow: auto;
   }
 }
@@ -591,44 +542,6 @@ $side-tabs-width-mobile: 70px;
     &--export-group-headers,
     &--export-submit {
       clear: both;
-    }
-  }
-
-  .form-view__cell--exports-table {
-    .form-view__label {
-      text-align: left;
-      padding: 4px 10px;
-
-      &--type {
-        width: 10%;
-        text-transform: uppercase;
-      }
-
-      &--action {
-        flex-grow: 1;
-        text-align: right;
-        line-height: 40px;
-      }
-
-      &--lang {
-        flex-shrink: 1;
-      }
-    }
-
-    .form-view__group--headings {
-      padding: 8px 0;
-
-      .form-view__label--type {
-        text-transform: none;
-      }
-    }
-
-    @media screen and (max-width: 980px) {
-      .form-view__label--date,
-      .form-view__label--include-groups,
-      .form-view__label--multi-versioned {
-        display: none;
-      }
     }
   }
 }
@@ -664,6 +577,11 @@ $side-tabs-width-mobile: 70px;
       font-size: 24px;
     }
   }
+}
+
+.collect-header-actions {
+  @include mixins.centerRowFlex;
+  gap: 10px;
 }
 
 .form-view__cell--collect-meta {
@@ -719,7 +637,8 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-@media screen and (max-width: 767px) {
+// TODO: rework all these media queries to mobile first
+@media screen and (width < breakpoints.$b768) {
   .form-view__sidetabs {
     width: $side-tabs-width-mobile;
 
@@ -815,24 +734,18 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-// Compensate for when sidebar(s) messes up modal a bit
-@media
-  (min-width: 770px) and (max-width: 1020px),
-  (max-width: 560px) {
-    .bulk-options {
-      display: block !important;
-
-      .bulk-options__buttons {
-        margin-top: 6px;
-        text-align: center;
-      }
-    }
-
-    .multi-checkbox {
-      overflow-x: scroll !important;
-    }
+.anonymousSubmissionDialog {
+  margin-top: 3px;
+}
+.anonymousSubmissionPointer {
+  left: 1em;
 }
 
 .form-view--library-asset {
   background: colors.$kobo-white;
+}
+
+// Temporary legacy code replacement. We needed this to remove bem.uiPanel
+.form-view--ui-panel {
+  padding: 10px;
 }

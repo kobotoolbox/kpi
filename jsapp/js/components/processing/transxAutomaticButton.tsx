@@ -122,7 +122,7 @@ export default class TransxAutomaticButton extends React.Component<
           onClick={this.props.onClick}
           isDisabled={!this.state.isAvailable}
           isPending={
-            singleProcessingStore.isFetchingData || this.state.isLoading
+            singleProcessingStore.data.isFetchingData || this.state.isLoading
           }
         />
       );

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Optional
 
 from constance import config
 from django.conf import settings
@@ -15,14 +16,14 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
+from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.trash_bin.exceptions import (
     TrashIntegrityError,
     TrashTaskInProgressError,
 )
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
-from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
-from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
@@ -35,7 +36,6 @@ from kpi.constants import (
     PERM_CHANGE_METADATA_ASSET,
     PERM_MANAGE_ASSET,
     PERM_DISCOVER_ASSET,
-    PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -58,11 +58,15 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
 )
+
+from .asset_file import AssetFileSerializer
+
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
     view_has_perm,
 )
+
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
@@ -282,7 +286,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     owner = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail', lookup_field='username', read_only=True)
+        view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
@@ -295,6 +299,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     map_custom = WritableJSONField(required=False)
     advanced_features = WritableJSONField(required=False)
     advanced_submission_schema = serializers.SerializerMethodField()
+    files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
@@ -325,7 +330,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # request more than the first page
         default_limit=100
     )
-    deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
@@ -342,6 +346,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     access_types = serializers.SerializerMethodField()
     data_sharing = WritableJSONField(required=False)
     paired_data = serializers.SerializerMethodField()
+    project_ownership = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -352,6 +357,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'parent',
                   'settings',
                   'asset_type',
+                  'files',
                   'summary',
                   'date_created',
                   'date_modified',
@@ -362,7 +368,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'has_deployment',
                   'deployed_version_id',
                   'deployed_versions',
-                  'deployment__identifier',
                   'deployment__links',
                   'deployment__active',
                   'deployment__data_download_links',
@@ -398,6 +403,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'access_types',
                   'data_sharing',
                   'paired_data',
+                  'project_ownership',
                   )
         extra_kwargs = {
             'parent': {
@@ -451,6 +457,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             if exclude in fields:
                 fields.pop(exclude)
         return fields
+
+    def get_files(self, obj):
+        return AssetFileSerializer(
+            obj.asset_files.all(),
+            many=True,
+            read_only=True,
+            context=self.context,
+        ).data
 
     def get_advanced_submission_schema(self, obj):
         req = self.context.get('request')
@@ -565,10 +579,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return obj.deployment.version_id
 
-    def get_deployment__identifier(self, obj):
-        if obj.has_deployment:
-            return obj.deployment.identifier
-
     def get_deployment__active(self, obj):
         return obj.has_deployment and obj.deployment.active
 
@@ -674,6 +684,34 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return AssetPermissionAssignmentSerializer(
             queryset.all(), many=True, read_only=True, context=context
         ).data
+
+    def get_project_ownership(self, asset) -> Optional[dict]:
+        pass
+
+    def get_project_ownership(self, asset) -> Optional[dict]:
+        if not (transfer := asset.transfers.order_by('-date_created').first()):
+            return
+
+        request = self.context.get('request')
+        user = get_database_user(request.user)
+
+        # Do not provide info if user is not concerned by last invite
+        if not (
+            transfer.invite.sender_id == user.pk
+            or transfer.invite.recipient_id == user.pk
+        ):
+            return
+
+        return {
+            'invite': reverse(
+                'project-ownership-invite-detail',
+                args=(transfer.invite.uid,),
+                request=self.context.get('request', None),
+            ),
+            'sender': transfer.invite.sender.username,
+            'recipient': transfer.invite.recipient.username,
+            'status': transfer.status
+        }
 
     def get_exports(self, obj: Asset) -> str:
         return reverse(
@@ -855,6 +893,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return {**self.instance.settings, **settings}
 
     def _content(self, obj):
+        # FIXME: Is this dead code?
         return json.dumps(obj.content)
 
     def _get_status(self, perm_assignments):
@@ -933,7 +972,6 @@ class AssetListSerializer(AssetSerializer):
                   'version_id',
                   'has_deployment',
                   'deployed_version_id',
-                  'deployment__identifier',
                   'deployment__active',
                   'deployment__submission_count',
                   'deployment_status',

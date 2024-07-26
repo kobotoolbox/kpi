@@ -101,20 +101,19 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
       {choicesToDisplay.map((choice) => (
         <div className={styles.choice} key={choice.uuid}>
           <TextBox
-            type='text-multiline'
             value={choice.labels._default}
             onChange={(newLabel: string) =>
               updateChoiceLabel(choice.uuid, newLabel)
             }
             placeholder={t('Type option name')}
-            customClassNames={[styles.labelInput]}
+            className={styles.labelInput}
             size='m'
             renderFocused
           />
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-red'
             size='m'
             startIcon='trash'
             onClick={() => deleteChoice(choice.uuid)}
@@ -125,8 +124,8 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
 
       <div className={styles.addOption}>
         <Button
-          type='full'
-          color='light-blue'
+          type='frame'
+          color='dark-blue'
           size='m'
           startIcon='plus'
           label={t('Add new option')}

@@ -74,6 +74,7 @@ from kpi.mixins import (
     XlsExportableMixin,
     StandardizeSearchableFieldMixin,
 )
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
@@ -81,7 +82,6 @@ from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
-from kpi.tasks import remove_asset_snapshots
 
 
 class AssetDeploymentStatus(models.TextChoices):
@@ -153,15 +153,15 @@ class KpiTaggableManager(_TaggableManager):
         super().add(*tags_out, **kwargs)
 
 
-class Asset(ObjectPermissionMixin,
-            DeployableMixin,
-            XlsExportableMixin,
-            FormpackXLSFormUtilsMixin,
-            StandardizeSearchableFieldMixin,
-            models.Model):
+class Asset(
+    ObjectPermissionMixin,
+    DeployableMixin,
+    XlsExportableMixin,
+    FormpackXLSFormUtilsMixin,
+    StandardizeSearchableFieldMixin,
+    AbstractTimeStampedModel,
+):
     name = models.CharField(max_length=255, blank=True, default='')
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
     date_deployed = models.DateTimeField(null=True)
     content = models.JSONField(default=dict)
     summary = models.JSONField(default=dict)
@@ -176,7 +176,7 @@ class Asset(ObjectPermissionMixin,
     )
     parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
-    owner = models.ForeignKey('auth.User', related_name='assets', null=True,
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assets', null=True,
                               on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
@@ -407,11 +407,12 @@ class Asset(ObjectPermissionMixin,
 
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
-        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
-        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
-        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
-        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can Delete Data" in KC UI
-        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can Validate" in KC UI
+        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can change XForm" in KC shell
+        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can view XForm" in KC shell
+        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell
+        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell
+        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell
+        PERM_DELETE_ASSET: 'delete_xform',  # "Can delete XForm" in KC shell
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
@@ -471,7 +472,10 @@ class Asset(ObjectPermissionMixin,
             # Remove newlines and tabs (they are stripped in front end anyway)
             self.name = re.sub(r'[\n\t]+', '', _title)
 
-    def analysis_form_json(self):
+    def analysis_form_json(self, omit_question_types=None):
+        if omit_question_types is None:
+            omit_question_types = []
+
         additional_fields = list(self._get_additional_fields())
         engines = dict(self._get_engines())
         output = {'engines': engines, 'additional_fields': additional_fields}
@@ -480,28 +484,30 @@ class Asset(ObjectPermissionMixin,
         except KeyError:
             return output
         for qual_question in qual_survey:
-            qname = qual_question['qpath'].split('-')[-1]
             # Surely some of this stuff is not actually used…
             # (added to match extend_col_deets() from
             # kobo/apps/subsequences/utils/parse_known_cols)
             #
             # See also injectSupplementalRowsIntoListOfRows() in
             # assetUtils.ts
+            qpath = qual_question['qpath']
             field = dict(
                 label=qual_question['labels']['_default'],
-                name=f"{qname}/{qual_question['uuid']}",
-                dtpath=f"{qual_question['qpath']}/{qual_question['uuid']}",
+                name=f"{qpath}/{qual_question['uuid']}",
+                dtpath=f"{qpath}/{qual_question['uuid']}",
                 type=qual_question['type'],
                 # could say '_default' or the language of the transcript,
                 # but really that would be meaningless and misleading
                 language='??',
-                source=qual_question['qpath'],
-                qpath=f"{qual_question['qpath']}-{qual_question['uuid']}",
+                source=qpath,
+                qpath=f"{qpath}-{qual_question['uuid']}",
                 # seems not applicable given the transx questions describe
                 # manual vs. auto here and which engine was used
                 settings='??',
-                path=[qual_question['qpath'], qual_question['uuid']],
+                path=[qpath, qual_question['uuid']],
             )
+            if field['type'] in omit_question_types:
+                continue
             try:
                 field['choices'] = qual_question['choices']
             except KeyError:
@@ -1235,8 +1241,6 @@ class Asset(ObjectPermissionMixin,
 
         if regenerate:
             snapshot = False
-            # Let's do some housekeeping
-            remove_asset_snapshots.delay(self.id)
         else:
             snapshot = AssetSnapshot.objects.filter(**snap_params).order_by(
                 '-date_created'
@@ -1269,7 +1273,7 @@ class Asset(ObjectPermissionMixin,
 
     def _update_partial_permissions(
         self,
-        user: 'auth.User',
+        user: 'settings.AUTH_USER_MODEL',
         perm: str,
         remove: bool = False,
         partial_perms: Optional[dict] = None,
@@ -1395,7 +1399,7 @@ class UserAssetSubscription(models.Model):
     """ Record a user's subscription to a publicly-discoverable collection,
     i.e. one where the anonymous user has been granted `discover_asset` """
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='b')
 
     class Meta:
