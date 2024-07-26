@@ -5,6 +5,7 @@ from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models import Asset
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
 from .constants import GOOGLETS, GOOGLETX, ASYNC_TRANSLATION_DELAY_INTERVAL
 from .exceptions import SubsequenceTimeoutError, TranscriptionResultsNotFound
@@ -16,10 +17,8 @@ from .utils.determine_export_cols_with_values import (
 )
 
 
-class SubmissionExtras(models.Model):
+class SubmissionExtras(AbstractTimeStampedModel):
 
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
     # FIXME: uuid on the KoboCAT logger.Instance model has max_length 249
     submission_uuid = models.CharField(max_length=40)
     content = models.JSONField(default=dict)

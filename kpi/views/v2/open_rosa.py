@@ -19,7 +19,7 @@ class OpenRosaViewSetMixin:
         return {
             'Date': dt,
             'X-OpenRosa-Version': '1.0',
-            'X-OpenRosa-Accept-Content-Length': settings.OPEN_ROSA_DEFAULT_CONTENT_LENGTH,
+            'X-OpenRosa-Accept-Content-Length': settings.OPENROSA_DEFAULT_CONTENT_LENGTH,
             'Content-Type': 'text/xml; charset=utf-8',
         }
 

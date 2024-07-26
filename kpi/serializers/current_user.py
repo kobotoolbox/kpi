@@ -8,7 +8,6 @@ except ImportError:
 
 import constance
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -20,7 +19,7 @@ from rest_framework import serializers
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kobo.apps.constance_backends.utils import to_python_object
-from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.utils.gravatar_url import gravatar_url
 

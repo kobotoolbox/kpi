@@ -13,7 +13,7 @@ def create_extra_user_detail(apps, schema_editor):
 
     print(SKIP_HEAVY_MIGRATIONS_GUIDANCE)
 
-    User = apps.get_model('auth', 'User')
+    User = apps.get_model('kobo_auth', 'User')
     ExtraUserDetail = apps.get_model('hub', 'ExtraUserDetail')
 
     page_size = 10000

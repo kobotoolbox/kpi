@@ -8,18 +8,18 @@ from formpack.utils.expand_content import expand_content
 from reversion.models import Version
 
 from kpi.fields import KpiUidField
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
 
-class AssetVersion(models.Model):
+class AssetVersion(AbstractTimeStampedModel):
     uid = KpiUidField(uid_prefix='v')
     asset = models.ForeignKey('Asset', related_name='asset_versions',
                               on_delete=models.CASCADE)
     name = models.CharField(null=True, max_length=255)
-    date_modified = models.DateTimeField(default=timezone.now)
 
     # preserving _reversion_version in case we don't save all that we
     # need to in the first migration from reversion to AssetVersion
@@ -76,7 +76,3 @@ class AssetVersion(models.Model):
             self.asset.uid, self.uid,
             self.date_modified.strftime('%Y-%m-%d %H:%M'),
             ' (deployed)' if self.deployed else '')
-
-    def save(self, *args, **kwargs):
-        self.date_modified = timezone.now()
-        super().save(*args, **kwargs)

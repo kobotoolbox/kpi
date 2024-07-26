@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Union
 
 from constance.test import override_config
-from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import get_default_password_validators
 from django.core.exceptions import ValidationError
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 
 
