@@ -1,5 +1,6 @@
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/mixins';
+@use 'scss/colors';
 
 $badge-height-s: sizes.$x24;
 $badge-font-s: sizes.$x12;
@@ -14,6 +15,11 @@ $badge-font-l: sizes.$x14;
   display: inline-block;
   vertical-align: middle;
   text-align: center;
+  max-width: 100%;
+}
+
+.root:not(.disableShortening) {
+  @include mixins.textEllipsis;
 }
 
 .icon {
@@ -37,7 +43,7 @@ $badge-font-l: sizes.$x14;
 
 .color-light-red {
   color: colors.$kobo-dark-red;
-  background-color: colors.$kobo-light-red;  
+  background-color: colors.$kobo-light-red;
 }
 
 .color-light-teal {

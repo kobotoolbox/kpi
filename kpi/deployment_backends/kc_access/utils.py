@@ -6,13 +6,14 @@ from typing import Union
 
 import requests
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
-from django.db import ProgrammingError, transaction
+from django.db import transaction
 from django.db.models import Model
 from kobo_service_account.utils import get_request_headers
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import KobocatProfileException
 from kpi.utils.log import logging
 from kpi.utils.permissions import is_user_anonymous
@@ -174,7 +175,12 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
 def _get_xform_id_for_asset(asset):
     if not asset.has_deployment:
         return None
-    return asset.deployment.backend_response['formid']
+    try:
+        return asset.deployment.backend_response['formid']
+    except KeyError:
+        if settings.TESTING:
+            return None
+        raise
 
 
 def grant_kc_model_level_perms(user):
@@ -231,8 +237,9 @@ def grant_kc_model_level_perms(user):
     ])
 
 
-def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
-                                             remove=False):
+def set_kc_anonymous_permissions_xform_flags(
+    obj, kpi_codenames, xform_id, remove=False
+):
     r"""
         Given a KPI object, one or more KPI permission codenames and the PK of
         a KC `XForm`, assume the KPI permisisons have been assigned to or
@@ -305,7 +312,8 @@ def assign_applicable_kc_permissions(
 
     if user_id == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
-            obj, kpi_codenames, xform_id)
+            obj, kpi_codenames, xform_id
+        )
 
     xform_content_type = KobocatContentType.objects.get(
         **obj.KC_CONTENT_TYPE_KWARGS)

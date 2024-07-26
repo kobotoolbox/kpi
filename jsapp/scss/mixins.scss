@@ -1,6 +1,6 @@
 @use 'sass:color';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 @mixin buttonReset() {
   display: inline-block;

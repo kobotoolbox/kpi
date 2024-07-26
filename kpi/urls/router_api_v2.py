@@ -151,7 +151,7 @@ router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'project-views', ProjectViewViewSet)
 router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
-router_api_v2.register(r'users', UserViewSet)
+router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
 
 
 # Merge django apps routers with API v2 router

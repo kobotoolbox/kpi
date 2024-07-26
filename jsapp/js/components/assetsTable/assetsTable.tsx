@@ -47,17 +47,17 @@ interface AssetsTableProps {
  /** Displays a spinner */
  isLoading?: boolean;
  /** To display contextual empty message when zero assets. */
- emptyMessage?: string;
+ emptyMessage?: React.ReactNode;
  /** List of assets to be displayed. */
  assets: AssetResponse[];
  /** Number of assets on all pages. */
- totalAssets: number;
+ totalAssets: number | null;
  /** List of available filters values. */
  metadata?: MetadataResponse; // this type ??
  /** Seleceted order column id, one of ASSETS_TABLE_COLUMNS. */
  orderColumnId: string;
- /** Seleceted order column value. */
- orderValue: string;
+ /** Seleceted order column value. Defaults to "ascending" */
+ orderValue: OrderDirection | null;
  /** Called when user selects a column for odering. */
  onOrderChange: OrderChangeCallback;
  /** Seleceted filter column, one of ASSETS_TABLE_COLUMNS. */
@@ -84,7 +84,13 @@ interface AssetsTableState {
 }
 
 /**
- * Displays a table of assets.
+ * DEPRECATED-ish (see below)
+ * Displays a table of assets. This old-ish component is handling three routes:
+ * - My Library
+ * - Public Collections
+ * - Single Collection
+ * The new and shiny component that handles Projects List is `ProjectsTable`,
+ * and in the future it should become (if possible) the only one to be used.
  */
 export default class AssetsTable extends React.Component<
   AssetsTableProps,
@@ -324,7 +330,7 @@ export default class AssetsTable extends React.Component<
         <bem.AssetsTablePagination>
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             startIcon='angle-left'
             label={t('Previous')}
@@ -339,7 +345,7 @@ export default class AssetsTable extends React.Component<
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             endIcon='angle-right'
             label={t('Next')}
@@ -367,7 +373,7 @@ export default class AssetsTable extends React.Component<
         {this.props.totalAssets !== null &&
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             endIcon='expand'
             label={t('Toggle fullscreen')}

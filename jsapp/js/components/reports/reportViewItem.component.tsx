@@ -301,13 +301,14 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
             <span className='report-button__question-settings'>
               <Button
                 type='bare'
-                color='storm'
+                color='dark-blue'
                 size='m'
                 startIcon='more'
                 onClick={() =>
                   this.props.triggerQuestionSettings(this.props.name)
                 }
                 tooltip={t('Override Graph Style')}
+                tooltipPosition='right'
               />
             </span>
           )}

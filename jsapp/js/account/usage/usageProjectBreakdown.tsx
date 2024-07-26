@@ -5,13 +5,16 @@ import {ROUTES} from 'jsapp/js/router/routerConstants';
 import AssetStatusBadge from 'jsapp/js/components/common/assetStatusBadge';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import prettyBytes from 'pretty-bytes';
-import type {AssetUsage} from 'js/account/usage/usage.api';
+import type {AssetUsage, AssetWithUsage} from 'js/account/usage/usage.api';
 import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
 import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
-import {UsageContext, useUsage} from './useUsage.hook';
+import {convertSecondsToMinutes} from 'jsapp/js/utils';
+import {UsageContext} from './useUsage.hook';
+import Button from 'js/components/common/button';
+import Icon from 'js/components/common/icon';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 
 type ButtonType = 'back' | 'forward';
@@ -25,6 +28,7 @@ const ProjectBreakdown = () => {
     results: [],
   });
   const [order, setOrder] = useState({});
+  const [showIntervalBanner, setShowIntervalBanner] = useState(true);
   const [loading, setLoading] = useState(true);
   const [usage] = useContext(UsageContext);
   const [organization] = useContext(OrganizationContext);
@@ -57,6 +61,10 @@ const ProjectBreakdown = () => {
 
   if (loading) {
     return <LoadingSpinner />;
+  }
+
+  function dismissIntervalBanner() {
+    setShowIntervalBanner(false);
   }
 
   const calculateRange = (): string => {
@@ -118,8 +126,64 @@ const ProjectBreakdown = () => {
     setOrder(newOrder);
   };
 
+  const renderProjectRow = (project: AssetWithUsage) => {
+    const periodSubmissions =
+      project[
+        `submission_count_current_${usage.trackingPeriod}`
+      ].toLocaleString();
+
+    const periodASRSeconds = convertSecondsToMinutes(
+      project[`nlp_usage_current_${usage.trackingPeriod}`].total_nlp_asr_seconds
+    ).toLocaleString();
+
+    const periodMTCharacters =
+      project[
+        `nlp_usage_current_${usage.trackingPeriod}`
+      ].total_nlp_mt_characters.toLocaleString();
+
+    return (
+      <tr key={project.asset}>
+        <td>
+          <Link
+            className={styles.link}
+            to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}
+          >
+            {project.asset__name}
+          </Link>
+        </td>
+        <td>{project.submission_count_all_time.toLocaleString()}</td>
+        <td className={styles.currentMonth}>{periodSubmissions}</td>
+        <td>{prettyBytes(project.storage_bytes)}</td>
+        <td>{periodASRSeconds}</td>
+        <td>{periodMTCharacters}</td>
+        <td className={styles.badge}>
+          <AssetStatusBadge deploymentStatus={project.deployment_status} />
+        </td>
+      </tr>
+    );
+  };
+
   return (
     <div className={styles.root}>
+      {showIntervalBanner && (
+        <div className={styles.intervalBanner}>
+          <div className={styles.intervalBannerContent}>
+            <Icon name={'information'} size='m' color='blue' />
+            <div className={styles.intervalBannerText}>
+              {t(
+                'Submissions, transcription minutes, and translation characters reflect usage for the current ##INTERVAL## based on your plan settings.'
+              ).replace('##INTERVAL##', usage.trackingPeriod)}
+            </div>
+          </div>
+          <Button
+            color='dark-blue'
+            size='s'
+            type='bare'
+            startIcon='close'
+            onClick={dismissIntervalBanner}
+          />
+        </div>
+      )}
       <table>
         <thead className={styles.headerFont}>
           <tr>
@@ -133,11 +197,7 @@ const ProjectBreakdown = () => {
               />
             </th>
             <th>{t('Submissions (Total)')}</th>
-            <th>
-              {usage.trackingPeriod === 'year'
-                ? t('Submissions (This year)')
-                : t('Submissions (This month)')}
-            </th>
+            <th>{t('Submissions')}</th>
             <th>{t('Data storage')}</th>
             <th>{t('Transcript minutes')}</th>
             <th>{t('Translation characters')}</th>
@@ -164,36 +224,7 @@ const ProjectBreakdown = () => {
           </tbody>
         ) : (
           <tbody>
-            {projectData.results.map((project) => (
-              <tr key={project.asset}>
-                <td>
-                  <Link
-                    className={styles.link}
-                    to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}
-                  >
-                    {project.asset__name}
-                  </Link>
-                </td>
-                <td>{project.submission_count_all_time.toLocaleString()}</td>
-                <td className={styles.currentMonth}>
-                  {project.submission_count_current_month.toLocaleString()}
-                </td>
-                <td>{prettyBytes(project.storage_bytes)}</td>
-                <td>
-                  {(project.nlp_usage_current_month.total_nlp_asr_seconds / 60)
-                    .toFixed(1)
-                    .toLocaleString()}
-                </td>
-                <td>
-                  {project.nlp_usage_current_month.total_nlp_mt_characters.toLocaleString()}
-                </td>
-                <td className={styles.badge}>
-                  <AssetStatusBadge
-                    deploymentStatus={project.deployment_status}
-                  />
-                </td>
-              </tr>
-            ))}
+            {projectData.results.map((project) => renderProjectRow(project))}
           </tbody>
         )}
       </table>

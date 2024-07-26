@@ -151,9 +151,17 @@ export interface Organization {
 
 export enum PlanNames {
   'FREE' = 'Community',
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   'COMMUNITY' = 'Community',
   'PRO' = 'Professional',
   'ENTERPRISE' = 'Enterprise',
+}
+
+export enum UsageLimitTypes {
+  'STORAGE' = 'storage',
+  'SUBMISSION' = 'submission',
+  'TRANSCRIPTION' = 'automated transcription',
+  'TRANSLATION' = 'machine translation',
 }
 
 export enum Limits {

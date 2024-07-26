@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from django.utils.timezone import now
+from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
 class TrashStatus(models.TextChoices):
@@ -12,7 +12,7 @@ class TrashStatus(models.TextChoices):
     FAILED = 'failed', 'FAILED'
 
 
-class BaseTrash(models.Model):
+class BaseTrash(AbstractTimeStampedModel):
 
     class Meta:
         abstract = True
@@ -27,8 +27,6 @@ class BaseTrash(models.Model):
         'django_celery_beat.PeriodicTask', null=True, on_delete=models.RESTRICT
     )
     request_author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    date_created = models.DateTimeField(default=now)
-    date_modified = models.DateTimeField(default=now)
     metadata = models.JSONField(default=dict)
     # Celery will run a task at a specific moment - according to the Constance
     # setting `ACCOUNT_TRASH_GRACE_PERIOD` - to delete (or remove) the object.

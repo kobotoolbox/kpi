@@ -1,11 +1,9 @@
 import React, {lazy, Suspense} from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {observer} from 'mobx-react';
 import Reflux from 'reflux';
 import {NavLink} from 'react-router-dom';
-import {stores} from '../stores';
 import sessionStore from '../stores/session';
 import bem from 'js/bem';
 import {searches} from '../searches';
@@ -17,6 +15,8 @@ import {ROUTES, PROJECTS_ROUTES} from 'js/router/routerConstants';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {router, routerIsActive, withRouter} from '../router/legacy';
+import Button from 'js/components/common/button';
+import pageState from 'js/pageState.store';
 
 const AccountSidebar = lazy(() => import('js/account/accountSidebar'));
 
@@ -39,12 +39,12 @@ const FormSidebar = observer(
           currentAssetId: false,
           files: [],
         },
-        stores.pageState.state
+        pageState.state
       );
       this.state = Object.assign(INITIAL_STATE, this.state);
 
       this.unlisteners = [];
-      this.stores = [stores.pageState];
+      this.stores = [pageState];
       autoBind(this);
     }
     componentDidMount() {
@@ -61,22 +61,26 @@ const FormSidebar = observer(
     }
     newFormModal(evt) {
       evt.preventDefault();
-      stores.pageState.showModal({
+      pageState.showModal({
         type: MODAL_TYPES.NEW_FORM,
       });
     }
     render() {
       return (
-        <React.Fragment>
-          <bem.KoboButton
-            m={['blue', 'fullwidth']}
-            disabled={!sessionStore.isLoggedIn}
-            onClick={this.newFormModal}
-          >
-            {t('new')}
-          </bem.KoboButton>
+        <>
+          <Button
+            type='full'
+            color='blue'
+            size='l'
+            isFullWidth
+            isUpperCase
+            isDisabled={!sessionStore.isLoggedIn}
+            onClick={this.newFormModal.bind(this)}
+            label={t('new')}
+          />
+
           <SidebarFormsList />
-        </React.Fragment>
+        </>
       );
     }
     onRouteChange() {
@@ -84,10 +88,6 @@ const FormSidebar = observer(
     }
   }
 );
-
-FormSidebar.contextTypes = {
-  router: PropTypes.object,
-};
 
 reactMixin(FormSidebar.prototype, searches.common);
 reactMixin(FormSidebar.prototype, mixins.droppable);
@@ -141,7 +141,7 @@ const Drawer = observer(
     constructor(props) {
       super(props);
       autoBind(this);
-      this.stores = [stores.pageState];
+      this.stores = [pageState];
     }
 
     isAccount() {
@@ -211,9 +211,5 @@ const Drawer = observer(
 reactMixin(Drawer.prototype, searches.common);
 reactMixin(Drawer.prototype, mixins.droppable);
 reactMixin(Drawer.prototype, mixins.contextRouter);
-
-Drawer.contextTypes = {
-  router: PropTypes.object,
-};
 
 export default withRouter(Drawer);

@@ -2,10 +2,11 @@
 # 😬
 import copy
 
+from django.conf import settings
 from django.db import models
+from formpack import FormPack
 from rest_framework.reverse import reverse
 
-from formpack import FormPack
 
 from kpi.fields import KpiUidField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
@@ -58,7 +59,7 @@ class AssetSnapshot(
     xml = models.TextField()
     source = models.JSONField(default=dict)
     details = models.JSONField(default=dict)
-    owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
     # FIXME: uuid on the KoboCAT logger.Instance model has max_length 249
@@ -213,12 +214,6 @@ class AssetSnapshot(
 
         warnings = []
         details = {}
-
-        for row in source_copy['survey']:
-            if row.get('type') in ['select_one_from_file', 'select_multiple_from_file']:
-                ff = row.pop('file')
-                _type = row.pop('type')
-                row['type'] = f'{_type} {ff}'
 
         try:
             xml = FormPack({'content': source_copy},

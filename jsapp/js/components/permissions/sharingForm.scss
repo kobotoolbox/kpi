@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/_variables';
 @use 'scss/libs/_mdl';
 @use 'scss/sizes';
@@ -89,10 +89,6 @@ $s-gray-row-spacing: 10px;
     flex-direction: row;
     align-items: center;
     min-height: 50px;
-
-    > .mdl-button {
-      min-width: 32px;
-    }
   }
 
   .user-row__avatar {
@@ -123,7 +119,7 @@ $s-gray-row-spacing: 10px;
   }
 }
 
-// We want to avoud UI jumping when question with a long name is being selected 
+// We want to avoud UI jumping when question with a long name is being selected
 // in "based on a condition" dropdown
 .modal .form-modal__item--who-has-access {
   min-width: 600px;
@@ -135,7 +131,7 @@ $s-gray-row-spacing: 10px;
   // The closing button is not a part of UserAssetPermsEditor
   .user-permissions-editor-closer {
     position: absolute;
-    top: 5px;
+    top: 10px;
     right: 5px;
   }
 }

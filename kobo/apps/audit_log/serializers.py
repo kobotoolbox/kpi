@@ -9,7 +9,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
     user = serializers.HyperlinkedRelatedField(
         queryset=get_user_model().objects.all(),
         lookup_field='username',
-        view_name='user-detail'
+        view_name='user-kpi-detail'
     )
     date_created = serializers.SerializerMethodField()
     action = serializers.SerializerMethodField()

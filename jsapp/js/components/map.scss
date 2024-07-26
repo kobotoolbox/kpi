@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/breakpoints';
 @use 'scss/libs/_mdl';
 @use 'scss/_variables';
@@ -297,7 +297,7 @@ body .leaflet-control-layers,
 }
 
 .map-settings {
-  .form-modal__item--layer-upload label {
+  .form-modal__item--layer-upload label[for='name'] {
     display: block;
     padding: 10px 0 20px;
     position: relative;

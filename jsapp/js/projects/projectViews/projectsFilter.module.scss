@@ -1,5 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
+@use 'scss/colors';
 @use 'js/components/modals/koboModal.scss';
 
 .root {
@@ -33,4 +34,8 @@
   > *:first-child {
     margin-right: auto;
   }
+}
+
+.buttonHasFilters {
+  background-color: colors.$kobo-bg-blue;
 }

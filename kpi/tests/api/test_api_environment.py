@@ -5,7 +5,6 @@ import datetime
 import constance
 from constance.test import override_config
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.template import RequestContext, Template
 from django.test import override_settings
@@ -19,8 +18,10 @@ from rest_framework import status
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.models import SocialAppCustomData
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
@@ -232,7 +233,7 @@ class EnvironmentTests(BaseTestCase):
         self,
     ):
         user = baker.make(
-            'User',
+            settings.AUTH_USER_MODEL,
             username='thresholds_test',
             date_joined=self.today
         )
@@ -271,12 +272,12 @@ class EnvironmentTests(BaseTestCase):
         """ If the user is in an organization, the custom free tier should only
         be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE """
         org_user = baker.make(
-            'User',
+            settings.AUTH_USER_MODEL,
             username='org_user',
             date_joined=self.today + datetime.timedelta(days=1),
         )
         org_owner = baker.make(
-            'User',
+            settings.AUTH_USER_MODEL,
             username='org_owner',
             date_joined=self.today,
         )
@@ -311,10 +312,27 @@ class EnvironmentTests(BaseTestCase):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=app,
+            is_public=True
+        )
+        custom_data.save()
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
+
+    @override_settings(SOCIALACCOUNT_PROVIDERS={}, STRIPE_ENABLED=False)
+    def test_social_apps_no_custom_data(self):
+        SocialAppCustomData.objects.all().delete()
+        self.client.get(self.url, format='json')
+        queries = FuzzyInt(18, 25)
+        with self.assertNumQueries(queries):
+            response = self.client.get(self.url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'social_app')
+        self.assertNotContains(response, 'app.name')
 
     def test_tos_sitewide_message(self):
         # Check that fixtures properly stores terms of service
