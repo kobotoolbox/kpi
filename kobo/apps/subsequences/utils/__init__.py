@@ -150,7 +150,7 @@ def stream_with_extras(submission_stream, asset):
             uuid = submission[SUBMISSION_UUID_FIELD]
         else:
             uuid = submission['_uuid']
-        all_supplemental_details = extras.get(uuid, {})
+        all_supplemental_details = deepcopy(extras.get(uuid, {}))
         for qpath, supplemental_details in all_supplemental_details.items():
             try:
                 all_qual_responses = supplemental_details['qual']
@@ -176,8 +176,6 @@ def stream_with_extras(submission_stream, asset):
                         val = [val]
                     val_expanded = []
                     for v in val:
-                        if isinstance(v, dict):
-                            v = v['uuid']
                         try:
                             v_ex = qual_choices_per_question_by_uuid[
                                 qual_q['uuid']

@@ -262,7 +262,7 @@ class TestSubmissionStream(TestCase):
 
         # Process submissions with extras
         try:
-            output = list(
+            _ = list(
                 stream_with_extras(
                     self.asset.deployment.get_submissions(
                         user=self.asset.owner
