@@ -17,12 +17,12 @@ import pytest
 import responses
 from dict2xml import dict2xml
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
@@ -47,8 +47,6 @@ from kpi.tests.utils.mock import (
     enketo_view_instance_response,
 )
 
-User = get_user_model()
-
 
 def dict2xml_with_encoding_declaration(*args, **kwargs):
     return '<?xml version="1.0" encoding="utf-8"?>' + dict2xml(
@@ -70,7 +68,7 @@ class BaseSubmissionTestCase(BaseTestCase):
     or `HTTP_ACCEPT` (other requests)
     """
 
-    fixtures = ["test_data"]
+    fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
@@ -92,10 +90,12 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submission_list_url = self.asset.deployment.submission_list_url
         self._deployment = self.asset.deployment
 
-    def get_random_submission(self, user: 'auth.User') -> dict:
+    def get_random_submission(self, user: settings.AUTH_USER_MODEL) -> dict:
         return self.get_random_submissions(user, 1)[0]
 
-    def get_random_submissions(self, user: 'auth.User', limit: int = 1) -> list:
+    def get_random_submissions(
+        self, user: settings.AUTH_USER_MODEL, limit: int = 1
+    ) -> list:
         """
         Get random submissions within all generated submissions.
         If user is the owner, we only return submissions submitted by unknown.

@@ -2,6 +2,7 @@
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.http import HttpRequest
 from django.urls import (
     get_script_prefix,
     resolve,
@@ -36,3 +37,17 @@ def absolute_resolve(url):
 
 def absolute_reverse(*args, **kwargs):
     return f'{settings.KOBOFORM_URL}{reverse(*args, **kwargs)}'
+
+
+def is_request_for_html(request: HttpRequest):
+    """
+    Try to determine if a request object is for an HTML page or an API resource
+    """
+    try:
+        path_end = request.path.split('/')[-1]
+        if path_end.endswith('.xml') or path_end.endswith('.json'):
+            return True
+    except IndexError:
+        pass
+    request_format = request.GET.get('format') or request.POST.get('format')
+    return request.accepts('text/html') or (request_format and request_format != 'api')

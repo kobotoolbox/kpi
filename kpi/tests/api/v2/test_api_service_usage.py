@@ -4,17 +4,16 @@ import uuid
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.db import connection
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatXForm,
-    KobocatDailyXFormSubmissionCounter,
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import (
+    XForm,
+    DailyXFormSubmissionCounter,
 )
+from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -28,10 +27,6 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
-    unmanaged_models = [
-        KobocatDailyXFormSubmissionCounter,
-        KobocatXForm,
-    ]
     xform = None
     counter = None
     attachment_id = 0
@@ -41,9 +36,6 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
         super().setUpTestData()
         cls.anotheruser = User.objects.get(username='anotheruser')
         cls.someuser = User.objects.get(username='someuser')
-        with connection.schema_editor() as schema_editor:
-            for unmanaged_model in cls.unmanaged_models:
-                schema_editor.create_model(unmanaged_model)
 
     def setUp(self):
         super().setUp()
@@ -161,7 +153,23 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
             )
             self.xform.save()
         else:
-            self.xform = KobocatXForm.objects.create(
+            xform_xml = (
+                f'<?xml version="1.0" encoding="utf-8"?>'
+                f'<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:odk="http://www.opendatakit.org/xforms" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
+                f'<h:head>'
+                f'   <h:title>XForm test</h:title>'
+                f'   <model odk:xforms-version="1.0.0">'
+                f'       <instance>'
+                f'           <{asset.uid} id="{asset.uid}" />'
+                f'       </instance>'
+                f'   </model>'
+                f'</h:head>'
+                f'<h:body>'
+                f'</h:body>'
+                f'</h:html>'
+            )
+
+            self.xform = XForm.objects.create(
                 attachment_storage_bytes=(
                     self.expected_file_size() * submissions
                 ),
@@ -169,6 +177,8 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
                 date_created=today,
                 date_modified=today,
                 user_id=asset.owner_id,
+                xml=xform_xml,
+                json={}
             )
             self.xform.save()
 
@@ -177,7 +187,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
             self.counter.save()
         else:
             self.counter = (
-                KobocatDailyXFormSubmissionCounter.objects.create(
+                DailyXFormSubmissionCounter.objects.create(
                     date=today.date(),
                     counter=submissions,
                     xform=self.xform,

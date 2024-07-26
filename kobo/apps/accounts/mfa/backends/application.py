@@ -2,8 +2,9 @@
 import constance
 import pyotp
 from django.conf import settings
-from django.contrib.auth.models import User
 from trench.backends.application import ApplicationMessageDispatcher
+
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class ApplicationBackend(ApplicationMessageDispatcher):

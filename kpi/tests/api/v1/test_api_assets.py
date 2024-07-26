@@ -3,13 +3,13 @@ import json
 import unittest
 from urllib.parse import unquote_plus
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from lxml import etree
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, ExportTask
 from kpi.models.import_export_task import export_upload_to

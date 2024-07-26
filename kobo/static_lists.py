@@ -338,6 +338,12 @@ EXTRA_LANG_INFO = {
         'name': 'Nyanja',
         'name_local': 'Nyanja',
     },
+    'yo': {
+        'bidi': False,
+        'code': 'yo',
+        'name': 'Yoruba',
+        'name_local': 'Yoruba',
+    }
 }
 
 PROJECT_METADATA_DEFAULT_LABELS = {

@@ -1,11 +1,11 @@
 # coding: utf-8
 import re
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.form_disclaimer.models import FormDisclaimer
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.languages.models.language import Language
 from kpi.models.asset import AssetSnapshot
 from kpi.tests.kpi_test_case import KpiTestCase
