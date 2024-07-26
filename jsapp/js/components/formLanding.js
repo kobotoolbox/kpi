@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -317,7 +316,7 @@ class FormLanding extends React.Component {
                     {isLoggedIn && (
                       <Button
                         type='bare'
-                        color='storm'
+                        color='dark-blue'
                         size='m'
                         onClick={() => {this.saveCloneAs(item.uid);}}
                         startIcon='duplicate'
@@ -385,7 +384,16 @@ class FormLanding extends React.Component {
             <bem.FormView__cell>
               <PopoverMenu
                 type='collectData-menu'
-                triggerLabel={COLLECTION_METHODS[chosenMethod].label}
+                triggerLabel={(
+                  <Button
+                    color='blue'
+                    size='m'
+                    type='full'
+                    label={COLLECTION_METHODS[chosenMethod].label}
+                    endIcon='angle-down'
+                    isFullWidth
+                  />
+                )}
               >
                 {deployment__links_list.map((c) => {
                   return (
@@ -597,7 +605,7 @@ class FormLanding extends React.Component {
             */}
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               startIcon='edit'
               data-cy='edit'
@@ -608,7 +616,7 @@ class FormLanding extends React.Component {
         ) : (
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             startIcon='edit'
             tooltip={t('Editing capabilities not granted, you can only view this form')}
@@ -619,7 +627,7 @@ class FormLanding extends React.Component {
 
         <Button
           type='bare'
-          color='storm'
+          color='dark-blue'
           size='m'
           startIcon='view'
           tooltip={t('Preview')}
@@ -630,7 +638,7 @@ class FormLanding extends React.Component {
         {userCanEdit && (
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             startIcon='replace'
             tooltip={t('Replace form')}
@@ -644,7 +652,7 @@ class FormLanding extends React.Component {
           triggerLabel={
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               startIcon='more'
               tooltip={t('More actions')}
@@ -737,7 +745,7 @@ class FormLanding extends React.Component {
           <bem.FormView__cell>
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               startIcon='language'
               tooltip={t('Manage translations')}
@@ -803,9 +811,5 @@ class FormLanding extends React.Component {
 
 reactMixin(FormLanding.prototype, mixins.dmix);
 reactMixin(FormLanding.prototype, Reflux.ListenerMixin);
-
-FormLanding.contextTypes = {
-  router: PropTypes.object,
-};
 
 export default withRouter(FormLanding);

@@ -26,7 +26,7 @@ class I18nTestCase(TestCase):
         self.assertEqual(welcome_message, 'Global welcome message')
         self.assertEqual(welcome_message_es, welcome_message)
 
-    # TODO validate whethere the tests below are necessary.
+    # TODO validate whether the tests below are necessary.
     #   Kinda redundant with kobo/apps/accounts/tests/test_forms.py::AccountFormsTestCase
     @override_config(USER_METADATA_FIELDS=LazyJSONSerializable([
       {

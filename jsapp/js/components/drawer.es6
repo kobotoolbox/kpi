@@ -1,5 +1,4 @@
 import React, {lazy, Suspense} from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {observer} from 'mobx-react';
@@ -89,10 +88,6 @@ const FormSidebar = observer(
     }
   }
 );
-
-FormSidebar.contextTypes = {
-  router: PropTypes.object,
-};
 
 reactMixin(FormSidebar.prototype, searches.common);
 reactMixin(FormSidebar.prototype, mixins.droppable);
@@ -216,9 +211,5 @@ const Drawer = observer(
 reactMixin(Drawer.prototype, searches.common);
 reactMixin(Drawer.prototype, mixins.droppable);
 reactMixin(Drawer.prototype, mixins.contextRouter);
-
-Drawer.contextTypes = {
-  router: PropTypes.object,
-};
 
 export default withRouter(Drawer);

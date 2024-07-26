@@ -1,8 +1,8 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from hub.models import ExtraUserDetail
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
 
 

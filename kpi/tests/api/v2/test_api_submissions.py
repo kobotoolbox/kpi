@@ -17,12 +17,12 @@ import pytest
 import responses
 from dict2xml import dict2xml
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
@@ -47,8 +47,6 @@ from kpi.tests.utils.mock import (
     enketo_view_instance_response,
 )
 
-User = get_user_model()
-
 
 def dict2xml_with_encoding_declaration(*args, **kwargs):
     return '<?xml version="1.0" encoding="utf-8"?>' + dict2xml(
@@ -70,7 +68,7 @@ class BaseSubmissionTestCase(BaseTestCase):
     or `HTTP_ACCEPT` (other requests)
     """
 
-    fixtures = ["test_data"]
+    fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
@@ -92,10 +90,12 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submission_list_url = self.asset.deployment.submission_list_url
         self._deployment = self.asset.deployment
 
-    def get_random_submission(self, user: 'auth.User') -> dict:
+    def get_random_submission(self, user: settings.AUTH_USER_MODEL) -> dict:
         return self.get_random_submissions(user, 1)[0]
 
-    def get_random_submissions(self, user: 'auth.User', limit: int = 1) -> list:
+    def get_random_submissions(
+        self, user: settings.AUTH_USER_MODEL, limit: int = 1
+    ) -> list:
         """
         Get random submissions within all generated submissions.
         If user is the owner, we only return submissions submitted by unknown.
@@ -1056,6 +1056,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
 
 class SubmissionEditApiTests(BaseSubmissionTestCase):
+    """
+    Tests for editin submissions.
+
+    WARNING: Tests in this class must work in v1 as well, or else be added to the skipped tests
+    in kpi/tests/api/v1/test_api_submissions.py
+    """
 
     def setUp(self):
         super().setUp()
@@ -1561,6 +1567,27 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         }
         assert response.data == expected_response
 
+    def test_edit_submission_snapshot_missing(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_snapshot_missing_unauthenticated(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
 
@@ -1711,6 +1738,15 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
+        self.asset.advanced_features = {
+            'translation': {
+                'values': ['q1'],
+                'languages': ['tx1', 'tx2'],
+            },
+            'transcript': {
+                'values': ['q1'],
+            }
+        }
         current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
@@ -1892,6 +1928,37 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         response = self.client.post(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self._check_duplicate(response, submission)
+
+    def test_duplicate_submission_with_extras(self):
+        dummy_extra = {
+            'q1': {
+                'transcript': {
+                    'value': 'dummy transcription',
+                    'languageCode': 'en',
+                },
+                'translation': {
+                    'tx1': {
+                        'value': 'dummy translation',
+                        'languageCode': 'xx',
+                    }
+                },
+            },
+            'submission': self.submission['_uuid']
+        }
+        self.asset.update_submission_extra(dummy_extra)
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        duplicated_submission = response.data
+        duplicated_extra = self.asset.submission_extras.filter(
+            submission_uuid=duplicated_submission['_uuid']
+        ).first()
+        assert (
+            duplicated_extra.content['q1']['translation']['tx1']['value']
+            == dummy_extra['q1']['translation']['tx1']['value']
+        )
+        assert (
+            duplicated_extra.content['q1']['transcript']['value']
+            == dummy_extra['q1']['transcript']['value']
+        )
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):

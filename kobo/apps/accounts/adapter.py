@@ -11,8 +11,9 @@ from trench.utils import get_mfa_model, user_token_generator
 
 from .mfa.forms import MfaTokenForm
 from .mfa.models import MfaAvailableToUser
+from .mfa.permissions import mfa_allowed_for_user
 from .mfa.views import MfaTokenView
-from .utils import user_has_paid_subscription
+from .utils import user_has_inactive_paid_subscription
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -25,28 +26,22 @@ class AccountAdapter(DefaultAccountAdapter):
             # validated their email address
             return parent_response
 
-        mfa_allowed = True
-        if settings.STRIPE_ENABLED:
-            mfa_allowed = (
-                user_has_paid_subscription(user.username)
-                or MfaAvailableToUser.objects.filter(user=user).exists()
-            )
-
         # If MFA is activated and allowed for the user, display the token form before letting them in
-        if (
-            mfa_allowed
-            and get_mfa_model()
-            .objects.filter(is_active=True, user=user)
-            .exists()
-        ):
+        mfa_active = (
+            get_mfa_model().objects.filter(is_active=True, user=user).exists()
+        )
+        mfa_allowed = mfa_allowed_for_user(user)
+        inactive_subscription = user_has_inactive_paid_subscription(
+            user.username
+        )
+        if mfa_active and (mfa_allowed or inactive_subscription):
             ephemeral_token_cache = user_token_generator.make_token(user)
             mfa_token_form = MfaTokenForm(
                 initial={'ephemeral_token': ephemeral_token_cache}
             )
 
-            next_url = (
-                kwargs.get('redirect_url')
-                or resolve_url(settings.LOGIN_REDIRECT_URL)
+            next_url = kwargs.get('redirect_url') or resolve_url(
+                settings.LOGIN_REDIRECT_URL
             )
 
             context = {
@@ -73,15 +68,15 @@ class AccountAdapter(DefaultAccountAdapter):
             extra_data = {k: form.cleaned_data[k] for k in extra_fields}
 
             # If the form contains a Terms of Service checkbox (checked)
-            if (extra_data.pop('terms_of_service', None)):
+            if extra_data.pop('terms_of_service', None):
                 # We 'pop' because we don't want to save 'terms_of_service':true
                 # in extra_details.data. Instead, save a now() date string as
                 # the last ToS acceptance time in private_data.
                 # See also: TOSView.post() in apps/accounts/tos.py, which
                 # lets the frontend accept ToS on behalf of existing users.
-                user.extra_details.private_data[
-                    'last_tos_accept_time'
-                ] = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+                user.extra_details.private_data['last_tos_accept_time'] = (
+                    timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+                )
 
             user.extra_details.data.update(extra_data)
             if commit:

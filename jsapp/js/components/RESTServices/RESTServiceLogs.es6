@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
@@ -206,7 +205,7 @@ export default class RESTServiceLogs extends React.Component {
       <header className='rest-services-list__header'>
         <Button
           type='frame'
-          color='storm'
+          color='dark-blue'
           size='m'
           onClick={() => {
             window.location.assign(`/#/forms/${this.state.assetUid}/settings/rest`);
@@ -269,7 +268,7 @@ export default class RESTServiceLogs extends React.Component {
                 { this.hasAnyFailedLogs() &&
                   <Button
                     type='bare'
-                    color='storm'
+                    color='dark-blue'
                     size='m'
                     onClick={this.retryAll.bind(this)}
                     tooltip={t('Retry all submissions')}
@@ -320,7 +319,7 @@ export default class RESTServiceLogs extends React.Component {
                     {log.status === HOOK_LOG_STATUSES.FAILED &&
                       <Button
                         type='bare'
-                        color='storm'
+                        color='dark-blue'
                         size='m'
                         isDisabled={!this.state.isHookActive}
                         onClick={this.retryLog.bind(this, log)}
@@ -332,7 +331,7 @@ export default class RESTServiceLogs extends React.Component {
                     {this.hasInfoToDisplay(log) &&
                       <Button
                         type='bare'
-                        color='storm'
+                        color='dark-blue'
                         size='m'
                         onClick={this.showLogInfo.bind(this, log)}
                         tooltip={t('More info')}
@@ -368,7 +367,3 @@ export default class RESTServiceLogs extends React.Component {
 
 reactMixin(RESTServiceLogs.prototype, Reflux.ListenerMixin);
 reactMixin(RESTServiceLogs.prototype, mixins.contextRouter);
-
-RESTServiceLogs.contextTypes = {
-  router: PropTypes.object
-};

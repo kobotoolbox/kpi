@@ -35,7 +35,7 @@ class ProjectTrash(BaseTrash):
     def toggle_asset_statuses(
         cls,
         asset_uids: list[str] = None,
-        owner: 'auth.User' = None,
+        owner: settings.AUTH_USER_MODEL = None,
         active: bool = True,
         toggle_delete: bool = True,
     ) -> tuple:

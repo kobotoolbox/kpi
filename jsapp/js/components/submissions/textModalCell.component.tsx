@@ -48,7 +48,7 @@ export default function TextModalCell(
 
         <Button
           type='bare'
-          color='light-blue'
+          color='dark-blue'
           size='s'
           startIcon='expand-arrow'
           onClick={() => setIsModalOpen(true)}

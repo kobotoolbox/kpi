@@ -362,7 +362,7 @@ export class TranslationSettings extends React.Component {
                     {i !== 0 && (
                       <Button
                         type='bare'
-                        color='storm'
+                        color='dark-blue'
                         size='m'
                         onClick={() => {this.changeDefaultLanguage(i);}}
                         isDisabled={
@@ -378,7 +378,7 @@ export class TranslationSettings extends React.Component {
                   <bem.FormView__cell m='translation-actions'>
                     <Button
                       type='bare'
-                      color='storm'
+                      color='dark-blue'
                       size='m'
                       onClick={() => {this.toggleRenameLanguageForm(i);}}
                       isDisabled={
@@ -392,7 +392,7 @@ export class TranslationSettings extends React.Component {
 
                     <Button
                       type='bare'
-                      color='storm'
+                      color='dark-blue'
                       size='m'
                       onClick={() => {
                         this.launchTranslationTableModal(
@@ -409,7 +409,7 @@ export class TranslationSettings extends React.Component {
                     {i !== 0 && (
                       <Button
                         type='bare'
-                        color='red'
+                        color='dark-red'
                         size='m'
                         onClick={() => {this.deleteLanguage(i);}}
                         isDisabled={
@@ -455,7 +455,7 @@ export class TranslationSettings extends React.Component {
               <Button
                 className='add-language-form-close'
                 type='bare'
-                color='storm'
+                color='dark-blue'
                 size='m'
                 onClick={this.hideAddLanguageForm.bind(this)}
                 startIcon='close'

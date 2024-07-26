@@ -389,7 +389,7 @@ class BulkEditSubmissionsForm extends React.Component {
         <bem.Modal__footer>
           <Button
             type='full'
-            color='red'
+            color='dark-red'
             size='l'
             onClick={this.onReset.bind(this)}
             isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
@@ -429,7 +429,7 @@ class BulkEditSubmissionsForm extends React.Component {
         <bem.Modal__footer>
           <Button
             type='frame'
-            color='storm'
+            color='dark-blue'
             size='l'
             onClick={this.goBackToList.bind(this)}
             label={t('Back')}

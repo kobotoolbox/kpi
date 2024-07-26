@@ -7,6 +7,7 @@ from copy import deepcopy
 from functools import reduce
 
 import pytest
+from django.conf import settings
 from model_bakery import baker
 
 from kpi.models import Asset
@@ -864,7 +865,7 @@ def test_populates_qpath_xpath_correctly():
 @pytest.mark.django_db()
 def test_return_xpaths_and_qpath_even_if_missing():
     user = baker.make(
-        'User', username='johndoe'
+        settings.AUTH_USER_MODEL, username='johndoe'
     )
     asset = Asset.objects.create(owner=user, content={
         'survey': [

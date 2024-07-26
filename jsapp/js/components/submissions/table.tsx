@@ -59,14 +59,14 @@ import {
   TABLE_MEDIA_TYPES,
   DEFAULT_DATA_CELL_WIDTH,
   CELLS_WIDTH_OVERRIDES,
-  DROPDOWN_FILTER_QUESTION_TYPES,
 } from 'js/components/submissions/tableConstants';
 import {
   getColumnLabel,
   getColumnHXLTags,
   getBackgroundAudioQuestionName,
   buildFilterQuery,
-  isTableColumnFilterable,
+  isTableColumnFilterableByTextInput,
+  isTableColumnFilterableByDropdown,
 } from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
 import type {TableStoreData} from 'js/components/submissions/tableStore';
@@ -93,6 +93,7 @@ import type {
   SurveyRow,
 } from 'js/dataInterface';
 import type {
+  SubmissionPageName,
   TableColumn,
   ReactTableState,
   ReactTableInstance,
@@ -123,7 +124,7 @@ interface DataTableState {
   /** A list of rows that are selected. */
   selectedRows: DataTableSelectedRows;
   selectAll: boolean;
-  submissionPager: boolean | 'next' | 'prev';
+  submissionPager?: SubmissionPageName;
   /** state of react-table table */
   fetchState?: ReactTableState;
   /** instance data of react-table table */
@@ -165,7 +166,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
-      submissionPager: false,
+      submissionPager: undefined,
       lastChecked: null,
       shiftSelection: {},
     };
@@ -326,10 +327,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         selectedRows: {},
         selectAll: false,
         submissions: results,
-        submissionPager: false,
+        submissionPager: undefined,
         resultsTotal: response.count,
+      }, () => {
+        this._prepColumns(results);
       });
-      this._prepColumns(results);
     } else if (options.filter?.length) {
       // if there are no results, but there is some filtering applied, we don't
       // want to display the "no data" message
@@ -579,13 +581,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             */}
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='s'
               startIcon='view'
               tooltip={t('Open')}
               tooltipPosition='left'
               onClick={() => {
-                this.launchSubmissionModal(row, row.original._id);
+                this.launchSubmissionModal(row.original._id);
               }}
             />
 
@@ -597,7 +599,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               ) && (
                 <Button
                   type='bare'
-                  color='storm'
+                  color='dark-blue'
                   size='s'
                   startIcon='edit'
                   tooltip={t('Edit')}
@@ -898,7 +900,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         accessor: (row) => row[key],
         index: index,
         question: q,
+        // This (and the Filter itself) will be set below (we do it separately,
+        // because we need to do it for all the columns, not only the ones in
+        // this loop)
         filterable: false,
+        // Filter
         sortable: false,
         className: elClassNames.join(' '),
         headerClassName: elClassNames.join(' '),
@@ -1077,12 +1083,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const frozenColumn = tableStore.getFrozenColumn();
 
     columnsToRender.forEach((col: TableColumn) => {
-      const columnQuestionType = col.question?.type;
+      const columnQuestion = col.question;
 
-      if (
-        columnQuestionType &&
-        columnQuestionType in DROPDOWN_FILTER_QUESTION_TYPES
-      ) {
+      // We set filters here, so they apply for all columns
+      if (isTableColumnFilterableByDropdown(columnQuestion?.type)) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <select
@@ -1092,7 +1096,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           >
             <option value=''>{t('Show All')}</option>
             {choices
-              .filter((choiceItem) => choiceItem.list_name === col.question?.select_from_list_name)
+              .filter((choiceItem) => choiceItem.list_name === columnQuestion?.select_from_list_name)
               .map((item, n) => {
                 const displayName = getQuestionOrChoiceDisplayName(
                   item,
@@ -1106,8 +1110,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               })}
           </select>
         );
-      }
-      if (isTableColumnFilterable(col)) {
+      } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <DebounceInput
@@ -1118,7 +1121,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             placeholder={t('Search')}
           />
         );
-      }
+      };
 
       if (frozenColumn === col.id) {
         col.className = col.className
@@ -1171,8 +1174,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         const newData = this.state.submissions;
         newData[subIndex]._validation_status = result || {};
-        this.setState({submissions: newData});
-        this._prepColumns(newData);
+        this.setState({submissions: newData}, () => {
+          this._prepColumns(newData);
+        });
       }
     }
   }
@@ -1188,9 +1192,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     sid: string,
     duplicatedSubmission: SubmissionResponse
   ) {
+    // Load fresh table of submissions
     if (this.state.fetchInstance) {
       this.fetchSubmissions(this.state.fetchInstance);
     }
+    // Open submission modal
     this.submissionModalProcessing(
       sid,
       this.state.submissions,
@@ -1252,39 +1258,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Opens submission modal
    * @param {object} row
    */
-  launchSubmissionModal(row: CellInfo, sid: string) {
-    if (row && row.original) {
-      const backgroundAudioName = getBackgroundAudioQuestionName(
-        this.props.asset
-      );
-      if (
-        backgroundAudioName &&
-        Object.keys(row.original).includes(backgroundAudioName)
-      ) {
-        const mediaAttachment = getMediaAttachment(
-          row.original,
-          row.original[backgroundAudioName],
-          META_QUESTION_TYPES['background-audio']
-        );
-
-        let backgroundAudioUrl;
-        if (typeof mediaAttachment === 'string') {
-          backgroundAudioUrl = mediaAttachment;
-        } else {
-          backgroundAudioUrl = mediaAttachment.download_medium_url;
-        }
-
-        this.submissionModalProcessing(
-          sid,
-          this.state.submissions,
-          false,
-          null,
-          backgroundAudioUrl
-        );
-      } else {
-        this.submissionModalProcessing(sid, this.state.submissions);
-      }
-    }
+  launchSubmissionModal(sid: string) {
+    this.submissionModalProcessing(sid, this.state.submissions);
   }
 
   /**
@@ -1295,7 +1270,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     submissions: SubmissionResponse[],
     isDuplicated: boolean = false,
     duplicatedSubmission: SubmissionResponse | null = null,
-    backgroundAudioUrl: string | null = null
   ) {
     const ids = submissions.map((item) => item._id);
 
@@ -1306,7 +1280,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       ids: ids,
       isDuplicated: isDuplicated,
       duplicatedSubmission: duplicatedSubmission,
-      backgroundAudioUrl: backgroundAudioUrl,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,
@@ -1329,19 +1302,29 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onPageStateUpdated(pageState: PageStateStoreState) {
     // This function serves purpose only for Submission Modal and only when
     // user reaches the end of currently loaded submissions in the table with
-    // the "next" button.
+    // the "next" button (and similarly with "prev" button).
     if (
       pageState.modal &&
       pageState.modal.type === MODAL_TYPES.SUBMISSION &&
       !pageState.modal.sid
     ) {
+      // HACK: this is our way of forcing `react-table` to switch page. There is
+      // a way to manually control pagination, but it would require some
+      // refactoring to happen. This hack (i.e. using internal `setState` of
+      // `react-table` component) will most definitely not work when we upgrade
+      // `react-table` to v7, but since that major version is a huge overhaul,
+      // we would be refactoring everything regardless.
+      let page = 0;
+      if (pageState.modal.page === 'next') {
+        page = this.state.currentPage + 1;
+      } else if (pageState.modal.page === 'prev') {
+        page = this.state.currentPage - 1;
+      }
       const fetchInstance = this.state.fetchInstance;
+      fetchInstance?.setState({page: page});
 
       this.setState(
-        {
-          fetchInstance: fetchInstance,
-          submissionPager: pageState.modal.page,
-        },
+        {submissionPager: pageState.modal.page},
         this.fetchDataForCurrentInstance.bind(this)
       );
     }
@@ -1542,7 +1525,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <bem.FormView__item m='table-buttons'>
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               startIcon='expand'
               onClick={this.toggleFullscreen.bind(this)}
@@ -1552,7 +1535,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               startIcon='settings'
               onClick={this.showTableColumnsOptionsModal.bind(this)}

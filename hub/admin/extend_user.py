@@ -32,6 +32,7 @@ from kpi.models.asset import AssetDeploymentStatus
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
+
 def validate_superuser_auth(obj) -> bool:
     if (
         obj.is_superuser
@@ -41,6 +42,7 @@ def validate_superuser_auth(obj) -> bool:
     ):
         return False
     return True
+
 
 class UserChangeForm(DjangoUserChangeForm):
 

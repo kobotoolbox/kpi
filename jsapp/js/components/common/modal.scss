@@ -507,41 +507,8 @@ $modal-custom-header-height: sizes.$x60;
     border-top: 1px solid colors.$kobo-gray-92;
   }
 
-  .form-view__cell--add-language-form,
-  .form-view__cell--update-language-form {
-    background: colors.$kobo-gray-96;
-    padding: 15px;
-    position: relative;
-
-    .add-language-form-close {
-      position: absolute;
-      right: 5px;
-      top: 5px;
-
-      i {
-        font-size: 18px;
-        margin: 3px;
-      }
-    }
-  }
-
   .form-view__cell--add-language-form {
     margin-top: 20px;
-  }
-
-  .form-view__form--add-language-fields {
-    display: flex;
-    justify-content: space-between;
-
-    .form-view__cell {
-      &:not(:first-child) {margin-left: 10px;}
-      &.form-view__cell--lang-name {flex: 3;}
-      &.form-view__cell--lang-code {flex: 2;}
-      &.form-view__cell--submit-button {
-        // This is the size of the label of textboxes on the left of the button
-        padding-top: 20px;
-      }
-    }
   }
 }
 
@@ -562,10 +529,6 @@ $modal-custom-header-height: sizes.$x60;
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: colors.$kobo-gray-96;
-    padding: 15px;
-    position: relative;
-
     .add-language-form-close {
       position: absolute;
       right: 5px;
@@ -581,18 +544,6 @@ $modal-custom-header-height: sizes.$x60;
   .form-view__cell--update-language-form {
     max-width: 70%;
     margin-left: auto;
-  }
-
-  .form-view__form--add-language-fields {
-    display: flex;
-    justify-content: space-between;
-
-    .form-view__cell {
-      &:not(:first-child) {margin-left: 10px;}
-      &.form-view__cell--lang-name {flex: 3;}
-      &.form-view__cell--lang-code {flex: 2;}
-      &.form-view__cell--submit-button {padding-top: 10px;}
-    }
   }
 
   .ReactTable {
@@ -641,6 +592,39 @@ $modal-custom-header-height: sizes.$x60;
             background-color: colors.$kobo-gray-96;
           }
         }
+      }
+    }
+  }
+}
+
+.form-modal--translation-settings,
+.form-modal--translation-table {
+  .form-view__form--add-language-fields {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+
+    .form-view__cell {
+      &.form-view__cell--lang-name {flex: 3;}
+      &.form-view__cell--lang-code {flex: 2;}
+    }
+  }
+
+  .form-view__cell--add-language-form,
+  .form-view__cell--update-language-form {
+    background: colors.$kobo-gray-96;
+    padding: 15px;
+    position: relative;
+
+    .add-language-form-close {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+
+      i {
+        font-size: 18px;
+        margin: 3px;
       }
     }
   }

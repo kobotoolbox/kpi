@@ -2,7 +2,7 @@ import cx from 'classnames';
 import type {ButtonProps} from 'js/components/common/button';
 import Button from 'js/components/common/button';
 import React from 'react';
-import {button} from './billingButton.module.scss';
+import styles from './billingButton.module.scss';
 
 /**
  * The base button component that's used on the Plans/Add-ons pages.
@@ -16,7 +16,7 @@ export default function BillingButton(props: Partial<ButtonProps>) {
       color='blue'
       size='l'
       {...props}
-      className={cx([button, props.className])}
+      className={cx([styles.button, props.className])}
       isFullWidth
     />
   );

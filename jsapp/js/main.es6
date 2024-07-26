@@ -3,27 +3,26 @@
  * plus it is the file that is handling the root rendering.
  */
 
-require('jquery-ui/ui/widgets/sortable');
+import 'jquery-ui/ui/widgets/sortable';
 import moment from 'moment';
 import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
-import {AppContainer} from 'react-hot-loader';
 import React from 'react';
 import {Cookies} from 'react-cookie';
-import {render} from 'react-dom';
+import {createRoot} from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import {csrfSafeMethod, currentLang} from 'utils';
-require('../scss/main.scss');
+import '../scss/main.scss';
 import Modal from 'react-modal';
 
-let sentryDsnEl = document.head.querySelector('meta[name=sentry-dsn]');
+const sentryDsnEl = document.head.querySelector('meta[name=sentry-dsn]');
 if (sentryDsnEl !== null) {
   Sentry.init({
     dsn: sentryDsnEl.content,
     tracesSampleRate: 0.0,
     sendClientReports: false,
     autoSessionTracking: false,
-  })
+  });
   window.Raven = Sentry; // Legacy use (formbuilder)
   /*
     In TS files, it's safe to do
@@ -86,22 +85,10 @@ if (document.head.querySelector('meta[name=kpi-root-path]')) {
     Modal.setAppElement('#kpiapp');
     return $d.get(0);
   })();
-
-  render(<AllRoutes />, el);
-
-  if (module.hot) {
-    module.hot.accept('js/app', () => {
-      const AllRoutes = require('js/app').default;
-      render(
-        <AppContainer>
-          <AllRoutes />
-        </AppContainer>,
-        el
-      );
-    });
-  }
+  const root = createRoot(el);
+  root.render(<AllRoutes />);
 } else {
-  console.error('no kpi-root-path meta tag set. skipping react-router init');
+  console.warn('no kpi-root-path meta tag set. skipping react-router init');
 }
 
 // Handles rendering a small app in the registration form
@@ -110,11 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'registration-password-app'
   );
   if (registrationPasswordAppEl) {
-    render(
-      <AppContainer>
+    const root = createRoot(registrationPasswordAppEl);
+    root.render(
         <RegistrationPasswordApp />
-      </AppContainer>,
-      registrationPasswordAppEl
     );
   }
 });

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {when} from 'mobx';
@@ -355,10 +354,10 @@ class ProjectSettings extends React.Component {
     let targetUid;
     if (this.state.formAsset) {
       targetUid = this.state.formAsset.uid;
-    } else if (this.context.router && this.context.router.params.assetid) {
-      targetUid = this.context.router.params.assetid;
-    } else if (this.context.router && this.context.router.params.uid) {
-      targetUid = this.context.router.params.uid;
+    } else if (this.props.router.params.assetid) {
+      targetUid = this.props.router.params.assetid;
+    } else if (this.props.router.params.uid) {
+      targetUid = this.props.router.params.uid;
     }
 
     if (!targetUid) {
@@ -1028,7 +1027,7 @@ class ProjectSettings extends React.Component {
                 {this.isArchived() &&
                   <Button
                     type='frame'
-                    color='blue'
+                    color='dark-blue'
                     size='l'
                     label={t('Unarchive Project')}
                     onClick={this.unarchiveProject}
@@ -1038,7 +1037,7 @@ class ProjectSettings extends React.Component {
                 {this.isArchivable() &&
                   <Button
                     type='frame'
-                    color='red'
+                    color='dark-blue'
                     size='l'
                     label={t('Archive Project')}
                     onClick={this.archiveProject}
@@ -1064,7 +1063,7 @@ class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <Button
                 type='full'
-                color='red'
+                color='dark-red'
                 size='l'
                 label={t('Delete Project and Data')}
                 onClick={this.deleteProject}
@@ -1087,7 +1086,7 @@ class ProjectSettings extends React.Component {
       return (
         <Button
           type='frame'
-          color='storm'
+          color='dark-blue'
           size='l'
           onClick={this.displayPreviousStep.bind(this)}
           isDisabled={isBackButtonDisabled}
@@ -1130,7 +1129,5 @@ reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix);
-
-ProjectSettings.contextTypes = {router: PropTypes.object};
 
 export default withRouter(ProjectSettings);

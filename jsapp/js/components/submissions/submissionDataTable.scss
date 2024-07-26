@@ -86,11 +86,30 @@ $submission-data-table-space: sizes.$x12;
 
 .submission-data-table__row--response .submission-data-table__column.submission-data-table__column--data {
   @include mixins.centerRowFlex;
+  gap: 10px;
   flex: 1;
-  gap: 20px;
 
-  > *:first-child {
+  .audio-player:first-child {
+    margin-right: 30px;
     flex: 1;
+  }
+
+  video {
+    max-width: 100%;
+    object-fit: contain;
+  }
+}
+
+.submission-data-table__column.submission-data-table__column--data.submission-data-table__column--type-audio,
+.submission-data-table__column.submission-data-table__column--data.submission-data-table__column--type-image,
+.submission-data-table__column.submission-data-table__column--data.submission-data-table__column--type-video {
+  justify-content: flex-end;
+
+  img {
+    // We don't want the image to take too much space, as it's making the UI
+    // harder to follow. There are other ways to see full image, and
+    // `SubmissionDataTable` is more about the full picture.
+    max-height: 250px;
   }
 }
 
