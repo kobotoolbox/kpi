@@ -46,6 +46,7 @@ from kpi.tests.utils.mock import (
     enketo_edit_instance_response_with_uuid_validation,
     enketo_view_instance_response,
 )
+from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 
 
 def dict2xml_with_encoding_declaration(*args, **kwargs):
@@ -56,9 +57,9 @@ def dict2xml_with_encoding_declaration(*args, **kwargs):
 
 def dict2xml_with_namespace(*args, **kwargs):
     xml_string = dict2xml(*args, **kwargs)
-    xml_root = lxml.etree.fromstring(xml_string)
+    xml_root = fromstring_preserve_root_xmlns(xml_string)
     xml_root.set('xmlns', 'http://opendatakit.org/submissions')
-    return lxml.etree.tostring(xml_root).decode()
+    return xml_tostring(xml_root)
 
 
 class BaseSubmissionTestCase(BaseTestCase):
@@ -1474,7 +1475,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             format_type=SUBMISSION_FORMAT_TYPE_XML,
             find_this='hello!',
         )[0]
-        submission_xml_root = lxml.etree.fromstring(submission_xml)
+        submission_xml_root = fromstring_preserve_root_xmlns(submission_xml)
         submission_id = int(submission_xml_root.find('./_id').text)
         assert submission_id == submission['_id']
         assert submission_xml_root.find('./find_this').text == 'hello!'
