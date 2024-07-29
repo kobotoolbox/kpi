@@ -261,18 +261,27 @@ class TestSubmissionStream(TestCase):
         self.asset.deployment.mock_submissions(submissions)
 
         # Process submissions with extras
-        try:
-            _ = list(
-                stream_with_extras(
-                    self.asset.deployment.get_submissions(
-                        user=self.asset.owner
-                    ),
-                    self.asset,
-                )
+        output = list(
+            stream_with_extras(
+                self.asset.deployment.get_submissions(user=self.asset.owner),
+                self.asset,
             )
-        except TypeError as e:
-            self.fail(f"TypeError occurred: {e}")
-        self.assertTrue(True)
+        )
+
+        # Make sure that uuid values for single or multiple choice qualitative
+        # analysis questions are kept as strings and not mutated
+        for submission in output:
+            supplemental_details = submission['_supplementalDetails']
+            for qual_response in supplemental_details['Tell_me_a_story']['qual']:
+                if qual_response['type'] not in [
+                    'qual_select_one',
+                    'qual_select_multiple',
+                ]:
+                    # question is not a single or multiple choice one
+                    continue
+
+                for v in qual_response['val']:
+                    assert isinstance(v['uuid'], str)
 
         # Clear all mocked submissions to avoid duplicate submission errors
         self.asset.deployment.mock_submissions([])
