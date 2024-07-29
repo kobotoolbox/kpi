@@ -426,6 +426,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen);
   }
 
+  // We need to distinguish between repeated groups with nested values
+  // and other question types that use a flat nested key (i.e. with '/').
+  // If submission response contains the parent key, we should use that.
+  _selectNestedRow(
+    row: SubmissionResponse,
+    key: string,
+    rootParentGroup: string | undefined
+  ) {
+    if (rootParentGroup && rootParentGroup in row) {
+      return row[rootParentGroup];
+    }
+    return row[key];
+  }
+
   _getColumnWidth(columnId: AnyRowTypeName | string | undefined) {
     if (!columnId) {
       return DEFAULT_DATA_CELL_WIDTH;
@@ -745,8 +759,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     allColumns.forEach((key: string, columnIndex: number) => {
       let q: SurveyRow | undefined;
+      let rootParentGroup: string | undefined;
       if (key.includes('/')) {
         const qParentG = key.split('/');
+        rootParentGroup = qParentG[0];
         q = survey?.find(
           (o) =>
             o.name === qParentG[qParentG.length - 1] ||
@@ -897,7 +913,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           );
         },
         id: key,
-        accessor: (row) => row[key],
+        accessor: (row) => this._selectNestedRow(row, key, rootParentGroup),
         index: index,
         question: q,
         // This (and the Filter itself) will be set below (we do it separately,
@@ -916,6 +932,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             this.state.showGroupName,
             this.state.translationIndex
           );
+
+          if (typeof row.value === 'object') {
+            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
+            if (repeatGroupAnswers) {
+              // display a list of answers from a repeat group question
+              return (
+                <span className='trimmed-text' dir='auto'>
+                  {repeatGroupAnswers.join(', ')}
+                </span>
+              );
+            } else {
+              return '';
+            }
+          }
 
           if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
@@ -1048,25 +1078,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             );
           }
 
-          if (typeof row.value === 'object' || row.value === undefined) {
-            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
-            if (repeatGroupAnswers) {
-              // display a list of answers from a repeat group question
-              return (
-                <span className='trimmed-text' dir='auto'>
-                  {repeatGroupAnswers.join(', ')}
-                </span>
-              );
-            } else {
-              return '';
-            }
-          } else {
-            return (
-              <span className='trimmed-text' dir='auto'>
-                {row.value}
-              </span>
-            );
-          }
+          return (
+            <span className='trimmed-text' dir='auto'>
+              {row.value}
+            </span>
+          );
         },
       });
 
