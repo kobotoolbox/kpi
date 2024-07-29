@@ -69,14 +69,6 @@ $kobo-purple: hsl(290deg 53% 65%); // #c577d5
 $kobo-violet: hsl(290deg 53% 85%); // #e6c5ed
 $kobo-pink: hsl(290deg 53% 93%); // #f4e5f7
 
-// TODO migrate reds
-// kobo-red --> kobo-mid-red [x] done??
-// kobo-dark-red --> kobo-red [x]
-// kobo-light-red (check which could become kobo-hover-red) [x]
-
-// $kobo-dark-red: hsl(0deg 100% 31%); // #9d0000
-// $kobo-red: hsl(352deg 100% 70%); // #fe6b7d
-// $kobo-light-red: hsl(352deg 100% 92%); // #ffd5da
 $kobo-dark-red: hsl(0deg 100% 26%); // #850000
 $kobo-red: hsl(0deg 100% 31%); // #9d0000 (previously $kobo-dark-red)
 $kobo-mid-red: hsl(0deg 100% 75%); // #ff8080 (previously $kobo-red)
