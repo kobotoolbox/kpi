@@ -141,7 +141,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
       return (
         <bem.MediaCell>
           <bem.MediaCellIconWrapper data-tip={this.props.mediaAttachment}>
-            <Icon name='alert' color='red' size='s'/>
+            <Icon name='alert' color='mid-red' size='s'/>
           </bem.MediaCellIconWrapper>
         </bem.MediaCell>
       );

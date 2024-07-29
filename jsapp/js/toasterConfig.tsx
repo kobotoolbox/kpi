@@ -23,7 +23,7 @@ export default function ToasterConfig() {
         },
         error: {
           iconTheme: {
-            primary: '#fe6b7d', // $kobo-red
+            primary: '#ff8080', // $kobo-mid-red
             secondary: '#1e2129', // $kobo-gray-14
           },
         },

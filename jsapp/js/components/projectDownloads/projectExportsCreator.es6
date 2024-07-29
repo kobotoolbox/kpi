@@ -786,7 +786,7 @@ export default class ProjectExportsCreator extends React.Component {
                     userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
                       <Button
                         type='bare'
-                        color='dark-red'
+                        color='red'
                         size='m'
                         onClick={this.onDeleteExportSetting.bind(
                           this,

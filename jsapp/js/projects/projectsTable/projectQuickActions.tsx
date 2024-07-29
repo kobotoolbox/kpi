@@ -108,7 +108,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
       <Button
         isDisabled={!isChangingPossible}
         type='bare'
-        color='dark-red'
+        color='red'
         size='s'
         startIcon='trash'
         onClick={() =>

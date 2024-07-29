@@ -25,7 +25,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         [styles.accountPage]: props.accountPage,
       })}
     >
-      <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'red'} />
+      <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'mid-red'} />
       <div className={styles.bannerContent}>
         {props.warning
           ? t('You are approaching your')

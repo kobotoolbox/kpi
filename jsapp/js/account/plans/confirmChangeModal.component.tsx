@@ -202,7 +202,7 @@ const ConfirmChangeModal = ({
           label={t('Submit')}
         />
         <BillingButton
-          color='dark-red'
+          color='red'
           isDisabled={isLoading}
           onClick={onClickCancel}
           label={t('Cancel')}

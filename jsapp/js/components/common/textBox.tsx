@@ -262,7 +262,7 @@ export default function TextBox(props: TextBoxProps) {
           <Icon
             size={iconSize}
             name='alert'
-            color='red'
+            color='mid-red'
             className={styles.errorIcon}
           />
         )}

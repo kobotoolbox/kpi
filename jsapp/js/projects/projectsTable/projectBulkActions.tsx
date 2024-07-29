@@ -58,7 +58,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       <Button
         isDisabled={!canBulkDelete}
         type='bare'
-        color='dark-red'
+        color='red'
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}

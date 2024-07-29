@@ -99,7 +99,7 @@ const UsageContainer = ({
               })}
             >
               {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
-              {isOverLimit && <Icon name='warning' color='red' size='m' />}
+              {isOverLimit && <Icon name='warning' color='mid-red' size='m' />}
               <strong>{limitDisplay(usage, limit)}</strong>
             </div>
           </li>

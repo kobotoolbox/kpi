@@ -113,7 +113,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
 
           <Button
             type='bare'
-            color='dark-red'
+            color='red'
             size='m'
             startIcon='trash'
             onClick={() => deleteChoice(choice.uuid)}

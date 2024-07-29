@@ -36,7 +36,7 @@ interface KoboPromptProps {
   /** Optional icon displayed on the left of the title. */
   titleIcon?: IconName;
   /** Color of the optional icon. */
-  titleIconColor?: 'blue' | 'red';
+  titleIconColor?: 'blue' | 'mid-red';
   /** The content of the propmt; pass a string or a more complex JSX. */
   children?: React.ReactNode;
   /** A list of buttons to be displayed on the bottom right of the prompt. */

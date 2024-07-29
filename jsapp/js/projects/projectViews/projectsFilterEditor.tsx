@@ -176,7 +176,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       <div className={styles.column}>
         <Button
           type='bare'
-          color='dark-red'
+          color='red'
           size='m'
           onClick={props.onDelete}
           startIcon='trash'
