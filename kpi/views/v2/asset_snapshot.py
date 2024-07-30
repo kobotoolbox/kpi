@@ -232,11 +232,13 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
         # Prepare attachments even if all files are present in `request.FILES`
         # (i.e.: submission XML and attachments)
-        attachments = None
+        attachments = {}
         # Remove 'xml_submission_file' since it is already handled
         request.FILES.pop('xml_submission_file')
+
+        # TODO pass request.FILES to `edit_submission()` directly when
+        #  KobocatBackendDeployment is gone
         if len(request.FILES):
-            attachments = {}
             for name, attachment in request.FILES.items():
                 attachments[name] = attachment
 

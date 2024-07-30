@@ -13,6 +13,7 @@ from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
 
 
 from .database_query import build_db_queries
+from ..exceptions import MissingValidationStatusPayloadError
 from ..models.xform import XForm
 from ..models.instance import Instance
 
@@ -111,3 +112,29 @@ def remove_validation_status_from_instance(instance: Instance) -> bool:
     instance.validation_status = {}
     instance.save(update_fields=['validation_status'])
     return instance.parsed_instance.update_mongo(asynchronous=False)
+
+
+def set_instance_validation_statuses(
+    xform: XForm, request_data: dict, request_username: str
+) -> int:
+
+        try:
+            new_validation_status_uid = request_data['validation_status.uid']
+        except KeyError:
+            raise MissingValidationStatusPayloadError
+
+        # Create new validation_status object
+        new_validation_status = get_validation_status(
+            new_validation_status_uid, request_username
+        )
+
+        postgres_query, mongo_query = build_db_queries(xform, request_data)
+
+        # Update Postgres & Mongo
+        updated_records_count = Instance.objects.filter(
+            **postgres_query
+        ).update(validation_status=new_validation_status)
+        ParsedInstance.bulk_update_validation_statuses(
+            mongo_query, new_validation_status
+        )
+        return updated_records_count

@@ -24,6 +24,7 @@ from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from rest_framework import status
 
+from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     DailyXFormSubmissionCounter,
@@ -33,10 +34,10 @@ from kobo.apps.openrosa.apps.logger.models import (
 )
 from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,
+    delete_instances,
     remove_validation_status_from_instance,
+    set_instance_validation_statuses,
 )
-from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
-from kobo.apps.openrosa.apps.logger.utils.instance import delete_instances
 from kobo.apps.openrosa.libs.utils.logger_tools import safe_create_instance, publish_xls_form
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -253,6 +254,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
 
+        # TODO handle errors
         deleted_count = delete_instances(self.xform, data)
 
         return {
@@ -386,10 +388,17 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Request.
         xml_submission_file.seek(0)
 
+        # Retrieve only File objects to pass to `safe_create_instance`
+        # TODO remove those files as soon as the view sends request.FILES directly
+        #   See TODO in kpi/views/v2/asset_snapshot.py::submission
+        media_files = (
+            media_file for media_file in attachments.values()
+        )
+
         safe_create_instance(
             username=user.username,
             xml_file=xml_submission_file,
-            media_files=attachments if attachments else [],
+            media_files=media_files,
             request=request,
         )
 
@@ -948,11 +957,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         return {
-            'status': status.HTTP_200_OK
-            if total_successes > 0
-            # FIXME: If KoboCAT returns something unexpected, like a 404 or a
-            # 500, then 400 is not the right response to send to the client
-            else status.HTTP_400_BAD_REQUEST,
+            'status': (
+                status.HTTP_200_OK
+                if total_successes > 0
+                else status.HTTP_400_BAD_REQUEST
+            ),
             'data': {
                 'count': total_update_attempts,
                 'successes': total_successes,
@@ -1142,29 +1151,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
 
-
-
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have full access.
-        if submission_ids:
-            # Remove query from `data` because all the submission ids have been
-            # already retrieved
-            data.pop('query', None)
-            data['submission_ids'] = submission_ids
-
-        deleted_count = delete_instances(self.xform, data)
+        # TODO handle errors
+        update_instances = set_instance_validation_statuses(
+            self.xform, data, user
+        )
 
         return {
-            'data': {'detail': f'{deleted_count} submissions have been deleted'},
+            'data': {'detail': f'{update_instances} submissions have been updated'},
             'content_type': 'application/json',
             'status': status.HTTP_200_OK,
         }
-
-        # `PATCH` KC even if KPI receives `DELETE`
-        url = self.submission_list_url
-        kc_request = requests.Request(method='PATCH', url=url, json=data)
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
-        return self.__prepare_as_drf_response_signature(kc_response)
 
     # @Todo DEPRECATED - to be removed when KobocatDeploymentBackend is gone
     def store_submission(

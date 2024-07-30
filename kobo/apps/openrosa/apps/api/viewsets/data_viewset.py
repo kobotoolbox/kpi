@@ -1,10 +1,6 @@
-# coding: utf-8
-import logging
-import json
 from typing import Union
 
 from django.db.models import Q
-from django.db.models.signals import pre_delete, post_delete
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
@@ -28,23 +24,20 @@ from kobo.apps.openrosa.apps.api.tools import (
 )
 from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,
-    get_validation_status,
+    delete_instances,
     remove_validation_status_from_instance,
+    set_instance_validation_statuses,
 )
 from kobo.apps.openrosa.apps.logger.exceptions import (
     BuildDbQueriesAttributeError,
     BuildDbQueriesBadArgumentError,
     BuildDbQueriesNoConfirmationProvidedError,
+    MissingValidationStatusPayloadError,
 )
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.models.instance import (
     Instance,
 )
-from kobo.apps.openrosa.apps.logger.utils import (
-    build_db_queries,
-    delete_instances,
-)
-from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.renderers import renderers
 from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
     AnonymousUserPublicFormsMixin,
@@ -451,32 +444,35 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     def bulk_validation_status(self, request, *args, **kwargs):
 
         xform = self.get_object()
+        real_user = get_real_user(request)
 
         try:
-            new_validation_status_uid = request.data['validation_status.uid']
-        except KeyError:
+            updated_records_count = set_instance_validation_statuses(
+                xform, request.data, real_user.username
+            )
+        except BuildDbQueriesBadArgumentError:
+            raise ValidationError({
+                'payload': t("`query` and `instance_ids` can't be used together")
+            })
+        except BuildDbQueriesAttributeError:
+            raise ValidationError(
+                {'payload': t('Invalid `query` or `submission_ids` params')}
+            )
+        except BuildDbQueriesNoConfirmationProvidedError:
+            raise NoConfirmationProvidedAPIException()
+        except MissingValidationStatusPayloadError:
             raise ValidationError({
                 'payload': t('No `validation_status.uid` provided')
             })
 
-        # Create new validation_status object
-        real_user = get_real_user(request)
-        new_validation_status = get_validation_status(
-            new_validation_status_uid, xform, real_user.username
+        return Response(
+            {
+                'detail': t('{} submissions have been updated').format(
+                    updated_records_count
+                )
+            },
+            status.HTTP_200_OK,
         )
-
-        postgres_query, mongo_query = build_db_queries(xform, request.data)
-
-        # Update Postgres & Mongo
-        updated_records_count = Instance.objects.filter(
-            **postgres_query
-        ).update(validation_status=new_validation_status)
-        ParsedInstance.bulk_update_validation_statuses(mongo_query,
-                                                       new_validation_status)
-        return Response({
-            'detail': t('{} submissions have been updated').format(
-                      updated_records_count)
-        }, status.HTTP_200_OK)
 
     def get_serializer_class(self):
         pk_lookup, dataid_lookup = self.lookup_fields

@@ -18,5 +18,9 @@ class FormInactiveError(Exception):
     pass
 
 
+class MissingValidationStatusPayloadError(Exception):
+    pass
+
+
 class TemporarilyUnavailableError(Exception):
     pass
