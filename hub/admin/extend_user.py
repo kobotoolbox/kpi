@@ -21,13 +21,13 @@ from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     username_validators,
 )
+from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter
 from kobo.apps.organizations.models import OrganizationUser
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatMonthlyXFormSubmissionCounter,
-)
+
+
 from kpi.models.asset import AssetDeploymentStatus
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
@@ -257,7 +257,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         displayed in the Django admin user changelist page
         """
         today = timezone.now().date()
-        instances = KobocatMonthlyXFormSubmissionCounter.objects.filter(
+        instances = MonthlyXFormSubmissionCounter.objects.filter(
             user_id=obj.id,
             year=today.year,
             month=today.month,

@@ -1,6 +1,6 @@
 # coding: utf-8
 import unittest
-from mock import patch, MagicMock
+from mock import patch
 
 from django.urls import reverse
 from rest_framework import status
@@ -390,13 +390,11 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         # When owner's destination asset does not require any authentications,
         # everybody can see their data
         self.client.logout()
-        with patch(
-            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
-            MagicMock(),
-        ) as xf_mock:
-            xf_mock.require_auth = False
-            response = self.client.get(self.external_xml_url)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        xform = self.destination_asset.deployment.xform
+        xform.require_auth = False
+        xform.save(update_fields=['require_auth'])
+        response = self.client.get(self.external_xml_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @unittest.skip(reason='Skip until mock back end supports XML submissions')
     def test_get_external_with_changed_source_fields(self):

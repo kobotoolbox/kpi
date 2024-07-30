@@ -56,8 +56,9 @@ from kpi.utils.xml import (
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
-class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.GenericViewSet):
+class DataViewSet(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.GenericViewSet
+):
     """
     ## List of submissions for a specific asset
 
@@ -355,14 +356,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 query=data['query'],
                 fields=['_id', '_uuid']
             )
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
             for submission in submissions:
                 audit_logs.append(AuditLog(
-                    app_label=app_label,
-                    model_name=model_name,
+                    app_label='logger',
+                    model_name='instance',
                     object_id=submission['_id'],
                     user=request.user,
                     user_uid=request.user.extra_details.uid,
@@ -374,7 +371,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 ))
 
         # Send request to KC
-        json_response = action_(bulk_actions_validator.data, request.user)
+        json_response = action_(
+            bulk_actions_validator.data, request.user, request=request
+        )
 
         # If requests has succeeded, let's log deletions (if any)
         if json_response['status'] == status.HTTP_200_OK and audit_logs:
@@ -399,13 +398,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
 
         if json_response['status'] == status.HTTP_204_NO_CONTENT:
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
             AuditLog.objects.create(
-                app_label=app_label,
-                model_name=model_name,
+                app_label='logger',
+                model_name='instance',
                 object_id=pk,
                 user=request.user,
                 metadata={
@@ -471,10 +466,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         try:
-            submissions = deployment.get_submissions(request.user,
-                                                    format_type=format_type,
-                                                    request=request,
-                                                    **filters)
+            submissions = deployment.get_submissions(
+                request.user,
+                format_type=format_type,
+                request=request,
+                **filters
+            )
         except OperationFailure as err:
             message = str(err)
             # Don't show just any raw exception message out of fear of data leaking
@@ -557,7 +554,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
         duplicate_response = deployment.duplicate_submission(
-            submission_id=submission_id, user=request.user
+            submission_id=submission_id, request=request
         )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 

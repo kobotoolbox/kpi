@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.db import migrations
 
-from kobo.apps.openrosa.apps.logger.utils import delete_null_user_daily_counters
+from kobo.apps.openrosa.apps.logger.utils.counters import (
+    delete_null_user_daily_counters,
+)
 
 
 class Migration(migrations.Migration):

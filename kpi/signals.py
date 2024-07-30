@@ -10,9 +10,7 @@ from taggit.models import Tag
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.models.hook import Hook
 from kpi.constants import PERM_ADD_SUBMISSIONS
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatUser,
-)
+
 from kpi.deployment_backends.kc_access.utils import (
     grant_kc_model_level_perms,
     kc_transaction_atomic,
@@ -63,7 +61,7 @@ def save_kobocat_user(sender, instance, created, raw, **kwargs):
 
     if not settings.TESTING:
         with kc_transaction_atomic():
-            KobocatUser.sync(instance)
+            instance.sync_to_openrosa_db()
             if created:
                 grant_kc_model_level_perms(instance)
 
@@ -79,7 +77,7 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
 @receiver(post_save, sender=Hook)
 def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     """
-    Updates KoBoCAT XForm instance as soon as Asset.Hook list is updated.
+    Updates KoboCAT XForm instance as soon as Asset.Hook list is updated.
     """
     asset = instance.asset
     if asset.has_deployment:

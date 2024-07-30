@@ -1,5 +1,13 @@
-# coding: utf-8
-from django.utils.translation import gettext as t
+class BuildDbQueriesAttributeError(Exception):
+    pass
+
+
+class BuildDbQueriesBadArgumentError(Exception):
+    pass
+
+
+class BuildDbQueriesNoConfirmationProvidedError(Exception):
+    pass
 
 
 class DuplicateUUIDError(Exception):
@@ -7,6 +15,10 @@ class DuplicateUUIDError(Exception):
 
 
 class FormInactiveError(Exception):
+    pass
+
+
+class MissingValidationStatusPayloadError(Exception):
     pass
 
 

@@ -15,7 +15,7 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.utils.translation import gettext as t
-from kobo_service_account.utils import get_real_user, get_request_headers
+from kobo_service_account.utils import get_request_headers
 from rest_framework import exceptions
 from rest_framework.request import Request
 from taggit.forms import TagField
@@ -134,56 +134,6 @@ def add_tags_to_instance(request, instance):
             for tag in tags:
                 instance.tags.add(tag)
             instance.save()
-
-
-def add_validation_status_to_instance(
-    request: Request, instance: 'Instance'
-) -> bool:
-    """
-    Save instance validation status if it is valid.
-    To be valid, it has to belong to XForm validation statuses
-    """
-    validation_status_uid = request.data.get('validation_status.uid')
-    success = False
-
-    # Payload must contain validation_status property.
-    if validation_status_uid:
-        real_user = get_real_user(request)
-        validation_status = get_validation_status(
-            validation_status_uid, instance.xform, real_user.username
-        )
-        if validation_status:
-            instance.validation_status = validation_status
-            instance.save()
-            success = instance.parsed_instance.update_mongo(asynchronous=False)
-
-    return success
-
-
-def get_validation_status(validation_status_uid, asset, username):
-    # Validate validation_status value It must belong to asset statuses.
-    available_statuses = {status.get("uid"): status
-                          for status in asset.settings.get("validation_statuses")}
-
-    validation_status = {}
-
-    if validation_status_uid in available_statuses.keys():
-        available_status = available_statuses.get(validation_status_uid)
-        validation_status = {
-            "timestamp": int(time.time()),
-            "uid": validation_status_uid,
-            "by_whom": username,
-            "color": available_status.get("color"),
-            "label": available_status.get("label")
-        }
-
-    return validation_status
-
-
-def remove_validation_status_from_instance(instance):
-    instance.validation_status = {}
-    instance.save()
-    return instance.parsed_instance.update_mongo(asynchronous=False)
 
 
 def get_media_file_response(
