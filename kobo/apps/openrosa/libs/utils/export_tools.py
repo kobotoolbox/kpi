@@ -717,22 +717,21 @@ def generate_kml_export(
         context={'data': kml_export_data(id_string, user)},
     )
 
-    basename = "%s_%s" % (id_string,
-                          datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+    basename = "%s_%s" % (
+        id_string,
+        datetime.now().strftime("%Y_%m_%d_%H_%M_%S"),
+    )
     filename = basename + "." + extension
     file_path = os.path.join(
-        username,
-        'exports',
-        id_string,
-        export_type,
-        filename)
+        username, 'exports', id_string, export_type, filename
+    )
 
     temp_file = NamedTemporaryFile(suffix=extension)
     temp_file.write(response.content)
     temp_file.seek(0)
     export_filename = default_storage.save(
-        file_path,
-        File(temp_file, file_path))
+        file_path, File(temp_file, file_path)
+    )
     temp_file.close()
 
     dir_name, basename = os.path.split(export_filename)

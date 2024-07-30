@@ -76,9 +76,6 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     python manage.py compilemessages
 fi
 
-echo 'Cleaning up Celery PIDs…'
-rm -rf /tmp/celery*.pid
-
 echo 'Restore permissions on logs folder'
 chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
 

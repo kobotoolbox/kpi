@@ -59,14 +59,14 @@ import {
   TABLE_MEDIA_TYPES,
   DEFAULT_DATA_CELL_WIDTH,
   CELLS_WIDTH_OVERRIDES,
-  DROPDOWN_FILTER_QUESTION_TYPES,
 } from 'js/components/submissions/tableConstants';
 import {
   getColumnLabel,
   getColumnHXLTags,
   getBackgroundAudioQuestionName,
   buildFilterQuery,
-  isTableColumnFilterable,
+  isTableColumnFilterableByTextInput,
+  isTableColumnFilterableByDropdown,
 } from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
 import type {TableStoreData} from 'js/components/submissions/tableStore';
@@ -423,6 +423,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen);
   }
 
+  // We need to distinguish between repeated groups with nested values
+  // and other question types that use a flat nested key (i.e. with '/').
+  // If submission response contains the parent key, we should use that.
+  _selectNestedRow(
+    row: SubmissionResponse,
+    key: string,
+    rootParentGroup: string | undefined
+  ) {
+    if (rootParentGroup && rootParentGroup in row) {
+      return row[rootParentGroup];
+    }
+    return row[key];
+  }
+
   _getColumnWidth(columnId: AnyRowTypeName | string | undefined) {
     if (!columnId) {
       return DEFAULT_DATA_CELL_WIDTH;
@@ -733,8 +747,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     allColumns.forEach((key: string, columnIndex: number) => {
       let q: SurveyRow | undefined;
+      let rootParentGroup: string | undefined;
       if (key.includes('/')) {
         const qParentG = key.split('/');
+        rootParentGroup = qParentG[0];
         q = survey?.find(
           (o) =>
             o.name === qParentG[qParentG.length - 1] ||
@@ -885,10 +901,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           );
         },
         id: key,
-        accessor: (row) => row[key],
+        accessor: (row) => this._selectNestedRow(row, key, rootParentGroup),
         index: index,
         question: q,
+        // This (and the Filter itself) will be set below (we do it separately,
+        // because we need to do it for all the columns, not only the ones in
+        // this loop)
         filterable: false,
+        // Filter
         sortable: false,
         className: elClassNames.join(' '),
         headerClassName: elClassNames.join(' '),
@@ -900,6 +920,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             this.state.showGroupName,
             this.state.translationIndex
           );
+
+          if (typeof row.value === 'object') {
+            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
+            if (repeatGroupAnswers) {
+              // display a list of answers from a repeat group question
+              return (
+                <span className='trimmed-text' dir='auto'>
+                  {repeatGroupAnswers.join(', ')}
+                </span>
+              );
+            } else {
+              return '';
+            }
+          }
 
           if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
@@ -1032,25 +1066,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             );
           }
 
-          if (typeof row.value === 'object' || row.value === undefined) {
-            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
-            if (repeatGroupAnswers) {
-              // display a list of answers from a repeat group question
-              return (
-                <span className='trimmed-text' dir='auto'>
-                  {repeatGroupAnswers.join(', ')}
-                </span>
-              );
-            } else {
-              return '';
-            }
-          } else {
-            return (
-              <span className='trimmed-text' dir='auto'>
-                {row.value}
-              </span>
-            );
-          }
+          return (
+            <span className='trimmed-text' dir='auto'>
+              {row.value}
+            </span>
+          );
         },
       });
 
@@ -1067,12 +1087,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const frozenColumn = tableStore.getFrozenColumn();
 
     columnsToRender.forEach((col: TableColumn) => {
-      const columnQuestionType = col.question?.type;
+      const columnQuestion = col.question;
 
-      if (
-        columnQuestionType &&
-        columnQuestionType in DROPDOWN_FILTER_QUESTION_TYPES
-      ) {
+      // We set filters here, so they apply for all columns
+      if (isTableColumnFilterableByDropdown(columnQuestion?.type)) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <select
@@ -1082,7 +1100,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           >
             <option value=''>{t('Show All')}</option>
             {choices
-              .filter((choiceItem) => choiceItem.list_name === col.question?.select_from_list_name)
+              .filter((choiceItem) => choiceItem.list_name === columnQuestion?.select_from_list_name)
               .map((item, n) => {
                 const displayName = getQuestionOrChoiceDisplayName(
                   item,
@@ -1096,8 +1114,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               })}
           </select>
         );
-      }
-      if (isTableColumnFilterable(col)) {
+      } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true;
         col.Filter = ({filter, onChange}) => (
           <DebounceInput
@@ -1108,7 +1125,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             placeholder={t('Search')}
           />
         );
-      }
+      };
 
       if (frozenColumn === col.id) {
         col.className = col.className
