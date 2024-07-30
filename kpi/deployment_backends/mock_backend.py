@@ -16,12 +16,17 @@ except ImportError:
 
 from deepmerge import always_merger
 from dict2xml import dict2xml as dict2xml_real
+from django.db.models import Q
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
+from kobo.apps.openrosa.apps.logger.models.attachment import upload_to
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -38,7 +43,6 @@ from kpi.exceptions import (
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
-from kpi.tests.utils.mock import MockAttachment
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
 from kpi.utils.xml import fromstring_preserve_root_xmlns
 from .base_backend import BaseDeploymentBackend
@@ -275,7 +279,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         user: settings.AUTH_USER_MODEL,
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
-    ) -> MockAttachment:
+    ) -> 'logger.Attachment':
         submission_json = None
         # First try to get the json version of the submission.
         # It helps to retrieve the id if `submission_id_or_uuid` is a `UUIDv4`
@@ -325,7 +329,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 is_good_file = int(attachment['id']) == int(attachment_id)
 
             if is_good_file:
-                return MockAttachment(pk=attachment_id, **attachment)
+                return self._get_attachment_object(
+                    attachment_id=attachment['id'],
+                    submission_xml=submission_xml,
+                    submission_id=submission_json['_id'],
+                    filename=filename,
+                    mimetype=attachment.get('mimetype'),
+                )
 
         raise AttachmentNotFoundException
 
@@ -333,8 +343,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         if not submission.get('_attachments'):
             return []
         attachments = submission.get('_attachments')
+        submission_xml = self.get_submission(
+            submission['_id'], self.asset.owner, format_type=SUBMISSION_FORMAT_TYPE_XML
+        )
+
         return [
-            MockAttachment(pk=attachment['id'], **attachment)
+            self._get_attachment_object(
+                attachment_id=attachment['id'],
+                submission_xml=submission_xml,
+                submission_id=submission['_id'],
+                filename=os.path.basename(attachment['filename']),
+                mimetype=attachment.get('mimetype'),
+            )
             for attachment in attachments
         ]
 
@@ -704,13 +724,62 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     @property
     def xform(self):
         """
-        Dummy property, only present to be mocked by unit tests
+        Create related XForm on the fly
         """
-        pass
+        if not (
+            xform := XForm.objects.filter(id_string=self.asset.uid).first()
+        ):
+            UserProfile.objects.get_or_create(user_id=self.asset.owner_id)
+            xform = XForm()
+            xform.xml = self.asset.snapshot().xml
+            xform.user_id = self.asset.owner_id
+            xform.kpi_asset_uid = self.asset.uid
+            xform.save()
+
+        return xform
 
     @property
     def xform_id_string(self):
-        return self.asset.uid
+        return self.xform.id_string
+
+    def _get_attachment_object(
+        self,
+        submission_xml: str,
+        submission_id: int,
+        attachment_id: Optional[int, str] = None,
+        filename: Optional[str] = None,
+        mimetype: Optional[str] = None,
+    ):
+        if not (
+            attachment := Attachment.objects.filter(
+                Q(pk=attachment_id) | Q(media_file_basename=filename)
+            ).first()
+        ):
+            if not (
+                instance := Instance.objects.filter(pk=submission_id).first()
+            ):
+                instance = Instance.objects.create(
+                    pk=submission_id, xml=submission_xml, xform=self.xform
+                )
+
+            attachment = Attachment()
+            attachment.instance = instance
+            basename = os.path.basename(filename)
+            file_ = os.path.join(
+                settings.BASE_DIR,
+                'kpi',
+                'tests',
+                basename
+            )
+            with open(file_, 'rb') as f:
+                attachment.media_file = ContentFile(
+                    f.read(), name=upload_to(attachment, basename)
+                )
+            if mimetype:
+                attachment.mimetype = mimetype
+            attachment.save()
+
+        return attachment
 
     @classmethod
     def __prepare_bulk_update_data(cls, updates: dict) -> dict:

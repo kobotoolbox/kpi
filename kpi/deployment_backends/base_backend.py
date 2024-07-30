@@ -13,7 +13,6 @@ from typing import Union, Iterator, Optional
 
 from bson import json_util
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -748,10 +747,6 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def version_id(self):
         return self.get_data('version')
-
-    @property
-    def _open_rosa_server_storage(self):
-        return default_storage
 
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
         """

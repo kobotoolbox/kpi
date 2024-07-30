@@ -387,7 +387,9 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
 class GoogleTranscriptionSubmissionTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='someuser', email='user@example.com')
-        self.asset = Asset(content={'survey': [{'type': 'audio', 'name': 'q1'}]})
+        self.asset = Asset(
+            content={'survey': [{'type': 'audio', 'label': 'q1'}]}
+        )
         self.asset.advanced_features = {'transcript': {'values': ['q1']}}
         self.asset.owner = self.user
         self.asset.save()
@@ -429,7 +431,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(FuzzyInt(51, 57)):
+        with self.assertNumQueries(FuzzyInt(210, 215)):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
         with self.assertNumQueries(FuzzyInt(20, 26)):

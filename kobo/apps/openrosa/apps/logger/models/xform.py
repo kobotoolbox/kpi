@@ -6,6 +6,7 @@ from copy import deepcopy
 from io import BytesIO
 from xml.sax.saxutils import escape as xml_escape
 
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
@@ -25,15 +26,10 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_DELETE_DATA_XFORM,
     CAN_TRANSFER_OWNERSHIP,
 )
-from kobo.apps.openrosa.libs.utils.guardian import (
-    assign_perm,
-    get_perms_for_model
-)
 from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
-from kpi.models.asset import Asset
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
@@ -131,6 +127,7 @@ class XForm(BaseModel):
         Useful to display form disclaimer in Enketo.
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
+        Asset = apps.get_model('kpi', 'Asset')  # noqa
         if not hasattr(self, '_cache_asset'):
             try:
                 asset = Asset.objects.get(uid=self.kpi_asset_uid)

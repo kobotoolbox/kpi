@@ -14,6 +14,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from guardian.models import UserObjectPermission
 from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
@@ -21,11 +22,7 @@ from rest_framework.authtoken.models import Token
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatPermission,
-    KobocatUserObjectPermission,
-    KobocatXForm,
-)
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models import Asset, ObjectPermission
 from kpi.utils.object_permission import get_anonymous_user
@@ -40,17 +37,21 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
-XFORM_CT = KobocatXForm.get_content_type()
+XFORM_CT = XForm.get_content_type()
 ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
 permission_map_copy = dict(PERMISSIONS_MAP)
 
 KPI_PKS_TO_CODENAMES = {}
 for kc_codename, kpi_codename in permission_map_copy.items():
-    kc_perm_pk = KobocatPermission.objects.get(
-        content_type=XFORM_CT, codename=kc_codename).pk
+    kc_perm_pk = (
+        Permission.objects.using(settings.OPENROSA_DB_ALIAS)
+        .get(content_type=XFORM_CT, codename=kc_codename)
+        .pk
+    )
     kpi_perm_pk = Permission.objects.get(
-        content_type=ASSET_CT, codename=kpi_codename).pk
+        content_type=ASSET_CT, codename=kpi_codename
+    ).pk
 
     del PERMISSIONS_MAP[kc_codename]
 
@@ -318,11 +319,15 @@ def _sync_permissions(asset, xform):
         return []
 
     # Get all applicable KC permissions set for this xform
-    xform_user_perms = KobocatUserObjectPermission.objects.filter(
-        permission_id__in=PERMISSIONS_MAP.keys(),
-        content_type=XFORM_CT,
-        object_pk=xform.pk
-    ).values_list('user', 'permission')
+    xform_user_perms = (
+        UserObjectPermission.objects.using(settings.OPENROSA_DB_ALIAS)
+        .filter(
+            permission_id__in=PERMISSIONS_MAP.keys(),
+            content_type=XFORM_CT,
+            object_pk=xform.pk,
+        )
+        .values_list('user', 'permission')
+    )
 
     if not xform_user_perms and not asset.pk:
         # Nothing to do
@@ -473,9 +478,9 @@ class Command(BaseCommand):
         sync_kobocat_form_media = options.get('sync_kobocat_form_media')
         verbosity = options.get('verbosity')
         users = User.objects.all()
-        # Do a basic query just to make sure the KobocatXForm model is
+        # Do a basic query just to make sure the XForm model is
         # loaded
-        if not KobocatXForm.objects.exists():
+        if not XForm.objects.exists():
             return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
@@ -503,8 +508,8 @@ class Command(BaseCommand):
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
-            # KobocatXForm has a foreign key on KobocatUser, not on User
-            xforms = KobocatXForm.objects.filter(user_id=user.pk).all()
+            # XForm has a foreign key on KobocatUser, not on User
+            xforms = XForm.objects.filter(user_id=user.pk).all()
             for xform in xforms:
                 try:
                     with transaction.atomic():
