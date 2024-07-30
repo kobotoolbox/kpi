@@ -96,11 +96,6 @@ export default function AttachmentActionsDropdown(
     utils.downloadUrl(props.attachmentUrl);
   }
 
-  const userCanDelete = userHasPermForSubmission(
-    'delete_submissions',
-    props.asset,
-    props.submissionData
-  );
   const userCanChange = userHasPermForSubmission(
     'change_submissions',
     props.asset,
@@ -169,7 +164,7 @@ export default function AttachmentActionsDropdown(
             size='l'
             onClick={confirmDelete}
             label={t('Delete')}
-            isDisabled={!userCanDelete}
+            isDisabled={!userCanChange}
             isPending={isDeletePending}
           />
         </KoboModalFooter>
