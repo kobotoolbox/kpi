@@ -168,7 +168,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def delete_submissions(
-        self, data: dict, user: settings.AUTH_USER_MODEL
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
         """
         Bulk delete provided submissions authenticated by `user`'s API token.

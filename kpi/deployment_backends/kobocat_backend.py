@@ -302,7 +302,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL) -> dict:
+    def delete_submissions(
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
+    ) -> dict:
         """
         Bulk delete provided submissions through KoBoCAT proxy,
         authenticated by `user`'s API token.
