@@ -437,6 +437,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         return Response(**json_response)
 
+    def handle_enketo_redirect(self, request, enketo_response, *args, **kwargs):
+        if request.path.strip('/').split('/')[-2] == 'redirect':
+            try:
+                enketo_url = enketo_response.data['url']
+            except KeyError:
+                pass
+            else:
+                return HttpResponseRedirect(enketo_url)
+        return enketo_response
+
     @action(
         detail=True,
         methods=['GET'],
@@ -454,15 +464,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             EnketoSessionAuthentication.prepare_response_with_csrf_cookie(
                 request, enketo_response
             )
-        if request.path.strip('/').split('/')[-2] == 'redirect':
-            try:
-                enketo_url = enketo_response.data['url']
-            except KeyError:
-                # Fall through to returning verbatim Enketo response
-                pass
-            else:
-                return HttpResponseRedirect(enketo_url)
-        return enketo_response
+        return self.handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
     @action(
         detail=True,
@@ -474,15 +476,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def enketo_view(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
         enketo_response = self._get_enketo_link(request, submission_id, 'view')
-        if request.path.strip('/').split('/')[-2] == 'redirect':
-            try:
-                enketo_url = enketo_response.data['url']
-            except KeyError:
-                # Fall through to returning verbatim Enketo response
-                pass
-            else:
-                return HttpResponseRedirect(enketo_url)
-        return enketo_response
+        return self.handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
