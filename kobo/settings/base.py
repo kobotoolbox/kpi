@@ -126,7 +126,7 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'kobo.apps.shadow_model.ShadowModelAppConfig',
+    # 'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
     'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'kobo.apps.languages.LanguageAppConfig',

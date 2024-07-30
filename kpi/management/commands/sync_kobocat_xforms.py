@@ -23,7 +23,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models import Asset, ObjectPermission
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.models import _set_auto_field_update
@@ -177,6 +177,7 @@ def _xform_to_asset_content(xform):
 
 
 def _get_kc_backend_response(xform):
+    # FIXME wrong backend info
     # Get the form data from KC
     user = xform.user
     response = _kc_forms_api_request(user.auth_token, xform.pk)
@@ -259,9 +260,9 @@ def _sync_form_metadata(asset, xform, changes):
     if not asset.has_deployment:
         # A brand-new asset
         asset.date_created = xform.date_created
-        kc_deployment = KobocatDeploymentBackend(asset)
-        kc_deployment.store_data({
-            'backend': 'kobocat',
+        backend_deployment = OpenRosaDeploymentBackend(asset)
+        backend_deployment.store_data({
+            'backend': 'openrosa',
             'active': xform.downloadable,
             'backend_response': _get_kc_backend_response(xform),
             'version': asset.version_id

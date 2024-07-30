@@ -72,7 +72,6 @@ from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
-    last_submission_time
 )
 from ..exceptions import (
     BadFormatException,
@@ -227,7 +226,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
 
     def delete_submissions(
-        self, data: dict, user: settings.AUTH_USER_MODEL
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
         """
         Bulk delete provided submissions.
@@ -1422,10 +1421,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.delete(force=True)
 
     def _last_submission_time(self):
-        id_string = self.xform.id_string
-        return last_submission_time(
-            xform_id_string=id_string, user_id=self.asset.owner.pk
-        )
+        return self.xform.last_submission_time
 
     def _save_openrosa_metadata(self, file_: SyncBackendMediaInterface):
         """

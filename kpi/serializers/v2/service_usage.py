@@ -14,7 +14,7 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import organization_month_start, organization_year_start
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models.asset import Asset
 
 
@@ -91,7 +91,7 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
                 'total_nlp_asr_seconds': 0,
                 'total_nlp_mt_characters': 0,
             }
-        return KobocatDeploymentBackend.nlp_tracking_data(
+        return OpenRosaDeploymentBackend.nlp_tracking_data(
             asset_ids=[asset.id], start_date=start_date
         )
 

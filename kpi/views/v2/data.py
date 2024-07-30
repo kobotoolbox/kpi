@@ -534,7 +534,7 @@ class DataViewSet(
         # The `get_submissions()` is a generator in KobocatDeploymentBackend
         # class but a list in MockDeploymentBackend. We cast the result as a list
         # no matter what is the deployment back-end class to make it work with
-        # both. Since the number of submissions is be very small, it should not
+        # both. Since the number of submissions is very small, it should not
         # have a big impact on memory (i.e. list vs generator)
         submissions = list(deployment.get_submissions(**params))
         if not submissions:
