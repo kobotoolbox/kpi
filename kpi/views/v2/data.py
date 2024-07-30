@@ -371,7 +371,9 @@ class DataViewSet(
                 ))
 
         # Send request to KC
-        json_response = action_(bulk_actions_validator.data, request.user)
+        json_response = action_(
+            bulk_actions_validator.data, request.user, request=request
+        )
 
         # If requests has succeeded, let's log deletions (if any)
         if json_response['status'] == status.HTTP_200_OK and audit_logs:

@@ -1104,7 +1104,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def store_submission(
-        self, user, xml_submission, submission_uuid, attachments=None
+        self, user, xml_submission, submission_uuid, attachments=None, **kwargs
     ):
         file_tuple = (submission_uuid, io.StringIO(xml_submission))
         files = {'xml_submission_file': file_tuple}

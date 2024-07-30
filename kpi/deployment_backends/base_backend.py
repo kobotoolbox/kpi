@@ -86,7 +86,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     def bulk_update_submissions(
-        self, data: dict, user: settings.AUTH_USER_MODEL
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
         """
         Allows for bulk updating (bulk editing) of submissions. A
@@ -144,7 +144,7 @@ class BaseDeploymentBackend(abc.ABC):
             )
         }
 
-        kc_responses = []
+        backend_responses = []
         for submission in submissions:
             xml_parsed = fromstring_preserve_root_xmlns(submission)
 
@@ -172,17 +172,19 @@ class BaseDeploymentBackend(abc.ABC):
             for path, value in update_data.items():
                 edit_submission_xml(xml_parsed, path, value)
 
-            kc_response = self.store_submission(
-                user, xml_tostring(xml_parsed), _uuid
+            backend_response = self.store_submission(
+                user,
+                xml_tostring(xml_parsed),
+                _uuid,
+                request=kwargs.get('request'),
             )
-            kc_responses.append(
+            backend_responses.append(
                 {
                     'uuid': _uuid,
-                    'response': kc_response,
+                    'response': backend_response,
                 }
             )
-
-        return self.prepare_bulk_update_response(kc_responses)
+        return self.prepare_bulk_update_response(backend_responses)
 
     @abc.abstractmethod
     def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
@@ -482,7 +484,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def store_submission(
-        self, user, xml_submission, submission_uuid, attachments=None
+        self, user, xml_submission, submission_uuid, attachments=None, **kwargs
     ):
         pass
 

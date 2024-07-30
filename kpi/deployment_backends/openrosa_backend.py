@@ -910,51 +910,35 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             pass
 
     @staticmethod
-    def prepare_bulk_update_response(kc_responses: list) -> dict:
+    def prepare_bulk_update_response(backend_responses: list) -> dict:
         """
         Formatting the response to allow for partial successes to be seen
         more explicitly.
-
-        Args:
-            kc_responses (list): A list containing dictionaries with keys of
-            `_uuid` from the newly generated uuid and `response`, the response
-            object received from KoBoCAT
-
-        Returns:
-            dict: formatted dict to be passed to a Response object and sent to
-            the client
         """
 
-        OPEN_ROSA_XML_MESSAGE = '{http://openrosa.org/http/response}message'
-
-        # Unfortunately, the response message from OpenRosa is in XML format,
-        # so it needs to be parsed before extracting the text
         results = []
-        for response in kc_responses:
+        cpt_successes = 0
+        for backend_response in backend_responses:
+            uuid = backend_response['uuid']
+            error, instance = backend_response['response']
+
             message = t('Something went wrong')
-            try:
-                xml_parsed = fromstring_preserve_root_xmlns(
-                    response['response'].content
-                )
-            except DET.ParseError:
-                pass
-            else:
-                message_el = xml_parsed.find(OPEN_ROSA_XML_MESSAGE)
-                if message_el is not None and message_el.text.strip():
-                    message = message_el.text
+            status_code = status.HTTP_400_BAD_REQUEST
+            if not error:
+                cpt_successes += 1
+                message = t('Successful submission')
+                status_code = status.HTTP_201_CREATED
 
             results.append(
                 {
-                    'uuid': response['uuid'],
-                    'status_code': response['response'].status_code,
+                    'uuid': uuid,
+                    'status_code': status_code,
                     'message': message,
                 }
             )
 
         total_update_attempts = len(results)
-        total_successes = [result['status_code'] for result in results].count(
-            status.HTTP_201_CREATED
-        )
+        total_successes = cpt_successes
 
         return {
             'status': (
@@ -1162,11 +1146,22 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             'status': status.HTTP_200_OK,
         }
 
-    # @Todo DEPRECATED - to be removed when KobocatDeploymentBackend is gone
     def store_submission(
-        self, user, xml_submission, submission_uuid, attachments=None
+        self, user, xml_submission, submission_uuid, attachments=None, **kwargs
     ):
-        pass
+        media_files = []
+        if attachments:
+            media_files = (
+                media_file for media_file in attachments.values()
+            )
+
+        return safe_create_instance(
+            username=user.username,
+            xml_file=ContentFile(xml_submission),
+            media_files=media_files,
+            uuid=submission_uuid,
+            request=kwargs.get('request'),
+        )
 
     @property
     def submission_count(self):

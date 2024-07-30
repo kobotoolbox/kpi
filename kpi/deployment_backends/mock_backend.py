@@ -642,7 +642,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def store_submission(
-        self, user, xml_submission, submission_uuid, attachments=None
+        self, user, xml_submission, submission_uuid, attachments=None, **kwargs
     ):
         """
         Return a mock response without actually storing anything
