@@ -1,16 +1,17 @@
 import json
-from mock import patch
 
 import responses
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.conf import settings
-from django.test.utils import override_settings
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.urls import reverse
+from mock import patch
 from rest_framework import status
 
-from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.audit_log.models import AuditAction, AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from .constants import SOCIALACCOUNT_PROVIDERS
 
 
@@ -98,4 +99,7 @@ class SSOLoginTest(TestCase):
         self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
 
         self.assertTrue(response.wsgi_request.user.is_authenticated)
+        # Ensure there is a record of the login
+        audit_log: AuditLog = AuditLog.objects.filter(user=response.wsgi_request.user).first()
+        self.assertEquals(audit_log.action, AuditAction.AUTH)
         assert response.wsgi_request.user.backend == settings.AUTHENTICATION_BACKENDS[0]
