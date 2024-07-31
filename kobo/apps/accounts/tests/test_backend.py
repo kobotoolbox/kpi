@@ -9,13 +9,8 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 
-# TODO Replace this two lines with the two commented out below when merge with
-#   release 2.024.25
-from django.contrib.auth import get_user_model
-User = get_user_model()
-
-# from kobo.apps.openrosa.apps.main.models import UserProfile
-# from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.kobo_auth.shortcuts import User
 from .constants import SOCIALACCOUNT_PROVIDERS
 
 
@@ -30,7 +25,7 @@ class SSOLoginTest(TestCase):
         )
 
         # Will be needed when merged in release/2.024.25
-        # UserProfile.objects.create(user=testuser)
+        UserProfile.objects.create(user=testuser)
 
         # Delete any social app that could be added by migration
         # `0007_add_providers_from_environment_to_db`
