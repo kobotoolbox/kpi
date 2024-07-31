@@ -9,5 +9,5 @@ SUBSEQUENCES_ASYNC_CACHE_KEY = 'subsequences'
 GOOGLE_CACHE_TIMEOUT = 28800  # 8 hours
 
 
-def make_async_cache_key(*args: str):
-    return '-'.join([SUBSEQUENCES_ASYNC_CACHE_KEY, *args])
+def make_async_cache_key(*args: str | int):
+    return '-'.join(map(str, [SUBSEQUENCES_ASYNC_CACHE_KEY, *args]))
