@@ -313,6 +313,10 @@ $side-tabs-width-mobile: 70px;
     padding: 10px 20px;
   }
 
+  &.form-view__cell--full-width {
+    width: 100%;
+  }
+
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
     font-size: variables.$base-font-size;
