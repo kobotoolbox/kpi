@@ -15,7 +15,6 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.utils.translation import gettext as t
-from kobo_service_account.utils import get_request_headers
 from rest_framework import exceptions
 from rest_framework.request import Request
 from taggit.forms import TagField
@@ -158,15 +157,11 @@ def get_media_file_response(
 
     # When `request.user` is authenticated, their authentication is lost with
     # an HTTP redirection. We use KoBoCAT to proxy the response from KPI
-    headers = {}
-    if not request.user.is_anonymous:
-        headers = get_request_headers(request.user.username)
-
     # Send the request internally to avoid extra traffic on the public interface
     internal_url = metadata.data_value.replace(
         settings.KOBOFORM_URL, settings.KOBOFORM_INTERNAL_URL
     )
-    response = requests.get(internal_url, headers=headers)
+    response = requests.get(internal_url)
 
     return HttpResponse(
         content=response.content,

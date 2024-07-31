@@ -1,14 +1,13 @@
 # coding: utf-8
 import os
-import re
 from xml.dom import Node
 
+import pytest
 from django.conf import settings
 from django.urls import reverse
-from django.test.client import Client
 from defusedxml import minidom
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
-from kobo_service_account.utils import get_request_headers
+from pyxform.errors import PyXFormError
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
@@ -240,87 +239,14 @@ class TestXFormViewSet(TestAbstractViewSet):
         self.assertEqual(response.data, [])
 
     def test_cannot_publish_xlsform_with_user_account(self):
-        response = self.publish_xls_form(use_service_account=False, assert_=False)
+        response = self.publish_xls_form(use_api=True, assert_creation=False)
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    def test_publish_xlsform_with_service_account(self):
-        self.publish_xls_form(use_service_account=True, assert_=True)
-
-    def test_publish_invalid_xls_form(self):
-        path = os.path.join(
-            settings.OPENROSA_APP_DIR,
-            'apps',
-            'main',
-            'tests',
-            'fixtures',
-            'transportation',
-            'transportation.bad_id.xls',
-        )
-
-        client = Client()
-        xform_list_url = reverse('xform-list')
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-
-        with open(path, 'rb') as xls_file:
-            post_data = {'xls_file': xls_file}
-            response = client.post(
-                xform_list_url, data=post_data, **service_account_meta
-            )
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            error_msg = '[row : 5] Question or group with no name.'
-            self.assertEqual(response.data.get('text'), error_msg)
-
-    def test_publish_invalid_xls_form_no_choices(self):
-        path = os.path.join(
-            settings.OPENROSA_APP_DIR,
-            'apps',
-            'main',
-            'tests',
-            'fixtures',
-            'transportation',
-            'transportation.no_choices.xls',
-        )
-        client = Client()
-        xform_list_url = reverse('xform-list')
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-
-        with open(path, 'rb') as xls_file:
-            post_data = {'xls_file': xls_file}
-            response = client.post(
-                xform_list_url, data=post_data, **service_account_meta
-            )
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            error_msg = (
-                "There should be a choices sheet in this xlsform. "
-                "Please ensure that the choices sheet has the mandatory "
-                "columns 'list_name', 'name', and 'label'."
-            )
-            self.assertEqual(response.data.get('text'), error_msg)
 
     def test_cannot_partial_update_with_user_account(self):
         self.publish_xls_form()
         view = XFormViewSet.as_view({
             'patch': 'partial_update'
         })
-        title = 'مرحب'
-        description = 'DESCRIPTION'
-        data = {'public': True, 'description': description, 'title': title,
-                'downloadable': True}
-
-        self.assertFalse(self.xform.shared)
-
-        request = self.factory.patch('/', data=data, **self.extra)
-        response = view(request, pk=self.xform.id)
-        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    def test_partial_update_with_service_account(self):
-        self.publish_xls_form()
         title = 'مرحب'
         description = 'DESCRIPTION'
         data = {
@@ -331,117 +257,9 @@ class TestXFormViewSet(TestAbstractViewSet):
         }
         self.assertFalse(self.xform.shared)
 
-        alice_profile_data = {
-            'username': 'alice',
-            'email': 'alice@kobotoolbox.org',
-            'password1': 'alice',
-            'password2': 'alice',
-            'name': 'Alice',
-            'city': 'AliceTown',
-            'country': 'CA',
-            'organization': 'Alice Inc.',
-            'home_page': 'alice.com',
-            'twitter': 'alicetwitter'
-        }
-        alice_profile = self._create_user_profile(alice_profile_data)
-        self.alice = alice_profile.user
-
-        client = Client()
-        xform_detail_url = reverse('xform-detail', kwargs={'pk': self.xform.id})
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.alice.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        response = client.patch(
-            xform_detail_url,
-            data=data,
-            content_type='application/json',
-            **service_account_meta
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.xform.refresh_from_db()
-        self.assertTrue(self.xform.downloadable)
-        self.assertTrue(self.xform.shared)
-        self.assertEqual(self.xform.description, description)
-        self.assertEqual(response.data['public'], True)
-        self.assertEqual(response.data['description'], description)
-        self.assertEqual(response.data['title'], title)
-        matches = re.findall(r"<h:title>([^<]+)</h:title>", self.xform.xml)
-        self.assertTrue(len(matches) > 0)
-        self.assertEqual(matches[0], title)
-
-    def test_set_form_private(self):
-        key = 'shared'
-        self.publish_xls_form()
-        self.xform.__setattr__(key, True)
-        self.xform.save()
-        data = {'public': False}
-
-        self.assertTrue(self.xform.__getattribute__(key))
-        client = Client()
-        xform_detail_url = reverse('xform-detail', kwargs={'pk': self.xform.id})
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        response = client.patch(
-            xform_detail_url,
-            data=data,
-            content_type='application/json',
-            **service_account_meta
-        )
-        self.xform.refresh_from_db()
-        self.assertFalse(self.xform.__getattribute__(key))
-        self.assertFalse(response.data['public'])
-
-    def test_set_form_bad_value(self):
-        key = 'shared'
-        self.publish_xls_form()
-        data = {'public': 'String'}
-
-        xform_detail_url = reverse('xform-detail', kwargs={'pk': self.xform.id})
-        client = Client()
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        response = client.patch(
-            xform_detail_url,
-            data=data,
-            content_type='application/json',
-            **service_account_meta
-        )
-        self.xform.reload()
-        self.assertFalse(self.xform.__getattribute__(key))
-        self.assertEqual(
-            response.data,
-            {'shared': ["'String' value must be either True or False."]},
-        )
-
-    def test_set_form_bad_key(self):
-        self.publish_xls_form()
-        self.xform.save()
-        view = XFormViewSet.as_view({
-            'patch': 'partial_update'
-        })
-        data = {'nonExistentField': False}
-
-        xform_detail_url = reverse('xform-detail', kwargs={'pk': self.xform.pk})
-        client = Client()
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        response = client.patch(
-            xform_detail_url,
-            data=data,
-            content_type='application/json',
-            **service_account_meta
-        )
-        assert response.status_code == status.HTTP_200_OK
-        self.xform.reload()
-        self.assertFalse(self.xform.shared)
-        self.assertFalse(response.data['public'])
+        request = self.factory.patch('/', data=data, **self.extra)
+        response = view(request, pk=self.xform.id)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_cannot_form_delete_with_user_account(self):
         self.publish_xls_form()
@@ -449,21 +267,6 @@ class TestXFormViewSet(TestAbstractViewSet):
         xform_detail_url = reverse('xform-detail', kwargs={'pk': self.xform.pk})
         response = self.client.delete(xform_detail_url, **self.extra)
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    def test_form_delete(self):
-        self.publish_xls_form()
-        self.xform.save()
-        xform_detail_url = reverse('xform-detail', kwargs={'pk': self.xform.pk})
-        client = Client()
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        response = client.delete(xform_detail_url, **service_account_meta)
-        self.assertEqual(response.data, None)
-        self.assertEqual(response.status_code, 204)
-        with self.assertRaises(XForm.DoesNotExist):
-            self.xform.reload()
 
     def test_xform_serializer_none(self):
         data = {
@@ -493,11 +296,18 @@ class TestXFormViewSet(TestAbstractViewSet):
             'title': '2011_07_25_transportation',
         }
 
-        xls_path = os.path.join(settings.OPENROSA_APP_DIR, 'apps', 'main', 'tests',
-                                'fixtures', 'transportation',
-                                'transportation.id_starts_with_num.xls')
+        xls_path = os.path.join(
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
+            'transportation.id_starts_with_num.xls',
+        )
         count = XForm.objects.count()
-        response = self.publish_xls_form(xls_path, data, assert_=False)
-        self.assertTrue('Names must begin with a letter' in response.content.decode())
-        self.assertEqual(response.status_code, 400)
+        with pytest.raises(PyXFormError) as e:
+            self.publish_xls_form(xls_path, data)
+            assert 'Names must begin with a letter' in str(e)
+
         self.assertEqual(XForm.objects.count(), count)

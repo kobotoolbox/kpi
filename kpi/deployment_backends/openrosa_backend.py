@@ -38,7 +38,10 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     remove_validation_status_from_instance,
     set_instance_validation_statuses,
 )
-from kobo.apps.openrosa.libs.utils.logger_tools import safe_create_instance, publish_xls_form
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    safe_create_instance,
+    publish_xls_form,
+)
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
