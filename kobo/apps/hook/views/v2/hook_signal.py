@@ -63,7 +63,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         if not (submission and int(submission['_id']) == submission_id):
             raise Http404
 
-        if HookUtils.call_services(self.asset, submission_id):
+        if HookUtils.call_services(self.asset.uid, submission_id):
             # Follow Open Rosa responses by default
             response_status_code = status.HTTP_202_ACCEPTED
             response = {
