@@ -98,15 +98,21 @@ export default function AnalysisTab() {
   }, [state.hasUnsavedWork]);
 
   if (!isInitialised) {
-    return <LoadingSpinner hideMessage />;
+    return (
+      <div className={bodyStyles.root}>
+        <LoadingSpinner message={false} />
+      </div>
+    );
   }
 
   if (isErrored) {
     return (
-      <InlineMessage
-        type='error'
-        message={t('Failed to load analysis questions')}
-      />
+      <div className={bodyStyles.root}>
+        <InlineMessage
+          type='error'
+          message={t('Failed to load analysis questions')}
+        />
+      </div>
     );
   }
 

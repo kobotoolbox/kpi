@@ -1,36 +1,55 @@
 import React from 'react';
-import bem from 'js/bem';
-import './loadingSpinner.scss';
+import cx from 'classnames';
+import styles from './loadingSpinner.module.scss';
 import Icon from 'js/components/common/icon';
 
+export type LoadingSpinnerType = 'regular' | 'big';
+
 interface LoadingSpinnerProps {
-  message?: string;
+  /** Changes the looks of the spinner animation. */
+  type?: LoadingSpinnerType;
   /**
-   * Most of the times we want a message, either custom or default one, but
-   * sometimes we want just the spinner. We need a boolean to hide it, because
-   * component has a fallback message.
+   * There is a default message if nothing is provided. If you want to hide
+   * the message completely, pass `false`.
    */
-  hideMessage?: boolean;
-  hideSpinner?: boolean;
+  message?: string | boolean;
   'data-cy'?: string;
+  /** Additional class names. */
+  className?: string;
 }
 
-export default class LoadingSpinner extends React.Component<
-  LoadingSpinnerProps,
-  {}
-> {
-  render() {
-    const message = this.props.message || t('loading…');
+/**
+ * Displays a spinner animation above a customizable yet optional message.
+ */
+export default function LoadingSpinner(props: LoadingSpinnerProps) {
+  const spinnerType: LoadingSpinnerType = props.type || 'regular';
+  const message = props.message || t('loading…');
 
-    return (
-      <bem.Loading data-cy={this.props['data-cy']}>
-        <bem.Loading__inner>
-          {!this.props.hideSpinner && (
-            <Icon name='spinner' size='xl' classNames={['k-spin']} />
-          )}
-          {!this.props.hideMessage && message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
+  return (
+    <div
+      className={cx({
+        // HACK: we need a literal `loadingSpinner` here for some old code
+        // places that display `<LoadingSpinner>` directly inside
+        // `<bem.FormView>`, see `_kobo.form-view.scss` for details.
+        // DO NOT USE, if needed go for the custom `className` prop.
+        loadingSpinner: true,
+        [styles.loading]: true,
+        [styles.loadingTypeRegular]: spinnerType === 'regular',
+        [styles.loadingHasDefaultMessage]: props.message === undefined,
+      }, props.className)}
+      data-cy={props['data-cy']}
+    >
+      <div className={styles.loadingInner}>
+        {spinnerType === 'regular' && (
+          <Icon name='spinner' size='xl' className='k-spin' />
+        )}
+
+        {spinnerType === 'big' && <span className={styles.bigSpinner} />}
+
+        {props.message !== false && (
+          <span className={styles.loadingMessage}>{message}</span>
+        )}
+      </div>
+    </div>
+  );
 }

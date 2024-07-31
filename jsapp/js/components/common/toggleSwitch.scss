@@ -1,5 +1,5 @@
-@use '~kobo-common/src/styles/colors';
-@use "scss/_variables";
+@use 'scss/colors';
+@use 'scss/_variables';
 
 .toggle-switch {
   position: relative;
@@ -8,6 +8,10 @@
 
   .toggle-switch__wrapper {
     cursor: pointer;
+  }
+
+  &.toggle-switch--is-disabled .toggle-switch__wrapper {
+    cursor: default;
   }
 
   input {
@@ -31,7 +35,7 @@
 
     &::before {
       position: absolute;
-      content: "";
+      content: '';
       height: 16px;
       width: 16px;
       left: 2px;
@@ -43,7 +47,8 @@
   }
 
   .toggle-switch__slider + .toggle-switch__label {
-    margin-left: 6px;
+    // For RTL content
+    margin-inline-start: 6px;
   }
 
   input:checked + .toggle-switch__slider {

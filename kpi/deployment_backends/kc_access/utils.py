@@ -6,13 +6,14 @@ from typing import Union
 
 import requests
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
-from django.db import ProgrammingError, transaction
+from django.db import transaction
 from django.db.models import Model
 from kobo_service_account.utils import get_request_headers
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import KobocatProfileException
 from kpi.utils.log import logging
 from kpi.utils.permissions import is_user_anonymous
@@ -174,7 +175,12 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
 def _get_xform_id_for_asset(asset):
     if not asset.has_deployment:
         return None
-    return asset.deployment.backend_response['formid']
+    try:
+        return asset.deployment.backend_response['formid']
+    except KeyError:
+        if settings.TESTING:
+            return None
+        raise
 
 
 def grant_kc_model_level_perms(user):
@@ -231,8 +237,9 @@ def grant_kc_model_level_perms(user):
     ])
 
 
-def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
-                                             remove=False):
+def set_kc_anonymous_permissions_xform_flags(
+    obj, kpi_codenames, xform_id, remove=False
+):
     r"""
         Given a KPI object, one or more KPI permission codenames and the PK of
         a KC `XForm`, assume the KPI permisisons have been assigned to or
@@ -305,20 +312,21 @@ def assign_applicable_kc_permissions(
 
     if user_id == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
-            obj, kpi_codenames, xform_id)
+            obj, kpi_codenames, xform_id
+        )
 
     xform_content_type = KobocatContentType.objects.get(
         **obj.KC_CONTENT_TYPE_KWARGS)
 
     kc_permissions_already_assigned = KobocatUserObjectPermission.objects.filter(
-        user_id=user.pk, permission__in=permissions, object_pk=xform_id,
+        user_id=user_id, permission__in=permissions, object_pk=xform_id,
     ).values_list('permission__codename', flat=True)
     permissions_to_create = []
     for permission in permissions:
         if permission.codename in kc_permissions_already_assigned:
             continue
         permissions_to_create.append(KobocatUserObjectPermission(
-            user_id=user.pk, permission=permission, object_pk=xform_id,
+            user_id=user_id, permission=permission, object_pk=xform_id,
             content_type=xform_content_type
         ))
     KobocatUserObjectPermission.objects.bulk_create(permissions_to_create)
@@ -362,6 +370,44 @@ def remove_applicable_kc_permissions(
     content_type_kwargs = _get_content_type_kwargs_for_related(obj)
     KobocatUserObjectPermission.objects.filter(
         user_id=user_id, permission__in=permissions, object_pk=xform_id,
+        # `permission` has a FK to `ContentType`, but I'm paranoid
+        **content_type_kwargs
+    ).delete()
+
+
+def reset_kc_permissions(
+    obj: Model,
+    user: Union[AnonymousUser, User, int],
+):
+    """
+    Remove the `user` all KC permissions from `obj`, if any
+    exists.
+    This should not called without a subsequent call of
+    `assign_applicable_kc_permissions()`
+    """
+
+    if not obj._meta.model_name == 'asset':
+        return
+    xform_id = _get_xform_id_for_asset(obj)
+    if not xform_id:
+        return
+
+    # Retrieve primary key from user object and use it on subsequent queryset.
+    # It avoids loading the object when `user` is passed as an integer.
+    if not isinstance(user, int):
+        if is_user_anonymous(user):
+            user_id = settings.ANONYMOUS_USER_ID
+        else:
+            user_id = user.pk
+    else:
+        user_id = user
+
+    if user_id == settings.ANONYMOUS_USER_ID:
+        raise NotImplementedError
+
+    content_type_kwargs = _get_content_type_kwargs_for_related(obj)
+    KobocatUserObjectPermission.objects.filter(
+        user_id=user_id, object_pk=xform_id,
         # `permission` has a FK to `ContentType`, but I'm paranoid
         **content_type_kwargs
     ).delete()

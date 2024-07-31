@@ -1,11 +1,10 @@
-import React, {ReactElement, Suspense, useEffect, useState} from 'react';
-import {RouteObject} from 'react-router-dom';
+import React, {Suspense, useEffect, useState} from 'react';
 import sessionStore from 'js/stores/session';
 import LoadingSpinner from '../components/common/loadingSpinner';
 import {redirectToLogin} from './routerUtils';
 
 interface Props {
-  children: RouteObject[] | undefined | ReactElement;
+  children: React.ReactNode;
   redirect?: boolean;
 }
 

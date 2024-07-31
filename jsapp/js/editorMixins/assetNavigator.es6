@@ -17,6 +17,7 @@ import {
   ListCollectionFilter,
   ListExpandToggle,
 } from 'js/components/list';
+import pageState from 'js/pageState.store';
 
 class AssetNavigatorListView extends React.Component {
   constructor(props) {
@@ -115,7 +116,7 @@ class AssetNavigatorListView extends React.Component {
             return (
               <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                 <bem.LibList__dragbox />
-                <bem.LibList__label m={'name'}>
+                <bem.LibList__label m={'name'} dir='auto'>
                   <AssetName asset={item} />
                 </bem.LibList__label>
 
@@ -125,7 +126,7 @@ class AssetNavigatorListView extends React.Component {
                   </bem.LibList__qtype>
                 }
 
-                { (stores.pageState.state.assetNavExpanded && item.asset_type === 'block') &&
+                { (pageState.state.assetNavExpanded && item.asset_type === 'block') &&
                   <ol>
                     {summ.labels.map((lbl, i) => (
                       <li key={i}>{lbl}</li>
@@ -133,7 +134,7 @@ class AssetNavigatorListView extends React.Component {
                   </ol>
                 }
 
-                { stores.pageState.state.assetNavExpanded &&
+                { pageState.state.assetNavExpanded &&
                   <bem.LibList__tags>
                     {(item.tags || []).map((tg, i) => (
                       <bem.LibList__tag key={i}>{tg}</bem.LibList__tag>
@@ -170,7 +171,7 @@ class AssetNavigator extends Reflux.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.pageState, this.handlePageStateStore);
+    this.listenTo(pageState, this.handlePageStateStore);
     this.state.searchContext.mixin.searchDefault();
   }
 

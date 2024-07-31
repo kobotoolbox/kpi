@@ -8,10 +8,11 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Button from 'js/components/common/button';
 import InlineMessage from 'js/components/common/inlineMessage';
+import {userCan} from 'js/components/permissions/utils';
 import {replaceBracketsWithLink} from 'js/textUtils';
 import {ANON_USERNAME, ANON_USERNAME_URL} from 'js/users/utils';
 import {ASSET_TYPES} from 'js/constants';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
+import {TransferStatuses} from 'js/components/permissions/transferProjects/transferProjects.api';
 import './sharingForm.scss';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions.component';
@@ -27,6 +28,8 @@ import type {
   PermissionResponse,
   AssignablePermissionPartialLabel,
 } from 'js/dataInterface';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import AssetName from 'js/components/common/assetName';
 
 interface SharingFormProps {
   assetUid: string;
@@ -162,12 +165,49 @@ export default class SharingForm extends React.Component<
     }
   }
 
+  /** Check if the recipient of the transfer is the specified user */
+  isPendingOwner(username: string) {
+    return this.state.asset?.project_ownership?.status ===
+      TransferStatuses.Pending &&
+      this.state.asset?.project_ownership?.recipient === username
+      ? true
+      : false;
+  }
+
+  /** Display pending owner if not already included in list of user permissions */
+  renderPendingOwner(userCanEditPerms: boolean) {
+    if (
+      this.state.asset?.project_ownership?.status ===
+        TransferStatuses.Pending &&
+      !this.state.permissions?.find(
+        (perm) =>
+          perm.user.name === this.state.asset?.project_ownership?.recipient
+      )
+    ) {
+      return (
+        <UserPermissionRow
+          assetUid={this.props.assetUid}
+          userCanEditPerms={userCanEditPerms}
+          nonOwnerPerms={this.state.nonOwnerPerms}
+          assignablePerms={this.state.assignablePerms}
+          permissions={[]}
+          isUserOwner={false}
+          isPendingOwner={true}
+          username={this.state.asset.project_ownership.recipient}
+        />
+      );
+    } else {
+      return null;
+    }
+  }
+
   render() {
     if (!this.state.asset || !this.state.permissions) {
       return <LoadingSpinner />;
     }
 
     const assetType = this.state.asset.asset_type;
+    const isManagingPossible = userCan('manage_asset', this.state.asset);
 
     const isRequireAuthWarningVisible =
       'extra_details' in sessionStore.currentAccount &&
@@ -176,7 +216,9 @@ export default class SharingForm extends React.Component<
 
     return (
       <bem.FormModal m='sharing-form'>
-        <bem.Modal__subheader>{this.state.asset.name}</bem.Modal__subheader>
+        <bem.Modal__subheader dir='auto'>
+          <AssetName asset={this.state.asset} />
+        </bem.Modal__subheader>
 
         {isRequireAuthWarningVisible && (
           <bem.FormModal__item>
@@ -213,18 +255,22 @@ export default class SharingForm extends React.Component<
               <UserPermissionRow
                 key={`perm.${this.props.assetUid}.${perm.user.name}`}
                 assetUid={this.props.assetUid}
+                userCanEditPerms={isManagingPossible}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 assignablePerms={this.state.assignablePerms}
                 permissions={perm.permissions}
                 isUserOwner={perm.user.isOwner}
+                isPendingOwner={this.isPendingOwner(perm.user.name)}
                 username={perm.user.name}
               />
             );
           })}
+          {this.renderPendingOwner(isManagingPossible)}
 
           {!this.state.isAddUserEditorVisible && (
             <Button
               color='blue'
+              isDisabled={!isManagingPossible}
               type='full'
               size='l'
               onClick={this.toggleAddUserEditor.bind(this)}
@@ -234,13 +280,14 @@ export default class SharingForm extends React.Component<
 
           {this.state.isAddUserEditorVisible && (
             <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
-              <bem.Button
-                m='icon'
+              <Button
+                color='dark-blue'
+                type='bare'
+                size='l'
+                startIcon='close'
                 className='user-permissions-editor-closer'
                 onClick={this.toggleAddUserEditor.bind(this)}
-              >
-                <i className='k-icon k-icon-close' />
-              </bem.Button>
+              />
 
               <UserAssetPermsEditor
                 assetUid={this.props.assetUid}
@@ -260,26 +307,31 @@ export default class SharingForm extends React.Component<
                 publicPerms={this.state.publicPerms}
                 assetUid={this.props.assetUid}
                 deploymentActive={this.state.asset.deployment__active}
+                userCanShare={isManagingPossible}
               />
             </bem.FormModal__item>
           </>
         )}
 
         {/* copying permissions from other assets */}
-        {assetType !== ASSET_TYPES.collection.id &&
-          this.state.allAssetsCount === 0 && (
-            <>
-              <bem.Modal__hr />
-              {t('Waiting for all projects to load…')}
-            </>
-          )}
-        {assetType !== ASSET_TYPES.collection.id &&
-          this.state.allAssetsCount >= 2 && (
-            <>
-              <bem.Modal__hr />
-              <CopyTeamPermissions assetUid={this.props.assetUid} />
-            </>
-          )}
+        {isManagingPossible && (
+          <>
+            {assetType !== ASSET_TYPES.collection.id &&
+              this.state.allAssetsCount === 0 && (
+                <>
+                  <bem.Modal__hr />
+                  {t('Waiting for all projects to load…')}
+                </>
+              )}
+            {assetType !== ASSET_TYPES.collection.id &&
+              this.state.allAssetsCount >= 2 && (
+                <>
+                  <bem.Modal__hr />
+                  <CopyTeamPermissions assetUid={this.props.assetUid} />
+                </>
+              )}
+          </>
+        )}
       </bem.FormModal>
     );
   }

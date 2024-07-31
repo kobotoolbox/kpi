@@ -7,6 +7,7 @@ import SidebarDisplaySettings from 'js/components/processing/sidebar/sidebarDisp
 import type {AssetResponse} from 'jsapp/js/dataInterface';
 import SidebarSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';
 import SidebarSubmissionMedia from 'js/components/processing/sidebar/sidebarSubmissionMedia';
+import {getActiveTab} from 'js/components/processing/routes.utils';
 import styles from './processingSidebar.module.scss';
 
 interface ProcessingSidebarProps {
@@ -16,7 +17,7 @@ interface ProcessingSidebarProps {
 export default function ProcessingSidebar(props: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore);
 
-  const displays = store.getDisplays(store.getActiveTab());
+  const displays = store.getDisplays(getActiveTab());
   const translations = store.getTranslations();
   const transcript = store.getTranscript();
 
@@ -43,11 +44,11 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
         )}
 
         {displays.includes(StaticDisplays.Audio) && (
-          <SidebarSubmissionMedia asset={props.asset.content} />
+          <SidebarSubmissionMedia assetContent={props.asset.content} />
         )}
 
         {displays.includes(StaticDisplays.Data) && (
-          <SidebarSubmissionData asset={props.asset.content} />
+          <SidebarSubmissionData asset={props.asset} />
         )}
 
         {displays.length === 0 && (

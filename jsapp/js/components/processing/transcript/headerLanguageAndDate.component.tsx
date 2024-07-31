@@ -1,7 +1,7 @@
 import React from 'react';
-import {formatTime} from 'js/utils';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
+import TransxDate from 'js/components/processing/transxDate.component';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
 
 /** We have this as separate component, because we use it in two places. */
@@ -14,30 +14,16 @@ export default function HeaderLanguageAndDate() {
     return null;
   }
 
-  let dateText = '';
-  if (storeTranscript) {
-    if (storeTranscript.dateCreated !== storeTranscript?.dateModified) {
-      dateText = t('last modified ##date##').replace(
-        '##date##',
-        formatTime(storeTranscript.dateModified)
-      );
-    } else {
-      dateText = t('created ##date##').replace(
-        '##date##',
-        formatTime(storeTranscript.dateCreated)
-      );
-    }
-  }
-
   return (
     <React.Fragment>
       <label className={bodyStyles.transxHeaderLanguage}>
         <AsyncLanguageDisplayLabel code={valueLanguageCode} />
       </label>
 
-      {dateText !== '' && (
-        <time className={bodyStyles.transxHeaderDate}>{dateText}</time>
-      )}
+      <TransxDate
+        dateCreated={storeTranscript?.dateCreated}
+        dateModified={storeTranscript?.dateModified}
+      />
     </React.Fragment>
   );
 }

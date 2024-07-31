@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 
 .form-sidebar.form-sidebar--account {
@@ -13,6 +13,10 @@
   .form-sidebar__label[disabled] {
     pointer-events: none;
     opacity: 0.5;
+  }
+
+  .form-sidebar__label-text.form-sidebar__label-text--isNew {
+    flex: 0.75;
   }
 
   a.active {

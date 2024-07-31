@@ -4,10 +4,10 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
@@ -19,8 +19,13 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
+        try:
+            self.anotheruser = User.objects.get(username='anotheruser')
+        except:
+            self.anotheruser = User.objects.create_user(
+                username='anotheruser', password='anotheruser'
+            )
         self.client.login(username='anotheruser', password='anotheruser')
-        self.anotheruser = User.objects.get(username='anotheruser')
 
     def __add_nlp_trackers(self):
         """

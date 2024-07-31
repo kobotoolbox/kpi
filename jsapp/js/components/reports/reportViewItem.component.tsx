@@ -282,7 +282,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     return (
       <div>
         <bem.ReportView__itemHeading>
-          <h2>{this.props.label}</h2>
+          <h2 dir='auto'>{this.props.label}</h2>
           <bem.ReportView__headingMeta>
             <span className='type'>{t('Type: ') + rowType + t('. ')}</span>
             <span className='respondents'>
@@ -298,17 +298,19 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
             </span>
           </bem.ReportView__headingMeta>
           {this.props.data.show_graph && sessionStore.isLoggedIn && (
-            <Button
-              type='bare'
-              color='storm'
-              size='m'
-              startIcon='more'
-              classNames={['report-button__question-settings']}
-              onClick={() =>
-                this.props.triggerQuestionSettings(this.props.name)
-              }
-              tooltip={t('Override Graph Style')}
-            />
+            <span className='report-button__question-settings'>
+              <Button
+                type='bare'
+                color='dark-blue'
+                size='m'
+                startIcon='more'
+                onClick={() =>
+                  this.props.triggerQuestionSettings(this.props.name)
+                }
+                tooltip={t('Override Graph Style')}
+                tooltipPosition='right'
+              />
+            </span>
           )}
         </bem.ReportView__itemHeading>
         <bem.ReportView__itemContent>

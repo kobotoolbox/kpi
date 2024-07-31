@@ -5,6 +5,8 @@ import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import {destroyConfirm} from 'js/alertify';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import styles from './stepSingleViewer.module.scss';
+import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
 
 interface StepSingleViewerProps {
   /** Uses languageCode. */
@@ -59,37 +61,51 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
         <div className={bodyStyles.transxHeaderButtons}>
           <Button
             type='frame'
-            color='storm'
+            color='dark-blue'
             size='s'
             startIcon='plus'
-            label={t('new translation')}
+            label={(<>
+              <span className={styles.newButtonLabel}>
+                {t('new translation')}
+              </span>
+              <span className={styles.newButtonLabelShort}>
+                {t('new')}
+              </span>
+            </>)}
             onClick={addTranslation}
-            isDisabled={singleProcessingStore.data.isFetchingData}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.data.isFetchingData}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-red'
             size='s'
             startIcon='trash'
             onClick={deleteTranslation}
             tooltip={t('Delete')}
             isPending={singleProcessingStore.data.isFetchingData}
+            isDisabled={!hasManagePermissionsToCurrentAsset()}
           />
         </div>
       </header>
 
-      <article className={bodyStyles.text}>
+      <article className={bodyStyles.text} dir='auto'>
         {singleProcessingStore.getTranslation(props.selectedTranslation)?.value}
       </article>
     </div>

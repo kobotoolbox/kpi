@@ -9,6 +9,7 @@ import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import './accountSettings.scss';
 import styles from './changePasswordRoute.module.scss';
 import UpdatePasswordForm from './security/password/updatePasswordForm.component';
+import Button from 'js/components/common/button';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -33,12 +34,13 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<WithRou
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <button
+            <Button
+              type='bare'
+              color='dark-blue'
+              size='l'
+              startIcon='close'
               onClick={this.close.bind(this)}
-              className='account-settings-close mdl-button mdl-button--icon'
-            >
-              <i className='k-icon k-icon-close' />
-            </button>
+            />
           </bem.AccountSettings__actions>
 
           <bem.AccountSettings__item m='column'>

@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use 'js/components/common/button';
@@ -29,7 +29,7 @@ $k-select-menu-padding: sizes.$x6;
   @include mixins.centerRowFlex;
   justify-content: space-between;
   font-weight: 400;
-  text-align: left;
+  text-align: initial;
   border-width: button.$button-border-width;
   border-style: solid;
   border-color: transparent;
@@ -89,9 +89,23 @@ $k-select-menu-padding: sizes.$x6;
 
 .k-select__option {
   @include mixins.buttonReset;
+  font-weight: 400;
+  position: relative;
+
+  &:hover,
+  &.k-select__option--selected {
+    color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-gray-96;
+  }
+
+  &:focus-visible {
+    @include mixins.default-ui-focus;
+    // Needed so that option--selected never appears above focus styles
+    z-index: 1;
+  }
 
   .k-icon {
-    color: colors.$kobo-gray-85;
+    color: inherit;
   }
 }
 
@@ -103,7 +117,7 @@ $k-select-menu-padding: sizes.$x6;
   height: $k-select-option-height;
   color: colors.$kobo-gray-40;
   padding: 0 #{sizes.$x16 - sizes.$x2};
-  text-align: left;
+  text-align: initial;
 }
 
 .k-select__menu-message {
@@ -132,23 +146,6 @@ $k-select-menu-padding: sizes.$x6;
     .k-select__trigger {
       background-color: colors.$kobo-light-red;
     }
-  }
-}
-
-.k-select__option {
-  font-weight: 500;
-  position: relative;
-
-  &:hover,
-  &.k-select__option--selected {
-    color: colors.$kobo-gray-24;
-    background-color: colors.$kobo-gray-96;
-  }
-
-  &:focus-visible {
-    @include mixins.default-ui-focus;
-    // Needed so that option--selected never appears above focus styles
-    z-index: 1;
   }
 }
 

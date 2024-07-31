@@ -1,12 +1,14 @@
 # coding: utf-8
-from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.backends import ModelBackend as DjangoModelBackend
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from django.conf import settings
 
-from kpi.utils.object_permission import get_database_user
+from .utils.database import get_thread_local
+from .utils.object_permission import get_database_user
 from .utils.permissions import is_user_anonymous
 
 
-class ObjectPermissionBackend(ModelBackend):
+class ObjectPermissionBackend(DjangoModelBackend):
     def get_group_permissions(self, user_obj, obj=None):
         is_anonymous = is_user_anonymous(user_obj)
         user_obj = get_database_user(user_obj)
@@ -44,3 +46,17 @@ class ObjectPermissionBackend(ModelBackend):
         # Trust the object-level test to handle anonymous users correctly
         return obj.has_perm(user_obj, perm)
 
+
+class ModelBackend(DjangoModelBackend):
+
+    def get_all_permissions(self, user_obj, obj=None):
+        if not user_obj.is_active or user_obj.is_anonymous or obj is not None:
+            return set()
+        db_alias = get_thread_local('DB_ALIAS', DEFAULT_DB_ALIAS)
+        cache_key = f'_perm_cache_{db_alias}'
+        if not hasattr(user_obj, cache_key):
+            setattr(user_obj, cache_key, {
+                *self.get_user_permissions(user_obj),
+                *self.get_group_permissions(user_obj),
+            })
+        return getattr(user_obj, cache_key)

@@ -16,7 +16,8 @@ export type KoboDropdownPlacement =
 const DEFAULT_PLACEMENT: KoboDropdownPlacement = 'down-center';
 
 interface KoboDropdownProps {
-  placement: KoboDropdownPlacement;
+  /** Defaults to DEFAULT_PLACEMENT :wink: */
+  placement?: KoboDropdownPlacement;
   isRequired?: boolean;
   /** Disables the dropdowns trigger, thus disallowing opening dropdown. */
   isDisabled?: boolean;
@@ -26,8 +27,8 @@ interface KoboDropdownProps {
   /** The content of dropdown, anything's allowed. */
   menuContent: React.ReactNode;
   /**
-   * Optional name value useful for styling and `menuVisibilityChange` action,
-   * ends up in `data-name` attribut.e
+   * Name useful for styling and `menuVisibilityChange` action, it ends up in
+   * the `data-name` attribute.
    */
   name: string;
   'data-cy'?: string;
@@ -40,7 +41,7 @@ interface KoboDropdownState {
 }
 
 interface AdditionalWrapperAttributes {
-  'data-name'?: string;
+  'data-name': string;
   'data-cy'?: string;
 }
 
@@ -228,12 +229,10 @@ export default class KoboDropdown extends React.Component<
   }
 
   render() {
-    const additionalWrapperAttributes: AdditionalWrapperAttributes = {};
-
-    if (this.props.name) {
+    const additionalWrapperAttributes: AdditionalWrapperAttributes = {
       // We use `data-name` attribute to allow any character in the name.
-      additionalWrapperAttributes['data-name'] = this.props.name;
-    }
+      ['data-name']: this.props.name,
+    };
 
     if (this.props['data-cy']) {
       additionalWrapperAttributes['data-cy'] = this.props['data-cy'];

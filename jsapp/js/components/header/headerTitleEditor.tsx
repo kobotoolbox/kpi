@@ -5,11 +5,7 @@ import bem from 'js/bem';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import {removeInvalidChars, getAssetDisplayName} from 'js/assetUtils';
-import {
-  KEY_CODES,
-  NAME_MAX_LENGTH,
-  ASSET_TYPES,
-} from 'js/constants';
+import {KEY_CODES, NAME_MAX_LENGTH, ASSET_TYPES} from 'js/constants';
 import type {AssetResponse} from 'jsapp/js/dataInterface';
 
 interface HeaderTitleEditorProps {
@@ -27,6 +23,7 @@ class HeaderTitleEditor extends React.Component<
   HeaderTitleEditorState
 > {
   typingTimer?: NodeJS.Timeout;
+  private unlisteners: Function[];
 
   constructor(props: HeaderTitleEditorProps) {
     super(props);
@@ -34,11 +31,18 @@ class HeaderTitleEditor extends React.Component<
       name: this.props.asset.name,
       isPending: false,
     };
+    this.unlisteners = [];
     autoBind(this);
   }
 
   componentDidMount() {
-    assetStore.listen(this.onAssetLoad, this);
+    this.unlisteners.push(assetStore.listen(this.onAssetLoad, this));
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   onAssetLoad() {
@@ -50,15 +54,22 @@ class HeaderTitleEditor extends React.Component<
 
   updateAssetTitle() {
     // surveys are required to have name
-    if (!this.state.name.trim() && this.props.asset.asset_type === ASSET_TYPES.survey.id) {
-      notify.error(t('Please enter a title for your ##type##').replace('##type##', ASSET_TYPES[this.props.asset.asset_type].label));
+    if (
+      !this.state.name.trim() &&
+      this.props.asset.asset_type === ASSET_TYPES.survey.id
+    ) {
+      notify.error(
+        t('Please enter a title for your ##type##').replace(
+          '##type##',
+          ASSET_TYPES[this.props.asset.asset_type].label
+        )
+      );
       return false;
     } else {
       this.setState({isPending: true});
-      actions.resources.updateAsset(
-        this.props.asset.uid,
-        {name: this.state.name}
-      );
+      actions.resources.updateAsset(this.props.asset.uid, {
+        name: this.state.name,
+      });
       return true;
     }
   }
@@ -80,10 +91,7 @@ class HeaderTitleEditor extends React.Component<
 
   render() {
     const modifiers = [];
-    if (
-      typeof this.state.name === 'string' &&
-      this.state.name.length > 125
-    ) {
+    if (typeof this.state.name === 'string' && this.state.name.length > 125) {
       modifiers.push('long');
     }
 
@@ -96,7 +104,10 @@ class HeaderTitleEditor extends React.Component<
         if (displayName.question) {
           placeholder = displayName.question;
         } else {
-          placeholder = t('untitled ##type##').replace('##type##', ASSET_TYPES[this.props.asset.asset_type].label);
+          placeholder = t('untitled ##type##').replace(
+            '##type##',
+            ASSET_TYPES[this.props.asset.asset_type].label
+          );
         }
         break;
       case ASSET_TYPES.collection.id:
@@ -110,6 +121,7 @@ class HeaderTitleEditor extends React.Component<
     return (
       <bem.MainHeader__title m={modifiers}>
         <input
+          dir='auto'
           type='text'
           name='title'
           maxLength={NAME_MAX_LENGTH}

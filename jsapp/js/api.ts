@@ -53,18 +53,21 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   if (toastMessage || !displayMessage) {
     // display toastMessage or, if we don't have *any* message available, use a generic error
     displayMessage = toastMessage || t('An error occurred');
-    if (response.status || response.statusText) {
-      // if we have a status, add it to the displayed message
-      displayMessage += `\n\n${response.status} ${response.statusText}`;
-    } else if (!window.navigator.onLine) {
+
+    if (!window.navigator.onLine) {
       // another general case — the original fetch response.message might have
       // something more useful to say.
       displayMessage += '\n\n' + t('Your connection is offline');
     }
   }
 
+  let errorMessageDisplay = message;
+  if (response.status || response.statusText) {
+    errorMessageDisplay = `${response.status} ${response.statusText}`;
+  }
+
   // show the error message to the user
-  notify.error(displayMessage);
+  notify.error(displayMessage, undefined, errorMessageDisplay);
 
   // send the message to our error tracker
   Sentry.captureMessage(message || displayMessage);
@@ -138,7 +141,9 @@ const fetchData = async <T>(
 
   // For when it's needed we pass authentication data
   if (method === 'DELETE' || data) {
-    const csrfCookie = document.cookie.match(/csrftoken=(\w{64})/);
+    // Need to support old token (64 characters - prior to Django 4.1)
+    // and new token (32 characters).
+    const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/);
     if (csrfCookie) {
       headers['X-CSRFToken'] = csrfCookie[1];
     }

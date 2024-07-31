@@ -7,6 +7,7 @@ import styles from './anonymousSubmission.module.scss';
 
 interface AnonymousSubmissionProps {
   checked: boolean;
+  disabled: boolean;
   onChange: (isChecked: boolean) => void;
 }
 
@@ -15,6 +16,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
     <div className={styles.root}>
       <ToggleSwitch
         checked={props.checked}
+        disabled={props.disabled}
         onChange={props.onChange}
         label={t(
           'Allow submissions to this form without a username and password'

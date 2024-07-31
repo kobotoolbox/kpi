@@ -2,7 +2,7 @@
 @use 'sass:math';
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'js/components/common/icon';
 @use './projectsTableRow.module';
 

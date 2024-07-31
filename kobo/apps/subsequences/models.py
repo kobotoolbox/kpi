@@ -5,8 +5,10 @@ from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models import Asset
-from .constants import GOOGLETS, GOOGLETX
-from .exceptions import SubsequenceTimeoutError
+from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.log import logging
+from .constants import GOOGLETS, GOOGLETX, ASYNC_TRANSLATION_DELAY_INTERVAL
+from .exceptions import SubsequenceTimeoutError, TranscriptionResultsNotFound
 from .integrations.google.google_transcribe import GoogleTranscribeEngine
 from .integrations.google.google_translate import GoogleTranslationEngine
 from .tasks import handle_google_translation_operation
@@ -15,10 +17,8 @@ from .utils.determine_export_cols_with_values import (
 )
 
 
-class SubmissionExtras(models.Model):
+class SubmissionExtras(AbstractTimeStampedModel):
 
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
     # FIXME: uuid on the KoboCAT logger.Instance model has max_length 249
     submission_uuid = models.CharField(max_length=40)
     content = models.JSONField(default=dict)
@@ -67,9 +67,15 @@ class SubmissionExtras(models.Model):
                             )
                         except SubsequenceTimeoutError:
                             continue
-                        result_string = ' '.join(
-                            [r['transcript'] for r in results]
-                        )
+                        except TranscriptionResultsNotFound:
+                            logging.error(f'No transcriptions found for {xpath}')
+                            result_string = ''
+                            results = []
+                        else:
+                            result_string = ' '.join(
+                                [r['transcript'] for r in results]
+                            )
+
                         vals[GOOGLETS] = {
                             'status': 'complete',
                             'value': result_string,
@@ -112,7 +118,6 @@ class SubmissionExtras(models.Model):
                         # the string to translate
                         content=content,
                         # field IDs to tell us where to save results
-                        asset_uid=self.asset.uid,
                         submission_uuid=self.submission_uuid,
                         xpath=key,
                         # username is used in the label of the request
@@ -121,9 +126,13 @@ class SubmissionExtras(models.Model):
                         source_lang=service.get_language_code(source_lang),
                         target_lang=service.get_language_code(target_lang),
                     )
-                    handle_google_translation_operation(
-                        **followup_params, countdown=8
+                    handle_google_translation_operation.apply_async(
+                        kwargs=followup_params,
+                        countdown=ASYNC_TRANSLATION_DELAY_INTERVAL,
                     )
+                    # FIXME: clobbers previous translations; we want a record
+                    # of what Google returned, and another async translation
+                    # could be in progress
                     vals[GOOGLETX] = {
                         'status': 'in_progress',
                         'source': source_lang,
@@ -136,6 +145,8 @@ class SubmissionExtras(models.Model):
                         target_lang=service.get_language_code(target_lang),
                         username=self.asset.owner.username,
                     )
+                    # FIXME: clobbers previous translations; we want a record
+                    # of what Google returned
                     vals[GOOGLETX] = {
                         'status': 'complete',
                         'languageCode': target_lang,

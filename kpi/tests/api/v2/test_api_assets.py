@@ -6,18 +6,19 @@ import json
 import os
 from io import StringIO
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_MANAGE_ASSET,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
-    PERM_PARTIAL_SUBMISSIONS,
 )
 from kpi.models import Asset, AssetFile, AssetVersion
 from kpi.models.asset import AssetDeploymentStatus
@@ -505,6 +506,42 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # ensure that anotheruser can still see asset detail since has
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK
+
+    def test_project_views_for_anotheruser_can_view_all_asset_permission_assignments(
+        self,
+    ):
+        # get the first asset from the first project view
+        self._login_as_anotheruser()
+        anotheruser = User.objects.get(username='anotheruser')
+        proj_view_list = self.client.get(self.region_views_url).data['results']
+        first_proj_view = proj_view_list[0]
+        asset_list = self.client.get(first_proj_view['assets']).data['results']
+        first_asset_entry = asset_list[0]
+        asset_obj = Asset.objects.get(uid=first_asset_entry['uid'])
+
+        # make sure any access that would allow listing permission assignments
+        # is coming exclusively from the project view
+        assert asset_obj.owner != anotheruser
+        assert not asset_obj.has_perm(anotheruser, PERM_MANAGE_ASSET)
+
+        # add a non-owner, non-anon, non-`anotheruser` perm assignment
+        new_user = User.objects.create(username='a_whole_new_user')
+        asset_obj.assign_perm(new_user, PERM_VIEW_ASSET)
+
+        # get the permission assignments from the asset detail endpoint while
+        # authenticated as `anotheruser`
+        proj_view_asset_perms = self.client.get(first_asset_entry['url']).data[
+            'permissions'
+        ]
+
+        # compare those assignments to the complete list of permission
+        # assignments seen by the asset owner
+        self.client.force_login(asset_obj.owner)
+        all_asset_perms = self.client.get(first_asset_entry['url']).data[
+            'permissions'
+        ]
+        assert proj_view_asset_perms == all_asset_perms
+
 
     def test_project_views_for_anotheruser_can_preview_form(self):
         someuser = User.objects.get(username='someuser')
@@ -1343,12 +1380,16 @@ class AssetFileTest(BaseTestCase):
         response_dict = json.loads(response.content)
         self.assertEqual(
             response_dict['asset'],
-            self.absolute_reverse(self._get_endpoint('asset-detail'), args=[self.asset.uid])
+            self.absolute_reverse(
+                self._get_endpoint('asset-detail'), args=[self.asset.uid]
+            ),
         )
         self.assertEqual(
             response_dict['user'],
-            self.absolute_reverse(self._get_endpoint('user-detail'),
-                                  args=[self.current_username])
+            self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.current_username],
+            ),
         )
         self.assertEqual(
             response_dict['user__username'],

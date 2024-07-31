@@ -1,6 +1,7 @@
 @use 'scss/sizes';
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+@use 'scss/colors';
 @use 'scss/_variables';
 
 .form-view--form-media {
@@ -85,16 +86,6 @@
       display: flex;
       justify-content: space-between;
 
-      // TODO: Find a better way to implement button size without editing parent
-      // See: https://github.com/kobotoolbox/kpi/issues/3917
-      button.kobo-light-button {
-        padding-bottom: 25px;
-
-        i.k-icon-trash {
-          font-size: 24px;
-        }
-      }
-
       i.form-media__file-type {
         position: absolute;
         left: -5px;
@@ -126,11 +117,5 @@
     font-weight: 500;
     font-size: 22px;
     display: block;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .media-settings--upload-file {
-    width: auto;
   }
 }

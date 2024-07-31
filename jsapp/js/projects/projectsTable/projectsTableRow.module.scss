@@ -1,7 +1,7 @@
 @use 'sass:color';
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/variables';
 @use 'scss/z-indexes';
 
@@ -249,11 +249,6 @@ $projects-table-row-height: sizes.$x36;
   font-size: 1.2rem;
   justify-content: center;
   text-align: center;
-
-  .proTip {
-    font-size: 1rem;
-    margin-top: sizes.$x20;
-  }
 }
 
 .headerLabel {
