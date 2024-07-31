@@ -74,16 +74,6 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
     TagUid.objects.get_or_create(tag=instance)
 
 
-@receiver(post_save, sender=Hook)
-def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
-    """
-    Updates KoboCAT XForm instance as soon as Asset.Hook list is updated.
-    """
-    asset = instance.asset
-    if asset.has_deployment:
-        asset.deployment.set_has_kpi_hooks()
-
-
 @receiver(post_delete, sender=Asset)
 def post_delete_asset(sender, instance, **kwargs):
     # Update parent's languages if this object is a child of another asset.

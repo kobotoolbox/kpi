@@ -32,7 +32,7 @@ def service_definition_task(self, hook_id, submission_id):
     hook = Hook.objects.get(id=hook_id)
     # Use camelcase (even if it's not PEP-8 compliant)
     # because variable represents the class, not the instance.
-    ServiceDefinition = hook.get_service_definition()
+    ServiceDefinition = hook.get_service_definition()  # noqa
     service_definition = ServiceDefinition(hook, submission_id)
     if not service_definition.send():
         # Countdown is in seconds
@@ -43,10 +43,7 @@ def service_definition_task(self, hook_id, submission_id):
 
 
 @shared_task
-def retry_all_task(hooklogs_ids):
-    """
-    :param list: <int>.
-    """
+def retry_all_task(hooklogs_ids: int):
     hook_logs = HookLog.objects.filter(id__in=hooklogs_ids)
     for hook_log in hook_logs:
         hook_log.retry()
@@ -71,22 +68,24 @@ def failures_reports():
     if failures_reports_period_task:
 
         last_run_at = failures_reports_period_task.last_run_at
-        queryset = HookLog.objects.filter(hook__email_notification=True,
-                                          status=HOOK_LOG_FAILED)
+        queryset = HookLog.objects.filter(
+            hook__email_notification=True, status=HOOK_LOG_FAILED
+        )
         if last_run_at:
             queryset = queryset.filter(date_modified__gte=last_run_at)
 
-        queryset = queryset.order_by('hook__asset__name',
-                                     'hook__uid',
-                                     '-date_modified')
+        queryset = queryset.order_by(
+            'hook__asset__name', 'hook__uid', '-date_modified'
+        )
 
         # PeriodicTask are updated every 3 minutes (default).
         # It means, if this task interval is less than 3 minutes, some data can be duplicated in emails.
         # Setting `beat-sync-every` to 1, makes PeriodicTask to be updated before running the task.
         # So, we need to update it manually.
         # see: http://docs.celeryproject.org/en/latest/userguide/configuration.html#beat-sync-every
-        PeriodicTask.objects.filter(task=beat_schedule.get("task")). \
-            update(last_run_at=timezone.now())
+        PeriodicTask.objects.filter(task=beat_schedule.get('task')).update(
+            last_run_at=timezone.now()
+        )
 
         records = {}
         max_length = 0
@@ -147,9 +146,12 @@ def failures_reports():
             text_content = plain_text_template.render(variables)
             html_content = html_template.render(variables)
 
-            msg = EmailMultiAlternatives(translation.gettext('REST Services Failure Report'), text_content,
-                                         constance.config.SUPPORT_EMAIL,
-                                         [record.get('email')])
+            msg = EmailMultiAlternatives(
+                translation.gettext('REST Services Failure Report'),
+                text_content,
+                constance.config.SUPPORT_EMAIL,
+                [record.get('email')],
+            )
             msg.attach_alternative(html_content, 'text/html')
             email_messages.append(msg)
 

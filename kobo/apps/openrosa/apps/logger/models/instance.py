@@ -106,10 +106,6 @@ class Instance(models.Model):
     # TODO Don't forget to update all records with command `update_is_sync_with_mongo`.
     is_synced_with_mongo = LazyDefaultBooleanField(default=False)
 
-    # If XForm.has_kpi_hooks` is True, this field should be True either.
-    # It tells whether the instance has been successfully sent to KPI.
-    posted_to_kpi = LazyDefaultBooleanField(default=False)
-
     class Meta:
         app_label = 'logger'
 

@@ -446,10 +446,6 @@ class BaseDeploymentBackend(abc.ABC):
     ):
         pass
 
-    @abc.abstractmethod
-    def set_has_kpi_hooks(self):
-        pass
-
     def set_status(self, status):
         self.save_to_db({'status': status})
 

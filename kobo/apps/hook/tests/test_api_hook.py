@@ -56,42 +56,6 @@ class ApiHookTestCase(HookTestCase):
     def test_create_hook(self):
         self._create_hook()
 
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
-    @responses.activate
-    def test_data_submission(self):
-        # Create first hook
-        first_hook = self._create_hook(name="dummy external service",
-                                       endpoint="http://dummy.service.local/",
-                                       settings={})
-        responses.add(responses.POST, first_hook.endpoint,
-                      status=status.HTTP_200_OK,
-                      content_type="application/json")
-        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
-
-        submissions = self.asset.deployment.get_submissions(self.asset.owner)
-        data = {'submission_id': submissions[0]['_id']}
-        response = self.client.post(hook_signal_url, data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-
-        # Create second hook
-        second_hook = self._create_hook(name="other dummy external service",
-                                        endpoint="http://otherdummy.service.local/",
-                                        settings={})
-        responses.add(responses.POST, second_hook.endpoint,
-                      status=status.HTTP_200_OK,
-                      content_type="application/json")
-
-        response = self.client.post(hook_signal_url, data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-
-        response = self.client.post(hook_signal_url, data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-
-        data = {'submission_id': 4}  # Instance doesn't belong to `self.asset`
-        response = self.client.post(hook_signal_url, data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
     def test_editor_access(self):
         hook = self._create_hook()
 
