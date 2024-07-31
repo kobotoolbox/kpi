@@ -10,6 +10,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     create_instance, safe_create_instance
 )
 
+
 class TempFileProxy:
     """
     create_instance will be looking for a file object,

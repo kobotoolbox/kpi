@@ -287,11 +287,6 @@ def replace_user_with_placeholder(
 
 def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
 
-    (
-        app_label,
-        model_name,
-    ) = asset.deployment.submission_model.get_app_label_and_model_name()
-
     while True:
         audit_logs = []
         submissions = list(asset.deployment.get_submissions(
@@ -315,8 +310,8 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
         submission_ids = []
         for submission in submissions:
             audit_logs.append(AuditLog(
-                app_label=app_label,
-                model_name=model_name,
+                app_label='logger',
+                model_name='instance',
                 object_id=submission['_id'],
                 user=request_author,
                 user_uid=request_author.extra_details.uid,
