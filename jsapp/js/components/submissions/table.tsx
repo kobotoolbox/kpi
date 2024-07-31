@@ -1595,6 +1595,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             };
           }}
           filterable
+          // Enables RTL support in table cells
+          getTdProps={() => ({dir: 'auto'})}
         />
       </bem.FormView>
     );

@@ -121,6 +121,7 @@ class HeaderTitleEditor extends React.Component<
     return (
       <bem.MainHeader__title m={modifiers}>
         <input
+          dir='auto'
           type='text'
           name='title'
           maxLength={NAME_MAX_LENGTH}
