@@ -313,17 +313,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
 
-    def _get_deployment(self):
-        """
-        Returns the deployment for the asset specified by the request
-        """
-        if not self.asset.has_deployment:
-            raise ObjectDeploymentDoesNotExist(
-                t('The specified asset has not been deployed')
-            )
-
-        return self.asset.deployment
-
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
@@ -416,6 +405,30 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         return Response(**json_response)
+
+    @action(
+        detail=True,
+        methods=['POST'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[DuplicateSubmissionPermission],
+    )
+    def duplicate(self, request, pk, *args, **kwargs):
+        """
+        Creates a duplicate of the submission with a given `pk`
+        """
+        deployment = self._get_deployment()
+        # Coerce to int because back end only finds matches with same type
+        submission_id = positive_int(pk)
+        original_submission = deployment.get_submission(
+            submission_id, request.user, fields=['_uuid']
+        )
+        duplicate_response = deployment.duplicate_submission(
+            submission_id=submission_id, user=request.user
+        )
+        deployment.copy_submission_extras(
+            original_submission['_uuid'], duplicate_response['_uuid']
+        )
+        return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
     @action(
         detail=True,
@@ -546,30 +559,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission = submissions[0]
         return Response(submission)
 
-    @action(
-        detail=True,
-        methods=['POST'],
-        renderer_classes=[renderers.JSONRenderer],
-        permission_classes=[DuplicateSubmissionPermission],
-    )
-    def duplicate(self, request, pk, *args, **kwargs):
-        """
-        Creates a duplicate of the submission with a given `pk`
-        """
-        deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
-        submission_id = positive_int(pk)
-        original_submission = deployment.get_submission(
-            submission_id, request.user, fields=['_uuid']
-        )
-        duplicate_response = deployment.duplicate_submission(
-            submission_id=submission_id, user=request.user
-        )
-        deployment.copy_submission_extras(
-            original_submission['_uuid'], duplicate_response['_uuid']
-        )
-        return Response(duplicate_response, status=status.HTTP_201_CREATED)
-
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],
             permission_classes=[SubmissionValidationStatusPermission])
@@ -636,6 +625,17 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         return filters
+
+    def _get_deployment(self):
+        """
+        Returns the deployment for the asset specified by the request
+        """
+        if not self.asset.has_deployment:
+            raise ObjectDeploymentDoesNotExist(
+                t('The specified asset has not been deployed')
+            )
+
+        return self.asset.deployment
 
     def _get_enketo_link(
         self, request: Request, submission_id: int, action_: str
