@@ -91,7 +91,7 @@ export default class AssetContentSummary extends React.Component<
 
     return (
       <React.Fragment>
-        <bem.FormView__cell m={['box', 'bordered']}>
+        <bem.FormView__cell m={['box', 'bordered']} dir='auto'>
           {items.map(this.renderQuestion.bind(this))}
         </bem.FormView__cell>
 

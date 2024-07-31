@@ -612,6 +612,7 @@ export default Object.assign({
                 value={this.state.name}
                 title={this.state.name}
                 id='nameField'
+                dir='auto'
               />
             </bem.FormModal__item>
           </bem.FormBuilderHeader__cell>

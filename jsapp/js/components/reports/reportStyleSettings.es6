@@ -162,7 +162,7 @@ export default class ReportStyleSettings extends React.Component {
             )}
             {tabs[this.state.activeModalTab] === t('Group By') &&
               groupByOptions.length > 1 && (
-                <div className='graph-tab__groupby' id='graph-labels'>
+                <div className='graph-tab__groupby' id='graph-labels' dir='auto'>
                   <Radio
                     name='reports-groupby'
                     options={groupByOptions}

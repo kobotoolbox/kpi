@@ -116,7 +116,7 @@ class AssetNavigatorListView extends React.Component {
             return (
               <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                 <bem.LibList__dragbox />
-                <bem.LibList__label m={'name'}>
+                <bem.LibList__label m={'name'} dir='auto'>
                   <AssetName asset={item} />
                 </bem.LibList__label>
 
