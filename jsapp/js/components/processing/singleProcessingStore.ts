@@ -288,7 +288,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.requestAutoTranslation.completed.listen(
       this.onRequestAutoTranslationCompleted.bind(this)
     );
-    processingActions.requestAutoTranslation.completed.listen(
+    processingActions.requestAutoTranslation.in_progress.listen(
       this.onRequestAutoTranslationInProgress.bind(this)
     );
     processingActions.requestAutoTranslation.failed.listen(
