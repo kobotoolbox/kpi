@@ -8,7 +8,7 @@ from django.utils import timezone
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import translate_v3 as translate, storage
 
-from .google_transcribe import GoogleTransXEngine
+from .base import GoogleTask
 from .utils import google_credentials_from_constance_config
 from ..misc import (
     TranslationException,
@@ -22,7 +22,7 @@ def _hashed_strings(self, *strings):
     return md5(''.join(strings).encode()).hexdigest()[0:10]
 
 
-class GoogleTranslationEngine(GoogleTransXEngine):
+class GoogleTranslationEngine(GoogleTask):
     def __init__(self):
         self.translate_client = translate.TranslationServiceClient(
             credentials=google_credentials_from_constance_config()

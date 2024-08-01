@@ -7,7 +7,7 @@ from typing import (
     Union,
 )
 
-from .google import GoogleTranslationEngine
+from .google.google_translate import GoogleTranslationEngine
 from .misc import TranslationException
 
 
