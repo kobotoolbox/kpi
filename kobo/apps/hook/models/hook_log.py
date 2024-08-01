@@ -45,15 +45,15 @@ class HookLog(models.Model):
         Notice: even if False is returned, `self.retry()` can be triggered.
         """
         if self.hook.active:
-            if self.tries >= constance.config.HOOK_MAX_RETRIES:
-                # If log is still pending after `constance.config.HOOK_MAX_RETRIES`
-                # times, there was an issue, we allow the retry.
-                threshold = timezone.now() - timedelta(seconds=120)
+            # If log is still pending after `constance.config.HOOK_MAX_RETRIES`
+            # times, there was an issue, we allow the retry.
+            threshold = timezone.now() - timedelta(seconds=120)
 
-                return self.status == HOOK_LOG_FAILED or (
-                    self.date_modified < threshold
-                    and self.status == HOOK_LOG_PENDING
-                )
+            return self.status == HOOK_LOG_FAILED or (
+                self.date_modified < threshold
+                and self.status == HOOK_LOG_PENDING
+                and self.tries >= constance.config.HOOK_MAX_RETRIES
+            )
 
         return False
 
