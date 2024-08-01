@@ -1,0 +1,7 @@
+@use 'scss/colors';
+
+.deletedAttachment {
+  font-size: inherit;
+  font-style: italic;
+  color: colors.$kobo-gray-55;
+}
