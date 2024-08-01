@@ -3,6 +3,7 @@ import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
 import MiniAudioPlayer from 'js/components/common/miniAudioPlayer';
+import DeletedAttachment from './deletedAttachment.component';
 import {goToProcessing} from 'js/components/processing/routes.utils';
 import type {SubmissionAttachment} from 'js/dataInterface';
 import './audioCell.scss';
@@ -31,10 +32,20 @@ export default function AudioCell(props: AudioCellProps) {
         </span>
       )}
 
-      {typeof props.mediaAttachment === 'object' &&
-        props.mediaAttachment?.download_url && (
-          <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />
-        )}
+      {
+        typeof props.mediaAttachment === 'object' &&
+        props.mediaAttachment?.download_url &&
+        !props.mediaAttachment?.is_deleted &&
+      (
+        <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />
+      )}
+
+      {
+        typeof props.mediaAttachment === 'object' &&
+        props.mediaAttachment?.is_deleted &&
+      (
+        <DeletedAttachment />
+      )}
 
       <Button
         type='full'

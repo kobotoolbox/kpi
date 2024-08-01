@@ -1,6 +1,7 @@
 @use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/breakpoints';
+@use 'scss/mixins';
 
 .gallery {
   background-color: colors.$kobo-white;
@@ -48,10 +49,19 @@
   margin-right: sizes.$x5;
 }
 
-.gallery-grid {
+.gallery__grid {
   display: flex;
   flex-wrap: wrap;
   gap: sizes.$x3;
+}
+
+.gallery-grid-deleted-attachment {
+  @include mixins.centerRowFlex;
+  justify-content: center;
+  min-width: 100px;
+  min-height: 100px;
+  border-radius: 6px;
+  background-color: colors.$kobo-gray-92;
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {
