@@ -26,7 +26,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
-from kobo.apps.hook.utils import HookUtils
+from kobo.apps.hook.utils.services import call_services
 from kpi.utils.log import logging
 
 # this is Mongo Collection where we will store the parsed submissions
@@ -380,7 +380,7 @@ class ParsedInstance(models.Model):
                     f'ParsedInstance #: {self.pk} - XForm is not linked with Asset'
                 )
             else:
-                HookUtils.call_services(asset_uid, self.instance_id)
+                call_services(asset_uid, self.instance_id)
 
         return success
 

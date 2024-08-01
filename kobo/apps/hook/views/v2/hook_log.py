@@ -108,7 +108,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         status_code = status.HTTP_200_OK
         hook_log = self.get_object()
 
-        if hook_log.can_retry():
+        if hook_log.can_retry:
             hook_log.change_status()
             success = hook_log.retry()
             if success:

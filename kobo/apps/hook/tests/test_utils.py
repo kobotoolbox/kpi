@@ -3,7 +3,7 @@ from mock import patch
 from rest_framework import status
 
 from .hook_test_case import HookTestCase, MockSSRFProtect
-from ..utils import HookUtils
+from ..utils.services import call_services
 
 
 class HookUtilsTestCase(HookTestCase):
@@ -29,7 +29,7 @@ class HookUtilsTestCase(HookTestCase):
 
         submissions = self.asset.deployment.get_submissions(self.asset.owner)
         submission_id = submissions[0]['_id']
-        assert HookUtils.call_services(self.asset.uid, submission_id) is True
+        assert call_services(self.asset.uid, submission_id) is True
 
         # Create second hook
         second_hook = self._create_hook(
@@ -45,8 +45,8 @@ class HookUtilsTestCase(HookTestCase):
         )
         # Since second hook hasn't received the submission, `call_services`
         # should still return True
-        assert HookUtils.call_services(self.asset.uid, submission_id) is True
+        assert call_services(self.asset.uid, submission_id) is True
 
         # But if we try again, it should return False (we cannot send the same
         # submission twice to the same external endpoint).
-        assert HookUtils.call_services(self.asset.uid, submission_id) is False
+        assert call_services(self.asset.uid, submission_id) is False

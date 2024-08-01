@@ -9,37 +9,33 @@ from django.template.loader import get_template
 from django.utils import translation, timezone
 from django_celery_beat.models import PeriodicTask
 
+from kobo.celery import celery_app
 from kpi.utils.log import logging
 from .constants import HOOK_LOG_FAILED
+from .exceptions import HookRemoteServerDownError
 from .models import Hook, HookLog
+from .utils.lazy import LazyMaxRetriesInt
 
 
-@shared_task(bind=True)
-def service_definition_task(self, hook_id, submission_id):
+@celery_app.task(
+    autoretry_for=(HookRemoteServerDownError,),
+    retry_backoff=60,
+    retry_backoff_max=1200,
+    max_retries=LazyMaxRetriesInt(),
+    retry_jitter=True,
+    queue='kpi_low_priority_queue',
+)
+def service_definition_task(hook_id: int, submission_id: int) -> bool:
     """
     Tries to send data to the endpoint of the hook
     It retries n times (n = `constance.config.HOOK_MAX_RETRIES`)
-
-    - after 1 minutes,
-    - after 10 minutes,
-    - after 100 minutes
-    etc ...
-
-    :param self: Celery.Task.
-    :param hook_id: int. Hook PK
-    :param submission_id: int. Instance PK
     """
     hook = Hook.objects.get(id=hook_id)
     # Use camelcase (even if it's not PEP-8 compliant)
     # because variable represents the class, not the instance.
     ServiceDefinition = hook.get_service_definition()  # noqa
     service_definition = ServiceDefinition(hook, submission_id)
-    if not service_definition.send():
-        # Countdown is in seconds
-        countdown = HookLog.get_remaining_seconds(self.request.retries)
-        raise self.retry(countdown=countdown, max_retries=constance.config.HOOK_MAX_RETRIES)
-
-    return True
+    return service_definition.send()
 
 
 @shared_task
