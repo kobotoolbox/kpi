@@ -104,6 +104,7 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+
 def get_human_readable_client_user_agent(request):
     """
     Parse the user-agent into a human-readable <Browser> (<OS>) string
