@@ -108,7 +108,9 @@ def get_human_readable_client_user_agent(request):
     """
     Parse the user-agent into a human-readable <Browser> (<OS>) string
     """
-    user_agent = request.META['HTTP_USER_AGENT']
+    user_agent = request.META.get('HTTP_USER_AGENT', None)
+    if not user_agent or user_agent == '':
+        return "No information available"
     parsed = ua_parse.Parse(user_agent)
     browser = parsed['user_agent']['family']
     user_os = parsed['os']['family']

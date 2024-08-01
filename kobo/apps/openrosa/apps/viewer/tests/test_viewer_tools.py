@@ -38,7 +38,9 @@ class TestViewerTools(TestBase):
         # nonsense
         ("Lizards!", "Other (Other)"),
         # empty
-        ("", "Other (Other)"),
+        ("", "No information available"),
+        # missing
+        (None, "No information available")
     )
     @unpack
     def test_client_user_agent(self, ua_string, expected_result):
