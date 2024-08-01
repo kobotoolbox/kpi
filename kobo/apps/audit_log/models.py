@@ -58,7 +58,3 @@ class AuditLog(models.Model):
             using=using,
             update_fields=update_fields,
         )
-
-    @staticmethod
-    def create_from_request(request, user=None, auth_type=None):
-        pass
