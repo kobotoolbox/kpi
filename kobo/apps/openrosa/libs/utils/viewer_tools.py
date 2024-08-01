@@ -13,6 +13,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import mail_admins
 from django.utils.translation import gettext as t
+from ua_parser import user_agent_parser as ua_parse
 
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -107,7 +108,11 @@ def get_human_readable_client_user_agent(request):
     """
     Parse the user-agent into a human-readable <Browser> (<OS>) string
     """
-    pass
+    user_agent = request.META['HTTP_USER_AGENT']
+    parsed = ua_parse.Parse(user_agent)
+    browser = parsed['user_agent']['family']
+    user_os = parsed['os']['family']
+    return f'{browser} ({user_os})'
 
 
 def enketo_url(
