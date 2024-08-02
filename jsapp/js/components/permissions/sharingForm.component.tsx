@@ -29,6 +29,7 @@ import type {
   AssignablePermissionPartialLabel,
 } from 'js/dataInterface';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import AssetName from 'js/components/common/assetName';
 
 interface SharingFormProps {
   assetUid: string;
@@ -215,7 +216,9 @@ export default class SharingForm extends React.Component<
 
     return (
       <bem.FormModal m='sharing-form'>
-        <bem.Modal__subheader>{this.state.asset.name}</bem.Modal__subheader>
+        <bem.Modal__subheader dir='auto'>
+          <AssetName asset={this.state.asset} />
+        </bem.Modal__subheader>
 
         {isRequireAuthWarningVisible && (
           <bem.FormModal__item>

@@ -102,7 +102,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
 
       {/* Delete */}
       <Button
-        isDisabled={!isChangingPossible}
+        isDisabled={!isManagingPossible}
         type='secondary-danger'
         size='s'
         startIcon='trash'
@@ -116,7 +116,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
           )
         }
         tooltip={
-          isChangingPossible ? t('Delete 1 project') : t('Delete project')
+          isManagingPossible ? t('Delete 1 project') : t('Delete project')
         }
         tooltipPosition='right'
       />

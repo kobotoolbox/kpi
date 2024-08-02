@@ -1,7 +1,6 @@
 import React from 'react';
 import bem from 'js/bem';
 import classNames from 'classnames';
-import Select from 'react-select';
 import type {SingleValue} from 'react-select';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
@@ -10,11 +9,8 @@ import type {AssetStoreData} from 'js/assetStore';
 import {actions} from '../../actions';
 import {notify, escapeHtml} from 'js/utils';
 import Button from 'js/components/common/button';
-
-interface ReactSelectOption {
-  value: string;
-  label: string | null;
-}
+import KoboSelect from 'js/components/common/koboSelect';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
 
 interface CopyTeamPermissionsProps {
   assetUid: string;
@@ -69,24 +65,11 @@ export default class CopyTeamPermissions extends React.Component<
     this.setState({isCopyFormVisible: !this.state.isCopyFormVisible});
   }
 
-  getSelectedProjectOption() {
-    if (this.state.sourceUid) {
-      return {
-        value: this.state.sourceUid,
-        label: this.state.sourceName,
-      };
-    } else {
-      return false;
-    }
-  }
-
-  onSelectedProjectChange(
-    option: SingleValue<boolean | {value: string; label: string | null}>
-  ) {
-    if (option !== null && typeof option !== 'boolean') {
+  onSelectedProjectChange(newSelectedOption: string | null) {
+    if (newSelectedOption !== null) {
       this.setState({
-        sourceUid: option.value,
-        sourceName: stores.allAssets.byUid[option.value].name,
+        sourceUid: newSelectedOption,
+        sourceName: stores.allAssets.byUid[newSelectedOption].name,
       });
     }
   }
@@ -132,7 +115,7 @@ export default class CopyTeamPermissions extends React.Component<
     const isImportButtonEnabled =
       this.state.sourceUid !== null && !this.state.isAwaitingAssetChange;
 
-    const availableOptions: ReactSelectOption[] = [];
+    const availableOptions: KoboSelectOption[] = [];
     for (const assetUid in stores.allAssets.byUid) {
       if (stores.allAssets.byUid.hasOwnProperty(assetUid)) {
         // because choosing itself doesn't make sense
@@ -172,16 +155,16 @@ export default class CopyTeamPermissions extends React.Component<
             <bem.FormModal__item
               m={['gray-row', 'flexed-row', 'copy-team-permissions']}
             >
-              <Select
-                id='teamPermissions'
-                value={this.getSelectedProjectOption()}
-                isClearable={false}
-                placeholder={t('Select source project…')}
+              <KoboSelect
+                name='copy-team-permissions'
+                type='outline'
+                size='l'
+                isSearchable
                 options={availableOptions}
+                selectedOption={this.state.sourceUid}
                 onChange={this.onSelectedProjectChange.bind(this)}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
+                placeholder={t('Select source project…')}
+                placement='up-center'
               />
 
               <Button

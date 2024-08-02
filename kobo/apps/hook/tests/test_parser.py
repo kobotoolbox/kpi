@@ -6,6 +6,7 @@ from lxml import etree
 
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.utils.strings import to_str
+from kpi.utils.xml import check_lxml_fromstring
 from .hook_test_case import HookTestCase
 
 
@@ -41,12 +42,12 @@ class ParserTestCase(HookTestCase):
         ServiceDefinition = hook.get_service_definition()
         submissions = hook.asset.deployment.get_submissions(
             self.asset.owner, format_type=SUBMISSION_FORMAT_TYPE_XML)
-        xml_doc = etree.fromstring(submissions[0].encode())
+        xml_doc = check_lxml_fromstring(submissions[0].encode())
         tree = etree.ElementTree(xml_doc)
         uuid = tree.find('_id').text
 
         service_definition = ServiceDefinition(hook, uuid)
-        expected_etree = etree.fromstring(
+        expected_etree = check_lxml_fromstring(
             f'<{self.asset.uid}>'
             f'   <_id>{uuid}</_id>'
             f'   <group1>'

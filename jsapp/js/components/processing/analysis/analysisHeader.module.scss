@@ -44,7 +44,7 @@ $menu-padding: koboSelect.$k-select-menu-padding;
   height: $option-height;
   color: colors.$kobo-gray-40;
   padding: 0 #{sizes.$x16 - sizes.$x2};
-  text-align: left;
+  text-align: initial;
   font-weight: 500;
 
   &:hover {
@@ -73,7 +73,7 @@ $menu-padding: koboSelect.$k-select-menu-padding;
 }
 
 .addQuestionMenu :global h2 {
-  text-align: left;
+  text-align: initial;
   border-top: sizes.$x1 solid colors.$kobo-gray-92;
   font-size: sizes.$x12;
   line-height: $option-height;

@@ -96,7 +96,9 @@ export default class AssetInfoBox extends React.Component<
           {this.state.areDetailsVisible &&
           <bem.AssetInfoBox__cell>
             <label>{t('Description')}</label>
-            {this.props.asset.settings.description || '-'}
+            <div dir='auto'>
+              {this.props.asset.settings.description || '-'}
+            </div>
           </bem.AssetInfoBox__cell>
           }
 

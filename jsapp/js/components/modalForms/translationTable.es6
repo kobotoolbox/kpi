@@ -141,6 +141,7 @@ export class TranslationTable extends React.Component {
               }}
               value={this.state.tableData[cellInfo.index].value || ''}
               disabled={cellInfo.original.isLabelLocked}
+              dir='auto'
             />
           );
         },
@@ -333,6 +334,8 @@ export class TranslationTable extends React.Component {
             nextText={t('Next')}
             minRows={1}
             loadingText={<LoadingSpinner />}
+            // Enables RTL support in table cells
+            getTdProps={() => ({dir: 'auto'})}
           />
         </div>
 

@@ -153,7 +153,7 @@ class ColumnsHideForm extends React.Component<
         />
 
         {filteredFieldsList.length !== 0 && (
-          <bem.ColumnsHideForm__list>
+          <bem.ColumnsHideForm__list dir='auto'>
             {filteredFieldsList.map((fieldObj) => {
               return (
                 <bem.ColumnsHideForm__listItem key={fieldObj.fieldId}>

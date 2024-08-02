@@ -554,7 +554,7 @@ export function getRepeatGroupAnswers(
 
     // Each level could be an array of repeat group answers or object with questions.
     if (levelKey === targetKey) {
-      if (targetKeyData !== undefined) {
+      if (targetKeyData !== undefined && typeof targetKeyData !== 'object') {
         answers.push(String(targetKeyData));
       }
     } else if (

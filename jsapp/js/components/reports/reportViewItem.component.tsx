@@ -282,7 +282,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     return (
       <div>
         <bem.ReportView__itemHeading>
-          <h2>{this.props.label}</h2>
+          <h2 dir='auto'>{this.props.label}</h2>
           <bem.ReportView__headingMeta>
             <span className='type'>{t('Type: ') + rowType + t('. ')}</span>
             <span className='respondents'>

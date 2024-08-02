@@ -32,7 +32,7 @@
   position: absolute;
   min-width: 160px;
   max-width: 300px;
-  text-align: left;
+  text-align: initial;
   background: colors.$kobo-white;
   z-index: z-indexes.$z-dropdown;
   right: -10px;
@@ -116,7 +116,7 @@
 .popover-menu__item--move-coll-item {
   background-color: colors.$kobo-gray-96;
   position: relative;
-  text-align: left;
+  text-align: initial;
   padding: 3px 8px 3px 5px;
 
   span {
