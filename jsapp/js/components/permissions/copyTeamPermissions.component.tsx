@@ -186,7 +186,7 @@ export default class CopyTeamPermissions extends React.Component<
 
               <Button
                 type='primary'
-                size='m'
+                size='l'
                 label={t('copy')}
                 onClick={this.safeCopyPermissionsFrom.bind(this)}
                 isDisabled={!isImportButtonEnabled}

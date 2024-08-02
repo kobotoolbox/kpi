@@ -493,13 +493,6 @@ class ConnectProjects extends React.Component {
 
                   <div className='connect-projects__import-options'>
                     <Button
-                      type='secondary-danger'
-                      size='m'
-                      startIcon='trash'
-                      onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
-                    />
-
-                    <Button
                       type='secondary'
                       size='m'
                       startIcon='settings'
@@ -514,6 +507,13 @@ class ConnectProjects extends React.Component {
                         item.linkedFields,
                         item.attachmentUrl,
                       )}
+                    />
+
+                    <Button
+                      type='secondary-danger'
+                      size='m'
+                      startIcon='trash'
+                      onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
                     />
                   </div>
                 </li>

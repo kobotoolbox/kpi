@@ -697,7 +697,7 @@ export default class SubmissionModal extends React.Component<
 
           <Button
             onClick={launchPrinting}
-            type='text'
+            type='secondary'
             size='l'
             startIcon='print'
             className='report-button__print'

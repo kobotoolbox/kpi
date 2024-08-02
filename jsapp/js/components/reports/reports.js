@@ -343,7 +343,7 @@ export default class Reports extends React.Component {
             type='custom-reports'
             triggerLabel={
               <Button
-                type='secondary'
+                type='primary'
                 size='m'
                 label={menuLabel}
                 endIcon='angle-down'

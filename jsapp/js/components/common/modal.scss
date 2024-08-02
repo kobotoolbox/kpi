@@ -492,7 +492,10 @@ $modal-custom-header-height: sizes.$x60;
   }
 
   .form-view__cell--translation-actions {
+    @include mixins.centerRowFlex;
+
     white-space: nowrap;
+    gap: 5px;
   }
 
   .form-view__label--default-language {

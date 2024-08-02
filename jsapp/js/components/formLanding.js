@@ -329,7 +329,7 @@ class FormLanding extends React.Component {
         {this.state.deployed_versions.count > 1 && (
           <bem.FormView__cell m={['centered']}>
             <Button
-              type='secondary'
+              type='text'
               size='m'
               startIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
               onClick={this.toggleDeploymentHistory.bind(this)}
@@ -339,7 +339,7 @@ class FormLanding extends React.Component {
             {this.state.historyExpanded &&
               this.state.DVCOUNT_LIMIT < dvcount && (
                 <Button
-                  type='secondary'
+                  type='text'
                   size='m'
                   onClick={this.loadMoreVersions.bind(this)}
                   label={t('Load more')}

@@ -133,7 +133,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
       </label>
 
       <Button
-        type='text'
+        type='secondary'
         size='s'
         startIcon='edit'
         onClick={openQuestionInEditor}

@@ -374,7 +374,7 @@ export class TranslationSettings extends React.Component {
 
                   <bem.FormView__cell m='translation-actions'>
                     <Button
-                      type='text'
+                      type='secondary'
                       size='m'
                       onClick={() => {this.toggleRenameLanguageForm(i);}}
                       isDisabled={
@@ -387,7 +387,7 @@ export class TranslationSettings extends React.Component {
                     />
 
                     <Button
-                      type='text'
+                      type='secondary'
                       size='m'
                       onClick={() => {
                         this.launchTranslationTableModal(

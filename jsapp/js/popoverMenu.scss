@@ -236,10 +236,6 @@
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {
-  .popover-menu--collectData-menu .popover-menu__toggle {
-    min-width: 300px;
-  }
-
   .popover-menu--collectData-menu .popover-menu__content {
     min-width: 550px;
     max-width: 780px;

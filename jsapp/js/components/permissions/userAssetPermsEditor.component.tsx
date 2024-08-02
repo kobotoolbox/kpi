@@ -641,6 +641,7 @@ export default class UserAssetPermsEditor extends React.Component<
             onClick={this.onSubmit.bind(this)}
             label={isNew ? t('Grant permissions') : t('Update permissions')}
             isDisabled={!this.isSubmitEnabled()}
+            isPending={this.state.isSubmitPending}
             isSubmit
           />
         </div>
