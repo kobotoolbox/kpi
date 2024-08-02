@@ -2,6 +2,7 @@
 @use 'scss/_variables';
 @use 'scss/libs/_mdl';
 @use 'scss/sizes';
+@use 'scss/mixins';
 
 $s-flexed-row-button-width: 100px;
 $s-flexed-row-select-width: 200px;
@@ -112,6 +113,11 @@ $s-gray-row-spacing: 10px;
         content: ' · ';
       }
     }
+  }
+
+  .user-row__perms-actions {
+    @include mixins.centerRowFlex;
+    gap: 5px;
   }
 
   .user-row__editor {

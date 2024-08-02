@@ -166,12 +166,12 @@ export default class UserPermissionRow extends React.Component<
           )}
 
           {!this.props.isUserOwner && !this.props.isPendingOwner && (
-            <React.Fragment>
+            <div className='user-row__perms-actions'>
               {this.renderPermissions(this.props.permissions)}
               {this.props.userCanEditPerms && (
                 <>
                   <Button
-                    type='text'
+                    type='secondary'
                     size='m'
                     startIcon={this.state.isEditFormVisible ? 'close' : 'edit'}
                     onClick={this.toggleEditForm.bind(this)}
@@ -185,7 +185,7 @@ export default class UserPermissionRow extends React.Component<
                   />
                 </>
               )}
-            </React.Fragment>
+            </div>
           )}
         </bem.UserRow__info>
 
