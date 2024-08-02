@@ -37,13 +37,13 @@ $button-border-radius: sizes.$x6;
   color: $textColor;
   background-color: $mainBgColor;
 
-  &:hover {
-    background-color: $hoverBgColor;
-  }
-
-  &:focus-visible:not([aria-disabled='true']) {
+  &:focus-visible {
     background-color: $focusBgColor;
     outline: 4px solid $focusOutlineColor !important;
+  }
+
+  &:hover {
+    background-color: $hoverBgColor;
   }
 
   &.k-button--pending {
@@ -150,13 +150,19 @@ $button-border-radius: sizes.$x6;
   justify-content: center;
 }
 
-.k-button[aria-disabled='true'] {
+.k-button[disabled] {
   pointer-events: none;
-  opacity: 0.5;
+
+  // When button is pending, we don't want to make it "grayed out"
+  &:not(.k-button--pending) {
+    opacity: 0.5;
+  }
 }
 
 // Note: this assumes a `spinner` icon is present inside the button (already
 // handled by `button.tsx` code).
+// Note 2: when button is in pending state, it is also `disabled` by the
+// attribute
 .k-button.k-button--pending {
   // Hide button text.
   color: transparent !important;
@@ -226,7 +232,7 @@ $button-border-radius: sizes.$x6;
   @include button-colors(
     colors.$kobo-dark-blue,
     transparent,
-    colors.$kobo-bg-blue,
+    colors.$kobo-light-blue,
     transparent,
     colors.$kobo-light-blue,
   );

@@ -60,8 +60,17 @@ export interface ButtonProps {
   tooltip?: string;
   /** Sets the alignment of the tooltip */
   tooltipPosition?: TooltipAlignment;
+  /**
+   * Disables the button. You don't need to use `isDisabled` if you already have
+   * `isPending`, but it doesn't hurt the component in any way to have them
+   * both, so go with what is less complicated in implementation.
+   */
   isDisabled?: boolean;
-  /** Changes the appearance to display spinner. */
+  /**
+   * Disables the button and changes the appearance: label/icon is visually
+   * hidden (still takes the same amount of space though!), and a spinner is
+   * being displayed in the center of the button.
+   */
   isPending?: boolean;
   /** Sets the button HTML type to "submit". */
   isSubmit?: boolean;
@@ -137,7 +146,11 @@ const Button = (props: ButtonProps) => {
         ['k-button--upper-case']: props.isUpperCase,
       })}
       type={props.isSubmit ? 'submit' : 'button'}
-      aria-disabled={props.isDisabled}
+      // The `disabled` attribute is needed so that the button is not keyboard
+      // focusable, and `aria-disabled` is needed for accessibility.
+      // We also disable it when in pending state, so that it can't be clicked.
+      disabled={props.isDisabled || props.isPending}
+      aria-disabled={props.isDisabled || props.isPending}
       onClick={handleClick}
       onKeyUp={onKeyUp}
       aria-labelledby={props.label ? `k-button__label--${labelId}` : undefined}
