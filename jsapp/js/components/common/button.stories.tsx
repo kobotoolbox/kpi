@@ -110,32 +110,44 @@ const demoButtons: Array<{label?: string, startIcon?: IconName}> = [
   }
 ];
 
+/**
+ * We want to display a grid of all possible buttons:
+ * - each type,
+ * - in all sizes,
+ * - with label x icon configurations,
+ * - and in idle, pending, and disabled states.
+ */
 export const AllButtons = () => (
-  <div style={{display: 'flex', flexDirection: 'column', gap: '20px', margin: '20px'}}>
+  <div style={{
+    display: 'grid',
+    gridTemplateColumns: 'repeat(9, auto)',
+    gridAutoFlow: 'row',
+    gridGap: '30px 15px',
+    justifyItems: 'start',
+    padding: '10px',
+  }}>
     {buttonTypes.map((buttonType) => (
       buttonSizes.map((buttonSize) => (
-        <div style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
-          {demoButtons.map((demoButton) => {
-            const buttonProps: ButtonProps = {
-              type: buttonType,
-              size: buttonSize,
-              onClick: () => alert('Clicked!'),
-            };
-            if (demoButton.label) {
-              buttonProps.label = demoButton.label;
-            }
-            if (demoButton.startIcon) {
-              buttonProps.startIcon = demoButton.startIcon;
-            }
-            return (
-              <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
-                <Button {...buttonProps}/>
-                <Button {...buttonProps} isPending/>
-                <Button {...buttonProps} isDisabled/>
-              </div>
-            );
-          })}
-        </div>
+        demoButtons.map((demoButton) => {
+          const buttonProps: ButtonProps = {
+            type: buttonType,
+            size: buttonSize,
+            onClick: () => alert('Clicked!'),
+          };
+          if (demoButton.label) {
+            buttonProps.label = demoButton.label;
+          }
+          if (demoButton.startIcon) {
+            buttonProps.startIcon = demoButton.startIcon;
+          }
+          return (
+            <>
+              <Button {...buttonProps}/>
+              <Button {...buttonProps} isPending/>
+              <Button {...buttonProps} isDisabled/>
+            </>
+          );
+        })
       ))
     ))}
   </div>
