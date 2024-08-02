@@ -150,8 +150,7 @@ class FormLanding extends React.Component {
         <bem.FormView__cell m='buttons'>
           {userCanEdit && this.state.deployment_status === 'deployed' && (
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isUpperCase
               onClick={this.deployAsset.bind(this)}
@@ -160,8 +159,7 @@ class FormLanding extends React.Component {
           )}
           {userCanEdit && this.state.deployment_status === 'draft' && (
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isUpperCase
               onClick={this.deployAsset.bind(this)}
@@ -170,8 +168,7 @@ class FormLanding extends React.Component {
           )}
           {userCanEdit && this.state.deployment_status === 'archived' && (
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isUpperCase
               onClick={this.callUnarchiveAsset.bind(this)}
@@ -315,8 +312,7 @@ class FormLanding extends React.Component {
                     </bem.FormView__label>
                     {isLoggedIn && (
                       <Button
-                        type='bare'
-                        color='dark-blue'
+                        type='text'
                         size='m'
                         onClick={() => {this.saveCloneAs(item.uid);}}
                         startIcon='duplicate'
@@ -333,8 +329,7 @@ class FormLanding extends React.Component {
         {this.state.deployed_versions.count > 1 && (
           <bem.FormView__cell m={['centered']}>
             <Button
-              type='frame'
-              color='blue'
+              type='secondary'
               size='m'
               startIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
               onClick={this.toggleDeploymentHistory.bind(this)}
@@ -344,8 +339,7 @@ class FormLanding extends React.Component {
             {this.state.historyExpanded &&
               this.state.DVCOUNT_LIMIT < dvcount && (
                 <Button
-                  type='frame'
-                  color='blue'
+                  type='secondary'
                   size='m'
                   onClick={this.loadMoreVersions.bind(this)}
                   label={t('Load more')}
@@ -386,9 +380,8 @@ class FormLanding extends React.Component {
                 type='collectData-menu'
                 triggerLabel={(
                   <Button
-                    color='blue'
                     size='m'
-                    type='full'
+                    type='primary'
                     label={COLLECTION_METHODS[chosenMethod].label}
                     endIcon='angle-down'
                     isFullWidth
@@ -490,8 +483,7 @@ class FormLanding extends React.Component {
     if (chosenMethod === COLLECTION_METHODS.android.id) {
       return (
         <Button
-          type='frame'
-          color='blue'
+          type='secondary'
           size='m'
           onClick={() => {
             window.open(COLLECTION_METHODS.android.url, '_blank');
@@ -525,8 +517,7 @@ class FormLanding extends React.Component {
           options={{format: 'text/plain'}}
         >
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             label={t('Copy')}
           />
@@ -544,16 +535,14 @@ class FormLanding extends React.Component {
           options={{format: 'text/plain'}}
         >
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             label={t('Copy')}
           />
         </CopyToClipboard>
 
         <Button
-          type='frame'
-          color='blue'
+          type='secondary'
           size='m'
           onClick={() => {
             window.open(chosenMethodLink, '_blank');
@@ -604,8 +593,7 @@ class FormLanding extends React.Component {
               to open it in new tab.
             */}
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='edit'
               data-cy='edit'
@@ -615,8 +603,7 @@ class FormLanding extends React.Component {
           </Link>
         ) : (
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='m'
             startIcon='edit'
             tooltip={t('Editing capabilities not granted, you can only view this form')}
@@ -626,8 +613,7 @@ class FormLanding extends React.Component {
         )}
 
         <Button
-          type='bare'
-          color='dark-blue'
+          type='text'
           size='m'
           startIcon='view'
           tooltip={t('Preview')}
@@ -637,8 +623,7 @@ class FormLanding extends React.Component {
 
         {userCanEdit && (
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='m'
             startIcon='replace'
             tooltip={t('Replace form')}
@@ -651,8 +636,7 @@ class FormLanding extends React.Component {
           type='formLanding-menu'
           triggerLabel={
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='more'
               tooltip={t('More actions')}
@@ -744,8 +728,7 @@ class FormLanding extends React.Component {
         {canEdit && (
           <bem.FormView__cell>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='language'
               tooltip={t('Manage translations')}

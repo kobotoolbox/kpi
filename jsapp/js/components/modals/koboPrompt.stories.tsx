@@ -26,7 +26,7 @@ Primary.args = {
   isOpen: true,
   buttons: [
     {
-      color: 'blue',
+      type: 'primary',
       label: 'ok, thanks',
       onClick: () => {},
     },

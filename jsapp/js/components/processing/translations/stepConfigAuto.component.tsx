@@ -68,8 +68,7 @@ export default function StepConfigAuto() {
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             label={t('cancel')}
             onClick={cancelAuto}
@@ -77,8 +76,7 @@ export default function StepConfigAuto() {
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='m'
             label={t('create translation')}
             onClick={requestAutoTranslation}

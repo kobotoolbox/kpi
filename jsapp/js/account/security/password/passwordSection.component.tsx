@@ -21,15 +21,11 @@ export default function PasswordSection() {
       <div className={styles.optionsSection}>
         <a href={PATHS.RESET}>{t('forgot password')}</a>
 
-        <NavLink
-          to={`${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}
-          className={styles.passwordLink}
-        >
+        <NavLink to={`${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}>
           <Button
             label='Update'
             size='m'
-            color='blue'
-            type='frame'
+            type='secondary'
             onClick={() => {
               /*TODO: Handle NavLink and Button*/
             }}

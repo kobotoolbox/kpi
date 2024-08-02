@@ -543,8 +543,7 @@ export default class UserAssetPermsEditor extends React.Component<
               </span>
 
               <Button
-                type='bare'
-                color='blue'
+                type='text'
                 size='m'
                 label={t('Reset changes')}
                 onClick={() => {
@@ -637,8 +636,7 @@ export default class UserAssetPermsEditor extends React.Component<
 
         <div className={styles.row}>
           <Button
-            color='blue'
-            type='full'
+            type='primary'
             size='l'
             onClick={this.onSubmit.bind(this)}
             label={isNew ? t('Grant permissions') : t('Update permissions')}

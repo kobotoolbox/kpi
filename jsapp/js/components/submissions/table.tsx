@@ -580,8 +580,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             Let's try to fix this one day by introducing better tooltips.
             */}
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='s'
               startIcon='view'
               tooltip={t('Open')}
@@ -598,8 +597,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 row.original
               ) && (
                 <Button
-                  type='bare'
-                  color='dark-blue'
+                  type='text'
                   size='s'
                   startIcon='edit'
                   tooltip={t('Edit')}
@@ -1524,8 +1522,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           <bem.FormView__item m='table-buttons'>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='expand'
               onClick={this.toggleFullscreen.bind(this)}
@@ -1534,8 +1531,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='settings'
               onClick={this.showTableColumnsOptionsModal.bind(this)}

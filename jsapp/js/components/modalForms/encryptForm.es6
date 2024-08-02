@@ -141,8 +141,7 @@ class EncryptForm extends React.Component {
         <bem.FormView__cell m='submit-button' className='encrypt-form-footer'>
           <span className='encrypt-form-footer-left'>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isDisabled={this.state.isPending}
               onClick={this.onSubmit.bind(this)}
@@ -151,8 +150,7 @@ class EncryptForm extends React.Component {
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               onClick={this.openEncryptionHelp.bind(this)}
               tooltip={t('Learn more about encrypting forms')}
@@ -161,8 +159,7 @@ class EncryptForm extends React.Component {
           </span>
 
           <Button
-            type='full'
-            color='red'
+            type='danger'
             size='l'
             isDisabled={this.state.isPending}
             onClick={this.onRemove.bind(this)}

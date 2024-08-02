@@ -43,7 +43,7 @@ import {
 import {userCan} from 'js/components/permissions/utils';
 import {Link} from 'react-router-dom';
 import Button from 'js/components/common/button';
-import type {ButtonColor} from 'js/components/common/button';
+import type {ButtonType} from 'js/components/common/button';
 import type {IconName} from 'jsapp/fonts/k-icons';
 
 interface AssetActionButtonsProps extends WithRouterProps {
@@ -256,8 +256,7 @@ class AssetActionButtons extends React.Component<
 
     return (
       <Button
-        type='bare'
-        color='dark-blue'
+        type='text'
         size='m'
         tooltip={t('More actions')}
         tooltipPosition='right'
@@ -413,13 +412,13 @@ class AssetActionButtons extends React.Component<
       isPublic &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     ) {
-      let color: ButtonColor = 'dark-blue';
+      let type: ButtonType = 'secondary';
       let callbackFunction = this.subscribeToCollection.bind(this);
       let icon: IconName = 'subscribe';
       let label = t('Subscribe');
 
       if (isUserSubscribed) {
-        color = 'red';
+        type = 'secondary-danger';
         callbackFunction = this.unsubscribeFromCollection.bind(this);
         icon = 'close';
         label = t('Unsubscribe');
@@ -427,8 +426,7 @@ class AssetActionButtons extends React.Component<
 
       return (
         <Button
-          type='frame'
-          color={color}
+          type={type}
           size='m'
           onClick={callbackFunction}
           startIcon={icon}
@@ -465,8 +463,7 @@ class AssetActionButtons extends React.Component<
         {userCanEdit && assetType !== ASSET_TYPES.collection.id && (
           <Link to={this.getFormBuilderLink()}>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               tooltip={t('Edit in Form Builder')}
               tooltipPosition='right'
@@ -477,8 +474,7 @@ class AssetActionButtons extends React.Component<
 
         {userCanEdit && hasDetailsEditable && (
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='m'
             onClick={this.modifyDetails.bind(this)}
             tooltip={t('Modify details')}
@@ -489,8 +485,7 @@ class AssetActionButtons extends React.Component<
 
         {userCanEdit && (
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='m'
             onClick={this.showTagsModal.bind(this)}
             tooltip={t('Edit Tags')}
@@ -501,8 +496,7 @@ class AssetActionButtons extends React.Component<
 
         {userCanEdit && (
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='m'
             onClick={this.share.bind(this)}
             tooltip={t('Share')}
@@ -513,8 +507,7 @@ class AssetActionButtons extends React.Component<
 
         {assetType !== ASSET_TYPES.collection.id && (
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='m'
             onClick={this.clone.bind(this)}
             tooltip={t('Clone')}
@@ -525,8 +518,7 @@ class AssetActionButtons extends React.Component<
 
         {assetType === ASSET_TYPES.template.id && (
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='m'
             onClick={this.cloneAsSurvey.bind(this)}
             tooltip={t('Create project')}
@@ -539,8 +531,7 @@ class AssetActionButtons extends React.Component<
           this.props.asset.parent !== null &&
           !this.props.asset.parent.includes(routeAssetUid) && (
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               onClick={this.viewContainingCollection.bind(this)}
               tooltip={t('View containing Collection')}

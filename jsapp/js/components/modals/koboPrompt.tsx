@@ -1,6 +1,6 @@
 import React from 'react';
 import type {IconName} from 'jsapp/fonts/k-icons';
-import type {ButtonType, ButtonColor} from 'jsapp/js/components/common/button';
+import type {ButtonType} from 'jsapp/js/components/common/button';
 import Button from 'jsapp/js/components/common/button';
 import KoboModal from './koboModal';
 import KoboModalHeader from './koboModalHeader';
@@ -9,15 +9,13 @@ import KoboModalFooter from './koboModalFooter';
 
 interface KoboPromptButton {
   type?: ButtonType;
-  color?: ButtonColor;
   label: string;
   onClick: () => void;
   isDisabled?: boolean;
   isPending?: boolean;
 }
 
-const defaultButtonType = 'full';
-const defaultButtonColor = 'blue';
+const defaultButtonType = 'primary';
 
 interface KoboPromptProps {
   /** For displaying the prompt. */
@@ -63,7 +61,6 @@ export default function KoboPrompt(props: KoboPromptProps) {
           <Button
             key={index}
             type={promptButton.type || defaultButtonType}
-            color={promptButton.color || defaultButtonColor}
             size='m'
             label={promptButton.label}
             onClick={promptButton.onClick}

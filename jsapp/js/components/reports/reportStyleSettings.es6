@@ -185,8 +185,7 @@ export default class ReportStyleSettings extends React.Component {
           </div>
           <Modal.Footer>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               onClick={this.saveReportStyles.bind(this)}
               label={t('Save')}

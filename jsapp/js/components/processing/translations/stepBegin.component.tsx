@@ -17,8 +17,7 @@ export default function Foo() {
       </header>
 
       <Button
-        type='full'
-        color='blue'
+        type='primary'
         size='l'
         label={t('begin')}
         onClick={begin}

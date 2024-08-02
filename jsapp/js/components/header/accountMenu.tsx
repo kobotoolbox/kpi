@@ -106,8 +106,7 @@ export default function AccountMenu() {
             {!isAnyRouteBlockerActive() && (
               <bem.AccountBox__menuItem m={'settings'}>
                 <Button
-                  type='full'
-                  color='blue'
+                  type='primary'
                   size='l'
                   isFullWidth
                   onClick={openAccountSettings}

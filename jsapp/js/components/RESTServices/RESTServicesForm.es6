@@ -362,8 +362,7 @@ export default class RESTServicesForm extends React.Component {
               />
 
               <Button
-                type='bare'
-                color='red'
+                type='secondary-danger'
                 size='m'
                 className='http-header-row-remove'
                 data-index={n}
@@ -375,8 +374,7 @@ export default class RESTServicesForm extends React.Component {
         })}
 
         <Button
-          type='frame'
-          color='dark-blue'
+          type='secondary'
           size='s'
           startIcon='plus'
           onClick={this.addNewCustomHeaderRow.bind(this)}
@@ -526,8 +524,7 @@ export default class RESTServicesForm extends React.Component {
 
           <bem.Modal__footer>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               onClick={this.onSubmit.bind(this)}
               isDisabled={this.state.isSubmitPending}

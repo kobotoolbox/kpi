@@ -107,8 +107,7 @@ export default class RESTServicesList extends React.Component {
   renderModalButton() {
     return (
       <Button
-        type='full'
-        color='blue'
+        type='primary'
         size='l'
         onClick={this.openNewRESTServiceModal}
         label={t('Register a New Service')}
@@ -182,8 +181,7 @@ export default class RESTServicesList extends React.Component {
 
                   <bem.ServiceRow__column m='actions'>
                     <Button
-                      type='bare'
-                      color='dark-blue'
+                      type='secondary'
                       size='m'
                       onClick={() => this.editHook(hook.uid)}
                       tooltip={t('Edit')}
@@ -192,8 +190,7 @@ export default class RESTServicesList extends React.Component {
                     />
 
                     <Button
-                      type='bare'
-                      color='red'
+                      type='secondary-danger'
                       size='m'
                       onClick={() => this.deleteHookSafe(hook.uid, hook.name)}
                       tooltip={t('Delete')}

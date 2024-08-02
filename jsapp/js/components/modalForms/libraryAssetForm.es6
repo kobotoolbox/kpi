@@ -277,8 +277,7 @@ export class LibraryAssetFormComponent extends React.Component {
           {renderBackButton(this.state.isPending)}
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             onClick={this.onSubmit.bind(this)}
             isDisabled={!this.isSubmitEnabled()}

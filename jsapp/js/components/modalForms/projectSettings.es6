@@ -777,8 +777,7 @@ class ProjectSettings extends React.Component {
           {this.renderBackButton()}
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             onClick={this.applyTemplate.bind(this)}
             isDisabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
@@ -850,8 +849,7 @@ class ProjectSettings extends React.Component {
           {this.renderBackButton()}
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             isSubmit
             onClick={this.importFromURL.bind(this)}
@@ -888,8 +886,7 @@ class ProjectSettings extends React.Component {
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.Modal__footer>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isSubmit
               onClick={this.handleSubmit.bind(this)}
@@ -1004,8 +1001,7 @@ class ProjectSettings extends React.Component {
               }
 
               <Button
-                type='full'
-                color='blue'
+                type='primary'
                 size='l'
                 isSubmit
                 onClick={this.handleSubmit.bind(this)}
@@ -1026,8 +1022,7 @@ class ProjectSettings extends React.Component {
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
                   <Button
-                    type='frame'
-                    color='dark-blue'
+                    type='secondary'
                     size='l'
                     label={t('Unarchive Project')}
                     onClick={this.unarchiveProject}
@@ -1036,8 +1031,7 @@ class ProjectSettings extends React.Component {
 
                 {this.isArchivable() &&
                   <Button
-                    type='frame'
-                    color='dark-blue'
+                    type='secondary'
                     size='l'
                     label={t('Archive Project')}
                     onClick={this.archiveProject}
@@ -1062,8 +1056,7 @@ class ProjectSettings extends React.Component {
           {isSelfOwned && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <Button
-                type='full'
-                color='red'
+                type='danger'
                 size='l'
                 label={t('Delete Project and Data')}
                 onClick={this.deleteProject}
@@ -1085,8 +1078,7 @@ class ProjectSettings extends React.Component {
       );
       return (
         <Button
-          type='frame'
-          color='dark-blue'
+          type='secondary'
           size='l'
           onClick={this.displayPreviousStep.bind(this)}
           isDisabled={isBackButtonDisabled}

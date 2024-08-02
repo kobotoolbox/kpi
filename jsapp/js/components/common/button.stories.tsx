@@ -1,17 +1,11 @@
 import React from 'react';
 import type {ComponentStory, ComponentMeta} from '@storybook/react';
 import Button from './button';
-import type {ButtonType, ButtonColor, ButtonSize} from './button';
+import type {ButtonType, ButtonSize} from './button';
 import type {TooltipAlignment} from './tooltip';
 import {IconNames} from 'jsapp/fonts/k-icons';
 
-const buttonTypes: ButtonType[] = ['bare', 'frame', 'full'];
-
-const buttonColors: ButtonColor[] = [
-  'blue',
-  'red',
-  'dark-blue',
-];
+const buttonTypes: ButtonType[] = ['primary', 'secondary', 'danger', 'secondary-danger', 'text'];
 
 const buttonSizes: ButtonSize[] = ['s', 'm', 'l'];
 
@@ -24,11 +18,6 @@ export default {
     type: {
       description: 'Type of button',
       options: buttonTypes,
-      control: 'select',
-    },
-    color: {
-      description: 'Color of button',
-      options: buttonColors,
       control: 'select',
     },
     size: {
@@ -71,8 +60,7 @@ const Template: ComponentStory<typeof Button> = (args) => <Button {...args} />;
 
 export const Primary = Template.bind({});
 Primary.args = {
-  type: 'full',
-  color: 'blue',
+  type: 'primary',
   size: 'l',
   label: 'click me',
 };

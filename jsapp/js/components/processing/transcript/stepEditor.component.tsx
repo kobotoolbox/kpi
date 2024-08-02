@@ -41,8 +41,7 @@ export default function StepEditor() {
 
         <nav className={bodyStyles.transxHeaderButtons}>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='s'
             label={discardLabel}
             onClick={discardDraft}
@@ -53,8 +52,7 @@ export default function StepEditor() {
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='s'
             label={t('Save')}
             onClick={saveDraft}

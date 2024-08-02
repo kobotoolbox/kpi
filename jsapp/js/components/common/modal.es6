@@ -66,8 +66,7 @@ export default class Modal extends React.Component {
     if (this.props.isDuplicated) {
       return(
         <Button
-          type='bare'
-          color='blue'
+          type='text'
           size='l'
           label={t('DONE')}
           onClick={this.props.onClose}

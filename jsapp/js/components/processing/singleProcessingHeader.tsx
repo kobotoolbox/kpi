@@ -325,18 +325,16 @@ class SingleProcessingHeader extends React.Component<
             </div>
 
             <Button
-              type='bare'
+              type='text'
               size='s'
-              color='dark-blue'
               startIcon='arrow-up'
               onClick={this.goPrev.bind(this)}
               isDisabled={this.getPrevSubmissionEditId() === null}
             />
 
             <Button
-              type='bare'
+              type='text'
               size='s'
-              color='dark-blue'
               endIcon='arrow-down'
               onClick={this.goNext.bind(this)}
               isDisabled={this.getNextSubmissionEditId() === null}
@@ -346,9 +344,8 @@ class SingleProcessingHeader extends React.Component<
 
         <section className={styles.column}>
           <Button
-            type='full'
+            type='primary'
             size='l'
-            color='blue'
             label={t('DONE')}
             isPending={this.state?.isDoneButtonPending}
             onClick={this.onDone.bind(this)}

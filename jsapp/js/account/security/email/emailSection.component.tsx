@@ -130,8 +130,7 @@ export default function EmailSection() {
                 <Button
                   label='Resend'
                   size='m'
-                  color='blue'
-                  type='frame'
+                  type='secondary'
                   onClick={resendNewUserEmail.bind(
                     resendNewUserEmail,
                     unverifiedEmail.email
@@ -140,8 +139,7 @@ export default function EmailSection() {
                 <Button
                   label='Remove'
                   size='m'
-                  color='red'
-                  type='frame'
+                  type='secondary-danger'
                   onClick={deleteNewUserEmail}
                 />
               </div>
@@ -176,8 +174,7 @@ export default function EmailSection() {
         <Button
           label='Change'
           size='m'
-          color='blue'
-          type='frame'
+          type='secondary'
           onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
           // quick simple subtle email validation to avoid complete accidents
           // a toast showing any API error feedback would be nicer

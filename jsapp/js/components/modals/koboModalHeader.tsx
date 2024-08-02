@@ -36,8 +36,7 @@ export default function KoboModalHeader(props: KoboModalHeaderProps) {
 
       {props.onRequestCloseByX && (
         <Button
-          type='bare'
-          color='dark-blue'
+          type='text'
           size='s'
           startIcon='close'
           onClick={props.onRequestCloseByX}

@@ -23,28 +23,6 @@ import cx from 'classnames';
  */
 export type ButtonType = 'primary' | 'secondary' | 'danger' | 'secondary-danger' | 'text';
 
-/* TEMP
-migration guide
-
-to primary:
-- full blue
-
-to secondary:
-- frame dark-blue
-- frame blue
-
-to danger:
-- full red
-
-to secondary-danger:
-- frame red
-- bare red
-
-to text:
-- bare dark-blue
-- bare blue
-ENDTEMP */
-
 /**
  * The size is the height of the button, but it also influences the paddings.
  * Check out `button.scss` file for exact pixel values.

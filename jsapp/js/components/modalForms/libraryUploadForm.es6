@@ -132,8 +132,7 @@ const LibraryUploadForm = observer(class LibraryUploadForm extends React.Compone
           {renderBackButton(this.state.isPending)}
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             isSubmit
             onClick={this.onSubmit.bind(this)}

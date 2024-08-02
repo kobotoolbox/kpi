@@ -69,8 +69,7 @@ const FormSidebar = observer(
       return (
         <>
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             isFullWidth
             isUpperCase

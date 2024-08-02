@@ -155,8 +155,7 @@ export default class AssetInfoBox extends React.Component<
 
         <bem.AssetInfoBox__column m='toggle'>
           <Button
-            type='bare'
-            color='blue'
+            type='text'
             size='s'
             onClick={this.toggleDetails.bind(this)}
             startIcon={this.state.areDetailsVisible ? 'angle-up' : 'angle-down'}

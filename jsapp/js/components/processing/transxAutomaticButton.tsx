@@ -115,8 +115,7 @@ export default class TransxAutomaticButton extends React.Component<
     } else {
       return (
         <Button
-          type='full'
-          color='blue'
+          type='primary'
           size='m'
           label={t('automatic')}
           onClick={this.props.onClick}

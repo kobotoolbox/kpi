@@ -119,8 +119,7 @@ class TableSettings extends React.Component {
         <bem.Modal__footer>
           {userCan('change_asset', this.props.asset) &&
             <Button
-              type='frame'
-              color='red'
+              type='secondary-danger'
               size='l'
               onClick={this.onReset.bind(this)}
               label={t('Reset')}
@@ -128,8 +127,7 @@ class TableSettings extends React.Component {
           }
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             onClick={this.onSave.bind(this)}
             label={t('Save')}

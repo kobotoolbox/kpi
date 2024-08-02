@@ -363,8 +363,7 @@ class MapSettings extends React.Component {
                     accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
                     <Button
-                      type='full'
-                      color='blue'
+                      type='primary'
                       size='l'
                       label={t('Upload')}
                       isFullWidth
@@ -413,8 +412,7 @@ class MapSettings extends React.Component {
           <bem.Modal__footer>
             {userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
               <Button
-                type='frame'
-                color='red'
+                type='danger'
                 size='l'
                 onClick={this.resetMapSettings.bind(this)}
                 label={t('Reset')}
@@ -422,8 +420,7 @@ class MapSettings extends React.Component {
             }
 
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               onClick={this.onSave.bind(this)}
               label={t('Save')}

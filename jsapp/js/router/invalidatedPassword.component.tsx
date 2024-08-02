@@ -35,9 +35,8 @@ export default function InvalidatedPassword() {
           {!isFormVisible && (
             <Button
               size='l'
-              color='blue'
               label={t('Update password')}
-              type='full'
+              type='primary'
               onClick={() => setIsFormVisible(!isFormVisible)}
             />
           )}

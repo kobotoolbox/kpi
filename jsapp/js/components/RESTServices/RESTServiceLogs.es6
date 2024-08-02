@@ -204,8 +204,7 @@ export default class RESTServiceLogs extends React.Component {
     return (
       <header className='rest-services-list__header'>
         <Button
-          type='frame'
-          color='dark-blue'
+          type='secondary'
           size='m'
           onClick={() => {
             window.location.assign(`/#/forms/${this.state.assetUid}/settings/rest`);
@@ -228,8 +227,7 @@ export default class RESTServiceLogs extends React.Component {
 
     return (
       <Button
-        type='frame'
-        color='blue'
+        type='secondary'
         size='l'
         isPending={this.state.isLoadingLogs}
         onClick={this.loadMore.bind(this)}
@@ -267,8 +265,7 @@ export default class RESTServiceLogs extends React.Component {
                 {t('Status')}
                 { this.hasAnyFailedLogs() &&
                   <Button
-                    type='bare'
-                    color='dark-blue'
+                    type='text'
                     size='m'
                     onClick={this.retryAll.bind(this)}
                     tooltip={t('Retry all submissions')}
@@ -318,8 +315,7 @@ export default class RESTServiceLogs extends React.Component {
 
                     {log.status === HOOK_LOG_STATUSES.FAILED &&
                       <Button
-                        type='bare'
-                        color='dark-blue'
+                        type='text'
                         size='m'
                         isDisabled={!this.state.isHookActive}
                         onClick={this.retryLog.bind(this, log)}
@@ -330,8 +326,7 @@ export default class RESTServiceLogs extends React.Component {
 
                     {this.hasInfoToDisplay(log) &&
                       <Button
-                        type='bare'
-                        color='dark-blue'
+                        type='text'
                         size='m'
                         onClick={this.showLogInfo.bind(this, log)}
                         tooltip={t('More info')}

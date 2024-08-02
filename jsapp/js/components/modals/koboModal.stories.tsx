@@ -52,16 +52,14 @@ const Template: ComponentStory<typeof KoboModal> = (args: any) => (
 
     <KoboModalFooter>
       <Button
-        type='full'
-        color='blue'
+        type='primary'
         size='m'
         onClick={() => {}}
         label={'click to close modal from inside'}
       />
 
       <Button
-        type='full'
-        color='red'
+        type='danger'
         size='m'
         onClick={() => {}}
         label={'some action that needs confirmation'}
@@ -76,12 +74,12 @@ const Template: ComponentStory<typeof KoboModal> = (args: any) => (
       titleIconColor='mid-red'
       buttons={[
         {
-          color: 'dark-blue',
+          type: 'secondary',
           label: 'cancel',
           onClick: () => {},
         },
         {
-          color: 'red',
+          type: 'danger',
           label: 'confirm',
           onClick: () => {},
         },

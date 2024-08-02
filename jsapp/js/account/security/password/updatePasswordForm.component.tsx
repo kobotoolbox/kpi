@@ -173,8 +173,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
 
       <div className={styles.row}>
         <Button
-          type='full'
-          color='blue'
+          type='primary'
           size='l'
           label={t('Save Password')}
           isSubmit
