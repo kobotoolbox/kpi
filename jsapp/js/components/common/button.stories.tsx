@@ -1,9 +1,10 @@
 import React from 'react';
 import type {ComponentStory, ComponentMeta} from '@storybook/react';
 import Button from './button';
-import type {ButtonType, ButtonSize} from './button';
+import type {ButtonType, ButtonSize, ButtonProps} from './button';
 import type {TooltipAlignment} from './tooltip';
 import {IconNames} from 'jsapp/fonts/k-icons';
+import type {IconName} from 'jsapp/fonts/k-icons';
 
 const buttonTypes: ButtonType[] = ['primary', 'secondary', 'danger', 'secondary-danger', 'text'];
 
@@ -62,5 +63,80 @@ export const Primary = Template.bind({});
 Primary.args = {
   type: 'primary',
   size: 'l',
-  label: 'click me',
+  label: 'Click me',
 };
+
+export const Secondary = Template.bind({});
+Secondary.args = {
+  type: 'secondary',
+  size: 'l',
+  label: 'Click me',
+};
+
+
+export const Danger = Template.bind({});
+Danger.args = {
+  type: 'danger',
+  size: 'l',
+  label: 'Click me',
+};
+
+export const SecondaryDanger = Template.bind({});
+SecondaryDanger.args = {
+  type: 'secondary-danger',
+  size: 'l',
+  label: 'Click me',
+};
+
+export const Text = Template.bind({});
+Text.args = {
+  type: 'text',
+  size: 'l',
+  label: 'Click me',
+};
+
+const demoButtons: Array<{label?: string, startIcon?: IconName}> = [
+  {
+    label: 'Click me',
+    startIcon: undefined,
+  },
+  {
+    label: 'Click me',
+    startIcon: 'document',
+  },
+  {
+    label: undefined,
+    startIcon: 'document',
+  }
+];
+
+export const AllButtons = () => (
+  <div style={{display: 'flex', flexDirection: 'column', gap: '20px', margin: '20px'}}>
+    {buttonTypes.map((buttonType) => (
+      buttonSizes.map((buttonSize) => (
+        <div style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
+          {demoButtons.map((demoButton) => {
+            const buttonProps: ButtonProps = {
+              type: buttonType,
+              size: buttonSize,
+              onClick: () => alert('Clicked!'),
+            };
+            if (demoButton.label) {
+              buttonProps.label = demoButton.label;
+            }
+            if (demoButton.startIcon) {
+              buttonProps.startIcon = demoButton.startIcon;
+            }
+            return (
+              <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+                <Button {...buttonProps}/>
+                <Button {...buttonProps} isPending/>
+                <Button {...buttonProps} isDisabled/>
+              </div>
+            );
+          })}
+        </div>
+      ))
+    ))}
+  </div>
+);
