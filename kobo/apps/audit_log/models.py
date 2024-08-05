@@ -14,7 +14,6 @@ class AuditAction(models.TextChoices):
     PUT_BACK = 'put-back', 'PUT BACK'
     REMOVE = 'remove', 'REMOVE'
     UPDATE = 'update', 'UPDATE'
-    AUTH = 'auth', 'AUTH'
 
 
 class AuditLog(models.Model):
