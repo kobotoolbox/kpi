@@ -2,9 +2,9 @@ from django.test import TestCase, override_settings
 
 
 class ServiceHealthMinimalTestCase(TestCase):
-    url = "/service_health/minimal/"
+    url = '/service_health/minimal/'
 
-    @override_settings(ALLOWED_HOSTS=["nope"])
+    @override_settings(ALLOWED_HOSTS=['nope'])
     def test_service_health_minimal(self):
         """
         Test for endpoint which makes no connections to databases or other external
