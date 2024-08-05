@@ -132,7 +132,7 @@ export const AllButtons = () => (
           const buttonProps: ButtonProps = {
             type: buttonType,
             size: buttonSize,
-            onClick: () => alert('Clicked!'),
+            onClick: () => console.info('Clicked!', buttonType, buttonSize, demoButton.label, demoButton.startIcon),
           };
           if (demoButton.label) {
             buttonProps.label = demoButton.label;

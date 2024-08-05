@@ -31,15 +31,14 @@ $button-border-radius: sizes.$x6;
   $textColor,
   $mainBgColor,
   $hoverBgColor,
-  $focusBgColor,
-  $focusOutlineColor
 ) {
   color: $textColor;
   background-color: $mainBgColor;
 
+  // We use similar styles for focus as for hover
   &:focus-visible {
-    background-color: $focusBgColor;
-    outline: 4px solid $focusOutlineColor !important;
+    background-color: $hoverBgColor;
+    transform: translateY(sizes.$x1);
   }
 
   &:hover {
@@ -93,7 +92,7 @@ $button-border-radius: sizes.$x6;
     padding-right: $height * 0.3;
   }
 
-  // Position the spinner icon in the center;
+  // Position the spinner icon in the center.
   &.k-button--pending.k-button--has-label .k-icon.k-icon-spinner {
     top: calc(50% - #{$icon * 0.5});
     left: calc(50% - #{$icon * 0.5});
@@ -102,6 +101,13 @@ $button-border-radius: sizes.$x6;
   &.k-button--pending:not(.k-button--has-label) .k-icon.k-icon-spinner {
     top: calc(50% - #{$iconAlone * 0.5});
     left: calc(50% - #{$iconAlone * 0.5});
+  }
+
+  &.k-button--type-text {
+    // We need the text button to align better with other UI elements, so we
+    // want to avoid the transparent space on both sides.
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -190,52 +196,55 @@ $button-border-radius: sizes.$x6;
 
 .k-button.k-button--type-primary {
   @include button-colors(
-    colors.$kobo-white,
-    colors.$kobo-blue,
-    colors.$kobo-hover-blue,
-    colors.$kobo-hover-blue,
-    colors.$kobo-light-blue,
+    $textColor: colors.$kobo-white,
+    $mainBgColor: colors.$kobo-blue,
+    $hoverBgColor: colors.$kobo-hover-blue,
   );
 }
 
 .k-button.k-button--type-secondary {
   @include button-colors(
-    colors.$kobo-dark-blue,
-    colors.$kobo-bg-blue,
-    colors.$kobo-light-blue,
-    colors.$kobo-bg-blue,
-    colors.$kobo-light-blue,
+    $textColor: colors.$kobo-dark-blue,
+    $mainBgColor: colors.$kobo-bg-blue,
+    $hoverBgColor: colors.$kobo-light-blue,
   );
 }
 
 .k-button.k-button--type-danger {
   @include button-colors(
-    colors.$kobo-white,
-    colors.$kobo-red,
-    colors.$kobo-dark-red,
-    colors.$kobo-red,
-    colors.$kobo-hover-red,
+    $textColor: colors.$kobo-white,
+    $mainBgColor: colors.$kobo-red,
+    $hoverBgColor: colors.$kobo-dark-red,
   );
 }
 
 .k-button.k-button--type-secondary-danger {
   @include button-colors(
-    colors.$kobo-dark-red,
-    colors.$kobo-light-red,
-    colors.$kobo-hover-red,
-    colors.$kobo-light-red,
-    colors.$kobo-hover-red,
+    $textColor: colors.$kobo-dark-red,
+    $mainBgColor: colors.$kobo-light-red,
+    $hoverBgColor: colors.$kobo-hover-red,
   );
 }
 
+// We don't use `button-colors` mixin here, as they are too many differences
 .k-button.k-button--type-text {
-  @include button-colors(
-    colors.$kobo-dark-blue,
-    transparent,
-    colors.$kobo-light-blue,
-    transparent,
-    colors.$kobo-light-blue,
-  );
+  // $textColor
+  color: colors.$kobo-dark-blue;
+
+  &:focus-visible {
+    color: colors.$kobo-hover-blue;
+    transform: translateY(sizes.$x1);
+  }
+
+  &:hover {
+    color: colors.$kobo-hover-blue;
+  }
+
+  &.k-button--pending {
+    .k-icon.k-icon-spinner {
+      color: colors.$kobo-dark-blue;
+    }
+  }
 }
 
 // button sizes ↓
