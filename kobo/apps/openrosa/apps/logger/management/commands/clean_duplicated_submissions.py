@@ -1,28 +1,24 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4 fileencoding=utf-8
 # coding: utf-8
-from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
-from django.db.models import Sum
-from django.db.models.aggregates import Count
-from django.utils import timezone
+from collections import defaultdict
 
+from django.conf import settings
+from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.db.models import F
+from django.db.models.aggregates import Count
+
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, MonthlyXFormSubmissionCounter
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
-from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.libs.utils.common_tags import MONGO_STRFTIME
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_meta
 
 
 class Command(BaseCommand):
 
     help = "Deletes duplicated submissions (i.e same `uuid` and same `xml`)"
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.__vaccuum = False
-        self.__users = set([])
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
@@ -39,11 +35,20 @@ class Command(BaseCommand):
             help="Specify a XForm's `id_string` to clean up only this form",
         )
 
+        parser.add_argument(
+            '--delete-unique-uuids',
+            action='store_true',
+            default=False,
+            help="Delete duplicates with identical uuid",
+        )
+
     def handle(self, *args, **options):
         username = options['user']
         xform_id_string = options['xform']
+        self._delete_unique_uuids = options['delete_unique_uuids']
+        self._verbosity = options['verbosity']
 
-        # Retrieve all instances with the same `uuid`.
+        # Retrieve all instances with the same `xml_hash`.
         query = Instance.objects
         if xform_id_string:
             query = query.filter(xform__id_string=xform_id_string)
@@ -51,87 +56,137 @@ class Command(BaseCommand):
         if username:
             query = query.filter(xform__user__username=username)
 
-        query = query.values_list('uuid', flat=True)\
-            .annotate(count_uuid=Count('uuid'))\
-            .filter(count_uuid__gt=1)\
+        query = (
+            query.values_list('xml_hash', flat=True)
+            .annotate(count_xml_hash=Count('xml_hash'))
+            .filter(count_xml_hash__gt=1)
             .distinct()
+        )
 
-        for uuid in query.all():
+        for xml_hash in query.iterator():
 
-            duplicated_query = Instance.objects.filter(uuid=uuid)
+            duplicates_queryset = Instance.objects.filter(xml_hash=xml_hash)
 
-            instances_with_same_uuid = duplicated_query.values_list('id',
-                                                                    'xml_hash')\
-                .order_by('xml_hash', 'date_created')
-            xml_hash_ref = None
-            instance_id_ref = None
+            instances_with_same_xml_hash = duplicates_queryset.values(
+                'id', 'uuid', 'xform_id'
+            ).order_by('xform_id', 'uuid', 'date_created')
 
-            duplicated_instance_ids = []
-            for instance_with_same_uuid in instances_with_same_uuid:
-                instance_id = instance_with_same_uuid[0]
-                instance_xml_hash = instance_with_same_uuid[1]
+            duplicates_by_xform = self._get_duplicates_by_xform(
+                instances_with_same_xml_hash
+            )
 
-                if instance_xml_hash != xml_hash_ref:
-                    self.__clean_up(instance_id_ref,
-                                    duplicated_instance_ids)
-                    xml_hash_ref = instance_xml_hash
-                    instance_id_ref = instance_id
-                    duplicated_instance_ids = []
-                    continue
+            for (
+                xform_id,
+                instances_with_same_xml_hash,
+            ) in duplicates_by_xform.items():
+                instance_ref = instances_with_same_xml_hash.pop(0)
+                self._clean_up(instance_ref, instances_with_same_xml_hash)
 
-                duplicated_instance_ids.append(instance_id)
+    def _clean_up(self, instance_ref, duplicated_instances):
 
-            self.__clean_up(instance_id_ref,
-                            duplicated_instance_ids)
+        if duplicated_instances:
 
-        if not self.__vaccuum:
-            self.stdout.write('No instances have been purged.')
-        else:
-            # Update number of submissions for each user.
-            for user_ in list(self.__users):
-                result = XForm.objects.filter(user_id=user_.id)\
-                    .aggregate(count=Sum('num_of_submissions'))
-                user_.profile.num_of_submissions = result['count']
+            if self._replace_duplicates(duplicated_instances):
+                return
+
+            self._delete_duplicates(instance_ref, duplicated_instances)
+
+    def _delete_duplicates(
+        self, instance_ref: dict, duplicated_instances: list[dict]
+    ):
+
+        duplicated_instance_ids = [i['id'] for i in duplicated_instances]
+
+        if self._verbosity >= 1:
+            self.stdout.write(
+                f"Deleting instance #{instance_ref['id']} duplicates…"
+            )
+
+        with transaction.atomic():
+            # Update attachments
+            Attachment.objects.select_for_update().filter(
+                instance_id__in=duplicated_instance_ids
+            ).update(instance_id=instance_ref['id'])
+            if self._verbosity >= 2:
                 self.stdout.write(
-                    "\tUpdating `{}`'s number of submissions".format(
-                        user_.username))
-                user_.profile.save(update_fields=['num_of_submissions'])
-                self.stdout.write(
-                    '\t\tDone! New number: {}'.format(result['count']))
-
-    def __clean_up(self, instance_id_ref, duplicated_instance_ids):
-        if instance_id_ref is not None and len(duplicated_instance_ids) > 0:
-            self.__vaccuum = True
-            with transaction.atomic():
-                self.stdout.write('Link attachments to instance #{}'.format(
-                    instance_id_ref))
-                # Update attachments
-                Attachment.objects.select_for_update()\
-                    .filter(instance_id__in=duplicated_instance_ids)\
-                    .update(instance_id=instance_id_ref)
-
-                # Update Mongo
-                main_instance = Instance.objects.select_for_update()\
-                    .get(id=instance_id_ref)
-                main_instance.parsed_instance.save()
-
-                self.stdout.write('\tPurging instances: {}'.format(
-                    duplicated_instance_ids))
-                Instance.objects.select_for_update()\
-                    .filter(id__in=duplicated_instance_ids).delete()
-                ParsedInstance.objects.select_for_update()\
-                    .filter(instance_id__in=duplicated_instance_ids).delete()
-                settings.MONGO_DB.instances.remove(
-                    {'_id': {'$in': duplicated_instance_ids}}
+                    f"\tLinked attachments to instance #{instance_ref['id']}"
                 )
-                # Update number of submissions
-                xform = main_instance.xform
-                self.stdout.write(
-                    '\tUpdating number of submissions of XForm #{} ({})'.format(
-                        xform.id, xform.id_string))
-                xform_submission_count = xform.submission_count(force_update=True)
-                self.stdout.write(
-                    '\t\tDone! New number: {}'.format(xform_submission_count))
-                self.stdout.write('')
 
-                self.__users.add(xform.user)
+            # Update Mongo
+            main_instance = Instance.objects.get(
+                id=instance_ref['id']
+            )
+            main_instance.parsed_instance.save()
+
+            ParsedInstance.objects.filter(
+                instance_id__in=duplicated_instance_ids
+            ).delete()
+
+            instance_queryset = Instance.objects.filter(
+                id__in=duplicated_instance_ids
+            )
+            # update counters
+            for instance in instance_queryset.values(
+                'xform_id', 'date_created__date', 'xform__user_id'
+            ):
+                MonthlyXFormSubmissionCounter.objects.filter(
+                    year=instance['date_created__date'].year,
+                    month=instance['date_created__date'].month,
+                    user_id=instance['xform__user_id'],
+                    xform_id=instance['xform_id'],
+                ).update(counter=F('counter') - 1)
+
+                DailyXFormSubmissionCounter.objects.filter(
+                    date=instance['date_created__date'],
+                    xform_id=instance['xform_id'],
+                ).update(counter=F('counter') - 1)
+
+            instance_queryset.delete()
+
+            settings.MONGO_DB.instances.delete_many(
+                {'_id': {'$in': duplicated_instance_ids}}
+            )
+            if self._verbosity > 1:
+                self.stdout.write(
+                    f'\tPurged instance IDs: {duplicated_instance_ids}'
+                )
+
+    def _replace_duplicates(self, duplicated_instances: list) -> bool:
+        uniq__uuids = set([i['uuid'] for i in duplicated_instances])
+
+        if len(uniq__uuids) > 1 or self._delete_unique_uuids:
+            return False
+
+        duplicates = []
+
+        for idx, duplicated_instance in enumerate(duplicated_instances):
+            try:
+                instance = Instance.objects.get(pk=duplicated_instance['id'])
+            except Instance.DoesNotExist:
+                pass
+            else:
+                if self._verbosity > 1:
+                    self.stdout.write(
+                        f'\tUpdating instance #{instance.pk} ({instance.uuid})…'
+                    )
+
+                instance.uuid = f'DUPLICATE {idx} {instance.uuid}'
+                instance.xml = set_meta(
+                    instance.xml, 'instanceID', instance.uuid
+                )
+                instance.xml_hash = instance.get_hash(instance.xml)
+                duplicates.append(instance)
+
+        if duplicates:
+            Instance.objects.bulk_update(
+                duplicates, fields=['uuid', 'xml', 'xml_hash']
+            )
+
+        return True
+
+    def _get_duplicates_by_xform(self, queryset):
+        duplicates_by_xform = defaultdict(list)
+        for record in queryset:
+            duplicates_by_xform[record['xform_id']].append(record)
+
+        return duplicates_by_xform

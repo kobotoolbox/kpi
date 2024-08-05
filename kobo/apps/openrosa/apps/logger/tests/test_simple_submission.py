@@ -3,7 +3,7 @@ from django.test import TestCase, RequestFactory
 from pyxform import SurveyElementBuilder
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import DuplicateInstance
+from kobo.apps.openrosa.apps.logger.exceptions import DuplicateInstanceError
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.libs.utils.logger_tools import (
@@ -39,7 +39,7 @@ class TestSimpleSubmission(TestCase):
                  '_time>' % hour
         try:
             create_instance(self.user.username, TempFileProxy(st_xml), [])
-        except DuplicateInstance:
+        except DuplicateInstanceError:
             pass
 
     def _submit_simple_yes(self):

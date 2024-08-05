@@ -16,7 +16,7 @@ from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import XLSFormError
+from kobo.apps.openrosa.apps.logger.exceptions import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
 from kobo.apps.openrosa.libs.models.base_model import BaseModel
 from kobo.apps.openrosa.libs.constants import (
