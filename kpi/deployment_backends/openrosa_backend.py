@@ -835,11 +835,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             XForm.objects.filter(pk=self.xform.id).update(
                 downloadable=active,
                 title=self.asset.name,
-                has_kpi_hooks=self.asset.has_active_hooks,
             )
             self.xform.downloadable = active
             self.xform.title = self.asset.name
-            self.xform.has_kpi_hooks = self.asset.has_active_hooks
 
             publish_xls_form(xlsx_file, self.asset.owner, self.xform.id_string)
 
