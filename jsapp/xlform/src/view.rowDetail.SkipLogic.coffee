@@ -29,8 +29,8 @@ module.exports = do ->
           <button class="skiplogic__addcriterion kobo-button kobo-button--storm">+ #{t("Add another condition")}</button>
         </p>
         <select class="skiplogic__delimselect">
-          <option value="and">#{t("Question should match all of these criteria")}</option>
-          <option value="or">#{t("Question should match any of these criteria")}</option>
+          <option value="and">#{t("Previous responses should match all of these conditions")}</option>
+          <option value="or">#{t("Previous responses should match any of these conditions")}</option>
         </select>
       """)
 
