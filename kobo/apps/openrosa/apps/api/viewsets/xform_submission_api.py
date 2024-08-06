@@ -4,7 +4,6 @@ import io
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from kobo_service_account.utils import get_real_user
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import mixins
@@ -28,6 +27,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     UnauthenticatedEditAttempt,
 )
 from kpi.authentication import DigestAuthentication
+from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 xml_error_re = re.compile('>(.*)<')
@@ -175,7 +175,8 @@ class XFormSubmissionApi(
                 _ = get_object_or_404(User, username=username.lower())
         elif not username:
             # get the username from the user if not set
-            username = request.user and get_real_user(request).username
+            user = get_database_user(request.user)
+            username = user.username
 
         if request.method.upper() == 'HEAD':
             return Response(status=status.HTTP_204_NO_CONTENT,

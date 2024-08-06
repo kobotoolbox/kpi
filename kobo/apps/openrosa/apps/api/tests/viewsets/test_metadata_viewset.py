@@ -4,7 +4,6 @@ import os
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
-from kobo_service_account.utils import get_request_headers
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
@@ -90,35 +89,6 @@ class TestMetaDataViewSet(TestAbstractViewSet):
             request = self.factory.delete('/', **self.extra)
             response = self.view(request, pk=self.metadata.pk)
             self.assertEqual(response.status_code, 204)
-            self.assertEqual(count, MetaData.objects.count())
-
-    def test_delete_metadata_with_service_account(self):
-        alice_meta = {'HTTP_AUTHORIZATION': f'Token {self.alice.auth_token}'}
-
-        # Try the same request with service account user on behalf of alice
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.alice.username)
-        )
-        # Test server does not provide `host` header
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-
-        for data_type in ['supporting_doc', 'media', 'source']:
-            count = MetaData.objects.count()
-            # Add bob's metadata
-            self._add_form_metadata(
-                self.xform, data_type, self.data_value, self.path
-            )
-            # Try to delete bob's objects with alice account,
-            # object should not found (we do not reveal presence of a
-            # non-granted object)
-            request = self.factory.delete('/', **alice_meta)
-            response = self.view(request, pk=self.metadata.pk)
-            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-            # Try with service account on behalf of alice, it should work
-            request = self.factory.delete('/', **service_account_meta)
-            response = self.view(request, pk=self.metadata.pk)
-            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
             self.assertEqual(count, MetaData.objects.count())
 
     def test_windows_csv_file_upload_to_metadata(self):

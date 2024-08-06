@@ -905,7 +905,6 @@ REST_FRAMEWORK = {
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-        'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
@@ -942,7 +941,6 @@ OPENROSA_REST_FRAMEWORK = {
         # Session if it comes first (which bypass BasicAuthentication and MFA validation)
         'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
         'kpi.authentication.SessionAuthentication',
-        'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         # Keep JSONRenderer at the top "in order to send JSON responses to

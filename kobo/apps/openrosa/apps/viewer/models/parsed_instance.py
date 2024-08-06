@@ -376,9 +376,10 @@ class ParsedInstance(models.Model):
                 instance_id=self.instance_id
             ).values_list('instance__xform__kpi_asset_uid', flat=True)
             if not (asset_uid := records[0]):
-                logging.warning(
-                    f'ParsedInstance #: {self.pk} - XForm is not linked with Asset'
-                )
+                if not settings.TESTING:
+                    logging.warning(
+                        f'ParsedInstance #: {self.pk} - XForm is not linked with Asset'
+                    )
             else:
                 call_services(asset_uid, self.instance_id)
 

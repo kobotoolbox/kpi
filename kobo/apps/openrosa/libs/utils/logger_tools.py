@@ -32,7 +32,6 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
-from kobo_service_account.utils import get_real_user
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
 from pyxform.errors import PyXFormError
 from pyxform.xform2json import create_survey_element_from_xml
@@ -83,6 +82,8 @@ from kobo.apps.openrosa.libs.utils.model_tools import (
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.object_permission import get_database_user
+
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -791,7 +792,7 @@ def _get_instance(
         instance.save()
     else:
         submitted_by = (
-            get_real_user(request)
+            get_database_user(request.user)
             if request and request.user.is_authenticated
             else None
         )

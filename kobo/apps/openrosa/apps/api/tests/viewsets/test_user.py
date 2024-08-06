@@ -8,7 +8,6 @@ from django.urls.exceptions import NoReverseMatch
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo_service_account.utils import get_request_headers
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from .test_abstract_viewset import TestAbstractViewSet
 
@@ -94,26 +93,6 @@ class TestUserViewSet(TestAbstractViewSet):
         url = reverse('user-detail', args=(self.alice.username,))
         response = self.client.delete(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_service_account_cannot_access_user_detail(self):
-        self.client.logout()
-        url = reverse('user-detail', args=(self.alice.username,))
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.alice.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        response = self.client.get(url, **service_account_meta)
-        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    def test_service_account_can_delete_user(self):
-        self.client.logout()
-        url = reverse('user-detail', args=(self.alice.username,))
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.alice.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        response = self.client.delete(url, **service_account_meta)
-        assert response.status_code == status.HTTP_204_NO_CONTENT
 
     def test_only_open_rosa_endpoints_allowed_with_not_validated_password(self):
         # log in as bob
