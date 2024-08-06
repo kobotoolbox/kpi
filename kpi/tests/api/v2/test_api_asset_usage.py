@@ -19,12 +19,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        try:
-            self.anotheruser = User.objects.get(username='anotheruser')
-        except:
-            self.anotheruser = User.objects.create_user(
-                username='anotheruser', password='anotheruser'
-            )
+        self.anotheruser = User.objects.get(username='anotheruser')
         self.client.login(username='anotheruser', password='anotheruser')
 
     def __add_nlp_trackers(self):
@@ -133,7 +128,11 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         self.asset.save()
 
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
-        self.submission_list_url = self.asset.deployment.submission_list_url
+        self.submission_list_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
+
         self._deployment = self.asset.deployment
 
     def __expected_file_size(self):

@@ -1,31 +1,12 @@
 # coding: utf-8
 import json
 import lxml
-import os
 from mimetypes import guess_type
-from tempfile import NamedTemporaryFile
-from typing import Optional
 from urllib.parse import parse_qs, unquote
 
 from django.conf import settings
-from django.core.files import File
-
-from django.core.files.storage import default_storage
 from rest_framework import status
 
-from kobo.apps.openrosa.apps.logger.models.attachment import (
-    Attachment,
-    upload_to,
-)
-from kobo.apps.openrosa.libs.utils.image_tools import (
-    get_optimized_image_path,
-    resize,
-)
-from kpi.deployment_backends.kc_access.storage import (
-    default_kobocat_storage,
-    KobocatFileSystemStorage,
-)
-from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 
@@ -112,3 +93,12 @@ def enketo_view_instance_response(request):
     }
     headers = {}
     return status.HTTP_201_CREATED, headers, json.dumps(resp_body)
+
+
+def guess_type_mock(url, strict=True):
+    """
+    In the container, `*.3gp` returns "audio/3gpp"  instead of "video/3gpp".
+    """
+    if url.endswith('.3gp'):
+        return 'video/3gpp', None
+    return guess_type(url, strict)

@@ -117,6 +117,11 @@ class BaseDeploymentBackend(abc.ABC):
             # Reset query, because all the submission ids have been already
             # retrieve
             data['query'] = {}
+
+            # Set `has_partial_perms` flag on `request.user` to grant them
+            # permissions while calling `logger_tool.py::_has_edit_xform_permission()`
+            if request := kwargs.get('request'):
+                request.user.has_partial_perms = True
         else:
             submission_ids = data['submission_ids']
 
