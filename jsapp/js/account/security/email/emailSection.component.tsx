@@ -88,7 +88,7 @@ export default function EmailSection() {
     });
   }
 
-  function handleClick() {
+  function handleSubmit() {
     const emailPattern = /[^@]+@[^@]+\.[^@]+/;
     if (!emailPattern.test(email.newEmail)) {
       notify.error('Invalid email address');
@@ -172,7 +172,7 @@ export default function EmailSection() {
         className={style.optionsSection}
         onSubmit={(e) => {
           e.preventDefault();
-          handleClick();
+          handleSubmit();
         }}
       >
         {/*TODO: Move TextBox into a modal--it messes up the flow of the row right now*/}
@@ -188,7 +188,7 @@ export default function EmailSection() {
           size='m'
           color='blue'
           type='frame'
-          onClick={handleClick}
+          onClick={handleSubmit}
         />
       </form>
     </div>
