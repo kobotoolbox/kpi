@@ -1,7 +1,6 @@
 # coding: utf-8
 from ddt import data, ddt, unpack
 from django.test.client import RequestFactory
-from ddt import ddt, data, unpack
 
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
