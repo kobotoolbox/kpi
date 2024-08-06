@@ -600,6 +600,8 @@ tzdata==2024.1
     #   celery
     #   django-celery-beat
     #   pandas
+ua-parser==0.18.0
+    # via -r dependencies/pip/requirements.in
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==1.26.18
