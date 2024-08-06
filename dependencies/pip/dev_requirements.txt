@@ -114,6 +114,8 @@ cryptography==42.0.5
     #   pyopenssl
 cssselect==1.2.0
     # via pyquery
+ddt==1.7.2
+    # via -r dependencies/pip/dev_requirements.in
 decorator==5.1.1
     # via
     #   fabric
@@ -598,6 +600,8 @@ tzdata==2024.1
     #   celery
     #   django-celery-beat
     #   pandas
+ua-parser==0.18.0
+    # via -r dependencies/pip/requirements.in
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==1.26.18

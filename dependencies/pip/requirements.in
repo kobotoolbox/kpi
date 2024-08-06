@@ -84,6 +84,7 @@ shortuuid
 sqlparse
 static3
 tabulate
+ua-parser
 uWSGI
 Werkzeug
 xlrd
