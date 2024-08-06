@@ -5,7 +5,6 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 from kobo.apps.audit_log.urls import router as audit_log_router
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
-from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
 from kobo.apps.languages.urls import router as language_router
 from kobo.apps.organizations.views import OrganizationViewSet
 from kobo.apps.project_ownership.urls import router as project_ownership_router
@@ -101,12 +100,6 @@ asset_routes.register(r'export-settings',
 asset_routes.register(r'exports',
                       ExportTaskViewSet,
                       basename='asset-export',
-                      parents_query_lookups=['asset'],
-                      )
-
-asset_routes.register(r'hook-signal',
-                      HookSignalViewSet,
-                      basename='hook-signal',
                       parents_query_lookups=['asset'],
                       )
 

@@ -2,7 +2,7 @@
 import sys
 from django.db import migrations
 
-from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.utils.models import _set_auto_field_update
 
 
@@ -20,8 +20,8 @@ def explode_assets(apps, schema_editor):
     for asset in deployed_assets:
         deployment = asset.assetdeployment_set.last()
         # Copy the deployment-related data
-        kc_deployment = KobocatDeploymentBackend(asset)
-        kc_deployment.store_data({
+        backend_deployment = OpenRosaDeploymentBackend(asset)
+        backend_deployment.store_data({
             'backend': 'kobocat',
             'active': deployment.data['downloadable'],
             'backend_response': deployment.data,

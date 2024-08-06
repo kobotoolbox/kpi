@@ -174,13 +174,20 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         response = {"detail": t("Task successfully scheduled")}
         status_code = status.HTTP_200_OK
         if hook.active:
-            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
-            threshold = timezone.now() - timedelta(seconds=seconds)
+            threshold = timezone.now() - timedelta(seconds=120)
 
-            records = hook.logs.filter(Q(date_modified__lte=threshold,
-                                         status=HOOK_LOG_PENDING) |
-                                       Q(status=HOOK_LOG_FAILED)). \
-                values_list("id", "uid").distinct()
+            records = (
+                hook.logs.filter(
+                    Q(
+                        date_modified__lte=threshold,
+                        status=HOOK_LOG_PENDING,
+                        tries__gte=constance.config.HOOK_MAX_RETRIES,
+                    )
+                    | Q(status=HOOK_LOG_FAILED)
+                )
+                .values_list('id', 'uid')
+                .distinct()
+            )
             # Prepare lists of ids
             hooklogs_ids = []
             hooklogs_uids = []
@@ -190,7 +197,9 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
             if len(records) > 0:
                 # Mark all logs as PENDING
-                HookLog.objects.filter(id__in=hooklogs_ids).update(status=HOOK_LOG_PENDING)
+                HookLog.objects.filter(id__in=hooklogs_ids).update(
+                    status=HOOK_LOG_PENDING
+                )
                 # Delegate to Celery
                 retry_all_task.apply_async(
                     queue='kpi_low_priority_queue', args=(hooklogs_ids,)

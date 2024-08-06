@@ -1,3 +1,4 @@
+
 def delete_null_user_daily_counters(apps, *args):
     """
     Find any DailyXFormCounters without a user, assign them to a user if we can, otherwise delete them

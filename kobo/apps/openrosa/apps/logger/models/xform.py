@@ -6,6 +6,7 @@ from copy import deepcopy
 from io import BytesIO
 from xml.sax.saxutils import escape as xml_escape
 
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
@@ -25,15 +26,10 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_DELETE_DATA_XFORM,
     CAN_TRANSFER_OWNERSHIP,
 )
-from kobo.apps.openrosa.libs.utils.guardian import (
-    assign_perm,
-    get_perms_for_model
-)
 from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
-from kpi.models.asset import Asset
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
@@ -100,7 +96,6 @@ class XForm(BaseModel):
 
     tags = TaggableManager()
 
-    has_kpi_hooks = LazyDefaultBooleanField(default=False)
     kpi_asset_uid = models.CharField(max_length=32, null=True)
     pending_delete = models.BooleanField(default=False)
 
@@ -131,6 +126,7 @@ class XForm(BaseModel):
         Useful to display form disclaimer in Enketo.
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
+        Asset = apps.get_model('kpi', 'Asset')  # noqa
         if not hasattr(self, '_cache_asset'):
             try:
                 asset = Asset.objects.get(uid=self.kpi_asset_uid)
@@ -168,14 +164,6 @@ class XForm(BaseModel):
     @property
     def has_instances_with_geopoints(self):
         return self.instances_with_geopoints
-
-    @property
-    def kpi_hook_service(self):
-        """
-        Returns kpi hook service if it exists. XForm should have only one occurrence in any case.
-        :return: RestService
-        """
-        return self.restservices.filter(name="kpi_hook").first()
 
     def _set_id_string(self):
         matches = self.instance_id_regex.findall(self.xml)
@@ -304,25 +292,6 @@ class XForm(BaseModel):
                     return convert_csv_to_xls(ff.read())
                 else:
                     return BytesIO(ff.read())
-
-    @property
-    def settings(self):
-        """
-        Mimic Asset settings.
-        :return: Object
-        """
-        # As soon as we need to add custom validation statuses in Asset settings,
-        # validation in add_validation_status_to_instance
-        # (kobocat/kobo.apps.openrosa/apps/api/tools.py) should still work
-        default_validation_statuses = getattr(settings, "DEFAULT_VALIDATION_STATUSES", [])
-
-        # Later purpose, default_validation_statuses could be merged with a custom validation statuses dict
-        # for example:
-        #   self._validation_statuses.update(default_validation_statuses)
-
-        return {
-            "validation_statuses": default_validation_statuses
-        }
 
     @property
     def xml_with_disclaimer(self):

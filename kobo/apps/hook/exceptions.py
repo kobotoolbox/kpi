@@ -1,0 +1,3 @@
+
+class HookRemoteServerDownError(Exception):
+    pass
