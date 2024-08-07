@@ -14,6 +14,7 @@ class AuditAction(models.TextChoices):
     PUT_BACK = 'put-back', 'PUT BACK'
     REMOVE = 'remove', 'REMOVE'
     UPDATE = 'update', 'UPDATE'
+    AUTH = 'auth', 'AUTH'
 
 
 class AuditLog(models.Model):
@@ -39,6 +40,8 @@ class AuditLog(models.Model):
         indexes = [
             models.Index(fields=['app_label', 'model_name', 'action']),
             models.Index(fields=['app_label', 'model_name']),
+            models.Index(models.F('metadata__asset_uid'), 'action', name='audit_log_asset_action_idx'),
+            models.Index(models.F('metadata__asset_uid'), name='audit_log_asset_uid_idx')
         ]
 
     def save(

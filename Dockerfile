@@ -29,8 +29,6 @@ ENV KPI_LOGS_DIR=/srv/logs \
     TMP_DIR=/srv/tmp \
     UWSGI_USER=kobo \
     UWSGI_GROUP=kobo \
-    SERVICES_DIR=/etc/service \
-    CELERY_PID_DIR=/var/run/celery \
     INIT_PATH=/srv/init
 
 ##########################################
@@ -40,13 +38,7 @@ ENV KPI_LOGS_DIR=/srv/logs \
 RUN mkdir -p "${NGINX_STATIC_DIR}" && \
     mkdir -p "${KPI_SRC_DIR}" && \
     mkdir -p "${KPI_NODE_PATH}" && \
-    mkdir -p "${TMP_DIR}" && \
-    mkdir -p ${CELERY_PID_DIR} && \
-    mkdir -p ${SERVICES_DIR}/uwsgi && \
-    mkdir -p ${SERVICES_DIR}/celery && \
-    mkdir -p ${SERVICES_DIR}/celery_low_priority && \
-    mkdir -p ${SERVICES_DIR}/celery_beat && \
-    mkdir -p "${INIT_PATH}"
+    mkdir -p "${TMP_DIR}"
 
 ##########################################
 # Install `apt` packages.                #
@@ -63,6 +55,7 @@ RUN apt-get -qq update && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" \
         | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get -qq update && \
+    apt-get -qq -y install openjdk-17-jre && \
     apt-get -qq -y install --no-install-recommends \
         ffmpeg \
         gdal-bin \
@@ -76,7 +69,6 @@ RUN apt-get -qq update && \
         postgresql-client \
         procps \
         rsync \
-        runit-init \
         vim-tiny \
         wait-for-it && \
     apt-get clean && \
@@ -161,23 +153,10 @@ RUN echo "export PATH=${PATH}" >> /etc/profile && \
     echo 'source /etc/profile' >> /root/.bashrc && \
     echo 'source /etc/profile' >> /home/${UWSGI_USER}/.bashrc
 
-
-# Remove getty* services to avoid errors of absent tty at sv start-up
-RUN rm -rf /etc/runit/runsvdir/default/getty-tty*
-
-# Create symlinks for runsv services
-RUN ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" "${SERVICES_DIR}/uwsgi/run" && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery.bash" "${SERVICES_DIR}/celery/run" && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery_low_priority.bash" "${SERVICES_DIR}/celery_low_priority/run" && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery_beat.bash" "${SERVICES_DIR}/celery_beat/run"
-
-
 # Add/Restore `UWSGI_USER`'s permissions
 # chown of `${TMP_DIR}/.npm` is a hack needed for kobo-install-based staging deployments;
 # see internal discussion at https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/Unu.2C.20du.2C.20tri.2C.20kvar.20deployments/near/322075
-RUN chown -R ":${UWSGI_GROUP}" ${CELERY_PID_DIR} && \
-    chmod g+w ${CELERY_PID_DIR} && \
-    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
+RUN chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_LOGS_DIR} && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR} && \
     chown -R root:root "${TMP_DIR}/.npm"
@@ -185,4 +164,4 @@ RUN chown -R ":${UWSGI_GROUP}" ${CELERY_PID_DIR} && \
 
 EXPOSE 8000
 
-CMD ["/bin/bash", "-c", "exec ${KPI_SRC_DIR}/docker/init.bash"]
+CMD ["/bin/bash", "docker/entrypoint.sh"]

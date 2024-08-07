@@ -12,6 +12,10 @@ import {COMMON_QUERIES, DEPLOYMENT_CATEGORIES} from 'js/constants';
 import AssetName from 'js/components/common/assetName';
 import {userCan} from 'js/components/permissions/utils';
 
+/**
+ * A list of projects grouped by status (deployed, draft, archived). It's meant
+ * to be displayed in the sidebar area.
+ */
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
     super(props);

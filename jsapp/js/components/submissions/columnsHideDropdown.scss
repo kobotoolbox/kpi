@@ -13,7 +13,7 @@
     background-color: colors.$kobo-white;
     @include mdl.box-shadow;
     padding: 9px 0;
-    text-align: left;
+    text-align: initial;
     line-height: 20px;
     min-width: 150px;
   }
@@ -42,6 +42,7 @@
     max-height: 200px;
     margin: 10px 0;
     overflow-y: auto;
+    padding: 0;
 
     .columns-hide-form__list-item {
       &:not(:first-child) {

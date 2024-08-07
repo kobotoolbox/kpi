@@ -6,14 +6,14 @@ from collections import defaultdict
 from typing import Optional
 
 from django.conf import settings
-from django.contrib.auth.models import User, AnonymousUser, Permission
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models, transaction
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
-
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
@@ -555,7 +555,7 @@ class ObjectPermissionMixin:
         self.recalculate_descendants_perms()
         return new_permission
 
-    def get_perms(self, user_obj: 'auth.User') -> list[str]:
+    def get_perms(self, user_obj: settings.AUTH_USER_MODEL) -> list[str]:
         """
         Return a list of codenames of all effective grant permissions that
         user_obj has on this object.

@@ -29,7 +29,7 @@ $k-select-menu-padding: sizes.$x6;
   @include mixins.centerRowFlex;
   justify-content: space-between;
   font-weight: 400;
-  text-align: left;
+  text-align: initial;
   border-width: button.$button-border-width;
   border-style: solid;
   border-color: transparent;
@@ -117,7 +117,7 @@ $k-select-menu-padding: sizes.$x6;
   height: $k-select-option-height;
   color: colors.$kobo-gray-40;
   padding: 0 #{sizes.$x16 - sizes.$x2};
-  text-align: left;
+  text-align: initial;
 }
 
 .k-select__menu-message {

@@ -8,7 +8,7 @@
   }
 
   .kobo-select__menu-list {
-    text-align: left;
+    text-align: initial;
     line-height: 20px;
 
     // override padding for first and last item so it looks like the menu has
@@ -86,7 +86,7 @@
   .kobo-select__option-badge {
     // Needed for react-select v5.
     grid-area: 1 / 1 / 2 / 3;
-    text-align: left;
+    text-align: initial;
     font-weight: 500;
     line-height: 1;
     font-size: 12px;
