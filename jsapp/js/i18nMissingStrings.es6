@@ -8,8 +8,8 @@
 // misc strings
 test = t('Add another condition');
 
-test = t('Question should match all of these criteria');
-test = t('Question should match any of these criteria');
+test = t('Previous responses should match all of these conditions');
+test = t('Previous responses should match any of these conditions');
 test = t('Click to add another response...');
 test = t('AUTOMATIC');
 test = t('Skip Logic');
