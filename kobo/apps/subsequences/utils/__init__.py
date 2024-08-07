@@ -150,7 +150,7 @@ def stream_with_extras(submission_stream, asset):
             uuid = submission[SUBMISSION_UUID_FIELD]
         else:
             uuid = submission['_uuid']
-        all_supplemental_details = extras.get(uuid, {})
+        all_supplemental_details = deepcopy(extras.get(uuid, {}))
         for qpath, supplemental_details in all_supplemental_details.items():
             try:
                 all_qual_responses = supplemental_details['qual']

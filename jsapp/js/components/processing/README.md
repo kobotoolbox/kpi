@@ -50,12 +50,11 @@ being used for adding translations, too.
 
 Example: A user saves their "Polish" transcript.
 
-1. We check if `transcript` in `advanced_features` for given `asset` has
-   "Polish" language enabled.
-2. If "Polish" is not enabled, we make a call to update the schema to include
-   this language under `transcript`.
-3. Finally, we make a call (to the unique feature endpoint) to save the
-   transcript text.
+1. We check if `asset` has `advanced_features` enabled (by default it's not enabled).
+2. If there are no `advanced_features`, we make a call to enable it.
+3. We check if `transcript` in `advanced_features` for given `asset` has "Polish" language enabled.
+4. If "Polish" is not enabled, we make a call to update the schema to include this language under `transcript`.
+5. Finally, we make a call (to the unique feature endpoint - `advanced_submission_post`) to save the transcript text.
 
 Thankfully, whenever we delete a transcript, the Back end is automagically cleaning
 up unreferenced languages for us. So if user deletes that "Polish" transcript

@@ -54,7 +54,7 @@
 // We need a bit stronger specificity here
 .k-inline-message p.k-inline-message__message {
   margin: 0;
-  text-align: left;
+  text-align: initial;
   font-size: sizes.$x14;
   line-height: inherit;
 }
