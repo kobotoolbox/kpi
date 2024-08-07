@@ -43,6 +43,8 @@ class ServiceUsageViewSet(viewsets.GenericViewSet):
     >           },
     >           "current_month_start": {string (date), ISO format},
     >           "current_year_start": {string (date), ISO format},
+    >           "current_month_end": {string (date), ISO format},
+    >           "current_year_end": {string (date), ISO format},
     >       }
 
 
