@@ -47,4 +47,8 @@ export function renderKobomatrix (view, el) {
   let model = new KoboMatrixRow(view.model);
   const root = createRoot(el.get(0));
   root.render(<KoboMatrix model={model} />);
+  // TODO: should this root be unmounted at some point?
+  // https://react.dev/reference/react-dom/client/createRoot#root-unmount
+  // Maybe instantiate the root in KoboMatrixView, then unmount it when
+  // KoboMatrixView is disposed.
 }
