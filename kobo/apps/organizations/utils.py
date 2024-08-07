@@ -1,6 +1,5 @@
 from typing import Union
 
-import datetime
 import pytz
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
@@ -36,7 +35,7 @@ def get_monthly_billing_dates(organization: Union[Organization, None]):
     
     if not billing_details.get('billing_cycle_anchor'):
         return first_of_this_month, last_of_this_month
-    
+
     # Subscription is billed monthly, use the current billing period dates
     if billing_details.get('recurring_interval') == 'month':
         period_start = billing_details.get('current_period_start').replace(
