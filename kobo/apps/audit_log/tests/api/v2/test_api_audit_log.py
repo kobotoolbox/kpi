@@ -1,11 +1,28 @@
+import contextlib
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.signals import user_logged_in
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.signals import create_access_log
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+
+
+@contextlib.contextmanager
+def skip_login_access_log():
+    """
+    Context manager for skipping the creation of an access log on login
+
+    Disconnects the method that creates access logs from the user_logged_in signal within the contextmanager block.
+    Useful when you want full control over the audit logs produced in a test.
+    """
+    user_logged_in.disconnect(create_access_log)
+    yield
+    user_logged_in.connect(create_access_log)
 
 
 class ApiAuditLogTestCase(BaseTestCase):
@@ -48,17 +65,20 @@ class ApiAuditLogTestCase(BaseTestCase):
             date_created=date_created,
             action=AuditAction.DELETE
         )
-        self.client.login(username='admin', password='pass')
-        expected = [{
-            'app_label': 'foo',
-            'model_name': 'bar',
-            'object_id': 1,
-            'user': 'http://testserver/api/v2/users/someuser/',
-            'user_uid': someuser.extra_details.uid,
-            'action': 'DELETE',
-            'metadata': {},
-            'date_created': date_created,
-        }]
+        with skip_login_access_log():
+            self.client.login(username='admin', password='pass')
+        expected = [
+            {
+                'app_label': 'foo',
+                'model_name': 'bar',
+                'object_id': 1,
+                'user': 'http://testserver/api/v2/users/someuser/',
+                'user_uid': someuser.extra_details.uid,
+                'action': 'DELETE',
+                'metadata': {},
+                'date_created': date_created,
+            },
+        ]
         response = self.client.get(self.audit_log_list_url)
         audit_logs_count = AuditLog.objects.count()
         assert response.status_code == status.HTTP_200_OK
@@ -85,7 +105,8 @@ class ApiAuditLogTestCase(BaseTestCase):
             date_created=date_created,
             action=AuditAction.DELETE,
         )
-        self.client.login(username='admin', password='pass')
+        with skip_login_access_log():
+            self.client.login(username='admin', password='pass')
         expected = [{
             'app_label': 'foo',
             'model_name': 'bar',
