@@ -20,6 +20,7 @@ jobs:
       CACHE_URL: redis://localhost:6379/3
       ENKETO_REDIS_MAIN_URL: redis://localhost:6379/0
       KOBOCAT_MEDIA_ROOT: /tmp/test_media
+      SKIP_TESTS_WITH_CONCURRENCY: 'True'
     strategy:
       matrix:
         python-version: ['3.8', '3.10']
