@@ -120,7 +120,7 @@ class TableSettings extends React.Component {
           {userCan('change_asset', this.props.asset) &&
             <Button
               type='frame'
-              color='dark-red'
+              color='red'
               size='l'
               onClick={this.onReset.bind(this)}
               label={t('Reset')}

@@ -169,7 +169,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               label={t('Cancel transfer')}
               isFullWidth
               onClick={cancelCurrentInvite}
-              color='dark-red'
+              color='red'
               type='frame'
               size='l'
             />

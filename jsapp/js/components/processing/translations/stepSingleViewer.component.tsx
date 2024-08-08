@@ -94,7 +94,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
 
           <Button
             type='bare'
-            color='dark-red'
+            color='red'
             size='s'
             startIcon='trash'
             onClick={deleteTranslation}

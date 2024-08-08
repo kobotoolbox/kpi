@@ -138,7 +138,7 @@ export default class QuestionGraphSettings extends React.Component {
             reportStyle.width) && (
             <Button
               type='full'
-              color='dark-red'
+              color='red'
               size='l'
               onClick={this.saveQS.bind(this, true)}
               label={t('Reset')}

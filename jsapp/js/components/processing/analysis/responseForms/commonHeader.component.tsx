@@ -113,7 +113,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
           },
           {
             type: 'full',
-            color: 'dark-red',
+            color: 'red',
             label: t('Delete'),
             onClick: deleteQuestion,
           },
@@ -151,7 +151,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
 
       <Button
         type='bare'
-        color='dark-red'
+        color='red'
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}

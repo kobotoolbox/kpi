@@ -37,7 +37,7 @@ export default function ProjectQuickActionsEmpty() {
       <Button
         isDisabled
         type='bare'
-        color='dark-red'
+        color='red'
         size='s'
         startIcon='trash'
         tooltip={t('Delete') + ' – ' + NO_PROJECT_SELECTED}

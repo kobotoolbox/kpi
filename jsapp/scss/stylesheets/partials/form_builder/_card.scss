@@ -17,7 +17,7 @@
 
     &.card--error {
         padding: 12px 20px;
-        background-color: rgba(colors.$kobo-red, 0.5);
+        background-color: rgba(colors.$kobo-mid-red, 0.5);
     }
 
     .card__header {
@@ -92,7 +92,7 @@
         // we use placeholder as error message, as empty title is not welcomed
          &::placeholder {
             color: colors.$kobo-red;
-            background-color: rgba(colors.$kobo-red, 0.075);
+            background-color: rgba(colors.$kobo-mid-red, 0.075);
         }
     }
 
@@ -152,7 +152,7 @@
     }
 }
 .card--error {
-    background-color: rgba(colors.$kobo-red, 0.5);
+    background-color: rgba(colors.$kobo-mid-red, 0.5);
 }
 
 // ==========================================================================
@@ -244,7 +244,7 @@ $cardIndicatorIconWidth: 21px;
     background: rgba(colors.$kobo-gray-40, 0.5);
 }
 .card__header.delete .card__header--shade {
-    background: rgba(colors.$kobo-red, 0.5);
+    background: rgba(colors.$kobo-mid-red, 0.5);
 }
 .card__header.duplicate .card__header--shade {
     background: rgba(colors.$kobo-blue, 0.5);

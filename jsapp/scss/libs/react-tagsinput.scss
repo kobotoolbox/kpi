@@ -4,7 +4,7 @@
   &.react-tagsinput-invalid {
     .react-tagsinput-input {
       color: colors.$kobo-red;
-      border-bottom-color: colors.$kobo-red;
+      border-bottom-color: colors.$kobo-mid-red;
     }
   }
 
@@ -36,6 +36,7 @@
   cursor: pointer;
   color: colors.$kobo-white !important;
   opacity: 0.6;
+  margin-left: 3px;
   margin-inline-start: 3px;
   vertical-align: middle;
 

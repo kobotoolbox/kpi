@@ -263,7 +263,7 @@ export default function SidebarDisplaySettings() {
           <Button
             label={t('Reset')}
             type='frame'
-            color='dark-red'
+            color='red'
             size='m'
             onClick={() => {
               store.resetDisplays(activeTab);

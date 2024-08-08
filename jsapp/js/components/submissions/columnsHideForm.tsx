@@ -182,7 +182,7 @@ class ColumnsHideForm extends React.Component<
         <bem.ColumnsHideForm__footer>
           <Button
             type='frame'
-            color='dark-red'
+            color='red'
             size='s'
             isFullWidth
             onClick={this.onReset.bind(this)}
