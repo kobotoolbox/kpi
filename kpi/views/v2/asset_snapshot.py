@@ -1,20 +1,14 @@
-# coding: utf-8
-import re
 import copy
-from xml.dom import Node
 from typing import Optional
 
 import requests
-from defusedxml import minidom
 from django.conf import settings
-from django.db.models import Q, F
 from django.http import HttpResponseRedirect, Http404
 from rest_framework import renderers, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
