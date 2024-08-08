@@ -373,7 +373,7 @@ class MockDataExportsBase(TestCase):
                 '__version__': v_uid
             })
         asset.deployment.set_namespace('api_v2')
-        asset.deployment.mock_submissions(submissions, flush_db=False)
+        asset.deployment.mock_submissions(submissions)
         return asset
 
 

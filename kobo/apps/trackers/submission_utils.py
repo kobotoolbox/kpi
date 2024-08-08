@@ -52,10 +52,7 @@ def create_mock_assets(users: list, assets_per_user: int = 1):
             _quantity=assets_per_user,
         )
 
-    print([a.uid for a in assets])
-    breakpoint()
     for asset in assets:
-        print('DEPLOYING ', asset.uid, flush=True)
         asset.deploy(backend='mock', active=True)
         asset.deployment.set_namespace(ROUTER_URL_NAMESPACE)
         asset.save()  # might be redundant?
@@ -68,9 +65,9 @@ def expected_file_size(submissions: int = 1):
     Calculate the expected combined file size for the test audio clip and image
     """
     return (os.path.getsize(
-        settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.3gp'
+        settings.BASE_DIR + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
     ) + os.path.getsize(
-        settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
+        settings.BASE_DIR + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
     )) * submissions
 
 
@@ -106,7 +103,7 @@ def add_mock_submissions(assets: list, submissions_per_asset: int = 1):
             }
             asset_submissions.append(submission)
 
-        asset.deployment.mock_submissions(asset_submissions, flush_db=False)
+        asset.deployment.mock_submissions(asset_submissions)
         all_submissions = all_submissions + asset_submissions
         # update_xform_counters(asset, submissions=submissions_per_asset)
 

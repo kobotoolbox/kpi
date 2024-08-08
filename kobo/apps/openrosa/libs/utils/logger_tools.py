@@ -466,7 +466,6 @@ def publish_xls_form(xls_file, user, id_string=None):
             with transaction.atomic():
                 dd = DataDictionary.objects.create(user=user, xls=xls_file)
         except IntegrityError as e:
-            breakpoint()
             raise e
         return dd
 

@@ -109,7 +109,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         submissions.append(submission1)
         submissions.append(submission2)
 
-        self.asset.deployment.mock_submissions(submissions, flush_db=False)
+        self.asset.deployment.mock_submissions(submissions)
 
     def __create_asset(self):
         content_source_asset = {
@@ -140,8 +140,12 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         Calculate the expected combined file size for the test audio clip and image
         """
         return os.path.getsize(
-            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.3gp'
-        ) + os.path.getsize(settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg')
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
+        ) + os.path.getsize(
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
+        )
 
     def test_anonymous_user(self):
         """

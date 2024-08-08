@@ -1060,7 +1060,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                 {
                     'group_ec9yq67/group_dq8as25/group_xt0za80': [
                         {
-                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'Screenshot 2024-02-14 at 18.31.39-11_38_35.png'
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'Screenshot 2024-02-14 at 18.31.39-11_38_35.jpg'
                         }
                     ]
                 },
@@ -1094,7 +1094,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                     'download_medium_url': 'http://kc.testserver/3.jpg',
                     'download_small_url': 'http://kc.testserver/3.jpg',
                     'mimetype': 'image/jpeg',
-                    'filename': 'anotheruser/attachments/formhub-uuid/submission-uuid/Screenshot_2024-02-14_at_18.31.39-11_38_35.png',
+                    'filename': 'anotheruser/attachments/formhub-uuid/submission-uuid/Screenshot_2024-02-14_at_18.31.39-11_38_35.jpg',
                     'instance': 1,
                     'xform': 1,
                     'id': 3,

@@ -49,7 +49,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
         ))
 
     def mock_submissions(
-        self, submissions, create_uuids: bool = True, flush_db: bool = True
+        self, submissions, create_uuids: bool = True
     ):
         """
         Simulate client (i.e.: Enketo or Collect) data submission.
@@ -120,11 +120,10 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
             if error:
                 raise Exception(error)
 
-            # Inject (or update) real PK in submission
-            # FIXME TRY TO ASSIGN Instance.PK if it already exists
+            # Inject (or update) real PKs in submission…
             submission['_id'] = instance.pk
 
-            # Reassign attachment PKs
+            # … and attachments
             if '_attachments' in submission:
                 for idx, attachment in enumerate(instance.attachments.all()):
                     submission['_attachments'][idx]['id'] = attachment.pk
@@ -160,14 +159,15 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
             file_ = os.path.join(
                 settings.BASE_DIR,
                 'kpi',
-                'tests',
+                'fixtures',
+                'attachments',
                 basename
             )
             if not os.path.isfile(file_):
                 raise Exception(
                     f'File `filename` does not exist! Use `path/to/image.png` if'
-                    f' you need a fake attachment, or '
-                    f'`audio_conversion_test_image.(jpg|3gp)` for real attachment'
+                    f' you need a fake attachment, or use one of file names '
+                    f'inside `kpi/fixtures/attachments for real attachment'
                 )
 
             with open(file_, 'rb') as f:

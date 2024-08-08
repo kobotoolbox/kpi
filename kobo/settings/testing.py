@@ -52,3 +52,10 @@ TEST_HTTP_HOST = 'testserver'
 TEST_USERNAME = 'bob'
 
 OPENROSA_DB_ALIAS = DEFAULT_DB_ALIAS
+
+# STORAGES['default']['BACKEND'] = 'django.core.files.storage.FileSystemStorage'
+# KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+# KOBOCAT_MEDIA_ROOT = os.environ.get(
+#     'KOBOCAT_MEDIA_ROOT', MEDIA_ROOT.replace('kpi', 'kobocat')
+# )
+# PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']

@@ -137,7 +137,7 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
             self.attachment_id = self.attachment_id + 2
             submissions.append(submission)
 
-        self.asset.deployment.mock_submissions(submissions, flush_db=False)
+        self.asset.deployment.mock_submissions(submissions)
 
     @staticmethod
     def expected_file_size():
@@ -145,9 +145,11 @@ class ServiceUsageAPIBase(BaseAssetTestCase):
         Calculate the expected combined file size for the test audio clip and image
         """
         return os.path.getsize(
-            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.3gp'
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
         ) + os.path.getsize(
-            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
         )
 
 
