@@ -1,10 +1,6 @@
 from unittest.mock import patch
 
-from allauth.account.models import (
-    EmailAddress,
-    EmailConfirmation,
-    EmailConfirmationHMAC,
-)
+from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.urls import resolve, reverse
 
@@ -16,8 +12,9 @@ class AuditLogTestCase(BaseTestCase):
     """
     Class for testing that logins produce AuditLogs.
 
-    AuditLogs for more complicated login flows are tested as part of the tests for those flows to avoid
-    copying lots of complicated setup.
+    Here we just test that AuditLogs are produced, not necessarily what they contain. More tests for what they contain
+    are in test_models.py. Also, AuditLogs for more complicated login flows are tested as part of the tests for those
+    flows to avoid copying lots of complicated setup.
     """
 
     @classmethod
@@ -29,7 +26,7 @@ class AuditLogTestCase(BaseTestCase):
         cls.user.backend = 'django.contrib.auth.backends.ModelBackend'
         cls.user.save()
 
-    @patch('kobo.apps.audit_log.signals.AuditLog.create_auth_log_from_request')
+    @patch('kobo.apps.audit_log.signals.AuditLog.create_access_log_for_request')
     def test_audit_log_created_on_login(self, patched_create):
         """
         Basic plumbing test to make sure the signal is hooked up

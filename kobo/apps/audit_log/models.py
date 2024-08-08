@@ -74,14 +74,15 @@ class AuditLog(models.Model):
         )
 
     @staticmethod
-    def create_auth_log_from_request(request, authentication_type=None):
-        logged_in_user = request.user
+    def create_access_log_for_request(request, user=None, authentication_type: str = None):
+        logged_in_user = user or request.user
 
         # django-loginas will keep the superuser as the _cached_user while request.user is set to the new one
-        initial_user = request._cached_user
+        # sometimes there won't be a cached user at all, mostly in tests
+        initial_user = request._cached_user if hasattr(request, '_cached_user') else None
         is_loginas_url = request.resolver_match.url_name == 'loginas-user-login'
         # a regular login may have an anonymous user as _cached_user, ignore that
-        user_changed = initial_user.is_authenticated and initial_user.id != logged_in_user.id
+        user_changed = initial_user and initial_user.is_authenticated and initial_user.id != logged_in_user.id
         is_loginas = is_loginas_url and user_changed
         if authentication_type and authentication_type != '':
             # authentication_type parameter has precedence
@@ -112,11 +113,10 @@ class AuditLog(models.Model):
         audit_log = AuditLog(
             user=logged_in_user,
             app_label=KOBO_AUTH_APP_LABEL,
-            model_name=get_user_model(),
+            model_name=get_user_model().__qualname__,
             object_id=logged_in_user.id,
             user_uid=logged_in_user.extra_details.uid,
             action=AuditAction.AUTH,
             metadata=metadata,
         )
-        audit_log.save()
         return audit_log
