@@ -285,3 +285,39 @@ class TestSubmissionStream(TestCase):
 
         # Clear all mocked submissions to avoid duplicate submission errors
         self.asset.deployment.mock_submissions([])
+
+    def test_stream_with_extras_ignores_empty_qual_responses(self):
+        # Modify submission extras 'val' to be an empty string
+        submission_extras = SubmissionExtras.objects.get(
+            submission_uuid='1c05898e-b43c-491d-814c-79595eb84e81'
+        )
+        content = submission_extras.content
+        content['Tell_me_a_story']['qual'][1]['val'] = ''
+        submission_extras.content = content
+        submission_extras.save()
+
+        # Process submissions with extras
+        output = list(
+            stream_with_extras(
+                self.asset.deployment.get_submissions(user=self.asset.owner),
+                self.asset,
+            )
+        )
+
+        # Ensure that the empty 'val' fields are skipped and not processed
+        for submission in output:
+            supplemental_details = submission.get('_supplementalDetails', {})
+            for key, details in supplemental_details.items():
+                qual_responses = details.get('qual', [])
+                for qual_response in qual_responses:
+                    if qual_response['type'] in [
+                        'qual_select_one',
+                        'qual_select_multiple',
+                    ]:
+                        val = qual_response['val']
+
+                        if isinstance(val, list):
+                            for v in val:
+                                self.assertEqual(v, '')
+                        else:
+                            self.assertEqual(val, '')
