@@ -211,7 +211,9 @@ class AttachmentApiTests(BaseAssetTestCase):
         duplicate_file = response.data
 
         # Ensure that the files are the same
-        assert original_file.read() == duplicate_file.read()
+        with default_storage.open(str(original_file), 'rb') as of:
+            with default_storage.open(str(duplicate_file), 'rb') as df:
+                assert of.read() == df.read()
 
     def test_xpath_not_found(self):
         query_dict = QueryDict('', mutable=True)

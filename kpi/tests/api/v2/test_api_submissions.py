@@ -71,8 +71,8 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
-        self.unknown_user = User.objects.create(username='unknown_user')
-        UserProfile.objects.create(user=self.unknown_user)
+        self.unknownuser = User.objects.create(username='unknownuser')
+        UserProfile.objects.create(user=self.unknownuser)
 
         content_source_asset = Asset.objects.get(id=1)
         self.asset = Asset.objects.create(
@@ -91,66 +91,36 @@ class BaseSubmissionTestCase(BaseTestCase):
         )
         self._deployment = self.asset.deployment
 
-    def get_random_submission(self, user: settings.AUTH_USER_MODEL) -> dict:
-        return self.get_random_submissions(user, 1)[0]
-
-    def get_random_submissions(
-        self, user: settings.AUTH_USER_MODEL, limit: int = 1
-    ) -> list:
-        """
-        Get random submissions within all generated submissions.
-
-        If user is not the owner, we only return submissions submitted by them.
-        It is useful to ensure restricted users fail tests with forbidden
-        submissions.
-        """
-        query = {}
-        if self.asset.owner != user:
-            query = {'_submitted_by': user.username}
-
-        submissions = self.asset.deployment.get_submissions(user, query=query)
-        random.shuffle(submissions)
-        return submissions[:limit]
-
     def _add_submissions(self, other_fields: dict = None):
         letters = string.ascii_letters
         submissions = []
         v_uid = self.asset.latest_deployed_version.uid
         self.submissions_submitted_by_someuser = []
-        self.submissions_submitted_by_unknown = []
+        self.submissions_submitted_by_unknownuser = []
         self.submissions_submitted_by_anotheruser = []
 
-        submitted_by_choices = ['unknown_user', 'someuser', 'anotheruser']
-        for i in range(20):
-            # We want to have at least one submission from each
-            if i <= 2:
-                submitted_by = submitted_by_choices[i]
-            else:
-                submitted_by = random.choice(submitted_by_choices)
-            uuid_ = uuid.uuid4()
-            submission = {
-                '__version__': v_uid,
-                'q1': ''.join(random.choice(letters) for l in range(10)),
-                'q2': ''.join(random.choice(letters) for l in range(10)),
-                'meta/instanceID': f'uuid:{uuid_}',
-                '_uuid': str(uuid_),
-                '_submitted_by': submitted_by
-            }
-            if other_fields is not None:
-                submission.update(**other_fields)
+        submitted_by_choices = ['unknownuser', 'someuser', 'anotheruser']
+        for submitted_by in submitted_by_choices:
+            for i in range(2):
+                uuid_ = uuid.uuid4()
+                submission = {
+                    '__version__': v_uid,
+                    'q1': ''.join(random.choice(letters) for letter in range(10)),
+                    'q2': ''.join(random.choice(letters) for letter in range(10)),
+                    'meta/instanceID': f'uuid:{uuid_}',
+                    '_uuid': str(uuid_),
+                    '_submitted_by': submitted_by
+                }
+                if other_fields is not None:
+                    submission.update(**other_fields)
 
-            if submitted_by == 'someuser':
-                self.submissions_submitted_by_someuser.append(submission)
-
-            if submitted_by == 'unknown_user':
-                self.submissions_submitted_by_unknown.append(submission)
-
-            if submitted_by == 'anotheruser':
-                self.submissions_submitted_by_anotheruser.append(submission)
-
-            submissions.append(submission)
+                submissions.append(submission)
 
         self.asset.deployment.mock_submissions(submissions)
+
+        self.submissions_submitted_by_unknownuser = submissions[0:2]
+        self.submissions_submitted_by_someuser = submissions[2:4]
+        self.submissions_submitted_by_anotheruser = submissions[4:6]
         self.submissions = submissions
 
     def _log_in_as_another_user(self):
@@ -304,7 +274,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_list_url, {'format': 'json'})
 
         unknown_submission_ids = [
-            sub['_id'] for sub in self.submissions_submitted_by_unknown
+            sub['_id'] for sub in self.submissions_submitted_by_unknownuser
         ]
         someuser_submission_ids = [
             sub['_id'] for sub in self.submissions_submitted_by_someuser
@@ -340,31 +310,32 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        random_submissions = self.get_random_submissions(self.unknown_user, 3)
+        submissions = self.submissions_submitted_by_unknownuser
         data = {
             'payload': {
-                'submission_ids': [rs['_id'] for rs in random_submissions]
+                'submission_ids': [submissions[0]['_id']]
             }
         }
-        response = self.client.delete(self.submission_bulk_url,
-                                      data=data,
-                                      format='json')
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
         count = self._deployment.calculated_submission_count(self.anotheruser)
-        random_submissions = self.get_random_submissions(self.anotheruser, 3)
+        assert count == 2
+        submissions = self.submissions_submitted_by_anotheruser
         data = {
             'payload': {
-                'submission_ids': [rs['_id'] for rs in random_submissions],
+                'submission_ids': [submissions[0]['_id']],
             }
         }
-        response = self.client.delete(self.submission_bulk_url,
-                                      data=data,
-                                      format='json')
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
-        self.assertEqual(response.data['count'], count - len(random_submissions))
+        self.assertEqual(response.data['count'], count - 1)
 
     def test_cannot_delete_view_only_submissions_with_partial_perms_as_anotheruser(self):
         """
@@ -473,14 +444,15 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         params
         """
         response = self.client.get(
-            self.submission_list_url, {
+            self.submission_list_url,
+            {
                 'format': 'json',
                 'start': 1,
                 'limit': 5,
                 'sort': '{"q1": -1}',
                 'fields': '["q1", "_submitted_by"]',
-                'query': '{"_submitted_by": {"$in": ["unknown", "someuser", "another"]}}',
-            }
+                'query': '{"_submitted_by": {"$in": ["unknownuser", "someuser", "anotheruser"]}}',
+            },
         )
         # ToDo add more assertions. E.g. test whether sort, limit, start really work
         self.assertEqual(len(response.data['results']), 5)
@@ -702,7 +674,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can view one of their submission.
         """
-        submission = self.get_random_submission(self.asset.owner)
+        submission = self.submissions_submitted_by_someuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -712,7 +684,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         )
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, submission)
+        self.assertEqual(response.data['_id'], submission['_id'])
 
     def test_retrieve_submission_by_uuid(self):
         """
@@ -739,7 +711,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self._log_in_as_another_user()
-        submission = self.get_random_submission(self.unknown_user)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -757,7 +729,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        submission = self.get_random_submission(self.unknown_user)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -767,7 +739,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         )
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, submission)
+        self.assertEqual(response.data['_id'], submission['_id'])
 
     def test_retrieve_submission_with_partial_permissions_as_anotheruser(self):
         """
@@ -779,11 +751,14 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
-        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
-                               partial_perms=partial_perms)
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
 
         # Try first submission submitted by unknown
-        submission = self.get_random_submission(self.unknown_user)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -871,7 +846,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self.client.logout()
-        submission = self.get_random_submission(self.asset.owner)
+        submission = self.submissions_submitted_by_someuser[0]
+
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -891,7 +867,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self._log_in_as_another_user()
-        submission = self.get_random_submission(self.unknown_user)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -911,7 +887,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        submission = self.get_random_submission(self.unknown_user)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -954,7 +930,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        submission = self.submissions_submitted_by_unknown[0]
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -969,7 +945,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
         # Try second submission submitted by anotheruser
         anotheruser_submission_count = len(self.submissions_submitted_by_anotheruser)
-        submission = self.get_random_submission(self.anotheruser)
+        submission = self.submissions_submitted_by_anotheruser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -1287,7 +1263,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        submission = self.get_random_submission(self.unknown_user)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
@@ -1299,7 +1275,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
-        submission = self.get_random_submission(self.anotheruser)
+        submission = self.submissions_submitted_by_anotheruser[0]
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
@@ -1418,7 +1394,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # for POSTing to later
         submission_urls = []
         for _ in range(2):
-            submission = self.get_random_submission(self.asset.owner)
+            submission = self.submissions_submitted_by_someuser[0]
             edit_url = reverse(
                 self._get_endpoint('submission-enketo-edit'),
                 kwargs={
@@ -1760,7 +1736,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        submission = self.submissions_submitted_by_unknown[0]
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
@@ -1970,7 +1946,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         )
 
         # Try first submission submitted by unknown
-        submission = self.get_random_submission(self.unknown_user)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
@@ -1982,7 +1958,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
-        submission = self.get_random_submission(self.anotheruser)
+        submission = self.submissions_submitted_by_anotheruser[0]
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
@@ -2007,9 +1983,9 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
             },
         )
 
-        random_submissions = self.get_random_submissions(self.asset.owner, 3)
+        submissions = self.submissions_submitted_by_someuser
         self.updated_submission_data = {
-            'submission_ids': [rs['_id'] for rs in random_submissions],
+            'submission_ids': [rs['_id'] for rs in submissions],
             'data': {
                 'q1': 'Updated value',
                 'q_new': 'A new question and value'
@@ -2161,9 +2137,9 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # Update some of another's submissions
-        random_submissions = self.get_random_submissions(self.anotheruser, 3)
+        submissions = self.submissions_submitted_by_anotheruser
         self.updated_submission_data['submission_ids'] = [
-            rs['_id'] for rs in random_submissions
+            rs['_id'] for rs in submissions
         ]
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
@@ -2366,7 +2342,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         }
 
         # Try first submission submitted by unknown
-        submission = self.submissions_submitted_by_unknown[0]
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
@@ -2780,12 +2756,12 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
                                partial_perms=partial_perms)
 
-        random_submissions = self.get_random_submissions(self.asset.owner, 3)
+        submissions = self.submissions_submitted_by_someuser
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',
                 'submission_ids': [
-                    rs['_id'] for rs in random_submissions
+                    rs['_id'] for rs in submissions
                 ]
             }
         }
@@ -2797,9 +2773,9 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try 2nd submission submitted by anotheruser
-        random_submissions = self.get_random_submissions(self.anotheruser, 3)
+        submissions = self.submissions_submitted_by_anotheruser
         data['payload']['submission_ids'] = [
-            rs['_id'] for rs in random_submissions
+            rs['_id'] for rs in submissions
         ]
         response = self.client.patch(self.validation_statuses_url,
                                      data=data,

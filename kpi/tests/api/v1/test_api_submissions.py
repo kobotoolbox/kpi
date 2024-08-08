@@ -90,7 +90,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
                 'limit': 5,
                 'sort': '{"q1": -1}',
                 'fields': '["q1", "_submitted_by"]',
-                'query': '{"_submitted_by": {"$in": ["unknown", "someuser", "another"]}}',
+                'query': '{"_submitted_by": {"$in": ["unknownuser", "someuser", "anotheruser"]}}',
             }
         )
         # ToDo add more assertions. E.g. test whether sort, limit, start really work
@@ -98,7 +98,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_submission_as_owner(self):
-        submission = self.get_random_submission(self.asset.owner)
+        submission = self.submissions_submitted_by_someuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -116,7 +116,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
     def test_delete_submission_shared_as_anotheruser(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        submission = self.get_random_submission(self.asset.owner)
+        submission = self.submissions_submitted_by_someuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
