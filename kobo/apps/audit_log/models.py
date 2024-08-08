@@ -80,7 +80,7 @@ class AuditLog(models.Model):
         # django-loginas will keep the superuser as the _cached_user while request.user is set to the new one
         # sometimes there won't be a cached user at all, mostly in tests
         initial_user = request._cached_user if hasattr(request, '_cached_user') else None
-        is_loginas_url = request.resolver_match.url_name == 'loginas-user-login'
+        is_loginas_url = hasattr(request, 'resolver_match') and request.resolver_match.url_name == 'loginas-user-login'
         # a regular login may have an anonymous user as _cached_user, ignore that
         user_changed = initial_user and initial_user.is_authenticated and initial_user.id != logged_in_user.id
         is_loginas = is_loginas_url and user_changed
