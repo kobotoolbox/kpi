@@ -7,7 +7,7 @@ from kobo.apps.organizations.models import Organization
 
 
 def generate_plan_subscription(
-    organization: Organization, metadata: dict = None, customer: Customer = None
+    organization: Organization, metadata: dict = None, customer: Customer = None, age_days=0
 ) -> Subscription:
     """Create a subscription for a product with custom metadata"""
     now = timezone.now()

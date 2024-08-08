@@ -1,6 +1,7 @@
 import timeit
 
 import pytest
+from dateutil.relativedelta import relativedelta
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
@@ -11,14 +12,14 @@ from model_bakery import baker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.stripe.tests.utils import generate_enterprise_subscription, generate_plan_subscription
-from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
+from kobo.apps.trackers.tests.submission_utils import create_mock_assets, add_mock_submissions
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
 from rest_framework import status
 
 
 
-class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
+class OrganizationServiceUsageAPIMultiUserTestCase(ServiceUsageAPIBase):
     """
     Test organization service usage when Stripe is enabled.
 
@@ -144,6 +145,83 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
+        )
+
+class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
+    org_id = 'orgAKWMFskafsngf'
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.now = timezone.now()
+
+        cls.organization = baker.make(
+            Organization, id=cls.org_id, name='test organization'
+        )
+        cls.organization.add_user(cls.anotheruser, is_admin=True)
+        cls.asset = create_mock_assets([cls.anotheruser])[0]
+
+
+    def setUp(self):
+        super().setUp()
+        url = reverse(self._get_endpoint('organizations-list'))
+        self.detail_url = f'{url}{self.org_id}/service_usage/'
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_plan_canceled_this_month(self):
+        """
+        When a user cancels their subscription, they revert to the default community plan
+        with a billing cycle anchored to the end date of their canceled subscription
+        """
+
+        subscription = generate_plan_subscription(self.organization, age_days=30)
+
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions, 15)
+
+        canceled_at = timezone.now()
+        subscription.status = 'canceled'
+        subscription.ended_at = canceled_at
+        subscription.save()
+
+        current_billing_period_end = canceled_at + relativedelta(months=1)
+
+        response = self.client.get(self.detail_url)
+        
+        assert (
+            response.data['total_submission_count']['current_month']
+            == 0
+        )
+        assert response.data['current_month_start'] == canceled_at.isoformat()
+        assert response.data['current_month_end'] == current_billing_period_end.isoformat()
+
+    def test_plan_canceled_last_month(self):
+        subscription = generate_plan_subscription(self.organization, age_days=60)
+
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions, 15)
+
+        canceled_at = timezone.now() - relativedelta(days=45)
+        subscription.status = 'canceled'
+        subscription.ended_at = canceled_at
+        subscription.save()
+
+        current_billing_period_start = canceled_at + relativedelta(months=1)
+        current_billing_period_end = current_billing_period_start + relativedelta(
+            months=1
+        )
+        response = self.client.get(self.detail_url)
+        
+        assert (
+            response.data['total_submission_count']['current_month']
+            == 5
+        )
+        assert response.data['current_month_start'] == current_billing_period_start.isoformat()
+        assert (
+            response.data['current_month_end']
+            == current_billing_period_end.isoformat()
         )
 
 
