@@ -19,12 +19,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        try:
-            self.anotheruser = User.objects.get(username='anotheruser')
-        except:
-            self.anotheruser = User.objects.create_user(
-                username='anotheruser', password='anotheruser'
-            )
+        self.anotheruser = User.objects.get(username='anotheruser')
         self.client.login(username='anotheruser', password='anotheruser')
 
     def __add_nlp_trackers(self):
@@ -114,7 +109,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         submissions.append(submission1)
         submissions.append(submission2)
 
-        self.asset.deployment.mock_submissions(submissions, flush_db=False)
+        self.asset.deployment.mock_submissions(submissions)
 
     def __create_asset(self):
         content_source_asset = {
@@ -133,7 +128,11 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         self.asset.save()
 
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
-        self.submission_list_url = self.asset.deployment.submission_list_url
+        self.submission_list_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
+
         self._deployment = self.asset.deployment
 
     def __expected_file_size(self):
@@ -141,8 +140,12 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         Calculate the expected combined file size for the test audio clip and image
         """
         return os.path.getsize(
-            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.3gp'
-        ) + os.path.getsize(settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg')
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
+        ) + os.path.getsize(
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
+        )
 
     def test_anonymous_user(self):
         """

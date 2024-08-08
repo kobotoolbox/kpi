@@ -242,6 +242,8 @@ et-xmlfile==1.1.0
     # via openpyxl
 exceptiongroup==1.2.0
     # via pytest
+execnet==2.1.1
+    # via pytest-xdist
 executing==2.0.1
     # via stack-data
 fabric==3.2.2
@@ -469,11 +471,14 @@ pytest==8.1.1
     #   pytest-cov
     #   pytest-django
     #   pytest-env
+    #   pytest-xdist
 pytest-cov==5.0.0
     # via -r dependencies/pip/dev_requirements.in
 pytest-django==4.8.0
     # via -r dependencies/pip/dev_requirements.in
 pytest-env==1.1.3
+    # via -r dependencies/pip/dev_requirements.in
+pytest-xdist==3.6.1
     # via -r dependencies/pip/dev_requirements.in
 python-crontab==3.0.0
     # via django-celery-beat

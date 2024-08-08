@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.test import override_settings
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -56,7 +57,11 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
 
         self.asset.deployment.mock_submissions(submissions)
 
+    @override_settings(DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS=10000)
     def test_count_endpoint_owner(self):
+        # Submission submitted time is 2022-09-12.
+        # DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS must be big enough to include
+        # this date.
         count_url = reverse(
             self._get_endpoint('asset-counts-list'),
             kwargs={'parent_lookup_asset': self.asset.uid}
@@ -102,7 +107,11 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
         response = self.client.get(count_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    @override_settings(DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS=10000)
     def test_count_endpoint_another_with_perms(self):
+        # Submission submitted time is 2022-09-12.
+        # DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS must be big enough to include
+        # this date.
         count_url = reverse(
             self._get_endpoint('asset-counts-list'),
             kwargs={'parent_lookup_asset': self.asset.uid}

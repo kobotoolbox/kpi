@@ -256,7 +256,7 @@ class AssetExportTaskTest(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.create(
-            content={'survey': [{"type": "text", "name": "q1"}]},
+            content={'survey': [{'type': 'text', 'label': 'q1', 'name': 'q1'}]},
             owner=self.user,
             asset_type='survey',
             name='тєѕт αѕѕєт'
@@ -264,11 +264,12 @@ class AssetExportTaskTest(BaseTestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
         v_uid = self.asset.latest_deployed_version.uid
-        submission = {
+        self.submission = {
             '__version__': v_uid,
-            'q1': '¿Qué tal?'
+            'q1': '¿Qué tal?',
+            '_submission_time': '2024-08-07T23:42:21',
         }
-        self.asset.deployment.mock_submissions([submission])
+        self.asset.deployment.mock_submissions([self.submission], )
 
     def test_owner_can_create_export(self):
         post_url = reverse('exporttask-list')
@@ -292,9 +293,8 @@ class AssetExportTaskTest(BaseTestCase):
         version_uid = self.asset.latest_deployed_version_uid
         expected_content = ''.join([
             '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"\r\n',
-            f'"¿Qué tal?";"1";"";"";"";"";"";"";"{version_uid}";"";"1"\r\n',
+            f'"¿Qué tal?";"{self.submission["_id"]}";"{self.submission["_uuid"]}";"2024-08-07T23:42:21";"";"";"submitted_via_web";"someuser";"{version_uid}";"";"1"\r\n',
         ])
-
         self.assertEqual(result_content, expected_content)
         return detail_response
 

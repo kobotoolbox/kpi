@@ -6,4 +6,5 @@ class KoboAuthAppConfig(AppConfig):
     verbose_name = 'Authentication and authorization'
 
     def ready(self):
+        from . import signals
         super().ready()
