@@ -343,16 +343,6 @@ class BaseDeploymentBackend(abc.ABC):
         return None
 
     @abc.abstractmethod
-    def get_submission_detail_url(self, submission_id: int) -> str:
-        pass
-
-    def get_submission_validation_status_url(self, submission_id: int) -> str:
-        url = '{detail_url}validation_status/'.format(
-            detail_url=self.get_submission_detail_url(submission_id)
-        )
-        return url
-
-    @abc.abstractmethod
     def get_submissions(
         self,
         user: settings.AUTH_USER_MODEL,
@@ -499,11 +489,6 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_count_since_date(
         self, start_date: Optional[datetime.date] = None
     ):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def submission_list_url(self):
         pass
 
     @property

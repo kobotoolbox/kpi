@@ -713,18 +713,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         except InvalidXFormException:
             return None
 
-    def get_submission_detail_url(self, submission_id: int) -> str:
-        1/0
-        #url = f'{self.submission_list_url}/{submission_id}'
-        #return url
-
-    def get_submission_validation_status_url(self, submission_id: int) -> str:
-        1/0
-        #url = '{detail_url}/validation_status'.format(
-        #    detail_url=self.get_submission_detail_url(submission_id)
-        #)
-        #return url
-
     def get_submissions(
         self,
         user: settings.AUTH_USER_MODEL,
@@ -1186,15 +1174,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             return 0
         else:
             return total_submissions['count_sum']
-
-    @property
-    def submission_list_url(self):
-        1/0
-        #url = '{kc_base}/api/v1/data/{formid}'.format(
-        #    kc_base=settings.KOBOCAT_INTERNAL_URL,
-        #    formid=self.backend_response['formid']
-        #)
-        #return url
 
     @property
     def submission_model(self):
