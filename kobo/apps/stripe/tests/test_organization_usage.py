@@ -172,8 +172,8 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
 
     def test_plan_canceled_this_month(self):
         """
-        When a user canceld their plan, they revert to the default community plan
-        and the start date should be 
+        When a user cancels their subscription, they revert to the default community plan
+        with a billing cycle anchored to the end date of their canceled subscription
         """
 
         subscription = generate_plan_subscription(self.organization, age_days=30)
@@ -198,11 +198,6 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         assert response.data['current_month_end'] == current_billing_period_end.isoformat()
 
     def test_plan_canceled_last_month(self):
-        """
-        When a user cancels their plan, they revert to the default community plan
-        with a billing cycle anchored to the end of date of their canceled plan
-        """
-
         subscription = generate_plan_subscription(self.organization, age_days=60)
 
         num_submissions = 5

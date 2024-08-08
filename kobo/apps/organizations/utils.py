@@ -12,8 +12,8 @@ def get_monthly_billing_dates(organization: Union[Organization, None]):
 
     now = timezone.now().replace(tzinfo=pytz.UTC)
     first_of_this_month = now.replace(day=1)
-    # Using `days=31` gets the last day of the month
-    last_of_this_month = first_of_this_month + relativedelta(days=31)
+    # Using `day=31` gets the last day of the month
+    last_of_this_month = first_of_this_month + relativedelta(day=31)
 
     # If no organization, just use the calendar month
     if not organization:
