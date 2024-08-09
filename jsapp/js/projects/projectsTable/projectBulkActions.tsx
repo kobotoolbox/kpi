@@ -35,8 +35,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       {/* Archive / Unarchive - Bulk action not supported yet */}
       <Button
         isDisabled
-        type='bare'
-        color='dark-blue'
+        type='secondary'
         size='s'
         startIcon='archived'
         tooltip={t('Archive/Unarchive')}
@@ -46,8 +45,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       {/* Share - Bulk action not supported yet */}
       <Button
         isDisabled
-        type='bare'
-        color='dark-blue'
+        type='secondary'
         size='s'
         startIcon='user-share'
         tooltip={t('Share projects')}
@@ -57,8 +55,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       {/* Delete */}
       <Button
         isDisabled={!canBulkDelete}
-        type='bare'
-        color='dark-red'
+        type='secondary-danger'
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}

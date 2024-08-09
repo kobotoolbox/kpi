@@ -118,8 +118,7 @@ export class TranslationTable extends React.Component {
           (
             <React.Fragment>
               <Button
-                type='bare'
-                color='dark-blue'
+                type='text'
                 size='m'
                 onClick={this.toggleRenameLanguageForm.bind(this)}
                 isDisabled={!this.canEditLanguages()}
@@ -342,16 +341,14 @@ export class TranslationTable extends React.Component {
 
         <bem.Modal__footer>
           <Button
-            type='frame'
-            color='dark-blue'
+            type='secondary'
             size='l'
             onClick={this.onBack.bind(this)}
             label={t('Back')}
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             onClick={this.saveChanges.bind(this)}
             isDisabled={this.state.isSaveChangesButtonPending}

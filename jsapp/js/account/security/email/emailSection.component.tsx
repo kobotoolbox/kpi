@@ -140,8 +140,7 @@ export default function EmailSection() {
                 <Button
                   label='Resend'
                   size='m'
-                  color='blue'
-                  type='frame'
+                  type='secondary'
                   onClick={resendNewUserEmail.bind(
                     resendNewUserEmail,
                     unverifiedEmail.email
@@ -150,8 +149,7 @@ export default function EmailSection() {
                 <Button
                   label='Remove'
                   size='m'
-                  color='dark-red'
-                  type='frame'
+                  type='secondary-danger'
                   onClick={deleteNewUserEmail}
                 />
               </div>
@@ -186,8 +184,7 @@ export default function EmailSection() {
         <Button
           label='Change'
           size='m'
-          color='blue'
-          type='frame'
+          type='secondary'
           onClick={handleSubmit}
         />
       </form>

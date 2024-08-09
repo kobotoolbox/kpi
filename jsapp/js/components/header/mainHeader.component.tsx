@@ -73,8 +73,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
     return (
       <bem.LoginBox>
         <Button
-          type='full'
-          color='blue'
+          type='primary'
           size='l'
           label={t('Log In')}
           onClick={() => {

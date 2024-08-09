@@ -452,8 +452,7 @@ class ConnectProjects extends React.Component {
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='m'
             onClick={this.onConfirmAttachment}
             label={t('Import')}
@@ -494,16 +493,7 @@ class ConnectProjects extends React.Component {
 
                   <div className='connect-projects__import-options'>
                     <Button
-                      type='frame'
-                      color='dark-red'
-                      size='m'
-                      startIcon='trash'
-                      onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
-                    />
-
-                    <Button
-                      type='frame'
-                      color='blue'
+                      type='secondary'
                       size='m'
                       startIcon='settings'
                       onClick={() => this.showColumnFilterModal(
@@ -517,6 +507,13 @@ class ConnectProjects extends React.Component {
                         item.linkedFields,
                         item.attachmentUrl,
                       )}
+                    />
+
+                    <Button
+                      type='secondary-danger'
+                      size='m'
+                      startIcon='trash'
+                      onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
                     />
                   </div>
                 </li>

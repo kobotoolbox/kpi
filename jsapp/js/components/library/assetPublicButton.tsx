@@ -116,8 +116,7 @@ export default class AssetPublicButton extends React.Component<
     if (!isPublic) {
       return (
         <Button
-          type='frame'
-          color='dark-blue'
+          type='secondary'
           size='m'
           startIcon='globe-alt'
           label={t('Make public')}
@@ -128,8 +127,7 @@ export default class AssetPublicButton extends React.Component<
     } else {
       return (
         <Button
-          type='frame'
-          color='dark-red'
+          type='secondary-danger'
           size='m'
           startIcon='close'
           label={t('Make private')}

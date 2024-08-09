@@ -103,9 +103,8 @@ export default function NewFeatureDialog({
           <div className={styles.header}>
             {t('New feature')}
             <Button
-              color='dark-blue'
               size='s'
-              type='full'
+              type='secondary'
               startIcon='close'
               onClick={closeDialog}
             />

@@ -66,8 +66,7 @@ export default function AnalysisHeader() {
         hideOnMenuClick
         triggerContent={
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='m'
             startIcon='plus'
             label={t('Add question')}

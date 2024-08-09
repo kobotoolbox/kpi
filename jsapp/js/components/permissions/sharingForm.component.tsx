@@ -269,9 +269,8 @@ export default class SharingForm extends React.Component<
 
           {!this.state.isAddUserEditorVisible && (
             <Button
-              color='blue'
+              type='primary'
               isDisabled={!isManagingPossible}
-              type='full'
               size='l'
               onClick={this.toggleAddUserEditor.bind(this)}
               label={t('Add user')}
@@ -281,8 +280,7 @@ export default class SharingForm extends React.Component<
           {this.state.isAddUserEditorVisible && (
             <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
               <Button
-                color='dark-blue'
-                type='bare'
+                type='text'
                 size='l'
                 startIcon='close'
                 className='user-permissions-editor-closer'

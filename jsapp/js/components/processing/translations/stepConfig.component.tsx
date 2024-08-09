@@ -112,8 +112,7 @@ export default function StepConfig() {
 
       <footer className={bodyStyles.footer}>
         <Button
-          type='bare'
-          color='blue'
+          type='text'
           size='m'
           label={t('back')}
           startIcon='caret-left'
@@ -123,8 +122,7 @@ export default function StepConfig() {
 
         <div className={bodyStyles.footerRightButtons}>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             label={isAutoEnabled ? t('manual') : t('translate')}
             onClick={selectModeManual}

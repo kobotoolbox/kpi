@@ -226,8 +226,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
             type='bulkUpdate-menu'
             triggerLabel={
               <Button
-                type='frame'
-                color='dark-blue'
+                type='secondary'
                 size='s'
                 label={t('Change status')}
                 endIcon='angle-down'
@@ -251,8 +250,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
 
         {Object.keys(this.props.selectedRows).length > 0 && this.props.asset.deployment__active && (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
           <Button
-            type='frame'
-            color='dark-blue'
+            type='secondary'
             size='s'
             onClick={this.onEdit.bind(this)}
             isDisabled={this.props.selectedAllPages && isSelectAllAvailable}
@@ -264,8 +262,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
 
         {Object.keys(this.props.selectedRows).length > 0 && (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
           <Button
-            type='frame'
-            color='dark-red'
+            type='secondary-danger'
             size='s'
             onClick={this.onDelete.bind(this)}
             startIcon='trash'

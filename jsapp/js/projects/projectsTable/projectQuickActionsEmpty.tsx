@@ -14,8 +14,7 @@ export default function ProjectQuickActionsEmpty() {
       {/* Archive / Unarchive */}
       <Button
         isDisabled
-        type='bare'
-        color='dark-blue'
+        type='secondary'
         size='s'
         startIcon='archived'
         tooltip={t('Archive/Unarchive') + ' – ' + NO_PROJECT_SELECTED}
@@ -25,8 +24,7 @@ export default function ProjectQuickActionsEmpty() {
       {/* Share */}
       <Button
         isDisabled
-        type='bare'
-        color='dark-blue'
+        type='secondary'
         size='s'
         startIcon='user-share'
         tooltip={t('Share project') + ' – ' + NO_PROJECT_SELECTED}
@@ -36,8 +34,7 @@ export default function ProjectQuickActionsEmpty() {
       {/* Delete */}
       <Button
         isDisabled
-        type='bare'
-        color='dark-red'
+        type='secondary-danger'
         size='s'
         startIcon='trash'
         tooltip={t('Delete') + ' – ' + NO_PROJECT_SELECTED}

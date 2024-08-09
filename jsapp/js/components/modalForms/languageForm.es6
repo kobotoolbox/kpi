@@ -156,8 +156,7 @@ class LanguageForm extends React.Component {
 
         <bem.FormView__cell m='submit-button'>
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             label={this.props.langIndex !== undefined ? t('Update') : (this.props.isDefault) ? t('Set') : t('Add')}
             isSubmit

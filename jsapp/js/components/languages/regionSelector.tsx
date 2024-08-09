@@ -144,8 +144,7 @@ export default class RegionSelector extends React.Component<
           </label>
 
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='s'
             startIcon='close'
             onClick={this.props.onCancel}

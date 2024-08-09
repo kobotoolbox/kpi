@@ -62,8 +62,8 @@ $input-color: colors.$kobo-gray-24;
   }
 
   &.hasError {
-    border-color: colors.$kobo-red;
-    &:hover {border-color: colors.$kobo-dark-red;}
+    border-color: colors.$kobo-mid-red;
+    &:hover {border-color: colors.$kobo-red;}
     &:focus {border-color: colors.$kobo-dark-blue;}
   }
 

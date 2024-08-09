@@ -60,16 +60,14 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
 
         <KoboModalFooter alignment='end'>
           <Button
-            type='frame'
-            color='dark-blue'
+            type='secondary'
             size='l'
             onClick={handleClose}
             label={t('Go back')}
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
             label={t('Upgrade now')}
