@@ -1,6 +1,8 @@
 import timeit
 
 import pytest
+import pytz
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.core.cache import cache
 from django.test import override_settings
@@ -170,6 +172,73 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
     def tearDown(self):
         cache.clear()
 
+    def test_default_plan_period(self):
+        """
+        Default community plan cycle dates should line up with calendar month
+        (first of this month to first of next month)
+        """
+
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions)
+
+        response = self.client.get(self.detail_url)
+        now = timezone.now()
+        first_of_month = datetime(now.year, now.month, 1, tzinfo=pytz.UTC)
+        first_of_next_month = first_of_month + relativedelta(months=1)
+
+        assert response.data['total_submission_count']['current_month'] == num_submissions
+        assert (
+            response.data['current_month_start']
+            == first_of_month.isoformat()
+        )
+        assert response.data['current_month_end'] == first_of_next_month.isoformat()
+
+    def test_monthly_plan_period(self):
+        """
+        Returned cycle dates for monthly plan should be the same as
+        the dates stored on the subscription object
+        """
+        subscription = generate_plan_subscription(
+            self.organization
+        )
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions)
+
+        response = self.client.get(self.detail_url)
+
+        assert (
+            response.data['total_submission_count']['current_month']
+            == num_submissions
+        )
+        assert response.data['current_month_start'] == subscription.current_period_start.isoformat()
+        assert (
+            response.data['current_month_end']
+            == subscription.current_period_end.isoformat()
+        )
+
+    def test_annual_plan_period(self):
+        """
+        Returned yearly cycle dates for annual plan should be the same as
+        the dates stored on the subscription object
+        """
+        subscription = generate_plan_subscription(
+            self.organization, interval='year'
+        )
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions)
+
+        response = self.client.get(self.detail_url)
+
+        assert (
+            response.data['total_submission_count']['current_year']
+            == num_submissions
+        )
+        assert response.data['current_year_start'] == subscription.current_period_start.isoformat()
+        assert (
+            response.data['current_year_end']
+            == subscription.current_period_end.isoformat()
+        )
+
     def test_plan_canceled_this_month(self):
         """
         When a user cancels their subscription, they revert to the default community plan
@@ -216,9 +285,59 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         
         assert (
             response.data['total_submission_count']['current_month']
-            == 5
+            == num_submissions
         )
         assert response.data['current_month_start'] == current_billing_period_start.isoformat()
+        assert (
+            response.data['current_month_end']
+            == current_billing_period_end.isoformat()
+        )
+
+    def test_multiple_canceled_plans(self):
+        """
+        If a user has multiple canceled plans, their default billing cycle
+        should be anchored to the end date of the most recently canceled plan
+        """
+        subscription = generate_plan_subscription(
+            self.organization, age_days=60
+        )
+
+        subscription.status = 'canceled'
+        subscription.ended_at = timezone.now() - relativedelta(days=45)
+        subscription.save()
+
+        subscription = generate_plan_subscription(
+            self.organization, age_days=40
+        )
+
+        subscription.status = 'canceled'
+        subscription.ended_at = timezone.now() - relativedelta(days=35)
+        subscription.save()
+
+        subscription = generate_plan_subscription(
+            self.organization, age_days=30
+        )
+
+        canceled_at = timezone.now() - relativedelta(days=20)
+        subscription.status = 'canceled'
+        subscription.ended_at = canceled_at
+        subscription.save()
+
+        current_billing_period_start = canceled_at
+        current_billing_period_end = (
+            current_billing_period_start + relativedelta(months=1)
+        )
+
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions, 15)
+
+        response = self.client.get(self.detail_url)
+
+        assert response.data['total_submission_count']['current_month'] == num_submissions
+        assert (
+            response.data['current_month_start']
+            == current_billing_period_start.isoformat()
+        )
         assert (
             response.data['current_month_end']
             == current_billing_period_end.isoformat()
