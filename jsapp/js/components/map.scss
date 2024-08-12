@@ -35,7 +35,7 @@
     background: colors.$kobo-white;
     z-index: z-indexes.$z-map-settings-2;
     cursor: pointer;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-neutral-7;
 
     &--heatmap {
       top: 118px;
@@ -61,7 +61,7 @@
 
     &.active,
     &:hover {
-      color: colors.$kobo-gray-24;
+      color: colors.$kobo-neutral-8;
     }
 
     &:active {
@@ -114,7 +114,7 @@
 
     border-radius: 6px;
     padding: 12px;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-neutral-7;
   }
 
   .popover-menu__content {
@@ -125,12 +125,12 @@
     overflow: auto;
     max-height: 300px;
     border-radius: 5px;
-    box-shadow: 0 0 5px 5px rgba(colors.$kobo-gray-24, 0.15);
+    box-shadow: 0 0 5px 5px rgba(colors.$kobo-neutral-8, 0.15);
     bottom: calc(100% + 10px);
 
     .popover-menu__link.see-all {
-      background: colors.$kobo-gray-96;
-      border-top: 1px solid colors.$kobo-gray-92;
+      background: colors.$kobo-neutral-2;
+      border-top: 1px solid colors.$kobo-neutral-3;
     }
 
     .popover-menu__heading {
@@ -210,7 +210,7 @@ body .leaflet-control-layers,
     }
 
     &.selected {
-      background: colors.$kobo-gray-96;
+      background: colors.$kobo-neutral-2;
 
       &::after {
         content: "";
@@ -223,7 +223,7 @@ body .leaflet-control-layers,
 
       &::after {
         content: "";
-        background: colors.$kobo-gray-65;
+        background: colors.$kobo-neutral-5;
       }
 
       &:hover {
@@ -261,7 +261,7 @@ body .leaflet-control-layers,
     padding: 0 3px;
     position: relative;
     text-shadow: 0 0 1px colors.$kobo-white;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-neutral-8;
 
     &::after {
       position: absolute;
@@ -304,13 +304,13 @@ body .leaflet-control-layers,
   }
 
   .form-modal__item--list-files {
-    border: 1px solid colors.$kobo-gray-92;
+    border: 1px solid colors.$kobo-neutral-3;
     padding: 10px;
     max-width: 600px;
     margin-bottom: 20px;
 
     .list-file-row {
-      border-top: 1px solid colors.$kobo-gray-92;
+      border-top: 1px solid colors.$kobo-neutral-3;
       padding: 5px;
 
       > span {
@@ -464,7 +464,7 @@ body .leaflet-control-layers,
   margin-left: 5px;
   margin-top: 5px;
   text-align: center;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-neutral-8;
 }
 
 .marker-cluster span {

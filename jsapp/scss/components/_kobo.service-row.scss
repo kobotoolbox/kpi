@@ -15,12 +15,12 @@ $s-service-row-column-spacing: 10px;
   position: relative;
 
   &:not(:last-of-type) {
-    border-bottom: 1px solid colors.$kobo-gray-92;
+    border-bottom: 1px solid colors.$kobo-neutral-3;
   }
 
   &:not(.service-row--header):hover {
-    background-color: colors.$kobo-gray-96;
-    color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-neutral-2;
+    color: colors.$kobo-neutral-8;
   }
 
   &.service-row--clickable {
@@ -33,11 +33,11 @@ $s-service-row-column-spacing: 10px;
   }
 
   &.service-row--active {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-neutral-7;
   }
 
   &.service-row--inactive {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-neutral-5;
   }
 }
 
@@ -89,7 +89,7 @@ $s-service-row-column-spacing: 10px;
   }
 
   &.service-row__column--success {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-neutral-7;
   }
 
   &.service-row__column--pending {
