@@ -1,6 +1,7 @@
 import posixpath
 from datetime import date
 from hashlib import md5
+from typing import Union
 
 import constance
 from django.conf import settings
