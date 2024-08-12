@@ -29,6 +29,10 @@
   margin: 0 auto;
 }
 
+.root.stepConfig :global .loadingSpinner {
+  height: auto;
+}
+
 .root.stepBegin {
   display: flex;
   flex-direction: column;

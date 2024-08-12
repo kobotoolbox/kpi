@@ -261,7 +261,7 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__cell--column-icon {
     width: 30px;
-    margin-right: 10px;
+    margin-inline-end: 10px;
     text-align: center;
     color: colors.$kobo-gray-40;
 
@@ -311,6 +311,10 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__cell--padding-small {
     padding: 10px 20px;
+  }
+
+  &.form-view__cell--full-width {
+    width: 100%;
   }
 
   // preferably with or inside .form-view__cell--first
@@ -475,7 +479,7 @@ $side-tabs-width-mobile: 70px;
 
       &--version {
         width: 39%;
-        text-align: left;
+        text-align: initial;
       }
     }
 

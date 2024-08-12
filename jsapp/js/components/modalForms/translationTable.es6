@@ -119,7 +119,7 @@ export class TranslationTable extends React.Component {
             <React.Fragment>
               <Button
                 type='bare'
-                color='storm'
+                color='dark-blue'
                 size='m'
                 onClick={this.toggleRenameLanguageForm.bind(this)}
                 isDisabled={!this.canEditLanguages()}
@@ -142,6 +142,7 @@ export class TranslationTable extends React.Component {
               }}
               value={this.state.tableData[cellInfo.index].value || ''}
               disabled={cellInfo.original.isLabelLocked}
+              dir='auto'
             />
           );
         },
@@ -334,13 +335,15 @@ export class TranslationTable extends React.Component {
             nextText={t('Next')}
             minRows={1}
             loadingText={<LoadingSpinner />}
+            // Enables RTL support in table cells
+            getTdProps={() => ({dir: 'auto'})}
           />
         </div>
 
         <bem.Modal__footer>
           <Button
             type='frame'
-            color='storm'
+            color='dark-blue'
             size='l'
             onClick={this.onBack.bind(this)}
             label={t('Back')}

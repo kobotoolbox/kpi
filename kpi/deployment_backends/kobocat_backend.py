@@ -116,7 +116,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     continue
                 assign_applicable_kc_permissions(self.asset, user, perms)
 
-    def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
+    def calculated_submission_count(
+        self, user: settings.AUTH_USER_MODEL, **kwargs
+    ) -> int:
         params = self.validate_submission_list_params(
             user, validate_count=True, **kwargs
         )
@@ -161,7 +163,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         json_response = self._kobocat_request(
-            'POST', url, data=payload, files=files)
+            'POST', url, data=payload, files=files
+        )
         # Store only path
         json_response['url'] = urlparse(json_response['url']).path
         self.store_data(
@@ -278,7 +281,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         super().delete()
 
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+    def delete_submission(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         """
         Delete a submission through KoBoCAT proxy
 
@@ -297,7 +302,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def delete_submissions(self, data: dict, user: 'auth.User') -> dict:
+    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL) -> dict:
         """
         Bulk delete provided submissions through KoBoCAT proxy,
         authenticated by `user`'s API token.
@@ -333,7 +338,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return drf_response
 
     def duplicate_submission(
-        self, submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: 'settings.AUTH_USER_MODEL'
     ) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
@@ -397,7 +402,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise KobocatDuplicateSubmissionException
 
     def edit_submission(
-        self, xml_submission_file: File, user: 'auth.User', attachments: dict = None
+        self,
+        xml_submission_file: File,
+        user: settings.AUTH_USER_MODEL,
+        attachments: dict = None,
     ):
         """
         Edit a submission through KoBoCAT proxy on behalf of `user`.
@@ -479,7 +487,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> KobocatAttachment:
@@ -574,7 +582,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
     def get_daily_counts(
-        self, user: 'auth.User', timeframe: tuple[date, date]
+        self, user: settings.AUTH_USER_MODEL, timeframe: tuple[date, date]
     ) -> dict:
 
         user = get_database_user(user)
@@ -681,7 +689,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             response = requests.post(
                 f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
                 # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
+                auth=(settings.ENKETO_API_KEY, ''),
                 data=data
             )
             response.raise_for_status()
@@ -766,7 +774,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def get_submissions(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
         request: Optional['rest_framework.request.Request'] = None,
@@ -794,9 +802,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         mongo_query_params['submission_ids'] = submission_ids
-        params = self.validate_submission_list_params(user,
-                                                      format_type=format_type,
-                                                      **mongo_query_params)
+        params = self.validate_submission_list_params(
+            user, format_type=format_type, **mongo_query_params
+        )
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(request, **params)
@@ -808,7 +816,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         return submissions
 
-    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
+    def get_validation_status(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         url = self.get_submission_validation_status_url(submission_id)
         kc_request = requests.Request(method='GET', url=url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
@@ -867,8 +877,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         self.set_asset_uid()
 
-    def remove_from_kc_only_flag(self,
-                                 specific_user: Union[int, 'User'] = None):
+    def remove_from_kc_only_flag(
+        self, specific_user: Union[int, settings.AUTH_USER_MODEL] = None
+    ):
         """
         Removes `from_kc_only` flag for ALL USERS unless `specific_user` is
         provided
@@ -1022,11 +1033,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'backend_response': json_response,
             })
 
-    def set_validation_status(self,
-                              submission_id: int,
-                              user: 'auth.User',
-                              data: dict,
-                              method: str) -> dict:
+    def set_validation_status(
+        self,
+        submission_id: int,
+        user: settings.AUTH_USER_MODEL,
+        data: dict,
+        method: str,
+    ) -> dict:
         """
         Update validation status through KoBoCAT proxy,
         authenticated by `user`'s API token.
@@ -1053,7 +1066,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+    def set_validation_statuses(
+        self, user: settings.AUTH_USER_MODEL, data: dict
+    ) -> dict:
         """
         Bulk update validation status for provided submissions through
         KoBoCAT proxy, authenticated by `user`'s API token.
@@ -1294,7 +1309,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         )
 
-    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
 
         NLPUsageCounter.objects.filter(
             asset=self.asset, user=self.asset.owner
@@ -1650,10 +1665,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )
             }
 
-        self._kobocat_request('POST',
-                              url=metadata_url,
-                              expect_formid=False,
-                              **kwargs)
+        self._kobocat_request(
+            'POST', url=metadata_url, expect_formid=False, **kwargs
+        )
 
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
@@ -1667,10 +1681,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         server = settings.KOBOCAT_INTERNAL_URL
         metadata_detail_url = f'{server}/api/v1/metadata/{kc_metadata_id}'
         data = {'file_hash': file_.md5_hash}
-        self._kobocat_request('PATCH',
-                              url=metadata_detail_url,
-                              expect_formid=False,
-                              data=data)
+        self._kobocat_request(
+            'PATCH', url=metadata_detail_url, expect_formid=False, data=data
+        )
 
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])

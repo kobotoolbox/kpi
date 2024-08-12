@@ -48,7 +48,7 @@ export default function TextModalCell(
 
         <Button
           type='bare'
-          color='light-blue'
+          color='dark-blue'
           size='s'
           startIcon='expand-arrow'
           onClick={() => setIsModalOpen(true)}
@@ -69,7 +69,7 @@ export default function TextModalCell(
                 .replace('##submissionTotal##', String(props.submissionTotal))}
             </span>
 
-            <span>{props.columnName}</span>
+            <span dir='auto'>{props.columnName}</span>
           </div>
         </KoboModalHeader>
 

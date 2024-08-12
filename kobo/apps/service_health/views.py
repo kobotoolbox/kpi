@@ -91,7 +91,7 @@ def service_health(request):
 
     t0 = time.time()
     failure, kobocat_message, kobocat_content = get_response(
-        settings.KOBOCAT_INTERNAL_URL + '/service_health/'
+        settings.KOBOCAT_INTERNAL_URL + '/legacy/service_health/'
     )
     any_failure = True if failure else any_failure
     kobocat_time = time.time() - t0
@@ -113,7 +113,3 @@ def service_health(request):
     return HttpResponse(
         output, status=(500 if any_failure else 200), content_type='text/plain'
     )
-
-
-def service_health_minimal(request):
-    return HttpResponse("ok", content_type="text/plain")
