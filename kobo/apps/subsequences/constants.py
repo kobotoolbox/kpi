@@ -1,5 +1,6 @@
 GOOGLETX = 'googletx'
 GOOGLETS = 'googlets'
+GOOGLE_CODE = 'goog'
 
 ASYNC_TRANSLATION_DELAY_INTERVAL = 5
 

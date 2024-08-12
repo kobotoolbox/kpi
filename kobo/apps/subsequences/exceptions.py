@@ -10,3 +10,11 @@ class TranscriptionResultsNotFound(Exception):
     """
     No results returned by specified transcription service
     """
+
+
+class TranslationResultsNotFound(Exception):
+    pass
+
+
+class TranslationAsyncResultAvailable(Exception):
+    pass
