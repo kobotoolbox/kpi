@@ -11,19 +11,19 @@
   align-items: center;
 
   &.breadcrumbs--gray-wrapper {
-    background: colors.$kobo-neutral-2;
+    background: colors.$kobo-neutral-200;
     padding: #{(variables.$s-breadcrumbs-height - 40px) * 0.5} 20px;
     height: variables.$s-breadcrumbs-height;
   }
 
   .breadcrumbs__crumb,
   .breadcrumbs__divider {
-    color: colors.$kobo-neutral-7;
+    color: colors.$kobo-neutral-700;
   }
 
   .breadcrumbs__crumb {
     &:last-of-type {
-      color: colors.$kobo-neutral-8;
+      color: colors.$kobo-neutral-800;
     }
   }
 

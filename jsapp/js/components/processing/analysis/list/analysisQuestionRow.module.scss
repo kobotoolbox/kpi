@@ -24,14 +24,14 @@
 }
 
 .dragHandle {
-  color: colors.$kobo-neutral-5;
+  color: colors.$kobo-neutral-500;
   width: analysisVariables.$icon-size;
   line-height: analysisVariables.$icon-size;
   cursor: move;
   position: relative;
 
   &:hover {
-    color: colors.$kobo-neutral-7;
+    color: colors.$kobo-neutral-700;
   }
 
   // We make the handle area bigger by adding this invisible element
