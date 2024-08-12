@@ -106,7 +106,7 @@ class NLPIntegrationTestCase(TestCase):
             content={
                 'ask_a_question': {
                     GOOGLETS: {
-                        "status":"requested","languageCode":"en"
+                        'status': 'requested', 'languageCode': 'en'
                     }
                 }
             }
@@ -122,7 +122,7 @@ class NLPIntegrationTestCase(TestCase):
             content={
                 'ask_a_question': {
                     GOOGLETX: {
-                        "status":"requested","languageCode":"en"
+                        'status':'requested','languageCode':'en'
                     }
                 }
             }

@@ -64,13 +64,13 @@ class GoogleTranscriptionService(GoogleService):
 
         if duration < SYNC_MAX_LENGTH and len(flac_content) < SYNC_MAX_BYTES:
             logging.info(
-                f"Synchronous transcription for {submission_uuid=}, {xpath=}"
+                f'Sync transcription for {submission_uuid=}, {xpath=}'
             )
             # Performance optimization, it's faster directly
             audio = speech.RecognitionAudio(content=flac_content)
         elif duration < ASYNC_MAX_LENGTH:
             logging.info(
-                f"Starting async transcription for {submission_uuid=}, {xpath=}"
+                f'Async transcription for {submission_uuid=}, {xpath=}'
             )
             # Store larger files on gcloud
             gcs_path = self.store_file(flac_content)
