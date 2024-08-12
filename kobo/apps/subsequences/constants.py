@@ -1,3 +1,5 @@
+from typing import Any
+
 GOOGLETX = 'googletx'
 GOOGLETS = 'googlets'
 GOOGLE_CODE = 'goog'
@@ -10,5 +12,5 @@ SUBSEQUENCES_ASYNC_CACHE_KEY = 'subsequences'
 GOOGLE_CACHE_TIMEOUT = 28800  # 8 hours
 
 
-def make_async_cache_key(*args: str | int):
+def make_async_cache_key(*args: list[Any]):
     return '-'.join(map(str, [SUBSEQUENCES_ASYNC_CACHE_KEY, *args]))
