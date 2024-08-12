@@ -915,7 +915,7 @@ REST_FRAMEWORK = {
         'kpi.authentication.SessionAuthentication',
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kpi.authentication.OAuth2Authentication',
         'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
@@ -946,7 +946,7 @@ OPENROSA_REST_FRAMEWORK = {
     # ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'kpi.authentication.DigestAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kpi.authentication.OAuth2Authentication',
         'kpi.authentication.TokenAuthentication',
         # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
         # Django authentication is called before DRF authentication and users get authenticated with
