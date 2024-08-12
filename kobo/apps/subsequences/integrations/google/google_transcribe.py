@@ -3,6 +3,7 @@ import uuid
 import posixpath
 from concurrent.futures import TimeoutError
 from datetime import timedelta
+from typing import Union
 
 import constance
 from django.conf import settings
@@ -33,7 +34,7 @@ class GoogleTranscriptionService(GoogleService):
         super().__init__(*args)
         self.destination_path = None
 
-    def adapt_response(self, response: dict | list) -> str:
+    def adapt_response(self, response: Union[dict, list]) -> str:
         transcript = []
         if isinstance(response, dict):
             try:

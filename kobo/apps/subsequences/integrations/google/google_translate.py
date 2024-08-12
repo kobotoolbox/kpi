@@ -52,7 +52,7 @@ class GoogleTranslationService(GoogleService):
         )
         self.date_string = date.today().isoformat()
 
-    def adapt_response(self, response):
+    def adapt_response(self, response: Union[dict, list]) -> str:
         if isinstance(
             response, translate.types.translation_service.TranslateTextResponse
         ):
