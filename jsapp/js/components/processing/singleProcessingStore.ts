@@ -105,7 +105,7 @@ interface SubmissionsEditIds {
   }>;
 }
 
-interface AutoTransXEvent {
+interface AutoTransxEvent {
   response: ProcessingDataResponse;
   submissionEditId: string;
 }
@@ -171,6 +171,7 @@ class SingleProcessingStore extends Reflux.Store {
   private resetProcessingData() {
     this.isProcessingDataLoaded = false;
     this.data.isPollingForTranscript = false;
+    this.data.isPollingForTranslation = false;
     this.data.transcript = undefined;
     this.data.transcriptDraft = undefined;
     this.data.translations = [];
@@ -634,6 +635,7 @@ class SingleProcessingStore extends Reflux.Store {
     delete this.abortFetchData;
     this.data.isFetchingData = false;
     this.data.isPollingForTranscript = false;
+    this.data.isPollingForTranslation = false;
     this.trigger(this.data);
   }
 
@@ -658,22 +660,22 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private isAutoTranscriptionEventApplicable(event: AutoTransXEvent) {
+  private isAutoTranscriptionEventApplicable(event: AutoTransxEvent) {
     // Note: previously initiated automatic transcriptions may no longer be
     // applicable to the current route
-    const googleTxResponse =
-      event.response[this.currentQuestionQpath]?.googletx;
+    const googleTsResponse =
+      event.response[this.currentQuestionQpath]?.googlets;
     return (
       event.submissionEditId === this.currentSubmissionEditId &&
-      googleTxResponse &&
+      googleTsResponse &&
       this.data.transcriptDraft &&
-      (googleTxResponse.languageCode ===
+      (googleTsResponse.languageCode ===
         this.data.transcriptDraft.languageCode ||
-        googleTxResponse.languageCode === this.data.transcriptDraft.regionCode)
+        googleTsResponse.languageCode === this.data.transcriptDraft.regionCode)
     );
   }
 
-  private onRequestAutoTranscriptionCompleted(event: AutoTransXEvent) {
+  private onRequestAutoTranscriptionCompleted(event: AutoTransxEvent) {
     if (
       !this.currentQuestionQpath ||
       !this.data.isPollingForTranscript ||
@@ -681,18 +683,19 @@ class SingleProcessingStore extends Reflux.Store {
     ) {
       return;
     }
-    const googleTsResponse =
-      event.response[this.currentQuestionQpath]?.googlets;
+
+    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
       this.data.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
       this.data.exponentialBackoffCount = 1;
     }
+
     this.setNotPristine();
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptionInProgress(event: AutoTransXEvent) {
+  private onRequestAutoTranscriptionInProgress(event: AutoTransxEvent) {
     setTimeout(() => {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
@@ -720,7 +723,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private isAutoTranslationEventApplicable(event: AutoTransXEvent) {
+  private isAutoTranslationEventApplicable(event: AutoTransxEvent) {
     const googleTxResponse =
       event.response[this.currentQuestionQpath]?.googletx;
     return (
@@ -733,40 +736,48 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
-  private onRequestAutoTranslationCompleted(event: AutoTransXEvent) {
-    const googleTxResponse =
-      event.response[this.currentQuestionQpath]?.googletx;
+  private onRequestAutoTranslationCompleted(event: AutoTransxEvent) {
+    if (
+      !this.currentQuestionQpath ||
+      !this.data.isPollingForTranslation ||
+      !this.data.translationDraft
+    ) {
+      return;
+    }
 
-    this.data.isFetchingData = false;
+    const googleTxResponse = event.response[this.currentQuestionQpath]?.googletx;
     if (
       googleTxResponse &&
-      this.data.translationDraft &&
-      (googleTxResponse.languageCode ===
-        this.data.translationDraft.languageCode ||
-        googleTxResponse.languageCode === this.data.translationDraft.regionCode)
+      this.isAutoTranslationEventApplicable(event)
     ) {
       this.data.translationDraft.value = googleTxResponse.value;
+      this.data.exponentialBackoffCount = 1;
     }
 
     this.setNotPristine();
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranslationInProgress(event: AutoTransXEvent) {
+  private onRequestAutoTranslationInProgress(event: AutoTransxEvent) {
     setTimeout(() => {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
       if (this.isAutoTranslationEventApplicable(event)) {
+        this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1;
         this.data.isPollingForTranslation = true;
-        console.log('trying to poll!');
+        console.log('trying to poll!'); // TEMP DELETEME
         this.requestAutoTranslation(
           event.response[this.currentQuestionQpath]!.googlets!.languageCode
         );
       } else {
-        console.log('no more poling!');
+        console.log('no more polling!'); // TEMP DELETEME
         this.data.isPollingForTranslation = false;
       }
-    }, 5000);
+    }, getExponentialDelayTime(
+      this.data.exponentialBackoffCount,
+      envStore.data.min_retry_time,
+      envStore.data.max_retry_time
+    ));
   }
 
   /**

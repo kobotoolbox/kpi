@@ -54,28 +54,33 @@ export default class TransxSelector extends React.Component<
 
   /** Rebuilds the options list by fetching all necessary names. */
   fetchNames() {
+    // Start by clearing the options
     this.setState({options: undefined});
     if (this.props.languageCodes) {
+      const newOptions: KoboSelectOption[] = [];
       this.props.languageCodes.forEach(async (languageCode) => {
         let languageName = languageCode;
         try {
           languageName = await languagesStore.getLanguageName(languageCode);
         } catch (error) {
+          // Even if language was not found, we still proceed by adding
+          // an option for it that works for user (e.g. "en (en)" would be used
+          // instead of "English (en)").
           console.error(`Language ${languageCode} not found 4`);
         } finally {
-          // Just a safe check if language codes list didn't change while we waited
-          // for the response.
+          // Just a safe check if language codes list didn't change while we
+          // waited for the response. And if for some crazy reason it doesn't
+          // already exist in the list.
           if (
             this.props.languageCodes?.includes(languageCode) &&
-            this.state.options?.find(
-              (option) => option.value === languageCode
-            ) === undefined
+            this.state.options?.find((option) => option.value === languageCode) === undefined
           ) {
-            const newOptions = this.state.options || [];
             newOptions.push({
               value: languageCode,
               label: getLanguageDisplayLabel(languageName, languageCode),
             });
+            // We set it here after each option, to make sure all of them end up
+            // being stored.
             this.setState({options: newOptions});
           }
         }
