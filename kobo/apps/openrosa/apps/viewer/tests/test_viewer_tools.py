@@ -3,12 +3,12 @@ from ddt import data, ddt, unpack
 from django.test.client import RequestFactory
 
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
+
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     export_def_from_filename,
     get_client_ip,
     get_human_readable_client_user_agent,
 )
-
 
 @ddt
 class TestViewerTools(TestBase):
