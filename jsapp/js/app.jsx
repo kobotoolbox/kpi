@@ -29,6 +29,11 @@ import {
 import {isAnyProcessingRouteActive} from 'js/components/processing/routes.utils';
 import pageState from 'js/pageState.store';
 
+// Query-related
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { queryClient } from './query/queryClient.ts'
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -100,7 +105,7 @@ class App extends React.Component {
     // opt for a more sane, and singluar(!) solution.
     return (
       <DocumentTitle title='KoboToolbox'>
-        <>
+        <QueryClientProvider client={queryClient}>
           <RootContextProvider>
             <Tracking />
             <ToasterConfig />
@@ -139,7 +144,23 @@ class App extends React.Component {
               </bem.PageWrapper__content>
             </bem.PageWrapper>
           </RootContextProvider>
-        </>
+
+
+          {/* React Query Devtools - GUI for inspecting and modifying query status
+              (https://tanstack.com/query/latest/docs/framework/react/devtools)
+              They only show up in dev server (NODE_ENV==='development')
+              Additionally, we're keeping them commented out in `beta`
+              (https://github.com/kobotoolbox/kpi/pull/5001#discussion_r1691067344)
+                (1) Uncomment if you want to use these tools
+                (2) The <style> tag lowers the toggle button opacity
+                    to make it less prominent in dev screenshots. */}
+          {/*
+            <style>{'.tsqd-open-btn-container { opacity: 0.1 !important; };'}</style>
+            <ReactQueryDevtools />
+          */}
+
+
+        </QueryClientProvider>
       </DocumentTitle>
     );
   }
