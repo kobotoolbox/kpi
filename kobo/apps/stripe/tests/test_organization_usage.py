@@ -1,6 +1,9 @@
 import timeit
 
 import pytest
+import pytz
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
@@ -11,14 +14,14 @@ from model_bakery import baker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.stripe.tests.utils import generate_enterprise_subscription, generate_plan_subscription
-from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
+from kobo.apps.trackers.tests.submission_utils import create_mock_assets, add_mock_submissions
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
 from rest_framework import status
 
 
 
-class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
+class OrganizationServiceUsageAPIMultiUserTestCase(ServiceUsageAPIBase):
     """
     Test organization service usage when Stripe is enabled.
 
@@ -144,6 +147,200 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
+        )
+
+class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
+    org_id = 'orgAKWMFskafsngf'
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.now = timezone.now()
+
+        cls.organization = baker.make(
+            Organization, id=cls.org_id, name='test organization'
+        )
+        cls.organization.add_user(cls.anotheruser, is_admin=True)
+        cls.asset = create_mock_assets([cls.anotheruser])[0]
+
+
+    def setUp(self):
+        super().setUp()
+        url = reverse(self._get_endpoint('organizations-list'))
+        self.detail_url = f'{url}{self.org_id}/service_usage/'
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_default_plan_period(self):
+        """
+        Default community plan cycle dates should line up with calendar month
+        (first of this month to first of next month)
+        """
+
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions)
+
+        response = self.client.get(self.detail_url)
+        now = timezone.now()
+        first_of_month = datetime(now.year, now.month, 1, tzinfo=pytz.UTC)
+        first_of_next_month = first_of_month + relativedelta(months=1)
+
+        assert response.data['total_submission_count']['current_month'] == num_submissions
+        assert (
+            response.data['current_month_start']
+            == first_of_month.isoformat()
+        )
+        assert response.data['current_month_end'] == first_of_next_month.isoformat()
+
+    def test_monthly_plan_period(self):
+        """
+        Returned cycle dates for monthly plan should be the same as
+        the dates stored on the subscription object
+        """
+        subscription = generate_plan_subscription(
+            self.organization
+        )
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions)
+
+        response = self.client.get(self.detail_url)
+
+        assert (
+            response.data['total_submission_count']['current_month']
+            == num_submissions
+        )
+        assert response.data['current_month_start'] == subscription.current_period_start.isoformat()
+        assert (
+            response.data['current_month_end']
+            == subscription.current_period_end.isoformat()
+        )
+
+    def test_annual_plan_period(self):
+        """
+        Returned yearly cycle dates for annual plan should be the same as
+        the dates stored on the subscription object
+        """
+        subscription = generate_plan_subscription(
+            self.organization, interval='year'
+        )
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions)
+
+        response = self.client.get(self.detail_url)
+
+        assert (
+            response.data['total_submission_count']['current_year']
+            == num_submissions
+        )
+        assert response.data['current_year_start'] == subscription.current_period_start.isoformat()
+        assert (
+            response.data['current_year_end']
+            == subscription.current_period_end.isoformat()
+        )
+
+    def test_plan_canceled_this_month(self):
+        """
+        When a user cancels their subscription, they revert to the default community plan
+        with a billing cycle anchored to the end date of their canceled subscription
+        """
+
+        subscription = generate_plan_subscription(self.organization, age_days=30)
+
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions, 15)
+
+        canceled_at = timezone.now()
+        subscription.status = 'canceled'
+        subscription.ended_at = canceled_at
+        subscription.save()
+
+        current_billing_period_end = canceled_at + relativedelta(months=1)
+
+        response = self.client.get(self.detail_url)
+        
+        assert (
+            response.data['total_submission_count']['current_month']
+            == 0
+        )
+        assert response.data['current_month_start'] == canceled_at.isoformat()
+        assert response.data['current_month_end'] == current_billing_period_end.isoformat()
+
+    def test_plan_canceled_last_month(self):
+        subscription = generate_plan_subscription(self.organization, age_days=60)
+
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions, 15)
+
+        canceled_at = timezone.now() - relativedelta(days=45)
+        subscription.status = 'canceled'
+        subscription.ended_at = canceled_at
+        subscription.save()
+
+        current_billing_period_start = canceled_at + relativedelta(months=1)
+        current_billing_period_end = current_billing_period_start + relativedelta(
+            months=1
+        )
+        response = self.client.get(self.detail_url)
+        
+        assert (
+            response.data['total_submission_count']['current_month']
+            == num_submissions
+        )
+        assert response.data['current_month_start'] == current_billing_period_start.isoformat()
+        assert (
+            response.data['current_month_end']
+            == current_billing_period_end.isoformat()
+        )
+
+    def test_multiple_canceled_plans(self):
+        """
+        If a user has multiple canceled plans, their default billing cycle
+        should be anchored to the end date of the most recently canceled plan
+        """
+        subscription = generate_plan_subscription(
+            self.organization, age_days=60
+        )
+
+        subscription.status = 'canceled'
+        subscription.ended_at = timezone.now() - relativedelta(days=45)
+        subscription.save()
+
+        subscription = generate_plan_subscription(
+            self.organization, age_days=40
+        )
+
+        subscription.status = 'canceled'
+        subscription.ended_at = timezone.now() - relativedelta(days=35)
+        subscription.save()
+
+        subscription = generate_plan_subscription(
+            self.organization, age_days=30
+        )
+
+        canceled_at = timezone.now() - relativedelta(days=20)
+        subscription.status = 'canceled'
+        subscription.ended_at = canceled_at
+        subscription.save()
+
+        current_billing_period_start = canceled_at
+        current_billing_period_end = (
+            current_billing_period_start + relativedelta(months=1)
+        )
+
+        num_submissions = 5
+        add_mock_submissions([self.asset], num_submissions, 15)
+
+        response = self.client.get(self.detail_url)
+
+        assert response.data['total_submission_count']['current_month'] == num_submissions
+        assert (
+            response.data['current_month_start']
+            == current_billing_period_start.isoformat()
+        )
+        assert (
+            response.data['current_month_end']
+            == current_billing_period_end.isoformat()
         )
 
 
