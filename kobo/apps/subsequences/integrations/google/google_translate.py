@@ -1,7 +1,7 @@
 import posixpath
 from datetime import date
 from hashlib import md5
-from typing import Union
+from typing import Union, Tuple, Any
 
 import constance
 from django.conf import settings
@@ -33,6 +33,10 @@ class GoogleTranslationService(GoogleService):
     API_RESOURCE = 'projects.locations.operations'
 
     def __init__(self, *args):
+        """
+        This service takes a submission object as a GoogleService inheriting
+        class. It uses google cloud translation v3 API.
+        """
         super().__init__(*args)
 
         self.translate_client = translate.TranslationServiceClient(
@@ -54,6 +58,9 @@ class GoogleTranslationService(GoogleService):
         self.date_string = date.today().isoformat()
 
     def adapt_response(self, response: Union[dict, list]) -> str:
+        """
+        Extract the translation string from the response data
+        """
         if isinstance(
             response, translate.types.translation_service.TranslateTextResponse
         ):
@@ -66,8 +73,15 @@ class GoogleTranslationService(GoogleService):
         return ''
 
     def begin_google_operation(
-        self, xpath, source_lang, target_lang, content
-    ) -> (object, int):
+        self,
+        xpath: str,
+        source_lang: str,
+        target_lang: str,
+        content: Any,
+    ) -> Tuple[object, int]:
+        """
+        Set up translation operation
+        """
         source_path, output_path = self.get_unique_paths(
             xpath, source_lang, target_lang
         )
@@ -119,7 +133,11 @@ class GoogleTranslationService(GoogleService):
     def counter_name(self):
         return 'google_mt_characters'
 
-    def get_stored_result(self, target_lang, output_dir: str):
+    def get_stored_result(self, target_lang, output_dir: str) -> str:
+        """
+        Reads the translation file from the bucket storage and deletes all
+        the files in the output path.
+        """
         text = ''
         for blob in self.bucket.list_blobs(prefix=output_dir):
             if f'_{target_lang}_translations' in blob.name:
@@ -130,7 +148,16 @@ class GoogleTranslationService(GoogleService):
 
         return text
 
-    def get_unique_paths(self, xpath, source_lang, target_lang):
+    def get_unique_paths(
+        self,
+        xpath: str,
+        source_lang: str,
+        target_lang: str,
+    ) -> Tuple[str, str]:
+        """
+        Returns source and output paths based on the parameters used and the
+        current date.
+        """
         submission_uuid = self.submission.submission_uuid
         _hash = _hashed_strings(
             self.submission.submission_uuid, xpath, self.user.username
@@ -145,6 +172,9 @@ class GoogleTranslationService(GoogleService):
         return source_path, output_path
 
     def process_data(self, qpath: str, vals: dict) -> dict:
+        """
+        Translates the value for a given qpath and it's json values.
+        """
         autoparams = vals[GOOGLETX]
         xpath = self.qpath_to_xpath(qpath)
         try:
@@ -152,7 +182,7 @@ class GoogleTranslationService(GoogleService):
             source_lang = vals['transcript']['languageCode']
             target_lang = autoparams.get('languageCode')
         except KeyError:
-            logging.exception('Error while setting up translation processing')
+            logging.exception('Error while setting up translation')
             return {'status': 'error'}
 
         lang_service = TranslationService.objects.get(code=GOOGLE_CODE)
@@ -200,7 +230,10 @@ class GoogleTranslationService(GoogleService):
         source_lang: str,
         target_lang: str,
         content: str,
-    ):
+    ) -> str:
+        """
+        Translates an input content string
+        """
         content_size = len(content)
         if content_size <= MAX_SYNC_CHARS:
             logging.info(
@@ -222,3 +255,4 @@ class GoogleTranslationService(GoogleService):
             response = self.handle_google_operation(
                 xpath, source_lang, target_lang, content
             )
+            return response

@@ -3,7 +3,7 @@ import uuid
 import posixpath
 from concurrent.futures import TimeoutError
 from datetime import timedelta
-from typing import Union
+from typing import Union, Tuple, Any
 
 import constance
 from django.conf import settings
@@ -31,10 +31,17 @@ class GoogleTranscriptionService(GoogleService):
     API_RESOURCE = 'operations'
 
     def __init__(self, *args):
+        """
+        This service takes a submission object as a GoogleService inheriting
+        class. It uses google cloud transcript v1 API.
+        """
         super().__init__(*args)
         self.destination_path = None
 
     def adapt_response(self, response: Union[dict, list]) -> str:
+        """
+        Extracts the transcript from a response from the google API
+        """
         transcript = []
         if isinstance(response, dict):
             try:
@@ -52,7 +59,16 @@ class GoogleTranscriptionService(GoogleService):
         result_string = ' '.join(transcript)
         return result_string
 
-    def begin_google_operation(self, xpath, source_lang, target_lang, content):
+    def begin_google_operation(
+        self,
+        xpath: str,
+        source_lang: str,
+        target_lang: str,
+        content: Any,
+    ) -> Tuple[str, int]:
+        """
+        Set up transcription operation
+        """
         submission_uuid = self.submission.submission_uuid
         flac_content, duration = content
         total_seconds = int(duration.total_seconds())
@@ -73,7 +89,7 @@ class GoogleTranscriptionService(GoogleService):
             logging.info(
                 f'Async transcription for {submission_uuid=}, {xpath=}'
             )
-            # Store larger files on gcloud
+            # Stores larger files on gcloud
             gcs_path = self.store_file(flac_content)
             audio = speech.RecognitionAudio(
                 uri=f'gs://{settings.GS_BUCKET_NAME}/{gcs_path}'
@@ -94,13 +110,16 @@ class GoogleTranscriptionService(GoogleService):
 
     def get_converted_audio(
         self, xpath: str, submission_uuid: int, user: object
-    ):
+    ) -> Union[bytes, Tuple[bytes, timedelta]]:
+        """
+        Converts attachment audio or video file to flac
+        """
         attachment = self.asset.deployment.get_attachment(
             submission_uuid, user, xpath=xpath
         )
         return attachment.get_transcoded_audio('flac', include_duration=True)
 
-    def process_data(self, qpath, vals) -> dict:
+    def process_data(self, qpath: str, vals: dict) -> dict:
         autoparams = vals[GOOGLETS]
         language_code = autoparams.get('languageCode')
         region_code = autoparams.get('regionCode')
@@ -142,7 +161,7 @@ class GoogleTranscriptionService(GoogleService):
         }
 
     def transcribe_file(
-        self, xpath: str, source_lang: str, content: (object, int)
+        self, xpath: str, source_lang: str, content: Tuple[object, int]
     ) -> str:
         """
         Transcribe file with cache layer around Google operations
@@ -152,9 +171,11 @@ class GoogleTranscriptionService(GoogleService):
         return self.handle_google_operation(xpath, source_lang, None, content)
 
     def store_file(self, content):
-        # Store temporary file. Needed to avoid limits.
-        # Set Life cycle expiration to delete after 1 day
-        # https://cloud.google.com/storage/docs/lifecycle
+        """
+        Store temporary file. Needed to avoid limits.
+        Set Life cycle expiration to delete after 1 day
+        https://cloud.google.com/storage/docs/lifecycle
+        """
         self.destination_path = posixpath.join(
             constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX,
             f'{uuid.uuid4()}.flac',

@@ -1,6 +1,8 @@
-import constance
 from abc import ABC, abstractmethod
 from concurrent.futures import TimeoutError
+from typing import Any, Tuple
+
+import constance
 from google.cloud import storage
 from google.api_core.operation import Operation
 from googleapiclient import discovery
@@ -41,7 +43,7 @@ class GoogleService(ABC):
         )
 
     @abstractmethod
-    def adapt_response(self, results, *args) -> [object]:
+    def adapt_response(self, results: Any) -> str:
         pass
 
     @abstractmethod
@@ -50,8 +52,8 @@ class GoogleService(ABC):
         xpath: str,
         source_lang: str,
         target_lang: str,
-        content: str,
-    ) -> (object, int):
+        content: Any,
+    ) -> Tuple[object, int]:
         pass
 
     @property
@@ -63,7 +65,7 @@ class GoogleService(ABC):
         return 'google_'
 
     def handle_google_operation(
-        self, xpath: str, source_lang: str, target_lang: str, content=None
+        self, xpath: str, source_lang: str, target_lang: str, content: Any=None
     ) -> str:
         submission_id = self.submission.submission_uuid
         cache_key = make_async_cache_key(
