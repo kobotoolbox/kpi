@@ -33,7 +33,7 @@ const DELETE_CHAR = '⌫';
 
 /** Response from Google for automated transcript. */
 interface GoogleTsResponse {
-  status: 'requested' | 'in_progress' | 'complete';
+  status: 'requested' | 'in_progress' | 'complete' | 'error';
   /** Full transcript text. */
   value: string;
   /** Transcript text split into chunks - scored by transcription quality. */
@@ -42,11 +42,12 @@ interface GoogleTsResponse {
     confidence: number;
   }>;
   languageCode: string;
+  regionCode: string | null;
 }
 
 /** Response from Google for automated translation. */
 interface GoogleTxResponse {
-  status: 'complete';
+  status: 'requested' | 'in_progress' | 'complete' | 'error';
   value: string;
   languageCode: string;
 }
@@ -484,15 +485,15 @@ processingActions.requestAutoTranscription.listen(
         data: JSON.stringify(data),
       })
         .done((response: ProcessingDataResponse) => {
-          if (
-            ['requested', 'in_progress'].includes(
-              response[qpath]?.googlets?.status ?? ''
-            )
-          ) {
+          const responseStatus = response[qpath]?.googlets?.status;
+
+          if (responseStatus === 'requested' || responseStatus === 'in_progress') {
             processingActions.requestAutoTranscription.in_progress({
               response,
               submissionEditId,
             });
+          } else if (responseStatus === 'error') {
+            processingActions.requestAutoTranscription.failed('unknown error');
           } else {
             processingActions.requestAutoTranscription.completed({
               response,
@@ -711,7 +712,8 @@ processingActions.deleteTranslation.failed.listen(() => {
  * `requestAutoTranslation` action
  *
  * For requestiong automatic translation from Back end. Translations are not as
- * time consuming as transcripts, so we don't use `in_progress` callback here.
+ * time consuming as transcripts, but we also use `in_progress` callback here,
+ * as it's needed for text longer than ~30k characters.
  */
 interface RequestAutoTranslationFn {
   (
@@ -749,9 +751,6 @@ processingActions.requestAutoTranslation.listen(
         },
       };
 
-      // FIXME: large translations can also be asynchronous, and the back end
-      // may return `in_progress`. We need the same kind of logic here as we
-      // have in `requestAutoTranscription`
       $.ajax({
         dataType: 'json',
         contentType: 'application/json',
@@ -760,13 +759,17 @@ processingActions.requestAutoTranslation.listen(
         data: JSON.stringify(data),
       })
         .done((response: ProcessingDataResponse) => {
-          if (response[qpath]?.googlets?.status === 'complete') {
-            processingActions.requestAutoTranslation.completed({
+          const responseStatus = response[qpath]?.googletx?.status;
+
+          if (responseStatus === 'requested' || responseStatus === 'in_progress') {
+            processingActions.requestAutoTranslation.in_progress({
               response,
               submissionEditId,
             });
+          } else if (responseStatus === 'error') {
+            processingActions.requestAutoTranslation.failed('unknown error');
           } else {
-            processingActions.requestAutoTranslation.in_progress({
+            processingActions.requestAutoTranslation.completed({
               response,
               submissionEditId,
             });
