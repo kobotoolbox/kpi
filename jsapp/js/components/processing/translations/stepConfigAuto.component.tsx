@@ -48,6 +48,10 @@ export default function StepConfigAuto() {
           {t('Automatic translation in progress')}
         </header>
 
+        {/*
+        Automatic translation is much faster than automatic transcription, but
+        for the consistency sake we use similar UI here.
+        */}
         <p>
           {t('Estimated time for completion: ##estimate##').replace(
             '##estimate##',
