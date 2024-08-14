@@ -59,7 +59,7 @@ DEFINITIONS['qual_select_one'] = {
     'type': 'object',
     'properties': {
         'type': {'const': 'qual_select_one'},
-        'val': {'type': 'string'},
+        'val': {'type': 'string', 'minLength': 1},
     },
 }
 DEFINITIONS['qual_select_multiple'] = {
@@ -68,7 +68,7 @@ DEFINITIONS['qual_select_multiple'] = {
         'type': {'const': 'qual_select_multiple'},
         'val': {
             'type': 'array',
-            'items': {'type': 'string'},
+            'items': {'type': 'string', 'minLength': 1},
         },
     },
 }

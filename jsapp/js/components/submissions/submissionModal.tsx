@@ -463,7 +463,7 @@ export default class SubmissionModal extends React.Component<
         if (typeof mediaAttachment === 'string') {
           return mediaAttachment;
         } else {
-          return mediaAttachment.download_medium_url;
+          return mediaAttachment.download_medium_url || mediaAttachment.download_url;
         }
       }
     }

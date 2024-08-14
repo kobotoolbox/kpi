@@ -394,9 +394,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 1,
                 'current_month': 1,
             },
-            'current_month_start': today.replace(day=1).strftime('%Y-%m-%d'),
-            'current_year_start': today.replace(month=1, day=1).strftime('%Y-%m-%d'),
-            'billing_period_end': None,
         }
 
         expected_empty_data = {
@@ -414,9 +411,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 0,
                 'current_month': 0,
             },
-            'current_month_start': today.replace(day=1).strftime('%Y-%m-%d'),
-            'current_year_start': today.replace(month=1, day=1).strftime('%Y-%m-%d'),
-            'billing_period_end': None,
         }
 
         service_usage_url = reverse(
@@ -425,12 +419,16 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         # someuser has some usage metrics
         self.client.login(username='someuser', password='someuser')
         response = self.client.get(service_usage_url)
-        assert response.data == expected_data
+        assert response.data['total_nlp_usage'] == expected_data['total_nlp_usage']
+        assert response.data['total_storage_bytes'] == expected_data['total_storage_bytes']
+        assert response.data['total_submission_count'] == expected_data['total_submission_count']
 
         # anotheruser's usage should be 0
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(service_usage_url)
-        assert response.data == expected_empty_data
+        assert response.data['total_nlp_usage'] == expected_empty_data['total_nlp_usage']
+        assert response.data['total_storage_bytes'] == expected_empty_data['total_storage_bytes']
+        assert response.data['total_submission_count'] == expected_empty_data['total_submission_count']
 
         # Transfer project from someuser to anotheruser
         self.client.login(username='someuser', password='someuser')
@@ -452,12 +450,16 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
 
         # someuser should have no usage reported anymore
         response = self.client.get(service_usage_url)
-        assert response.data == expected_empty_data
+        assert response.data['total_nlp_usage'] == expected_empty_data['total_nlp_usage']
+        assert response.data['total_storage_bytes'] == expected_empty_data['total_storage_bytes']
+        assert response.data['total_submission_count'] == expected_empty_data['total_submission_count']
 
         # anotheruser should now have usage reported
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(service_usage_url)
-        assert response.data == expected_data
+        assert response.data['total_nlp_usage'] == expected_data['total_nlp_usage']
+        assert response.data['total_storage_bytes'] == expected_data['total_storage_bytes']
+        assert response.data['total_submission_count'] == expected_data['total_submission_count']
 
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',

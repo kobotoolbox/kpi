@@ -51,6 +51,10 @@ export const YourPlan = () => {
     let date;
     if (subscriptions.planResponse.length) {
       date = subscriptions.planResponse[0].start_date;
+    } else if (subscriptions.canceledPlans.length){
+      date =
+        subscriptions.canceledPlans[subscriptions.canceledPlans.length - 1]
+          .ended_at;
     } else {
       date = session.currentAccount.date_joined;
     }
