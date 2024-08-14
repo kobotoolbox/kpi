@@ -8,6 +8,7 @@ import sessionStore from 'js/stores/session';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
+import CollectMethodSelector from 'js/project/collectMethodSelector.component';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
@@ -376,32 +377,10 @@ class FormLanding extends React.Component {
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
             <bem.FormView__cell>
-              <PopoverMenu
-                type='collectData-menu'
-                triggerLabel={(
-                  <Button
-                    size='m'
-                    type='primary'
-                    label={COLLECTION_METHODS[chosenMethod].label}
-                    endIcon='angle-down'
-                    isFullWidth
-                  />
-                )}
-              >
-                {deployment__links_list.map((c) => {
-                  return (
-                    <bem.PopoverMenu__link
-                      m={['collect-row']}
-                      key={`c-${c.key}`}
-                      data-method={c.key}
-                      onClick={this.setCollectMethod}
-                    >
-                      <div className='collect-data-label'>{c.label}</div>
-                      <div className='collect-data-desc'>{c.desc}</div>
-                    </bem.PopoverMenu__link>
-                  );
-                })}
-              </PopoverMenu>
+              <CollectMethodSelector
+                onChange={(newMethod) => {this.setCollectMethod(newMethod);}}
+                selectedMethod={chosenMethod}
+              />
             </bem.FormView__cell>
 
             <bem.FormView__cell className='collect-header-actions'>
@@ -553,9 +532,10 @@ class FormLanding extends React.Component {
     );
   }
 
-  setCollectMethod(evt) {
-    this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
+  setCollectMethod(newMethod) {
+    this.setState({selectedCollectMethod: newMethod});
   }
+
   goToProjectsList() {
     this.props.router.navigate(ROUTES.FORMS);
   }

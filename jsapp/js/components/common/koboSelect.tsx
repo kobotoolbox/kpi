@@ -42,7 +42,7 @@ export type KoboSelectType = 'blue' | 'gray' | 'outline';
 
 export interface KoboSelectOption {
   icon?: IconName;
-  label: string;
+  label: React.ReactNode;
   /** Needs to be unique! */
   value: string;
 }
@@ -81,6 +81,7 @@ interface KoboSelectProps {
   'data-cy'?: string;
   placeholder?: string;
   error?: string;
+  className?: string;
 }
 
 interface KoboSelectState {
@@ -341,7 +342,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
     }
 
     return (
-      <bem.KoboSelect m={modifiers}>
+      <bem.KoboSelect m={modifiers} className={this.props.className}>
         {this.props.label &&
           <bem.KoboSelect__label htmlFor={this.props.name}>
             {this.props.label}{' '}

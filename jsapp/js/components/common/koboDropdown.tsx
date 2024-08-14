@@ -34,6 +34,8 @@ interface KoboDropdownProps {
   'data-cy'?: string;
   /** Alternative way of getting the opened status of the menu. */
   onMenuVisibilityChange?: (isOpened: boolean) => void;
+  /** Additional class names. */
+  className?: string;
 }
 
 interface KoboDropdownState {
@@ -244,6 +246,7 @@ export default class KoboDropdown extends React.Component<
         {...additionalWrapperAttributes}
         role='combobox'
         aria-required={this.props.isRequired}
+        className={this.props.className}
       >
         <bem.KoboDropdown__trigger
           onClick={this.onTriggerClick.bind(this)}
