@@ -31,8 +31,12 @@ import {REPORT_STYLES} from './reportsConstants';
 // Styles
 import './reports.scss';
 
-export default class Reports extends React.Component {
-  constructor(props) {
+interface ReportsProps {}
+
+interface ReportsState {}
+
+export default class Reports extends React.Component<ReportsProps, ReportsState> {
+  constructor(props: ReportsProps) {
     super(props);
     this.state = {
       graphWidth: '700',
