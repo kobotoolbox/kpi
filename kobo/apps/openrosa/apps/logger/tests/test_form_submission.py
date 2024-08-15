@@ -244,12 +244,13 @@ class TestFormSubmission(TestBase):
         self.assertEqual(self.response.status_code, 201)
         self.assertEqual(Instance.objects.count(), pre_count + 1)
         inst = Instance.objects.order_by('pk').last()
-        self._make_submission(duplicate_xml_submission_file_path)
-        self.assertEqual(self.response.status_code, 201)
-        self.assertEqual(Instance.objects.count(), pre_count + 2)
+        with self.assertRaises(Exception):
+            self._make_submission(duplicate_xml_submission_file_path)
+        self.assertEqual(self.response.status_code, 401)
+        self.assertEqual(Instance.objects.count(), pre_count + 1)
         # this is exactly the same instance
         another_inst = Instance.objects.order_by('pk').last()
-        self.assertNotEqual(inst.xml, another_inst.xml)
+        self.assertEqual(inst.xml, another_inst.xml)
 
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(

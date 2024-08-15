@@ -77,6 +77,15 @@ def get_uuid_from_xml(xml):
     return None
 
 
+def get_root_uuid_from_xml(xml):
+    root_uuid = get_meta_from_xml(xml, "rootUuid")
+    if root_uuid:
+        return root_uuid
+
+    # If no rootUuid, fall back to instanceID
+    return get_uuid_from_xml(xml)
+
+
 def get_submission_date_from_xml(xml):
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)

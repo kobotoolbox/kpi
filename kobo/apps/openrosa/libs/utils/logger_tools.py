@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import logging
 import os
 import re
@@ -164,7 +165,7 @@ def create_instance(
     # get new and deprecated uuid's
     new_uuid = get_uuid_from_xml(xml)
 
-    with get_instance_lock(xml_hash) as lock_acquired:
+    with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
         if not lock_acquired:
             raise ConflictingXMLHashInstanceError()
         # Dorey's rule from 2012 (commit 890a67aa):
@@ -224,8 +225,8 @@ def dict2xform(jsform, form_id):
 
 
 @contextlib.contextmanager
-def get_instance_lock(xml_hash: str) -> bool:
-    int_lock = int(xml_hash, 16) & 0xfffffffffffffff
+def get_instance_lock(xml_hash: str, submission_uuid: str, xform_id: int) -> bool:
+    int_lock = int.from_bytes(hashlib.shake_128(f'{xform_id}!!{submission_uuid}!!{xml_hash}'.encode()).digest(7), 'little')
     acquired = False
 
     with transaction.atomic():
@@ -790,41 +791,44 @@ def _get_instance(
     `update_xform_submission_count()` from doing anything, which avoids locking
     any rows in `logger_xform` or `main_userprofile`.
     """
-    # check if it is an edit submission
-    old_uuid = get_deprecated_uuid_from_xml(xml)
-    instances = Instance.objects.filter(uuid=old_uuid)
+    try:
+        # check if it is an edit submission
+        old_uuid = get_deprecated_uuid_from_xml(xml)
+        instances = Instance.objects.filter(uuid=old_uuid)
 
-    if instances:
-        # edits
-        instance = instances[0]
-        check_edit_submission_permissions(request, xform)
-        InstanceHistory.objects.create(
-            xml=instance.xml, xform_instance=instance, uuid=old_uuid)
-        instance.xml = xml
-        instance._populate_xml_hash()
-        instance.uuid = new_uuid
-        instance.save()
-    else:
-        submitted_by = (
-            get_real_user(request)
-            if request and request.user.is_authenticated
-            else None
-        )
-        # new submission
-        # Avoid `Instance.objects.create()` so that we can set a Python-only
-        # attribute, `defer_counting`, before saving
-        instance = Instance()
-        instance.xml = xml
-        instance.user = submitted_by
-        instance.status = status
-        instance.xform = xform
-        if defer_counting:
-            # Only set the attribute if requested, i.e. don't bother ever
-            # setting it to `False`
-            instance.defer_counting = True
-        instance.save()
+        if instances:
+            # edits
+            instance = instances[0]
+            check_edit_submission_permissions(request, xform)
+            InstanceHistory.objects.create(
+                xml=instance.xml, xform_instance=instance, uuid=old_uuid)
+            instance.xml = xml
+            instance._populate_xml_hash()
+            instance.uuid = new_uuid
+            instance.save()
+        else:
+            submitted_by = (
+                get_real_user(request)
+                if request and request.user.is_authenticated
+                else None
+            )
+            # new submission
+            # Avoid `Instance.objects.create()` so that we can set a Python-only
+            # attribute, `defer_counting`, before saving
+            instance = Instance()
+            instance.xml = xml
+            instance.user = submitted_by
+            instance.status = status
+            instance.xform = xform
+            if defer_counting:
+                # Only set the attribute if requested, i.e. don't bother ever
+                # setting it to `False`
+                instance.defer_counting = True
+            instance.save()
 
-    return instance
+        return instance
+    except IntegrityError:
+        raise DuplicateInstanceError()
 
 
 def _has_edit_xform_permission(
