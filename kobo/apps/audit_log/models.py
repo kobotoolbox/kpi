@@ -30,6 +30,15 @@ class AuditAction(models.TextChoices):
     AUTH = 'auth', 'AUTH'
 
 
+class AuditType(models.TextChoices):
+
+    ACCESS = 'access'
+    PROJECT_HISTORY = 'project-history'
+    DATA_EDITING = 'data-editing'
+    USER_MANAGEMENT = 'user-management'
+    ASSET_MANAGEMENT = 'asset-management'
+    SUBMISSION_MANAGEMENT = 'submission-management'
+
 class AuditLog(models.Model):
 
     id = models.BigAutoField(primary_key=True)
@@ -52,6 +61,7 @@ class AuditLog(models.Model):
     user_uid = models.CharField(
         db_index=True, max_length=UUID_LENGTH + 1
     )  # 1 is prefix length
+    log_type = models.CharField(choices=AuditType.choices)
 
     class Meta:
         indexes = [
@@ -141,5 +151,6 @@ class AuditLog(models.Model):
             user_uid=logged_in_user.extra_details.uid,
             action=AuditAction.AUTH,
             metadata=metadata,
+            log_type=AuditType.ACCESS,
         )
         return audit_log
