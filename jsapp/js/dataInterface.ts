@@ -21,7 +21,7 @@ import type {
 } from './components/processing/analysis/constants';
 import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
-import type {ReportsResponse} from 'js/components/reports/reportsConstants';
+import type {ReportsResponse, CustomReport} from 'js/components/reports/reportsConstants';
 import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 import type {SortValues} from 'js/components/submissions/tableConstants';
 import type {ValidationStatusName} from 'js/components/submissions/validationStatus.constants';
@@ -542,17 +542,7 @@ interface AssetRequestObject {
     kuid_names?: AssetReportStylesKuidNames;
   };
   report_custom?: {
-    [reportName: string]: {
-      crid: string;
-      name: string;
-      questions: string[];
-      reportStyle: {
-        groupDataBy: string;
-        report_type: string;
-        report_colors: string[];
-        translationIndex: number;
-      };
-    };
+    [crid: string]: CustomReport;
   };
   map_styles?: {};
   map_custom?: {};

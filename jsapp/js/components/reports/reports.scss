@@ -269,6 +269,10 @@
   text-align: right;
 }
 
+.custom-reports-selector {
+  max-width: 300px;
+}
+
 @include breakpoints.breakpoint(mediumAndUp) {
   .report-view {
     padding: 12px 40px;

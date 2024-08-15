@@ -1,6 +1,18 @@
 import type {ChartTypeRegistry} from 'chart.js/auto';
 import type {AnyRowTypeName} from 'js/constants';
 
+export interface CustomReport {
+  crid: string;
+  name: string;
+  questions: string[];
+  reportStyle: {
+    groupDataBy: string;
+    report_type: ReportStyleName;
+    report_colors: string[];
+    translationIndex: number;
+  }
+}
+
 interface ReportsResponseDataValueRegular {
   responses: string;
   frequencies: number;
@@ -47,6 +59,7 @@ export interface ReportsResponse {
   name: string;
   row: {
     type: AnyRowTypeName;
+    label?: Array<string | null>;
   };
   data: ReportsResponseData;
   kuid: string;
@@ -55,6 +68,7 @@ export interface ReportsResponse {
     graphWidth?: number;
     report_type?: ReportStyleName;
     report_colors?: string[];
+    groupDataBy?: string;
   };
 }
 

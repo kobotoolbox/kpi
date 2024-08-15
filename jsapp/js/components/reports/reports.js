@@ -2,26 +2,34 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {dataInterface} from 'js/dataInterface';
-import {actions} from 'js/actions';
-import bem from 'js/bem';
-import {stores} from 'js/stores';
-import PopoverMenu from 'js/popoverMenu';
+
+// Partial components
 import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
 import DocumentTitle from 'react-document-title';
-import {txtid} from '../../../xlform/src/model.utils';
-import {notify, launchPrinting} from 'utils';
-import {REPORT_STYLES} from './reportsConstants';
 import CustomReportForm from './customReportForm';
 import QuestionGraphSettings from './questionGraphSettings';
 import ReportContents from './reportContents';
 import ReportStyleSettings from './reportStyleSettings';
-import './reports.scss';
-import {userCan} from 'js/components/permissions/utils';
 import CenteredMessage from 'js/components/common/centeredMessage.component';
 import Button from 'js/components/common/button';
+import KoboSelect from 'js/components/common/koboSelect';
+
+// Utilities
+import {dataInterface} from 'js/dataInterface';
+import {actions} from 'js/actions';
+import bem from 'js/bem';
+import {stores} from 'js/stores';
+import {txtid} from '../../../xlform/src/model.utils';
+import {notify, launchPrinting} from 'utils';
+import {userCan} from 'js/components/permissions/utils';
+
+// Types & constants
+import {REPORT_STYLES} from './reportsConstants';
+
+// Styles
+import './reports.scss';
 
 export default class Reports extends React.Component {
   constructor(props) {
@@ -116,6 +124,8 @@ export default class Reports extends React.Component {
                 dataWithResponses.push(row);
               }
             });
+
+            console.log('xxx data with responses', data, dataWithResponses);
 
             this.setState({
               asset: asset,
@@ -254,6 +264,15 @@ export default class Reports extends React.Component {
     }
   }
 
+  onSelectedReportChange(crid) {
+    console.log('onSelectedReportChange', crid);
+    if (crid === '') {
+      this.triggerDefaultReport();
+    } else {
+      this.setCustomReport(crid);
+    }
+  }
+
   toggleReportGraphSettings() {
     this.setState({
       showReportGraphSettings: !this.state.showReportGraphSettings,
@@ -270,9 +289,7 @@ export default class Reports extends React.Component {
     return hasAny;
   }
 
-  setCustomReport(e) {
-    var crid = e ? e.target.getAttribute('data-crid') : false;
-
+  setCustomReport(crid) {
     if (!this.state.showCustomReportModal) {
       let currentCustomReport;
       if (crid) {
@@ -336,56 +353,38 @@ export default class Reports extends React.Component {
       menuLabel = this.state.currentCustomReport.name || t('Untitled Report');
     }
 
+    const reportsSelectorOptions = customReportsList.map((item) => {
+      return {
+        value: item.crid,
+        label: item.name || t('Untitled report'),
+      }
+    });
+    reportsSelectorOptions.unshift({
+      value: '',
+      label: t('Default Report'),
+    })
+
     return (
       <bem.FormView__reportButtons>
         <div className='form-view__report-buttons-left'>
-          <PopoverMenu
-            type='custom-reports'
-            triggerLabel={
-              <Button
-                type='primary'
-                size='m'
-                label={menuLabel}
-                endIcon='angle-down'
-              />
-            }
-          >
-            <bem.PopoverMenu__link
-              key='default'
-              data-name=''
-              onClick={this.triggerDefaultReport}
-              className={!this.state.currentCustomReport ? 'active' : ''}
-            >
-              {t('Default Report')}
-            </bem.PopoverMenu__link>
-            {customReportsList.map(function (m) {
-              let itemClassName;
-              if (
-                _this.state.currentCustomReport &&
-                _this.state.currentCustomReport.crid === m.crid
-              ) {
-                itemClassName = 'active';
-              }
-              return (
-                <bem.PopoverMenu__link
-                  key={m.crid}
-                  data-crid={m.crid}
-                  onClick={_this.setCustomReport}
-                  className={itemClassName}
-                >
-                  {m.name || t('Untitled report')}
-                </bem.PopoverMenu__link>
-              );
-            })}
-            {userCan('change_asset', this.state.asset) && (
-              <bem.PopoverMenu__link
-                key='new'
-                onClick={this.toggleCustomReportModal}
-              >
-                {t('Create New Report')}
-              </bem.PopoverMenu__link>
-            )}
-          </PopoverMenu>
+          <KoboSelect
+            className='custom-reports-selector'
+            name='custom-reports'
+            type='outline'
+            size='m'
+            isClearable={false}
+            options={reportsSelectorOptions}
+            selectedOption={this.state.currentCustomReport.crid || ''}
+            onChange={this.onSelectedReportChange.bind(this)}
+          />
+
+          <Button
+            type='primary'
+            size='m'
+            startIcon='plus'
+            onClick={this.toggleCustomReportModal.bind(this)}
+            tooltip={t('Create New Report')}
+          />
 
           <Button
             type='text'
@@ -543,6 +542,8 @@ export default class Reports extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m={formViewModifiers}>
           <bem.ReportView>
+            <h1>{t('Custom reports')}</h1>
+
             {this.renderReportButtons()}
 
             {!hasAnyProvidedData && (

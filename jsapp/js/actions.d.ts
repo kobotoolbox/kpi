@@ -196,7 +196,9 @@ export namespace actions {
     const misc: {
       getUser: GetUserDefinition;
     };
-    const reports: object;
+    const reports: {
+      setCustom: GenericDefinition;
+    };
     const table: {
       updateSettings: TableUpdateSettingsDefinition;
     };
