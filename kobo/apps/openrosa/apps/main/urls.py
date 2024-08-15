@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.conf import settings
 
-from django.urls import include, re_path, path
+from django.urls import include, re_path
 from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
@@ -10,10 +10,7 @@ from kobo.apps.openrosa.apps.api.urls import BriefcaseApi
 from kobo.apps.openrosa.apps.api.urls import XFormListApi
 from kobo.apps.openrosa.apps.api.urls import XFormSubmissionApi
 from kobo.apps.openrosa.apps.api.urls import router, router_with_patch_list
-from kobo.apps.openrosa.apps.main.service_health import (
-    service_health,
-    service_health_minimal,
-)
+from kobo.apps.openrosa.apps.main.service_health import service_health
 
 # exporting stuff
 from kobo.apps.openrosa.apps.viewer.views import (
@@ -38,11 +35,6 @@ urlpatterns = [
     re_path('^api/v1/', include(router.urls)),
     re_path('^api/v1/', include(router_with_patch_list.urls)),
     re_path(r'^legacy/service_health/$', service_health, name='legacy-service-health'),
-    path(
-        'legacy/service_health/minimal/',
-        service_health_minimal,
-        name='legacy-service-health-minimal',
-    ),
 
     # main website views
     re_path(
