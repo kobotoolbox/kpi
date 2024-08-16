@@ -3,7 +3,7 @@ import uuid
 import posixpath
 from concurrent.futures import TimeoutError
 from datetime import timedelta
-from typing import Union, Tuple, Any
+from typing import Union, Any
 
 import constance
 from django.conf import settings
@@ -65,7 +65,7 @@ class GoogleTranscriptionService(GoogleService):
         source_lang: str,
         target_lang: str,
         content: Any,
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """
         Set up transcription operation
         """
@@ -110,7 +110,7 @@ class GoogleTranscriptionService(GoogleService):
 
     def get_converted_audio(
         self, xpath: str, submission_uuid: int, user: object
-    ) -> Union[bytes, Tuple[bytes, timedelta]]:
+    ) -> Union[bytes, tuple[bytes, timedelta]]:
         """
         Converts attachment audio or video file to flac
         """
@@ -161,7 +161,7 @@ class GoogleTranscriptionService(GoogleService):
         }
 
     def transcribe_file(
-        self, xpath: str, source_lang: str, content: Tuple[object, int]
+        self, xpath: str, source_lang: str, content: tuple[object, int]
     ) -> str:
         """
         Transcribe file with cache layer around Google operations

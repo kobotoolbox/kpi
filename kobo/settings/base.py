@@ -305,6 +305,13 @@ CONSTANCE_CONFIG = {
         'ASR/MT processing via external (costly) APIs.\nEnter * to invite '
         'all users.'
     ),
+    'ASR_MT_GOOGLE_REQUEST_TIMEOUT': (
+        10,
+        (
+            'Timeout in seconds for google NLP data processing requests using'
+            ' the operations API. '
+        )
+    ),
     'ASR_MT_GOOGLE_PROJECT_ID': (
         'kobo-asr-mt',
         'ID of the Google Cloud project used to access ASR/MT APIs',

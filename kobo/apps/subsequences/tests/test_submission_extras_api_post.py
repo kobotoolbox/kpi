@@ -28,7 +28,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from ..constants import GOOGLETS, GOOGLETX, make_async_cache_key
+from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
 

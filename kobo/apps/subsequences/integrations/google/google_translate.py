@@ -1,7 +1,7 @@
 import posixpath
 from datetime import date
 from hashlib import md5
-from typing import Union, Tuple, Any
+from typing import Union, Any
 
 import constance
 from django.conf import settings
@@ -11,7 +11,7 @@ from google.cloud import translate_v3 as translate, storage
 
 from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
-from .base import GoogleService, REQUEST_TIMEOUT
+from .base import GoogleService
 from .utils import google_credentials_from_constance_config
 from ...constants import GOOGLETX, GOOGLE_CODE
 from ...exceptions import (
@@ -78,7 +78,7 @@ class GoogleTranslationService(GoogleService):
         source_lang: str,
         target_lang: str,
         content: Any,
-    ) -> Tuple[object, int]:
+    ) -> tuple[object, int]:
         """
         Set up translation operation
         """
@@ -153,7 +153,7 @@ class GoogleTranslationService(GoogleService):
         xpath: str,
         source_lang: str,
         target_lang: str,
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """
         Returns source and output paths based on the parameters used and the
         current date.

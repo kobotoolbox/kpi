@@ -12,9 +12,9 @@ class TranscriptionResultsNotFound(Exception):
     """
 
 
-class TranslationResultsNotFound(Exception):
+class TranslationAsyncResultAvailable(Exception):
     pass
 
 
-class TranslationAsyncResultAvailable(Exception):
+class TranslationResultsNotFound(Exception):
     pass

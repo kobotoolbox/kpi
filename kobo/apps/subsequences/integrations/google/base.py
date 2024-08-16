@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import TimeoutError
-from typing import Any, Tuple
+from typing import Any
 
 import constance
 from google.cloud import storage
@@ -14,10 +14,8 @@ from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.utils.log import logging
 from .utils import google_credentials_from_constance_config
 from ...models import SubmissionExtras
-from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
+from ...constants import GOOGLE_CACHE_TIMEOUT, make_nlp_async_cache_key
 from ...exceptions import SubsequenceTimeoutError
-
-REQUEST_TIMEOUT = 10  # seconds
 
 
 class GoogleService(ABC):
@@ -53,7 +51,7 @@ class GoogleService(ABC):
         source_lang: str,
         target_lang: str,
         content: Any,
-    ) -> Tuple[object, int]:
+    ) -> tuple[object, int]:
         pass
 
     @property
@@ -68,7 +66,7 @@ class GoogleService(ABC):
         self, xpath: str, source_lang: str, target_lang: str, content: Any=None
     ) -> str:
         submission_id = self.submission.submission_uuid
-        cache_key = make_async_cache_key(
+        cache_key = make_nlp_async_cache_key(
             self.user.pk, submission_id, xpath, source_lang, target_lang
         )
         if operation_name := cache.get(cache_key):
@@ -96,7 +94,9 @@ class GoogleService(ABC):
                 )
                 self.update_counters(amount)
                 try:
-                    result = response.result(timeout=REQUEST_TIMEOUT)
+                    result = response.result(
+                        timeout=constance.config.ASR_MT_GOOGLE_REQUEST_TIMEOUT
+                    )
                 except TimeoutError as err:
                     raise SubsequenceTimeoutError from err
 
