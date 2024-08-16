@@ -28,6 +28,7 @@ class SubmissionExtras(AbstractTimeStampedModel):
         unique_together = (('asset', 'submission_uuid'),)
 
     def save(self, *args, **kwargs):
+        # We need to import these here because of circular imports
         from .integrations.google.google_transcribe import GoogleTranscriptionService
         from .integrations.google.google_translate import GoogleTranslationService
 
