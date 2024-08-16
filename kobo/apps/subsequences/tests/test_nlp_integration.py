@@ -31,7 +31,7 @@ class NLPIntegrationTestCase(TestCase):
         user = baker.make(
             settings.AUTH_USER_MODEL,
             username='johndoe',
-            date_joined=timezone.now().today,
+            date_joined=timezone.now(),
         )
 
         self.asset = Asset.objects.create(

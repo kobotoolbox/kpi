@@ -20,7 +20,7 @@ class SubmissionExtrasContentTestCase(TestCase):
         user = baker.make(
             settings.AUTH_USER_MODEL,
             username='johndoe',
-            date_joined=timezone.now().today,
+            date_joined=timezone.now(),
         )
         self.asset = Asset.objects.create(
             owner=user, content={'survey': [{'type': 'audio', 'name': 'q1'}]}
