@@ -1,6 +1,6 @@
-# coding: utf-8
-import posixpath
 from __future__ import annotations
+
+import posixpath
 from datetime import date
 from hashlib import md5
 from typing import Union, Any

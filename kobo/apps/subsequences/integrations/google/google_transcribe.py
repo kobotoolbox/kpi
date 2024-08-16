@@ -1,7 +1,7 @@
-# coding: utf-8
+from __future__ import annotations
+
 import uuid
 import posixpath
-from __future__ import annotations
 from concurrent.futures import TimeoutError
 from datetime import timedelta
 from typing import Union, Any
