@@ -7,6 +7,7 @@ from typing import Union, Any
 
 import constance
 from django.conf import settings
+from google.api_core.exceptions import InvalidArgument
 from google.cloud import speech, storage
 
 from kobo.apps.languages.models.transcription import TranscriptionService
@@ -150,8 +151,15 @@ class GoogleTranscriptionService(GoogleService):
                 'languageCode': language_code,
                 'regionCode': region_code,
             }
-        except TranscriptionResultsNotFound:
+        except (TranscriptionResultsNotFound, InvalidArgument) as e:
             logging.error(f'No transcriptions found for xpath={xpath}')
+            return {
+                'status': 'error',
+                'value': None,
+                'responseJSON': {
+                    'error': f'Transcription failed with error {e}'
+                },
+            }
 
         return {
             'status': 'complete',

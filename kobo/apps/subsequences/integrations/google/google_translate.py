@@ -200,13 +200,14 @@ class GoogleTranslationService(GoogleService):
                 'languageCode': target_lang,
                 'value': None,
             }
-        except (TranslationResultsNotFound, InvalidArgument):
+        except (TranslationResultsNotFound, InvalidArgument) as e:
             logging.exception('Error when processing translation')
             return {
                 'status': 'error',
-                'source': source_lang,
-                'languageCode': target_lang,
                 'value': None,
+                'responseJSON': {
+                    'error': f'Translation failed with error {e}'
+                },
             }
         except TranslationAsyncResultAvailable:
             _, output_path = self.get_unique_paths(
