@@ -418,6 +418,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context['request']
         user = request.user
 
+        validated_data['last_modified_by'] = user.username
         self._set_asset_ids_cache(asset)
 
         if (

@@ -861,11 +861,6 @@ class Asset(
     ):
         is_new = self.pk is None
 
-        if self.owner:
-            if is_new:
-                self.created_by = self.owner.username
-            self.last_modified_by = self.owner.username
-
         if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
             # so long as all of the operations in this overridden `save()`
             # method pertain to content, bail out if it's impossible for this

@@ -783,7 +783,11 @@ class AssetViewSet(
 
     def perform_create(self, serializer):
         user = get_database_user(self.request.user)
-        serializer.save(owner=user)
+        serializer.save(
+            owner=user,
+            created_by=user.username,
+            last_modified_by=user.username
+        )
 
     def perform_destroy(self, instance):
         self._bulk_asset_actions(
