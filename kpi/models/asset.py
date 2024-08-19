@@ -218,6 +218,8 @@ class Asset(
         blank=True,
         db_index=True
     )
+    created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
+    last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -858,6 +860,11 @@ class Asset(
         **kwargs
     ):
         is_new = self.pk is None
+
+        if self.owner:
+            if is_new:
+                self.created_by = self.owner.username
+            self.last_modified_by = self.owner.username
 
         if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
             # so long as all of the operations in this overridden `save()`
