@@ -21,14 +21,13 @@ from kpi.fields.kpi_uid import UUID_LENGTH
 
 
 class AuditAction(models.TextChoices):
-
-    CREATE = 'create', 'CREATE'
-    DELETE = 'delete', 'DELETE'
-    IN_TRASH = 'in-trash', 'IN TRASH'
-    PUT_BACK = 'put-back', 'PUT BACK'
-    REMOVE = 'remove', 'REMOVE'
-    UPDATE = 'update', 'UPDATE'
-    AUTH = 'auth', 'AUTH'
+    CREATE = 'create'
+    DELETE = 'delete'
+    IN_TRASH = 'in-trash'
+    PUT_BACK = 'put-back'
+    REMOVE = 'remove'
+    UPDATE = 'update'
+    AUTH = 'auth'
 
 
 class AuditType(models.TextChoices):
