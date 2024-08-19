@@ -270,7 +270,7 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         subscription = generate_plan_subscription(self.organization, age_days=60)
 
         num_submissions = 5
-        add_mock_submissions([self.asset], num_submissions, 15)
+        add_mock_submissions([self.asset], num_submissions)
 
         canceled_at = timezone.now() - relativedelta(days=45)
         subscription.status = 'canceled'
