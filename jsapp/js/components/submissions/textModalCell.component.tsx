@@ -69,7 +69,7 @@ export default function TextModalCell(
                 .replace('##submissionTotal##', String(props.submissionTotal))}
             </span>
 
-            <span>{props.columnName}</span>
+            <span dir='auto'>{props.columnName}</span>
           </div>
         </KoboModalHeader>
 

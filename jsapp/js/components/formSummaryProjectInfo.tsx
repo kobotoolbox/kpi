@@ -69,11 +69,13 @@ export default function FormSummaryProjectInfo(
         {metadata.description && (
           <bem.FormView__group m='items'>
             {/* description - takes whole row */}
-            <bem.FormView__cell m='padding'>
+            <bem.FormView__cell m={['padding', 'full-width']}>
               <bem.FormView__label>
                 {metadata.description?.label ?? t('Description')}
               </bem.FormView__label>
-              {props.asset.settings.description || '-'}
+              <div dir='auto'>
+                {props.asset.settings.description || '-'}
+              </div>
             </bem.FormView__cell>
           </bem.FormView__group>
         )}

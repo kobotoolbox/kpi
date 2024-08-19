@@ -92,7 +92,8 @@ $s-data-table-font: 13px;
         color: colors.$kobo-gray-55;
         vertical-align: top;
         display: inline-block;
-        margin-right: 3px;
+        // Needed for the RTL content to look nice
+        margin-inline-end: 3px;
       }
     }
 
@@ -108,7 +109,7 @@ $s-data-table-font: 13px;
         .table-header-results {
           line-height: 15px;
           padding-top: 1px;
-          text-align: left;
+          text-align: initial;
         }
       }
     }

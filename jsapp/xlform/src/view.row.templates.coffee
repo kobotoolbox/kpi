@@ -106,9 +106,9 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="card__header-icon"></i></div>
           </div>
           <div class="card__text">
-            <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort" dir="auto">
             <br />
-            <input type="text" placeholder="#{t("Question hint")}" class="card__header-hint js-card-hint js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{t("Question hint")}" class="card__header-hint js-card-hint js-cancel-select-row js-cancel-sort" dir="auto">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="k-icon k-icon-settings"></i></span>
@@ -134,7 +134,7 @@ module.exports = do ->
           <i class="k-icon"></i>
         </div>
         <i class="group__caret js-toggle-group-expansion k-icon k-icon-caret-down"></i>
-        <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
+        <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort" dir="auto">
         <div class="card__buttons">
           <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings">
             <i class="k-icon k-icon-settings"></i>
@@ -163,7 +163,7 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="card__header-icon k-icon k-icon-matrix"></i></div>
           </div>
           <div class="card__text">
-            <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort" dir="auto">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="k-icon k-icon-settings"></i></span>

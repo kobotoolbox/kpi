@@ -6,6 +6,7 @@ from typing import Optional, Union
 from xml.dom import Node
 
 from defusedxml import minidom
+from defusedxml.lxml import fromstring
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
@@ -13,6 +14,7 @@ from lxml import etree
 from shortuuid import ShortUUID
 
 from kobo.apps.form_disclaimer.models import FormDisclaimer
+from kpi.exceptions import DTDForbiddenException, EntitiesForbiddenException
 
 # Goals for the future:
 #
@@ -58,6 +60,50 @@ def add_xml_declaration(
     if use_bytes:
         return xml_.encode()
     return xml_
+
+
+def check_entities(
+    elementtree: etree.ElementTree,
+    dtd_forbidden: bool = False,
+    entities_forbidden: bool = True
+):
+    """
+    This function is to be used with the lxml library using examples
+    found in the defusedxml library since support for lxml is depreciated
+    Does not return content. This function will only raise exceptions if
+    unaccepted content is contained in the XML.
+    """
+
+    docinfo = elementtree.docinfo
+    if docinfo.doctype:
+        if dtd_forbidden:
+            raise DTDForbiddenException
+        if entities_forbidden:
+            raise EntitiesForbiddenException
+
+    if entities_forbidden:
+        for dtd_entity in docinfo.internalDTD, docinfo.externalDTD:
+            if dtd_entity is None:
+                continue
+            for entity in dtd_entity.interentities():
+                raise EntitiesForbiddenException
+
+
+def check_lxml_fromstring(
+    text: str,
+    base_url: str = None,
+    forbid_dtd: bool = False,
+    forbid_entities: bool = True,
+):
+    """
+    This function is used to replace the `lxml.etree.fromstring` method similarly to
+    defusedxml's replacement for the method.
+    Returns an ElementTree object
+    """
+    rootelement = fromstring(text, base_url=base_url)
+    elementtree = rootelement.getroottree()
+    check_entities(elementtree, forbid_dtd, forbid_entities)
+    return rootelement
 
 
 def edit_submission_xml(

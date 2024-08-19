@@ -11,6 +11,7 @@ import {ButtonToIconMap} from 'js/components/common/button';
 import KoboDropdown from 'js/components/common/koboDropdown';
 import koboDropdownActions from 'js/components/common/koboDropdownActions';
 import './koboSelect.scss';
+import type {KoboDropdownPlacement} from 'js/components/common/koboDropdown';
 
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
 bem.KoboSelect = makeBem(null, 'k-select');
@@ -57,6 +58,7 @@ interface KoboSelectProps {
    * Sizes are generally the same as in button component so we use same type.
    */
   size: ButtonSize;
+  placement?: KoboDropdownPlacement;
   /** Without this option select always need the `selectedOption`. */
   isClearable?: boolean;
   /** This option displays a text box filtering options when opened. */
@@ -190,7 +192,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
     if (foundSelectedOption) {
       return (
         <bem.KoboSelect__trigger>
-          <bem.KoboSelect__triggerSelectedOption>
+          <bem.KoboSelect__triggerSelectedOption dir='auto'>
             {foundSelectedOption.icon &&
               <Icon
                 name={foundSelectedOption.icon}
@@ -296,6 +298,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
                 this.props.selectedOption === option.value
               ),
             }}
+            dir='auto'
           >
             {option.icon && <Icon name={option.icon}/>}
             <label>{option.label}</label>
@@ -348,7 +351,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
 
         <KoboDropdown
           name={this.props.name}
-          placement={'down-center'}
+          placement={this.props.placement || 'down-center'}
           isRequired={this.props.isRequired}
           isDisabled={Boolean(this.props.isDisabled)}
           hideOnMenuClick

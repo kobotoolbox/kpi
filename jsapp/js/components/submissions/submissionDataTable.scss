@@ -87,7 +87,6 @@ $submission-data-table-space: sizes.$x12;
 .submission-data-table__row--response .submission-data-table__column.submission-data-table__column--data {
   @include mixins.centerRowFlex;
   gap: 10px;
-
   flex: 1;
 
   .audio-player:first-child {

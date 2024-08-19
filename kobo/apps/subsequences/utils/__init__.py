@@ -150,7 +150,7 @@ def stream_with_extras(submission_stream, asset):
             uuid = submission[SUBMISSION_UUID_FIELD]
         else:
             uuid = submission['_uuid']
-        all_supplemental_details = extras.get(uuid, {})
+        all_supplemental_details = deepcopy(extras.get(uuid, {}))
         for qpath, supplemental_details in all_supplemental_details.items():
             try:
                 all_qual_responses = supplemental_details['qual']
@@ -176,6 +176,8 @@ def stream_with_extras(submission_stream, asset):
                         val = [val]
                     val_expanded = []
                     for v in val:
+                        if v == '':
+                            continue
                         try:
                             v_ex = qual_choices_per_question_by_uuid[
                                 qual_q['uuid']
@@ -186,7 +188,7 @@ def stream_with_extras(submission_stream, asset):
                             # added. They should simply be hidden
                             v_ex = {'uuid': v, 'error': 'unknown choice'}
                         val_expanded.append(v_ex)
-                    if single_choice:
+                    if single_choice and val_expanded:
                         val_expanded = val_expanded[0]
                     qual_response['val'] = val_expanded
                 qual_response.update(qual_q)
