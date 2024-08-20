@@ -1559,3 +1559,5 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'kpi.password_validation.MostRecentPasswordValidator',
     },
 ]
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
