@@ -4,7 +4,7 @@
 #
 #    pip-compile dependencies/pip/requirements.in
 #
--e git+https://github.com/kobotoolbox/django-digest@43f3100a7e257942c313ad79057e6a0b1612a74a#egg=django_digest
+-e git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
