@@ -12,6 +12,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
         view_name='user-kpi-detail',
     )
     date_created = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
 
     class Meta:
         model = AuditLog
@@ -21,6 +22,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
             'object_id',
             'user',
             'user_uid',
+            'username',
             'action',
             'metadata',
             'date_created',
@@ -33,6 +35,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
             'object_id',
             'user',
             'user_uid',
+            'username',
             'action',
             'metadata',
             'date_created',
@@ -41,3 +44,6 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
     def get_date_created(self, audit_log):
         return audit_log.date_created.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def get_username(self, audit_log):
+        return audit_log.user.username
