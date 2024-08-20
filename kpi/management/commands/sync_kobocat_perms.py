@@ -3,15 +3,13 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
+from guardian.models import UserObjectPermission
 
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.models import Asset, ObjectPermission
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
-)
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatUserObjectPermission
 )
 from kpi.management.commands.sync_kobocat_xforms import _sync_permissions
 from kpi.utils.object_permission import get_perm_ids_from_code_names
@@ -94,9 +92,11 @@ class Command(BaseCommand):
 
                 with kc_transaction_atomic():
                     kc_user_obj_perm_qs = (
-                        KobocatUserObjectPermission.objects.filter(
-                            object_pk=asset.deployment.xform_id
-                        ).exclude(user_id=asset.owner_id)
+                        UserObjectPermission.objects.using(
+                            settings.OPENROSA_DB_ALIAS
+                        )
+                        .filter(object_pk=asset.deployment.xform_id)
+                        .exclude(user_id=asset.owner_id)
                     )
                     if kc_user_obj_perm_qs.exists():
                         if self._verbosity >= 1:

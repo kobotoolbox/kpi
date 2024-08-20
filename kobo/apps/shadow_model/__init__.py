@@ -9,5 +9,5 @@ class ShadowModelAppConfig(AppConfig):
     in Django Admin.
     """
     name = 'kobo.apps.shadow_model'
-    verbose_name = 'KoBoCAT data'
+    verbose_name = 'KoboCAT data'
     label = SHADOW_MODEL_APP_LABEL

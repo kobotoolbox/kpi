@@ -35,6 +35,13 @@ class UserProfile(models.Model):
     is_mfa_active = LazyDefaultBooleanField(default=False)
     validated_password = models.BooleanField(default=True)
 
+    class Meta:
+        app_label = 'main'
+        permissions = (
+            ('can_add_xform', "Can add/upload an xform to user profile"),
+            ('view_profile', "Can view user profile"),
+        )
+
     def __str__(self):
         return '%s[%s]' % (self.name, self.user.username)
 
@@ -46,17 +53,25 @@ class UserProfile(models.Model):
     def gravatar_exists(self):
         return gravatar_exists(self.user)
 
-    @property
-    def twitter_clean(self):
-        if self.twitter.startswith("@"):
-            return self.twitter[1:]
-        return self.twitter
+    @classmethod
+    def set_mfa_status(cls, user_id: int, is_active: bool):
+        user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        user_profile.is_mfa_active = int(is_active)
+        user_profile.save(update_fields=['is_mfa_active'])
 
-    class Meta:
-        app_label = 'main'
-        permissions = (
-            ('can_add_xform', "Can add/upload an xform to user profile"),
-            ('view_profile', "Can view user profile"),
+    @classmethod
+    def set_password_details(
+        cls,
+        user_id: int,
+        validated: bool,
+    ):
+        """
+        Update the kobocat user's password_change_date and validated_password fields
+        """
+        user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        user_profile.validated_password = validated
+        user_profile.save(
+            update_fields=['validated_password']
         )
 
 

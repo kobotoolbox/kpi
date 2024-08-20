@@ -5,9 +5,9 @@ from django.conf import settings
 from django.utils import timezone
 from model_bakery import baker
 
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatDailyXFormSubmissionCounter,
-    KobocatXForm,
+from kobo.apps.openrosa.apps.logger.models import (
+    DailyXFormSubmissionCounter,
+    XForm,
 )
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -61,7 +61,7 @@ def expected_file_size(submissions: int = 1):
 
 
 def update_xform_counters(
-    asset: Asset, xform: KobocatXForm = None, submissions: int = 1
+    asset: Asset, xform: XForm = None, submissions: int = 1
 ):
     """
     Create/update the daily submission counter and the shadow xform we use to query it
@@ -103,7 +103,7 @@ def update_xform_counters(
         )
         xform.save()
 
-    counter = KobocatDailyXFormSubmissionCounter.objects.filter(
+    counter = DailyXFormSubmissionCounter.objects.filter(
         date=today.date(),
         user_id=asset.owner.id,
     ).first()

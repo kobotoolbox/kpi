@@ -147,7 +147,7 @@ class AttachmentViewSet(
                 else None
             )
             return Response(
-                attachment.content,
+                attachment.media_file,
                 content_type=content_type,
             )
 

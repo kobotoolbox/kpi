@@ -1,15 +1,12 @@
 import uuid
 
 from constance.test import override_config
-from datetime import timedelta
-from dateutil.parser import isoparse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from mock import patch, MagicMock
 from rest_framework import status
 from rest_framework.reverse import reverse
-from unittest.mock import ANY
 
 from kobo.apps.project_ownership.models import (
     Invite,
@@ -441,14 +438,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ),
             'assets': [self.asset.uid]
         }
-        with patch(
-            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
-            MagicMock(),
-        ):
-            response = self.client.post(
-                self.invite_url, data=payload, format='json'
-            )
-            assert response.status_code == status.HTTP_201_CREATED
+        response = self.client.post(
+            self.invite_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
 
         # someuser should have no usage reported anymore
         response = self.client.get(service_usage_url)
@@ -504,14 +497,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ),
             'assets': [self.asset.uid]
         }
-        with patch(
-            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
-            MagicMock(),
-        ):
-            response = self.client.post(
-                self.invite_url, data=payload, format='json'
-            )
-            assert response.status_code == status.HTTP_201_CREATED
+
+        response = self.client.post(
+            self.invite_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
 
         # anotheruser is the owner and should see the project
         self.client.login(username='anotheruser', password='anotheruser')
