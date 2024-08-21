@@ -69,17 +69,17 @@ class TestOneTimeAuthentication(BaseTestCase):
         (
             'Token',
             'kpi.authentication.DRFTokenAuthentication.authenticate',
-            'api_v2:data-list',
+            'api_v2:submission-list',
         ),
         (
             'OAuth2',
             'kpi.authentication.OPOAuth2Authentication.authenticate',
-            'api_v2:data-list',
+            'api_v2:submission-list',
         ),
         (
             'Https Basic',
             'kobo.apps.openrosa.libs.authentication.BasicAuthentication.authenticate',
-            'api_v2:data-list',
+            'api_v2:submission-list',
         ),
     )
     @unpack
@@ -121,7 +121,7 @@ class TestOneTimeAuthentication(BaseTestCase):
             return_value=True,
             side_effect=side_effect,
         ):
-            self.client.get(reverse('api_v2:data-list'), **header)
+            self.client.get(reverse('api_v2:submission-list'), **header)
         log_exists = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,
