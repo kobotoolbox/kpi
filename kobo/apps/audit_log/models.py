@@ -62,7 +62,7 @@ class AuditLog(models.Model):
     user_uid = models.CharField(
         db_index=True, max_length=UUID_LENGTH + 1
     )  # 1 is prefix length
-    log_type = models.CharField(choices=AuditType.choices)
+    log_type = models.CharField(choices=AuditType.choices, db_index=True)
 
     class Meta:
         indexes = [

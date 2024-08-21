@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
                     ('submission-management', 'Submission Management'),
                 ],
                 null=True,
+                db_index=True,
             ),
         ),
         migrations.RunSQL(
