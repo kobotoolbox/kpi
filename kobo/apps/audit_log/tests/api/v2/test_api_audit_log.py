@@ -72,7 +72,6 @@ class ApiAuditLogTestCase(BaseTestCase):
         assert response.data['results'] == expected
 
     def test_filter_list(self):
-        self.maxDiff = None
         someuser = get_user_model().objects.get(username='someuser')
         anotheruser = get_user_model().objects.get(username='anotheruser')
         date_created = now().strftime('%Y-%m-%dT%H:%M:%SZ')
