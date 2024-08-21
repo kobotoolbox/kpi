@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
+from kobo.apps.audit_log.mixins import RequiresAccessLogMixin
 from kpi.authentication import DigestAuthentication
 from kpi.mixins.mfa import MfaBlockerMixin
 
@@ -24,7 +25,7 @@ def digest_authentication(request):
             return authenticator.build_challenge_response()
 
 
-class HttpsOnlyBasicAuthentication(MfaBlockerMixin, BasicAuthentication):
+class HttpsOnlyBasicAuthentication(MfaBlockerMixin, BasicAuthentication, RequiresAccessLogMixin):
     """
     Extend DRF class to support MFA and authentication over HTTPS only (if
     testing mode is not activated)
@@ -51,6 +52,10 @@ class HttpsOnlyBasicAuthentication(MfaBlockerMixin, BasicAuthentication):
                 'credentials in clear text! You MUST connect via HTTPS '
                 'to use basic authentication.'
             ))
+        if user_auth is None:
+            return None
+        user, auth = user_auth
+        self.create_access_log(request, user, 'https basic')
         return user_auth
 
     def authenticate_credentials(self, userid, password, request=None):

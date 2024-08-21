@@ -15,6 +15,7 @@ from kpi.constants import (
     ACCESS_LOG_KOBO_AUTH_APP_LABEL,
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    ACCESS_LOG_SUBMISSION_AUTH_TYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
 
@@ -107,6 +108,11 @@ class AuditLog(models.Model):
             request.resolver_match is not None
             and request.resolver_match.url_name == 'loginas-user-login'
         )
+        is_submission = (
+            request.resolver_match is not None
+            and request.resolver_match.url_name == 'submissions'
+            and request.method == 'POST'
+        )
         # a regular login may have an anonymous user as _cached_user, ignore that
         user_changed = (
             initial_user
@@ -114,17 +120,20 @@ class AuditLog(models.Model):
             and initial_user.id != logged_in_user.id
         )
         is_loginas = is_loginas_url and user_changed
-        if authentication_type and authentication_type != '':
-            # authentication_type parameter has precedence
+        if is_submission:
+            # Submissions are special snowflakes and need to be grouped together, no matter the auth type
+            auth_type = ACCESS_LOG_SUBMISSION_AUTH_TYPE
+        elif authentication_type and authentication_type != '':
+            # second option: auth type param
             auth_type = authentication_type
         elif is_loginas:
-            # second option: loginas
+            # third option: loginas
             auth_type = ACCESS_LOG_LOGINAS_AUTH_TYPE
         elif (
             hasattr(logged_in_user, 'backend')
             and logged_in_user.backend is not None
         ):
-            # third option: the backend that authenticated the user
+            # fourth option: the backend that authenticated the user
             auth_type = logged_in_user.backend
         else:
             # default: unknown
