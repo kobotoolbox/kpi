@@ -4,7 +4,9 @@ from lxml import etree
 from kpi.utils.xml import check_lxml_fromstring
 
 
-def get_form_and_submission_tag_names(form: str, submission: str) -> tuple[str, str]:
+def get_form_and_submission_tag_names(
+    form: str, submission: str
+) -> tuple[str, str]:
     submission_root_name = check_lxml_fromstring(submission).tag
     tree = etree.ElementTree(check_lxml_fromstring(form))
     root = tree.getroot()

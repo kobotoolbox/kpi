@@ -1,4 +1,6 @@
 # coding: utf-8
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import filters
 from rest_framework.exceptions import ParseError
@@ -51,13 +53,12 @@ class RowLevelObjectPermissionFilter(GuardianObjectPermissionsFilter):
 
         # Queryset cannot be narrowed down for anonymous and superusers because
         # they do not have object level permissions (actually a superuser could
-        # have object level permissions but `ServiceAccountUser` does not).
+        # have object level permission).
         # Thus, we return queryset immediately even if it is a larger subset and
         # some of its objects are not allowed to accessed by `request.user`.
         # We need to avoid `guardian` filter to allow:
         # - anonymous user to see public data
-        # - ServiceAccountUser to take actions on all objects on behalf of the
-        #   real user who is making the call to the API.
+        # - superuser to take actions on all objects.
         # The permissions validation is handled by the permission classes and
         # should deny access to forbidden data.
         if request.user.is_anonymous or request.user.is_superuser:

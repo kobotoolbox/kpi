@@ -13,7 +13,7 @@ class LegacyAPIException(APIException):
     default_code = 'legacy_api_exception'
 
 
-class NoConfirmationProvidedException(APIException):
+class NoConfirmationProvidedAPIException(APIException):
 
     status_code = HTTP_400_BAD_REQUEST
     default_detail = t('No confirmation provided')

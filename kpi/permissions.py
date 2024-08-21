@@ -5,7 +5,6 @@ from typing import Union
 
 from django.conf import settings
 from django.http import Http404
-from kobo_service_account.utils import get_real_user
 from rest_framework import exceptions, permissions
 from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
 
@@ -480,7 +479,7 @@ class XMLExternalDataPermission(permissions.BasePermission):
         except (DeploymentNotFound, AttributeError):
             require_auth = True
 
-        real_user = get_real_user(request)
+        real_user = request.user
 
         # If authentication is required, `request.user` should have
         # 'add_submission' permission on `obj`

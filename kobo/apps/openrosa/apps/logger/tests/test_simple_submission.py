@@ -10,6 +10,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     create_instance, safe_create_instance
 )
 
+
 class TempFileProxy:
     """
     create_instance will be looking for a file object,
@@ -119,7 +120,8 @@ class TestSimpleSubmission(TestCase):
         request = RequestFactory().post('/')
         request.user = self.user
         error, instance = safe_create_instance(
-            self.user.username, TempFileProxy(xml), None, None, request)
+            self.user.username, TempFileProxy(xml), None, None, request=request
+        )
         # No `DjangoUnicodeDecodeError` errors are raised anymore.
         # An `ExpatError` is raised instead
         text = 'Improperly formatted XML'

@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.constraints import UniqueConstraint
 from markdownx.models import MarkdownxField

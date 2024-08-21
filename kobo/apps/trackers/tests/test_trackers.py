@@ -23,7 +23,7 @@ class TrackersTestCases(KpiTestCase):
 
     def _create_asset(self):
         asset = Asset.objects.create(
-            content={'survey': [{"type": "text", "name": "q1"}]},
+            content={'survey': [{'type': 'text', 'label': 'q1', 'name': 'q1'}]},
             owner=self.user,
             asset_type='survey',
             name='тєѕт αѕѕєт',

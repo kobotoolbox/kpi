@@ -140,14 +140,14 @@ class AttachmentViewSet(
         # the content to the Response object
         if settings.TESTING:
             # setting the content type to `None` here allows the renderer to
-            # specify the content type for the response
+            # specify the content type for the response.
             content_type = (
                 attachment.mimetype
                 if request.accepted_renderer.format != MP3ConversionRenderer.format
                 else None
             )
             return Response(
-                attachment.content,
+                attachment.media_file,
                 content_type=content_type,
             )
 

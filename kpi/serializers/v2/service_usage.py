@@ -6,15 +6,15 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import (
+    DailyXFormSubmissionCounter,
+    XForm,
+)
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_monthly_billing_dates, get_yearly_billing_dates
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatXForm,
-    KobocatDailyXFormSubmissionCounter,
-)
-from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models.asset import Asset
 
 
@@ -91,7 +91,7 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
                 'total_nlp_asr_seconds': 0,
                 'total_nlp_mt_characters': 0,
             }
-        return KobocatDeploymentBackend.nlp_tracking_data(
+        return OpenRosaDeploymentBackend.nlp_tracking_data(
             asset_ids=[asset.id], start_date=start_date
         )
 
@@ -240,7 +240,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        xforms = KobocatXForm.objects.only('attachment_storage_bytes', 'id').exclude(
+        xforms = XForm.objects.only('attachment_storage_bytes', 'id').exclude(
             pending_delete=True
         ).filter(self._user_id_query)
 
@@ -256,7 +256,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         Users are represented by their ids with `self._user_ids`
         """
-        submission_count = KobocatDailyXFormSubmissionCounter.objects.only(
+        submission_count = DailyXFormSubmissionCounter.objects.only(
             'counter', 'user_id'
         ).filter(self._user_id_query).aggregate(
             all_time=Coalesce(Sum('counter'), 0),
