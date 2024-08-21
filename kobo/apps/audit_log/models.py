@@ -31,13 +31,12 @@ class AuditAction(models.TextChoices):
 
 
 class AuditType(models.TextChoices):
-    # override Django's default title-casing label to make the correct search terms more obvious
-    ACCESS = 'access', 'access'
-    PROJECT_HISTORY = 'project-history', 'project-history'
-    DATA_EDITING = 'data-editing', 'data-editing'
-    USER_MANAGEMENT = 'user-management', 'user-management'
-    ASSET_MANAGEMENT = 'asset-management', 'asset-management'
-    SUBMISSION_MANAGEMENT = 'submission-management', 'submission-management'
+    ACCESS = 'access'
+    PROJECT_HISTORY = 'project-history'
+    DATA_EDITING = 'data-editing'
+    USER_MANAGEMENT = 'user-management'
+    ASSET_MANAGEMENT = 'asset-management'
+    SUBMISSION_MANAGEMENT = 'submission-management'
 
 
 class AuditLog(models.Model):
