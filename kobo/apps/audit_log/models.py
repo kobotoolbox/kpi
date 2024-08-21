@@ -108,9 +108,11 @@ class AuditLog(models.Model):
             request.resolver_match is not None
             and request.resolver_match.url_name == 'loginas-user-login'
         )
-        is_submission = (request.resolver_match is not None
-                         and request.resolver_match.url_name == 'submissions'
-                         and request.method == 'POST')
+        is_submission = (
+            request.resolver_match is not None
+            and request.resolver_match.url_name == 'submissions'
+            and request.method == 'POST'
+        )
         # a regular login may have an anonymous user as _cached_user, ignore that
         user_changed = (
             initial_user
