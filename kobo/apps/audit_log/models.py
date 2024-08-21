@@ -32,12 +32,12 @@ class AuditAction(models.TextChoices):
 
 
 class AuditType(models.TextChoices):
-    ACCESS = 'access'
-    PROJECT_HISTORY = 'project-history'
-    DATA_EDITING = 'data-editing'
-    USER_MANAGEMENT = 'user-management'
-    ASSET_MANAGEMENT = 'asset-management'
-    SUBMISSION_MANAGEMENT = 'submission-management'
+    ACCESS = 'access', 'access'
+    PROJECT_HISTORY = 'project-history', 'project-history'
+    DATA_EDITING = 'data-editing', 'data-editing'
+    USER_MANAGEMENT = 'user-management', 'user-management'
+    ASSET_MANAGEMENT = 'asset-management', 'asset-management'
+    SUBMISSION_MANAGEMENT = 'submission-management', 'submission-management'
 
 
 class AuditLog(models.Model):
@@ -133,7 +133,7 @@ class AuditLog(models.Model):
             hasattr(logged_in_user, 'backend')
             and logged_in_user.backend is not None
         ):
-            # third option: the backend that authenticated the user
+            # fourth option: the backend that authenticated the user
             auth_type = logged_in_user.backend
         else:
             # default: unknown
