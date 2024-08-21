@@ -7,7 +7,8 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kobo.apps.audit_log.serializers import AuditLogSerializer
-from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
+
+from kobo.apps.audit_log.tests.test_utils import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE

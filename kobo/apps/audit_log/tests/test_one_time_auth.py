@@ -8,8 +8,10 @@ from rest_framework.authtoken.models import Token
 from trench.utils import get_mfa_model
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.tests.test_utils import skip_submission_group_creation
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kpi.constants import SUBMISSION_ACCESS_LOG_AUTH_TYPE
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -146,13 +148,13 @@ class TestOneTimeAuthentication(BaseTestCase):
                 return_value=HttpResponse(status=200),
             ):
                 self.client.post(reverse('submissions'), **header)
-        log_exists = AuditLog.objects.filter(
+        sub_logs = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,
-            metadata__auth_type='submission',
-        ).exists()
-        self.assertTrue(log_exists)
-        self.assertEqual(AuditLog.objects.count(), 1)
+            metadata__auth_type=SUBMISSION_ACCESS_LOG_AUTH_TYPE,
+        )
+        self.assertTrue(sub_logs.exists())
+        self.assertEqual(sub_logs.count(), 1)
 
     def test_failed_request_does_not_create_log(self):
         self.client.get(reverse('data-list'))

@@ -1,32 +1,34 @@
 import contextlib
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
-from django.contrib.auth.signals import user_logged_in
 from django.test import override_settings
 from django.urls import resolve, reverse
 from trench.utils import get_mfa_model
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
-from kobo.apps.audit_log.signals import create_access_log
+from kobo.apps.audit_log.models import AuditAction, AuditLog, SubmissionGroup
+from kobo.apps.audit_log.signals import (
+    GROUP_DELTA_MINUTES,
+    add_submission_to_group,
+    create_access_log,
+)
+from kobo.apps.audit_log.tests.test_utils import (
+    create_access_log_from_user_with_metadata,
+    create_submission_access_log,
+    create_submission_group_log,
+    skip_login_access_log,
+)
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import (
+    SUBMISSION_ACCESS_LOG_AUTH_TYPE,
+    SUBMISSION_GROUP_COUNT_KEY,
+    SUBMISSION_GROUP_LATEST_KEY,
+)
 from kpi.tests.base_test_case import BaseTestCase
 
 
-@contextlib.contextmanager
-def skip_login_access_log():
-    """
-    Context manager for skipping the creation of an access log on login
-
-    Disconnects the method that creates access logs from the user_logged_in signal within the contextmanager block.
-    Useful when you want full control over the audit logs produced in a test.
-    """
-    user_logged_in.disconnect(create_access_log)
-    yield
-    user_logged_in.connect(create_access_log)
-
-
-class AuditLogSignalsTestCase(BaseTestCase):
+class AuditLogForLoginsTestCase(BaseTestCase):
     """
     Class for testing that logins produce AuditLogs.
 
@@ -54,7 +56,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
     def test_simple_login(self):
         count = AuditLog.objects.count()
         self.assertEqual(count, 0)
-        user = AuditLogSignalsTestCase.user
+        user = AuditLogForLoginsTestCase.user
         data = {
             'login': 'user',
             'password': 'pass',
@@ -68,7 +70,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
     def test_login_with_email_verification(self):
-        user = AuditLogSignalsTestCase.user
+        user = AuditLogForLoginsTestCase.user
         data = {
             'login': 'user',
             'password': 'pass',
@@ -87,7 +89,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
 
     def test_mfa_login(self):
         mfa_object = get_mfa_model().objects.create(
-            user=AuditLogSignalsTestCase.user,
+            user=AuditLogForLoginsTestCase.user,
             secret='dummy_mfa_secret',
             name='app',
             is_primary=True,
@@ -96,7 +98,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         )
         mfa_object.save()
         email_address, _ = EmailAddress.objects.get_or_create(
-            user=AuditLogSignalsTestCase.user
+            user=AuditLogForLoginsTestCase.user
         )
         email_address.primary = True
         email_address.verified = True
@@ -111,7 +113,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
 
         with patch(
             'kobo.apps.accounts.mfa.forms.authenticate_second_step_command',
-            return_value=AuditLogSignalsTestCase.user,
+            return_value=AuditLogForLoginsTestCase.user,
         ):
             self.client.post(
                 reverse('mfa_token'),
@@ -120,12 +122,12 @@ class AuditLogSignalsTestCase(BaseTestCase):
             )
         self.assertEqual(AuditLog.objects.count(), 1)
         audit_log = AuditLog.objects.first()
-        self.assertEqual(audit_log.user.id, AuditLogSignalsTestCase.user.id)
+        self.assertEqual(audit_log.user.id, AuditLogForLoginsTestCase.user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
     def test_loginas(self):
-        AuditLogSignalsTestCase.user.is_superuser = True
-        AuditLogSignalsTestCase.user.save()
+        AuditLogForLoginsTestCase.user.is_superuser = True
+        AuditLogForLoginsTestCase.user.save()
         new_user = User.objects.create_user(
             'user2', 'user2@example.com', 'pass2'
         )
@@ -137,3 +139,113 @@ class AuditLogSignalsTestCase(BaseTestCase):
         audit_log = AuditLog.objects.first()
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+
+
+class AuditLogSubmissionGroupTestCase(BaseTestCase):
+
+    fixtures = ['test_data']
+
+    def test_create_group_for_new_submission(self):
+        someuser = User.objects.get(username='someuser')
+        submission_log = create_submission_access_log(someuser)
+        submission_log.save()
+        new_group = (
+            SubmissionGroup.objects.filter(user=someuser)
+            .order_by(f'-metadata__{SUBMISSION_GROUP_LATEST_KEY}')
+            .first()
+        )
+        self.assertEqual(
+            new_group.metadata[SUBMISSION_GROUP_LATEST_KEY],
+            submission_log.date_created,
+        )
+        self.assertEqual(new_group.metadata[SUBMISSION_GROUP_COUNT_KEY], 1)
+
+    def test_create_group_if_existing_groups_too_old(self):
+        someuser = User.objects.get(username='someuser')
+        jan_1_midnight = datetime.fromisoformat('2024-01-01 00:00:00+00:00')
+        old_submission_group = create_submission_group_log(
+            someuser,
+            latest_date=jan_1_midnight,
+        )
+        old_submission_group.save()
+        submission_log = create_submission_access_log(someuser)
+        submission_log.save()
+        # refetch from the database to make sure we have the most updated data
+        refetched_old_group = AuditLog.objects.get(pk=old_submission_group.id)
+        new_group = (
+            SubmissionGroup.objects.filter(user=someuser)
+            .order_by(f'-metadata__{SUBMISSION_GROUP_LATEST_KEY}')
+            .first()
+        )
+        # make sure new group has correct data
+        self.assertEqual(
+            new_group.metadata[SUBMISSION_GROUP_LATEST_KEY],
+            submission_log.date_created,
+        )
+        self.assertTrue(new_group.metadata[SUBMISSION_GROUP_COUNT_KEY], 1)
+        # make sure old group was not updated
+        self.assertEqual(
+            refetched_old_group.metadata[SUBMISSION_GROUP_LATEST_KEY],
+            jan_1_midnight,
+        )
+        self.assertEqual(
+            refetched_old_group.metadata[SUBMISSION_GROUP_COUNT_KEY], 1
+        )
+
+    def test_create_group_if_existing_groups_wrong_user(self):
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        jan_1_midnight = datetime.fromisoformat('2024-01-01 00:00:00+00:00')
+        submission_group_wrong_user = create_submission_group_log(
+            anotheruser,
+            latest_date=jan_1_midnight,
+        )
+        submission_group_wrong_user.save()
+        submission_log = create_submission_access_log(someuser)
+        submission_log.date_created = jan_1_midnight + timedelta(seconds=2)
+        submission_log.save()
+        refetched_old_group = AuditLog.objects.get(
+            pk=submission_group_wrong_user.id
+        )
+        new_group = (
+            SubmissionGroup.objects.filter(user=someuser)
+            .order_by(f'-metadata__{SUBMISSION_GROUP_LATEST_KEY}')
+            .first()
+        )
+        # make sure new group has correct data
+        self.assertEqual(
+            new_group.metadata[SUBMISSION_GROUP_LATEST_KEY],
+            submission_log.date_created,
+        )
+        self.assertTrue(new_group.metadata[SUBMISSION_GROUP_COUNT_KEY], 1)
+        # make sure existing group was not updated
+        self.assertEqual(
+            refetched_old_group.metadata[SUBMISSION_GROUP_LATEST_KEY],
+            jan_1_midnight,
+        )
+        self.assertEqual(
+            refetched_old_group.metadata[SUBMISSION_GROUP_COUNT_KEY], 1
+        )
+
+    def test_add_submission_to_existing_group(self):
+        someuser = User.objects.get(username='someuser')
+        jan_1_midnight = datetime.fromisoformat('2024-01-01 00:00:00+00:00')
+        submission_group = create_submission_group_log(
+            someuser,
+            latest_date=jan_1_midnight,
+        )
+        submission_group.save()
+        submission_log = create_submission_access_log(someuser)
+        submission_log.date_created = jan_1_midnight + timedelta(
+            seconds=(GROUP_DELTA_MINUTES - 1) * 60
+        )
+        submission_log.save()
+        refetched_group = AuditLog.objects.get(pk=submission_group.id)
+        # make latest submission date and count were updated
+        self.assertEqual(
+            refetched_group.metadata[SUBMISSION_GROUP_COUNT_KEY], 2
+        )
+        self.assertEqual(
+            refetched_group.metadata[SUBMISSION_GROUP_LATEST_KEY],
+            submission_log.date_created,
+        )
