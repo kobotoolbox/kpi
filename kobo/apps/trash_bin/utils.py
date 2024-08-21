@@ -71,7 +71,7 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
                 'asset_uid': asset_uid,
                 'asset_name': asset.name,
             },
-            log_type=AuditType.ASSET_MANAGEMENT
+            log_type=AuditType.ASSET_MANAGEMENT,
         )
 
     # Delete media files left on storage
@@ -139,7 +139,11 @@ def move_to_trash(
                 **{fk_field_name: obj_dict['pk']},
             )
         )
-        log_type = AuditType.USER_MANAGEMENT if related_model._meta.model_name == 'user' else AuditType.ASSET_MANAGEMENT
+        log_type = (
+            AuditType.USER_MANAGEMENT
+            if related_model._meta.model_name == 'user'
+            else AuditType.ASSET_MANAGEMENT
+        )
         audit_logs.append(
             AuditLog(
                 app_label=related_model._meta.app_label,
@@ -220,7 +224,11 @@ def put_back(
 
     if del_pto_count != len(obj_ids):
         raise TrashTaskInProgressError
-    log_type = AuditType.USER_MANAGEMENT if related_model._meta.model_name == 'user' else AuditType.ASSET_MANAGEMENT
+    log_type = (
+        AuditType.USER_MANAGEMENT
+        if related_model._meta.model_name == 'user'
+        else AuditType.ASSET_MANAGEMENT
+    )
 
     AuditLog.objects.bulk_create(
         [
@@ -232,7 +240,7 @@ def put_back(
                 user_uid=request_author.extra_details.uid,
                 action=AuditAction.PUT_BACK,
                 metadata=_remove_pk_from_dict(obj_dict),
-                log_type=log_type
+                log_type=log_type,
             )
             for obj_dict in objects_list
         ]
@@ -319,19 +327,21 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
 
         submission_ids = []
         for submission in submissions:
-            audit_logs.append(AuditLog(
-                app_label=app_label,
-                model_name=model_name,
-                object_id=submission['_id'],
-                user=request_author,
-                user_uid=request_author.extra_details.uid,
-                metadata={
-                    'asset_uid': asset.uid,
-                    'uuid': submission['_uuid'],
-                },
-                action=AuditAction.DELETE,
-                log_type=AuditType.SUBMISSION_MANAGEMENT
-            ))
+            audit_logs.append(
+                AuditLog(
+                    app_label=app_label,
+                    model_name=model_name,
+                    object_id=submission['_id'],
+                    user=request_author,
+                    user_uid=request_author.extra_details.uid,
+                    metadata={
+                        'asset_uid': asset.uid,
+                        'uuid': submission['_uuid'],
+                    },
+                    action=AuditAction.DELETE,
+                    log_type=AuditType.SUBMISSION_MANAGEMENT,
+                )
+            )
             submission_ids.append(submission['_id'])
 
         json_response = asset.deployment.delete_submissions(

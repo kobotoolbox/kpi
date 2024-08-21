@@ -39,6 +39,7 @@ class AuditType(models.TextChoices):
     ASSET_MANAGEMENT = 'asset-management', 'asset-management'
     SUBMISSION_MANAGEMENT = 'submission-management', 'submission-management'
 
+
 class AuditLog(models.Model):
 
     id = models.BigAutoField(primary_key=True)

@@ -31,7 +31,11 @@ class AccountTrashTestCase(TestCase):
 
         # Create dummy logs for someuser
         audit_log = AuditLog.objects.create(
-            app_label='foo', model_name='bar', object_id=1, user=someuser, log_type=AuditType.ACCESS,
+            app_label='foo',
+            model_name='bar',
+            object_id=1,
+            user=someuser,
+            log_type=AuditType.ACCESS,
         )
 
         grace_period = 0
