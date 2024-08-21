@@ -47,39 +47,34 @@ class TestOneTimeAuthentication(BaseTestCase):
         # expected authentication type, method that needs to be mocked, endpoint to hit
         # (kpi and openrosa endpoints use different auth methods, and we want to test endpoints in both v1 and v2)
         (
-            'Token',
+            'token',
             'kpi.authentication.DRFTokenAuthentication.authenticate',
             'data-list',
         ),
         (
-            'Basic',
+            'basic',
             'kpi.authentication.DRFBasicAuthentication.authenticate',
             'api_v2:audit-log-list',
         ),
         (
-            'OAuth2',
+            'oauth2',
             'kpi.authentication.OPOAuth2Authentication.authenticate',
             'data-list',
         ),
         (
-            'Https Basic',
+            'https basic',
             'kobo.apps.openrosa.libs.authentication.BasicAuthentication.authenticate',
             'data-list',
         ),
         (
-            'Token',
+            'token',
             'kpi.authentication.DRFTokenAuthentication.authenticate',
-            'api_v2:submission-list',
+            'api_v2:asset-list',
         ),
         (
-            'OAuth2',
+            'oauth2',
             'kpi.authentication.OPOAuth2Authentication.authenticate',
-            'api_v2:submission-list',
-        ),
-        (
-            'Https Basic',
-            'kobo.apps.openrosa.libs.authentication.BasicAuthentication.authenticate',
-            'api_v2:submission-list',
+            'api_v2:asset-list',
         ),
     )
     @unpack
@@ -121,11 +116,11 @@ class TestOneTimeAuthentication(BaseTestCase):
             return_value=True,
             side_effect=side_effect,
         ):
-            self.client.get(reverse('api_v2:submission-list'), **header)
+            self.client.get(reverse('data-list'), **header)
         log_exists = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,
-            metadata__auth_type='Digest',
+            metadata__auth_type='digest',
         ).exists()
         self.assertTrue(log_exists)
         self.assertEqual(AuditLog.objects.count(), 1)
@@ -154,7 +149,7 @@ class TestOneTimeAuthentication(BaseTestCase):
         log_exists = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,
-            metadata__auth_type='Submission',
+            metadata__auth_type='submission',
         ).exists()
         self.assertTrue(log_exists)
         self.assertEqual(AuditLog.objects.count(), 1)
