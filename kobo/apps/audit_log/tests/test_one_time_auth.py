@@ -116,7 +116,7 @@ class TestOneTimeAuthentication(BaseTestCase):
             return_value=True,
             side_effect=side_effect,
         ):
-            self.client.get(reverse('api_v2:asset-list'), **header)
+            self.client.get(reverse('data-list'), **header)
         log_exists = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,
