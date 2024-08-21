@@ -72,6 +72,7 @@ class ApiAuditLogTestCase(BaseTestCase):
         assert response.data['results'] == expected
 
     def test_filter_list(self):
+        self.maxDiff = None
         someuser = get_user_model().objects.get(username='someuser')
         anotheruser = get_user_model().objects.get(username='anotheruser')
         date_created = now().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -102,7 +103,7 @@ class ApiAuditLogTestCase(BaseTestCase):
                 'object_id': 1,
                 'user': 'http://testserver/api/v2/users/anotheruser/',
                 'user_uid': anotheruser.extra_details.uid,
-                'action': 'DELETE',
+                'action': 'delete',
                 'metadata': {},
                 'date_created': date_created,
                 'log_type': 'data-editing',
