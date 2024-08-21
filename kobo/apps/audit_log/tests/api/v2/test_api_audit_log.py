@@ -105,7 +105,7 @@ class ApiAuditLogTestCase(BaseTestCase):
                 'action': 'DELETE',
                 'metadata': {},
                 'date_created': date_created,
-                'log_type': 'data-editing'
+                'log_type': 'data-editing',
             }
         ]
         response = self.client.get(f'{self.audit_log_list_url}?q=action:delete')

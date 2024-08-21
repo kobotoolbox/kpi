@@ -13,20 +13,39 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='auditlog',
             name='log_type',
-            field=models.CharField(choices=[('access', 'Access'), ('project-history', 'Project History'), ('data-editing', 'Data Editing'), ('user-management', 'User Management'), ('asset-management', 'Asset Management'), ('submission-management', 'Submission Management')], null=True),
+            field=models.CharField(
+                choices=[
+                    ('access', 'Access'),
+                    ('project-history', 'Project History'),
+                    ('data-editing', 'Data Editing'),
+                    ('user-management', 'User Management'),
+                    ('asset-management', 'Asset Management'),
+                    ('submission-management', 'Submission Management'),
+                ],
+                null=True,
+            ),
         ),
         migrations.RunSQL(
             sql="UPDATE audit_log_auditlog SET log_type = (case"
-                " when model_name='user' and action != 'auth' then 'user-management'"
-                " when model_name='asset' then 'asset-management'"
-                " when model_name='instance' then 'submission-management'"
-                " when action='auth' then 'access'"
-                " end)",
+            " when model_name='user' and action != 'auth' then 'user-management'"
+            " when model_name='asset' then 'asset-management'"
+            " when model_name='instance' then 'submission-management'"
+            " when action='auth' then 'access'"
+            " end)",
             reverse_sql='',
         ),
         migrations.AlterField(
             model_name='auditlog',
             name='log_type',
-            field=models.CharField(choices=[('access', 'Access'), ('project-history', 'Project History'), ('data-editing', 'Data Editing'), ('user-management', 'User Management'), ('asset-management', 'Asset Management'), ('submission-management', 'Submission Management')]),
+            field=models.CharField(
+                choices=[
+                    ('access', 'Access'),
+                    ('project-history', 'Project History'),
+                    ('data-editing', 'Data Editing'),
+                    ('user-management', 'User Management'),
+                    ('asset-management', 'Asset Management'),
+                    ('submission-management', 'Submission Management'),
+                ]
+            ),
         ),
     ]
