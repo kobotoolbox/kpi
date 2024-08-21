@@ -3,6 +3,7 @@ import cx from 'classnames';
 import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
 import RegionSelector from 'js/components/languages/regionSelector';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
@@ -36,6 +37,29 @@ export default function StepConfigAuto() {
 
   if (draft?.languageCode === undefined) {
     return null;
+  }
+
+  if (singleProcessingStore.data.isPollingForTranslation) {
+    return (
+      <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
+        <LoadingSpinner type='big' message={false} />
+
+        <header className={bodyStyles.header}>
+          {t('Automatic translation in progress')}
+        </header>
+
+        {/*
+        Automatic translation is much faster than automatic transcription, but
+        for the consistency sake we use similar UI here.
+        */}
+        <p>
+          {t('Estimated time for completion: ##estimate##').replace(
+            '##estimate##',
+            t('less than a minute')
+          )}
+        </p>
+      </div>
+    );
   }
 
   return (

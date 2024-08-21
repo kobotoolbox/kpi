@@ -7,7 +7,6 @@ from typing import (
     Union,
 )
 
-from .google import GoogleTranslationEngine
 from .misc import TranslationException
 
 
@@ -25,7 +24,7 @@ class Engine:
 class Translate:
     SERVICES = {
         'google': Engine(
-            engine=GoogleTranslationEngine,
+            engine=None,
             label='Google Transcription Services',
             description='Translation services provided by Google.',
             enabled=True,

@@ -45,7 +45,7 @@ $s-data-table-font: 13px;
 .form-view--table .ReactTable {
   border: none;
   background: transparent;
-  height: calc(100% - 50px);
+  height: calc(100% - 52px);
   position: relative;
   z-index: 0; // To not interfere with UI elements outside the table, as contents of the table have many different z-index values - this makes them all irrelevant.
   font-size: $s-data-table-font;

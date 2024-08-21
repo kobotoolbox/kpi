@@ -70,7 +70,14 @@ class AutomaticTranscriptionAction(BaseAction):
         defs['_googlets'] = {
             'type': 'object',
             'properties': {
-                'status': {'enum': ['requested', 'in_progress', 'complete']},
+                'status': {'enum': ['requested', 'in_progress', 'complete', 'error']},
+                'responseJSON': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'},
+                        'detail': {'type': 'string'},
+                    }
+                },
             }
         }
         for field in self.possible_transcribed_fields:
