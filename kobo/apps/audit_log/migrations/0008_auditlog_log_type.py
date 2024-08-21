@@ -46,7 +46,8 @@ class Migration(migrations.Migration):
                     ('user-management', 'User Management'),
                     ('asset-management', 'Asset Management'),
                     ('submission-management', 'Submission Management'),
-                ]
+                ],
+                db_index=True,
             ),
         ),
     ]
