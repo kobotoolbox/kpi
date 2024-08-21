@@ -71,14 +71,13 @@ def expected_file_size(submissions: int = 1):
         settings.BASE_DIR + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
     )) * submissions
 
-def add_mock_submissions(assets: list, submissions_per_asset: int = 1, age_days: int = 0):
+
+def add_mock_submissions(
+    assets: list, submissions_per_asset: int = 1, age_days: int = 0
+):
     """
     Add one (default) or more submissions to an asset
     """
-
-    # FIXME
-    if age_days > 0:
-        raise Exception('FIXME!!!!')
 
     all_submissions = []
     for asset in assets:
@@ -106,14 +105,12 @@ def add_mock_submissions(assets: list, submissions_per_asset: int = 1, age_days:
                 ],
                 '_submitted_by': asset.owner.username,
             }
+            if age_days > 0:
+                submission_time = timezone.now() - relativedelta(days=age_days)
+                submission['_submission_time'] = submission_time.strftime('%Y-%m-%dT%H:%M:%S')
             asset_submissions.append(submission)
 
         asset.deployment.mock_submissions(asset_submissions)
         all_submissions = all_submissions + asset_submissions
-<<<<<<< HEAD:kobo/apps/trackers/tests/submission_utils.py
-        update_xform_counters(asset, submissions=submissions_per_asset, age_days=age_days)
-=======
-        # update_xform_counters(asset, submissions=submissions_per_asset)
->>>>>>> kobocat-django-app-part-2-refactor-mock-deployment-backend:kobo/apps/trackers/submission_utils.py
 
     return all_submissions

@@ -14,13 +14,11 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.stripe.tests.utils import generate_enterprise_subscription, generate_plan_subscription
-from kobo.apps.trackers.tests.submission_utils import create_mock_assets, add_mock_submissions
 from kobo.apps.stripe.tests.utils import (
     generate_enterprise_subscription,
     generate_plan_subscription,
 )
-from kobo.apps.trackers.submission_utils import (
+from kobo.apps.trackers.tests.submission_utils import (
     create_mock_assets,
     add_mock_submissions,
 )

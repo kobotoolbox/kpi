@@ -432,6 +432,7 @@ class DataViewSet(
         """
         Creates a duplicate of the submission with a given `pk`
         """
+
         deployment = self._get_deployment()
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
@@ -439,7 +440,7 @@ class DataViewSet(
             submission_id, request.user, fields=['_uuid']
         )
         duplicate_response = deployment.duplicate_submission(
-            submission_id=submission_id, user=request.user
+            submission_id=submission_id, request=request
         )
         deployment.copy_submission_extras(
             original_submission['_uuid'], duplicate_response['_uuid']
