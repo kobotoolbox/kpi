@@ -10,6 +10,7 @@ from kobo.apps.audit_log.models import (
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     AuditAction,
     AuditLog,
+    AuditType,
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
@@ -47,6 +48,7 @@ class AuditLogModelTestCase(BaseTestCase):
         self.assertEqual(audit_log.object_id, user.id)
         self.assertEqual(audit_log.user_uid, user.extra_details.uid)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+        self.assertEqual(audit_log.log_type, AuditType.ACCESS)
 
     def test_basic_create_auth_log_from_request(
         self, patched_ip, patched_source

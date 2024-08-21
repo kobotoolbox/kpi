@@ -21,7 +21,7 @@ from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
-from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -789,7 +789,10 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             model_name,
         ) = self.asset.deployment.submission_model.get_app_label_and_model_name()
         audit_log_count = AuditLog.objects.filter(
-            user=self.someuser, app_label=app_label, model_name=model_name
+            user=self.someuser,
+            app_label=app_label,
+            model_name=model_name,
+            log_type=AuditType.SUBMISSION_MANAGEMENT,
         ).count()
         # No submissions have been deleted yet
         assert audit_log_count == 0
@@ -799,7 +802,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         # All submissions have been deleted and should be logged
         deleted_submission_ids = AuditLog.objects.values_list(
             'pk', flat=True
-        ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
+        ).filter(
+            user=self.someuser,
+            app_label=app_label,
+            model_name=model_name,
+            log_type=AuditType.SUBMISSION_MANAGEMENT,
+        )
         assert len(deleted_submission_ids) > 0
         assert [submission['_id']], deleted_submission_ids
 
