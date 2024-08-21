@@ -55,7 +55,7 @@ class HttpsOnlyBasicAuthentication(MfaBlockerMixin, BasicAuthentication, Require
         if user_auth is None:
             return None
         user, auth = user_auth
-        self.create_access_log(request, user, 'Https Basic')
+        self.create_access_log(request, user, 'https basic')
         return user_auth
 
     def authenticate_credentials(self, userid, password, request=None):

@@ -45,7 +45,7 @@ class TestOneTimeAuthentication(BaseTestCase):
 
     @data(
         # expected authentication type, method that needs to be mocked, endpoint to hit
-        # (kpi and openrosa endpoints use different auth methods)
+        # (kpi and openrosa endpoints use different auth methods, and we want to test endpoints in both v1 and v2)
         (
             'Token',
             'kpi.authentication.DRFTokenAuthentication.authenticate',
@@ -65,6 +65,21 @@ class TestOneTimeAuthentication(BaseTestCase):
             'Https Basic',
             'kobo.apps.openrosa.libs.authentication.BasicAuthentication.authenticate',
             'data-list',
+        ),
+        (
+            'Token',
+            'kpi.authentication.DRFTokenAuthentication.authenticate',
+            'api_v2:data-list',
+        ),
+        (
+            'OAuth2',
+            'kpi.authentication.OPOAuth2Authentication.authenticate',
+            'api_v2:data-list',
+        ),
+        (
+            'Https Basic',
+            'kobo.apps.openrosa.libs.authentication.BasicAuthentication.authenticate',
+            'api_v2:data-list',
         ),
     )
     @unpack
@@ -106,7 +121,7 @@ class TestOneTimeAuthentication(BaseTestCase):
             return_value=True,
             side_effect=side_effect,
         ):
-            self.client.get(reverse('data-list'), **header)
+            self.client.get(reverse('api_v2:data-list'), **header)
         log_exists = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,

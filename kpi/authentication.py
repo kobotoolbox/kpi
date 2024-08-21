@@ -31,7 +31,7 @@ class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication, RequiresAcces
         if result is None:
             return None
         user, creds = result
-        self.create_access_log(request, user, 'Basic')
+        self.create_access_log(request, user, 'basic')
         return user, creds
 
     def authenticate_credentials(self, userid, password, request=None):
@@ -63,7 +63,7 @@ class DigestAuthentication(MfaBlockerMixin, BaseAuthentication, RequiresAccessLo
                 raise AuthenticationFailed()
 
             self.validate_mfa_not_active(request.user)
-            self.create_access_log(request, request.user, 'Digest')
+            self.create_access_log(request, request.user, 'digest')
 
             return request.user, None
         else:
@@ -155,7 +155,7 @@ class TokenAuthentication(MfaBlockerMixin, DRFTokenAuthentication, RequiresAcces
         if result is None:
             return None
         user, token = result
-        self.create_access_log(request, user, 'Token')
+        self.create_access_log(request, user, 'token')
         return user, token
 
     def authenticate_credentials(self, key):
