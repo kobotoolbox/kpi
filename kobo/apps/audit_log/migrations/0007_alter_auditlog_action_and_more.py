@@ -43,7 +43,20 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='auditlog',
             name='action',
-            field=models.CharField(choices=[('create', 'CREATE'), ('delete', 'DELETE'), ('in-trash', 'IN TRASH'), ('put-back', 'PUT BACK'), ('remove', 'REMOVE'), ('update', 'UPDATE'), ('auth', 'AUTH')], db_index=True, default='delete', max_length=10),
+            field=models.CharField(
+                choices=[
+                    ('create', 'CREATE'),
+                    ('delete', 'DELETE'),
+                    ('in-trash', 'IN TRASH'),
+                    ('put-back', 'PUT BACK'),
+                    ('remove', 'REMOVE'),
+                    ('update', 'UPDATE'),
+                    ('auth', 'AUTH'),
+                ],
+                db_index=True,
+                default='delete',
+                max_length=10,
+            ),
         ),
     ]
     if not settings.SKIP_HEAVY_MIGRATIONS:
@@ -51,19 +64,27 @@ class Migration(migrations.Migration):
             [
                 migrations.AddIndex(
                     model_name='auditlog',
-                    index=models.Index(models.F('metadata__asset_uid'), models.F('action'),
-                                       name='audit_log_asset_action_idx'),
+                    index=models.Index(
+                        models.F('metadata__asset_uid'),
+                        models.F('action'),
+                        name='audit_log_asset_action_idx',
+                    ),
                 ),
                 migrations.AddIndex(
                     model_name='auditlog',
-                    index=models.Index(models.F('metadata__asset_uid'), name='audit_log_asset_uid_idx'),
+                    index=models.Index(
+                        models.F('metadata__asset_uid'),
+                        name='audit_log_asset_uid_idx',
+                    ),
                 ),
             ]
         )
     else:
-        operations.extend([
-            migrations.RunPython(
-                manually_create_indexes_instructions,
-                manually_drop_indexes_instructions,
-            )
-        ])
+        operations.extend(
+            [
+                migrations.RunPython(
+                    manually_create_indexes_instructions,
+                    manually_drop_indexes_instructions,
+                )
+            ]
+        )

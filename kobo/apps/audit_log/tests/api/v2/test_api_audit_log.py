@@ -47,7 +47,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            action=AuditAction.DELETE
+            action=AuditAction.DELETE,
         )
         with skip_login_access_log():
             self.client.login(username='admin', password='pass')
@@ -91,16 +91,18 @@ class ApiAuditLogTestCase(BaseTestCase):
         )
         with skip_login_access_log():
             self.client.login(username='admin', password='pass')
-        expected = [{
-            'app_label': 'foo',
-            'model_name': 'bar',
-            'object_id': 1,
-            'user': 'http://testserver/api/v2/users/anotheruser/',
-            'user_uid': anotheruser.extra_details.uid,
-            'action': 'DELETE',
-            'metadata': {},
-            'date_created': date_created,
-        }]
+        expected = [
+            {
+                'app_label': 'foo',
+                'model_name': 'bar',
+                'object_id': 1,
+                'user': 'http://testserver/api/v2/users/anotheruser/',
+                'user_uid': anotheruser.extra_details.uid,
+                'action': 'DELETE',
+                'metadata': {},
+                'date_created': date_created,
+            }
+        ]
         response = self.client.get(f'{self.audit_log_list_url}?q=action:delete')
         audit_logs_count = AuditLog.objects.count()
         assert response.status_code == status.HTTP_200_OK

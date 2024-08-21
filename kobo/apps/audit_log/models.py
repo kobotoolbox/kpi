@@ -33,7 +33,9 @@ class AuditAction(models.TextChoices):
 class AuditLog(models.Model):
 
     id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+    )
     # We cannot use ContentType FK because we handle models and shadow models.
     # Shadow models do not have content types related to this db.
     app_label = models.CharField(max_length=100)
@@ -45,16 +47,24 @@ class AuditLog(models.Model):
         max_length=10,
         choices=AuditAction.choices,
         default=AuditAction.DELETE,
-        db_index=True
+        db_index=True,
     )
-    user_uid = models.CharField(db_index=True, max_length=UUID_LENGTH + 1)  # 1 is prefix length
+    user_uid = models.CharField(
+        db_index=True, max_length=UUID_LENGTH + 1
+    )  # 1 is prefix length
 
     class Meta:
         indexes = [
             models.Index(fields=['app_label', 'model_name', 'action']),
             models.Index(fields=['app_label', 'model_name']),
-            models.Index(models.F('metadata__asset_uid'), 'action', name='audit_log_asset_action_idx'),
-            models.Index(models.F('metadata__asset_uid'), name='audit_log_asset_uid_idx')
+            models.Index(
+                models.F('metadata__asset_uid'),
+                'action',
+                name='audit_log_asset_action_idx',
+            ),
+            models.Index(
+                models.F('metadata__asset_uid'), name='audit_log_asset_uid_idx'
+            ),
         ]
 
     def save(
@@ -75,15 +85,24 @@ class AuditLog(models.Model):
         )
 
     @staticmethod
-    def create_access_log_for_request(request, user=None, authentication_type: str = None):
+    def create_access_log_for_request(
+        request, user=None, authentication_type: str = None
+    ):
         logged_in_user = user or request.user
 
         # django-loginas will keep the superuser as the _cached_user while request.user is set to the new one
         # sometimes there won't be a cached user at all, mostly in tests
         initial_user = getattr(request, '_cached_user', None)
-        is_loginas_url = request.resolver_match is not None and request.resolver_match.url_name == 'loginas-user-login'
+        is_loginas_url = (
+            request.resolver_match is not None
+            and request.resolver_match.url_name == 'loginas-user-login'
+        )
         # a regular login may have an anonymous user as _cached_user, ignore that
-        user_changed = initial_user and initial_user.is_authenticated and initial_user.id != logged_in_user.id
+        user_changed = (
+            initial_user
+            and initial_user.is_authenticated
+            and initial_user.id != logged_in_user.id
+        )
         is_loginas = is_loginas_url and user_changed
         if authentication_type and authentication_type != '':
             # authentication_type parameter has precedence
@@ -91,7 +110,10 @@ class AuditLog(models.Model):
         elif is_loginas:
             # second option: loginas
             auth_type = ACCESS_LOG_LOGINAS_AUTH_TYPE
-        elif hasattr(logged_in_user, 'backend') and logged_in_user.backend is not None:
+        elif (
+            hasattr(logged_in_user, 'backend')
+            and logged_in_user.backend is not None
+        ):
             # third option: the backend that authenticated the user
             auth_type = logged_in_user.backend
         else:
