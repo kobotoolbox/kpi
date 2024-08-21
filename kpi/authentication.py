@@ -170,5 +170,5 @@ class OAuth2Authentication(OPOAuth2Authentication, RequiresAccessLogMixin):
         if result is None:
             return result
         user, creds = result
-        self.create_access_log(request, user, 'OAuth2')
+        self.create_access_log(request, user, 'oauth2')
         return user, creds
