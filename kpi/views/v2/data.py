@@ -31,7 +31,11 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import ObjectDeploymentDoesNotExist
+from kpi.exceptions import (
+    InvalidXFormException,
+    MissingXFormException,
+    ObjectDeploymentDoesNotExist,
+)
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
@@ -328,58 +332,12 @@ class DataViewSet(
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
-        deployment = self._get_deployment()
-        kwargs = {
-            'data': request.data,
-            'context': self.get_serializer_context(),
-        }
         if request.method == 'DELETE':
-            action_ = deployment.delete_submissions
-            kwargs['perm'] = PERM_DELETE_SUBMISSIONS
+            response = self._bulk_delete(request)
         elif request.method == 'PATCH':
-            action_ = deployment.bulk_update_submissions
-            kwargs['perm'] = PERM_CHANGE_SUBMISSIONS
+            response = self._bulk_update(request)
 
-        bulk_actions_validator = DataBulkActionsValidator(**kwargs)
-        bulk_actions_validator.is_valid(raise_exception=True)
-        audit_logs = []
-        if request.method == 'DELETE':
-            # Prepare audit logs
-            data = copy.deepcopy(bulk_actions_validator.data)
-            # Retrieve all submissions matching `submission_ids` or `query`.
-            # If user is not allowed to see some of the submissions (i.e.: user
-            # with partial permissions), the request will be rejected
-            # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
-            submissions = deployment.get_submissions(
-                user=request.user,
-                submission_ids=data['submission_ids'],
-                query=data['query'],
-                fields=['_id', '_uuid']
-            )
-            for submission in submissions:
-                audit_logs.append(AuditLog(
-                    app_label='logger',
-                    model_name='instance',
-                    object_id=submission['_id'],
-                    user=request.user,
-                    user_uid=request.user.extra_details.uid,
-                    metadata={
-                        'asset_uid': self.asset.uid,
-                        'uuid': submission['_uuid'],
-                    },
-                    action=AuditAction.DELETE,
-                ))
-
-        # Send request to KC
-        json_response = action_(
-            bulk_actions_validator.data, request.user, request=request
-        )
-
-        # If requests has succeeded, let's log deletions (if any)
-        if json_response['status'] == status.HTTP_200_OK and audit_logs:
-            AuditLog.objects.bulk_create(audit_logs)
-
-        return Response(**json_response)
+        return Response(**response)
 
     def destroy(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
@@ -393,10 +351,9 @@ class DataViewSet(
             fields=['_id', '_uuid']
         )
 
-        json_response = deployment.delete_submission(
+        if deployment.delete_submission(
             submission_id, user=request.user
-        )
-        if json_response['status'] == status.HTTP_204_NO_CONTENT:
+        ):
             AuditLog.objects.create(
                 app_label='logger',
                 model_name='instance',
@@ -408,8 +365,17 @@ class DataViewSet(
                 },
                 action=AuditAction.DELETE,
             )
-
-        return Response(**json_response)
+            response = {
+                'content_type': 'application/json',
+                'status': status.HTTP_204_NO_CONTENT,
+            }
+        else:
+            response = {
+                'data': {'detail': 'Submission not found'},
+                'content_type': 'application/json',
+                'status': status.HTTP_404_NOT_FOUND,
+            }
+        return Response(**response)
 
     @action(
         detail=True,
@@ -589,6 +555,87 @@ class DataViewSet(
             request.user, bulk_actions_validator.data)
 
         return Response(**json_response)
+
+    def _bulk_delete(self, request: Request) -> dict:
+        deployment = self._get_deployment()
+        serializer_params = {
+            'data': request.data,
+            'context': self.get_serializer_context(),
+            'perm': PERM_DELETE_SUBMISSIONS
+        }
+        bulk_actions_validator = DataBulkActionsValidator(**serializer_params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+
+        # Prepare audit logs
+        data = copy.deepcopy(bulk_actions_validator.data)
+        # Retrieve all submissions matching `submission_ids` or `query`.
+        # If user is not allowed to see some of the submissions (i.e.: user
+        # with partial permissions), the request will be rejected
+        # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
+        submissions = deployment.get_submissions(
+            user=request.user,
+            submission_ids=data['submission_ids'],
+            query=data['query'],
+            fields=['_id', '_uuid']
+        )
+
+        # Prepare logs before deleting all submissions.
+        audit_logs = []
+        for submission in submissions:
+            audit_logs.append(AuditLog(
+                app_label='logger',
+                model_name='instance',
+                object_id=submission['_id'],
+                user=request.user,
+                user_uid=request.user.extra_details.uid,
+                metadata={
+                    'asset_uid': self.asset.uid,
+                    'uuid': submission['_uuid'],
+                },
+                action=AuditAction.DELETE,
+            ))
+
+        try:
+            deleted = deployment.delete_submissions(
+                bulk_actions_validator.data, request.user, request=request
+            )
+        except (MissingXFormException, InvalidXFormException):
+            return {
+                'data': {'detail': 'Could not delete submissions'},
+                'content_type': 'application/json',
+                'status': status.HTTP_400_BAD_REQUEST,
+            }
+
+        # If requests has succeeded, let's log deletions (if any)
+        if audit_logs and deleted:
+            AuditLog.objects.bulk_create(audit_logs)
+
+        return {
+            'data': {'detail': f'{deleted} submissions have been deleted'},
+            'content_type': 'application/json',
+            'status': status.HTTP_200_OK,
+        }
+
+    def _bulk_update(self, request: Request) -> dict:
+        deployment = self._get_deployment()
+        serializer_params = {
+            'data': request.data,
+            'context': self.get_serializer_context(),
+            'perm': PERM_CHANGE_SUBMISSIONS,
+        }
+        bulk_actions_validator = DataBulkActionsValidator(**serializer_params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+
+        try:
+            return deployment.bulk_update_submissions(
+                bulk_actions_validator.data, request.user, request=request
+            )
+        except (MissingXFormException, InvalidXFormException):
+            return {
+                'data': {'detail': f'Could not updated submissions'},
+                'content_type': 'application/json',
+                'status': status.HTTP_400_BAD_REQUEST,
+            }
 
     def _filter_mongo_query(self, request):
         """

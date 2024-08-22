@@ -223,17 +223,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         count, _ = Instance.objects.filter(pk=submission_id).delete()
-        if not count:
-            return {
-                'data': {'detail': 'Submission not found'},
-                'content_type': 'application/json',
-                'status': status.HTTP_404_NOT_FOUND,
-            }
-
-        return {
-            'content_type': 'application/json',
-            'status': status.HTTP_204_NO_CONTENT,
-        }
+        return count
 
     def delete_submissions(
         self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
@@ -263,21 +253,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
 
-        # TODO handle errors
-        try:
-            deleted_count = delete_instances(self.xform, data)
-        except (MissingXFormException, InvalidXFormException):
-            return {
-                'data': {'detail': f'Could not delete submissions'},
-                'content_type': 'application/json',
-                'status': status.HTTP_400_BAD_REQUEST,
-            }
-
-        return {
-            'data': {'detail': f'{deleted_count} submissions have been deleted'},
-            'content_type': 'application/json',
-            'status': status.HTTP_200_OK,
-        }
+        return delete_instances(self.xform, data)
 
     def duplicate_submission(
         self, submission_id: int, request: 'rest_framework.request.Request',
