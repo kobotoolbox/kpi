@@ -8,6 +8,7 @@ $utils = require './model.utils'
 $configs = require './model.configs'
 $surveyDetail = require './model.surveyDetail'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
+txtid = require('js/utils').txtid
 
 module.exports = do ->
   _t = require("utils").t
@@ -82,7 +83,7 @@ module.exports = do ->
       if kobomatrix_list
         items[kobomatrix_list] = @getSurvey().choices.get(kobomatrix_list)
       else
-        kobomatrix_list = @.set('kobo--matrix_list', "matrix_#{$utils.txtid()}")
+        kobomatrix_list = @.set('kobo--matrix_list', "matrix_#{txtid()}")
         items[kobomatrix_list] = @getSurvey().choices.create()
 
       @rows.each (row)=>

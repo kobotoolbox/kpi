@@ -1,6 +1,7 @@
 _ = require 'underscore'
 base = require './model.base'
 $modelUtils = require './model.utils'
+txtid = require('js/utils').txtid
 
 module.exports = do ->
 
@@ -159,7 +160,7 @@ module.exports = do ->
   class choices.ChoiceLists extends base.BaseCollection
     model: choices.ChoiceList
     create: ->
-      @add(cl = new choices.ChoiceList(name: $modelUtils.txtid()))
+      @add(cl = new choices.ChoiceList(name: txtid()))
       cl
     getListNames: ->
       @invoke('get', 'name')

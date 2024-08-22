@@ -1,7 +1,8 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import { bemComponents } from 'js/libs/reactBemComponents';
-import { sluggify, txtid } from '../../../xlform/src/model.utils';
+import {sluggify} from '../../../xlform/src/model.utils';
+import {txtid} from 'js/utils';
 import { Map } from 'immutable';
 import Select from 'react-select';
 import alertify from 'alertifyjs';

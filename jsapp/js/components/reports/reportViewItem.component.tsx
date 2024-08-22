@@ -1,3 +1,4 @@
+// Libraries
 import React from 'react';
 import {observer} from 'mobx-react';
 import zip from 'lodash.zip';
@@ -10,11 +11,19 @@ import type {
 } from 'chart.js/auto';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
+
+// Stores
 import sessionStore from 'js/stores/session';
-import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
-import type {ReportsResponse, ReportsResponseData} from './reportsConstants';
+
+// Partial components
 import ReportTable from './reportTable.component';
 import Button from 'js/components/common/button';
+
+// Constants
+import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
+
+// Types
+import type {ReportsResponse, ReportsResponseData, ReportsResponseDataValue} from './reportsConstants';
 
 export type PreparedTable = Array<
   [string | undefined, number | undefined, number | undefined]
@@ -140,20 +149,20 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       }
 
       let allPercentages: number[] = [];
-      data.values.forEach(function (val: any, i: number) {
+      data.values.forEach((val, i) => {
         const choiceLabel = val[2] || val[0] || '';
         let itemPerc = [];
         // TODO: Make the backend behave consistently?
         // https://github.com/kobotoolbox/kpi/issues/2562
-        if (Array.isArray(val[1].percentage)) {
+        if ('percentage' in val[1] && Array.isArray(val[1].percentage)) {
           itemPerc = val[1].percentage;
         }
-        if (Array.isArray(val[1].percentages)) {
+        if ('percentages' in val[1] && Array.isArray(val[1].percentages)) {
           itemPerc = val[1].percentages;
         }
         allPercentages = [...new Set([...allPercentages, ...itemPerc])];
         datasets.push({
-          label: truncateLabel(choiceLabel, 20),
+          label: truncateLabel(String(choiceLabel), 20),
           data: itemPerc,
           fill: isArea,
           backgroundColor: colors[i],

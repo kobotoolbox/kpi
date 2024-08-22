@@ -1,22 +1,31 @@
 import type {ChartTypeRegistry} from 'chart.js/auto';
 import type {AnyRowTypeName} from 'js/constants';
 
+export interface ReportStyle {
+  /** This is row name (see `AnyRowTypeName` from `js/constants.ts`) */
+  groupDataBy?: string;
+  report_type?: ReportStyleName;
+  report_colors?: string[];
+  translationIndex?: number;
+  graphWidth?: number;
+  /** This is sometimes `false`. */
+  width?: number | boolean;
+}
+
 export interface CustomReport {
   crid: string;
   name: string;
   questions: string[];
-  reportStyle: {
-    groupDataBy: string;
-    report_type: ReportStyleName;
-    report_colors: string[];
-    translationIndex: number;
-  }
+  reportStyle: ReportStyle;
+  // TODO FIXME: why does this has `specified` property? I see some code is
+  // expecting it to be here, but it is not something I expected :shrug:
+  specified?: ReportStyle;
 }
 
 interface ReportsResponseDataValueRegular {
-  responses: string;
-  frequencies: number;
-  percentages: number;
+  responses: string[];
+  frequencies: number[];
+  percentages: number[];
 }
 
 interface ReportsResponseDataValueNumerical {
@@ -26,8 +35,14 @@ interface ReportsResponseDataValueNumerical {
   stdev?: number | '*';
 }
 
+export type ReportsResponseDataValue = ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical;
+
 export type ReportsResponseDataValues = Array<
-  [number, ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical]
+  [
+    number,
+    ReportsResponseDataValue,
+    string | number | undefined,
+  ]
 >;
 
 export interface ReportsResponseData {
@@ -56,19 +71,46 @@ export interface ReportsResponseData {
 }
 
 export interface ReportsResponse {
+  /** The question name */
   name: string;
   row: {
     type: AnyRowTypeName;
-    label?: Array<string | null>;
+    // TODO: check if this is actually true, for sure `string` happens in
+    // the code, but the array perhaps happens (some code suggests so indirectly)
+    label?: string | Array<string | null>;
   };
   data: ReportsResponseData;
   kuid: string;
-  style: {
-    // There could be more properties here
-    graphWidth?: number;
-    report_type?: ReportStyleName;
-    report_colors?: string[];
-    groupDataBy?: string;
+  style: ReportStyle;
+}
+
+/**
+ * There is some older piece of code on Back end that doesn't follow
+ * the consistent responses architecture (see `PaginatedResponse` from
+ * `dataInterface` file). This one is only being used by responses endpoint.
+ */
+export interface ReportsPaginatedResponse {
+  url: string;
+  count: number;
+  list: ReportsResponse[];
+}
+
+/**
+ * This is the `report_styles` object from `AssetResponse`. It is being used to
+ * store override styles for particular questions (rows). Most of the times it
+ * would be in "empty" state.
+ */
+export interface AssetResponseReportStyles {
+  /**
+   * The default styles (i.e. not overrides). This is empty if there are no
+   * overrides defined (in `specified` below).
+   */
+  default: ReportStyle;
+  /** A map of rows and their style overrides. */
+  specified: {[rowName: string]: ReportStyle};
+  /** This is a map of row names to their `kuid`s stored here for some reason. */
+  kuid_names?: {
+    [rowName: string]: string;
   };
 }
 
@@ -84,15 +126,15 @@ export type ReportStyleName =
   | 'polar'
   | 'radar';
 
-interface ReportStyle {
+interface ReportStyleDefinition {
   value: ReportStyleName;
   label: string;
   chartJsType: keyof ChartTypeRegistry;
 }
 
-type ReportStyles = {[P in ReportStyleName]: ReportStyle};
+type ReportStyleDefinitions = {[P in ReportStyleName]: ReportStyleDefinition};
 
-export const REPORT_STYLES: ReportStyles = Object.freeze({
+export const REPORT_STYLES: ReportStyleDefinitions = Object.freeze({
   vertical: {
     value: 'vertical',
     label: t('Vertical'),
@@ -152,7 +194,12 @@ export const REPORT_STYLES: ReportStyles = Object.freeze({
   },
 });
 
-export const REPORT_COLOR_SETS = [
+export interface ReportColorSet {
+  label: string;
+  colors: string[];
+}
+
+export const REPORT_COLOR_SETS: ReportColorSet[] = [
   {
     label: 'set1',
     colors: [

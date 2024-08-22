@@ -58,7 +58,7 @@ export default class CustomReportForm extends React.Component<
   }
 
   saveCustomReport() {
-    let report_custom = this.props.asset.report_custom || {};
+    const report_custom = this.props.asset.report_custom || {};
     const crid = this.state.customReport.crid;
 
     report_custom[crid] = this.state.customReport;
@@ -66,7 +66,7 @@ export default class CustomReportForm extends React.Component<
   }
 
   deleteCustomReport() {
-    let report_custom = this.props.asset.report_custom || {};
+    const report_custom = this.props.asset.report_custom || {};
     const crid = this.state.customReport.crid;
 
     delete report_custom[crid];
@@ -91,7 +91,7 @@ export default class CustomReportForm extends React.Component<
         <div className='custom-report--questions'>
           {this.props.reportData.map((item, index) => {
             let label = t('Unlabeled');
-            if (item.row.label && item.row.label[0] && item.row.label[0] !== null) {
+            if (item.row.label?.[0] && item.row.label[0] !== null) {
               label = item.row.label[0];
             }
 

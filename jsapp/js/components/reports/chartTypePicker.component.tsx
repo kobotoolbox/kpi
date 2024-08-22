@@ -1,16 +1,11 @@
 import React from 'react';
 import {REPORT_STYLES} from './reportsConstants';
-import type {ReportStyleName} from './reportsConstants';
+import type {ReportStyle, ReportStyleName} from './reportsConstants';
 import styles from './chartTypePicker.module.scss';
 
 interface ChartTypePickerProps {
-  onChange: (
-    params: {default: boolean},
-    value: {report_type: ReportStyleName}
-  ) => void;
-  defaultStyle: {
-    report_type: ReportStyleName;
-  };
+  onChange: (params: {default: boolean}, value: {report_type: ReportStyleName}) => void;
+  defaultStyle: ReportStyle;
 }
 
 export default function ChartTypePicker(props: ChartTypePickerProps) {
