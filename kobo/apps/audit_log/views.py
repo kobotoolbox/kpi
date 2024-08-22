@@ -132,8 +132,11 @@ class AllAccessLogViewSet(AuditLogViewSet):
     This endpoint can be filtered and paginated the same as the /audit-logs endpoint
 
     """
+
     queryset = (
-        AuditLog.objects.select_related('user').filter(action=AuditAction.AUTH).order_by('-date_created')
+        AuditLog.objects.select_related('user')
+        .filter(action=AuditAction.AUTH)
+        .order_by('-date_created')
     )
 
 
@@ -184,10 +187,11 @@ class AccessLogViewSet(AuditLogViewSet):
     will return entries 100-149
 
     """
+
     queryset = (
-        AuditLog.objects.select_related('user').filter(action=AuditAction.AUTH).order_by('-date_created')
+        AuditLog.objects.select_related('user')
+        .filter(action=AuditAction.AUTH)
+        .order_by('-date_created')
     )
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
-
-
