@@ -1,7 +1,5 @@
 # coding: utf-8
 from django.conf import settings
-from kobo_service_account.models import ServiceAccountUser
-from kobo_service_account.utils import get_real_user
 from rest_framework.response import Response
 
 from kobo.apps.openrosa.apps.api.permissions import ConnectViewsetPermissions
@@ -10,6 +8,7 @@ from kobo.apps.openrosa.libs.mixins.object_lookup_mixin import ObjectLookupMixin
 from kobo.apps.openrosa.libs.serializers.user_profile_serializer import (
     UserProfileWithTokenSerializer
 )
+from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 
@@ -59,11 +58,7 @@ class ConnectViewSet(ObjectLookupMixin, OpenRosaGenericViewSet):
                 # login(request, request.user)
                 session.set_expiry(settings.DEFAULT_SESSION_EXPIRY_TIME)
 
-        user = (
-            get_real_user(request)
-            if isinstance(request.user, ServiceAccountUser)
-            else request.user
-        )
+        user = get_database_user(request.user)
 
         serializer = UserProfileWithTokenSerializer(
             instance=UserProfile.objects.get_or_create(user=user)[0],

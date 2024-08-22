@@ -111,8 +111,15 @@ class TranslationAction(BaseAction):
             'type': 'object',
             'properties': {
                 'status': {
-                    'enum': ['requested', 'in_progress', 'complete'],
-                }
+                    'enum': ['requested', 'in_progress', 'complete', 'error'],
+                },
+                'responseJSON': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'},
+                        'detail': {'type': 'string'},
+                    }
+                },
             }
         }
         defs['xtranslation'] = {

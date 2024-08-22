@@ -1,7 +1,6 @@
 # coding: utf-8
 import multiprocessing
 import os
-import uuid
 from collections import defaultdict
 from functools import partial
 
@@ -10,6 +9,7 @@ import requests
 import simplejson as json
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.testcases import LiveServerTestCase
 from django.urls import reverse
@@ -20,17 +20,20 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
-from kobo_service_account.utils import get_request_headers
 from rest_framework import status
 
-from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import \
-    TestAbstractViewSet
-from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
+from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
+    TestAbstractViewSet,
+)
+from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import (
+    XFormSubmissionApi,
+)
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.libs.constants import (
     CAN_ADD_SUBMISSIONS
 )
+from kobo.apps.openrosa.libs.utils import logger_tools
 from kobo.apps.openrosa.libs.utils.logger_tools import OpenRosaTemporarilyUnavailable
 
 
@@ -396,80 +399,9 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertContains(response, 'No submission key provided.',
-                            status_code=400)
-
-    def test_edit_submission_with_service_account(self):
-        """
-        Simulate KPI duplicating/editing feature, i.e. resubmit existing
-        submission with a different UUID (and a deprecatedID).
-        """
-
-        # Ensure only authenticated users can submit data
-        path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            '..',
-            'fixtures',
-            'transport_submission.json')
-        with open(path, 'rb') as f:
-            data = json.loads(f.read())
-
-            # Submit data as Bob
-            request = self.factory.post(
-                '/submission', data, format='json', **self.extra
-            )
-            response = self.view(request)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-            # Create user without edit permissions ('change_xform' and 'report_xform')
-            alice_data = {
-                'username': 'alice',
-                'password1': 'alicealice',
-                'password2': 'alicealice',
-                'email': 'alice@localhost.com',
-            }
-            self._login_user_and_profile(alice_data)
-
-            new_uuid = f'uuid:{uuid.uuid4()}'
-            data['submission']['meta'] = {
-                'instanceID': new_uuid,
-                'deprecatedID': data['submission']['meta']['instanceID']
-            }
-            # New ODK form. Let's provide a uuid.
-            data['submission'].update({
-                'formhub': {
-                    'uuid': self.xform.uuid
-                }
-            })
-
-            request = self.factory.post(
-                '/submission', data, format='json', **self.extra
-            )
-            response = self.view(request)
-            # Alice should get access forbidden.
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-            # Try to submit with service account user on behalf of alice
-            service_account_meta = self.get_meta_from_headers(
-                get_request_headers('alice')
-            )
-            # Test server does not provide `host` header
-            service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-            request = self.factory.post(
-                '/submission', data, format='json', **service_account_meta
-            )
-            response = self.view(request)
-            self.assertContains(response, 'Successful submission',
-                                status_code=status.HTTP_201_CREATED)
-            self.assertTrue(response.has_header('X-OpenRosa-Version'))
-            self.assertTrue(
-                response.has_header('X-OpenRosa-Accept-Content-Length')
-            )
-            self.assertTrue(response.has_header('Date'))
-            self.assertEqual(response['Content-Type'], 'application/json')
-            self.assertEqual(
-                response['Location'], 'http://testserver/submission'
-            )
+        self.assertContains(
+            response, 'No submission key provided.', status_code=400
+        )
 
     def test_submission_blocking_flag(self):
         # Set 'submissions_suspended' True in the profile metadata to test if
@@ -537,9 +469,7 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
     def setUp(self):
         self.user = User.objects.get(username='bob')
         self.token, _ = Token.objects.get_or_create(user=self.user)
-        new_profile, created = UserProfile.objects.get_or_create(
-            user=self.user
-        )
+        UserProfile.objects.get_or_create(user=self.user)
 
     def publish_xls_form(self):
         path = os.path.join(
@@ -552,20 +482,14 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
             'transportation.xls',
         )
 
-        xform_list_url = reverse('xform-list')
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
+        with open(path, 'rb') as f:
+            xls_file = ContentFile(f.read(), name=f'transportation.xls')
 
-        with open(path, 'rb') as xls_file:
-            post_data = {'xls_file': xls_file}
-            response = self.client.post(xform_list_url, data=post_data, **service_account_meta)
-
-        assert response.status_code == status.HTTP_201_CREATED
+        self.xform = logger_tools.publish_xls_form(xls_file, self.user)
 
     @pytest.mark.skipif(
-        settings.SKIP_TESTS_WITH_CONCURRENCY, reason='GitLab does not seem to support multi-processes'
+        settings.SKIP_TESTS_WITH_CONCURRENCY,
+        reason='GitLab does not seem to support multi-processes'
     )
     def test_post_concurrent_same_submissions(self):
         DUPLICATE_SUBMISSIONS_COUNT = 2  # noqa

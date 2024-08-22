@@ -27,8 +27,8 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             sql="UPDATE audit_log_auditlog SET user_uid = hub_extrauserdetail.uid "
-                "FROM hub_extrauserdetail "
-                "WHERE audit_log_auditlog.user_id = hub_extrauserdetail.user_id;",
+            "FROM hub_extrauserdetail "
+            "WHERE audit_log_auditlog.user_id = hub_extrauserdetail.user_id;",
             reverse_sql=migrations.RunSQL.noop,
         ),
     ]

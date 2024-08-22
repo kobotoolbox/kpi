@@ -1,4 +1,15 @@
-# coding: utf-8
+class BuildDbQueriesAttributeError(Exception):
+    pass
+
+
+class BuildDbQueriesBadArgumentError(Exception):
+    pass
+
+
+class BuildDbQueriesNoConfirmationProvidedError(Exception):
+    pass
+
+
 class ConflictingXMLHashInstanceError(Exception):
     pass
 
@@ -33,6 +44,10 @@ class InstanceMultipleNodeError(Exception):
 class InstanceParseError(Exception):
     def __init__(self, message='The instance could not be parsed'):
         super().__init__(message)
+
+
+class MissingValidationStatusPayloadError(Exception):
+    pass
 
 
 class TemporarilyUnavailableError(Exception):

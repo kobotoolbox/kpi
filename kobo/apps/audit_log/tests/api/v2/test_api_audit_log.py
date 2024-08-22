@@ -3,7 +3,7 @@ from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -47,7 +47,8 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            action=AuditAction.DELETE
+            action=AuditAction.DELETE,
+            log_type=AuditType.DATA_EDITING,
         )
         with skip_login_access_log():
             self.client.login(username='admin', password='pass')
@@ -61,6 +62,7 @@ class ApiAuditLogTestCase(BaseTestCase):
                 'action': 'DELETE',
                 'metadata': {},
                 'date_created': date_created,
+                'log_type': 'data-editing',
             },
         ]
         response = self.client.get(self.audit_log_list_url)
@@ -80,6 +82,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             object_id=1,
             date_created=date_created,
             action=AuditAction.UPDATE,
+            log_type=AuditType.DATA_EDITING,
         )
         AuditLog.objects.create(
             user=anotheruser,
@@ -88,19 +91,23 @@ class ApiAuditLogTestCase(BaseTestCase):
             object_id=1,
             date_created=date_created,
             action=AuditAction.DELETE,
+            log_type=AuditType.DATA_EDITING,
         )
         with skip_login_access_log():
             self.client.login(username='admin', password='pass')
-        expected = [{
-            'app_label': 'foo',
-            'model_name': 'bar',
-            'object_id': 1,
-            'user': 'http://testserver/api/v2/users/anotheruser/',
-            'user_uid': anotheruser.extra_details.uid,
-            'action': 'DELETE',
-            'metadata': {},
-            'date_created': date_created,
-        }]
+        expected = [
+            {
+                'app_label': 'foo',
+                'model_name': 'bar',
+                'object_id': 1,
+                'user': 'http://testserver/api/v2/users/anotheruser/',
+                'user_uid': anotheruser.extra_details.uid,
+                'action': 'DELETE',
+                'metadata': {},
+                'date_created': date_created,
+                'log_type': 'data-editing',
+            }
+        ]
         response = self.client.get(f'{self.audit_log_list_url}?q=action:delete')
         audit_logs_count = AuditLog.objects.count()
         assert response.status_code == status.HTTP_200_OK

@@ -6,8 +6,6 @@ from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from kobo_service_account.models import ServiceAccountUser
-from kobo_service_account.utils import get_real_user
 from rest_framework import exceptions
 from rest_framework import status
 from rest_framework.decorators import action
@@ -40,6 +38,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import format_date_for_mongo
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 EXPORT_EXT = {
@@ -120,7 +119,7 @@ def _get_user(username):
 
 
 def _get_owner(request):
-    owner = request.data.get('owner') or get_real_user(request)
+    owner = request.data.get('owner') or get_database_user(request.user)
 
     if isinstance(owner, str):
         owner = _get_user(owner)
@@ -577,11 +576,6 @@ class XFormViewSet(
         return Response(survey, status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
-        if isinstance(self.request.user, ServiceAccountUser):
-            # We need to get all xforms (even soft-deleted ones) to
-            # system-account user to let it delete xform
-            # when it is already soft-deleted.
-            self.queryset = XForm.all_objects.all()
         return super().get_queryset()
 
     def update(self, request, pk, *args, **kwargs):
@@ -592,7 +586,7 @@ class XFormViewSet(
             # Behave like `kobo.apps.openrosa.apps.main.views.update_xform`: only allow
             # the update to proceed if the user is the owner
             owner = existing_xform.user
-            if not get_real_user(request) == owner:
+            if not get_database_user(request.user) == owner:
                 raise exceptions.PermissionDenied(
                     detail=t("Only a form's owner can overwrite its contents")
                 )

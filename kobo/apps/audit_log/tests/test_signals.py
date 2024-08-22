@@ -38,9 +38,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(
-            'user', 'user@example.com', 'pass'
-        )
+        cls.user = User.objects.create_user('user', 'user@example.com', 'pass')
         cls.user.backend = 'django.contrib.auth.backends.ModelBackend'
         cls.user.save()
 

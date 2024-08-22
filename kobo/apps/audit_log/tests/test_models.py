@@ -10,12 +10,16 @@ from kobo.apps.audit_log.models import (
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     AuditAction,
     AuditLog,
+    AuditType,
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 
 
-@patch('kobo.apps.audit_log.models.get_human_readable_client_user_agent', return_value='source')
+@patch(
+    'kobo.apps.audit_log.models.get_human_readable_client_user_agent',
+    return_value='source',
+)
 @patch('kobo.apps.audit_log.models.get_client_ip', return_value='127.0.0.1')
 class AuditLogModelTestCase(BaseTestCase):
 
@@ -44,10 +48,15 @@ class AuditLogModelTestCase(BaseTestCase):
         self.assertEqual(audit_log.object_id, user.id)
         self.assertEqual(audit_log.user_uid, user.extra_details.uid)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+        self.assertEqual(audit_log.log_type, AuditType.ACCESS)
 
-    def test_basic_create_auth_log_from_request(self, patched_ip, patched_source):
+    def test_basic_create_auth_log_from_request(
+        self, patched_ip, patched_source
+    ):
         request = self._create_request(
-            reverse('kobo_login'), AnonymousUser(), AuditLogModelTestCase.super_user
+            reverse('kobo_login'),
+            AnonymousUser(),
+            AuditLogModelTestCase.super_user,
         )
         log: AuditLog = AuditLog.create_access_log_for_request(request)
         self._check_common_fields(log, AuditLogModelTestCase.super_user)
@@ -60,7 +69,9 @@ class AuditLogModelTestCase(BaseTestCase):
             },
         )
 
-    def test_create_auth_log_from_loginas_request(self, patched_ip, patched_source):
+    def test_create_auth_log_from_loginas_request(
+        self, patched_ip, patched_source
+    ):
         second_user = User.objects.create_user(
             'second_user', 'second@example.com', 'pass'
         )
@@ -83,9 +94,13 @@ class AuditLogModelTestCase(BaseTestCase):
             },
         )
 
-    def test_create_auth_log_with_different_auth_type(self, patched_ip, patched_source):
+    def test_create_auth_log_with_different_auth_type(
+        self, patched_ip, patched_source
+    ):
         request = self._create_request(
-            reverse('api_v2:asset-list'), AnonymousUser(), AuditLogModelTestCase.super_user
+            reverse('api_v2:asset-list'),
+            AnonymousUser(),
+            AuditLogModelTestCase.super_user,
         )
         log: AuditLog = AuditLog.create_access_log_for_request(
             request, authentication_type='Token'
@@ -100,14 +115,18 @@ class AuditLogModelTestCase(BaseTestCase):
             },
         )
 
-    def test_create_auth_log_unknown_authenticator(self, patched_ip, patched_source):
+    def test_create_auth_log_unknown_authenticator(
+        self, patched_ip, patched_source
+    ):
         # no backend attached to the user object
         second_user = User.objects.create_user(
             'second_user', 'second@example.com', 'pass'
         )
         second_user.save()
         request = self._create_request(
-            reverse('api_v2:asset-list'), AuditLogModelTestCase.super_user, second_user
+            reverse('api_v2:asset-list'),
+            AuditLogModelTestCase.super_user,
+            second_user,
         )
         log: AuditLog = AuditLog.create_access_log_for_request(request)
         self._check_common_fields(log, second_user)

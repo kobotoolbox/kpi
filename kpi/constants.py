@@ -61,14 +61,11 @@ CLONE_COMPATIBLE_TYPES = {
     ASSET_TYPE_TEMPLATE: [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]
 }
 
-ASSET_TYPE_ARG_NAME = "asset_type"
+ASSET_TYPE_ARG_NAME = 'asset_type'
 
-# Main app label for shadow models.
-SHADOW_MODEL_APP_LABEL = 'shadow_model'
 # List of app labels that need to read/write data from KoBoCAT database
 # Useful in `db_routers.py`
 SHADOW_MODEL_APP_LABELS = [
-    SHADOW_MODEL_APP_LABEL,
     'superuser_stats',
 ]
 
@@ -141,4 +138,5 @@ LIMIT_HOURS_23 = 82800
 
 ACCESS_LOG_KOBO_AUTH_APP_LABEL = 'kobo_auth'
 ACCESS_LOG_LOGINAS_AUTH_TYPE = 'django-loginas'
-ACCESS_LOG_UNKNOWN_AUTH_TYPE = 'Unknown'
+ACCESS_LOG_UNKNOWN_AUTH_TYPE = 'unknown'
+ACCESS_LOG_SUBMISSION_AUTH_TYPE = 'submission'

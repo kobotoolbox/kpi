@@ -19,6 +19,7 @@ from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 CHUNK_SIZE = 1024
@@ -137,7 +138,7 @@ class MetaData(AbstractTimeStampedModel):
     xform = models.ForeignKey(XForm, on_delete=models.CASCADE)
     data_type = models.CharField(max_length=255)
     data_value = models.CharField(max_length=255)
-    data_file = models.FileField(
+    data_file = ExtendedFileField(
         storage=default_storage,
         upload_to=upload_to,
         blank=True,

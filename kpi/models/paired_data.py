@@ -211,8 +211,6 @@ class PairedData(OpenRosaManifestInterface,
                 f'{str(time.time())}.{self.backend_media_id}', prefix=True
             ) + '-time'
 
-        return self.asset_file.md5_hash
-
     @property
     def is_remote_url(self):
         """

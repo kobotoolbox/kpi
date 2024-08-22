@@ -47,11 +47,9 @@ WEBPACK_LOADER['DEFAULT'][
     'LOADER_CLASS'
 ] = 'webpack_loader.loader.FakeWebpackLoader'
 
-# Kobocat settings
+# KoboCAT settings
 TEST_HTTP_HOST = 'testserver'
 TEST_USERNAME = 'bob'
-SERVICE_ACCOUNT['WHITELISTED_HOSTS'] = ['testserver']
-SERVICE_ACCOUNT['NAMESPACE'] = 'kobo-service-account-test'
 
 SKIP_TESTS_WITH_CONCURRENCY = os.getenv('SKIP_TESTS_WITH_CONCURRENCY', False)
 
