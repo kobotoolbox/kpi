@@ -8,6 +8,7 @@ line-length = 80
 skip-string-normalization = true
 [tool.isort]
 profile = "black"
+line_length = 80 # same as black
 known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
 
