@@ -19,7 +19,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
 )
 
 
-class UsageCalculator:
+class ServiceUsageCalculator:
     def __init__(self, user: User, organization: Optional[Organization]):
         self.user = user
         self.organization = organization

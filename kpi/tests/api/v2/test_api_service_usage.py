@@ -2,10 +2,10 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.models import Asset
-from kpi.tests.test_usage_calculator import BaseUsageCalculatorTestCase
+from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
-class ServiceUsageAPITestCase(BaseUsageCalculatorTestCase):
+class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
     def test_anonymous_user(self):
         """
         Test that the endpoint is forbidden to anonymous user

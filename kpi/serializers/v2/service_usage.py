@@ -8,7 +8,7 @@ from kobo.apps.organizations.utils import (
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models.asset import Asset
-from kpi.utils.usage_calculator import UsageCalculator
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
 class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
@@ -117,7 +117,7 @@ class ServiceUsageSerializer(serializers.Serializer):
                 organization_users__user_id=instance.id,
                 id=organization_id,
             ).first()
-        self.calculator = UsageCalculator(instance, organization)
+        self.calculator = ServiceUsageCalculator(instance, organization)
 
     def get_current_month_end(self, user):
         return self.calculator.current_month_end.isoformat()
