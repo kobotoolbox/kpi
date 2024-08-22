@@ -81,6 +81,7 @@ def sync_media_files(asset_uid):
         # 🙈 Race condition: Celery task starts too fast and does not see
         # the deployment data, even if asset has been saved prior to call this
         # task
+        # TODO Find why the race condition happens and remove `time.sleep(1)`
         time.sleep(1)
         asset.refresh_from_db(fields=['_deployment_data'])
 
