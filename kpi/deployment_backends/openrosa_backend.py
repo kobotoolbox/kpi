@@ -75,7 +75,6 @@ from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
-    last_submission_time
 )
 from ..exceptions import (
     BadFormatException,
@@ -166,6 +165,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'uuid': self._xform.uuid,
                     'id_string': self._xform.id_string,
                     'kpi_asset_uid': self.asset.uid,
+                    'hash': self._xform.prefixed_hash,
                 },
                 'version': self.asset.version_id,
             }
@@ -861,6 +861,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'uuid': self.xform.uuid,
                     'id_string': self.xform.id_string,
                     'kpi_asset_uid': self.asset.uid,
+                    'hash': self._xform.prefixed_hash,
                 },
                 'version': self.asset.version_id,
             }
@@ -1427,10 +1428,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.delete(force=True)
 
     def _last_submission_time(self):
-        id_string = self.xform.id_string
-        return last_submission_time(
-            xform_id_string=id_string, user_id=self.asset.owner.pk
-        )
+        return self.xform.last_submission_time
 
     def _save_openrosa_metadata(self, file_: SyncBackendMediaInterface):
         """

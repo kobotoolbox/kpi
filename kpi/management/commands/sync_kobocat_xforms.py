@@ -23,7 +23,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models import Asset, ObjectPermission
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.models import _set_auto_field_update
@@ -37,7 +37,10 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
-XFORM_CT = XForm.get_content_type()
+XFORM_CT = ContentType.objects.using(settings.OPENROSA_DB_ALIAS).get(
+    app_label=XForm._meta.app_label, model=XForm._meta.model_name
+)
+
 ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
 permission_map_copy = dict(PERMISSIONS_MAP)
@@ -176,24 +179,14 @@ def _xform_to_asset_content(xform):
     return asset_content
 
 
-def _get_kc_backend_response(xform):
-    # Get the form data from KC
-    user = xform.user
-    response = _kc_forms_api_request(user.auth_token, xform.pk)
-    if response.status_code == 404:
-        raise SyncKCXFormsWarning([
-            user.username,
-            xform.id_string,
-            'unable to load form data ({})'.format(response.status_code)
-        ])
-    elif response.status_code != 200:
-        raise SyncKCXFormsError([
-            user.username,
-            xform.id_string,
-            'unable to load form data ({})'.format(response.status_code)
-        ])
-    backend_response = response.json()
-    return backend_response
+def _get_backend_response(xform):
+    return {
+        'formid': xform.pk,
+        'uuid': xform.uuid,
+        'id_string': xform.id_string,
+        'kpi_asset_uid': xform.asset.uid,
+        'hash': xform.prefixed_hash,
+    }
 
 
 def _sync_form_content(asset, xform, changes):
@@ -243,7 +236,7 @@ def _sync_form_content(asset, xform, changes):
         # It's important to update `deployment_data` with the new hash from KC;
         # otherwise, we'll be re-syncing the same content forever (issue #1302)
         asset.deployment.store_data(
-            {'backend_response': _get_kc_backend_response(xform)}
+            {'backend_response': _get_backend_response(xform)}
         )
 
     return modified
@@ -259,11 +252,11 @@ def _sync_form_metadata(asset, xform, changes):
     if not asset.has_deployment:
         # A brand-new asset
         asset.date_created = xform.date_created
-        kc_deployment = KobocatDeploymentBackend(asset)
-        kc_deployment.store_data({
-            'backend': 'kobocat',
+        backend_deployment = OpenRosaDeploymentBackend(asset)
+        backend_deployment.store_data({
+            'backend': 'openrosa',
             'active': xform.downloadable,
-            'backend_response': _get_kc_backend_response(xform),
+            'backend_response': _get_backend_response(xform),
             'version': asset.version_id
         })
         changes.append('CREATE METADATA')
@@ -277,10 +270,8 @@ def _sync_form_metadata(asset, xform, changes):
 
     modified = False
     fetch_backend_response = False
-    backend_response = asset.deployment.backend_response
 
-    if (asset.deployment.active != xform.downloadable or
-            backend_response['downloadable'] != xform.downloadable):
+    if asset.deployment.active != xform.downloadable:
         asset.deployment.store_data({'active': xform.downloadable})
         modified = True
         fetch_backend_response = True
@@ -298,7 +289,7 @@ def _sync_form_metadata(asset, xform, changes):
 
     if fetch_backend_response:
         asset.deployment.store_data({
-            'backend_response': _get_kc_backend_response(xform)
+            'backend_response': _get_backend_response(xform)
         })
         modified = True
 
