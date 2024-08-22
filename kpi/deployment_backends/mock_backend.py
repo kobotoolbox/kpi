@@ -105,7 +105,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def form_uuid(self):
         return 'formhub-uuid'  # to match existing tests
 
-    def nlp_tracking_data(self, start_date=None):
+    def nlp_tracking_data(asset_ids=None):
         """
         Get the NLP tracking data since a specified date
         If no date is provided, get all-time data
@@ -168,7 +168,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def delete_submissions(
-        self, data: dict, user: settings.AUTH_USER_MODEL
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
         """
         Bulk delete provided submissions authenticated by `user`'s API token.
@@ -217,11 +217,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def duplicate_submission(
-        self, submission_id: int, user: settings.AUTH_USER_MODEL
+        self, submission_id: int, request: 'rest_framework.request.Request',
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
-
+        user = request.user
         self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
@@ -642,7 +642,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def store_submission(
-        self, user, xml_submission, submission_uuid, attachments=None
+        self, user, xml_submission, submission_uuid, attachments=None, **kwargs
     ):
         """
         Return a mock response without actually storing anything

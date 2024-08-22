@@ -86,7 +86,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     def bulk_update_submissions(
-        self, data: dict, user: settings.AUTH_USER_MODEL
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
         """
         Allows for bulk updating (bulk editing) of submissions. A
@@ -144,7 +144,7 @@ class BaseDeploymentBackend(abc.ABC):
             )
         }
 
-        kc_responses = []
+        backend_responses = []
         for submission in submissions:
             xml_parsed = fromstring_preserve_root_xmlns(submission)
 
@@ -172,18 +172,19 @@ class BaseDeploymentBackend(abc.ABC):
             for path, value in update_data.items():
                 edit_submission_xml(xml_parsed, path, value)
 
-            kc_response = self.store_submission(
-                user, xml_tostring(xml_parsed), _uuid
+            backend_response = self.store_submission(
+                user,
+                xml_tostring(xml_parsed),
+                _uuid,
+                request=kwargs.get('request'),
             )
-            kc_responses.append(
+            backend_responses.append(
                 {
                     'uuid': _uuid,
-                    'response': kc_response,
+                    'response': backend_response,
                 }
             )
-
-        return self.prepare_bulk_update_response(kc_responses)
-
+        return self.prepare_bulk_update_response(backend_responses)
 
     @abc.abstractmethod
     def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
@@ -198,24 +199,31 @@ class BaseDeploymentBackend(abc.ABC):
     def form_uuid(self):
         pass
 
+    @staticmethod
     @abc.abstractmethod
-    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
+    def nlp_tracking_data(
+        asset_ids: list[int], start_date: Optional[datetime.date] = None
+    ):
         pass
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
+    def delete_submission(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         pass
 
     @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs) -> dict:
+    def delete_submissions(
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
+    ) -> dict:
         pass
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, user: settings.AUTH_USER_MODEL
+        self, submission_id: int, request: 'rest_framework.request.Request',
     ) -> dict:
         pass
 
@@ -446,11 +454,13 @@ class BaseDeploymentBackend(abc.ABC):
         self.save_to_db({'status': status})
 
     @abc.abstractmethod
-    def set_validation_status(self,
-                              submission_id: int,
-                              user: settings.AUTH_USER_MODEL,
-                              data: dict,
-                              method: str) -> dict:
+    def set_validation_status(
+        self,
+        submission_id: int,
+        user: settings.AUTH_USER_MODEL,
+        data: dict,
+        method: str,
+    ) -> dict:
         pass
 
     @abc.abstractmethod
@@ -472,10 +482,9 @@ class BaseDeploymentBackend(abc.ABC):
     def stored_data_key(self):
         return self.__stored_data_key
 
-    @property
     @abc.abstractmethod
     def store_submission(
-        self, user, xml_submission, submission_uuid, attachments=None
+        self, user, xml_submission, submission_uuid, attachments=None, **kwargs
     ):
         pass
 
@@ -661,7 +670,7 @@ class BaseDeploymentBackend(abc.ABC):
         perm: str,
         submission_ids: list = [],
         query: dict = {},
-    ) -> list:
+    ) -> Optional[list]:
         """
         Validate whether `user` is allowed to perform write actions on
         submissions with the permission `perm`.

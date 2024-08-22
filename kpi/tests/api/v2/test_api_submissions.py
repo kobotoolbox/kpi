@@ -206,12 +206,8 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
                 self.asset.owner, fields=['_id']
             )
         ]
-        (
-            app_label,
-            model_name,
-        ) = self.asset.deployment.submission_model.get_app_label_and_model_name()
         audit_log_count = AuditLog.objects.filter(
-            user=self.someuser, app_label=app_label, model_name=model_name
+            user=self.someuser, app_label='logger', model_name='instance'
         ).count()
         # No submissions have been deleted yet
         assert audit_log_count == 0
@@ -221,7 +217,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         # All submissions have been deleted and should be logged
         deleted_submission_ids = AuditLog.objects.values_list(
             'pk', flat=True
-        ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
+        ).filter(user=self.someuser, app_label='logger', model_name='instance')
         assert len(expected_submission_ids) > 0
         assert sorted(expected_submission_ids), sorted(deleted_submission_ids)
 
@@ -783,12 +779,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         deleted.
         """
         submission = self.submissions_submitted_by_someuser[0]
-        (
-            app_label,
-            model_name,
-        ) = self.asset.deployment.submission_model.get_app_label_and_model_name()
         audit_log_count = AuditLog.objects.filter(
-            user=self.someuser, app_label=app_label, model_name=model_name
+            user=self.someuser, app_label='logger', model_name='instance'
         ).count()
         # No submissions have been deleted yet
         assert audit_log_count == 0
@@ -798,7 +790,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         # All submissions have been deleted and should be logged
         deleted_submission_ids = AuditLog.objects.values_list(
             'pk', flat=True
-        ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
+        ).filter(user=self.someuser, app_label='logger', model_name='instance')
         assert len(deleted_submission_ids) > 0
         assert [submission['_id']], deleted_submission_ids
 

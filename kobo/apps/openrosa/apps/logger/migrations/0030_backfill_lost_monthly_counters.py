@@ -6,7 +6,9 @@ from django.db.models.functions import Cast, Concat
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.utils import delete_null_user_daily_counters
+from kobo.apps.openrosa.apps.logger.utils.counters import (
+    delete_null_user_daily_counters,
+)
 
 
 def populate_missing_monthly_counters(apps, schema_editor):
