@@ -54,47 +54,39 @@ class UserProfile(models.Model):
         Retrieve all fields from the user's KC profile and return them in a
         dictionary
         """
-        try:
-            profile_model = cls.objects.get(user_id=user_id)
-            # Use a dict instead of the object in case we enter the next exception.
-            # The response will return a json.
-            # We want the variable to have the same type in both cases.
-        except UserProfile.DoesNotExist:
-            token, _ = Token.objects.get_or_create(user_id=user_id)
-            profile_model, _ = cls.objects.get_or_create(user_id=user_id)
+        profile_model, _ = cls.objects.get_or_create(user_id=user_id)
+        profile = profile_model.__dict__
 
-            profile = profile_model.__dict__
+        fields = [
+            # Use a (kc_name, new_name) tuple to rename a field
+            'name',
+            'organization',
+            ('home_page', 'organization_website'),
+            ('description', 'bio'),
+            ('phonenumber', 'phone_number'),
+            'address',
+            'city',
+            'country',
+            'twitter',
+            'metadata',
+        ]
 
-            fields = [
-                # Use a (kc_name, new_name) tuple to rename a field
-                'name',
-                'organization',
-                ('home_page', 'organization_website'),
-                ('description', 'bio'),
-                ('phonenumber', 'phone_number'),
-                'address',
-                'city',
-                'country',
-                'twitter',
-                'metadata',
-            ]
+        result = {}
 
-            result = {}
+        for field in fields:
 
-            for field in fields:
+            if isinstance(field, tuple):
+                kc_name, field = field
+            else:
+                kc_name = field
 
-                if isinstance(field, tuple):
-                    kc_name, field = field
-                else:
-                    kc_name = field
-
-                value = profile.get(kc_name)
-                # When a field contains JSON (e.g. `metadata`), it gets loaded as a
-                # `dict`. Convert it back to a string representation
-                if isinstance(value, dict):
-                    value = json.dumps(value)
-                result[field] = value
-            return result
+            value = profile.get(kc_name)
+            # When a field contains JSON (e.g. `metadata`), it gets loaded as a
+            # `dict`. Convert it back to a string representation
+            if isinstance(value, dict):
+                value = json.dumps(value)
+            result[field] = value
+        return result
 
     @property
     def gravatar(self):
