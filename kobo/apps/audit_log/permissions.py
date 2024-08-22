@@ -1,8 +1,6 @@
 from rest_framework.permissions import IsAdminUser
 
-from kpi.mixins.validation_password_permission import (
-    ValidationPasswordPermissionMixin,
-)
+from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
 
 
 class SuperUserPermission(ValidationPasswordPermissionMixin, IsAdminUser):

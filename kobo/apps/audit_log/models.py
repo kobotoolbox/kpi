@@ -14,8 +14,8 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
 from kpi.constants import (
     ACCESS_LOG_KOBO_AUTH_APP_LABEL,
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
-    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
+    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
 
