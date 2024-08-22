@@ -5,7 +5,7 @@ import re
 
 import requests
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponseForbidden
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
 from rest_framework import (
@@ -22,6 +22,9 @@ from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    http_open_rosa_error_handler,
+)
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -52,7 +55,6 @@ from kpi.renderers import (
 from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import (
-    edit_submission_xml,
     fromstring_preserve_root_xmlns,
     get_or_create_element,
     xml_tostring,
@@ -513,10 +515,26 @@ class DataViewSet(
         deployment = self._get_deployment()
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
-        duplicate_response = deployment.duplicate_submission(
-            submission_id=submission_id, request=request
-        )
-        return Response(duplicate_response, status=status.HTTP_201_CREATED)
+
+        with http_open_rosa_error_handler(
+            lambda: deployment.duplicate_submission(
+                submission_id=submission_id, request=request
+            ),
+            request,
+        ) as handler:
+            if handler.http_error_response:
+                response = {
+                    'data': handler.error,
+                    'content_type': 'application/json',
+                    'status': handler.status_code,
+                }
+            else:
+                response = {
+                    'data': handler.func_return,
+                    'content_type': 'application/json',
+                    'status': status.HTTP_201_CREATED,
+                }
+            return Response(**response)
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],

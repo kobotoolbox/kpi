@@ -39,8 +39,9 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     set_instance_validation_statuses,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import (
-    safe_create_instance,
+    create_instance,
     publish_xls_form,
+    safe_create_instance,
 )
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -311,7 +312,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid_formatted
         )
 
-        safe_create_instance(
+        instance = create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
             media_files=attachments,
@@ -321,7 +322,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Cast to list to help unit tests to pass.
         return self._rewrite_json_attachment_urls(
-            list(self.get_submissions(user, query={'_uuid': _uuid}))[0], request
+            self.get_submission(submission_id=instance.pk, user=user), request
         )
 
     def edit_submission(
@@ -382,25 +383,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Request.
         xml_submission_file.seek(0)
 
-        # Retrieve only File objects to pass to `safe_create_instance`
-        # TODO remove those files as soon as the view sends request.FILES directly
-        #   See TODO in kpi/views/v2/asset_snapshot.py::submission
-        media_files = (
-            media_file for media_file in attachments.values()
-        )
-
-        safe_create_instance(
+        return create_instance(
             username=user.username,
             xml_file=xml_submission_file,
-            media_files=media_files,
+            media_files=attachments,
             request=request,
         )
-
-        return {
-            'headers': {},
-            'content_type': 'text/xml; charset=utf-8',
-            'status': status.HTTP_201_CREATED,
-        }
 
     @property
     def enketo_id(self):
