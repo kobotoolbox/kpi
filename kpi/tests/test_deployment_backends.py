@@ -2,6 +2,7 @@
 import pytest
 from django.test import TestCase
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import DeploymentDataException
 from kpi.models.asset import Asset
 from kpi.models.asset_version import AssetVersion
@@ -9,12 +10,11 @@ from kpi.models.asset_version import AssetVersion
 
 class CreateDeployment(TestCase):
     def setUp(self):
-        self.asset = Asset(content={
-            'survey': [
-                {'type':'text', 'name': 'q1',
-                    'label': 'Q1.',}
-                ]
-            })
+        someuser = User.objects.create(username='someuser')
+        self.asset = Asset(
+            content={'survey': [{'type': 'text', 'name': 'q1', 'label': 'Q1.'}]},
+            owner=someuser,
+        )
 
     def test_invalid_backend_fails(self):
         self.asset.save()
@@ -33,15 +33,20 @@ class CreateDeployment(TestCase):
 @pytest.mark.django_db
 def test_initial_kuids():
     initial_kuid = 'aaaa1111'
-    asset = Asset.objects.create(content={
-        'survey': [
-            {'type': 'text',
-                'name': 'q1',
-                'label': 'Q1.',
-                '$kuid': initial_kuid,
-             }
+    someuser = User.objects.create(username='someuser')
+    asset = Asset.objects.create(
+        content={
+            'survey': [
+                {
+                    'type': 'text',
+                    'name': 'q1',
+                    'label': 'Q1.',
+                    '$kuid': initial_kuid,
+                }
             ]
-        })
+        },
+        owner=someuser,
+    )
     assert asset.content['survey'][0]['$kuid'] == initial_kuid
 
     asset.deploy(backend='mock', active=False)
@@ -53,13 +58,11 @@ def test_initial_kuids():
 
 class MockDeployment(TestCase):
     def setUp(self):
-        self.asset = Asset.objects.create(content={
-            'survey': [
-                {'type': 'text', 'name': 'q1',
-                    'label': 'Q1.'
-                 }
-                ]
-            })
+        someuser = User.objects.create(username='someuser')
+        self.asset = Asset.objects.create(
+            content={'survey': [{'type': 'text', 'name': 'q1', 'label': 'Q1.'}]},
+            owner=someuser,
+        )
         self.asset.deploy(backend='mock', active=False)
         self.asset.save()
 

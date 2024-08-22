@@ -56,8 +56,9 @@ from kpi.utils.xml import (
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
-class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.GenericViewSet):
+class DataViewSet(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.GenericViewSet
+):
     """
     ## List of submissions for a specific asset
 
@@ -364,14 +365,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 query=data['query'],
                 fields=['_id', '_uuid']
             )
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
             for submission in submissions:
                 audit_logs.append(AuditLog(
-                    app_label=app_label,
-                    model_name=model_name,
+                    app_label='logger',
+                    model_name='instance',
                     object_id=submission['_id'],
                     user=request.user,
                     user_uid=request.user.extra_details.uid,
@@ -384,7 +381,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 ))
 
         # Send request to KC
-        json_response = action_(bulk_actions_validator.data, request.user)
+        json_response = action_(
+            bulk_actions_validator.data, request.user, request=request
+        )
 
         # If requests has succeeded, let's log deletions (if any)
         if json_response['status'] == status.HTTP_200_OK and audit_logs:
@@ -407,15 +406,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = deployment.delete_submission(
             submission_id, user=request.user
         )
-
         if json_response['status'] == status.HTTP_204_NO_CONTENT:
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
             AuditLog.objects.create(
-                app_label=app_label,
-                model_name=model_name,
+                app_label='logger',
+                model_name='instance',
                 object_id=pk,
                 user=request.user,
                 metadata={
@@ -438,6 +432,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         Creates a duplicate of the submission with a given `pk`
         """
+
         deployment = self._get_deployment()
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
@@ -445,7 +440,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             submission_id, request.user, fields=['_uuid']
         )
         duplicate_response = deployment.duplicate_submission(
-            submission_id=submission_id, user=request.user
+            submission_id=submission_id, request=request
         )
         deployment.copy_submission_extras(
             original_submission['_uuid'], duplicate_response['_uuid']
@@ -507,10 +502,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         try:
-            submissions = deployment.get_submissions(request.user,
-                                                    format_type=format_type,
-                                                    request=request,
-                                                    **filters)
+            submissions = deployment.get_submissions(
+                request.user,
+                format_type=format_type,
+                request=request,
+                **filters
+            )
         except OperationFailure as err:
             message = str(err)
             # Don't show just any raw exception message out of fear of data leaking
@@ -570,16 +567,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # Join all parameters to be passed to `deployment.get_submissions()`
         params.update(filters)
 
-        # The `get_submissions()` is a generator in KobocatDeploymentBackend
-        # class but a list in MockDeploymentBackend. We cast the result as a list
-        # no matter what is the deployment back-end class to make it work with
-        # both. Since the number of submissions is be very small, it should not
-        # have a big impact on memory (i.e. list vs generator)
-        submissions = list(deployment.get_submissions(**params))
+        submissions = deployment.get_submissions(**params)
         if not submissions:
             raise Http404
 
-        submission = submissions[0]
+        submission = list(submissions)[0]
         return Response(submission)
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],

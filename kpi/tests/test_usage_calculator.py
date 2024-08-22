@@ -26,13 +26,12 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
     This class contains setup logic and utility functions to test usage
     calculations
     """
-
     fixtures = ['test_data']
-    attachment_id = 0
-    xform = None
-    counter = None
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    attachment_id = 0
+    counter = None
 
     def setUp(self):
         super().setUp()
@@ -72,8 +71,12 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         self.asset.save()
 
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
-        self.submission_list_url = self.asset.deployment.submission_list_url
+        self.submission_list_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
         self._deployment = self.asset.deployment
+
 
     def add_nlp_trackers(self):
         """
@@ -143,7 +146,6 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             submissions.append(submission)
 
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
-        self.update_xform_counters(self.asset, submissions=count)
 
     def expected_file_size(self):
         """
@@ -154,58 +156,6 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         ) + os.path.getsize(
             settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
         )
-
-    def update_xform_counters(self, asset: Asset, submissions: int = 0):
-        """
-        Create/update the daily submission counter and the shadow xform we use to query it
-        """
-        today = timezone.now()
-        if self.xform:
-            self.xform.attachment_storage_bytes += (
-                self.expected_file_size() * submissions
-            )
-            self.xform.save()
-        else:
-            xform_xml = (
-                f'<?xml version="1.0" encoding="utf-8"?>'
-                f'<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:odk="http://www.opendatakit.org/xforms" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
-                f'<h:head>'
-                f'   <h:title>XForm test</h:title>'
-                f'   <model odk:xforms-version="1.0.0">'
-                f'       <instance>'
-                f'           <{asset.uid} id="{asset.uid}" />'
-                f'       </instance>'
-                f'   </model>'
-                f'</h:head>'
-                f'<h:body>'
-                f'</h:body>'
-                f'</h:html>'
-            )
-
-            self.xform = XForm.objects.create(
-                attachment_storage_bytes=(
-                    self.expected_file_size() * submissions
-                ),
-                kpi_asset_uid=asset.uid,
-                date_created=today,
-                date_modified=today,
-                user_id=asset.owner_id,
-                xml=xform_xml,
-                json={},
-            )
-            self.xform.save()
-
-        if self.counter:
-            self.counter.counter += submissions
-            self.counter.save()
-        else:
-            self.counter = DailyXFormSubmissionCounter.objects.create(
-                date=today.date(),
-                counter=submissions,
-                xform=self.xform,
-                user_id=asset.owner_id,
-            )
-            self.counter.save()
 
 
 class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):

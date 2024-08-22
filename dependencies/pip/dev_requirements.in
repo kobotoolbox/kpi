@@ -12,8 +12,8 @@ pytest
 pytest-cov
 pytest-django
 pytest-env
+pytest-xdist
 
-
-# Kobocat
+# KoboCAT
 httmock
 simplejson

@@ -6,7 +6,7 @@ from kobo.apps.organizations.utils import (
     get_monthly_billing_dates,
     get_yearly_billing_dates,
 )
-from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models.asset import Asset
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
@@ -84,7 +84,7 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
                 'total_nlp_asr_seconds': 0,
                 'total_nlp_mt_characters': 0,
             }
-        return KobocatDeploymentBackend.nlp_tracking_data(
+        return OpenRosaDeploymentBackend.nlp_tracking_data(
             asset_ids=[asset.id], start_date=start_date
         )
 

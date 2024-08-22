@@ -65,6 +65,28 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
             self.expected_file_size() * 3
         )
 
+    def test_service_usages_with_projects_in_trash_bin(self):
+        self.test_multiple_forms()
+        # Simulate trash bin
+        for asset in self.anotheruser.assets.all():
+            asset.pending_delete = True
+            asset.save(
+                update_fields=['pending_delete'],
+                create_version=False,
+                adjust_content=False,
+            )
+            if asset.has_deployment:
+                asset.deployment.xform.pending_delete = True
+                asset.deployment.xform.save(update_fields=['pending_delete'])
+
+        # Retry endpoint
+        url = reverse(self._get_endpoint('service-usage-list'))
+        response = self.client.get(url)
+
+        assert response.data['total_submission_count']['current_month'] == 3
+        assert response.data['total_submission_count']['all_time'] == 3
+        assert response.data['total_storage_bytes'] == 0
+
     def test_no_data(self):
         """
         Test the endpoint functions when assets have no data
