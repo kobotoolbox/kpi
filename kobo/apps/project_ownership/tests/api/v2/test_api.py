@@ -16,7 +16,7 @@ from kobo.apps.project_ownership.models import (
     InviteStatusChoices,
     Transfer,
 )
-from kobo.apps.project_ownership.tests.utils import MockServiceUsageSerializer
+from kobo.apps.project_ownership.tests.utils import MockServiceUsageCalculator
 from kobo.apps.trackers.utils import update_nlp_counter
 
 from kpi.constants import PERM_VIEW_ASSET
@@ -357,12 +357,12 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.submissions = submissions
 
     @patch(
-        'kpi.serializers.v2.service_usage.ServiceUsageSerializer._get_storage_usage',
-        new=MockServiceUsageSerializer._get_storage_usage
+        'kpi.utils.usage_calculator.ServiceUsageCalculator.get_storage_usage',
+        new=MockServiceUsageCalculator.get_storage_usage
     )
     @patch(
-        'kpi.serializers.v2.service_usage.ServiceUsageSerializer._get_submission_counters',
-        new=MockServiceUsageSerializer._get_submission_counters
+        'kpi.utils.usage_calculator.ServiceUsageCalculator.get_submission_counters',
+        new=MockServiceUsageCalculator.get_submission_counters
     )
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
