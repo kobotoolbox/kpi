@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import AuditLogViewSet, AccessLogViewSet, AllAccessLogViewSet
+from .views import AccessLogViewSet, AllAccessLogViewSet, AuditLogViewSet
 
 router = DefaultRouter()
 router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
