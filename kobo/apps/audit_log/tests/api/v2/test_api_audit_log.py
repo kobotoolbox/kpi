@@ -159,7 +159,7 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
                 'username': 'anotheruser',
             }
         ]
-        response = self.client.get(f'{self.audit_log_list_url}?q=action:delete')
+        response = self.client.get(f'{self.url}?q=action:delete')
         audit_logs_count = AuditLog.objects.count()
         assert response.status_code == status.HTTP_200_OK
         assert audit_logs_count == 2
