@@ -1,21 +1,10 @@
-from django.conf import settings
-from django.db.models import Sum, Q
-from django.db.models.functions import Coalesce
-from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import (
     get_monthly_billing_dates,
     get_yearly_billing_dates,
-)
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatXForm,
-    KobocatDailyXFormSubmissionCounter,
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models.asset import Asset
@@ -130,6 +119,18 @@ class ServiceUsageSerializer(serializers.Serializer):
             ).first()
         self.calculator = UsageCalculator(instance, organization)
 
+    def get_current_month_end(self, user):
+        return self.calculator.current_month_end.isoformat()
+
+    def get_current_month_start(self, user):
+        return self.calculator.current_month_start.isoformat()
+
+    def get_current_year_end(self, user):
+        return self.calculator.current_year_end.isoformat()
+
+    def get_current_year_start(self, user):
+        return self.calculator.current_year_start.isoformat()
+
     def get_total_nlp_usage(self, user):
         return self.calculator.get_nlp_usage_counters()
 
@@ -138,15 +139,3 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def get_total_storage_bytes(self, user):
         return self.calculator.get_storage_usage()
-
-    def get_current_month_start(self, user):
-        return self.calculator.current_month_start.isoformat()
-
-    def get_current_month_end(self, user):
-        return self.calculator.current_month_end.isoformat()
-
-    def get_current_year_start(self, user):
-        return self.calculator.current_year_start.isoformat()
-
-    def get_current_year_end(self, user):
-        return self.calculator.current_year_end.isoformat()
