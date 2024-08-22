@@ -162,6 +162,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'uuid': self._xform.uuid,
                     'id_string': self._xform.id_string,
                     'kpi_asset_uid': self.asset.uid,
+                    'hash': self._xform.prefixed_hash,
                 },
                 'version': self.asset.version_id,
             }
@@ -855,6 +856,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'uuid': self.xform.uuid,
                     'id_string': self.xform.id_string,
                     'kpi_asset_uid': self.asset.uid,
+                    'hash': self._xform.prefixed_hash,
                 },
                 'version': self.asset.version_id,
             }
