@@ -52,7 +52,7 @@ jobs:
       - name: Build Prod
         run: SKIP_TS_CHECK=true npm run build
 
-      # Typescript Checker, ESLint
+      # Run TypeScript Checks and ESLint
       - name: Check TypeScript # Separated for visibility
         run: npm run check-types
       - name: Check ESLint, errors only
