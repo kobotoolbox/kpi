@@ -14,7 +14,7 @@ jobs:
       matrix:
         node-version:
           - '16.15.0'  # prior pinned Node version supported by kpi
-          - '20.15.1'  # version pinned for kpi release
+          - '20.17.0'  # version pinned for kpi release
       fail-fast: false # Let each job finish
 
     steps:

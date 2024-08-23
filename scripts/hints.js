@@ -66,8 +66,8 @@ if (process.env.SKIP_TS_CHECK && tsCheckAffects.includes(hintName)) {
   Show on preinstall. Since it's easy to miss there, also show it on other
   run scripts such as 'watch'.
 */
-const ok_node = 'v20.15.1';
-const ok_npm = '10.7.0';
+const ok_node = 'v20.17.0';
+const ok_npm = '10.8.2';
 
 if (process.version !== ok_node) {
   const blu = '\u001b[94m'; // bright blue
@@ -114,10 +114,10 @@ if (process.version !== ok_node) {
 
     To switch to a supported Node / npm version:
 
-      Use Node v20.15.1, which comes with npm@10.7.0
+      Use Node ${ok_node}, which comes with npm@${ok_npm}
          \`nvm use\` or \`fnm use\`
 
-      or \`npm install -g npm@10.7.0\`
+      or \`npm install -g npm@${ok_npm}\`
           to change npm for your current Node`);
 
     console.warn(`${yel}
@@ -126,7 +126,7 @@ if (process.version !== ok_node) {
 
       (1) Don't commit these changes to package-lock.json
       (2) You may want to reset these changes and run
-          \`npm install\` again with 10.7.0
+          \`npm install\` again with ${ok_npm}
     `);
 
     // If you switch between Node projects and see this message often,

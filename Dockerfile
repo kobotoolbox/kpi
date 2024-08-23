@@ -65,8 +65,8 @@ RUN apt-get -qq update && \
         less \
         libproj-dev \
         locales \
-        # to pin an exact Node version, see 'git blame' here
-        nodejs \
+        # pin an exact Node version for stability. update this regularly.
+        nodejs=$(apt-cache show nodejs | grep -F 'Version: 20.17.0' | cut -f 2 -d ' ') \
         postgresql-client \
         procps \
         rsync \

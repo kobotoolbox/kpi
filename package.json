@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "KoboToolbox frontend interface.",
   "engines": {
-    "node": "^20.15.1"
+    "node": "^20.17.0"
   },
   "dependencies": {
     "@fontsource/roboto": "^4.4.2",
