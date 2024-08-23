@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -380,6 +380,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                         'uuid': submission['_uuid'],
                     },
                     action=AuditAction.DELETE,
+                    log_type=AuditType.SUBMISSION_MANAGEMENT,
                 ))
 
         # Send request to KC
@@ -422,6 +423,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                     'uuid': submission['_uuid'],
                 },
                 action=AuditAction.DELETE,
+                log_type=AuditType.SUBMISSION_MANAGEMENT,
             )
 
         return Response(**json_response)
