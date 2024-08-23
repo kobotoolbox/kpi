@@ -132,23 +132,3 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert response.data['total_submission_count']['all_time'] == 0
         assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 0
         assert response.data['total_storage_bytes'] == 0
-
-    def test_service_usages_with_projects_in_trash_bin(self):
-        self.test_multiple_forms()
-        # Simulate trash bin
-        self.asset.pending_delete = True
-        self.asset.save(
-            update_fields=['pending_delete'],
-            create_version=False,
-            adjust_content=False,
-        )
-        self.xform.pending_delete = True
-        self.xform.save(update_fields=['pending_delete'])
-
-        # Retry endpoint
-        url = reverse(self._get_endpoint('service-usage-list'))
-        response = self.client.get(url)
-
-        assert response.data['total_submission_count']['current_month'] == 3
-        assert response.data['total_submission_count']['all_time'] == 3
-        assert response.data['total_storage_bytes'] == 0

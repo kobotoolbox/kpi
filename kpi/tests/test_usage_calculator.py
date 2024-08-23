@@ -4,6 +4,7 @@ import uuid
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.test import override_settings
+from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
 
@@ -145,16 +146,18 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             self.attachment_id = self.attachment_id + 2
             submissions.append(submission)
 
-        self.asset.deployment.mock_submissions(submissions, flush_db=False)
+        self.asset.deployment.mock_submissions(submissions)
 
     def expected_file_size(self):
         """
         Calculate the expected combined file size for the test audio clip and image
         """
         return os.path.getsize(
-            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.3gp'
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
         ) + os.path.getsize(
-            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
         )
 
 

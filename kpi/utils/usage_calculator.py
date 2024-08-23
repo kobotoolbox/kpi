@@ -17,10 +17,6 @@ from kobo.apps.organizations.utils import (
 )
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatDailyXFormSubmissionCounter,
-    KobocatXForm,
-)
 
 
 class ServiceUsageCalculator:
@@ -138,7 +134,7 @@ class ServiceUsageCalculator:
 
         total_submission_count = {}
         for submission_key, count in submission_count.items():
-            self.total_submission_count[submission_key] = (
+            total_submission_count[submission_key] = (
                 count if count is not None else 0
             )
 
