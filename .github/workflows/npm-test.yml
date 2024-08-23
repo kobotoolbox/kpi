@@ -15,6 +15,8 @@ jobs:
         node-version:
           - '16.15.0'  # prior pinned Node version supported by kpi
           - '20.17.0'  # version pinned for kpi release
+          - '20'       # latest available v20
+          - '22'       # latest available v22
       fail-fast: false # Let each job finish
 
     steps:
@@ -22,7 +24,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          check-latest: true # download newer semver match if available
           cache: 'npm'
+
+      - name: Identify resolved node version
+        id: resolved-node-version
+        run: echo "NODE_VERSION=$(node --version)" >> "$GITHUB_OUTPUT"
+      - name: Add "Node ${{ steps.resolved-node-version.outputs.NODE_VERSION }}" to summary
+        run: echo "${{ matrix.node-version }} → **${{ steps.resolved-node-version.outputs.NODE_VERSION }}**" >> "$GITHUB_STEP_SUMMARY"
 
       # Set up Chrome, for the unit tests
       - uses: browser-actions/setup-chrome@latest
@@ -36,7 +45,7 @@ jobs:
           cache-name: cache-node-modules
         with:
           path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-node-v${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-node-v${{ steps.resolved-node-version.outputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
 
       # Cache hit: node_modules is copied from a previous run. Run copy-fonts
       - if: steps.cache-nodemodules.outputs.cache-hit == 'true'
