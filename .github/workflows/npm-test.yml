@@ -18,8 +18,8 @@ jobs:
       fail-fast: false # Let each job finish
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -29,7 +29,7 @@ jobs:
       - run: chrome --version
 
       # Cache node_modules, keyed on os, node version, package-lock, and patches
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Check for cached node_modules
         id: cache-nodemodules
         env:
