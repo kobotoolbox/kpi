@@ -5,7 +5,7 @@ import re
 
 import requests
 from django.conf import settings
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
 from rest_framework import (
