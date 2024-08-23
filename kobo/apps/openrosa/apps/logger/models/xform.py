@@ -96,7 +96,6 @@ class XForm(BaseModel):
 
     tags = TaggableManager()
 
-    has_kpi_hooks = LazyDefaultBooleanField(default=False)
     kpi_asset_uid = models.CharField(max_length=32, null=True)
     pending_delete = models.BooleanField(default=False)
 
@@ -172,14 +171,6 @@ class XForm(BaseModel):
     @property
     def has_instances_with_geopoints(self):
         return self.instances_with_geopoints
-
-    @property
-    def kpi_hook_service(self):
-        """
-        Returns kpi hook service if it exists. XForm should have only one occurrence in any case.
-        :return: RestService
-        """
-        return self.restservices.filter(name="kpi_hook").first()
 
     def _set_id_string(self):
         matches = self.instance_id_regex.findall(self.xml)

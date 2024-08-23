@@ -138,7 +138,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.logger.app.LoggerAppConfig',
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
-    'kobo.apps.openrosa.apps.restservice.app.RestServiceConfig',
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
@@ -1199,7 +1198,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
     # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#redis-visibility-timeout
     # TODO figure out how to pass `Constance.HOOK_MAX_RETRIES` or `HookLog.get_remaining_seconds()
     # Otherwise hardcode `HOOK_MAX_RETRIES` in Settings
-    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService (seconds)
+    "visibility_timeout": 60 * (10 ** 2)  # Longest ETA for RestService (seconds)
 }
 
 CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"

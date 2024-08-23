@@ -150,10 +150,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         with kc_transaction_atomic():
             self._xform = publish_xls_form(xlsx_file, self.asset.owner)
             self._xform.downloadable = active
-            self._xform.has_kpi_hooks = self.asset.has_active_hooks
             self._xform.kpi_asset_uid = self.asset.uid
             self._xform.save(
-                update_fields=['downloadable', 'has_kpi_hooks', 'kpi_asset_uid']
+                update_fields=['downloadable', 'kpi_asset_uid']
             )
 
         self.store_data(
@@ -842,11 +841,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             XForm.objects.filter(pk=self.xform.id).update(
                 downloadable=active,
                 title=self.asset.name,
-                has_kpi_hooks=self.asset.has_active_hooks,
             )
             self.xform.downloadable = active
             self.xform.title = self.asset.name
-            self.xform.has_kpi_hooks = self.asset.has_active_hooks
 
             publish_xls_form(xlsx_file, self.asset.owner, self.xform.id_string)
 
@@ -1023,27 +1020,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             'openRosaServer',
             server_url,
         )
-
-    def set_has_kpi_hooks(self):
-        """
-        `PATCH` `has_kpi_hooks` boolean of related KoBoCAT XForm.
-        It lets KoBoCAT know whether it needs to notify KPI
-        each time a submission comes in.
-
-        Store results in deployment data
-        """
-        # Use `queryset.update()` over `model.save()` because we don't need to
-        # run the logic of the `model.save()` method and we don't need signals
-        # to be called.
-        XForm.objects.filter(pk=self.xform_id).update(
-            kpi_asset_uid=self.asset.uid,
-            has_kpi_hooks=self.asset.has_active_hooks
-        )
-        self.xform.kpi_asset_uid = self.asset.uid
-        self.xform.has_active_hooks = self.asset.has_active_hooks
-
-        self.backend_response['kpi_asset_uid'] = self.asset.uid
-        self.store_data({'backend_response': self.backend_response})
 
     def set_validation_status(
         self,

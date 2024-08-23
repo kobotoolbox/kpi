@@ -12,7 +12,6 @@ from kobo.celery import celery_app
 from kobo.apps.openrosa.apps.api.mongo_helper import MongoHelper
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.models import Note
-from kobo.apps.openrosa.apps.restservice.utils import call_service
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ID,
     UUID,
@@ -27,6 +26,8 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
+from kobo.apps.hook.utils.services import call_services
+from kpi.utils.log import logging
 
 # this is Mongo Collection where we will store the parsed submissions
 xform_instances = settings.MONGO_DB.instances
@@ -371,7 +372,16 @@ class ParsedInstance(models.Model):
         # Rest Services were called before data was saved in DB.
         success = self.update_mongo(asynchronous)
         if success and created:
-            call_service(self)
+            records = ParsedInstance.objects.filter(
+                instance_id=self.instance_id
+            ).values_list('instance__xform__kpi_asset_uid', flat=True)
+            if not (asset_uid := records[0]):
+                logging.warning(
+                    f'ParsedInstance #: {self.pk} - XForm is not linked with Asset'
+                )
+            else:
+                call_services(asset_uid, self.instance_id)
+
         return success
 
     def add_note(self, note):

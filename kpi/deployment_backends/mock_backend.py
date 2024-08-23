@@ -91,7 +91,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'active': active,
                 'backend_response': {
                     'downloadable': active,
-                    'has_kpi_hook': self.asset.has_active_hooks,
                     'kpi_asset_uid': self.asset.uid,
                     'uuid': generate_uuid_for_form(),
                     # TODO use XForm object and get its primary key
@@ -524,19 +523,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self, require_auth: bool, enketo_id: str = None
     ):
         pass
-
-    def set_has_kpi_hooks(self):
-        """
-        Store a boolean which indicates that KPI has active hooks (or not)
-        and, if it is the case, it should receive notifications when new data
-        comes in
-        """
-        has_active_hooks = self.asset.has_active_hooks
-        self.store_data(
-            {
-                'has_kpi_hooks': has_active_hooks,
-            }
-        )
 
     def set_namespace(self, namespace):
         self.store_data(
