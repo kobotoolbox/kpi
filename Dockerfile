@@ -48,13 +48,8 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 # jnm (or the current on-call sysadmin). Thanks.
 
 RUN apt-get -qq update && \
-    apt-get -qq -y install ca-certificates curl gnupg && \
-    mkdir -p /etc/apt/keyrings && \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-        | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
-        | tee /etc/apt/sources.list.d/nodesource.list && \
-    apt-get -qq update && \
+    apt-get -qq -y install curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get -qq -y install openjdk-17-jre && \
     apt-get -qq -y install --no-install-recommends \
         ffmpeg \
