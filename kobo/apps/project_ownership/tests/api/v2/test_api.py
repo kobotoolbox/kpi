@@ -13,7 +13,6 @@ from kobo.apps.project_ownership.models import (
     InviteStatusChoices,
     Transfer,
 )
-from kobo.apps.project_ownership.tests.utils import MockServiceUsageCalculator
 from kobo.apps.trackers.utils import update_nlp_counter
 
 from kpi.constants import PERM_VIEW_ASSET
@@ -351,14 +350,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.asset.deployment.mock_submissions(submissions)
         self.submissions = submissions
 
-    @patch(
-        'kpi.utils.usage_calculator.ServiceUsageCalculator.get_storage_usage',
-        new=MockServiceUsageCalculator.get_storage_usage
-    )
-    @patch(
-        'kpi.utils.usage_calculator.ServiceUsageCalculator.get_submission_counters',
-        new=MockServiceUsageCalculator.get_submission_counters
-    )
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
         MagicMock()
