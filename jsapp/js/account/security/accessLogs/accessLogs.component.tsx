@@ -79,7 +79,7 @@ export default function AccessLogsSection() {
       <div>{currentPage}</div>
       <Button
         type='full'
-        color='light-storm'
+        color='dark-blue'
         isDisabled={currentPage >= availablePages}
         size='m'
         label='skip to last page'
@@ -87,7 +87,7 @@ export default function AccessLogsSection() {
       />
       <Button
         type='full'
-        color='light-storm'
+        color='dark-blue'
         isDisabled={currentPage <= 1}
         size='m'
         label='skip to first page'
@@ -95,7 +95,7 @@ export default function AccessLogsSection() {
       />
       <Button
         type='full'
-        color='light-storm'
+        color='dark-blue'
         isDisabled={currentPage >= availablePages}
         size='m'
         label='next'
@@ -103,7 +103,7 @@ export default function AccessLogsSection() {
       />
       <Button
         type='full'
-        color='light-storm'
+        color='dark-blue'
         size='m'
         label='back'
         isDisabled={currentPage <= 1}
