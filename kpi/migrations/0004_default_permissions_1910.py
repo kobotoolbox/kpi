@@ -23,7 +23,6 @@ def default_permissions_to_existing_users(apps, schema_editor):
     Asset = apps.get_model('kpi', 'Asset')
     Collection = apps.get_model('kpi', 'Collection')
     Permission = apps.get_model('auth', 'Permission')
-    print(f'{Asset=}, {Collection=}')
     forbidden_user_model = get_user_model()
     # Get the frozen User model
     User = apps.get_model(
