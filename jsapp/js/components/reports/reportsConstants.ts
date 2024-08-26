@@ -1,25 +1,29 @@
-import type {ChartTypeRegistry} from 'chart.js/auto';
+import type {ChartType} from 'chart.js/auto';
 import type {AnyRowTypeName} from 'js/constants';
 
 export interface ReportStyle {
   /** This is row name (see `AnyRowTypeName` from `js/constants.ts`) */
   groupDataBy?: string;
-  report_type?: ReportStyleName;
-  report_colors?: string[];
+  report_type: ReportStyleName;
+  report_colors: string[];
   translationIndex?: number;
   graphWidth?: number;
-  /** This is sometimes `false`. */
+  /**
+   * This happens to be `false` sometimes, not sure if it's possible to set it
+   * to a number using UI.
+   */
   width?: number | boolean;
 }
 
 export interface CustomReport {
   crid: string;
   name: string;
+  /** A list of asset content rows */
   questions: string[];
   reportStyle: ReportStyle;
-  // TODO FIXME: why does this has `specified` property? I see some code is
-  // expecting it to be here, but it is not something I expected :shrug:
-  specified?: ReportStyle;
+  specified?: {
+    [rowName: string]: ReportStyle;
+  };
 }
 
 interface ReportsResponseDataValueRegular {
@@ -109,9 +113,16 @@ export interface AssetResponseReportStyles {
   /** A map of rows and their style overrides. */
   specified: {[rowName: string]: ReportStyle};
   /** This is a map of row names to their `kuid`s stored here for some reason. */
-  kuid_names?: {
+  kuid_names: {
     [rowName: string]: string;
   };
+}
+
+/**
+ * This is the `report_custom` object from `AssetResponse`.
+ */
+export interface AssetResponseReportCustom {
+  [crid: string]: CustomReport;
 }
 
 export type ReportStyleName =
@@ -129,11 +140,18 @@ export type ReportStyleName =
 interface ReportStyleDefinition {
   value: ReportStyleName;
   label: string;
-  chartJsType: keyof ChartTypeRegistry;
+  chartJsType: ChartType;
 }
 
 type ReportStyleDefinitions = {[P in ReportStyleName]: ReportStyleDefinition};
 
+/**
+ * A list of definitions of styles. Despite `REPORT_STYLES` (the `const`) name
+ * being similar to `ReportStyle` (the `interface`), these are not the same
+ * thing. The first is list of definitions of possible styles (mainly for
+ * the Chart.js), the latter is the instance of a report style (as Back end
+ * understands it).
+ */
 export const REPORT_STYLES: ReportStyleDefinitions = Object.freeze({
   vertical: {
     value: 'vertical',
@@ -266,3 +284,12 @@ export const REPORT_COLOR_SETS: ReportColorSet[] = [
     ],
   },
 ];
+
+/**
+ * The default report style. An minimal instance of `ReportStyle` that uses
+ * values from of `REPORT_STYLES` and `REPORT_COLOR_SETS`.
+ */
+export const DEFAULT_MINIMAL_REPORT_STYLE: ReportStyle = {
+  report_type: REPORT_STYLES.vertical.value,
+  report_colors: REPORT_COLOR_SETS[0].colors,
+};

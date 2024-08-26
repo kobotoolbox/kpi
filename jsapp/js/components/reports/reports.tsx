@@ -1,6 +1,7 @@
 // Libraries
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
+import isEqual from 'lodash.isequal';
 
 // Partial components
 import InlineMessage from 'js/components/common/inlineMessage';
@@ -25,12 +26,13 @@ import {userCan} from 'js/components/permissions/utils';
 import {getDataWithResponses} from './reports.utils';
 
 // Types & constants
-import {REPORT_STYLES} from './reportsConstants';
-import type {
-  AssetResponseReportStyles,
-  CustomReport,
-  ReportsPaginatedResponse,
-  ReportsResponse,
+import {
+  REPORT_STYLES,
+  DEFAULT_MINIMAL_REPORT_STYLE,
+  type AssetResponseReportStyles,
+  type CustomReport,
+  type ReportsPaginatedResponse,
+  type ReportsResponse,
 } from './reportsConstants';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import type {
@@ -71,6 +73,8 @@ export interface ReportsState {
 }
 
 export default class Reports extends React.Component<ReportsProps, ReportsState> {
+  private unlisteners: Function[] = [];
+
   constructor(props: ReportsProps) {
     super(props);
 
@@ -92,12 +96,21 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     this.loadReportData();
     // NOTE: here we listen to `setStyle` and `setCustom` being triggered, not
     // to the API call responses. Why?
-    actions.reports.setStyle.listen(this.reportStyleListener.bind(this));
-    actions.reports.setCustom.listen(this.reportCustomListener.bind(this));
+    // actions.reports.setStyle.listen(this.reportStyleListener.bind(this));
+    // actions.reports.setCustom.listen(this.reportCustomListener.bind(this));
+
+    this.unlisteners.push(
+      actions.reports.setStyle.completed.listen(this.onSetStyleCompleted.bind(this)),
+      actions.reports.setCustom.completed.listen(this.onSetCustomCompleted.bind(this)),
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => clb());
   }
 
   componentDidUpdate(_prevProps: ReportsProps, prevState: ReportsState) {
-    if (this.state.currentCustomReport !== prevState.currentCustomReport) {
+    if (!isEqual(this.state.currentCustomReport, prevState.currentCustomReport)) {
       this.refreshReportData();
     }
     if (this.state.groupBy !== prevState.groupBy) {
@@ -112,9 +125,8 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
       const rowsByKuid: {[kuid: string]: SurveyRow} = {};
       const rowsByIdentifier: {[identifier: string]: SurveyRow} = {};
       let groupBy = '';
-      // TODO: the code below is overriding the `ReportStyles` coming from
-      // `AssetResponse` for some reason (to be researched…), we clone it to
-      // avoid mutation.
+      // The code below is overriding the `ReportStyles` we got from endpoint in
+      // `AssetResponse`, we clone it here to avoid mutation.
       const reportStyles: AssetResponseReportStyles = clonedeep(asset.report_styles);
       const reportCustom = asset.report_custom;
 
@@ -127,10 +139,10 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
       // Here we override the `ReportStyles` in case the default values are
       // not present.
       if (reportStyles.default === undefined) {
-        reportStyles.default = {};
+        reportStyles.default = DEFAULT_MINIMAL_REPORT_STYLE;
       }
       if (reportStyles.default?.report_type === undefined) {
-        reportStyles.default.report_type = REPORT_STYLES.vertical.value;
+        reportStyles.default.report_type = DEFAULT_MINIMAL_REPORT_STYLE.report_type;
       }
       if (reportStyles.default?.translationIndex === undefined) {
         reportStyles.default.translationIndex = 0;
@@ -155,8 +167,6 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
           .getReportData({uid: uid, identifiers: [], group_by: groupBy})
           .done((data: ReportsPaginatedResponse) => {
             const dataWithResponses = getDataWithResponses(rowsByIdentifier, data);
-
-            console.log('xxx data with responses', data, dataWithResponses);
 
             this.setState({
               asset: asset,
@@ -244,6 +254,16 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     });
   }
 
+  onSetStyleCompleted(asset: AssetResponse) {
+    this.setState({
+      asset: asset,
+      reportStyles: asset.report_styles,
+      showReportGraphSettings: false,
+      currentQuestionGraph: undefined,
+      groupBy: asset.report_styles.default?.groupDataBy || '',
+    });
+  }
+
   reportCustomListener(
     _assetUid: string,
     reportCustom: {[crid: string]: CustomReport}
@@ -275,19 +295,34 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     }
   }
 
+  onSetCustomCompleted(asset: AssetResponse, crid: string) {
+    const newCustomReports = asset.report_custom;
+
+    this.setState({
+      asset: asset,
+      reportCustom: newCustomReports,
+      showCustomReportModal: false,
+      showReportGraphSettings: false,
+      currentQuestionGraph: undefined,
+      currentCustomReport: newCustomReports[crid],
+      groupBy: newCustomReports[crid]?.reportStyle.groupDataBy,
+    })
+  }
+
   onSelectedReportChange(crid: string) {
-    console.log('onSelectedReportChange', crid);
     if (crid === '') {
-      this.triggerDefaultReport();
+      this.setDefaultReport();
     } else {
       this.setCustomReport(crid);
     }
   }
 
-  toggleReportGraphSettings() {
-    this.setState({
-      showReportGraphSettings: !this.state.showReportGraphSettings,
-    });
+  openReportGraphSettings() {
+    this.setState({showReportGraphSettings: true});
+  }
+
+  closeReportGraphSettings() {
+    this.setState({showReportGraphSettings: false});
   }
 
   hasAnyProvidedData(reportData: ReportsResponse[]) {
@@ -315,7 +350,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
           crid: txtid(),
           name: '',
           questions: [],
-          reportStyle: {},
+          reportStyle: DEFAULT_MINIMAL_REPORT_STYLE,
         };
       }
       this.setState({currentCustomReport: currentCustomReport});
@@ -328,20 +363,24 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     }
   }
 
-  toggleCustomReportModal() {
+  openCustomReportModal() {
     if (!this.state.showCustomReportModal) {
       this.setCustomReport();
     } else if (this.state.currentCustomReport) {
       var crid = this.state.currentCustomReport.crid;
       if (this.state.reportCustom?.[crid] == undefined) {
-        this.triggerDefaultReport();
+        this.setDefaultReport();
       }
     }
 
-    this.setState({showCustomReportModal: !this.state.showCustomReportModal});
+    this.setState({showCustomReportModal: true});
   }
 
-  triggerDefaultReport() {
+  closeCustomReportModal() {
+    this.setState({showCustomReportModal: false});
+  }
+
+  setDefaultReport() {
     this.setState({currentCustomReport: undefined});
   }
 
@@ -361,11 +400,6 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     customReportsList.sort((a, b) => {
       return a.name.localeCompare(b.name);
     });
-
-    let menuLabel = t('Custom Reports');
-    if (this.state.currentCustomReport) {
-      menuLabel = this.state.currentCustomReport.name || t('Untitled Report');
-    }
 
     const reportsSelectorOptions = customReportsList.map((item) => {
       return {
@@ -400,7 +434,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
             type='primary'
             size='m'
             startIcon='plus'
-            onClick={this.toggleCustomReportModal.bind(this)}
+            onClick={this.openCustomReportModal.bind(this)}
             tooltip={t('Create New Report')}
           />
 
@@ -417,7 +451,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
             type='text'
             size='m'
             startIcon='settings'
-            onClick={this.toggleReportGraphSettings.bind(this)}
+            onClick={this.openReportGraphSettings.bind(this)}
             tooltip={t('Configure Report Style')}
             isDisabled={!userCan('change_asset', this.state.asset)}
           />
@@ -573,7 +607,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m={formViewModifiers}>
           <bem.ReportView>
-            <h1>{t('Custom reports')}</h1>
+            <h1>{t('Reports')}</h1>
 
             {this.renderReportButtons()}
 
@@ -624,6 +658,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
                 <ReportContents
                   parentState={this.state}
                   reportData={reportData}
+                  asset={this.state.asset}
                   triggerQuestionSettings={this.triggerQuestionSettings.bind(this)}
                 />
               </bem.ReportView__wrap>
@@ -632,7 +667,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
             {this.state.showReportGraphSettings && (
               <Modal
                 open
-                onClose={this.toggleReportGraphSettings.bind(this)}
+                onClose={this.closeReportGraphSettings.bind(this)}
                 title={t('Edit Report Style')}
               >
                 <ReportStyleSettings parentState={this.state} />
@@ -642,7 +677,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
             {this.state.showCustomReportModal && (
               <Modal
                 open
-                onClose={this.toggleCustomReportModal.bind(this)}
+                onClose={this.closeCustomReportModal.bind(this)}
                 title={t('Custom Report')}
               >
                 {this.renderCustomReportModal()}

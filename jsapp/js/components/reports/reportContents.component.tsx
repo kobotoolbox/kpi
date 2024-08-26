@@ -1,14 +1,24 @@
+// Libraries
 import React from 'react';
 import bem from 'js/bem';
-import {QUESTION_TYPES} from 'js/constants';
+
+// Partial components
 import ReportViewItem from './reportViewItem.component';
+
+// Utils
+import {getReportRowTranslatedLabel} from './reports.utils';
+
+// Types & constants
+import {QUESTION_TYPES} from 'js/constants';
 import type {ReportsState} from './reports';
 import type {ReportStyle, ReportsResponse} from './reportsConstants';
+import type {AssetResponse} from 'jsapp/js/dataInterface';
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void;
   parentState: ReportsState;
   reportData: ReportsResponse[];
+  asset: AssetResponse;
 }
 
 export default class ReportContents extends React.Component<ReportContentsProps> {
@@ -26,23 +36,26 @@ export default class ReportContents extends React.Component<ReportContentsProps>
   }
 
   render() {
-    let tnslIndex = 0;
+    let translationIndex = 0;
     const customReport = this.props.parentState.currentCustomReport;
     const defaultRS = this.props.parentState.reportStyles;
-    const asset = this.props.parentState.asset;
+    const asset = this.props.asset;
     const groupBy = this.props.parentState.groupBy;
 
     if (customReport) {
       if (customReport.reportStyle?.translationIndex) {
-        tnslIndex = customReport.reportStyle.translationIndex;
+        translationIndex = customReport.reportStyle.translationIndex;
       }
     } else {
-      tnslIndex = defaultRS?.default?.translationIndex || 0;
+      translationIndex = defaultRS?.default?.translationIndex || 0;
     }
 
-    // reset to first language if trnslt index cannot be found
-    if (asset?.content?.translations && !asset.content?.translations[tnslIndex]) {
-      tnslIndex = 0;
+    // reset to first language if translation index cannot be found
+    if (
+      asset?.content?.translations &&
+      !asset.content?.translations[translationIndex]
+    ) {
+      translationIndex = 0;
     }
 
     const reportData = this.props.reportData;
@@ -90,8 +103,8 @@ export default class ReportContents extends React.Component<ReportContentsProps>
               o.list_name === question.select_from_list_name &&
               (o.name === resps[j])
             );
-            if (choice?.label?.[tnslIndex]) {
-              reportData[i].data.responseLabels?.unshift(choice.label[tnslIndex]);
+            if (choice?.label?.[translationIndex]) {
+              reportData[i].data.responseLabels?.unshift(choice.label[translationIndex]);
             } else {
               reportData[i].data.responseLabels?.unshift(resps[j]);
             }
@@ -111,8 +124,8 @@ export default class ReportContents extends React.Component<ReportContentsProps>
                 o.list_name === qGB.select_from_list_name &&
                 (o.label?.includes(r))
               );
-              if (choice?.label?.[tnslIndex]) {
-                newLabels[ind] = choice.label[tnslIndex];
+              if (choice?.label?.[translationIndex]) {
+                newLabels[ind] = choice.label[translationIndex];
               } else {
                 newLabels[ind] = r;
               }
@@ -126,8 +139,8 @@ export default class ReportContents extends React.Component<ReportContentsProps>
                 (o.name === String(vals[vD][0]) || o.$autoname === String(vals[vD][0]))
               );
 
-              if (choice?.label?.[tnslIndex]) {
-                vals[vD][2] = choice.label[tnslIndex];
+              if (choice?.label?.[translationIndex]) {
+                vals[vD][2] = choice.label[translationIndex];
               } else {
                 vals[vD][2] = vals[vD][0];
               }
@@ -141,19 +154,15 @@ export default class ReportContents extends React.Component<ReportContentsProps>
       <div>
         {
           reportData.map((rowContent, i) => {
-            let label = t('Unlabeled');
-            if (
-              Array.isArray(rowContent.row.label) &&
-              rowContent.row.label[tnslIndex]
-            ) {
-              label = rowContent.row.label[tnslIndex] || '';
-            } else if (typeof rowContent.row.label === 'string') {
-              label = rowContent.row.label;
+            if (!rowContent.data.provided) {
+              return null;
             }
 
-            if (!rowContent.data.provided) {
-              return false;
-            }
+            const label = getReportRowTranslatedLabel(
+              rowContent,
+              this.props.asset.content?.survey,
+              translationIndex
+            );
 
             return (
               <bem.ReportView__item key={i}>

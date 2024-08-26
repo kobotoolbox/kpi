@@ -173,15 +173,15 @@ interface ReportsSetStyleCompletedDefinition extends Function {
 }
 
 interface ReportsSetCustomDefinition extends Function {
-  (assetId: string, details: {[crid: string]: CustomReport}): void;
-  listen: (callback: (assetId: string, details: {[crid: string]: CustomReport}) => void) => Function;
+  (assetId: string, details: {[crid: string]: CustomReport}, crid: string): void;
+  listen: (callback: (assetId: string, details: {[crid: string]: CustomReport}, crid: string) => void) => Function;
   completed: ReportsSetCustomCompletedDefinition;
   failed: GenericFailedDefinition;
 }
 
 interface ReportsSetCustomCompletedDefinition extends Function {
   (response: AssetResponse): void;
-  listen: (callback: (response: AssetResponse) => void) => Function;
+  listen: (callback: (response: AssetResponse, crid: string) => void) => Function;
 }
 
 // NOTE: as you use more actions in your ts files, please extend this namespace,

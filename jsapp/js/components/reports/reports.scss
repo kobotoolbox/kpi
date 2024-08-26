@@ -211,7 +211,7 @@
     label {
       padding: sizes.$x4;
       padding-top: sizes.$x8;
-      width: 380px; // TODO sizes?
+      width: 380px;
       margin: 0 auto;
 
       > div {
@@ -225,7 +225,7 @@
   + .slider-item {
     padding: sizes.$x10;
     display: flex;
-    width: 240px; // TODO sizes?
+    width: 240px;
     margin: 0 auto;
 
     > label {

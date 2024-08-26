@@ -12,11 +12,17 @@ import ReportsModalTabs, {DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports
 
 // Utilities
 import {actions} from 'js/actions';
+import {handleApiFail} from 'js/api';
 
-// Types
-import type {ReportStyle, ReportStyleName} from './reportsConstants';
+// Types & constants
+import {
+  type ReportStyleName,
+  type ReportStyle,
+  DEFAULT_MINIMAL_REPORT_STYLE,
+} from './reportsConstants';
 import type {ReportsState} from './reports';
 import type {ReportsModalTabName} from 'js/components/reports/reportsModalTabs.component';
+import type {FailResponse} from 'js/dataInterface';
 
 interface QuestionGraphSettingsProps {
   parentState: ReportsState;
@@ -26,18 +32,22 @@ interface QuestionGraphSettingsProps {
 interface QuestionGraphSettingsState {
   activeModalTab: ReportsModalTabName;
   reportStyle: ReportStyle;
+  isPending: boolean;
 }
 
 export default class QuestionGraphSettings extends React.Component<
   QuestionGraphSettingsProps,
   QuestionGraphSettingsState
 > {
+  private unlisteners: Function[] = [];
+
   constructor(props: QuestionGraphSettingsProps) {
     super(props);
 
     this.state = {
       activeModalTab: DEFAULT_REPORTS_MODAL_TAB,
-      reportStyle: {},
+      reportStyle: DEFAULT_MINIMAL_REPORT_STYLE,
+      isPending: false,
     };
   }
 
@@ -46,7 +56,14 @@ export default class QuestionGraphSettings extends React.Component<
   }
 
   componentDidMount() {
-    let specificSettings: {[rowName: string]: ReportStyle} | ReportStyle | undefined;
+    this.unlisteners.push(
+      actions.reports.setStyle.completed.listen(this.onSetStyleCompleted.bind(this)),
+      actions.reports.setStyle.failed.listen(this.onSetStyleFailed.bind(this)),
+      actions.reports.setCustom.completed.listen(this.onSetCustomCompleted.bind(this)),
+      actions.reports.setCustom.failed.listen(this.onSetCustomFailed.bind(this)),
+    );
+
+    let specificSettings: {[rowName: string]: ReportStyle} | undefined;
 
     if (!this.props.parentState.currentCustomReport) {
       specificSettings = this.props.parentState.reportStyles?.specified;
@@ -65,6 +82,29 @@ export default class QuestionGraphSettings extends React.Component<
     }
   }
 
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => clb());
+  }
+
+  onSetStyleCompleted() {
+    this.setState({isPending: false});
+  }
+
+  onSetStyleFailed(response: FailResponse) {
+    handleApiFail(response);
+    this.setState({isPending: false});
+  }
+
+  onSetCustomCompleted() {
+    this.setState({isPending: false});
+  }
+
+  onSetCustomFailed(response: FailResponse) {
+    handleApiFail(response);
+    this.setState({isPending: false});
+  }
+
+
   saveQS(reset: boolean) {
     const assetUid = this.props.parentState.asset?.uid;
     const customReport = this.props.parentState.currentCustomReport;
@@ -76,44 +116,66 @@ export default class QuestionGraphSettings extends React.Component<
     if (!customReport) {
       const parentReportStyles = this.props.parentState.reportStyles;
       if (parentReportStyles) {
-        parentReportStyles.specified[this.props.question] = reset ? {} : this.state.reportStyle;
+        parentReportStyles.specified[this.props.question] = reset ? DEFAULT_MINIMAL_REPORT_STYLE : this.state.reportStyle;
         actions.reports.setStyle(assetUid, parentReportStyles);
+        this.setState({isPending: true});
       }
     } else {
       // TODO FIXME: we are mutating parent state data here (we shouldn't!)
       const parentReportCustom = this.props.parentState.asset?.report_custom;
 
       if (parentReportCustom) {
-        const newStyle = reset ? {} : this.state.reportStyle;
+        const newStyle = reset ? DEFAULT_MINIMAL_REPORT_STYLE : this.state.reportStyle;
 
-        if (parentReportCustom[customReport.crid].specified === undefined) {
-          parentReportCustom[customReport.crid].specified = {};
+        const cridReport = parentReportCustom[customReport.crid];
+
+        if (cridReport.specified === undefined) {
+          cridReport.specified = {};
         }
 
         // `specified` is definitely defined here, but TS needs this check
-        if (parentReportCustom[customReport.crid].specified) {
-          parentReportCustom[customReport.crid].specified = newStyle;
+        if (cridReport?.specified !== undefined) {
+          cridReport.specified[this.props.question] = newStyle;
         }
 
-        actions.reports.setCustom(assetUid, parentReportCustom);
+        actions.reports.setCustom(assetUid, parentReportCustom, customReport.crid);
+        this.setState({isPending: true});
       }
     }
   }
 
-  anyQuestionStyleChange(
+  onTypeChange(
     params: {
       default?: boolean;
       id?: string;
       value?: number | boolean;
     },
-    value: ReportStyle
+    value: {report_type: ReportStyleName}
   ) {
     const newStyles = clonedeep(this.state.reportStyle);
 
     if (value?.report_type) {
       newStyles.report_type = value.report_type;
     }
-    if (value?.report_colors) {
+
+    if (params && params.id === 'width') {
+      newStyles.width = params.value;
+    }
+
+    this.setState({reportStyle: newStyles});
+  }
+
+  onColorChange(
+    params: {
+      default?: boolean;
+      id?: string;
+      value?: number | boolean;
+    },
+    value: {report_colors: string[]}
+  ) {
+    const newStyles = clonedeep(this.state.reportStyle);
+
+    if (value.report_colors) {
       newStyles.report_colors = value.report_colors;
     }
     if (params && params.id === 'width') {
@@ -140,7 +202,7 @@ export default class QuestionGraphSettings extends React.Component<
               <div id='graph-type'>
                 <ChartTypePicker
                   defaultStyle={this.state.reportStyle}
-                  onChange={this.anyQuestionStyleChange.bind(this)}
+                  onChange={this.onTypeChange.bind(this)}
                 />
               </div>
             )}
@@ -148,7 +210,7 @@ export default class QuestionGraphSettings extends React.Component<
               <div id='graph-colors'>
                 <ChartColorsPicker
                   defaultStyle={this.state.reportStyle}
-                  onChange={this.anyQuestionStyleChange.bind(this)}
+                  onChange={this.onColorChange.bind(this)}
                 />
               </div>
             )}
@@ -164,6 +226,7 @@ export default class QuestionGraphSettings extends React.Component<
               size='l'
               onClick={this.saveQS.bind(this, true)}
               label={t('Reset')}
+              isPending={this.state.isPending}
             />
           )}
 
@@ -172,6 +235,7 @@ export default class QuestionGraphSettings extends React.Component<
             size='l'
             onClick={this.saveQS.bind(this, false)}
             label={t('Save')}
+            isPending={this.state.isPending}
           />
         </Modal.Footer>
       </bem.GraphSettings>

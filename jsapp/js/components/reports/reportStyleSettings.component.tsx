@@ -11,12 +11,17 @@ import Button from 'js/components/common/button';
 import ReportsModalTabs, {DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports/reportsModalTabs.component';
 
 // Utilities
-import {actions} from 'js/actions';
 import bem from 'js/bem';
+import {actions} from 'js/actions';
+import {handleApiFail} from 'jsapp/js/api';
 
-// Types
-import type {LabelValuePair} from 'js/dataInterface';
-import type {ReportStyle, ReportStyleName} from './reportsConstants';
+// Types & constants
+import type {FailResponse, LabelValuePair} from 'js/dataInterface';
+import {
+  DEFAULT_MINIMAL_REPORT_STYLE,
+  type ReportStyle,
+  type ReportStyleName,
+} from './reportsConstants';
 import type {ReportsState} from './reports';
 import type {ReportsModalTabName} from 'js/components/reports/reportsModalTabs.component';
 
@@ -27,12 +32,15 @@ interface ReportStyleSettingsProps {
 interface ReportStyleSettingsState {
   activeModalTab: ReportsModalTabName;
   reportStyle: ReportStyle;
+  isPending: boolean;
 }
 
 export default class ReportStyleSettings extends React.Component<
   ReportStyleSettingsProps,
   ReportStyleSettingsState
 > {
+  private unlisteners: Function[] = [];
+
   constructor(props: ReportStyleSettingsProps) {
     super(props);
 
@@ -43,8 +51,40 @@ export default class ReportStyleSettings extends React.Component<
 
     this.state = {
       activeModalTab: DEFAULT_REPORTS_MODAL_TAB,
-      reportStyle: initialReportStyle || {},
+      reportStyle: initialReportStyle || DEFAULT_MINIMAL_REPORT_STYLE,
+      isPending: false,
     };
+  }
+
+  componentDidMount() {
+    this.unlisteners.push(
+      actions.reports.setStyle.completed.listen(this.onSetStyleCompleted.bind(this)),
+      actions.reports.setStyle.failed.listen(this.onSetStyleFailed.bind(this)),
+      actions.reports.setCustom.completed.listen(this.onSetCustomCompleted.bind(this)),
+      actions.reports.setCustom.failed.listen(this.onSetCustomFailed.bind(this)),
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => clb());
+  }
+
+  onSetStyleCompleted() {
+    this.setState({isPending: false});
+  }
+
+  onSetStyleFailed(response: FailResponse) {
+    handleApiFail(response);
+    this.setState({isPending: false});
+  }
+
+  onSetCustomCompleted() {
+    this.setState({isPending: false});
+  }
+
+  onSetCustomFailed(response: FailResponse) {
+    handleApiFail(response);
+    this.setState({isPending: false});
   }
 
   toggleTab(tabName: ReportsModalTabName) {
@@ -92,18 +132,18 @@ export default class ReportStyleSettings extends React.Component<
     }
 
     if (currentCustomReport) {
-      const reportCustom = this.props.parentState.asset?.report_custom;
+      const reportCustom = clonedeep(this.props.parentState.asset?.report_custom || {});
       if (reportCustom) {
-        // TODO FIXME: This mutates existing data (bad thing), we need to
-        // investigate why this is done in such a way and fix it.
         reportCustom[currentCustomReport.crid].reportStyle = this.state.reportStyle;
-        actions.reports.setCustom(assetUid, reportCustom);
+        actions.reports.setCustom(assetUid, reportCustom, currentCustomReport.crid);
+        this.setState({isPending: true});
       }
     } else {
       const parentReportStyles = this.props.parentState.reportStyles;
       if (parentReportStyles?.default) {
         Object.assign(parentReportStyles.default, this.state.reportStyle);
         actions.reports.setStyle(assetUid, parentReportStyles);
+        this.setState({isPending: true});
       }
     }
   }
@@ -217,6 +257,7 @@ export default class ReportStyleSettings extends React.Component<
               size='l'
               onClick={this.saveReportStyles.bind(this)}
               label={t('Save')}
+              isPending={this.state.isPending}
             />
           </Modal.Footer>
         </Modal.Body>

@@ -5,7 +5,7 @@ import zip from 'lodash.zip';
 import isEqual from 'lodash.isequal';
 import Chart from 'chart.js/auto';
 import type {
-  ChartTypeRegistry,
+  ChartType,
   ChartDataset,
   ChartConfiguration,
 } from 'chart.js/auto';
@@ -23,7 +23,7 @@ import Button from 'js/components/common/button';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
 
 // Types
-import type {ReportsResponse, ReportsResponseData, ReportsResponseDataValue} from './reportsConstants';
+import type {ReportsResponse, ReportsResponseData} from './reportsConstants';
 
 export type PreparedTable = Array<
   [string | undefined, number | undefined, number | undefined]
@@ -85,13 +85,13 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       // as it causes the animation to start again.
       this.loadChart();
     }
-  }
 
-  // HACK: We no longer keep built PreparedTable in state, it's simply rebuilt
-  // during render. We keep this to ensure that re-render happens when props
-  // change.
-  static getDerivedStateFromProps() {
-    return {};
+    // We no longer keep built PreparedTable in state, it's simply rebuilt
+    // during render. We keep this to ensure that re-render happens when props
+    // change.
+    if (!isEqual(prevProps, this.props)) {
+      this.forceUpdate();
+    }
   }
 
   loadChart() {
@@ -132,8 +132,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     Chart.defaults.maintainAspectRatio = false;
 
     // If there is some invalid data we default to bar type
-    const chartJsType: keyof ChartTypeRegistry =
-      REPORT_STYLES[chartType]?.chartJsType || 'bar';
+    const chartJsType: ChartType = REPORT_STYLES[chartType]?.chartJsType || 'bar';
 
     const datasets: ChartDataset[] = [];
 

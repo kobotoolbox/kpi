@@ -23,8 +23,8 @@ import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
 import type {
   ReportsPaginatedResponse,
-  CustomReport,
   AssetResponseReportStyles,
+  AssetResponseReportCustom,
 } from 'js/components/reports/reportsConstants';
 import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 import type {SortValues} from 'js/components/submissions/tableConstants';
@@ -536,7 +536,7 @@ interface AssetRequestObject {
   settings: AssetSettings;
   asset_type: AssetTypeName;
   report_styles: AssetResponseReportStyles;
-  report_custom: {[crid: string]: CustomReport};
+  report_custom: AssetResponseReportCustom;
   map_styles: {};
   map_custom: {};
   content?: AssetContent;

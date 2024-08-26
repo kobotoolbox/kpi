@@ -10,13 +10,18 @@ import TextBox from 'js/components/common/textBox';
 
 // Utilities
 import {actions} from 'js/actions';
+import {getReportRowTranslatedLabel} from './reports.utils';
+import {handleApiFail} from 'js/api';
 
 // Types
 import type {
   CustomReport,
   ReportsResponse,
 } from 'js/components/reports/reportsConstants';
-import type {AssetResponse} from 'js/dataInterface';
+import type {
+  AssetResponse,
+  FailResponse,
+} from 'js/dataInterface';
 
 interface CustomReportFormProps {
   reportData: ReportsResponse[];
@@ -26,18 +31,42 @@ interface CustomReportFormProps {
 
 interface CustomReportFormState {
   customReport: CustomReport;
+  isPending: boolean;
 }
 
 export default class CustomReportForm extends React.Component<
   CustomReportFormProps,
   CustomReportFormState
 > {
+  private unlisteners: Function[] = [];
+
   constructor(props: CustomReportFormProps) {
     super(props);
 
     this.state = {
       customReport: props.customReport,
+      isPending: false,
     };
+  }
+
+  componentDidMount() {
+    this.unlisteners.push(
+      actions.reports.setCustom.completed.listen(this.onSetCustomCompleted.bind(this)),
+      actions.reports.setCustom.failed.listen(this.onSetCustomFailed.bind(this)),
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => clb());
+  }
+
+  onSetCustomCompleted(_response: AssetResponse) {
+    this.setState({isPending: false});
+  }
+
+  onSetCustomFailed(response: FailResponse) {
+    handleApiFail(response);
+    this.setState({isPending: false});
   }
 
   onCustomReportNameChange(newName: string) {
@@ -57,20 +86,16 @@ export default class CustomReportForm extends React.Component<
     this.setState({customReport: newReport});
   }
 
-  saveCustomReport() {
-    const report_custom = this.props.asset.report_custom || {};
-    const crid = this.state.customReport.crid;
-
-    report_custom[crid] = this.state.customReport;
-    actions.reports.setCustom(this.props.asset.uid, report_custom);
-  }
-
-  deleteCustomReport() {
-    const report_custom = this.props.asset.report_custom || {};
-    const crid = this.state.customReport.crid;
-
-    delete report_custom[crid];
-    actions.reports.setCustom(this.props.asset.uid, report_custom);
+  /** Pass `null` to delete report */
+  updateAssetCustomReports(crid: string, newReport: CustomReport | null) {
+    const assetCustomReports = clonedeep(this.props.asset.report_custom || {});
+    if (newReport === null) {
+      delete assetCustomReports[crid];
+    } else {
+      assetCustomReports[crid] = newReport;
+    }
+    actions.reports.setCustom(this.props.asset.uid, assetCustomReports, crid);
+    this.setState({isPending: true});
   }
 
   render() {
@@ -90,10 +115,11 @@ export default class CustomReportForm extends React.Component<
 
         <div className='custom-report--questions'>
           {this.props.reportData.map((item, index) => {
-            let label = t('Unlabeled');
-            if (item.row.label?.[0] && item.row.label[0] !== null) {
-              label = item.row.label[0];
-            }
+            const label = getReportRowTranslatedLabel(
+              item,
+              this.props.asset.content?.survey,
+              0
+            );
 
             return (
               <div className='graph-settings__question' key={index}>
@@ -112,16 +138,28 @@ export default class CustomReportForm extends React.Component<
             <Button
               type='danger'
               size='l'
-              onClick={this.deleteCustomReport.bind(this)}
+              onClick={() => {
+                this.updateAssetCustomReports(
+                  this.state.customReport.crid,
+                  null
+                );
+              }}
               label={t('Delete')}
+              isPending={this.state.isPending}
             />
           )}
 
           <Button
             type='primary'
             size='l'
-            onClick={this.saveCustomReport.bind(this)}
+            onClick={() => {
+              this.updateAssetCustomReports(
+                this.state.customReport.crid,
+                this.state.customReport
+              );
+            }}
             label={t('Save')}
+            isPending={this.state.isPending}
           />
         </bem.Modal__footer>
       </div>
