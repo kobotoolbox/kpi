@@ -15,6 +15,7 @@ class SubscriptionStore {
   public planResponse: SubscriptionInfo[] = [];
   public addOnsResponse: SubscriptionInfo[] = [];
   public activeSubscriptions: SubscriptionInfo[] = [];
+  public canceledPlans: SubscriptionInfo[] = [];
   public isPending = false;
   public isInitialised = false;
 
@@ -49,6 +50,11 @@ class SubscriptionStore {
     // get all active subscriptions for the user
     this.activeSubscriptions = response.results.filter((sub) =>
       ACTIVE_STRIPE_STATUSES.includes(sub.status)
+    );
+    this.canceledPlans = response.results.filter(
+      (sub) =>
+        sub.items[0]?.price.product.metadata?.product_type == 'plan' &&
+        sub.status === 'canceled'
     );
     // get any active plan subscriptions for the user
     this.planResponse = this.activeSubscriptions.filter(

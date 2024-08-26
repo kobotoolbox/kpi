@@ -10,7 +10,7 @@ export default function ToasterConfig() {
         style: {
           borderRadius: '6px',
           padding: '16px',
-          background: '#1e2129', // $kobo-gray-14
+          background: '#1e2129', // $kobo-gray-900
           color: '#fff', // $kobo-white
           maxHeight: '90vh',
           overflow: 'hidden',
@@ -18,19 +18,19 @@ export default function ToasterConfig() {
         success: {
           iconTheme: {
             primary: '#96eb9e', // $kobo-green
-            secondary: '#1e2129', // $kobo-gray-14
+            secondary: '#1e2129', // $kobo-gray-900
           },
         },
         error: {
           iconTheme: {
             primary: '#ff8080', // $kobo-mid-red
-            secondary: '#1e2129', // $kobo-gray-14
+            secondary: '#1e2129', // $kobo-gray-900
           },
         },
         loading: {
           iconTheme: {
-            primary: '#979fb4', // $kobo-gray-65
-            secondary: '#1e2129', // $kobo-gray-14
+            primary: '#979fb4', // $kobo-gray-500
+            secondary: '#1e2129', // $kobo-gray-900
           },
         },
         duration: 5000, // 5 seconds

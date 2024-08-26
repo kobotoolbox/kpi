@@ -78,7 +78,7 @@
 }
 
 .scorecell__col {
-  border: 1px solid colors.$kobo-gray-65;
+  border: 1px solid colors.$kobo-gray-500;
   border-width: 1px 0 0.5px 1px;
   text-align: center;
   padding: 0;
@@ -93,7 +93,7 @@
   }
 }
 
-$scorebordercolor: colors.$kobo-gray-65;
+$scorebordercolor: colors.$kobo-gray-500;
 
 tr:first-child .scorelabel {
   border-top-width: 1px;
@@ -107,11 +107,11 @@ tr:first-child .scorelabel {
   border-left-color: $scorebordercolor;
   border-right-width: 1px;
   border-right-style: solid;
-  border-right-color: colors.$kobo-gray-92;
+  border-right-color: colors.$kobo-gray-300;
 }
 
 .scorelabel, .scorecell__radio {
-  border-bottom: 1px dotted colors.$kobo-gray-92;
+  border-bottom: 1px dotted colors.$kobo-gray-300;
   padding: 4px 6px;
 }
 
@@ -147,11 +147,11 @@ tr:last-child {
 }
 
 tr:hover .scorecell__radio {
-  background-color: colors.$kobo-gray-96;
+  background-color: colors.$kobo-gray-200;
 }
 
 tr .scorecell__radio:hover {
-  background-color: colors.$kobo-gray-96;
+  background-color: colors.$kobo-gray-200;
 }
 
 .rank__rows {
@@ -181,7 +181,7 @@ tr .scorecell__radio:hover {
 
 .rank_items__constraint_explanation {
   font-size: 10px;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   text-decoration: underline;
 }
 
@@ -197,13 +197,13 @@ tr .scorecell__radio:hover {
 
 .rank_items__item, .rank_items__level {
   border: 1px solid;
-  border-color: colors.$kobo-gray-65;
+  border-color: colors.$kobo-gray-500;
   border-radius: 4px;
 }
 
 .rank_items__constraint_message {
   font-size: 92%;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   font-style: italic;
 
   &:before {
@@ -215,7 +215,7 @@ tr .scorecell__radio:hover {
       content: '';
     }
 
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
   }
 
   div {
@@ -239,15 +239,15 @@ tr .scorecell__radio:hover {
 
 .scorecell__name {
   margin: 0 0 -1px 0;
-  background-color: colors.$kobo-gray-96;
-  color: colors.$kobo-gray-40;
+  background-color: colors.$kobo-gray-200;
+  color: colors.$kobo-gray-700;
   line-height: 15px;
   font-size: 9px;
 }
 
 .scorecell__name, .scorelabel__name {
   display: block;
-  border-bottom: 1px dotted colors.$kobo-gray-92;
+  border-bottom: 1px dotted colors.$kobo-gray-300;
 
   br {
     display: none;
@@ -293,7 +293,7 @@ tr .scorecell__radio:hover {
 }
 
 .kobomatrix-warning {
-  color: colors.$kobo-gray-55;
+  color: colors.$kobo-gray-600;
   position: absolute;
   top: 0;
   right: 5px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width;
@@ -305,11 +305,11 @@ tr .scorecell__radio:hover {
 
 .scorecell__name, .scorelabel__name, .rank_items__name {
   font-size: 90%;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 
   &.prelim {
     font-style: italic;
-    color: colors.$kobo-gray-92;
+    color: colors.$kobo-gray-300;
   }
 }
 
@@ -344,7 +344,7 @@ $nested-btn--addrow-height: 24px;
   top: -20px;
 
   .k-icon {
-    background-color: colors.$kobo-gray-65;
+    background-color: colors.$kobo-gray-500;
     display: block;
     width: 24px;
     font-size: 21px;

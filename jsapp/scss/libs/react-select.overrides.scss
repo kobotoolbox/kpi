@@ -54,9 +54,9 @@
 
   .kobo-select__control {
     box-shadow: none;
-    border: 1px solid colors.$kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-300;
     border-radius: 6px;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     background-color: colors.$kobo-white;
     min-height: button.$button-height-m;
     height: auto;
@@ -68,7 +68,7 @@
     align-content: center;
 
     &:hover {
-      border-color: colors.$kobo-gray-92;
+      border-color: colors.$kobo-gray-300;
     }
 
     &.kobo-select__control--is-focused {
@@ -84,7 +84,7 @@
   }
 
   .kobo-select__placeholder {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
   }
 
   .kobo-select__indicator-separator {
@@ -97,7 +97,7 @@
 
   .kobo-select__single-value,
   .kobo-select__multi-value, {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   .kobo-select__multi-value {
@@ -152,7 +152,7 @@
 
     // is-focused needs to go after is-selected
     &.kobo-select__option--is-focused {
-      background-color: colors.$kobo-gray-96;
+      background-color: colors.$kobo-gray-200;
     }
   }
 }

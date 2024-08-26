@@ -8,7 +8,7 @@
 // because of too general styles of Form Builder.
 // See: https://github.com/kobotoolbox/kpi/issues/3914
 
-$input-color: colors.$kobo-gray-24;
+$input-color: colors.$kobo-gray-800;
 $wrapper-border-radius: sizes.$x6;
 // This is being shared by multiple components
 $label-margin: sizes.$x3;
@@ -19,20 +19,20 @@ $label-leading: sizes.$x20;
 
   &.hasValue {
     .inputWrapper {
-      border-color: colors.$kobo-gray-85;
+      border-color: colors.$kobo-gray-400;
     }
   }
 
   &.isDisabled {
     .inputWrapper {
-      color: colors.$kobo-gray-65;
-      background-color: colors.$kobo-gray-98;
-      border-color: colors.$kobo-gray-65;
+      color: colors.$kobo-gray-500;
+      background-color: colors.$kobo-gray-100;
+      border-color: colors.$kobo-gray-500;
     }
 
     .startIcon,
     .endIcon {
-      color: colors.$kobo-gray-65;
+      color: colors.$kobo-gray-500;
     }
   }
 
@@ -54,7 +54,7 @@ $label-leading: sizes.$x20;
 }
 
 .label {
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   font-size: sizes.$x12;
   line-height: $label-leading;
   margin-bottom: $label-margin;
@@ -78,7 +78,7 @@ $label-leading: sizes.$x20;
   align-content: flex-start;
   color: $input-color;
   background-color: colors.$kobo-white;
-  border: sizes.$x1 solid colors.$kobo-gray-92;
+  border: sizes.$x1 solid colors.$kobo-gray-300;
   padding: 0; // size dictates the paddings
   border-radius: $wrapper-border-radius;
   cursor: text;
@@ -106,16 +106,16 @@ input[class].input.input {
   }
 
   &:disabled {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
     pointer-events: none;
 
     &::placeholder {
-      color: colors.$kobo-gray-55;
+      color: colors.$kobo-gray-600;
     }
   }
 
   &::placeholder {
-    color: colors.$kobo-gray-55;
+    color: colors.$kobo-gray-600;
     opacity: 1;
   }
 }
@@ -127,7 +127,7 @@ textarea[class].input.input {
 
 .startIcon,
 .endIcon {
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }
 
 .startIcon {
