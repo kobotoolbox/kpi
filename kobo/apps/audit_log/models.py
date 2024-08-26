@@ -266,6 +266,22 @@ class SubmissionAccessLog(AuditLog):
         )
         return group
 
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
+        if (
+            not self.action == AuditAction.AUTH
+            and self.metadata['auth_type'] == SUBMISSION_ACCESS_LOG_AUTH_TYPE
+        ):
+            raise Exception(
+                f'Cannot create SubmissionAccessLog with action {self.action} and metadata {self.metadata}'
+            )
+        super().save(force_insert, force_update, using, update_fields)
+
 
 class SubmissionGroup(AuditLog):
     objects = SubmissionGroupManager()
@@ -278,7 +294,7 @@ class SubmissionGroup(AuditLog):
         # auth_type=submission-group with the same user
         if new_submission_log.user_uid != self.user_uid:
             logging.error(
-                "Attempt to add submission to submission group for a different user"
+                'Attempt to add submission to submission group for a different user'
             )
             return
         self.metadata[SUBMISSION_GROUP_COUNT_KEY] += 1
