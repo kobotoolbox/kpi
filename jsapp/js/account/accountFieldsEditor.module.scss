@@ -24,7 +24,7 @@
   .checkboxLabel {
     margin-top: sizes.$x6;
     margin-bottom: sizes.$x6;
-    color: colors.$kobo-neutral-800;
+    color: colors.$kobo-gray-800;
   }
 
   :global {
@@ -63,7 +63,7 @@
 .socialLabel,
 .checkboxLabel {
   width: 100%;
-  color: colors.$kobo-neutral-800;
+  color: colors.$kobo-gray-800;
   font-size: sizes.$x12;
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;

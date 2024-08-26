@@ -67,7 +67,7 @@ $mfa-paragraph-spacing: sizes.$x18;
   canvas {
     display: block;
     padding: sizes.$x14;
-    border: sizes.$x1 solid colors.$kobo-neutral-400;
+    border: sizes.$x1 solid colors.$kobo-gray-400;
     border-radius: 3%;
     margin: 0 auto;
   }
@@ -75,8 +75,8 @@ $mfa-paragraph-spacing: sizes.$x18;
 
 .mfa-modal__codes {
   text-align: center;
-  background-color: colors.$kobo-neutral-300;
-  border: sizes.$x1 solid colors.$kobo-neutral-400;
+  background-color: colors.$kobo-gray-300;
+  border: sizes.$x1 solid colors.$kobo-gray-400;
   border-radius: sizes.$x5;
   padding: sizes.$x12;
   line-break: anywhere;

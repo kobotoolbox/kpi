@@ -38,7 +38,7 @@
   text-align: center;
   border-radius: sizes.$x6;
   color: colors.$kobo-white;
-  background-color: colors.$kobo-neutral-700;
+  background-color: colors.$kobo-gray-700;
   box-shadow: 0 sizes.$x2 sizes.$x4 0 rgba(0, 0, 0, 0.25);
   height: auto;
   min-height: sizes.$x40;
@@ -111,15 +111,15 @@
   }
 
   &.kobo-button--whitegray {
-    color: colors.$kobo-neutral-800;
-    background-color: colors.$kobo-neutral-200;
+    color: colors.$kobo-gray-800;
+    background-color: colors.$kobo-gray-200;
 
     &[disabled] {
-      color: rgba(colors.$kobo-neutral-800, 0.75);
+      color: rgba(colors.$kobo-gray-800, 0.75);
     }
 
     &.kobo-button--pending .k-icon.k-icon-spinner.k-spin {
-      color: colors.$kobo-neutral-800;
+      color: colors.$kobo-gray-800;
     }
   }
 

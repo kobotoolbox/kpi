@@ -2,8 +2,8 @@
 
 .modal.modal-submission {
   .modal__header {
-    background-color: colors.$kobo-neutral-200;
-    color: colors.$kobo-neutral-800;
+    background-color: colors.$kobo-gray-200;
+    color: colors.$kobo-gray-800;
   }
 }
 
@@ -32,7 +32,7 @@
 .submission-modal-message-box {
   margin-bottom: 20px;
   padding: 20px;
-  background: colors.$kobo-neutral-200;
+  background: colors.$kobo-gray-200;
   text-align: center;
   border-radius: 6px;
 

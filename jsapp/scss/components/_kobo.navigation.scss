@@ -146,7 +146,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: colors.$kobo-neutral-700;
+    color: colors.$kobo-gray-700;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -175,7 +175,7 @@
     padding-bottom: 15px;
 
     a {
-      color: colors.$kobo-neutral-700;
+      color: colors.$kobo-gray-700;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -212,23 +212,23 @@
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid colors.$kobo-neutral-300;
+    border-top: 1px solid colors.$kobo-gray-300;
     padding-bottom: 5px;
 
     ul {
       margin-top: 5px;
       background-color: colors.$kobo-white;
-      color: colors.$kobo-neutral-700;
+      color: colors.$kobo-gray-700;
       min-width: 140px;
       padding: 0;
-      border: 1px solid colors.$kobo-neutral-300;
+      border: 1px solid colors.$kobo-gray-300;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid colors.$kobo-neutral-300;
+          border-bottom: 1px solid colors.$kobo-gray-300;
         }
 
         a {
@@ -253,7 +253,7 @@
 
 .main-header {
   .main-header__icon {
-    color: colors.$kobo-neutral-500;
+    color: colors.$kobo-gray-500;
     vertical-align: middle;
 
     .k-icon {
@@ -290,7 +290,7 @@
 
       // keep these pseudo-states separate
       &::placeholder {
-        color: colors.$kobo-neutral-700;
+        color: colors.$kobo-gray-700;
       }
 
       &:hover {
@@ -307,7 +307,7 @@
   .main-header__counter {
     font-size: variables.$base-font-size;
     margin-right: 20px;
-    color: colors.$kobo-neutral-500;
+    color: colors.$kobo-gray-500;
   }
 }
 
@@ -389,7 +389,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid colors.$kobo-neutral-300;
+      border: 1px solid colors.$kobo-gray-300;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

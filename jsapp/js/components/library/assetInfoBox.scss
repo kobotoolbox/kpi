@@ -3,7 +3,7 @@
 .asset-info-box {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid colors.$kobo-neutral-300;
+  border-bottom: 1px solid colors.$kobo-gray-300;
   padding-bottom: 5px;
   line-height: 24px;
 
@@ -21,7 +21,7 @@
     flex: 1;
 
     label {
-      color: colors.$kobo-neutral-700;
+      color: colors.$kobo-gray-700;
 
       &::after {
         content: ": ";

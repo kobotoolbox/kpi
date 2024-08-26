@@ -9,9 +9,9 @@
     margin-bottom: 20px;
 
     &--advanced-table-options {
-      border: 1px solid colors.$kobo-neutral-300;
+      border: 1px solid colors.$kobo-gray-300;
       padding: 20px;
-      background: colors.$kobo-neutral-200;
+      background: colors.$kobo-gray-200;
 
       .form-view__cell--note {
         padding-bottom: 20px;
@@ -34,7 +34,7 @@
   ul {
     max-height: 160px;
     overflow: auto;
-    border: 1px solid colors.$kobo-neutral-300;
+    border: 1px solid colors.$kobo-gray-300;
     padding: 10px;
     background: colors.$kobo-white;
 

@@ -13,7 +13,7 @@
 
 .tabs {
   background: colors.$kobo-white;
-  border-bottom: sizes.$x1 solid colors.$kobo-neutral-300;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
   text-align: center;
   height: sizes.$x48;
   position: relative;
@@ -31,12 +31,12 @@
   line-height: sizes.$x48;
   cursor: pointer;
   position: relative;
-  color: colors.$kobo-neutral-700;
+  color: colors.$kobo-gray-700;
   font-weight: normal;
 
   &:hover,
   &.active {
-    color: colors.$kobo-neutral-800;
+    color: colors.$kobo-gray-800;
   }
 
   &.active {

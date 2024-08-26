@@ -32,7 +32,7 @@ $button-border-radius: sizes.$x6;
 
   &:hover,
   &.k-button--pending {
-    background-color: colors.$kobo-neutral-300;
+    background-color: colors.$kobo-gray-300;
 
     .k-icon.k-icon-spinner {
       color: inherit;

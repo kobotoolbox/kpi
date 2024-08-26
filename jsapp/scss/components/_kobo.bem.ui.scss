@@ -88,7 +88,7 @@ iframe {
   & > label {
     font-weight: normal;
     font-size: 12px;
-    color: colors.$kobo-neutral-700;
+    color: colors.$kobo-gray-700;
 
     &.long {
       padding-top: 5px;
@@ -110,7 +110,7 @@ iframe {
     width: 100%;
     padding: sizes.$x10 sizes.$x14;
     font-size: sizes.$x14;
-    border: 1px solid colors.$kobo-neutral-300;
+    border: 1px solid colors.$kobo-gray-300;
 
     &:focus {
       border-color: colors.$kobo-blue;
@@ -136,7 +136,7 @@ iframe {
   padding: 6px 0px;
   font-size: 15px;
   border: 1px solid transparent;
-  border-bottom-color: colors.$kobo-neutral-300;
+  border-bottom-color: colors.$kobo-gray-300;
   transition: border-color 0.3s;
 
   &:focus {
@@ -180,13 +180,13 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: colors.$kobo-neutral-500;
+  background-color: colors.$kobo-gray-500;
   background-color: transparent;
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: colors.$kobo-neutral-500;
+  background-color: colors.$kobo-gray-500;
   outline: none;
   border-radius: 6px;
 }

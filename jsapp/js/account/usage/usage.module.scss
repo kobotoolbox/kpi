@@ -46,7 +46,7 @@
   min-width: 250px;
   width: 100%;
   border: sizes.$x1 solid;
-  border-color: colors.$kobo-neutral-300;
+  border-color: colors.$kobo-gray-300;
   border-radius: sizes.$x6;
   padding: sizes.$x24;
   display: flex;
@@ -63,7 +63,7 @@
 
 .title {
   font-size: sizes.$x16;
-  color: colors.$kobo-neutral-700;
+  color: colors.$kobo-gray-700;
 }
 
 .date {

@@ -16,7 +16,7 @@
   }
 
   &.default-overlay-marker {
-    background: rgba(colors.$kobo-neutral-800, 0.7);
+    background: rgba(colors.$kobo-gray-800, 0.7);
     border: none;
     border-radius: 0;
   }
@@ -64,7 +64,7 @@ $colorLength: list.length($colorsA);
   }
 
   .map-marker.#{$class-slug}#{$i + $colorLength * 4} {
-    background-image: linear-gradient(90deg, rgba(colors.$kobo-neutral-800, 0.1) 50%, transparent 50%), linear-gradient(rgba(colors.$kobo-neutral-800, 0.1) 50%, transparent 50%);
+    background-image: linear-gradient(90deg, rgba(colors.$kobo-gray-800, 0.1) 50%, transparent 50%), linear-gradient(rgba(colors.$kobo-gray-800, 0.1) 50%, transparent 50%);
     background-size: 6px 6px;
   }
 }

@@ -24,7 +24,7 @@
 
   .kobo-select__control {
     padding: 0;
-    color: colors.$kobo-neutral-700;
+    color: colors.$kobo-gray-700;
     background: transparent;
     height: 28px;
     min-height: 28px;
@@ -46,7 +46,7 @@
     position: relative;
 
     &:hover {
-      background-color: colors.$kobo-neutral-200;
+      background-color: colors.$kobo-gray-200;
     }
   }
 

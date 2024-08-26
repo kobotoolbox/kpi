@@ -22,7 +22,7 @@
   width: $s-drawer-width;
   display: flex;
   flex-direction: row;
-  border-right: 2px solid colors.$kobo-neutral-300;
+  border-right: 2px solid colors.$kobo-gray-300;
 }
 
 .k-drawer__primary-icons {
@@ -37,7 +37,7 @@
   font-size: 26px;
   margin: 6px 0;
   text-align: center;
-  color: colors.$kobo-neutral-700;
+  color: colors.$kobo-gray-700;
   padding: 0;
   border-left: 3px solid transparent;
 
@@ -68,7 +68,7 @@
     text-align: center;
     font-weight: normal;
     position: relative;
-    color: colors.$kobo-neutral-700;
+    color: colors.$kobo-gray-700;
 
     &:hover {
       color: colors.$kobo-teal;

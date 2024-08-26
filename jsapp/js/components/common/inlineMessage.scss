@@ -10,7 +10,7 @@
   padding: sizes.$x12 sizes.$x24;
   width: 100%;
   border-radius: sizes.$x6;
-  color: colors.$kobo-neutral-800;
+  color: colors.$kobo-gray-800;
   line-height: sizes.$x22;
 
   a {
@@ -32,8 +32,8 @@
 }
 
 .k-inline-message--type-default {
-  background-color: colors.$kobo-neutral-200;
-  .k-icon {color: colors.$kobo-neutral-500;}
+  background-color: colors.$kobo-gray-200;
+  .k-icon {color: colors.$kobo-gray-500;}
 }
 
 .k-inline-message--type-error {

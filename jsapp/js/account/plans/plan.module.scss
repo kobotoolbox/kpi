@@ -114,7 +114,7 @@ $plan-badge-height: 38px;
 
 .priceName,
 .enterpriseTitle {
-  color: colors.$kobo-neutral-700;
+  color: colors.$kobo-gray-700;
   font-weight: 600;
   font-size: sizes.$x24;
   line-height: sizes.$x32;
@@ -133,7 +133,7 @@ $plan-badge-height: 38px;
 
 .planContainer {
   border-radius: sizes.$x6;
-  border: colors.$kobo-neutral-400 solid sizes.$x1;
+  border: colors.$kobo-gray-400 solid sizes.$x1;
   padding: sizes.$x24;
   width: $plans-page-card-width;
   display: flex;
@@ -150,7 +150,7 @@ $plan-badge-height: 38px;
 }
 
 .planContainer :global hr {
-  border-bottom: sizes.$x1 solid colors.$kobo-neutral-200;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-200;
   border-top: none;
   margin: sizes.$x24 auto;
   width: 100%;
@@ -202,7 +202,7 @@ a.enterpriseLink {
 }
 
 .listTitle {
-  color: colors.$kobo-neutral-700;
+  color: colors.$kobo-gray-700;
   font-size: sizes.$x14;
   font-weight: 600;
   padding: 0;
@@ -250,7 +250,7 @@ a.enterpriseLink {
   bottom: sizes.$x20;
   right: sizes.$x20;
   border-radius: sizes.$x6;
-  background-color: colors.$kobo-neutral-700;
+  background-color: colors.$kobo-gray-700;
   width: sizes.$x50;
   height: sizes.$x40;
 	color: colors.$kobo-white;

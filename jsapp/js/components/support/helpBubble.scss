@@ -36,13 +36,13 @@ $s-help-bubble-row-spacing: 20px;
       top: 16px;
       left: 16px;
       font-size: 28px;
-      color: colors.$kobo-neutral-700;
+      color: colors.$kobo-gray-700;
     }
   }
 
   .help-bubble__back,
   .help-bubble__close {
-    background-color: rgba(colors.$kobo-neutral-700, 0.5);
+    background-color: rgba(colors.$kobo-gray-700, 0.5);
     color: colors.$kobo-white;
   }
 }
@@ -61,7 +61,7 @@ $s-help-bubble-row-spacing: 20px;
   width: 100%;
   display: block;
   font-weight: normal;
-  color: colors.$kobo-neutral-700;
+  color: colors.$kobo-gray-700;
 
   // mimic .k-drawer__link
   border-left: 3px solid transparent;
@@ -143,7 +143,7 @@ $s-help-bubble-row-spacing: 20px;
   border-radius: 50%;
   padding: 5px;
   background-color: rgba(colors.$kobo-white, 0.5);
-  color: colors.$kobo-neutral-700;
+  color: colors.$kobo-gray-700;
   line-height: 1;
   font-size: 1.5rem;
 
@@ -178,7 +178,7 @@ $s-help-bubble-row-spacing: 20px;
   display: block;
 
   & + & {
-    border-top: 1px solid colors.$kobo-neutral-300;
+    border-top: 1px solid colors.$kobo-gray-300;
   }
 }
 
@@ -202,11 +202,11 @@ $s-help-bubble-row-spacing: 20px;
 
 .help-bubble__row.help-bubble__row--message-title {
   margin-top: 40px;
-  border-top: 1px solid colors.$kobo-neutral-300;
+  border-top: 1px solid colors.$kobo-gray-300;
 }
 
 .help-bubble__row.help-bubble__row--header {
-  background-color: colors.$kobo-neutral-700;
+  background-color: colors.$kobo-gray-700;
   color: colors.$kobo-white;
   font-size: 1.25rem;
 }
@@ -214,7 +214,7 @@ $s-help-bubble-row-spacing: 20px;
 .help-bubble__row.help-bubble__row--link,
 .help-bubble__row.help-bubble__row--message-clickable {
   cursor: pointer;
-  color: colors.$kobo-neutral-700;
+  color: colors.$kobo-gray-700;
 
   &:hover {
     color: colors.$kobo-blue;

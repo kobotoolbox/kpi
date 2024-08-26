@@ -9,7 +9,7 @@
   margin-right: 20px;
 
   .kobo-dropdown__menu {
-    color: colors.$kobo-neutral-700;
+    color: colors.$kobo-gray-700;
     background-color: colors.$kobo-white;
     @include mdl.box-shadow;
     padding: 9px 0;
@@ -27,7 +27,7 @@
     margin: 0;
     font-size: 12px;
     line-height: 18px;
-    color: colors.$kobo-neutral-700;
+    color: colors.$kobo-gray-700;
 
     &:not(:first-child) {
       margin-top: 10px;

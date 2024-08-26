@@ -8,7 +8,7 @@
   align-items: center;
   justify-content: space-between;
   margin-block-end: 1.5em;
-  border-block: sizes.$x1 solid colors.$kobo-neutral-200;
+  border-block: sizes.$x1 solid colors.$kobo-gray-200;
 }
 
 .plan {
@@ -29,7 +29,7 @@
 .subscriptionChangeNotice {
   width: 100%;
   padding: sizes.$x12 sizes.$x16;
-  background-color: colors.$kobo-neutral-200;
+  background-color: colors.$kobo-gray-200;
   margin-bottom: 1.5em;
 }
 

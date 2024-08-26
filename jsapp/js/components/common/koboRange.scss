@@ -3,7 +3,7 @@
 @mixin rangeTrack() {
   -webkit-appearance: none;
   border-radius: 10px;
-  background: colors.$kobo-neutral-300;
+  background: colors.$kobo-gray-300;
   height: 8px;
 }
 
@@ -26,7 +26,7 @@
   }
 
   .kobo-range__max-value {
-    color: colors.$kobo-neutral-500;
+    color: colors.$kobo-gray-500;
   }
 
   .kobo-range__unit:not(:first-child) {

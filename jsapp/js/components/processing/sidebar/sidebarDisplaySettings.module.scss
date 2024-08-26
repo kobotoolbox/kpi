@@ -39,7 +39,7 @@ ul.options.options {
   padding: sizes.$x12;
   margin-top: sizes.$x6;
   max-height: sizes.$x140; // ~4.5 times the size of a checkbox, makes 4 checkboxes visible
-  border: 1px solid colors.$kobo-neutral-300;
+  border: 1px solid colors.$kobo-gray-300;
   border-radius: sizes.$x2;
   overflow-y: auto;
 }
