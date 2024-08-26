@@ -1027,7 +1027,7 @@ class ProjectSettings extends React.Component {
                 {this.isArchived() &&
                   <Button
                     type='frame'
-                    color='blue'
+                    color='dark-blue'
                     size='l'
                     label={t('Unarchive Project')}
                     onClick={this.unarchiveProject}
@@ -1037,7 +1037,7 @@ class ProjectSettings extends React.Component {
                 {this.isArchivable() &&
                   <Button
                     type='frame'
-                    color='dark-red'
+                    color='dark-blue'
                     size='l'
                     label={t('Archive Project')}
                     onClick={this.archiveProject}
@@ -1063,7 +1063,7 @@ class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <Button
                 type='full'
-                color='dark-red'
+                color='red'
                 size='l'
                 label={t('Delete Project and Data')}
                 onClick={this.deleteProject}
@@ -1086,7 +1086,7 @@ class ProjectSettings extends React.Component {
       return (
         <Button
           type='frame'
-          color='storm'
+          color='dark-blue'
           size='l'
           onClick={this.displayPreviousStep.bind(this)}
           isDisabled={isBackButtonDisabled}

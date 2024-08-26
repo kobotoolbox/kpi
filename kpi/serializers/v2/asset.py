@@ -286,7 +286,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     owner = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail', lookup_field='username', read_only=True)
+        view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
@@ -418,6 +418,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context['request']
         user = request.user
 
+        validated_data['last_modified_by'] = user.username
         self._set_asset_ids_cache(asset)
 
         if (

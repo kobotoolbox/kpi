@@ -15,8 +15,11 @@ $badge-font-l: sizes.$x14;
   display: inline-block;
   vertical-align: middle;
   text-align: center;
-  @include mixins.textEllipsis;
   max-width: 100%;
+}
+
+.root:not(.disableShortening) {
+  @include mixins.textEllipsis;
 }
 
 .icon {
@@ -24,7 +27,7 @@ $badge-font-l: sizes.$x14;
 }
 
 .color-light-storm {
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   background-color: colors.$kobo-light-storm;
 }
 

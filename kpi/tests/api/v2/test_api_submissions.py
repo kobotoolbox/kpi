@@ -17,12 +17,12 @@ import pytest
 import responses
 from dict2xml import dict2xml
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
-from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
@@ -46,8 +46,7 @@ from kpi.tests.utils.mock import (
     enketo_edit_instance_response_with_uuid_validation,
     enketo_view_instance_response,
 )
-
-User = get_user_model()
+from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 
 
 def dict2xml_with_encoding_declaration(*args, **kwargs):
@@ -58,9 +57,9 @@ def dict2xml_with_encoding_declaration(*args, **kwargs):
 
 def dict2xml_with_namespace(*args, **kwargs):
     xml_string = dict2xml(*args, **kwargs)
-    xml_root = lxml.etree.fromstring(xml_string)
+    xml_root = fromstring_preserve_root_xmlns(xml_string)
     xml_root.set('xmlns', 'http://opendatakit.org/submissions')
-    return lxml.etree.tostring(xml_root).decode()
+    return xml_tostring(xml_root)
 
 
 class BaseSubmissionTestCase(BaseTestCase):
@@ -70,7 +69,7 @@ class BaseSubmissionTestCase(BaseTestCase):
     or `HTTP_ACCEPT` (other requests)
     """
 
-    fixtures = ["test_data"]
+    fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
@@ -92,10 +91,12 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submission_list_url = self.asset.deployment.submission_list_url
         self._deployment = self.asset.deployment
 
-    def get_random_submission(self, user: 'auth.User') -> dict:
+    def get_random_submission(self, user: settings.AUTH_USER_MODEL) -> dict:
         return self.get_random_submissions(user, 1)[0]
 
-    def get_random_submissions(self, user: 'auth.User', limit: int = 1) -> list:
+    def get_random_submissions(
+        self, user: settings.AUTH_USER_MODEL, limit: int = 1
+    ) -> list:
         """
         Get random submissions within all generated submissions.
         If user is the owner, we only return submissions submitted by unknown.
@@ -788,7 +789,10 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             model_name,
         ) = self.asset.deployment.submission_model.get_app_label_and_model_name()
         audit_log_count = AuditLog.objects.filter(
-            user=self.someuser, app_label=app_label, model_name=model_name
+            user=self.someuser,
+            app_label=app_label,
+            model_name=model_name,
+            log_type=AuditType.SUBMISSION_MANAGEMENT,
         ).count()
         # No submissions have been deleted yet
         assert audit_log_count == 0
@@ -798,7 +802,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         # All submissions have been deleted and should be logged
         deleted_submission_ids = AuditLog.objects.values_list(
             'pk', flat=True
-        ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
+        ).filter(
+            user=self.someuser,
+            app_label=app_label,
+            model_name=model_name,
+            log_type=AuditType.SUBMISSION_MANAGEMENT,
+        )
         assert len(deleted_submission_ids) > 0
         assert [submission['_id']], deleted_submission_ids
 
@@ -1056,6 +1065,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
 
 class SubmissionEditApiTests(BaseSubmissionTestCase):
+    """
+    Tests for editin submissions.
+
+    WARNING: Tests in this class must work in v1 as well, or else be added to the skipped tests
+    in kpi/tests/api/v1/test_api_submissions.py
+    """
 
     def setUp(self):
         super().setUp()
@@ -1070,6 +1085,10 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self.submission_url = self.submission_url_legacy.replace(
             'edit', 'enketo/edit'
         )
+        self.submission_redirect_url = self.submission_url_legacy.replace(
+            'edit', 'enketo/redirect/edit'
+        )
+        assert 'redirect' in self.submission_redirect_url
 
     @responses.activate
     def test_get_legacy_edit_link_submission_as_owner(self):
@@ -1119,6 +1138,31 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             'version_uid': self.asset.latest_deployed_version.uid,
         }
         self.assertEqual(response.data, expected_response)
+
+    @responses.activate
+    def test_get_edit_submission_redirect_as_owner(self):
+        """
+        someuser is the owner of the project.
+        someuser can retrieve enketo edit link
+        """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
+        response = self.client.get(
+            self.submission_redirect_url, {'format': 'json'}
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert (
+            response.url
+            == f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}"
+        )
 
     def test_get_edit_link_submission_as_anonymous(self):
         """
@@ -1468,7 +1512,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             format_type=SUBMISSION_FORMAT_TYPE_XML,
             find_this='hello!',
         )[0]
-        submission_xml_root = lxml.etree.fromstring(submission_xml)
+        submission_xml_root = fromstring_preserve_root_xmlns(submission_xml)
         submission_id = int(submission_xml_root.find('./_id').text)
         assert submission_id == submission['_id']
         assert submission_xml_root.find('./find_this').text == 'hello!'
@@ -1561,6 +1605,27 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         }
         assert response.data == expected_response
 
+    def test_edit_submission_snapshot_missing(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_snapshot_missing_unauthenticated(self):
+        # use non-existent snapshot id
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=('12345',),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
 
@@ -1574,6 +1639,12 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
                 'pk': self.submission['_id'],
             },
         )
+        self.submission_view_redirect_url = (
+            self.submission_view_link_url.replace(
+                '/enketo/view/', '/enketo/redirect/view/'
+            )
+        )
+        assert 'redirect' in self.submission_view_redirect_url
 
     @responses.activate
     def test_get_view_link_submission_as_owner(self):
@@ -1600,6 +1671,32 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
             'version_uid': self.asset.latest_deployed_version.uid,
         }
         assert response.data == expected_response
+
+    @responses.activate
+    def test_get_view_submission_redirect_as_owner(self):
+        """
+        someuser is the owner of the project.
+        someuser can get enketo view link
+        """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
+        response = self.client.get(
+            self.submission_view_redirect_url, {'format': 'json'}
+        )
+        assert response.status_code == status.HTTP_302_FOUND
+        assert (
+            response.url
+            == f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}"
+        )
 
     def test_get_view_link_submission_as_anonymous(self):
         """
@@ -1711,6 +1808,15 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
+        self.asset.advanced_features = {
+            'translation': {
+                'values': ['q1'],
+                'languages': ['tx1', 'tx2'],
+            },
+            'transcript': {
+                'values': ['q1'],
+            }
+        }
         current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
@@ -1892,6 +1998,37 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         response = self.client.post(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self._check_duplicate(response, submission)
+
+    def test_duplicate_submission_with_extras(self):
+        dummy_extra = {
+            'q1': {
+                'transcript': {
+                    'value': 'dummy transcription',
+                    'languageCode': 'en',
+                },
+                'translation': {
+                    'tx1': {
+                        'value': 'dummy translation',
+                        'languageCode': 'xx',
+                    }
+                },
+            },
+            'submission': self.submission['_uuid']
+        }
+        self.asset.update_submission_extra(dummy_extra)
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        duplicated_submission = response.data
+        duplicated_extra = self.asset.submission_extras.filter(
+            submission_uuid=duplicated_submission['_uuid']
+        ).first()
+        assert (
+            duplicated_extra.content['q1']['translation']['tx1']['value']
+            == dummy_extra['q1']['translation']['tx1']['value']
+        )
+        assert (
+            duplicated_extra.content['q1']['transcript']['value']
+            == dummy_extra['q1']['transcript']['value']
+        )
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):

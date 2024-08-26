@@ -131,7 +131,7 @@ export default class ReportTable extends React.Component<ReportTableProps> {
                 // Note: See TODO above. ReportTableProps probably deserves a
                 // second look, and TypeScript is trying to tell us something
                 // about the value of 'r' here.
-                <td key={i}>{r as React.ReactNode}</td>
+                <td key={i} dir='auto'>{r as React.ReactNode}</td>
               ))}
             </tr>
           ))}

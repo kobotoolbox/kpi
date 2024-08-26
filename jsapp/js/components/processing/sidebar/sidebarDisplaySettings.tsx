@@ -150,7 +150,7 @@ export default function SidebarDisplaySettings() {
         size='m'
         type='bare'
         label={t('Display settings')}
-        color='storm'
+        color='dark-blue'
         startIcon='settings'
         onClick={() => setIsModalOpen(true)}
       />
@@ -263,7 +263,7 @@ export default function SidebarDisplaySettings() {
           <Button
             label={t('Reset')}
             type='frame'
-            color='light-blue'
+            color='red'
             size='m'
             onClick={() => {
               store.resetDisplays(activeTab);
@@ -281,7 +281,7 @@ export default function SidebarDisplaySettings() {
           <Button
             label={t('Apply selection')}
             type='full'
-            color='light-blue'
+            color='blue'
             size='m'
             onClick={() => {
               applyFieldsSelection();

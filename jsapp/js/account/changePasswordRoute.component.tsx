@@ -36,7 +36,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<WithRou
           <bem.AccountSettings__actions>
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='l'
               startIcon='close'
               onClick={this.close.bind(this)}

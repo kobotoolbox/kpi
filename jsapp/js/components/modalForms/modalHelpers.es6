@@ -7,7 +7,7 @@ export function renderBackButton(isDisabled = false) {
     return (
       <Button
         type='frame'
-        color='storm'
+        color='dark-blue'
         size='l'
         onClick={pageState.switchToPreviousModal.bind(pageState)}
         isDisabled={isDisabled}

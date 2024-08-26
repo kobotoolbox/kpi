@@ -511,6 +511,7 @@ class KoboMatrix extends React.Component {
                   onChange={this.onColumnChange.bind(this, 'label')}
                   onBlur={this.onColumnBlur.bind(this, 'label')}
                   className='js-cancel-sort'
+                  dir='auto'
                 />
               </label>
               <label>
@@ -546,7 +547,7 @@ class KoboMatrix extends React.Component {
                             <span>
                               <input type='text' value={_this.getChoiceField(ch, 'label')}
                                 onChange={_this.choiceChange} className='js-cancel-sort'
-                                data-type='label' data-kuid={ch} />
+                                data-type='label' data-kuid={ch} dir="auto" />
                             </span>
                             <span className='matrix-options__value'>
                               <input type='text' value={_this.getChoiceField(ch, 'name')}
@@ -619,6 +620,7 @@ class KoboMatrix extends React.Component {
                         value={item.label}
                         onChange={_this.onRowChange.bind(this, 'label')}
                         className='js-cancel-sort'
+                        dir='auto'
                       />
                     </label>
                     <label>

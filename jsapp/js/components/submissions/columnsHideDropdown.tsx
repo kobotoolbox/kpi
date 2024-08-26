@@ -16,7 +16,7 @@ export default function ColumnsHideDropdown(props: ColumnsHideFormProps) {
       triggerContent={
         <Button
           type='bare'
-          color='storm'
+          color='dark-blue'
           size='m'
           startIcon='hide'
           label={t('hide fields')}

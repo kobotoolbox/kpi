@@ -74,6 +74,7 @@ from kpi.mixins import (
     XlsExportableMixin,
     StandardizeSearchableFieldMixin,
 )
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
@@ -152,15 +153,15 @@ class KpiTaggableManager(_TaggableManager):
         super().add(*tags_out, **kwargs)
 
 
-class Asset(ObjectPermissionMixin,
-            DeployableMixin,
-            XlsExportableMixin,
-            FormpackXLSFormUtilsMixin,
-            StandardizeSearchableFieldMixin,
-            models.Model):
+class Asset(
+    ObjectPermissionMixin,
+    DeployableMixin,
+    XlsExportableMixin,
+    FormpackXLSFormUtilsMixin,
+    StandardizeSearchableFieldMixin,
+    AbstractTimeStampedModel,
+):
     name = models.CharField(max_length=255, blank=True, default='')
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
     date_deployed = models.DateTimeField(null=True)
     content = models.JSONField(default=dict)
     summary = models.JSONField(default=dict)
@@ -175,7 +176,7 @@ class Asset(ObjectPermissionMixin,
     )
     parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
-    owner = models.ForeignKey('auth.User', related_name='assets', null=True,
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assets', null=True,
                               on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
@@ -217,6 +218,8 @@ class Asset(ObjectPermissionMixin,
         blank=True,
         db_index=True
     )
+    created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
+    last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -1272,7 +1275,7 @@ class Asset(ObjectPermissionMixin,
 
     def _update_partial_permissions(
         self,
-        user: 'auth.User',
+        user: 'settings.AUTH_USER_MODEL',
         perm: str,
         remove: bool = False,
         partial_perms: Optional[dict] = None,
@@ -1398,7 +1401,7 @@ class UserAssetSubscription(models.Model):
     """ Record a user's subscription to a publicly-discoverable collection,
     i.e. one where the anonymous user has been granted `discover_asset` """
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='b')
 
     class Meta:

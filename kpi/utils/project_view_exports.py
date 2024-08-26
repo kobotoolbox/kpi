@@ -4,14 +4,12 @@ import csv
 from io import StringIO
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.db.models import Count, F, Q, Sum
+from django.db.models import Count, F, Q
 from django.db.models.query import QuerySet
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.deployment_backends.kc_access.shadow_models import (
-    ReadOnlyKobocatInstance, KobocatXForm
-)
+from kpi.deployment_backends.kc_access.shadow_models import KobocatXForm
 from kpi.models import Asset
 from kpi.utils.project_views import get_region_for_view
 

@@ -277,7 +277,7 @@ class LanguageSelector extends React.Component<
       <li key={language.code}>
         <Button
           type='bare'
-          color='storm'
+          color='dark-blue'
           size='m'
           label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
           onClick={this.selectLanguage.bind(this, language)}

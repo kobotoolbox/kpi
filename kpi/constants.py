@@ -72,6 +72,16 @@ SHADOW_MODEL_APP_LABELS = [
     'superuser_stats',
 ]
 
+SHARED_APP_LABELS = [
+    'auth',
+    'contenttypes',
+    'kobo_auth',
+    'reversion',
+    'sessions',
+    'taggit',
+]
+
+
 # List of nested attributes which bypass 'dots' encoding
 NESTED_MONGO_RESERVED_ATTRIBUTES = [
     "_validation_status",
@@ -128,3 +138,8 @@ SKIP_HEAVY_MIGRATIONS_GUIDANCE = (
 )
 
 LIMIT_HOURS_23 = 82800
+
+ACCESS_LOG_KOBO_AUTH_APP_LABEL = 'kobo_auth'
+ACCESS_LOG_LOGINAS_AUTH_TYPE = 'django-loginas'
+ACCESS_LOG_UNKNOWN_AUTH_TYPE = 'unknown'
+ACCESS_LOG_SUBMISSION_AUTH_TYPE = 'submission'

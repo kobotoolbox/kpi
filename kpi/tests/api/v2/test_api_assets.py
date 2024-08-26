@@ -6,11 +6,11 @@ import json
 import os
 from io import StringIO
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
@@ -1380,12 +1380,16 @@ class AssetFileTest(BaseTestCase):
         response_dict = json.loads(response.content)
         self.assertEqual(
             response_dict['asset'],
-            self.absolute_reverse(self._get_endpoint('asset-detail'), args=[self.asset.uid])
+            self.absolute_reverse(
+                self._get_endpoint('asset-detail'), args=[self.asset.uid]
+            ),
         )
         self.assertEqual(
             response_dict['user'],
-            self.absolute_reverse(self._get_endpoint('user-detail'),
-                                  args=[self.current_username])
+            self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.current_username],
+            ),
         )
         self.assertEqual(
             response_dict['user__username'],
@@ -1916,3 +1920,48 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert response.status_code == status.HTTP_200_OK
         self.asset.refresh_from_db()
         assert self.asset.date_deployed == original_date_deployed
+
+
+class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.url = reverse('asset-list')
+        self.client.login(username='someuser', password='someuser')
+        self.some_user = User.objects.get(username='someuser')
+
+    def create_and_fetch_asset(self):
+        # Create a new asset and verify it was created successfully
+        create_response = self.create_asset()
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        return Asset.objects.order_by('date_created').last(), create_response
+
+    def test_created_by_field(self):
+        # Fetch the most recently created asset and check if
+        # 'created_by' is correct
+        asset, _ = self.create_and_fetch_asset()
+        self.assertEqual(asset.created_by, self.some_user.username)
+
+    def test_last_modified_by_field(self):
+        # Fetch the most recently created asset and check if
+        # 'last_modified_by' is correct
+        asset, create_response = self.create_and_fetch_asset()
+        self.assertEqual(asset.last_modified_by, self.some_user.username)
+
+        # Logout the current user and login as 'anotheruser'
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        another_user = User.objects.get(username='anotheruser')
+
+        # Assign permission to 'anotheruser' to modify the asset
+        asset.assign_perm(another_user, PERM_CHANGE_ASSET)
+        self.assertTrue(asset.has_perm(another_user, PERM_CHANGE_ASSET))
+
+        # Modify the asset and verify the 'last_modified_by' field is updated
+        patch_url = create_response.data['url']
+        patch_response = self.client.patch(patch_url, data={'name': 'A new name'})
+        self.assertEqual(patch_response.status_code, status.HTTP_200_OK)
+
+        asset.refresh_from_db()
+        self.assertEqual(asset.created_by, self.some_user.username)
+        self.assertEqual(asset.last_modified_by, another_user.username)

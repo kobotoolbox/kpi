@@ -145,11 +145,20 @@ class App extends React.Component {
             </bem.PageWrapper>
           </RootContextProvider>
 
-          {/* React Query Devtools. Development mode only.
-              Lower button opacity to be less distracting
-              if it shows up in a screenshot. */}
-          <style>{'.tsqd-open-btn-container { opacity: 0.1 !important; };'}</style>
-          <ReactQueryDevtools />
+
+          {/* React Query Devtools - GUI for inspecting and modifying query status
+              (https://tanstack.com/query/latest/docs/framework/react/devtools)
+              They only show up in dev server (NODE_ENV==='development')
+              Additionally, we're keeping them commented out in `beta`
+              (https://github.com/kobotoolbox/kpi/pull/5001#discussion_r1691067344)
+                (1) Uncomment if you want to use these tools
+                (2) The <style> tag lowers the toggle button opacity
+                    to make it less prominent in dev screenshots. */}
+          {/*
+            <style>{'.tsqd-open-btn-container { opacity: 0.1 !important; };'}</style>
+            <ReactQueryDevtools />
+          */}
+
 
         </QueryClientProvider>
       </DocumentTitle>

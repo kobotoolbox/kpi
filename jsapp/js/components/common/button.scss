@@ -32,7 +32,7 @@ $button-border-radius: sizes.$x6;
 
   &:hover,
   &.k-button--pending {
-    background-color: colors.$kobo-gray-92;
+    background-color: colors.$kobo-gray-300;
 
     .k-icon.k-icon-spinner {
       color: inherit;
@@ -155,7 +155,7 @@ $button-border-radius: sizes.$x6;
   position: relative; // Needed for tooltips, pending state etc.
   font-weight: 500;
   text-decoration: none;
-  text-align: left;
+  text-align: initial;
   padding: 0;
   margin: 0;
   border-width: $button-border-width;
@@ -223,20 +223,6 @@ $button-border-radius: sizes.$x6;
   text-transform: uppercase;
 }
 
-// teal button ↓
-
-.k-button.k-button--color-teal.k-button--type-bare {
-  @include button-bare(colors.$kobo-teal, colors.$kobo-hover-teal);
-}
-
-.k-button.k-button--color-teal.k-button--type-frame {
-  @include button-frame(colors.$kobo-teal);
-}
-
-.k-button.k-button--color-teal.k-button--type-full {
-  @include button-full(colors.$kobo-teal, colors.$kobo-hover-teal);
-}
-
 // blue button ↓
 
 .k-button.k-button--color-blue.k-button--type-bare {
@@ -251,35 +237,11 @@ $button-border-radius: sizes.$x6;
   @include button-full(colors.$kobo-blue, colors.$kobo-hover-blue);
 }
 
-// light-blue button ↓
-// Note: `kobo-light-blue` needs a `kobo-dark-blue` text, so the light color is
-// only being used for the `full` type.
-
-.k-button.k-button--color-light-blue.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-dark-blue,
-    color.adjust(colors.$kobo-dark-blue, $lightness: -5%)
-  );
-}
-
-.k-button.k-button--color-light-blue.k-button--type-frame {
-  @include button-frame(colors.$kobo-dark-blue);
-}
-
-.k-button.k-button--color-light-blue.k-button--type-full {
-  @include button-full(
-    colors.$kobo-bg-blue,
-    color.adjust(colors.$kobo-bg-blue, $lightness: -5%),
-    colors.$kobo-dark-blue
-  );
-}
-
 // red button ↓
-
 .k-button.k-button--color-red.k-button--type-bare {
   @include button-bare(
     colors.$kobo-red,
-    color.adjust(colors.$kobo-red, $lightness: -5%)
+    colors.$kobo-dark-red
   );
 }
 
@@ -290,68 +252,7 @@ $button-border-radius: sizes.$x6;
 .k-button.k-button--color-red.k-button--type-full {
   @include button-full(
     colors.$kobo-red,
-    color.adjust(colors.$kobo-red, $lightness: -5%)
-  );
-}
-
-// dark-red button ↓
-
-.k-button.k-button--color-dark-red.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-dark-red,
-    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
-  );
-}
-
-.k-button.k-button--color-dark-red.k-button--type-frame {
-  @include button-frame(colors.$kobo-dark-red);
-}
-
-.k-button.k-button--color-dark-red.k-button--type-full {
-  @include button-full(
-    colors.$kobo-dark-red,
-    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
-  );
-}
-
-// storm button ↓
-
-.k-button.k-button--color-storm.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-storm,
-    color.adjust(colors.$kobo-storm, $lightness: -5%)
-  );
-}
-
-.k-button.k-button--color-storm.k-button--type-frame {
-  @include button-frame(colors.$kobo-storm);
-}
-
-.k-button.k-button--color-storm.k-button--type-full {
-  @include button-full(
-    colors.$kobo-storm,
-    color.adjust(colors.$kobo-storm, $lightness: -5%)
-  );
-}
-
-// light-storm button ↓
-
-.k-button.k-button--color-light-storm.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-storm,
-    color.adjust(colors.$kobo-storm, $lightness: -5%)
-  );
-}
-
-.k-button.k-button--color-light-storm.k-button--type-frame {
-  @include button-frame(colors.$kobo-light-storm);
-}
-
-.k-button.k-button--color-light-storm.k-button--type-full {
-  @include button-full(
-    colors.$kobo-light-storm,
-    color.adjust(colors.$kobo-light-storm, $lightness: -5%),
-    colors.$kobo-dark-blue
+    colors.$kobo-dark-red
   );
 }
 

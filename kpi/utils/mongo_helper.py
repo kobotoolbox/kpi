@@ -73,6 +73,7 @@ class MongoHelper:
 
     # Match KoBoCAT's variables of ParsedInstance class
     USERFORM_ID = '_userform_id'
+    SUBMISSION_UUID = '_uuid'
     DEFAULT_BATCHSIZE = 1000
 
     @classmethod
@@ -340,7 +341,7 @@ class MongoHelper:
     def _get_cursor_and_count(
         cls,
         mongo_userform_id,
-        fields: Optional[dict] = None,
+        fields: Optional[list, dict] = None,
         query: Optional[dict] = None,
         submission_ids: Optional[list] = None,
         permission_filters=None,
@@ -361,10 +362,22 @@ class MongoHelper:
         query = cls.to_safe_dict(query, reading=True)
 
         if fields is not None and len(fields) > 0:
+            # `cls.SUBMISSION_UUID` is mandatory.
+            # It is needed to build the attachment link on fly on API response
+            if cls.SUBMISSION_UUID not in fields:
+                if isinstance(fields, list):
+                    fields.append(cls.SUBMISSION_UUID)
+                else:
+                    fields[cls.SUBMISSION_UUID] = 1
+
             # Retrieve only specified fields from Mongo. Remove
             # `cls.USERFORM_ID` from those fields in case users try to add it.
             if cls.USERFORM_ID in fields:
-                fields.remove(cls.USERFORM_ID)
+                if isinstance(fields, list):
+                    fields.remove(cls.USERFORM_ID)
+                else:
+                    del fields[cls.USERFORM_ID]
+
             fields_to_select = dict(
                 [(cls.encode(field), 1) for field in fields]
             )

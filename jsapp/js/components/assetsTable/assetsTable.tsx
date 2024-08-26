@@ -330,7 +330,7 @@ export default class AssetsTable extends React.Component<
         <bem.AssetsTablePagination>
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             startIcon='angle-left'
             label={t('Previous')}
@@ -345,7 +345,7 @@ export default class AssetsTable extends React.Component<
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             endIcon='angle-right'
             label={t('Next')}
@@ -373,7 +373,7 @@ export default class AssetsTable extends React.Component<
         {this.props.totalAssets !== null &&
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             endIcon='expand'
             label={t('Toggle fullscreen')}

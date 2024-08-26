@@ -1,9 +1,9 @@
 # coding: utf-8
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
@@ -705,7 +705,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         for username in [self.asset.owner.username, self.anon.username]:
             user_urls.append(
                 self.absolute_reverse(
-                    self._get_endpoint('user-detail'),
+                    self._get_endpoint('user-kpi-detail'),
                     kwargs={'username': username},
                 )
             )

@@ -42,6 +42,7 @@ from kpi.utils.xml import (
     xml_tostring,
 )
 
+
 class BaseDeploymentBackend(abc.ABC):
     """
     Defines the interface for a deployment backend.
@@ -86,7 +87,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     def bulk_update_submissions(
-        self, data: dict, user: 'auth.User'
+        self, data: dict, user: settings.AUTH_USER_MODEL
     ) -> dict:
         """
         Allows for bulk updating (bulk editing) of submissions. A
@@ -184,44 +185,53 @@ class BaseDeploymentBackend(abc.ABC):
 
         return self.prepare_bulk_update_response(kc_responses)
 
-
     @abc.abstractmethod
-    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+    def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
         pass
 
     @abc.abstractmethod
     def connect(self, active=False):
         pass
 
-    @property
-    @abc.abstractmethod
-    def form_uuid(self):
-        pass
-
-    @abc.abstractmethod
-    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
-        pass
+    def copy_submission_extras(self, origin_uuid: str, dest_uuid: str):
+        """
+        Copy the submission extras from an origin submission uuid
+        to a destination uuid. Should be used along with duplicate_submission,
+        after it succeeds at duplicating a submission
+        """
+        original_extras = self.asset.submission_extras.filter(
+            submission_uuid=origin_uuid
+        ).first()
+        if original_extras is not None:
+            duplicated_extras = copy.deepcopy(original_extras.content)
+            duplicated_extras['submission'] = dest_uuid
+            self.asset.update_submission_extra(duplicated_extras)
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+    def delete_submission(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
         pass
 
     @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
+    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs) -> dict:
         pass
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:
         pass
 
     @property
     @abc.abstractmethod
     def enketo_id(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def form_uuid(self):
         pass
 
     @staticmethod
@@ -238,7 +248,7 @@ class BaseDeploymentBackend(abc.ABC):
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
-        user: 'auth.User',
+        user: 'settings.AUTH_USER_MODEL',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> tuple:
@@ -248,7 +258,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
+    def get_daily_counts(self, user: settings.AUTH_USER_MODEL, timeframe: tuple[date, date]) -> dict:
         pass
 
     def get_data(
@@ -292,7 +302,7 @@ class BaseDeploymentBackend(abc.ABC):
     def get_submission(
         self,
         submission_id: int,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params: dict
@@ -342,7 +352,7 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def get_submissions(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
         request: Optional['rest_framework.request.Request'] = None,
@@ -367,7 +377,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
+    def get_validation_status(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
         """
         Return a formatted dict to be passed to a Response object
         """
@@ -380,6 +390,10 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def mongo_userform_id(self):
         return None
+
+    @abc.abstractmethod
+    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
+        pass
 
     @abc.abstractmethod
     def redeploy(self, active: bool = None):
@@ -448,13 +462,13 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def set_validation_status(self,
                               submission_id: int,
-                              user: 'auth.User',
+                              user: settings.AUTH_USER_MODEL,
                               data: dict,
                               method: str) -> dict:
         pass
 
     @abc.abstractmethod
-    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+    def set_validation_statuses(self, user: settings.AUTH_USER_MODEL, data: dict) -> dict:
         pass
 
     @property
@@ -512,7 +526,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
         pass
 
     @abc.abstractmethod
@@ -523,7 +537,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def validate_submission_list_params(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         validate_count: bool = False,
         partial_perm=PERM_VIEW_SUBMISSIONS,
@@ -657,7 +671,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def validate_access_with_partial_perms(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         perm: str,
         submission_ids: list = [],
         query: dict = {},
@@ -780,20 +794,42 @@ class BaseDeploymentBackend(abc.ABC):
         )
 
         for attachment in submission['_attachments']:
-            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
-                # We should use 'attachment-list' with `?xpath=` but we do not
-                # know what the XPath is here. Since the primary key is already
-                # exposed, let's use it to build the url with 'attachment-detail'
-                kpi_url = reverse(
-                    'attachment-detail',
-                    args=(self.asset.uid, submission['_id'], attachment['id']),
-                    request=request,
-                )
-                key = f'download{suffix}_url'
-                try:
+            # We should use 'attachment-list' with `?xpath=` but we do not
+            # know what the XPath is here. Since the primary key is already
+            # exposed, let's use it to build the url.
+            kpi_url = reverse(
+                'attachment-detail',
+                args=(
+                    self.asset.uid,
+                    submission['_id'],
+                    attachment['id'],
+                ),
+                request=request,
+            )
+            key = f'download_url'
+            attachment[key] = kpi_url
+            if attachment['mimetype'].startswith('image/'):
+                for suffix in settings.THUMB_CONF.keys():
+                    kpi_url = reverse(
+                        'attachment-thumb',
+                        args=(
+                            self.asset.uid,
+                            submission['_id'],
+                            attachment['id'],
+                            suffix,
+                        ),
+                        request=request,
+                    )
+                    key = f'download_{suffix}_url'
                     attachment[key] = kpi_url
-                except KeyError:
-                    continue
+            else:
+                for suffix in settings.THUMB_CONF.keys():
+                    try:
+                        key = f'download_{suffix}_url'
+                        del attachment[key]
+                    except KeyError:
+                        continue
+
             filename = attachment['filename']
             attachment['filename'] = os.path.join(
                 self.asset.owner.username,

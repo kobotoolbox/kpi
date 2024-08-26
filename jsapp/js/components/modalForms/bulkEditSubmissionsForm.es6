@@ -238,7 +238,7 @@ class BulkEditSubmissionsForm extends React.Component {
           {renderQuestionTypeIcon(question.type)}
         </bem.SimpleTable__cell>
 
-        <bem.SimpleTable__cell>
+        <bem.SimpleTable__cell dir='auto'>
           {question.parents.length > 0 &&
             <small>{question.parents.join(' / ') + ' /'}</small>
           }
@@ -389,7 +389,7 @@ class BulkEditSubmissionsForm extends React.Component {
         <bem.Modal__footer>
           <Button
             type='full'
-            color='dark-red'
+            color='red'
             size='l'
             onClick={this.onReset.bind(this)}
             isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
@@ -429,7 +429,7 @@ class BulkEditSubmissionsForm extends React.Component {
         <bem.Modal__footer>
           <Button
             type='frame'
-            color='storm'
+            color='dark-blue'
             size='l'
             onClick={this.goBackToList.bind(this)}
             label={t('Back')}
@@ -556,7 +556,7 @@ class BulkEditRowForm extends React.Component {
 
     return (
       <React.Fragment>
-        <bem.FormView__cell m={['columns', 'columns-top']}>
+        <bem.FormView__cell m={['columns', 'columns-top']} dir='auto'>
           <bem.FormView__cell m='column-icon'>
             {renderQuestionTypeIcon(this.props.question.type)}
           </bem.FormView__cell>

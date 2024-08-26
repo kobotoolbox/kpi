@@ -3,6 +3,7 @@ import posixpath
 from mimetypes import guess_type
 from typing import Optional
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from rest_framework.reverse import reverse
@@ -13,6 +14,7 @@ from kpi.interfaces import (
     OpenRosaManifestInterface,
     SyncBackendMediaInterface,
 )
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
 from kpi.utils.models import DjangoModelABCMetaclass
 
@@ -58,7 +60,7 @@ class AbstractFormMedia(
     pass
 
 
-class AssetFile(models.Model, AbstractFormMedia):
+class AssetFile(AbstractTimeStampedModel, AbstractFormMedia):
     # More to come!
     MAP_LAYER = 'map_layer'
     FORM_MEDIA = 'form_media'
@@ -95,17 +97,15 @@ class AssetFile(models.Model, AbstractFormMedia):
                               on_delete=models.CASCADE)
     # Keep track of the uploading user, who could be anyone with `change_asset`
     # rights, not just the asset owner
-    user = models.ForeignKey('auth.User', related_name='asset_files',
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='asset_files',
                              on_delete=models.CASCADE)
     file_type = models.CharField(choices=TYPE_CHOICES, max_length=32)
     description = models.CharField(max_length=255)
-    date_created = models.DateTimeField(default=timezone.now)
     content = PrivateExtendedFileField(
         upload_to=upload_to, max_length=380, null=True
     )
     metadata = models.JSONField(default=dict)
     date_deleted = models.DateTimeField(null=True, default=None)
-    date_modified = models.DateTimeField(default=timezone.now)
     synced_with_backend = models.BooleanField(default=False)
 
     @property
@@ -209,8 +209,6 @@ class AssetFile(models.Model, AbstractFormMedia):
             self.set_filename()
             self.set_md5_hash()
             self.set_mimetype()
-        else:
-            self.date_modified = timezone.now()
 
         return super().save(force_insert, force_update, using, update_fields)
 

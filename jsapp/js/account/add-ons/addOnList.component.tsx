@@ -174,7 +174,7 @@ const AddOnList = (props: {
               <td>
                 <div className={styles.productAndPrice}>
                   <div>
-                    <span>{product.name}</span>
+                    <span className={styles.productName}>{product.name}</span>
                     {renderUpdateBadge(price)}
                   </div>
                   <div className={styles.price}>{price.human_readable_price}</div>

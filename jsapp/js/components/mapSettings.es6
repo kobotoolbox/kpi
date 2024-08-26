@@ -413,8 +413,8 @@ class MapSettings extends React.Component {
           <bem.Modal__footer>
             {userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
               <Button
-                type='full'
-                color='storm'
+                type='frame'
+                color='red'
                 size='l'
                 onClick={this.resetMapSettings.bind(this)}
                 label={t('Reset')}

@@ -7,9 +7,9 @@
 
 // These are custom styles for Table View table.
 
-$data-table-border: 1px solid colors.$kobo-gray-92;
+$data-table-border: 1px solid colors.$kobo-gray-300;
 $data-table-row-height: 36px;
-$c-header-bg: colors.$kobo-gray-96;
+$c-header-bg: colors.$kobo-gray-200;
 $s-data-table-font: 13px;
 
 .form-view__sidetabs + .form-view.form-view--table {
@@ -45,7 +45,7 @@ $s-data-table-font: 13px;
 .form-view--table .ReactTable {
   border: none;
   background: transparent;
-  height: calc(100% - 50px);
+  height: calc(100% - 52px);
   position: relative;
   z-index: 0; // To not interfere with UI elements outside the table, as contents of the table have many different z-index values - this makes them all irrelevant.
   font-size: $s-data-table-font;
@@ -58,7 +58,7 @@ $s-data-table-font: 13px;
   .rt-table {
     border: $data-table-border;
     background-color: colors.$kobo-white;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   // minimum body height so at least two rows are visible
@@ -89,10 +89,11 @@ $s-data-table-font: 13px;
 
       .k-icon {
         font-size: 20px;
-        color: colors.$kobo-gray-55;
+        color: colors.$kobo-gray-600;
         vertical-align: top;
         display: inline-block;
-        margin-right: 3px;
+        // Needed for the RTL content to look nice
+        margin-inline-end: 3px;
       }
     }
 
@@ -108,7 +109,7 @@ $s-data-table-font: 13px;
         .table-header-results {
           line-height: 15px;
           padding-top: 1px;
-          text-align: left;
+          text-align: initial;
         }
       }
     }
@@ -143,7 +144,7 @@ $s-data-table-font: 13px;
         font-size: 12px;
 
         &::placeholder {
-          color: colors.$kobo-gray-55;
+          color: colors.$kobo-gray-600;
         }
       }
 
@@ -195,7 +196,7 @@ $s-data-table-font: 13px;
         width: 100%;
         @include mixins.textEllipsis;
         font-size: 12px;
-        color: colors.$kobo-gray-40;
+        color: colors.$kobo-gray-700;
         text-align: initial;
       }
     }
@@ -272,7 +273,7 @@ $s-data-table-font: 13px;
       background: transparent;
       border: 0;
       padding: 0;
-      color: colors.$kobo-gray-55;
+      color: colors.$kobo-gray-600;
 
       &:hover {
         color: colors.$kobo-blue;
@@ -329,7 +330,7 @@ $s-data-table-font: 13px;
 
     input,
     select {
-      border: 1px solid colors.$kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-300;
       background: colors.$kobo-white;
       height: 32px;
       padding: 5px 7px;
@@ -345,14 +346,14 @@ $s-data-table-font: 13px;
   }
 
   .-loading {
-    background: colors.$kobo-gray-96;
+    background: colors.$kobo-gray-200;
 
     .-loading-inner {
       display: block;
       text-align: center;
       font-size: 18px;
       opacity: 0.8;
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
 
       i {
         margin-right: 12px;
@@ -363,7 +364,7 @@ $s-data-table-font: 13px;
   }
 
   &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
-    background: colors.$kobo-gray-98;
+    background: colors.$kobo-gray-100;
 
     .rt-td.is-frozen {
       background-color: inherit;

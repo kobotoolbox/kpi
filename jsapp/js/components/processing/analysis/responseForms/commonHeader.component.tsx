@@ -107,7 +107,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         buttons={[
           {
             type: 'frame',
-            color: 'storm',
+            color: 'dark-blue',
             label: t('Cancel'),
             onClick: () => setIsDeletePromptOpen(false),
           },
@@ -136,7 +136,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
 
       <Button
         type='bare'
-        color='storm'
+        color='dark-blue'
         size='s'
         startIcon='edit'
         onClick={openQuestionInEditor}
@@ -151,7 +151,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
 
       <Button
         type='bare'
-        color='storm'
+        color='red'
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}

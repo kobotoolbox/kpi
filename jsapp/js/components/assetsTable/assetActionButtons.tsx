@@ -257,7 +257,7 @@ class AssetActionButtons extends React.Component<
     return (
       <Button
         type='bare'
-        color='storm'
+        color='dark-blue'
         size='m'
         tooltip={t('More actions')}
         tooltipPosition='right'
@@ -413,13 +413,13 @@ class AssetActionButtons extends React.Component<
       isPublic &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     ) {
-      let color: ButtonColor = 'teal';
+      let color: ButtonColor = 'dark-blue';
       let callbackFunction = this.subscribeToCollection.bind(this);
       let icon: IconName = 'subscribe';
       let label = t('Subscribe');
 
       if (isUserSubscribed) {
-        color = 'dark-red';
+        color = 'red';
         callbackFunction = this.unsubscribeFromCollection.bind(this);
         icon = 'close';
         label = t('Unsubscribe');
@@ -466,7 +466,7 @@ class AssetActionButtons extends React.Component<
           <Link to={this.getFormBuilderLink()}>
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               tooltip={t('Edit in Form Builder')}
               tooltipPosition='right'
@@ -478,7 +478,7 @@ class AssetActionButtons extends React.Component<
         {userCanEdit && hasDetailsEditable && (
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             onClick={this.modifyDetails.bind(this)}
             tooltip={t('Modify details')}
@@ -490,7 +490,7 @@ class AssetActionButtons extends React.Component<
         {userCanEdit && (
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             onClick={this.showTagsModal.bind(this)}
             tooltip={t('Edit Tags')}
@@ -502,7 +502,7 @@ class AssetActionButtons extends React.Component<
         {userCanEdit && (
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             onClick={this.share.bind(this)}
             tooltip={t('Share')}
@@ -514,7 +514,7 @@ class AssetActionButtons extends React.Component<
         {assetType !== ASSET_TYPES.collection.id && (
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             onClick={this.clone.bind(this)}
             tooltip={t('Clone')}
@@ -526,7 +526,7 @@ class AssetActionButtons extends React.Component<
         {assetType === ASSET_TYPES.template.id && (
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='m'
             onClick={this.cloneAsSurvey.bind(this)}
             tooltip={t('Create project')}
@@ -540,7 +540,7 @@ class AssetActionButtons extends React.Component<
           !this.props.asset.parent.includes(routeAssetUid) && (
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='m'
               onClick={this.viewContainingCollection.bind(this)}
               tooltip={t('View containing Collection')}

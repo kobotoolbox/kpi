@@ -113,7 +113,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
 
           <Button
             type='bare'
-            color='storm'
+            color='red'
             size='m'
             startIcon='trash'
             onClick={() => deleteChoice(choice.uuid)}
@@ -124,8 +124,8 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
 
       <div className={styles.addOption}>
         <Button
-          type='full'
-          color='light-blue'
+          type='frame'
+          color='dark-blue'
           size='m'
           startIcon='plus'
           label={t('Add new option')}

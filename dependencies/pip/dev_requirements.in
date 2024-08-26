@@ -3,6 +3,7 @@
 Fabric
 coverage
 coveralls
+ddt
 ipython==8.12.3 # Max supported version by Python 3.8
 mock
 model-bakery
@@ -11,3 +12,8 @@ pytest
 pytest-cov
 pytest-django
 pytest-env
+
+
+# Kobocat
+httmock
+simplejson

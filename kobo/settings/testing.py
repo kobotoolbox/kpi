@@ -1,9 +1,10 @@
 # coding: utf-8
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from mongomock import MongoClient as MockMongoClient
 
 from .base import *
 
-# For tests, don't use KoBoCAT's DB
+# For tests, don't use KoboCAT's DB
 DATABASES = {
     'default': env.db_url(
         'KPI_DATABASE_URL'
@@ -25,7 +26,6 @@ ENV = 'testing'
 # Run all Celery tasks synchronously during testing
 CELERY_TASK_ALWAYS_EAGER = True
 
-
 MONGO_CONNECTION_URL = 'mongodb://fakehost/formhub_test'
 mongo_client = MockMongoClient(
     MONGO_CONNECTION_URL, connect=False, journal=True, tz_aware=True
@@ -46,3 +46,11 @@ STRIPE_ENABLED = True
 WEBPACK_LOADER['DEFAULT'][
     'LOADER_CLASS'
 ] = 'webpack_loader.loader.FakeWebpackLoader'
+
+# Kobocat settings
+TEST_HTTP_HOST = 'testserver'
+TEST_USERNAME = 'bob'
+SERVICE_ACCOUNT['WHITELISTED_HOSTS'] = ['testserver']
+SERVICE_ACCOUNT['NAMESPACE'] = 'kobo-service-account-test'
+
+OPENROSA_DB_ALIAS = DEFAULT_DB_ALIAS

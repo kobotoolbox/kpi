@@ -61,7 +61,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
         <div className={bodyStyles.transxHeaderButtons}>
           <Button
             type='frame'
-            color='storm'
+            color='dark-blue'
             size='s'
             startIcon='plus'
             label={(<>
@@ -81,7 +81,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
 
           <Button
             type='bare'
-            color='storm'
+            color='dark-blue'
             size='s'
             startIcon='edit'
             onClick={openEditor}
@@ -94,7 +94,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
 
           <Button
             type='bare'
-            color='storm'
+            color='red'
             size='s'
             startIcon='trash'
             onClick={deleteTranslation}

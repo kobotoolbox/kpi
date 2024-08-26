@@ -436,8 +436,14 @@ actions.resources.loadAsset.listen(function (params, refresh = false) {
     })
     .fail(actions.resources.loadAsset.failed);
   } else if (assetCache[params.id] !== 'pending') {
-    // we have a cache entry, use that
-    actions.resources.loadAsset.completed(assetCache[params.id]);
+    // HACK: because some old pieces of code relied on the fact that loadAsset
+    // was always async, we add this timeout to mimick that functionality.
+    // Without it we were encountering bugs, as things were happening much
+    // earlier than anticipated.
+    setTimeout(() => {
+      // we have a cache entry, use that
+      actions.resources.loadAsset.completed(assetCache[params.id]);
+    }, 0);
   }
   // the cache entry for this asset is currently loading, do nothing
 });

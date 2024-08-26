@@ -36,7 +36,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       <Button
         isDisabled
         type='bare'
-        color='storm'
+        color='dark-blue'
         size='s'
         startIcon='archived'
         tooltip={t('Archive/Unarchive')}
@@ -47,7 +47,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       <Button
         isDisabled
         type='bare'
-        color='storm'
+        color='dark-blue'
         size='s'
         startIcon='user-share'
         tooltip={t('Share projects')}
@@ -58,7 +58,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
       <Button
         isDisabled={!canBulkDelete}
         type='bare'
-        color='storm'
+        color='red'
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}

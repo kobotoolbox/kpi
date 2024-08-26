@@ -5,6 +5,7 @@ import {
   META_QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import type {AnyRowTypeName} from 'js/constants';
 import {ValidationStatusAdditionalName} from 'js/components/submissions/validationStatus.constants';
 import {
   EXCLUDED_COLUMNS,
@@ -13,6 +14,7 @@ import {
   TEXT_FILTER_QUESTION_IDS,
   TEXT_FILTER_QUESTION_TYPES,
   FILTER_EXACT_TYPES,
+  DROPDOWN_FILTER_QUESTION_TYPES,
 } from 'js/components/submissions/tableConstants';
 import type {
   SubmissionResponse,
@@ -353,13 +355,26 @@ export function buildFilterQuery(
 }
 
 /**
- * For checking if given column from Data Table should display a filter. It
- * works for columns associated with form questions and for other columns too.
+ * For checking if given column from Data Table should display a text input
+ * filter. It works for columns associated with form questions and for other
+ * columns too (e.g. submission metadata).
  */
-export function isTableColumnFilterable(column: TableColumn) {
-  if (column.question?.type && column.question?.type in TEXT_FILTER_QUESTION_TYPES) {
-    return TEXT_FILTER_QUESTION_TYPES.includes(column.question.type);
-  } else {
-    return TEXT_FILTER_QUESTION_IDS.includes(column.id);
-  }
+export function isTableColumnFilterableByTextInput(
+  questionType: AnyRowTypeName | undefined,
+  columnId: string
+) {
+  return (
+    (questionType && TEXT_FILTER_QUESTION_TYPES.includes(questionType)) ||
+    TEXT_FILTER_QUESTION_IDS.includes(columnId)
+  );
+}
+
+/**
+ * For checking if given column from Data Table should display a dropdown
+ * filter.
+ */
+export function isTableColumnFilterableByDropdown(
+  questionType: AnyRowTypeName | undefined
+) {
+  return questionType && DROPDOWN_FILTER_QUESTION_TYPES.includes(questionType);
 }

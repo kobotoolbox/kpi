@@ -5,7 +5,6 @@ import datetime
 import constance
 from constance.test import override_config
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.template import RequestContext, Template
 from django.test import override_settings
@@ -22,6 +21,7 @@ from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.accounts.models import SocialAppCustomData
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
@@ -233,7 +233,7 @@ class EnvironmentTests(BaseTestCase):
         self,
     ):
         user = baker.make(
-            'User',
+            settings.AUTH_USER_MODEL,
             username='thresholds_test',
             date_joined=self.today
         )
@@ -272,12 +272,12 @@ class EnvironmentTests(BaseTestCase):
         """ If the user is in an organization, the custom free tier should only
         be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE """
         org_user = baker.make(
-            'User',
+            settings.AUTH_USER_MODEL,
             username='org_user',
             date_joined=self.today + datetime.timedelta(days=1),
         )
         org_owner = baker.make(
-            'User',
+            settings.AUTH_USER_MODEL,
             username='org_owner',
             date_joined=self.today,
         )
@@ -333,7 +333,6 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, 'social_app')
         self.assertNotContains(response, 'app.name')
-
 
     def test_tos_sitewide_message(self):
         # Check that fixtures properly stores terms of service

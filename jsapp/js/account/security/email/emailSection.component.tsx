@@ -11,6 +11,7 @@ import Button from 'jsapp/js/components/common/button';
 import TextBox from 'jsapp/js/components/common/textBox';
 import Icon from 'jsapp/js/components/common/icon';
 import {formatTime} from 'jsapp/js/utils';
+import {notify} from 'js/utils';
 
 interface EmailState {
   emails: EmailResponse[];
@@ -87,6 +88,15 @@ export default function EmailSection() {
     });
   }
 
+  function handleSubmit() {
+    const emailPattern = /[^@]+@[^@]+\.[^@]+/;
+    if (!emailPattern.test(email.newEmail)) {
+      notify.error('Invalid email address');
+    } else {
+      setNewUserEmail(email.newEmail);
+    }
+  }
+
   const currentAccount = session.currentAccount;
   const unverifiedEmail = email.emails.find(
     (userEmail) => !userEmail.verified && !userEmail.primary
@@ -140,7 +150,7 @@ export default function EmailSection() {
                 <Button
                   label='Remove'
                   size='m'
-                  color='dark-red'
+                  color='red'
                   type='frame'
                   onClick={deleteNewUserEmail}
                 />
@@ -162,7 +172,7 @@ export default function EmailSection() {
         className={style.optionsSection}
         onSubmit={(e) => {
           e.preventDefault();
-          setNewUserEmail(email.newEmail);
+          handleSubmit();
         }}
       >
         {/*TODO: Move TextBox into a modal--it messes up the flow of the row right now*/}
@@ -178,10 +188,7 @@ export default function EmailSection() {
           size='m'
           color='blue'
           type='frame'
-          onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
-          // quick simple subtle email validation to avoid complete accidents
-          // a toast showing any API error feedback would be nicer
-          isDisabled={!/[^@]+@[^@]+\.[^@]+/.test(email.newEmail)}
+          onClick={handleSubmit}
         />
       </form>
     </div>

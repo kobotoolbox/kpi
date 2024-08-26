@@ -92,7 +92,7 @@ export default function ProjectsFieldsSelector(
       <Button
         type='bare'
         size='s'
-        color='storm'
+        color='dark-blue'
         onClick={toggleModal}
         startIcon='spreadsheet'
         label={t('fields')}
@@ -124,14 +124,14 @@ export default function ProjectsFieldsSelector(
         <KoboModalFooter>
           <Button
             type='frame'
-            color='storm'
+            color='red'
             size='m'
             onClick={resetFields}
             label={t('Reset')}
           />
 
           <Button
-            type='frame'
+            type='full'
             color='blue'
             size='m'
             onClick={applyFields}

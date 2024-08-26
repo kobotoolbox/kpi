@@ -36,7 +36,9 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >                    "model_name": "bar",
     >                    "object_id": 1,
     >                    "user": "http://kf.kobo.local/users/kobo_user/",
-    >                    "method": "DELETE",
+    >                    "action": "delete",
+    >                    "log_type": "asset-management",
+    >                    "method": "delete",
     >               }
     >           ]
     >       }
@@ -46,19 +48,19 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     **Some examples:**
 
     1. All deleted submissions<br>
-        `api/v2/audit-logs/?q=method:delete`
+        `api/v2/audit-logs/?q=action:delete`
 
     2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`<br>
-        `api/v2/audit-logs/?q=method:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
+        `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
 
     3. All submissions deleted by a specific user `my_username`<br>
-        `api/v2/audit-logs/?q=method:delete AND user__username:my_username`
+        `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
 
     4. All deleted submissions submitted after a specific date<br>
-        `/api/v2/audit-logs/?q=method:delete AND date_created__gte:2022-11-15`
+        `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
 
     5. All deleted submissions submitted after a specific date **and time**<br>
-        `/api/v2/audit-logs/?q=method:delete AND date_created__gte:"2022-11-15 20:34"`
+        `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
 
     *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces (e.g. date and time "2022-11-15 20:34")*
 
@@ -68,7 +70,10 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     model = AuditLog
     serializer_class = AuditLogSerializer
     permission_classes = (SuperUserPermission,)
-    renderer_classes = (BrowsableAPIRenderer, JSONRenderer,)
+    renderer_classes = (
+        BrowsableAPIRenderer,
+        JSONRenderer,
+    )
     queryset = (
         AuditLog.objects.select_related('user').all().order_by('-date_created')
     )

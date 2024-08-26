@@ -14,22 +14,22 @@ $submission-data-table-space: sizes.$x12;
 }
 
 .submission-data-table__row {
-  background-color: colors.$kobo-gray-96;
+  background-color: colors.$kobo-gray-200;
 
   &.submission-data-table__row--type-group_root + &.submission-data-table__row--metadata {
-    border-top: sizes.$x3 solid colors.$kobo-gray-92;
+    border-top: sizes.$x3 solid colors.$kobo-gray-300;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group,
   &.submission-data-table__row--group-label {
-    border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+    border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group {
-    border-left: sizes.$x1 solid colors.$kobo-gray-92;
-    border-right: sizes.$x1 solid colors.$kobo-gray-92;
+    border-left: sizes.$x1 solid colors.$kobo-gray-300;
+    border-right: sizes.$x1 solid colors.$kobo-gray-300;
   }
 
   &.submission-data-table__row--columns {
@@ -38,7 +38,7 @@ $submission-data-table-space: sizes.$x12;
 
   &.submission-data-table__row--column-names {
     font-weight: bold;
-    background-color: colors.$kobo-gray-40;
+    background-color: colors.$kobo-gray-700;
     color: colors.$kobo-white;
   }
 
@@ -86,19 +86,30 @@ $submission-data-table-space: sizes.$x12;
 
 .submission-data-table__row--response .submission-data-table__column.submission-data-table__column--data {
   @include mixins.centerRowFlex;
-
+  gap: 10px;
   flex: 1;
 
   .audio-player:first-child {
-    padding-right: sizes.$x30;
-  }
-
-  > *:first-child {
+    margin-right: 30px;
     flex: 1;
   }
 
-  > *:not(:last-child) {
-    margin-right: sizes.$x20;
+  video {
+    max-width: 100%;
+    object-fit: contain;
+  }
+}
+
+.submission-data-table__column.submission-data-table__column--data.submission-data-table__column--type-audio,
+.submission-data-table__column.submission-data-table__column--data.submission-data-table__column--type-image,
+.submission-data-table__column.submission-data-table__column--data.submission-data-table__column--type-video {
+  justify-content: flex-end;
+
+  img {
+    // We don't want the image to take too much space, as it's making the UI
+    // harder to follow. There are other ways to see full image, and
+    // `SubmissionDataTable` is more about the full picture.
+    max-height: 250px;
   }
 }
 
@@ -107,12 +118,12 @@ $submission-data-table-space: sizes.$x12;
   margin-left: 0.5em;
   font-size: 0.8em;
   line-height: 1;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   font-family: mdl.$font_mono;
 }
 
 .submission-data-table__value {
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   display: inline-block;
   font-style: italic;
 }

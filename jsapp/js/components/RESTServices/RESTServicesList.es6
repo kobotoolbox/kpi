@@ -183,7 +183,7 @@ export default class RESTServicesList extends React.Component {
                   <bem.ServiceRow__column m='actions'>
                     <Button
                       type='bare'
-                      color='storm'
+                      color='dark-blue'
                       size='m'
                       onClick={() => this.editHook(hook.uid)}
                       tooltip={t('Edit')}
@@ -193,7 +193,7 @@ export default class RESTServicesList extends React.Component {
 
                     <Button
                       type='bare'
-                      color='dark-red'
+                      color='red'
                       size='m'
                       onClick={() => this.deleteHookSafe(hook.uid, hook.name)}
                       tooltip={t('Delete')}

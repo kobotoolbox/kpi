@@ -363,7 +363,7 @@ export default class RESTServicesForm extends React.Component {
 
               <Button
                 type='bare'
-                color='dark-red'
+                color='red'
                 size='m'
                 className='http-header-row-remove'
                 data-index={n}
@@ -375,8 +375,8 @@ export default class RESTServicesForm extends React.Component {
         })}
 
         <Button
-          type='full'
-          color='storm'
+          type='frame'
+          color='dark-blue'
           size='s'
           startIcon='plus'
           onClick={this.addNewCustomHeaderRow.bind(this)}

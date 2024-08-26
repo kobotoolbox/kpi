@@ -1,8 +1,8 @@
-from django.contrib.auth.models import User
 from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE

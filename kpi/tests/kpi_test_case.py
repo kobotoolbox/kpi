@@ -68,7 +68,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             )
         elif isinstance(obj, get_user_model()):
             return reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 kwargs={'username': obj.username},
             )
         raise NotImplementedError

@@ -35,9 +35,13 @@
   }
 
   .header__logo {
+    // NOTE: this is overrideable, see `/kpi/templates/index.html`
     background-image: url("../img/kobologo_symbol.svg");
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
     width: 40px;
     height: 40px;
+    // Needed for non-horizontal images
     background-size: contain;
     display: block;
   }
@@ -142,7 +146,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -171,7 +175,7 @@
     padding-bottom: 15px;
 
     a {
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -208,23 +212,23 @@
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
     padding-bottom: 5px;
 
     ul {
       margin-top: 5px;
       background-color: colors.$kobo-white;
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
       min-width: 140px;
       padding: 0;
-      border: 1px solid colors.$kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-300;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid colors.$kobo-gray-92;
+          border-bottom: 1px solid colors.$kobo-gray-300;
         }
 
         a {
@@ -249,7 +253,7 @@
 
 .main-header {
   .main-header__icon {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
     vertical-align: middle;
 
     .k-icon {
@@ -286,7 +290,7 @@
 
       // keep these pseudo-states separate
       &::placeholder {
-        color: colors.$kobo-gray-40;
+        color: colors.$kobo-gray-700;
       }
 
       &:hover {
@@ -303,7 +307,7 @@
   .main-header__counter {
     font-size: variables.$base-font-size;
     margin-right: 20px;
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
   }
 }
 
@@ -348,7 +352,7 @@
   }
 
   .mdl-layout__header .header__logo {
-    background: url("../img/kobologo.svg") no-repeat 50% 50%;
+    background-image: url("../img/kobologo.svg");
     width: 180px;
   }
 }
@@ -385,7 +389,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid colors.$kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-300;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

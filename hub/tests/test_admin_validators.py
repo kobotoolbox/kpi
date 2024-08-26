@@ -1,8 +1,9 @@
 from constance.test import override_config
-from django.contrib.auth.models import User
 from django.test import TestCase
+
 from hub.admin.extend_user import validate_superuser_auth
 from kobo.apps.accounts.mfa.models import MfaMethod
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)

@@ -13,7 +13,7 @@
   h4 {
     margin: 0;
     font-weight: 400;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   .kobo-select {
@@ -50,23 +50,6 @@
         display: inline-block;
         vertical-align: middle;
         font-size: 16px;
-      }
-    }
-
-    .form-modal__item--anonymous-submission-notice {
-      display: flex;
-      line-height: sizes.$x24;
-      background-color: colors.$kobo-light-amber;
-      margin-top: sizes.$x12;
-      padding: sizes.$x18;
-      border-radius: sizes.$x8;
-
-      .anonymous-submission-notice-copy {
-        padding-left: sizes.$x16;
-        padding-right: sizes.$x8;
-        > * {
-          display: inline;
-        }
       }
     }
   }
@@ -111,4 +94,8 @@
 
 .account-settings-social-row:not(:first-child) {
   margin-top: sizes.$x5;
+}
+
+.anonymous-submission-notice {
+  margin-top: 12px;
 }

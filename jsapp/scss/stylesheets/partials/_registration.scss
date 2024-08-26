@@ -14,7 +14,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: colors.$kobo-gray-96;
+  color: colors.$kobo-gray-200;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -31,7 +31,7 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba(colors.$kobo-gray-24, 0.8);
+    background: rgba(colors.$kobo-gray-800, 0.8);
     padding: 20px 30px;
     border-radius: 10px;
 
@@ -136,7 +136,7 @@
       color: colors.$kobo-dark-blue;
 
       &.btn-danger {
-        background-color: colors.$kobo-red;
+        background-color: colors.$kobo-mid-red;
         color: colors.$kobo-white;
       }
 
@@ -343,7 +343,7 @@ form.registration--login > p > span.helptext{
   clear: both;
   text-align: center;
   margin: 20px 10px 10px 10px;
-  text-shadow: colors.$kobo-gray-14 0 0 2px; // contrast against photo background
+  text-shadow: colors.$kobo-gray-900 0 0 2px; // contrast against photo background
 
   a {
     color: colors.$kobo-white;
@@ -366,7 +366,7 @@ form.registration--login > p > span.helptext{
 .error-message {
   font-size: variables.$base-font-size;
   color: colors.$kobo-red;
-  background-color: rgba(colors.$kobo-red, 0.075);
+  background-color: rgba(colors.$kobo-mid-red, 0.075);
 }
 
 .registration__credit {
@@ -454,7 +454,7 @@ form.registration--login > p > span.helptext{
       }
 
       .registration--logo {
-        text-align: left;
+        text-align: initial;
         margin: 0;
         margin-left: -5px;
         width: 48%;

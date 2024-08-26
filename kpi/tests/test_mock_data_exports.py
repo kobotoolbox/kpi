@@ -11,10 +11,10 @@ import datetime
 import mock
 import openpyxl
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.test import TestCase
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
 from kpi.constants import (
     PERM_CHANGE_ASSET,
@@ -579,10 +579,10 @@ class MockDataExports(MockDataExportsBase):
     def test_csv_export_filter_fields(self):
         export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism", "_index"]}
         expected_lines = [
-            '"start";"end";"Do you descend from an ancestral unicellular organism?";"_index"',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"No";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Yes";"3"',
+            '"start";"end";"Do you descend from an ancestral unicellular organism?";"_uuid";"_index"',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"No";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Yes";"3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -647,23 +647,84 @@ class MockDataExports(MockDataExportsBase):
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields(self):
-        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism', '_index']}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'Do you descend from an ancestral unicellular organism?', '_index'],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'No',  1.0],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'No',  2.0],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes',  3.0],
-        ]}
+        export_options = {
+            'fields': [
+                'start',
+                'end',
+                'Do_you_descend_from_unicellular_organism',
+                '_index',
+            ]
+        }
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_uuid',
+                    '_index',
+                ],
+                [
+                    '2017-10-23T05:40:39.000-04:00',
+                    '2017-10-23T05:41:13.000-04:00',
+                    'No',
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                    1.0,
+                ],
+                [
+                    '2017-10-23T05:41:14.000-04:00',
+                    '2017-10-23T05:41:32.000-04:00',
+                    'No',
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    2.0,
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    'Yes',
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    3.0,
+                ],
+            ]
+        }
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields_without_index(self):
-        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism']}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'Do you descend from an ancestral unicellular organism?'],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'No'],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'No'],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes'],
-        ]}
+        export_options = {
+            'fields': [
+                'start',
+                'end',
+                'Do_you_descend_from_unicellular_organism',
+            ]
+        }
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_uuid',
+                ],
+                [
+                    '2017-10-23T05:40:39.000-04:00',
+                    '2017-10-23T05:41:13.000-04:00',
+                    'No',
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                ],
+                [
+                    '2017-10-23T05:41:14.000-04:00',
+                    '2017-10-23T05:41:32.000-04:00',
+                    'No',
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    'Yes',
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                ],
+            ]
+        }
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields_with_media_url(self):
@@ -671,8 +732,12 @@ class MockDataExports(MockDataExportsBase):
         export_options = {'fields': ['an_image'], 'include_media_url': True}
         expected_data = {
             asset_name: [
-                ['Submit an image', 'Submit an image_URL'],
-                ['image.png', 'http://testserver/image.png'],
+                ['Submit an image', 'Submit an image_URL', '_uuid'],
+                [
+                    'image.png',
+                    'http://testserver/image.png',
+                    'f80be949-89b5-4af1-a42d-7d292b2bc0cd',
+                ],
             ]
         }
         self.run_xls_export_test(

@@ -217,6 +217,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
                 </button>
               </>
             }
+            disableShortening
           />
         }
 
@@ -226,7 +227,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
             triggerLabel={
               <Button
                 type='frame'
-                color='storm'
+                color='dark-blue'
                 size='s'
                 label={t('Change status')}
                 endIcon='angle-down'
@@ -251,7 +252,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         {Object.keys(this.props.selectedRows).length > 0 && this.props.asset.deployment__active && (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
           <Button
             type='frame'
-            color='blue'
+            color='dark-blue'
             size='s'
             onClick={this.onEdit.bind(this)}
             isDisabled={this.props.selectedAllPages && isSelectAllAvailable}
@@ -264,7 +265,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         {Object.keys(this.props.selectedRows).length > 0 && (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
           <Button
             type='frame'
-            color='dark-red'
+            color='red'
             size='s'
             onClick={this.onDelete.bind(this)}
             startIcon='trash'

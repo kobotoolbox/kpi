@@ -5,12 +5,12 @@
 -e git+https://github.com/kobotoolbox/formpack.git@451df4cd2a0d614be69a3b3309259c67369f7efb#egg=formpack
 
 # service-account
--e git+https://github.com/kobotoolbox/kobo-service-account.git@8ee76730106ff8dc0ee2539c8e6a567aea4ed9ee#egg=kobo-service-account
+-e git+https://github.com/kobotoolbox/kobo-service-account.git@cb52c6221b68af9b13237d0a1157e3f1965a82b1#egg=kobo-service-account
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
--e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
+-e git+https://github.com/kobotoolbox/django-digest@43f3100a7e257942c313ad79057e6a0b1612a74a#egg=django_digest
 
 # ssrf protect
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
@@ -28,6 +28,7 @@ billiard
 celery
 celery[redis]
 dict2xml
+defusedxml
 dj-static
 dj-stripe
 django-allauth
@@ -83,6 +84,7 @@ shortuuid
 sqlparse
 static3
 tabulate
+ua-parser
 uWSGI
 Werkzeug
 xlrd
@@ -103,6 +105,13 @@ django-trench
 
 # Sentry
 sentry-sdk
+
+# Kobocat
+django-guardian
+modilabs-python-utils
+djangorestframework-csv
+djangorestframework-jsonp
+pandas
 
 # Python 3.8 support
 backports.zoneinfo; python_version < '3.9'

@@ -6,7 +6,7 @@
   background: colors.$kobo-white;
   padding: sizes.$x20;
   margin: sizes.$x24 sizes.$x40;
-  border: 1px solid colors.$kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-300;
   border-radius: sizes.$x5;
 }
 
@@ -38,21 +38,14 @@
   line-height: sizes.$x24;
   padding: 0 sizes.$x24;
 
-  p:first-of-type {
-    margin: sizes.$x16 0;
+  p {
+    // Reset browser defaults
+    margin: 0;
   }
-}
 
-.warning {
-  display: flex;
-  padding: sizes.$x12;
-  margin: sizes.$x24 0 sizes.$x24 0;
-  background-color: colors.$kobo-light-red;;
-  border-radius: sizes.$x5;
-}
-
-.warningIcon {
-  margin-right: sizes.$x8;
+  p:not(:last-child) {
+    margin-bottom: sizes.$x16;
+  }
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {

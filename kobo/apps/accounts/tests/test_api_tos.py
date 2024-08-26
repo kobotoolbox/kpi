@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils.timezone import now
 from django.urls import reverse
 from rest_framework import status
@@ -10,7 +11,7 @@ class TOSTestCase(BaseTestCase):
     def setUp(self) -> None:
         self.url = reverse(self._get_endpoint('tos'))
         self.user = baker.make(
-            'auth.User', username='spongebob', email='me@sponge.bob'
+            settings.AUTH_USER_MODEL, username='spongebob', email='me@sponge.bob'
         )
         self.client.force_login(self.user)
 

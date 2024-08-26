@@ -119,8 +119,8 @@ class TableSettings extends React.Component {
         <bem.Modal__footer>
           {userCan('change_asset', this.props.asset) &&
             <Button
-              type='full'
-              color='storm'
+              type='frame'
+              color='red'
               size='l'
               onClick={this.onReset.bind(this)}
               label={t('Reset')}
