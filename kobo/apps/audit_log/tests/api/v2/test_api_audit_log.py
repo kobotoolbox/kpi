@@ -255,7 +255,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
     def test_show_all_access_logs_succeeds_for_superuser(self):
         self.force_login_user(User.objects.get(username='admin'))
         response = self.client.get(self.url)
-        self.assert_audit_log_nowresults_equal(
+        self.assert_audit_log_results_equal(
             response=response, expected_kwargs={'action': AuditAction.AUTH}
         )
 
