@@ -173,6 +173,7 @@ class AuditLog(models.Model):
             and request.resolver_match.url_name == 'submissions'
             and request.method == 'POST'
         )
+        # Cast to SubmissionAccessLog if necessary so we get the save hook
         object_class = SubmissionAccessLog if is_submission else AuditLog
         # a regular login may have an anonymous user as _cached_user, ignore that
         user_changed = (
@@ -227,6 +228,9 @@ class AuditLog(models.Model):
 
 
 class SubmissionGroupManager(models.Manager):
+    """
+    QueryManager to get just AccessLogs of type=submission-group
+    """
 
     def get_queryset(self):
         # filter by action first to take advantage of the db_index
