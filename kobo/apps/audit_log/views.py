@@ -93,6 +93,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
     Access logs
 
     Lists all access logs for all users. Only available to superusers.
+    Submission authentications will be grouped together if made within an hour of each other.
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/all
@@ -144,7 +145,8 @@ class AccessLogViewSet(AuditLogViewSet):
     """
     Access logs
 
-    Lists all access logs for the authenticated user
+    Lists all access logs for the authenticated user.
+    Submission authentications will be grouped together if made within an hour of each other.
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/
