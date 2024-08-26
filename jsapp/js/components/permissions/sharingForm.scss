@@ -12,7 +12,7 @@ $s-gray-row-spacing: 10px;
   h2 {
     margin: 0;
     font-size: variables.$base-font-size;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
     font-weight: 500;
   }
 
@@ -72,7 +72,7 @@ $s-gray-row-spacing: 10px;
 }
 
 .user-row {
-  border-bottom: 1px solid colors.$kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-300;
   padding-bottom: 5px;
   padding-top: 5px;
 
@@ -159,7 +159,7 @@ $s-gray-row-spacing: 10px;
 
 .user-row__editor,
 .form-modal__item--gray-row {
-  background: colors.$kobo-gray-96;
+  background: colors.$kobo-gray-200;
   padding: 15px;
 }
 

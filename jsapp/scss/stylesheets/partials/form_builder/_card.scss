@@ -51,7 +51,7 @@
         position: relative;
 
         &.activated {
-            color: colors.$kobo-gray-40;
+            color: colors.$kobo-gray-700;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -83,10 +83,10 @@
     }
 
     .card__header-title {
-        color: colors.$kobo-gray-40;
+        color: colors.$kobo-gray-700;
 
         &:focus {
-            color: colors.$kobo-gray-24;
+            color: colors.$kobo-gray-800;
           }
 
         // we use placeholder as error message, as empty title is not welcomed
@@ -101,7 +101,7 @@
         font-weight: 400;
 
         &::placeholder {
-            color: colors.$kobo-gray-40;
+            color: colors.$kobo-gray-700;
             font-style: italic;
         }
     }
@@ -120,7 +120,7 @@
             position: absolute;
             top: -0.15em;
             left: -9px;
-            color: colors.$kobo-gray-40;
+            color: colors.$kobo-gray-700;
             font-size: 11px;
         }
         &.card--selectquestion {
@@ -186,7 +186,7 @@ $cardIndicatorIconWidth: 21px;
     font-size: 20px;
     line-height: 20px;
     text-align: center;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
 }
 
 // ==========================================================================
@@ -241,7 +241,7 @@ $cardIndicatorIconWidth: 21px;
     }
 }
 .card__header.settings .card__header--shade {
-    background: rgba(colors.$kobo-gray-40, 0.5);
+    background: rgba(colors.$kobo-gray-700, 0.5);
 }
 .card__header.delete .card__header--shade {
     background: rgba(colors.$kobo-mid-red, 0.5);
@@ -268,7 +268,7 @@ $cardIndicatorIconWidth: 21px;
     cursor: pointer;
 
     &.card__buttons__button--gray {
-        color: colors.$kobo-gray-40;
+        color: colors.$kobo-gray-700;
     }
 
     &.card__buttons__button--red {
@@ -284,8 +284,8 @@ $cardIndicatorIconWidth: 21px;
     }
 
     &.card__buttons__button--activated {
-        color: colors.$kobo-gray-40;
-        background-color: colors.$kobo-gray-92;
+        color: colors.$kobo-gray-700;
+        background-color: colors.$kobo-gray-300;
         opacity: 1;
     }
 

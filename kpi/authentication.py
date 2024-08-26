@@ -11,11 +11,13 @@ from rest_framework.authentication import (
     get_authorization_header,
 )
 from rest_framework.exceptions import AuthenticationFailed
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication as OPOAuth2Authentication
 
+from kobo.apps.audit_log.mixins import RequiresAccessLogMixin
 from kpi.mixins.mfa import MfaBlockerMixin
 
 
-class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication):
+class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication, RequiresAccessLogMixin):
     """
     Extend DRF class to support MFA.
 
@@ -23,6 +25,14 @@ class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication):
     on their account (unless it has been add to `settings.MFA_SUPPORTED_AUTH_CLASSES`)
     """
     verbose_name = 'Basic authentication'
+
+    def authenticate(self, request):
+        result = super().authenticate(request)
+        if result is None:
+            return None
+        user, creds = result
+        self.create_access_log(request, user, 'basic')
+        return user, creds
 
     def authenticate_credentials(self, userid, password, request=None):
         user, _ = super().authenticate_credentials(
@@ -32,7 +42,7 @@ class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication):
         return user, _
 
 
-class DigestAuthentication(MfaBlockerMixin, BaseAuthentication):
+class DigestAuthentication(MfaBlockerMixin, BaseAuthentication, RequiresAccessLogMixin):
 
     verbose_name = 'Digest authentication'
 
@@ -53,6 +63,8 @@ class DigestAuthentication(MfaBlockerMixin, BaseAuthentication):
                 raise AuthenticationFailed()
 
             self.validate_mfa_not_active(request.user)
+            self.create_access_log(request, request.user, 'digest')
+
             return request.user, None
         else:
             raise AuthenticationFailed(t('Invalid username/password'))
@@ -129,7 +141,7 @@ class SessionAuthentication(DRFSessionAuthentication):
         return 'Session'
 
 
-class TokenAuthentication(MfaBlockerMixin, DRFTokenAuthentication):
+class TokenAuthentication(MfaBlockerMixin, DRFTokenAuthentication, RequiresAccessLogMixin):
     """
     Extend DRF class to support MFA.
 
@@ -138,7 +150,25 @@ class TokenAuthentication(MfaBlockerMixin, DRFTokenAuthentication):
     """
     verbose_name = 'Token authentication'
 
+    def authenticate(self, request):
+        result = super().authenticate(request)
+        if result is None:
+            return None
+        user, token = result
+        self.create_access_log(request, user, 'token')
+        return user, token
+
     def authenticate_credentials(self, key):
         user, token = super().authenticate_credentials(key=key)
         self.validate_mfa_not_active(user)
         return user, token
+
+
+class OAuth2Authentication(OPOAuth2Authentication, RequiresAccessLogMixin):
+    def authenticate(self, request):
+        result = super().authenticate(request)
+        if result is None:
+            return result
+        user, creds = result
+        self.create_access_log(request, user, 'oauth2')
+        return user, creds

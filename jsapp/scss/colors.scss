@@ -1,40 +1,38 @@
 // Kobo global palette of colors.
 
 /*
- * The Kobo "gray" scale
- *
- * NOTE: the list consist of colors with same hue (225) and saturation (16).
+ * The Kobo neutral scale
  */
 
 // (accessible) our black, very very rare, only use if necessary for contrast
-$kobo-gray-14: hsl(225deg 17% 14%); // #1e212a
+$kobo-gray-900: hsl(225deg 17% 14%); // #1e212a
 
 // (accessible) active text, important text, text on background, top navigation
 // background
-$kobo-gray-24: hsl(225deg 16% 24%); // #333847
+$kobo-gray-800: hsl(225deg 16% 24%); // #333847
 
 // (accessible) default text, inactive text, options text, buttons text,
 // tabs text, notifications background, hover for popups and dropdowns
-$kobo-gray-40: hsl(226deg 16% 42%); // #5a627d
+$kobo-gray-700: hsl(226deg 16% 42%); // #5a627d
 
 // (readable) clickable icons on hover
-$kobo-gray-55: hsl(225deg 16% 58%); // #828ba5
+$kobo-gray-600: hsl(225deg 16% 58%); // #828ba5
 
 // icons default (clickable), arrows and indicators default
-$kobo-gray-65: hsl(226deg 16% 70%); // #a6acbf
+$kobo-gray-500: hsl(226deg 16% 70%); // #a6acbf
 
 // inactive icons, some decorative icons
-$kobo-gray-85: hsl(228deg 16% 82%); // #cacdd9
+$kobo-gray-400: hsl(228deg 16% 82%); // #cacdd9
 
 // scroll bars, table lines, dividers, background of clickable icons on hover
 // when also in a highlighted table row
-$kobo-gray-92: hsl(227deg 18% 90%); // #e1e3ea
+$kobo-gray-300: hsl(227deg 18% 90%); // #e1e3ea
 
 // default light background, icons on hover, sidebar menu, table headings, …
-$kobo-gray-96: hsl(228deg 16% 94%); // #edeef2
+$kobo-gray-200: hsl(228deg 16% 94%); // #edeef2
 
 // table row highlight on hover
-$kobo-gray-98: hsl(240deg 20% 98%); // #f9f9fb
+$kobo-gray-100: hsl(240deg 20% 98%); // #f9f9fb
 
 // white background
 $kobo-white: hsl(0deg 0% 100%); // #ffffff

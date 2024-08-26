@@ -14,7 +14,7 @@ from django_celery_beat.models import (
 from requests.exceptions import HTTPError
 
 from kobo.apps.trackers.models import NLPUsageCounter
-from kobo.apps.audit_log.models import AuditLog, AuditAction
+from kobo.apps.audit_log.models import AuditLog, AuditAction, AuditType
 from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.utils import delete_kc_user
 from kpi.exceptions import KobocatCommunicationError
@@ -110,6 +110,7 @@ def empty_account(account_trash_id: int):
                 'metadata': {
                     'username': user.username,
                 },
+                'log_type': AuditType.USER_MANAGEMENT
             }
 
             if account_trash.retain_placeholder:
