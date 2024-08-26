@@ -57,8 +57,6 @@ def grant_all_model_level_perms(
         else:
             content_types.append(content_type_manager.get_for_model(item))
 
-    print(f'{content_types=}')
-
     permissions_to_assign = permissions_manager.filter(
         content_type__in=content_types)
 
