@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.utils.timezone import now
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -91,7 +91,7 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
 
     def test_list_as_superuser(self):
         someuser = get_user_model().objects.get(username='someuser')
-        date_created = now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        date_created = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
         AuditLog.objects.create(
             user=someuser,
             app_label='foo',
@@ -125,7 +125,7 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
     def test_filter_list(self):
         someuser = get_user_model().objects.get(username='someuser')
         anotheruser = get_user_model().objects.get(username='anotheruser')
-        date_created = now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        date_created = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
         AuditLog.objects.create(
             user=someuser,
             app_label='foo',
@@ -192,12 +192,12 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         log.save()
         self.assertEqual(AuditLog.objects.count(), 4)
 
-    def test_list_as_anonymous(self):
+    def test_list_as_anonymous_returns_unauthorized(self):
         self.client.logout()
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_show_user_access_logs(self):
+    def test_show_user_access_logs_correctly_filters_to_user(self):
         user1 = User.objects.get(username='someuser')
         self.force_login_user(user1)
         response = self.client.get(self.url)
@@ -242,24 +242,24 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         log.save()
         self.assertEqual(AuditLog.objects.count(), 4)
 
-    def test_list_as_anonymous(self):
+    def test_list_as_anonymous_returns_unauthorized(self):
         self.client.logout()
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_only_super_access(self):
+    def test_regular_user_access_returns_forbidden(self):
         self.force_login_user(User.objects.get(username='anotheruser'))
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_show_all_access_logs(self):
+    def test_show_all_access_logs_succeeds_for_superuser(self):
         self.force_login_user(User.objects.get(username='admin'))
         response = self.client.get(self.url)
-        self.assert_audit_log_results_equal(
+        self.assert_audit_log_nowresults_equal(
             response=response, expected_kwargs={'action': AuditAction.AUTH}
         )
 
-    def test_search_by_username(self):
+    def test_can_search_access_logs_by_username(self):
         self.force_login_user(User.objects.get(username='admin'))
         response = self.client.get(f'{self.url}?q=user__username:anotheruser')
         another_user = User.objects.get(username='anotheruser')
@@ -268,11 +268,11 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
             expected_kwargs={'action': AuditAction.AUTH, 'user': another_user},
         )
 
-    def test_search_by_date(self):
+    def test_can_search_access_logs_by_date(self):
         another_user = User.objects.get(username='anotheruser')
         with skip_login_access_log():
             self.client.force_login(User.objects.get(username='admin'))
-        tomorrow = now() + timedelta(days=1)
+        tomorrow = timezone.now() + timedelta(days=1)
         tomorrow_str = tomorrow.strftime('%Y-%m-%d')
         log = self.create_access_log(user=another_user, date_created=tomorrow)
 
