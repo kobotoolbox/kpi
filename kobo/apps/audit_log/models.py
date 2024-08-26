@@ -274,10 +274,10 @@ class SubmissionAccessLog(AuditLog):
         update_fields=None,
     ):
         if (
-            not self.action == AuditAction.AUTH
-            and self.metadata['auth_type'] == SUBMISSION_ACCESS_LOG_AUTH_TYPE
+            self.action != AuditAction.AUTH
+            or self.metadata['auth_type'] != SUBMISSION_ACCESS_LOG_AUTH_TYPE
         ):
-            raise Exception(
+            raise ValueError(
                 f'Cannot create SubmissionAccessLog with action {self.action} and metadata {self.metadata}'
             )
         super().save(force_insert, force_update, using, update_fields)

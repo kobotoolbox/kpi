@@ -13,6 +13,7 @@ from kobo.apps.audit_log.models import (
     AuditAction,
     AuditLog,
     AuditType,
+    SubmissionAccessLog,
     SubmissionGroup,
 )
 from kobo.apps.audit_log.tests.test_utils import (
@@ -23,6 +24,7 @@ from kobo.apps.audit_log.tests.test_utils import (
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_AUTH_TYPE_KEY,
+    SUBMISSION_ACCESS_LOG_AUTH_TYPE,
     SUBMISSION_GROUP_AUTH_TYPE,
     SUBMISSION_GROUP_COUNT_KEY,
     SUBMISSION_GROUP_LATEST_KEY,
@@ -211,3 +213,29 @@ class SubmissionAccessLogTestCase(BaseAuditLogTestCase):
         )
         # make sure we logged an error
         patched_error.assert_called_once()
+
+    def test_cannot_create_submission_access_log_with_wrong_action(self):
+        with self.assertRaises(ValueError):
+            sub_log = SubmissionAccessLog(
+                user=User.objects.get(username='admin'),
+                action=AuditAction.CREATE,
+                object_id='1234',
+                metadata={'auth_type': SUBMISSION_ACCESS_LOG_AUTH_TYPE},
+                app_label='kobo_auth',
+                model_name='User',
+                log_type=AuditType.ACCESS,
+            )
+            sub_log.save()
+
+    def test_cannot_create_submission_access_log_with_wrong_auth_type(self):
+        with self.assertRaises(ValueError):
+            sub_log = SubmissionAccessLog(
+                user=User.objects.get(username='admin'),
+                action=AuditAction.AUTH,
+                object_id='1234',
+                metadata={'auth_type': 'django-loginas'},
+                app_label='kobo_auth',
+                model_name='User',
+                log_type=AuditType.ACCESS,
+            )
+            sub_log.save()
