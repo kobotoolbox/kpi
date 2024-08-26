@@ -189,7 +189,9 @@ class SubmissionAccessLogTestCase(BaseAuditLogTestCase):
         )
 
     @patch('kobo.apps.audit_log.models.logging.error')
-    def test_add_cannot_add_submission_to_group_with_wrong_user(self, patched_error):
+    def test_add_cannot_add_submission_to_group_with_wrong_user(
+        self, patched_error
+    ):
         user = User.objects.get(username='admin')
         user2 = User.objects.get(username='someuser')
         jan_1_midnight = datetime.fromisoformat('2024-01-01 00:00:00+00:00')
