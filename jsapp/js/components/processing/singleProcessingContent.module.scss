@@ -21,7 +21,7 @@
 
 .tab {
   cursor: pointer;
-  color: colors.$kobo-gray-55;
+  color: colors.$kobo-gray-600;
   position: relative;
   font-weight: 900;
   font-size: sizes.$x14;
@@ -30,7 +30,7 @@
   border-radius: sizes.$x6 sizes.$x6 0 0;
 
   &:hover {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
   }
 
   &:active:not(.activeTab) {
@@ -49,7 +49,7 @@
   }
 
   &.activeTab {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
     background-color: colors.$kobo-white;
 
     &::after {

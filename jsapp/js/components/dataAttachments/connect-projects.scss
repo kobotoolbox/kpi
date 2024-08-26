@@ -53,7 +53,7 @@
   gap: 12px;
   padding-top: sizes.$x12;
   margin-top: sizes.$x12;
-  border-top: sizes.$x1 solid colors.$kobo-gray-92;
+  border-top: sizes.$x1 solid colors.$kobo-gray-300;
 }
 
 .connect-projects__import .connect-projects__import-form {
@@ -71,7 +71,7 @@
     min-width: 280px;
 
     .kobo-select__placeholder {
-      color: colors.$kobo-gray-24;
+      color: colors.$kobo-gray-800;
     }
   }
 
@@ -88,7 +88,7 @@
     margin-top: sizes.$x20;
     font-size: variables.$base-font-size;
     font-weight: bold;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
   }
 
   .connect-projects__import-list-item,
@@ -99,12 +99,12 @@
     margin-top: sizes.$x8;
     margin-bottom: sizes.$x10;
     border-bottom: sizes.$x1 solid;
-    border-color: colors.$kobo-gray-92;
+    border-color: colors.$kobo-gray-300;
   }
 
   .connect-projects__import-list-item--no-imports {
     font-style: italic;
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
     // Match vertcial height of a regular list item
     padding: 11px 0 11px 11px;
   }
@@ -127,7 +127,7 @@
       .connect-projects__import-labels-source {
         margin-left: sizes.$x24;
         font-weight: 400;
-        color: colors.$kobo-gray-40;
+        color: colors.$kobo-gray-700;
       }
     }
 
@@ -139,7 +139,7 @@
 }
 
 .form-modal__form.form-modal__form--data-attachment-columns {
-  color: colors.$kobo-gray-55;
+  color: colors.$kobo-gray-600;
 
   .bulk-options {
     margin-top: sizes.$x14;

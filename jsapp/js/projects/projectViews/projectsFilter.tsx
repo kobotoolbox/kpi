@@ -154,7 +154,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
 
           <Button
             type='frame'
-            color='dark-red'
+            color='red'
             size='m'
             onClick={resetFilters}
             label={t('Reset')}

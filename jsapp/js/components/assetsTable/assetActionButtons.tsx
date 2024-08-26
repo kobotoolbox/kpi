@@ -419,7 +419,7 @@ class AssetActionButtons extends React.Component<
       let label = t('Subscribe');
 
       if (isUserSubscribed) {
-        color = 'dark-red';
+        color = 'red';
         callbackFunction = this.unsubscribeFromCollection.bind(this);
         icon = 'close';
         label = t('Unsubscribe');

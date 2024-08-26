@@ -32,7 +32,7 @@ $button-border-radius: sizes.$x6;
 
   &:hover,
   &.k-button--pending {
-    background-color: colors.$kobo-gray-92;
+    background-color: colors.$kobo-gray-300;
 
     .k-icon.k-icon-spinner {
       color: inherit;
@@ -237,23 +237,22 @@ $button-border-radius: sizes.$x6;
   @include button-full(colors.$kobo-blue, colors.$kobo-hover-blue);
 }
 
-// dark-red button ↓
-
-.k-button.k-button--color-dark-red.k-button--type-bare {
+// red button ↓
+.k-button.k-button--color-red.k-button--type-bare {
   @include button-bare(
-    colors.$kobo-dark-red,
-    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
+    colors.$kobo-red,
+    colors.$kobo-dark-red
   );
 }
 
-.k-button.k-button--color-dark-red.k-button--type-frame {
-  @include button-frame(colors.$kobo-dark-red);
+.k-button.k-button--color-red.k-button--type-frame {
+  @include button-frame(colors.$kobo-red);
 }
 
-.k-button.k-button--color-dark-red.k-button--type-full {
+.k-button.k-button--color-red.k-button--type-full {
   @include button-full(
-    colors.$kobo-dark-red,
-    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
+    colors.$kobo-red,
+    colors.$kobo-dark-red
   );
 }
 

@@ -69,7 +69,7 @@
 
 .text {
   white-space: pre-wrap;
-  border-top: sizes.$x2 solid colors.$kobo-gray-96;
+  border-top: sizes.$x2 solid colors.$kobo-gray-200;
   padding-top: sizes.$x16;
   width: 100%;
   overflow-y: auto;
@@ -77,7 +77,7 @@
 }
 
 .textarea {
-  border: sizes.$x2 solid colors.$kobo-gray-96;
+  border: sizes.$x2 solid colors.$kobo-gray-200;
   border-radius: sizes.$x6;
   padding: sizes.$x16;
   resize: none;

@@ -82,7 +82,7 @@ export default class CustomReportForm extends React.Component {
           {this.props.asset.report_custom[crid] && (
             <Button
               type='full'
-              color='dark-red'
+              color='red'
               size='l'
               onClick={this.deleteCustomReport.bind(this)}
               label={t('Delete')}

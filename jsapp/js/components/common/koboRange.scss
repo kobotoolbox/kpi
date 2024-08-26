@@ -3,7 +3,7 @@
 @mixin rangeTrack() {
   -webkit-appearance: none;
   border-radius: 10px;
-  background: colors.$kobo-gray-92;
+  background: colors.$kobo-gray-300;
   height: 8px;
 }
 
@@ -26,7 +26,7 @@
   }
 
   .kobo-range__max-value {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
   }
 
   .kobo-range__unit:not(:first-child) {
@@ -47,13 +47,13 @@ input[type='range'].kobo-range__input--default {
 }
 input[type='range'].kobo-range__input--warning {
   &::-moz-range-progress {
-    background-color: colors.$kobo-red;
+    background-color: colors.$kobo-mid-red;
   }
 
   // Chrome slider is hacked by using shadow
   &::-webkit-slider-thumb {
-    background-color: colors.$kobo-red;
-    box-shadow: -10005px 0 0 10000px colors.$kobo-red;
+    background-color: colors.$kobo-mid-red;
+    box-shadow: -10005px 0 0 10000px colors.$kobo-mid-red;
   }
 }
 input[type='range'].kobo-range__input--teal {
@@ -63,7 +63,7 @@ input[type='range'].kobo-range__input--teal {
 
   // Chrome slider is hacked by using shadow
   &::-webkit-slider-thumb {
-    background-color: colors.$kobo-red;
+    background-color: colors.$kobo-mid-red;
     box-shadow: -10005px 0 0 10000px colors.$kobo-teal;
   }
 }

@@ -380,8 +380,10 @@ processingActions.setTranscript.failed.listen(() => {
  * `deleteTranscript` action
  *
  * Use it to completely remove given transcript. Currently deleting transcript
- * means setting its value to a predefined DELETE_CHAR - Back end handles the
- * cleanup.
+ * means setting its value to a predefined DELETE_CHAR. Back end handles the
+ * cleanup - it removes the transcript, and if there is zero transcripts for
+ * given language for all the submissions, it also removes that language from
+ * `advanced_feature` (i.e. makes it "not enabled").
  */
 interface DeleteTranscriptFn {
   (assetUid: string, qpath: string, submissionEditId: string): void;
@@ -664,8 +666,10 @@ processingActions.setTranslation.failed.listen(() => {
  * `deleteTranslation` action
  *
  * Use it to completely remove given translation. Currently deleting translation
- * means setting its value to a predefined DELETE_CHAR - Back end handles the
- * cleanup.
+ * means setting its value to a predefined DELETE_CHAR. Back end handles the
+ * cleanup - it removes the translation, and if there is zero translations for
+ * given language for all the submissions, it also removes that language from
+ * `advanced_feature` (i.e. makes it "not enabled").
  */
 interface DeleteTranslationFn {
   (
