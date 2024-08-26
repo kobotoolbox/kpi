@@ -52,12 +52,14 @@ export default class Modal extends React.Component<ModalProps> {
   static Body = Body;
   static Tabs = Tabs;
 
+  escFunctionBound = this.escFunction.bind(this);
+
   componentDidMount() {
-    document.addEventListener('keydown', this.escFunction.bind(this));
+    document.addEventListener('keydown', this.escFunctionBound);
   }
 
   componentWillUnmount() {
-    document.removeEventListener('keydown', this.escFunction.bind(this));
+    document.removeEventListener('keydown', this.escFunctionBound);
   }
 
   escFunction(evt: KeyboardEvent) {
