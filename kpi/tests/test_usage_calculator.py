@@ -31,9 +31,6 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
-    attachment_id = 0
-    counter = None
-
     def setUp(self):
         super().setUp()
         self.client.login(username='anotheruser', password='anotheruser')
@@ -128,13 +125,11 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 '_uuid': str(uuid.uuid4()),
                 '_attachments': [
                     {
-                        'id': self.attachment_id,
                         'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',
                         'filename': 'anotheruser/audio_conversion_test_clip.3gp',
                         'mimetype': 'video/3gpp',
                     },
                     {
-                        'id': self.attachment_id + 1,
                         'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',
                         'filename': 'anotheruser/audio_conversion_test_image.jpg',
                         'mimetype': 'image/jpeg',
@@ -143,7 +138,6 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 '_submitted_by': 'anotheruser',
             }
             # increment the attachment ID for each attachment created
-            self.attachment_id = self.attachment_id + 2
             submissions.append(submission)
 
         self.asset.deployment.mock_submissions(submissions)
