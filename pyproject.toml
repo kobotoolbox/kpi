@@ -6,18 +6,28 @@
 # verbose = true
 line-length = 80
 skip-string-normalization = true
+
 [tool.isort]
 profile = "black"
 known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
 
 [tool.ruff]
-line-length = 80
+line-length = 88
 [tool.ruff.format]
 quote-style = "single"  # Preserve is coming soon to ruff
 [tool.ruff.lint]
-# Enable ruff isort
-extend-select = ["I"]
+extend-select = [
+    "I", # Enable ruff isort
+    "Q", # Flake quotes
+    "E", # pycodestyle, some needs `--preview` to be enable
+    "N", # PEP-8 naming convention
+    "W1", # Indentation warning
+    "W292", # no newline at end of file
+    "T20", # (p)print found
+]
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single" # To prefer single quotes over double quote
 [tool.ruff.lint.isort]
 known-first-party = ["kobo"]
 
