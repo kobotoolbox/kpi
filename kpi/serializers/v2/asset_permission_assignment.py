@@ -352,20 +352,29 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 removal.permission_codename,
             )
 
+        user_permissions = defaultdict(list)
+        user_partial_perms = defaultdict(dict)
+
         # Perform the new assignments
         for addition in incoming_assignments.difference(existing_assignments):
             if asset.owner_id == addition.user_pk:
                 raise serializers.ValidationError(
                     {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
                 )
+
+            # Group permissions by user
+            user_permissions[addition.user_pk].append(addition.permission_codename)
+
             if addition.partial_permissions_json:
                 partial_perms = json.loads(addition.partial_permissions_json)
-            else:
-                partial_perms = None
+                user_partial_perms[addition.user_pk].update(partial_perms)
+
+        # Assign the permissions for each user
+        for user_pk, permissions in user_permissions.items():
             asset.assign_perm(
-                user_obj=user_pk_to_obj_cache[addition.user_pk],
-                perm=addition.permission_codename,
-                partial_perms=partial_perms,
+                user_obj=user_pk_to_obj_cache[user_pk],
+                perm=permissions,
+                partial_perms=user_partial_perms[user_pk] if user_partial_perms[user_pk] else None
             )
 
         # Return nothing, in a nice way, because the view is responsible for
