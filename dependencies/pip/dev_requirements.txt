@@ -540,6 +540,8 @@ rpds-py==0.18.0
     #   referencing
 rsa==4.9
     # via google-auth
+ruff==0.6.2
+    # via -r dependencies/pip/dev_requirements.in
 s3transfer==0.10.1
     # via boto3
 sentinels==1.0.0

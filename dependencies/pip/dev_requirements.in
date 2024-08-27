@@ -12,6 +12,7 @@ pytest
 pytest-cov
 pytest-django
 pytest-env
+ruff
 
 
 # Kobocat
