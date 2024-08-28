@@ -1121,7 +1121,13 @@ if STRIPE_ENABLED:
     stripe_domain = "https://js.stripe.com"
     CSP_SCRIPT_SRC.append(stripe_domain)
     CSP_FRAME_SRC.append(stripe_domain)
-RYCelery configuration '''
+
+csp_report_uri = env.url('CSP_REPORT_URI', None)
+if csp_report_uri:  # Let environ validate uri, but set as string
+    CSP_REPORT_URI = csp_report_uri.geturl()
+CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", False)
+
+''' Celery configuration '''
 # Celery 4.0 New lowercase settings.
 # Uppercase settings can be used when using a PREFIX
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings
