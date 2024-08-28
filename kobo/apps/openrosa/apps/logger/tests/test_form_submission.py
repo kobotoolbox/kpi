@@ -10,7 +10,7 @@ from mock import patch
 
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.openrosa.apps.logger.models import Instance, Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse_xml
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
@@ -36,7 +36,7 @@ class TestFormSubmission(TestBase):
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml"
         )
 
         self._make_submission(xml_submission_file_path)
@@ -114,7 +114,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml"
         )
 
         # Anonymous should be able to submit data
@@ -154,7 +154,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml"
         )
         self._make_submission(xml_submission_file_path, auth=auth)
         self.assertEqual(self.response.status_code, 201)
@@ -251,6 +251,38 @@ class TestFormSubmission(TestBase):
         # this is exactly the same instance
         another_inst = Instance.objects.order_by('pk').last()
         self.assertEqual(inst.xml, another_inst.xml)
+
+    def test_duplicate_submission_with_same_content_but_with_attachment(self):
+        """
+        Test that submitting the same XML content twice,
+        first without and then with an attachment,
+        results in a single instance with the attachment added.
+        """
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(__file__),
+            "../fixtures/tutorial/instances/tutorial_with_attachment",
+            "tutorial_2012-06-27_11-27-53_w_attachment.xml"
+        )
+        media_file_path = os.path.join(
+            os.path.dirname(__file__),
+            "../fixtures/tutorial/instances/tutorial_with_attachment",
+            "1335783522563.jpg"
+        )
+        initial_instance_count = Instance.objects.count()
+
+        # Test submission with XML file
+        self._make_submission(xml_submission_file_path)
+        initial_instance = Instance.objects.last()
+        self.assertEqual(self.response.status_code, 201)
+        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
+
+        # Test duplicate submission with attachment
+        with open(media_file_path, 'rb') as media_file:
+            self._make_submission(xml_submission_file_path, media_file=media_file)
+        self.assertEqual(self.response.status_code, 201)
+        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
+        self.assertEqual(Attachment.objects.filter(instance=initial_instance).count(), 1)
+
 
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(
@@ -393,7 +425,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml"
         )
         auth = DigestAuth('alice', 'alice')
         self._make_submission(
@@ -410,7 +442,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml"
         )
         auth = DigestAuth('alice', 'alice')
         self._make_submission(

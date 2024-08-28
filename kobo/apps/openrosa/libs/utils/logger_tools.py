@@ -42,9 +42,9 @@ from xml.dom import Node
 from wsgiref.util import FileWrapper
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
-    ConflictingXMLHashInstanceError,
     DuplicateUUIDError,
     FormInactiveError,
+    InstanceIdMissingError,
     TemporarilyUnavailableError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
@@ -168,10 +168,12 @@ def create_instance(
 
     # get new and deprecated uuid's
     new_uuid = get_uuid_from_xml(xml)
+    if not new_uuid:
+        raise InstanceIdMissingError()
 
     with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
         if not lock_acquired:
-            raise ConflictingXMLHashInstanceError()
+            raise DuplicateInstanceError()
         # Dorey's rule from 2012 (commit 890a67aa):
         #   Ignore submission as a duplicate IFF
         #    * a submission's XForm collects start time
@@ -184,13 +186,13 @@ def create_instance(
         # and still exactly matches an existing submission, it's certainly a
         # duplicate (https://docs.opendatakit.org/openrosa-metadata/#fields).
 
-        if xform.has_start_time or new_uuid is not None:
+        if xform.has_start_time or new_uuid:
             # XML matches are identified by identical content hash OR, when a
             # content hash is not present, by string comparison of the full
             # content, which is slow! Use the management command
             # `populate_xml_hashes_for_instances` to hash existing submissions
             existing_instance = Instance.objects.filter(
-                Q(xml_hash=xml_hash) | Q(xml_hash=Instance.DEFAULT_XML_HASH, xml=xml),
+                xml_hash=xml_hash,
                 xform__user=xform.user,
             ).first()
         else:
@@ -591,6 +593,10 @@ def safe_create_instance(
         error = OpenRosaResponseBadRequest(
             t("Received empty submission. No instance was created")
         )
+    except InstanceIdMissingError:
+        error = OpenRosaResponseBadRequest(
+            t('Instance ID is required')
+        )
     except FormInactiveError:
         error = OpenRosaResponseNotAllowed(t("Form is not active"))
     except TemporarilyUnavailableError:
@@ -601,11 +607,6 @@ def safe_create_instance(
         )
     except ExpatError as e:
         error = OpenRosaResponseBadRequest(t("Improperly formatted XML."))
-    except ConflictingXMLHashInstanceError:
-        response = OpenRosaResponse(t('Conflict with already existing instance'))
-        response.status_code = 409
-        response['Location'] = request.build_absolute_uri(request.path)
-        error = response
     except DuplicateInstanceError:
         response = OpenRosaResponse(t('Duplicate instance'))
         response.status_code = 202

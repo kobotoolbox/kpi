@@ -1,13 +1,14 @@
 <?xml version='1.0' ?>
 <tutorial id="tutorial">
-  <formhub><uuid>268cd8a2be654b01928f29c05ed26394</uuid></formhub>
-  <name>Larry Again</name>
+  <name>Larry
+        Again
+  </name><!-- newline to make sure we can handle it -->
   <age>23</age>
-  <picture>1333604907194.jpg</picture>
+  <picture>1335783522563.jpg</picture>
   <has_children>0</has_children>
   <gps>-1.2836198 36.8795437 0.0 1044.0</gps>
   <web_browsers>firefox chrome safari</web_browsers>
   <meta>
-    <instanceID>uuid:364f173c688e482486a48661700466gg</instanceID>
+    <instanceID>uuid:729f173c688e482486a48661700455ff</instanceID>
   </meta>
 </tutorial>

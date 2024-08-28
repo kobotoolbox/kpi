@@ -5,11 +5,13 @@ import os
 from typing import Optional
 from uuid import uuid4
 
+from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.dateparse import parse_datetime
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     dict2xform,
     safe_create_instance,
@@ -118,6 +120,14 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
                 request=request,
             )
             if error:
+                error_dict = error.__dict__
+                if '_container' in error_dict and len(error_dict['_container']) > 0:
+                    xml_response = error_dict['_container'][0]
+                    message_text = DET.fromstring(xml_response).findtext(
+                        './/{http://openrosa.org/http/response}message'
+                    )
+                    if message_text == 'Instance ID is required':
+                        raise InstanceIdMissingError()
                 raise Exception(error)
 
             # Inject (or update) real PKs in submission…

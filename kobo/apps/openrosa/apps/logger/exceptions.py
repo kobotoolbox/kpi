@@ -10,10 +10,6 @@ class BuildDbQueriesNoConfirmationProvidedError(Exception):
     pass
 
 
-class ConflictingXMLHashInstanceError(Exception):
-    pass
-
-
 class DuplicateInstanceError(Exception):
     def __init__(self, message='Duplicate Instance'):
         super().__init__(message)
@@ -34,6 +30,11 @@ class InstanceEmptyError(Exception):
 
 class InstanceInvalidUserError(Exception):
     def __init__(self, message='Could not determine the user'):
+        super().__init__(message)
+
+
+class InstanceIdMissingError(Exception):
+    def __init__(self, message='Could not determine the instance ID'):
         super().__init__(message)
 
 

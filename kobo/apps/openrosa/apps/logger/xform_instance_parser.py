@@ -55,15 +55,19 @@ def get_meta_from_xml(xml_str: str, meta_name: str) -> str:
 
 def get_uuid_from_xml(xml):
 
-    def _uuid_only(uuid, regex):
-        matches = regex.match(uuid)
-        if matches and len(matches.groups()) > 0:
-            return matches.groups()[0]
-        return None
+    def _uuid_only(uuid):
+        """
+        Strips the 'uuid:' prefix from the provided identifier if it exists.
+        This preserves any custom ID schemes (e.g., 'getodk.org:123456789')
+        while ensuring only the 'uuid:' prefix is removed. This approach
+        adheres to the OpenRosa spec, allowing custom prefixes to be stored
+        intact in the database to prevent potential ID collisions.
+        """
+        return re.sub(r'^uuid:', '', uuid)
+
     uuid = get_meta_from_xml(xml, "instanceID")
-    regex = re.compile(r"uuid:(.*)")
     if uuid:
-        return _uuid_only(uuid, regex)
+        return _uuid_only(uuid)
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)
     children = xml.childNodes
@@ -74,12 +78,12 @@ def get_uuid_from_xml(xml):
     survey_node = children[0]
     uuid = survey_node.getAttribute('instanceID')
     if uuid != '':
-        return _uuid_only(uuid, regex)
+        return _uuid_only(uuid)
     return None
 
 
 def get_root_uuid_from_xml(xml):
-    root_uuid = get_meta_from_xml(xml, "rootUuid")
+    root_uuid = get_meta_from_xml(xml, 'rootUuid')
     if root_uuid:
         return root_uuid
 

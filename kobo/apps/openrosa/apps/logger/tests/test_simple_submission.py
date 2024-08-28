@@ -1,4 +1,6 @@
 # coding: utf-8
+import uuid
+
 from django.test import TestCase, RequestFactory
 from pyxform import SurveyElementBuilder
 
@@ -35,9 +37,12 @@ class TestSimpleSubmission(TestCase):
         xform.save()
 
     def _submit_at_hour(self, hour):
-        st_xml = '<?xml version=\'1.0\' ?><start_time id="start_time"><st'\
-                 'art_time>2012-01-11T%d:00:00.000+00</start_time></start'\
-                 '_time>' % hour
+        st_xml = (
+            f'<?xml version=\'1.0\' ?><start_time id="start_time">'
+            f'<start_time>2012-01-11T{hour}:00:00.000+00</start_time>'
+            f'<meta><instanceID>uuid:918a1889-389f-4427-b48a-0ba16b7c9b{hour}</instanceID></meta>'
+            f'</start_time>'
+        )
         try:
             create_instance(self.user.username, TempFileProxy(st_xml), [])
         except DuplicateInstanceError:
@@ -45,8 +50,10 @@ class TestSimpleSubmission(TestCase):
 
     def _submit_simple_yes(self):
         create_instance(self.user.username, TempFileProxy(
-            '<?xml version=\'1.0\' ?><yes_or_no id="yes_or_no"><yesno>Yes<'
-            '/yesno></yes_or_no>'), [])
+            f'<?xml version=\'1.0\' ?><yes_or_no id="yes_or_no"><yesno>Yes<'
+            f'/yesno>'
+            f'<meta><instanceID>uuid:{str(uuid.uuid4())}</instanceID></meta>'
+            f'</yes_or_no>'), [])
 
     def setUp(self):
         self.user = User.objects.create(

@@ -23,6 +23,7 @@ from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
@@ -1567,6 +1568,16 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # The form UUID is already omitted by these tests, but fail if that
         # changes in the future
         assert 'formhub/uuid' not in submission.keys()
+
+        # Attempt to mock the submission without UUIDs
+        with self.assertRaises(InstanceIdMissingError) as ex:
+            self.asset.deployment.mock_submissions([submission], create_uuids=False)
+
+        # Rejecting the submission because it does not have an instance ID
+        self.assertEqual(str(ex.exception), 'Could not determine the instance ID')
+
+        # Test the edit flow with a submission that has a UUID
+        submission['meta/instanceID'] = "uuid:9710c729-00a5-41f1-b740-8dd618bb4a49"
         self.asset.deployment.mock_submissions([submission], create_uuids=False)
 
         # Find and verify the new submission
@@ -1584,8 +1595,6 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         submission_xml_root = fromstring_preserve_root_xmlns(submission_xml)
         assert submission_json['_id'] == submission['_id']
         assert submission_xml_root.find('./find_this').text == 'hello!'
-        assert submission_xml_root.find('./meta/instanceID') is None
-        assert submission_xml_root.find('./formhub/uuid') is None
 
         # Get edit endpoint
         edit_url = reverse(

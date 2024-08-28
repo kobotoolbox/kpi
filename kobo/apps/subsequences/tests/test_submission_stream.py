@@ -257,7 +257,8 @@ class TestSubmissionStream(TestCase):
                 '_uuid': '1c05898e-b43c-491d-814c-79595eb84e81',
             },
         ]
-        self.asset.deployment.mock_submissions(submissions)
+        with self.assertRaises(Exception) as ex:
+            self.asset.deployment.mock_submissions(submissions)
 
         # Process submissions with extras
         output = list(

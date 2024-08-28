@@ -233,7 +233,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             self.assertTrue('error' in rendered_response.data)
             self.assertTrue(
                 rendered_response.data['error'].startswith(
-                    'Received empty submission'
+                    'Instance ID is required'
                 )
             )
             self.assertTrue(rendered_response.status_code == 400)
@@ -513,7 +513,7 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
                 results[result] += 1
 
         assert results[status.HTTP_201_CREATED] == 1
-        assert results[status.HTTP_409_CONFLICT] == DUPLICATE_SUBMISSIONS_COUNT - 1
+        assert results[status.HTTP_202_ACCEPTED] == DUPLICATE_SUBMISSIONS_COUNT - 1
 
 
 def submit_data(identifier, survey_, username_, live_server_url, token_):
