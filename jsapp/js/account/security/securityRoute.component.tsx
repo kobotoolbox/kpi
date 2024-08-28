@@ -5,8 +5,8 @@ import EmailSection from './email/emailSection.component';
 import ApiTokenSection from './apiToken/apiTokenSection.component';
 import SsoSection from './sso/ssoSection.component';
 import style from './securityRoute.module.scss';
-// import AccessLogsSection from './accessLogs/accessLogs.component';
-import AccessLogsSection from './accessLogs/refactoredAccessLogs.component';
+// import AccessLogSection from './accessLog/accessLog.component';
+import AccessLogSection from './accessLog/refactoredAccessLog.component';
 
 export default function securityRoute() {
   return (
@@ -17,7 +17,7 @@ export default function securityRoute() {
       <ApiTokenSection />
       <MfaSection />
       <SsoSection />
-      <AccessLogsSection />
+      <AccessLogSection />
     </div>
   );
 }
