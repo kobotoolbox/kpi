@@ -1,0 +1,14 @@
+name: Python linter (Darker)
+
+on: [pull_request]
+jobs:
+  darker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+      - uses: akaihola/darker@master
+        with:
+          lint: "flake8 --max-line-length=88"

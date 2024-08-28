@@ -7,6 +7,20 @@
 line-length = 80
 skip-string-normalization = true
 
+[tool.darker]
+src = [
+    "kobo",
+    "hub",
+    "kpi",
+]
+check = true
+diff = true
+isort = true
+# Cannot be used with VSCode
+# lint = [
+#    "flake8 --max-line-length=88",
+# ]
+
 [tool.isort]
 profile = "black"
 known_first_party = "kobo"
