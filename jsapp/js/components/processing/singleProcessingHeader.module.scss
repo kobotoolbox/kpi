@@ -6,7 +6,7 @@
 .root {
   @include mixins.centerRowFlex;
   height: 100%;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   gap: 10px;
   min-height: 60px;
 }

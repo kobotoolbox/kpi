@@ -28,8 +28,8 @@
 
     .checkbox__input:checked {
       color: colors.$kobo-white;
-      border-color: colors.$kobo-gray-40;
-      background-color: colors.$kobo-gray-40;
+      border-color: colors.$kobo-gray-700;
+      background-color: colors.$kobo-gray-700;
     }
   }
 
@@ -37,7 +37,7 @@
   .checkbox__wrapper:hover {
     // Unchecked
     .checkbox__input:not(:checked) {
-      border-color: colors.$kobo-gray-40;
+      border-color: colors.$kobo-gray-700;
       background-color: colors.$kobo-bg-blue;
     }
 
@@ -57,7 +57,7 @@
 
   .checkbox__label {
     max-width: calc(100% - sizes.$x32);
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
     font-size: variables.$base-font-size;
   }
 
@@ -70,8 +70,8 @@
     appearance: none;
     position: relative;
     margin: 0;
-    color: colors.$kobo-gray-65;
-    border: sizes.$x1 solid colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
+    border: sizes.$x1 solid colors.$kobo-gray-500;
     background-color: colors.$kobo-white;
     width: sizes.$x20;
     height: sizes.$x20;

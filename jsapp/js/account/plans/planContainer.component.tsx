@@ -148,7 +148,7 @@ export const PlanContainer = ({
                   color={item.icon === 'positive_pro' ? 'teal' : 'storm'}
                 />
               ) : (
-                <Icon name='close' size='m' color='red' />
+                <Icon name='close' size='m' color='mid-red' />
               )}
             </div>
             {item.label}
