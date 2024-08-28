@@ -11,4 +11,5 @@ jobs:
       - uses: actions/setup-python@v5
       - uses: akaihola/darker@master
         with:
+          version: "~=2.1.1"
           lint: "flake8 --max-line-length=88"
