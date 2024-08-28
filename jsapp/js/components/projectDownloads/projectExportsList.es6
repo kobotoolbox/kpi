@@ -15,6 +15,7 @@ import {
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
 import {userCan} from 'js/components/permissions/utils';
+import Button from 'js/components/common/button';
 
 /**
  * Component that displays all available downloads (for logged in user only).
@@ -208,15 +209,18 @@ export default class ProjectExportsList extends React.Component {
           {this.renderBooleanAnswer(exportData.data.fields_from_all_versions)}
         </bem.SimpleTable__cell>
 
-        <bem.SimpleTable__cell m='text-right'>
+        <bem.SimpleTable__cell className='export-list-buttons'>
           {exportData.status === EXPORT_STATUSES.complete &&
-            <a
-              className='kobo-light-button kobo-light-button--blue'
-              href={exportData.result}
-            >
-              <i className='k-icon k-icon-download'/>
-              {t('Download')}
-            </a>
+            <Button
+              type='frame'
+              color='blue'
+              size='m'
+              startIcon='download'
+              label={t('Download')}
+              onClick={() => {
+                window.open(exportData.result, '_blank');
+              }}
+            />
           }
 
           {exportData.status === EXPORT_STATUSES.error &&
@@ -233,12 +237,13 @@ export default class ProjectExportsList extends React.Component {
           }
 
           {userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
-            <bem.KoboLightButton
-              m={['red', 'icon-only']}
+            <Button
+              type='frame'
+              color='dark-red'
+              size='m'
+              startIcon='trash'
               onClick={this.deleteExport.bind(this, exportData.uid)}
-            >
-              <i className='k-icon k-icon-trash'/>
-            </bem.KoboLightButton>
+            />
           }
         </bem.SimpleTable__cell>
       </bem.SimpleTable__row>

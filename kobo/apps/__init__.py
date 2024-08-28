@@ -2,6 +2,7 @@
 from django.apps import AppConfig
 from django.core.checks import register, Tags
 
+import kpi.utils.monkey_patching  # Needed to apply monkey patch.
 from kpi.utils.two_database_configuration_checker import \
     TwoDatabaseConfigurationChecker
 

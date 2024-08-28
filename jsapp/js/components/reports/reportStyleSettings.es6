@@ -6,6 +6,8 @@ import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import ChartTypePicker from './chartTypePicker.component';
 import ChartColorsPicker from './chartColorsPicker';
+import Button from 'js/components/common/button';
+import cx from 'classnames';
 
 export default class ReportStyleSettings extends React.Component {
   constructor(props) {
@@ -122,17 +124,13 @@ export default class ReportStyleSettings extends React.Component {
     }
 
     var modalTabs = tabs.map(function (tab, i) {
-      let tabClassNames = [
-        'mdl-button',
-        'mdl-button--tab',
-      ];
-      if (this.state.activeModalTab === i) {
-        tabClassNames.push('active');
-      }
       return (
         <button
-          className={tabClassNames.join(' ')}
-          onClick={this.toggleTab}
+          className={cx({
+            'legacy-modal-tab-button': true,
+            'legacy-modal-tab-button--active': this.state.activeModalTab === i,
+          })}
+          onClick={this.toggleTab.bind(this)}
           data-index={i}
           key={i}
         >
@@ -164,7 +162,7 @@ export default class ReportStyleSettings extends React.Component {
             )}
             {tabs[this.state.activeModalTab] === t('Group By') &&
               groupByOptions.length > 1 && (
-                <div className='graph-tab__groupby' id='graph-labels'>
+                <div className='graph-tab__groupby' id='graph-labels' dir='auto'>
                   <Radio
                     name='reports-groupby'
                     options={groupByOptions}
@@ -186,9 +184,13 @@ export default class ReportStyleSettings extends React.Component {
               )}
           </div>
           <Modal.Footer>
-            <bem.KoboButton m='blue' onClick={this.saveReportStyles}>
-              {t('Save')}
-            </bem.KoboButton>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              onClick={this.saveReportStyles.bind(this)}
+              label={t('Save')}
+            />
           </Modal.Footer>
         </Modal.Body>
       </bem.GraphSettings>

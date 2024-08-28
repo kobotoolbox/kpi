@@ -4,10 +4,12 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Dict, List, Literal, Union
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
 from kpi.constants import SUFFIX_SUBMISSIONS_PERMS
+from kpi.models.abstract_models import AbstractTimeStampedModel
 
 SimplePartialPermFilter = Dict[str, str]
 """Basic filter such as my_question: my_response"""
@@ -78,7 +80,7 @@ def add_implied_permission(
     return perms
 
 
-class AssetUserPartialPermission(models.Model):
+class AssetUserPartialPermission(AbstractTimeStampedModel):
     """
     Many-to-Many table which provides users' permissions
     on other users' submissions
@@ -109,19 +111,11 @@ class AssetUserPartialPermission(models.Model):
         on_delete=models.CASCADE,
     )
     user = models.ForeignKey(
-        'auth.User',
+        settings.AUTH_USER_MODEL,
         related_name='user_partial_permissions',
         on_delete=models.CASCADE,
     )
     permissions = models.JSONField(default=dict)
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
-
-    def save(self, *args, **kwargs):
-        if self.pk is not None:
-            self.date_modified = timezone.now()
-
-        super().save(*args, **kwargs)
 
     @staticmethod
     def update_partial_perms_to_include_implied(

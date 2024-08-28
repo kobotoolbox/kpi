@@ -1,9 +1,10 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .submission-data-list {
   list-style: none;
   overflow-x: hidden;
   overflow-y: auto;
+  padding: 0;
 }
 
 .submission-data-list-question:not(:first-of-type) {

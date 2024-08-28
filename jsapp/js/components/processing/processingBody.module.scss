@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/mixins';
 @use 'scss/breakpoints';
@@ -27,6 +27,10 @@
 .root.stepConfig {
   max-width: sizes.$x600 + (2 * sizes.$x30); // include paddings
   margin: 0 auto;
+}
+
+.root.stepConfig :global .loadingSpinner {
+  height: auto;
 }
 
 .root.stepBegin {

@@ -1,6 +1,6 @@
 @use 'scss/sizes';
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/_variables';
 
 // Note: this needs to override a lot of styles defined in `_kobo.bem.ui.scss`,

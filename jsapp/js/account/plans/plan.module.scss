@@ -1,5 +1,5 @@
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/breakpoints';
 @use 'sass:color';
 @use 'scss/_variables';
@@ -121,13 +121,8 @@ $plan-badge-height: 38px;
   padding: 0 0 sizes.$x12 0;
 }
 
-.priceName {
-  text-align: left;
-}
-
 .priceTitle {
   color: colors.$kobo-dark-blue;
-  text-align: left;
   font-size: sizes.$x20;
   padding-bottom: sizes.$x16;
   font-weight: 700;
@@ -236,6 +231,7 @@ a.enterpriseLink {
   margin-left: auto;
   margin-right: auto;
   width: $plans-page-card-width;
+  text-align: center;
 }
 
 .planButton {

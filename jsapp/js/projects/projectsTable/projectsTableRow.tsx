@@ -123,6 +123,14 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           return null;
         }
 
+        // All the columns that could have user content
+        const isUserContent = (
+          field.name === 'name' ||
+          field.name === 'description' ||
+          field.name === 'ownerFullName' ||
+          field.name === 'ownerOrganization'
+        );
+
         return (
           <div
             className={classNames({
@@ -136,6 +144,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
             // This attribute is being used for styling and for ColumnResizer
             data-field={field.name}
             key={field.name}
+            dir={isUserContent ? 'auto' : undefined}
           >
             {renderColumnContent(field)}
           </div>

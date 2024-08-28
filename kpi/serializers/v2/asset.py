@@ -286,7 +286,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     owner = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail', lookup_field='username', read_only=True)
+        view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
@@ -893,6 +893,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return {**self.instance.settings, **settings}
 
     def _content(self, obj):
+        # FIXME: Is this dead code?
         return json.dumps(obj.content)
 
     def _get_status(self, perm_assignments):

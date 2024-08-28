@@ -3,13 +3,12 @@ import json
 import unittest
 from urllib.parse import unquote_plus
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
-from lxml import etree
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, ExportTask
 from kpi.models.import_export_task import export_upload_to
@@ -18,6 +17,7 @@ from kpi.serializers.v1.asset import AssetListSerializer
 from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.utils.xml import check_lxml_fromstring
 
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
@@ -69,7 +69,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         response = self.client.get(reverse('asset-detail',
                                            kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = etree.fromstring(response.content)
+        xml = check_lxml_fromstring(response.content)
         title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertEqual(title_elts[0].text, asset_title)
@@ -83,7 +83,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         response = self.client.get(reverse('asset-detail',
                                            kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = etree.fromstring(response.content)
+        xml = check_lxml_fromstring(response.content)
         title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertEqual(title_elts[0].text, asset_name)
@@ -96,7 +96,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         response = self.client.get(reverse('asset-detail',
                                            kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = etree.fromstring(response.content)
+        xml = check_lxml_fromstring(response.content)
         title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertNotEqual(title_elts[0].text, '')
@@ -119,7 +119,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         response = self.client.get(reverse('asset-detail',
                                            kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = etree.fromstring(response.content)
+        xml = check_lxml_fromstring(response.content)
         group_elts = xml.xpath('./*[local-name()="body"]/*[local-name()="group"]')
         self.assertEqual(len(group_elts), 1)
         self.assertNotIn('relevant', group_elts[0].attrib)
@@ -256,7 +256,7 @@ class AssetExportTaskTest(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.create(
-            content={'survey': [{"type": "text", "name": "q1"}]},
+            content={'survey': [{'type': 'text', 'label': 'q1', 'name': 'q1'}]},
             owner=self.user,
             asset_type='survey',
             name='тєѕт αѕѕєт'
@@ -264,11 +264,12 @@ class AssetExportTaskTest(BaseTestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
         v_uid = self.asset.latest_deployed_version.uid
-        submission = {
+        self.submission = {
             '__version__': v_uid,
-            'q1': '¿Qué tal?'
+            'q1': '¿Qué tal?',
+            '_submission_time': '2024-08-07T23:42:21',
         }
-        self.asset.deployment.mock_submissions([submission])
+        self.asset.deployment.mock_submissions([self.submission], )
 
     def test_owner_can_create_export(self):
         post_url = reverse('exporttask-list')
@@ -292,9 +293,8 @@ class AssetExportTaskTest(BaseTestCase):
         version_uid = self.asset.latest_deployed_version_uid
         expected_content = ''.join([
             '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"\r\n',
-            f'"¿Qué tal?";"1";"";"";"";"";"";"";"{version_uid}";"";"1"\r\n',
+            f'"¿Qué tal?";"{self.submission["_id"]}";"{self.submission["_uuid"]}";"2024-08-07T23:42:21";"";"";"submitted_via_web";"someuser";"{version_uid}";"";"1"\r\n',
         ])
-
         self.assertEqual(result_content, expected_content)
         return detail_response
 

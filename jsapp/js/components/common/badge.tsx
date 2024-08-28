@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from 'classnames';
+import cx from 'classnames';
 import {ButtonToIconMap} from 'js/components/common/button';
 import styles from './badge.module.scss';
 import type {IconName} from 'jsapp/fonts/k-icons';
@@ -24,16 +24,22 @@ interface BadgeProps {
   size: BadgeSize;
   icon?: IconName;
   label: React.ReactNode;
+  /**
+   * Use it to ensure that the badge will always be display in whole. Without
+   * this (the default behaviour) the badge will take as much space as it gets,
+   * and hide overflowing content with ellipsis.
+   */
+  disableShortening?: boolean;
 }
 
 export default function Badge(props: BadgeProps) {
   return (
     <div
-      className={classNames([
+      className={cx([
         styles.root,
         styles[`color-${props.color}`],
         styles[`size-${props.size}`],
-      ])}
+      ], {[styles.disableShortening]: props.disableShortening})}
     >
       {props.icon && (
         <Icon
@@ -42,7 +48,7 @@ export default function Badge(props: BadgeProps) {
           name={props.icon}
         />
       )}
-      <label className={styles.label}>{props.label}</label>
+      <span className={styles.label}>{props.label}</span>
     </div>
   );
 }

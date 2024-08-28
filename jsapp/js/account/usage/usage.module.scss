@@ -1,6 +1,6 @@
 @use 'scss/breakpoints';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .root {
   padding: sizes.$x40;

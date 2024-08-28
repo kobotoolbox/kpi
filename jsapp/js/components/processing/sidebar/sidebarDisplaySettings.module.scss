@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 
 .root {
@@ -26,9 +26,9 @@
   }
 }
 
-.options {
-  margin: 0 !important;
-  overflow-y: auto;
+// We need to win the specificity here
+ul.options.options {
+  margin: 0;
 }
 
 .questionList {

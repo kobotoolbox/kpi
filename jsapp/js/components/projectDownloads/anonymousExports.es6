@@ -11,6 +11,7 @@ import {getContextualDefaultExportFormat} from 'js/components/projectDownloads/e
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
 import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
+import Button from 'js/components/common/button';
 
 /**
  * A compontent that ROUTES.FORM_DOWNLOADS route is displayint for not logged in
@@ -119,11 +120,6 @@ export default class AnonymousExports extends React.Component {
    * selector and the export button for simplicity.
    */
   render() {
-    const buttonModifiers = ['blue'];
-    if (this.state.isPending) {
-      buttonModifiers.push('pending');
-    }
-
     return (
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.ProjectDownloads__anonymousRow>
@@ -134,17 +130,15 @@ export default class AnonymousExports extends React.Component {
             />
           </bem.ProjectDownloads__exportsSelector>
 
-          <bem.KoboButton
-            m={buttonModifiers}
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={this.state.isPending}
-          >
-            {t('Export')}
-            {this.state.isPending &&
-              <i className='k-spin k-icon k-icon-spinner'/>
-            }
-          </bem.KoboButton>
+          <Button
+            type='full'
+            color='blue'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isPending={this.state.isPending}
+            label={t('Export')}
+          />
         </bem.ProjectDownloads__anonymousRow>
       </bem.FormView__cell>
     );

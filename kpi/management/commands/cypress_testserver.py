@@ -1,11 +1,11 @@
 # coding: utf-8
 from allauth.account.models import EmailAddress
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 
 
@@ -381,4 +381,4 @@ class Command(BaseCommand):
             submission['__version__'] = latest_version_uuid
             return submission
         submission_generator = (set_version(s) for s in submissions)
-        asset.deployment.mock_submissions(submission_generator, flush_db=False)
+        asset.deployment.mock_submissions(submission_generator)

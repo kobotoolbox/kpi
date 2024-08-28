@@ -1,7 +1,7 @@
 @use "scss/_variables";
 @use "scss/breakpoints";
 @use "sass:color";
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // ==========================================================================
 // Registration Forms
@@ -454,7 +454,7 @@ form.registration--login > p > span.helptext{
       }
 
       .registration--logo {
-        text-align: left;
+        text-align: initial;
         margin: 0;
         margin-left: -5px;
         width: 48%;

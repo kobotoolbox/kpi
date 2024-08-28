@@ -1,6 +1,6 @@
 @use 'scss/sizes';
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .root {
   background: colors.$kobo-white;
@@ -38,21 +38,14 @@
   line-height: sizes.$x24;
   padding: 0 sizes.$x24;
 
-  p:first-of-type {
-    margin: sizes.$x16 0;
+  p {
+    // Reset browser defaults
+    margin: 0;
   }
-}
 
-.warning {
-  display: flex;
-  padding: sizes.$x12;
-  margin: sizes.$x24 0 sizes.$x24 0;
-  background-color: colors.$kobo-light-red;;
-  border-radius: sizes.$x5;
-}
-
-.warningIcon {
-  margin-right: sizes.$x8;
+  p:not(:last-child) {
+    margin-bottom: sizes.$x16;
+  }
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {

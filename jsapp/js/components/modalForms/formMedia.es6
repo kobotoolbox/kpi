@@ -315,12 +315,13 @@ class FormMedia extends React.Component {
 
                   {this.renderFileName(item)}
 
-                  <bem.KoboLightButton
-                    m={['red', 'icon-only']}
+                  <Button
+                    type='frame'
+                    color='dark-red'
+                    size='m'
+                    startIcon='trash'
                     onClick={(evt) => this.onDeleteMedia(evt, item.url)}
-                  >
-                    <i className='k-icon k-icon-trash' />
-                  </bem.KoboLightButton>
+                  />
                 </bem.FormMedia__listItem>
               ))}
             </ul>

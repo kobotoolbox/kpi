@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use "scss/_variables";
 @use "scss/libs/_mdl";
 @use 'scss/z-indexes';
@@ -70,22 +70,6 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
   color: colors.$kobo-gray-40;
   background-color: colors.$kobo-gray-96;
   height: 40px;
-
-  .mdl-button {
-    margin-left: 0;
-    margin-right: 0;
-    padding-right: 0;
-    padding-left: 12px;
-    line-height: 32px;
-    height: 32px;
-    min-height: 32px;
-
-    .k-icon {
-      font-size: 24px;
-      margin: 0 3px;
-      float: right;
-    }
-  }
 }
 
 .assets-table--MY_LIBRARY,

@@ -22,13 +22,39 @@ class Migration(migrations.Migration):
                 ('app_label', models.CharField(max_length=100)),
                 ('model_name', models.CharField(max_length=100)),
                 ('object_id', models.BigIntegerField()),
-                ('date_created', models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
+                (
+                    'date_created',
+                    models.DateTimeField(
+                        db_index=True, default=django.utils.timezone.now
+                    ),
+                ),
                 ('metadata', models.JSONField(default=dict)),
-                ('method', models.CharField(choices=[('create', 'CREATE'), ('delete', 'DELETE'), ('update', 'UPDATE')], db_index=True, default='delete', max_length=6)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    'method',
+                    models.CharField(
+                        choices=[
+                            ('create', 'CREATE'),
+                            ('delete', 'DELETE'),
+                            ('update', 'UPDATE'),
+                        ],
+                        db_index=True,
+                        default='delete',
+                        max_length=6,
+                    ),
+                ),
+                (
+                    'user',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'index_together': {('app_label', 'model_name'), ('app_label', 'model_name', 'method')},
+                'index_together': {
+                    ('app_label', 'model_name'),
+                    ('app_label', 'model_name', 'method'),
+                },
             },
         ),
     ]

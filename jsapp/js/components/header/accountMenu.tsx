@@ -10,6 +10,7 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {isAnyRouteBlockerActive} from 'js/router/routerUtils';
+import Button from 'js/components/common/button';
 
 /**
  * UI element that display things only for logged-in user. An avatar that gives
@@ -104,12 +105,14 @@ export default function AccountMenu() {
             */}
             {!isAnyRouteBlockerActive() && (
               <bem.AccountBox__menuItem m={'settings'}>
-                <bem.KoboButton
+                <Button
+                  type='full'
+                  color='blue'
+                  size='l'
+                  isFullWidth
                   onClick={openAccountSettings}
-                  m={['blue', 'fullwidth']}
-                >
-                  {t('Account Settings')}
-                </bem.KoboButton>
+                  label={t('Account Settings')}
+                />
               </bem.AccountBox__menuItem>
             )}
           </bem.AccountBox__menuLI>

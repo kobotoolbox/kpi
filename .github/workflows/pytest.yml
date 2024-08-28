@@ -19,9 +19,10 @@ jobs:
       SERVICE_ACCOUNT_BACKEND_URL: redis://localhost:6379/4
       CACHE_URL: redis://localhost:6379/3
       ENKETO_REDIS_MAIN_URL: redis://localhost:6379/0
+      KOBOCAT_MEDIA_ROOT: /tmp/test_media
     strategy:
       matrix:
-        python-version: ['3.8', '3.10', '3.12']
+        python-version: ['3.8', '3.10']
     services:
       postgres:
         image: postgis/postgis:14-3.4

@@ -6,10 +6,11 @@ from django.db import models
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 
 
-class Hook(models.Model):
+class Hook(AbstractTimeStampedModel):
 
     # Export types
     XML = "xml"
@@ -39,8 +40,6 @@ class Hook(models.Model):
     export_type = models.CharField(choices=EXPORT_TYPE_CHOICES, default=JSON, max_length=10)
     auth_level = models.CharField(choices=AUTHENTICATION_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
     settings = models.JSONField(default=dict)
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
     email_notification = models.BooleanField(default=True)
     subset_fields = ArrayField(
         models.CharField(max_length=500),
@@ -55,11 +54,6 @@ class Hook(models.Model):
     def __init__(self, *args, **kwargs):
         self.__totals = {}
         super().__init__(*args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        # Update date_modified each time object is saved
-        self.date_modified = timezone.now()
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return "%s:%s - %s" % (self.asset, self.name, self.endpoint)

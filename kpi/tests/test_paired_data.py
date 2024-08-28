@@ -1,7 +1,7 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django.test import TestCase
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PERM_VIEW_SUBMISSIONS
 from kpi.models.asset import Asset
 from kpi.models.paired_data import PairedData

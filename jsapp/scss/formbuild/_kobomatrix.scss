@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .card__kobomatrix {
   border: 1px solid colors.$kobo-gray-65;
@@ -98,7 +98,7 @@
 }
 
 .matrix-cols__settings_inner {
-  text-align: left;
+  text-align: initial;
   width: 500px;
   margin: 0 auto;
   padding: 0px 20px;

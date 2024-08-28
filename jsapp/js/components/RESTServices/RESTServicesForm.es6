@@ -1,7 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
-import alertify from 'alertifyjs';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
@@ -14,6 +13,7 @@ import {KEY_CODES} from 'js/constants';
 import envStore from 'js/envStore';
 import {notify} from 'js/utils';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 const EXPORT_TYPES = {
   json: {
@@ -335,6 +335,8 @@ export default class RESTServicesForm extends React.Component {
         </label>
 
         {this.state.customHeaders.map((item, n) => {
+          // TODO change these inputs into `<TextBox>`es, make sure that that
+          // weird onChange handling is turned into something less confusing
           return (
             <bem.FormModal__item m='http-header-row' key={n}>
               <input
@@ -344,8 +346,8 @@ export default class RESTServicesForm extends React.Component {
                 name='headerName'
                 value={this.state.customHeaders[n].name}
                 data-index={n}
-                onChange={this.handleCustomHeaderChange}
-                onKeyPress={this.onCustomHeaderInputKeyPress}
+                onChange={this.handleCustomHeaderChange.bind(this)}
+                onKeyPress={this.onCustomHeaderInputKeyPress.bind(this)}
               />
 
               <input
@@ -355,29 +357,31 @@ export default class RESTServicesForm extends React.Component {
                 name='headerValue'
                 value={this.state.customHeaders[n].value}
                 data-index={n}
-                onChange={this.handleCustomHeaderChange}
-                onKeyPress={this.onCustomHeaderInputKeyPress}
+                onChange={this.handleCustomHeaderChange.bind(this)}
+                onKeyPress={this.onCustomHeaderInputKeyPress.bind(this)}
               />
 
-              <bem.Button
-                m='icon'
+              <Button
+                type='bare'
+                color='dark-red'
+                size='m'
                 className='http-header-row-remove'
                 data-index={n}
-                onClick={this.removeCustomHeaderRow}
-              >
-                <i className='k-icon k-icon-trash'/>
-              </bem.Button>
+                startIcon='trash'
+                onClick={this.removeCustomHeaderRow.bind(this)}
+              />
             </bem.FormModal__item>
           );
         })}
 
-        <bem.KoboButton
-          m='small'
-          onClick={this.addNewCustomHeaderRow}
-        >
-          <i className='k-icon k-icon-plus' />
-          {t('Add header')}
-        </bem.KoboButton>
+        <Button
+          type='frame'
+          color='dark-blue'
+          size='s'
+          startIcon='plus'
+          onClick={this.addNewCustomHeaderRow.bind(this)}
+          label={t('Add header')}
+        />
       </bem.FormModal__item>
     );
   }
@@ -521,13 +525,14 @@ export default class RESTServicesForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.Modal__footer>
-            <bem.KoboButton
-              m='blue'
-              onClick={this.onSubmit}
-              disabled={this.state.isSubmitPending}
-            >
-              { isEditingExistingHook ? t('Save') : t('Create') }
-            </bem.KoboButton>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              onClick={this.onSubmit.bind(this)}
+              isDisabled={this.state.isSubmitPending}
+              label={isEditingExistingHook ? t('Save') : t('Create')}
+            />
           </bem.Modal__footer>
         </bem.FormModal__form>
       );

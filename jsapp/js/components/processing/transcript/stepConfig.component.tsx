@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import cx from 'classnames';
 import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
@@ -13,8 +13,23 @@ import type {
 import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
 import envStore from 'js/envStore';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component';
+import {UsageLimitTypes} from 'js/account/stripe.types';
+import {UsageContext} from 'js/account/usage/useUsage.hook';
+import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
 
 export default function StepConfig() {
+  const [usage] = useContext(UsageContext);
+  const limits = useExceedingLimits();
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] =
+    useState<boolean>(false);
+  const isOverLimit = useMemo(() => {
+    return limits.exceedList.includes(UsageLimitTypes.TRANSCRIPTION);
+  }, [limits.exceedList]);
+
+  function dismissLimitBlockModal() {
+    setIsLimitBlockModalOpen(false);
+  }
   /** Changes the draft value, preserving the other draft properties. */
   function setDraftValue(newVal: string | undefined) {
     const newDraft =
@@ -62,6 +77,14 @@ export default function StepConfig() {
     singleProcessingStore.setTranscriptDraft(newDraft);
   }
 
+  function onAutomaticButtonClick() {
+    if (isOverLimit) {
+      setIsLimitBlockModalOpen(true);
+    } else {
+      selectModeAuto();
+    }
+  }
+
   const draft = singleProcessingStore.getTranscriptDraft();
   const typeLabel =
     singleProcessingStore.currentQuestionType || t('source file');
@@ -103,9 +126,15 @@ export default function StepConfig() {
           />
 
           <TransxAutomaticButton
-            onClick={selectModeAuto}
+            onClick={onAutomaticButtonClick}
             selectedLanguage={draft?.languageCode}
             type='transcript'
+          />
+          <NlpUsageLimitBlockModal
+            isModalOpen={isLimitBlockModalOpen}
+            usageType={UsageLimitTypes.TRANSCRIPTION}
+            dismissed={dismissLimitBlockModal}
+            interval={usage.trackingPeriod}
           />
         </div>
       </footer>

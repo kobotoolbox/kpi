@@ -32,6 +32,11 @@ def email(request):
     return out
 
 
+def kobocat(request):
+    return {
+        'koboform_url': settings.KOBOFORM_URL,
+    }
+
 def mfa(request):
     def get_mfa_help_text():
         return markdown.markdown(I18nUtils.get_mfa_help_text())

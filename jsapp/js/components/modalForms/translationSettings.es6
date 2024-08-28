@@ -20,6 +20,7 @@ import {
   escapeHtml,
 } from 'utils';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -41,7 +42,7 @@ export class TranslationSettings extends React.Component {
       asset: props.asset,
       translations: translations,
       showAddLanguageForm: false,
-      isUpdatingDefaultLanguage: false,
+      isUpdatingAsset: false,
       renameLanguageIndex: -1,
     };
     autoBind(this);
@@ -67,7 +68,7 @@ export class TranslationSettings extends React.Component {
       asset: asset,
       translations: asset.content.translations || [],
       showAddLanguageForm: false,
-      isUpdatingDefaultLanguage: false,
+      isUpdatingAsset: false,
       renameLanguageIndex: -1,
     });
 
@@ -91,17 +92,14 @@ export class TranslationSettings extends React.Component {
   hideAddLanguageForm() {
     this.setState({showAddLanguageForm: false});
   }
-  toggleRenameLanguageForm(evt) {
-    const index = parseInt(evt.currentTarget.dataset.index);
+  toggleRenameLanguageForm(index) {
     if (this.state.renameLanguageIndex === index) {
       this.setState({renameLanguageIndex: -1});
     } else {
       this.setState({renameLanguageIndex: index});
     }
   }
-  launchTranslationTableModal(evt) {
-    const index = evt.currentTarget.dataset.index;
-    const langString = evt.currentTarget.dataset.string;
+  launchTranslationTableModal(index, langString) {
     pageState.switchModal({
       type: MODAL_TYPES.FORM_TRANSLATIONS_TABLE,
       asset: this.state.asset,
@@ -140,8 +138,7 @@ export class TranslationSettings extends React.Component {
   getAllLanguages() {
     return this.state.translations;
   }
-  deleteLanguage(evt) {
-    const index = evt.currentTarget.dataset.index;
+  deleteLanguage(index) {
     const content = this.deleteTranslations(this.state.asset.content, index);
     if (content) {
       content.translations.splice(index, 1);
@@ -225,8 +222,7 @@ export class TranslationSettings extends React.Component {
     }
     return content;
   }
-  changeDefaultLanguage(evt) {
-    const index = evt.currentTarget.dataset.index;
+  changeDefaultLanguage(index) {
     const langString = this.state.translations[index];
 
     const dialog = alertify.dialog('confirm');
@@ -237,7 +233,6 @@ export class TranslationSettings extends React.Component {
       ).replace('##lang##', escapeHtml(langString)),
       labels: {ok: t('Confirm'), cancel: t('Cancel')},
       onok: () => {
-        this.setState({isUpdatingDefaultLanguage: true});
         const content = this.state.asset.content;
         content.settings.default_language = langString;
         this.updateAsset(content);
@@ -248,6 +243,8 @@ export class TranslationSettings extends React.Component {
     dialog.set(opts).show();
   }
   updateAsset(content) {
+    this.setState({isUpdatingAsset: true});
+
     actions.resources.updateAsset(
       this.state.asset.uid,
       {content: JSON.stringify(content)},
@@ -325,7 +322,8 @@ export class TranslationSettings extends React.Component {
           </bem.FormView__cell>
           <bem.FormView__cell m='update-language-form'>
             <LanguageForm
-              onLanguageChange={this.onLanguageChange}
+              isPending={this.state.isUpdatingAsset}
+              onLanguageChange={this.onLanguageChange.bind(this)}
               existingLanguages={this.getAllLanguages()}
               isDefault
             />
@@ -348,8 +346,8 @@ export class TranslationSettings extends React.Component {
               message={t('You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.')}
             />
           )}
-          {translations.map((l, i) => {
-            return (
+          {translations.map((l, i) =>
+            (
               <React.Fragment key={`lang-${i}`}>
                 <bem.FormView__cell m='translation'>
                   <bem.FormView__cell m='translation-name'>
@@ -362,63 +360,66 @@ export class TranslationSettings extends React.Component {
                     )}
 
                     {i !== 0 && (
-                      <bem.FormView__iconButton
-                        data-index={i}
-                        onClick={this.changeDefaultLanguage}
-                        disabled={
-                          this.state.isUpdatingDefaultLanguage ||
+                      <Button
+                        type='bare'
+                        color='dark-blue'
+                        size='m'
+                        onClick={() => {this.changeDefaultLanguage(i);}}
+                        isDisabled={
+                          this.state.isUpdatingAsset ||
                           !this.canEditLanguages()
                         }
-                        data-tip={t('Make default')}
-                      >
-                        <i className='k-icon k-icon-language-default' />
-                      </bem.FormView__iconButton>
+                        tooltip={t('Make default')}
+                        startIcon='language-default'
+                      />
                     )}
                   </bem.FormView__cell>
 
                   <bem.FormView__cell m='translation-actions'>
-                    <bem.FormView__iconButton
-                      data-index={i}
-                      onClick={this.toggleRenameLanguageForm}
-                      disabled={
-                        this.state.isUpdatingDefaultLanguage ||
+                    <Button
+                      type='bare'
+                      color='dark-blue'
+                      size='m'
+                      onClick={() => {this.toggleRenameLanguageForm(i);}}
+                      isDisabled={
+                        this.state.isUpdatingAsset ||
                         !this.canEditLanguages()
                       }
-                      data-tip={t('Edit language')}
-                      className='right-tooltip'
-                    >
-                      {this.state.renameLanguageIndex === i && (
-                        <i className='k-icon k-icon-close' />
-                      )}
-                      {this.state.renameLanguageIndex !== i && (
-                        <i className='k-icon k-icon-edit' />
-                      )}
-                    </bem.FormView__iconButton>
+                      startIcon={this.state.renameLanguageIndex === i ? 'close': 'edit'}
+                      tooltip={t('Edit language')}
+                      tooltipPosition='right'
+                    />
 
-                    <bem.FormView__iconButton
-                      data-index={i}
-                      data-string={this.state.translations[i]}
-                      onClick={this.launchTranslationTableModal}
-                      disabled={this.state.isUpdatingDefaultLanguage}
-                      data-tip={t('Update translations')}
-                      className='right-tooltip'
-                    >
-                      <i className='k-icon k-icon-language-settings' />
-                    </bem.FormView__iconButton>
+                    <Button
+                      type='bare'
+                      color='dark-blue'
+                      size='m'
+                      onClick={() => {
+                        this.launchTranslationTableModal(
+                          i,
+                          this.state.translations[i]
+                        );
+                      }}
+                      isDisabled={this.state.isUpdatingAsset}
+                      startIcon='language-settings'
+                      tooltip={t('Update translations')}
+                      tooltipPosition='right'
+                    />
 
                     {i !== 0 && (
-                      <bem.FormView__iconButton
-                        data-index={i}
-                        onClick={this.deleteLanguage}
-                        disabled={
-                          this.state.isUpdatingDefaultLanguage ||
+                      <Button
+                        type='bare'
+                        color='dark-red'
+                        size='m'
+                        onClick={() => {this.deleteLanguage(i);}}
+                        isDisabled={
+                          this.state.isUpdatingAsset ||
                           !this.canEditLanguages()
                         }
-                        data-tip={t('Delete language')}
-                        className='right-tooltip'
-                      >
-                        <i className='k-icon k-icon-trash' />
-                      </bem.FormView__iconButton>
+                        startIcon='trash'
+                        tooltip={t('Delete language')}
+                        tooltipPosition='right'
+                      />
                     )}
                   </bem.FormView__cell>
                 </bem.FormView__cell>
@@ -426,37 +427,47 @@ export class TranslationSettings extends React.Component {
                 {this.state.renameLanguageIndex === i && (
                   <bem.FormView__cell m='update-language-form'>
                     <LanguageForm
+                      isPending={this.state.isUpdatingAsset}
                       langString={l}
                       langIndex={i}
-                      onLanguageChange={this.onLanguageChange}
+                      onLanguageChange={this.onLanguageChange.bind(this)}
                       existingLanguages={this.getAllLanguages(l)}
                     />
                   </bem.FormView__cell>
                 )}
               </React.Fragment>
-            );
-          })}
+            )
+          )}
           {!this.state.showAddLanguageForm && (
             <bem.FormView__cell m='add-language'>
-              <bem.KoboButton
-                m='blue'
-                onClick={this.showAddLanguageForm}
-                disabled={!this.canAddLanguages() || !this.canEditLanguages()}
-              >
-                {t('Add language')}
-              </bem.KoboButton>
+              <Button
+                type='full'
+                color='blue'
+                size='l'
+                onClick={this.showAddLanguageForm.bind(this)}
+                isDisabled={!this.canAddLanguages() || !this.canEditLanguages()}
+                label={t('Add language')}
+              />
             </bem.FormView__cell>
           )}
           {this.state.showAddLanguageForm && (
             <bem.FormView__cell m='add-language-form'>
-              <bem.FormView__link m='close' onClick={this.hideAddLanguageForm}>
-                <i className='k-icon k-icon-close' />
-              </bem.FormView__link>
+              <Button
+                className='add-language-form-close'
+                type='bare'
+                color='dark-blue'
+                size='m'
+                onClick={this.hideAddLanguageForm.bind(this)}
+                startIcon='close'
+              />
+
               <bem.FormView__cell m='label'>
                 {t('Add a new language')}
               </bem.FormView__cell>
+
               <LanguageForm
-                onLanguageChange={this.onLanguageChange}
+                isPending={this.state.isUpdatingAsset}
+                onLanguageChange={this.onLanguageChange.bind(this)}
                 existingLanguages={this.getAllLanguages()}
               />
             </bem.FormView__cell>

@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/mixins';
 @use 'js/components/common/icon';
@@ -155,7 +155,7 @@ $button-border-radius: sizes.$x6;
   position: relative; // Needed for tooltips, pending state etc.
   font-weight: 500;
   text-decoration: none;
-  text-align: left;
+  text-align: initial;
   padding: 0;
   margin: 0;
   border-width: $button-border-width;
@@ -219,6 +219,10 @@ $button-border-radius: sizes.$x6;
   justify-content: center;
 }
 
+.k-button.k-button--upper-case {
+  text-transform: uppercase;
+}
+
 // blue button ↓
 
 .k-button.k-button--color-blue.k-button--type-bare {
@@ -233,87 +237,23 @@ $button-border-radius: sizes.$x6;
   @include button-full(colors.$kobo-blue, colors.$kobo-hover-blue);
 }
 
-// light-blue button ↓
-// Note: `kobo-light-blue` needs a `kobo-dark-blue` text, so the light color is
-// only being used for the `full` type.
+// dark-red button ↓
 
-.k-button.k-button--color-light-blue.k-button--type-bare {
+.k-button.k-button--color-dark-red.k-button--type-bare {
   @include button-bare(
-    colors.$kobo-dark-blue,
-    color.adjust(colors.$kobo-dark-blue, $lightness: -5%)
+    colors.$kobo-dark-red,
+    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
   );
 }
 
-.k-button.k-button--color-light-blue.k-button--type-frame {
-  @include button-frame(colors.$kobo-dark-blue);
+.k-button.k-button--color-dark-red.k-button--type-frame {
+  @include button-frame(colors.$kobo-dark-red);
 }
 
-.k-button.k-button--color-light-blue.k-button--type-full {
+.k-button.k-button--color-dark-red.k-button--type-full {
   @include button-full(
-    colors.$kobo-bg-blue,
-    color.adjust(colors.$kobo-bg-blue, $lightness: -5%),
-    colors.$kobo-dark-blue
-  );
-}
-
-// red button ↓
-
-.k-button.k-button--color-red.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-red,
-    color.adjust(colors.$kobo-red, $lightness: -5%)
-  );
-}
-
-.k-button.k-button--color-red.k-button--type-frame {
-  @include button-frame(colors.$kobo-red);
-}
-
-.k-button.k-button--color-red.k-button--type-full {
-  @include button-full(
-    colors.$kobo-red,
-    color.adjust(colors.$kobo-red, $lightness: -5%)
-  );
-}
-
-// storm button ↓
-
-.k-button.k-button--color-storm.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-storm,
-    color.adjust(colors.$kobo-storm, $lightness: -5%)
-  );
-}
-
-.k-button.k-button--color-storm.k-button--type-frame {
-  @include button-frame(colors.$kobo-storm);
-}
-
-.k-button.k-button--color-storm.k-button--type-full {
-  @include button-full(
-    colors.$kobo-storm,
-    color.adjust(colors.$kobo-storm, $lightness: -5%)
-  );
-}
-
-// light-storm button ↓
-
-.k-button.k-button--color-light-storm.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-storm,
-    color.adjust(colors.$kobo-storm, $lightness: -5%)
-  );
-}
-
-.k-button.k-button--color-light-storm.k-button--type-frame {
-  @include button-frame(colors.$kobo-light-storm);
-}
-
-.k-button.k-button--color-light-storm.k-button--type-full {
-  @include button-full(
-    colors.$kobo-light-storm,
-    color.adjust(colors.$kobo-light-storm, $lightness: -5%),
-    colors.$kobo-dark-blue
+    colors.$kobo-dark-red,
+    color.adjust(colors.$kobo-dark-red, $lightness: -5%)
   );
 }
 

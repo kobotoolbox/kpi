@@ -9,7 +9,6 @@ import {
 import type {AnyRowTypeName} from 'js/constants';
 import Button from 'js/components/common/button';
 import {truncateString} from 'js/utils';
-import {goToProcessing} from 'js/components/processing/routes.utils';
 // import {hashHistory} from 'react-router';
 import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
@@ -57,23 +56,11 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
         return 'qt-photo';
-      case QUESTION_TYPES.audio.id:
-        return 'qt-audio';
-      case META_QUESTION_TYPES['background-audio']:
-        return 'background-rec';
       case QUESTION_TYPES.video.id:
         return 'qt-video';
       default:
         return 'media-files';
     }
-  }
-
-  openProcessing() {
-    goToProcessing(
-      this.props.assetUid,
-      this.props.qpath,
-      this.props.submissionUuid
-    );
   }
 
   launchMediaModal(evt: MouseEvent | TouchEvent) {
@@ -129,28 +116,18 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         <bem.TableMediaPreviewHeader__options>
           {mediaURL &&
             <a
-              className='kobo-light-button kobo-light-button--blue'
               // TODO: once we get this button to `save as`, remove this target
               target='_blank'
               href={mediaURL}
             >
-              {t('download')}
-
-              <i className='k-icon k-icon-download'/>
+              <Button
+                type='frame'
+                color='blue'
+                size='s'
+                startIcon='download'
+                label={t('download')}
+              />
             </a>
-          }
-
-          {
-            this.props.questionType === QUESTION_TYPES.audio.id ||
-            this.props.questionType === META_QUESTION_TYPES['background-audio'] &&
-            <Button
-              type='frame'
-              size='s'
-              color='storm'
-              endIcon='arrow-up-right'
-              label={t('process')}
-              onClick={this.openProcessing.bind(this)}
-            />
           }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
@@ -175,7 +152,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         <bem.MediaCellIconWrapper>
           <Button
             type='bare'
-            color='light-blue'
+            color='dark-blue'
             size='s'
             startIcon={this.getQuestionIcon()}
             onClick={this.launchMediaModal.bind(this)}

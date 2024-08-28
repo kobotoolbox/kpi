@@ -4,12 +4,13 @@ import {KeyNames} from 'js/constants';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import {escapeHtml} from 'js/utils';
 import type {ReactElement} from 'react';
-import {render} from 'react-dom';
+import {createRoot} from 'react-dom/client';
+
 
 interface MultiConfirmButton {
   label: string;
   /** Defaults to gray. */
-  color?: 'blue' | 'red';
+  color?: 'blue' | 'dark-red';
   icon?: IconName;
   isDisabled?: boolean;
   callback: (() => void) | undefined;
@@ -64,7 +65,7 @@ export function multiConfirm(
               let buttonClass = alertify.defaults.theme.input;
               if (button.color === 'blue') {
                 buttonClass = alertify.defaults.theme.ok;
-              } else if (button.color === 'red') {
+              } else if (button.color === 'dark-red') {
                 buttonClass = alertify.defaults.theme.cancel;
               }
 
@@ -193,6 +194,9 @@ export function destroyConfirm(
  */
 export function renderJSXMessage(jsx: ReactElement) {
   const domNode = document.createElement('div');
-  render(jsx, domNode);
-  return domNode.outerHTML;
+  const root = createRoot(domNode);
+  root.render(jsx);
+  const str = domNode.outerHTML;
+  root.unmount();
+  return str;
 }

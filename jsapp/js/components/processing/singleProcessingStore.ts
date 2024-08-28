@@ -12,6 +12,7 @@ import {
   getRowName,
   getRowNameByQpath,
   getFlatQuestionsList,
+  getLanguageIndex,
 } from 'js/assetUtils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
@@ -34,6 +35,7 @@ import {
   getCurrentProcessingRouteParts,
   ProcessingTab,
 } from 'js/components/processing/routes.utils';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import {getExponentialDelayTime} from 'jsapp/js/utils';
 import envStore from 'jsapp/js/envStore';
 
@@ -103,7 +105,7 @@ interface SubmissionsEditIds {
   }>;
 }
 
-interface AutoTranscriptionEvent {
+interface AutoTransxEvent {
   response: ProcessingDataResponse;
   submissionEditId: string;
 }
@@ -126,7 +128,9 @@ interface SingleProcessingStoreData {
   /** Marks some backend calls being in progress. */
   isFetchingData: boolean;
   isPollingForTranscript: boolean;
+  isPollingForTranslation: boolean;
   hiddenSidebarQuestions: string[];
+  currentlyDisplayedLanguage: LanguageCode | string;
   exponentialBackoffCount: number;
 }
 
@@ -157,7 +161,9 @@ class SingleProcessingStore extends Reflux.Store {
     isPristine: true,
     isFetchingData: false,
     isPollingForTranscript: false,
+    isPollingForTranslation: false,
     hiddenSidebarQuestions: [],
+    currentlyDisplayedLanguage: this.getInitialDisplayedLanguage(),
     exponentialBackoffCount: 1,
   };
 
@@ -165,12 +171,14 @@ class SingleProcessingStore extends Reflux.Store {
   private resetProcessingData() {
     this.isProcessingDataLoaded = false;
     this.data.isPollingForTranscript = false;
+    this.data.isPollingForTranslation = false;
     this.data.transcript = undefined;
     this.data.transcriptDraft = undefined;
     this.data.translations = [];
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.data.isPristine = true;
+    this.data.currentlyDisplayedLanguage = this.getInitialDisplayedLanguage();
     this.data.exponentialBackoffCount = 1;
   }
 
@@ -280,6 +288,9 @@ class SingleProcessingStore extends Reflux.Store {
     );
     processingActions.requestAutoTranslation.completed.listen(
       this.onRequestAutoTranslationCompleted.bind(this)
+    );
+    processingActions.requestAutoTranslation.in_progress.listen(
+      this.onRequestAutoTranslationInProgress.bind(this)
     );
     processingActions.requestAutoTranslation.failed.listen(
       this.onAnyCallFailed.bind(this)
@@ -624,6 +635,7 @@ class SingleProcessingStore extends Reflux.Store {
     delete this.abortFetchData;
     this.data.isFetchingData = false;
     this.data.isPollingForTranscript = false;
+    this.data.isPollingForTranslation = false;
     this.trigger(this.data);
   }
 
@@ -648,7 +660,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private isAutoTranscriptionEventApplicable(event: AutoTranscriptionEvent) {
+  private isAutoTranscriptionEventApplicable(event: AutoTransxEvent) {
     // Note: previously initiated automatic transcriptions may no longer be
     // applicable to the current route
     const googleTsResponse =
@@ -663,7 +675,7 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
-  private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
+  private onRequestAutoTranscriptionCompleted(event: AutoTransxEvent) {
     if (
       !this.currentQuestionQpath ||
       !this.data.isPollingForTranscript ||
@@ -671,18 +683,19 @@ class SingleProcessingStore extends Reflux.Store {
     ) {
       return;
     }
-    const googleTsResponse =
-      event.response[this.currentQuestionQpath]?.googlets;
+
+    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
       this.data.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
       this.data.exponentialBackoffCount = 1;
     }
+
     this.setNotPristine();
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptionInProgress(event: AutoTranscriptionEvent) {
+  private onRequestAutoTranscriptionInProgress(event: AutoTransxEvent) {
     setTimeout(() => {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
@@ -710,22 +723,61 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
-    const googleTxResponse = response[this.currentQuestionQpath]?.googletx;
-
-    this.data.isFetchingData = false;
-    if (
+  private isAutoTranslationEventApplicable(event: AutoTransxEvent) {
+    const googleTxResponse =
+      event.response[this.currentQuestionQpath]?.googletx;
+    return (
+      event.submissionEditId === this.currentSubmissionEditId &&
       googleTxResponse &&
       this.data.translationDraft &&
       (googleTxResponse.languageCode ===
         this.data.translationDraft.languageCode ||
         googleTxResponse.languageCode === this.data.translationDraft.regionCode)
+    );
+  }
+
+  private onRequestAutoTranslationCompleted(event: AutoTransxEvent) {
+    if (
+      !this.currentQuestionQpath ||
+      !this.data.isPollingForTranslation ||
+      !this.data.translationDraft
+    ) {
+      return;
+    }
+
+    const googleTxResponse = event.response[this.currentQuestionQpath]?.googletx;
+    if (
+      googleTxResponse &&
+      this.isAutoTranslationEventApplicable(event)
     ) {
       this.data.translationDraft.value = googleTxResponse.value;
+      this.data.exponentialBackoffCount = 1;
     }
 
     this.setNotPristine();
     this.trigger(this.data);
+  }
+
+  private onRequestAutoTranslationInProgress(event: AutoTransxEvent) {
+    setTimeout(() => {
+      // make sure to check for applicability *after* the timeout fires, not
+      // before. someone can do a lot of navigating in 5 seconds
+      if (this.isAutoTranslationEventApplicable(event)) {
+        this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1;
+        this.data.isPollingForTranslation = true;
+        console.log('trying to poll!'); // TEMP DELETEME
+        this.requestAutoTranslation(
+          event.response[this.currentQuestionQpath]!.googlets!.languageCode
+        );
+      } else {
+        console.log('no more polling!'); // TEMP DELETEME
+        this.data.isPollingForTranslation = false;
+      }
+    }, getExponentialDelayTime(
+      this.data.exponentialBackoffCount,
+      envStore.data.min_retry_time,
+      envStore.data.max_retry_time
+    ));
   }
 
   /**
@@ -968,6 +1020,41 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
+  getDisplayedLanguagesList(): KoboSelectOption[] {
+    const languagesList = [];
+
+    languagesList.push({label: t('XML names'), value: 'xml_names'});
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    const baseLabel = t('Labels');
+
+    if (asset?.summary?.languages && asset?.summary?.languages.length > 0) {
+      asset.summary.languages.forEach((language) => {
+        let label = baseLabel;
+        if (language !== null) {
+          label += ` - ${language}`;
+        }
+        languagesList.push({label: label, value: language});
+      });
+    } else {
+      languagesList.push({label: baseLabel, value: ''});
+    }
+
+    return languagesList;
+  }
+
+  getInitialDisplayedLanguage() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.summary?.languages && asset?.summary?.languages[0]) {
+      return asset?.summary?.languages[0];
+    } else {
+      return '';
+    }
+  }
+
+  getCurrentlyDisplayedLanguage() {
+    return this.data.currentlyDisplayedLanguage;
+  }
+
   getInitialDisplays(): SidebarDisplays {
     return {
       transcript: DefaultDisplays.get(ProcessingTab.Transcript) || [],
@@ -1000,7 +1087,10 @@ class SingleProcessingStore extends Reflux.Store {
     const asset = assetStore.getAsset(this.currentAssetUid);
 
     if (asset?.content?.survey) {
-      const questionsList = getFlatQuestionsList(asset.content.survey, 0)
+      const questionsList = getFlatQuestionsList(
+        asset.content.survey,
+        getLanguageIndex(asset, this.data.currentlyDisplayedLanguage)
+      )
         .filter((question) => !(question.name === this.currentQuestionName))
         .map((question) => {
           // We make an object to show the question label to the user but use the
@@ -1068,6 +1158,12 @@ class SingleProcessingStore extends Reflux.Store {
 
   setHiddenSidebarQuestions(list: string[]) {
     this.data.hiddenSidebarQuestions = list;
+
+    this.trigger(this.data);
+  }
+
+  setCurrentlyDisplayedLanguage(language: LanguageCode) {
+    this.data.currentlyDisplayedLanguage = language;
 
     this.trigger(this.data);
   }

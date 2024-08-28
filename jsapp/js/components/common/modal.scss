@@ -1,8 +1,9 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/breakpoints';
 @use 'scss/sizes';
 @use 'scss/libs/_mdl';
 @use 'scss/_variables';
+@use 'scss/mixins';
 
 $z-modal-backdrop: 1101;
 $z-enketo-iframe-icon: 1100;
@@ -286,24 +287,6 @@ $modal-custom-header-height: sizes.$x60;
           font-size: 20px;
         }
       }
-
-      .kobo-light-button {
-        border-width: 2px;
-        line-height: 12px;
-
-        i.k-icon {
-          margin-right: -3px;
-        }
-
-        i.k-icon-download {
-          font-weight: 800;
-          margin-left: 3px;
-        }
-
-        &:not(:last-child) {
-          margin-right: 12px;
-        }
-      }
     }
   }
 
@@ -370,7 +353,7 @@ $modal-custom-header-height: sizes.$x60;
 
   .intro {
     margin-bottom: 20px;
-    text-align: left;
+    text-align: initial;
   }
 
   .form-modal__item[disabled] {
@@ -466,32 +449,14 @@ $modal-custom-header-height: sizes.$x60;
 
 .form-modal__item--http-headers {
   .form-modal__item--http-header-row {
+    @include mixins.centerRowFlex;
+    gap: 10px;
+
     margin-top: 10px;
 
     input[type="text"] {
-      width: calc(50% - 20px);
       background-color: rgba(colors.$kobo-gray-24, 0.05);
-      padding-left: 5px;
-      padding-right: 5px;
-
-      &:not(:first-child) {
-        margin-left: 10px;
-      }
-    }
-  }
-
-  .http-header-row-remove {
-    height: 30px;
-    min-height: 30px;
-    line-height: 30px;
-    width: 30px;
-    vertical-align: top;
-    padding: 0;
-    &:hover {color: colors.$kobo-red;}
-
-    .k-icon {
-      font-size: 1.2em;
-      vertical-align: middle;
+      padding: 5px;
     }
   }
 }
@@ -524,28 +489,6 @@ $modal-custom-header-height: sizes.$x60;
       flex-direction: row;
       align-items: center;
     }
-
-    .form-view__cell--translation-name .form-view__icon-button {
-      opacity: 0;
-      visibility: hidden;
-      transition: 250ms;
-    }
-
-    &:hover .form-view__cell--translation-name .form-view__icon-button {
-      opacity: 1;
-      visibility: visible;
-
-      // Hide the on hover button completely if disabled
-      &:disabled {
-        display: none;
-      }
-    }
-
-    .form-view__icon-button.right-tooltip {
-      &:disabled {
-        color: colors.$kobo-gray-65;
-      }
-    }
   }
 
   .form-view__cell--translation-actions {
@@ -564,38 +507,8 @@ $modal-custom-header-height: sizes.$x60;
     border-top: 1px solid colors.$kobo-gray-92;
   }
 
-  .form-view__cell--add-language-form,
-  .form-view__cell--update-language-form {
-    background: colors.$kobo-gray-96;
-    padding: 15px;
-    position: relative;
-
-    .form-view__link--close {
-      position: absolute;
-      right: 0px;
-      top: 6px;
-
-      i {
-        font-size: 18px;
-        margin: 3px;
-      }
-    }
-  }
-
   .form-view__cell--add-language-form {
     margin-top: 20px;
-  }
-
-  .form-view__form--add-language-fields {
-    display: flex;
-    justify-content: space-between;
-
-    .form-view__cell {
-      &:not(:first-child) {margin-left: 10px;}
-      &.form-view__cell--lang-name {flex: 3;}
-      &.form-view__cell--lang-code {flex: 2;}
-      &.form-view__cell--submit-button {padding-top: 10px;}
-    }
   }
 }
 
@@ -616,14 +529,10 @@ $modal-custom-header-height: sizes.$x60;
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: colors.$kobo-gray-96;
-    padding: 15px;
-    position: relative;
-
-    .form-view__link--close {
+    .add-language-form-close {
       position: absolute;
-      right: 0px;
-      top: 6px;
+      right: 5px;
+      top: 5px;
 
       i {
         font-size: 18px;
@@ -635,18 +544,6 @@ $modal-custom-header-height: sizes.$x60;
   .form-view__cell--update-language-form {
     max-width: 70%;
     margin-left: auto;
-  }
-
-  .form-view__form--add-language-fields {
-    display: flex;
-    justify-content: space-between;
-
-    .form-view__cell {
-      &:not(:first-child) {margin-left: 10px;}
-      &.form-view__cell--lang-name {flex: 3;}
-      &.form-view__cell--lang-code {flex: 2;}
-      &.form-view__cell--submit-button {padding-top: 10px;}
-    }
   }
 
   .ReactTable {
@@ -700,21 +597,95 @@ $modal-custom-header-height: sizes.$x60;
   }
 }
 
+.form-modal--translation-settings,
+.form-modal--translation-table {
+  .form-view__form--add-language-fields {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+
+    .form-view__cell {
+      &.form-view__cell--lang-name {flex: 3;}
+      &.form-view__cell--lang-code {flex: 2;}
+    }
+  }
+
+  .form-view__cell--add-language-form,
+  .form-view__cell--update-language-form {
+    background: colors.$kobo-gray-96;
+    padding: 15px;
+    position: relative;
+
+    .add-language-form-close {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+
+      i {
+        font-size: 18px;
+        margin: 3px;
+      }
+    }
+  }
+}
+
 .form-view__cell--encrypt-key {
   padding-bottom: 12px;
 }
 
-.encrypt-help {
-  color: colors.$kobo-gray-40;
-  background: transparent;
-  border: 0;
-  font-size: 28px;
-  vertical-align: middle;
-  cursor: pointer;
+.encrypt-form-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 5px;
 }
 
-.remove-encryption {
-  float: right;
+.encrypt-form-footer-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+
+// Tab button - styles were copied from the deprecated `mdl-button`
+.legacy-modal-tab-button {
+  text-decoration: none;
+  text-align: center;
+  font-weight: normal;
+  font-size: variables.$base-font-size;
+  letter-spacing: 0;
+  margin: 0;
+  border: none;
+  vertical-align: middle;
+  background: transparent;
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  cursor: pointer;
+  color: colors.$kobo-white;
+  opacity: 0.7;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  text-transform: uppercase;
+  height: 50px;
+  line-height: 50px;
+  padding: 0 32px;
+
+  &::-moz-focus-inner {
+    border: 0;
+  }
+
+  &:hover {
+    opacity: 1;
+    color: colors.$kobo-white;
+  }
+
+  &.legacy-modal-tab-button--active {
+    opacity: 1;
+    border-bottom: 2px solid white;
+  }
 }
 
 // TODO: rework all these media queries to mobile first
@@ -725,14 +696,6 @@ $modal-custom-header-height: sizes.$x60;
 
     .table-media-preview-header__title {
       display: flex;
-    }
-
-    .kobo-light-button {
-      display: block;
-      width: 90%;
-      margin-left: auto;
-      margin-right: auto;
-      margin-top: 12px;
     }
   }
 }

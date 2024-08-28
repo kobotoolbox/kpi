@@ -6,6 +6,7 @@ import './button.scss';
 import type {TooltipAlignment} from './tooltip';
 import Tooltip from './tooltip';
 import {useId} from 'js/hooks/useId.hook';
+import cx from 'classnames';
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't
@@ -21,10 +22,7 @@ import {useId} from 'js/hooks/useId.hook';
 export type ButtonType = 'bare' | 'frame' | 'full';
 export type ButtonColor =
   | 'blue'
-  | 'light-blue'
-  | 'red'
-  | 'storm'
-  | 'light-storm'
+  | 'dark-red'
   | 'dark-blue';
 
 /**
@@ -72,6 +70,12 @@ export interface ButtonProps {
   isSubmit?: boolean;
   /** Simply changes the width. */
   isFullWidth?: boolean;
+  /**
+   * Forces the label text to be uppercase. This is a legacy thing, as it is
+   * easier for us to have this here, rather than changing the labels (which
+   * requires new translations to be made).
+   */
+  isUpperCase?: boolean;
   /** Additional class names. */
   className?: string;
   /** You don't need to pass the callback for `isSubmit` option. */
@@ -95,46 +99,10 @@ const Button = (props: ButtonProps) => {
     throw new Error('Button is missing a required properties: icon or label!');
   }
 
-  let classNames: string[] = [];
-
-  // Additional class names.
-  if (props.className) {
-    classNames.push(props.className);
-  }
-
-  // Base class with mandatory ones.
-  classNames.push('k-button');
-  classNames.push(`k-button--type-${props.type}`);
-  classNames.push(`k-button--color-${props.color}`);
-
-  if (props.isPending) {
-    classNames.push('k-button--pending');
-  }
-
-  if (props.startIcon) {
-    classNames.push('k-button--has-start-icon');
-  }
-
-  // Ensures only one icon is being displayed.
-  if (!props.startIcon && props.endIcon) {
-    classNames.push('k-button--has-end-icon');
-  }
-
-  if (props.label) {
-    classNames.push('k-button--has-label');
-  }
-
-  if (props.isFullWidth) {
-    classNames.push('k-button--full-width');
-  }
-
-  const size = props.size;
-  classNames.push(`k-button--size-${size}`);
-
   // Size depends on label being there or not
-  let iconSize = ButtonToIconAloneMap.get(size);
+  let iconSize = ButtonToIconAloneMap.get(props.size);
   if (props.label) {
-    iconSize = ButtonToIconMap.get(size);
+    iconSize = ButtonToIconMap.get(props.size);
   }
 
   // For the attributes that don't have a falsy value.
@@ -157,7 +125,19 @@ const Button = (props: ButtonProps) => {
 
   const renderButton = () => (
     <button
-      className={classNames.join(' ')}
+      className={cx({
+        ['k-button']: true,
+        [`k-button--type-${props.type}`]: true,
+        [`k-button--color-${props.color}`]: true,
+        [`k-button--size-${props.size}`]: true,
+        ['k-button--pending']: props.isPending,
+        ['k-button--has-start-icon']: props.startIcon,
+        // Ensures only one icon is being displayed.
+        ['k-button--has-end-icon']: !props.startIcon && props.endIcon,
+        ['k-button--has-label']: Boolean(props.label),
+        ['k-button--full-width']: props.isFullWidth,
+        ['k-button--upper-case']: props.isUpperCase,
+      }, props.className)}
       type={props.isSubmit ? 'submit' : 'button'}
       aria-disabled={props.isDisabled}
       onClick={handleClick}

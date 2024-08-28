@@ -14,7 +14,7 @@
             "user_permissions": [],
             "username": "admin"
         },
-        "model": "auth.user",
+        "model": "kobo_auth.user",
         "pk": 1
     },
     {
@@ -43,7 +43,7 @@
                ["view_submissions", "kpi", "asset"]
             ]
         },
-        "model": "auth.user",
+        "model": "kobo_auth.user",
         "pk": 2
     },
     {
@@ -72,7 +72,34 @@
                ["view_submissions", "kpi", "asset"]
             ]
         },
-        "model": "auth.user",
+        "model": "kobo_auth.user",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "name": "Administrator",
+            "validated_password": true,
+            "user": 1
+        },
+        "model": "main.userprofile",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Some User",
+            "validated_password": true,
+            "user": 2
+        },
+        "model": "main.userprofile",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "name": "Another User",
+            "validated_password": true,
+            "user": 3
+        },
+        "model": "main.userprofile",
         "pk": 3
     },
     {
@@ -116,15 +143,6 @@
             "date_modified": "2022-04-05T21:00:33.946Z",
             "owner": 2,
             "uid": "aPEANgNgTH3xzhJGcctURu"
-        }
-    },
-    {
-        "model": "authtoken.token",
-        "pk": 1,
-        "fields": {
-            "key": "3a8da043dd1b669688dae523b015177a1d4201d5",
-            "created": "2017-05-09 10:49:34.273769-04",
-            "user": 3
         }
     },
     {

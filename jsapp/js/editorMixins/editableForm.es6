@@ -4,6 +4,7 @@ import clonedeep from 'lodash.clonedeep';
 import Select from 'react-select';
 import debounce from 'lodash.debounce';
 import DocumentTitle from 'react-document-title';
+import cx from 'classnames';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
@@ -48,6 +49,7 @@ import {
 import envStore from 'js/envStore';
 import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import Icon from 'js/components/common/icon';
+import Button from 'js/components/common/button';
 
 const ErrorMessage = makeBem(null, 'error-message');
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
@@ -610,76 +612,93 @@ export default Object.assign({
                 value={this.state.name}
                 title={this.state.name}
                 id='nameField'
+                dir='auto'
               />
             </bem.FormModal__item>
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
-            <bem.FormBuilderHeader__button
-              m={['save', {
-                savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
-                savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
-                saveneeded: this.needsSave(),
-              }]}
-              onClick={this.saveForm}
-              disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
-              data-cy='save'
-            >
-              <i />
-              {saveButtonText}
-            </bem.FormBuilderHeader__button>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isPending={this.state.asset_updated === update_states.PENDING_UPDATE}
+              isDisabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
+              onClick={this.saveForm.bind(this)}
+              isUpperCase
+              label={(
+                <>
+                  {saveButtonText}
+                  {
+                    this.state.asset_updated === update_states.SAVE_FAILED ||
+                    this.needsSave() &&
+                    <>&nbsp;*</>
+                  }
+                </>
+              )}
+            />
 
-            <bem.FormBuilderHeader__close
-              m={[{'close-warning': this.needsSave()}]}
-              onClick={this.safeNavigateToAsset}
-            >
-              <i className='k-icon k-icon-close'/>
-            </bem.FormBuilderHeader__close>
+            <Button
+              type='bare'
+              color='dark-blue'
+              size='l'
+              onClick={this.safeNavigateToAsset.bind(this)}
+              startIcon='close'
+            />
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
 
         <bem.FormBuilderHeader__row m={'secondary'} >
           <bem.FormBuilderHeader__cell m={'toolsButtons'} >
-            <bem.FormBuilderHeader__button
-              m={['preview', {previewdisabled: previewDisabled}]}
-              onClick={this.previewForm}
-              disabled={previewDisabled}
-              data-tip={t('Preview form')}
-              className='left-tooltip'
-            >
-              <i className='k-icon k-icon-view' />
-            </bem.FormBuilderHeader__button>
+            <Button
+              type='bare'
+              color='dark-blue'
+              size='m'
+              isDisabled={previewDisabled}
+              onClick={this.previewForm.bind(this)}
+              tooltip={t('Preview form')}
+              tooltipPosition='left'
+              startIcon='view'
+            />
 
-            <bem.FormBuilderHeader__button m={['show-all', {
-                  open: showAllOpen,
-            }]}
-              onClick={this.showAll}
-              disabled={!showAllAvailable}
-              className = 'left-tooltip'
-              data-tip={t('Expand / collapse questions')}>
-              <i className='k-icon k-icon-view-all' />
-            </bem.FormBuilderHeader__button>
+            <Button
+              type='bare'
+              color='dark-blue'
+              size='m'
+              isDisabled={!showAllAvailable}
+              onClick={this.showAll.bind(this)}
+              tooltip={t('Expand / collapse questions')}
+              tooltipPosition='left'
+              startIcon='view-all'
+            />
 
-            <bem.FormBuilderHeader__button
-              m={['group', {groupable: groupable}]}
-              onClick={this.groupQuestions}
-              disabled={!groupable}
-              className={'left-tooltip ' + (this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : '')}
-              data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
-            >
-              <i className='k-icon k-icon-group' />
-            </bem.FormBuilderHeader__button>
+            <Button
+              type='bare'
+              color='dark-blue'
+              size='m'
+              isDisabled={!groupable}
+              onClick={this.groupQuestions.bind(this)}
+              tooltip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
+              tooltipPosition='left'
+              startIcon='group'
+              className={cx({
+                [LOCKING_UI_CLASSNAMES.DISABLED]: this.isAddingGroupsRestricted(),
+              })}
+            />
 
-            { this.toggleCascade !== undefined &&
-              <bem.FormBuilderHeader__button
-                m={['cascading']}
-                onClick={this.toggleCascade}
-                data-tip={t('Insert cascading select')}
-                className={'left-tooltip ' + (this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : '')}
-              >
-                <i className='k-icon k-icon-cascading' />
-              </bem.FormBuilderHeader__button>
-            }
+            <Button
+              type='bare'
+              color='dark-blue'
+              size='m'
+              isDisabled={this.toggleCascade === undefined}
+              onClick={this.toggleCascade.bind(this)}
+              tooltip={t('Insert cascading select')}
+              tooltipPosition='left'
+              startIcon='cascading'
+              className={cx({
+                [LOCKING_UI_CLASSNAMES.DISABLED]: this.isAddingGroupsRestricted(),
+              })}
+            />
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m='verticalRule'/>
@@ -689,33 +708,37 @@ export default Object.assign({
           <bem.FormBuilderHeader__cell m='verticalRule'/>
 
           <bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__button
-              m={['panel-toggle', this.state.asideLibrarySearchVisible ? 'active' : null]}
-              onClick={this.toggleAsideLibrarySearch}
-              className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
-            >
-              <i className={['k-icon', this.state.asideLibrarySearchVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
-              <span className='panel-toggle-name'>{t('Add from Library')}</span>
-            </bem.FormBuilderHeader__button>
+            <Button
+              type='bare'
+              color='dark-blue'
+              size='m'
+              onClick={this.toggleAsideLibrarySearch.bind(this)}
+              tooltip={t('Insert cascading select')}
+              tooltipPosition='left'
+              startIcon={this.state.asideLibrarySearchVisible ? 'close' : 'library'}
+              label={t('Add from Library')}
+              className={cx({
+                [LOCKING_UI_CLASSNAMES.DISABLED]: this.isAddingGroupsRestricted(),
+              })}
+            />
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'verticalRule'} />
 
           <bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__button
-              m={['panel-toggle', this.state.asideLayoutSettingsVisible ? 'active' : null]}
-              onClick={this.toggleAsideLayoutSettings}
-            >
-              <i className={['k-icon', this.state.asideLayoutSettingsVisible ? 'k-icon-close' : 'k-icon-settings' ].join(' ')} />
-              <span className='panel-toggle-name'>
-                {this.hasMetadataAndDetails() &&
-                  t('Layout & Settings')
-                }
-                {!this.hasMetadataAndDetails() &&
-                  t('Layout')
-                }
-              </span>
-            </bem.FormBuilderHeader__button>
+            <Button
+              type='bare'
+              color='dark-blue'
+              size='m'
+              onClick={this.toggleAsideLayoutSettings.bind(this)}
+              tooltip={t('Insert cascading select')}
+              tooltipPosition='left'
+              startIcon={this.state.asideLayoutSettingsVisible ? 'close' : 'settings'}
+              label={this.hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
+              className={cx({
+                [LOCKING_UI_CLASSNAMES.DISABLED]: this.isAddingGroupsRestricted(),
+              })}
+            />
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
       </bem.FormBuilderHeader>

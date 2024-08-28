@@ -21,6 +21,7 @@ import ReportStyleSettings from './reportStyleSettings';
 import './reports.scss';
 import {userCan} from 'js/components/permissions/utils';
 import CenteredMessage from 'js/components/common/centeredMessage.component';
+import Button from 'js/components/common/button';
 
 export default class Reports extends React.Component {
   constructor(props) {
@@ -337,83 +338,98 @@ export default class Reports extends React.Component {
 
     return (
       <bem.FormView__reportButtons>
-        <PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
-          <bem.PopoverMenu__link
-            key='default'
-            data-name=''
-            onClick={this.triggerDefaultReport}
-            className={!this.state.currentCustomReport ? 'active' : ''}
-          >
-            {t('Default Report')}
-          </bem.PopoverMenu__link>
-          {customReportsList.map(function (m) {
-            let itemClassName;
-            if (
-              _this.state.currentCustomReport &&
-              _this.state.currentCustomReport.crid === m.crid
-            ) {
-              itemClassName = 'active';
+        <div className='form-view__report-buttons-left'>
+          <PopoverMenu
+            type='custom-reports'
+            triggerLabel={
+              <Button
+                type='frame'
+                color='dark-blue'
+                size='m'
+                label={menuLabel}
+                endIcon='angle-down'
+              />
             }
-            return (
-              <bem.PopoverMenu__link
-                key={m.crid}
-                data-crid={m.crid}
-                onClick={_this.setCustomReport}
-                className={itemClassName}
-              >
-                {m.name || t('Untitled report')}
-              </bem.PopoverMenu__link>
-            );
-          })}
-          {userCan('change_asset', this.state.asset) && (
+          >
             <bem.PopoverMenu__link
-              key='new'
-              onClick={this.toggleCustomReportModal}
+              key='default'
+              data-name=''
+              onClick={this.triggerDefaultReport}
+              className={!this.state.currentCustomReport ? 'active' : ''}
             >
-              {t('Create New Report')}
+              {t('Default Report')}
             </bem.PopoverMenu__link>
-          )}
-        </PopoverMenu>
+            {customReportsList.map(function (m) {
+              let itemClassName;
+              if (
+                _this.state.currentCustomReport &&
+                _this.state.currentCustomReport.crid === m.crid
+              ) {
+                itemClassName = 'active';
+              }
+              return (
+                <bem.PopoverMenu__link
+                  key={m.crid}
+                  data-crid={m.crid}
+                  onClick={_this.setCustomReport}
+                  className={itemClassName}
+                >
+                  {m.name || t('Untitled report')}
+                </bem.PopoverMenu__link>
+              );
+            })}
+            {userCan('change_asset', this.state.asset) && (
+              <bem.PopoverMenu__link
+                key='new'
+                onClick={this.toggleCustomReportModal}
+              >
+                {t('Create New Report')}
+              </bem.PopoverMenu__link>
+            )}
+          </PopoverMenu>
 
-        {this.state.currentCustomReport && (
-          <bem.Button
-            m='icon'
-            className='report-button__edit'
-            onClick={this.editCustomReport}
-            data-tip={t('Edit Report Questions')}
-          >
-            <i className='k-icon k-icon-edit' />
-          </bem.Button>
-        )}
+          <Button
+            type='bare'
+            color='dark-blue'
+            size='m'
+            startIcon='edit'
+            onClick={this.editCustomReport.bind(this)}
+            tooltip={t('Edit Report Questions')}
+            isDisabled={!this.state.currentCustomReport}
+          />
 
-        <bem.Button
-          m='icon'
-          className='report-button__expand right-tooltip'
-          onClick={this.toggleFullscreen}
-          data-tip={t('Toggle fullscreen')}
-        >
-          <i className='k-icon k-icon-expand' />
-        </bem.Button>
+          <Button
+            type='bare'
+            color='dark-blue'
+            size='m'
+            startIcon='settings'
+            onClick={this.toggleReportGraphSettings.bind(this)}
+            tooltip={t('Configure Report Style')}
+            isDisabled={!userCan('change_asset', this.state.asset)}
+          />
+        </div>
 
-        <bem.Button
-          m='icon'
-          className='report-button__print'
-          onClick={launchPrinting}
-          data-tip={t('Print')}
-        >
-          <i className='k-icon k-icon-print' />
-        </bem.Button>
+        <div className='form-view__report-buttons-right'>
+          <Button
+            type='bare'
+            color='dark-blue'
+            size='m'
+            startIcon='print'
+            onClick={launchPrinting}
+            tooltip={t('Print')}
+            tooltipPosition='right'
+          />
 
-        {userCan('change_asset', this.state.asset) && (
-          <bem.Button
-            m='icon'
-            className='report-button__settings'
-            onClick={this.toggleReportGraphSettings}
-            data-tip={t('Configure Report Style')}
-          >
-            <i className='k-icon k-icon-settings' />
-          </bem.Button>
-        )}
+          <Button
+            type='bare'
+            color='dark-blue'
+            size='m'
+            startIcon='expand'
+            onClick={this.toggleFullscreen.bind(this)}
+            tooltip={t('Toggle fullscreen')}
+            tooltipPosition='right'
+          />
+        </div>
       </bem.FormView__reportButtons>
     );
   }
@@ -545,24 +561,33 @@ export default class Reports extends React.Component {
                 <bem.PrintOnly>
                   <h3>{asset.name}</h3>
                 </bem.PrintOnly>
+
                 {!this.state.currentCustomReport &&
                   this.state.reportLimit &&
                   reportData.length &&
                   this.state.reportData.length > this.state.reportLimit && (
-                    <bem.FormView__cell m={['centered', 'reportLimit']}>
-                      <div>
-                        {t(
-                          'For performance reasons, this report only includes the first ## questions.'
-                        ).replace('##', this.state.reportLimit)}
-                      </div>
-                      <bem.Button m='colored' onClick={this.resetReportLimit}>
-                        {t('Show all (##)').replace(
-                          '##',
-                          this.state.reportData.length
-                        )}
-                      </bem.Button>
-                    </bem.FormView__cell>
-                  )}
+                    <InlineMessage
+                      type='warning'
+                      message={
+                        <div className='report-view__limit-message'>
+                          <p>
+                            {t(
+                              'For performance reasons, this report only includes the first ## questions.'
+                            ).replace('##', this.state.reportLimit)}
+                          </p>
+
+                          <Button
+                            type='full'
+                            color='dark-blue'
+                            size='s'
+                            onClick={this.resetReportLimit.bind(this)}
+                            label={t('Show all (##)').replace('##', this.state.reportData.length)}
+                          />
+                        </div>
+                      }
+                    />
+                  )
+                }
 
                 <InlineMessage
                   type='warning'

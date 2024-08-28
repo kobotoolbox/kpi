@@ -8,7 +8,7 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import UsageContainer from 'js/account/usage/usageContainer';
 import envStore from 'js/envStore';
-import {formatDate} from 'js/utils';
+import {convertSecondsToMinutes, formatDate} from 'js/utils';
 import styles from './usage.module.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {ProductsContext} from '../useProducts.hook';
@@ -126,11 +126,11 @@ export default function Usage() {
             limits.recurringLimits.nlp_character_limit,
           nlpMinuteRemainingLimit:
             typeof limits.remainingLimits.nlp_seconds_limit === 'number'
-              ? limits.remainingLimits.nlp_seconds_limit / 60
+              ? convertSecondsToMinutes(limits.remainingLimits.nlp_seconds_limit)
               : limits.remainingLimits.nlp_seconds_limit,
           nlpMinuteRecurringLimit:
             typeof limits.recurringLimits.nlp_seconds_limit === 'number'
-              ? limits.recurringLimits.nlp_seconds_limit / 60
+              ? convertSecondsToMinutes(limits.recurringLimits.nlp_seconds_limit)
               : limits.recurringLimits.nlp_seconds_limit,
           submissionsRemainingLimit: limits.remainingLimits.submission_limit,
           submissionsRecurringLimit: limits.recurringLimits.submission_limit,

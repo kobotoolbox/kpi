@@ -5,7 +5,7 @@ import re
 
 import requests
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
 from rest_framework import (
@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -56,8 +56,9 @@ from kpi.utils.xml import (
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
-class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.GenericViewSet):
+class DataViewSet(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.GenericViewSet
+):
     """
     ## List of submissions for a specific asset
 
@@ -188,6 +189,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
 
+    To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
+
     View-only version of current submission
 
     Return a URL to display the filled submission in view-only mode in the Enketo UI.
@@ -199,6 +210,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
+
+    To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
 
     ### Duplicate submission
 
@@ -313,17 +334,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
 
-    def _get_deployment(self):
-        """
-        Returns the deployment for the asset specified by the request
-        """
-        if not self.asset.has_deployment:
-            raise ObjectDeploymentDoesNotExist(
-                t('The specified asset has not been deployed')
-            )
-
-        return self.asset.deployment
-
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
@@ -355,14 +365,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 query=data['query'],
                 fields=['_id', '_uuid']
             )
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
             for submission in submissions:
                 audit_logs.append(AuditLog(
-                    app_label=app_label,
-                    model_name=model_name,
+                    app_label='logger',
+                    model_name='instance',
                     object_id=submission['_id'],
                     user=request.user,
                     user_uid=request.user.extra_details.uid,
@@ -371,10 +377,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                         'uuid': submission['_uuid'],
                     },
                     action=AuditAction.DELETE,
+                    log_type=AuditType.SUBMISSION_MANAGEMENT,
                 ))
 
         # Send request to KC
-        json_response = action_(bulk_actions_validator.data, request.user)
+        json_response = action_(
+            bulk_actions_validator.data, request.user, request=request
+        )
 
         # If requests has succeeded, let's log deletions (if any)
         if json_response['status'] == status.HTTP_200_OK and audit_logs:
@@ -397,15 +406,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = deployment.delete_submission(
             submission_id, user=request.user
         )
-
         if json_response['status'] == status.HTTP_204_NO_CONTENT:
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
             AuditLog.objects.create(
-                app_label=app_label,
-                model_name=model_name,
+                app_label='logger',
+                model_name='instance',
                 object_id=pk,
                 user=request.user,
                 metadata={
@@ -413,16 +417,42 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                     'uuid': submission['_uuid'],
                 },
                 action=AuditAction.DELETE,
+                log_type=AuditType.SUBMISSION_MANAGEMENT,
             )
 
         return Response(**json_response)
 
     @action(
         detail=True,
+        methods=['POST'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[DuplicateSubmissionPermission],
+    )
+    def duplicate(self, request, pk, *args, **kwargs):
+        """
+        Creates a duplicate of the submission with a given `pk`
+        """
+
+        deployment = self._get_deployment()
+        # Coerce to int because back end only finds matches with same type
+        submission_id = positive_int(pk)
+        original_submission = deployment.get_submission(
+            submission_id, request.user, fields=['_uuid']
+        )
+        duplicate_response = deployment.duplicate_submission(
+            submission_id=submission_id, request=request
+        )
+        deployment.copy_submission_extras(
+            original_submission['_uuid'], duplicate_response['_uuid']
+        )
+        return Response(duplicate_response, status=status.HTTP_201_CREATED)
+
+    @action(
+        detail=True,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[EditLinkSubmissionPermission],
-        url_path='(enketo/)?edit',
+        url_path='((enketo/)|(enketo/redirect/))?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
@@ -434,18 +464,19 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             EnketoSessionAuthentication.prepare_response_with_csrf_cookie(
                 request, enketo_response
             )
-        return enketo_response
+        return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
     @action(
         detail=True,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[ViewSubmissionPermission],
-        url_path='enketo/view',
+        url_path='enketo/(redirect/)?view',
     )
     def enketo_view(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
-        return self._get_enketo_link(request, submission_id, 'view')
+        enketo_response = self._get_enketo_link(request, submission_id, 'view')
+        return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
@@ -471,10 +502,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         try:
-            submissions = deployment.get_submissions(request.user,
-                                                    format_type=format_type,
-                                                    request=request,
-                                                    **filters)
+            submissions = deployment.get_submissions(
+                request.user,
+                format_type=format_type,
+                request=request,
+                **filters
+            )
         except OperationFailure as err:
             message = str(err)
             # Don't show just any raw exception message out of fear of data leaking
@@ -534,32 +567,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # Join all parameters to be passed to `deployment.get_submissions()`
         params.update(filters)
 
-        # The `get_submissions()` is a generator in KobocatDeploymentBackend
-        # class but a list in MockDeploymentBackend. We cast the result as a list
-        # no matter what is the deployment back-end class to make it work with
-        # both. Since the number of submissions is be very small, it should not
-        # have a big impact on memory (i.e. list vs generator)
-        submissions = list(deployment.get_submissions(**params))
+        submissions = deployment.get_submissions(**params)
         if not submissions:
             raise Http404
 
-        submission = submissions[0]
+        submission = list(submissions)[0]
         return Response(submission)
-
-    @action(detail=True, methods=['POST'],
-            renderer_classes=[renderers.JSONRenderer],
-            permission_classes=[DuplicateSubmissionPermission])
-    def duplicate(self, request, pk, *args, **kwargs):
-        """
-        Creates a duplicate of the submission with a given `pk`
-        """
-        deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
-        submission_id = positive_int(pk)
-        duplicate_response = deployment.duplicate_submission(
-            submission_id=submission_id, user=request.user
-        )
-        return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],
@@ -627,6 +640,17 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         return filters
+
+    def _get_deployment(self):
+        """
+        Returns the deployment for the asset specified by the request
+        """
+        if not self.asset.has_deployment:
+            raise ObjectDeploymentDoesNotExist(
+                t('The specified asset has not been deployed')
+            )
+
+        return self.asset.deployment
 
     def _get_enketo_link(
         self, request: Request, submission_id: int, action_: str
@@ -758,7 +782,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         response = requests.post(
             f'{settings.ENKETO_URL}/{enketo_endpoint}',
             # bare tuple implies basic auth
-            auth=(settings.ENKETO_API_TOKEN, ''),
+            auth=(settings.ENKETO_API_KEY, ''),
             data=data
         )
         if response.status_code != status.HTTP_201_CREATED:
@@ -787,3 +811,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 'version_uid': version_uid,
             }
         )
+
+    def _handle_enketo_redirect(self, request, enketo_response, *args, **kwargs):
+        if request.path.strip('/').split('/')[-2] == 'redirect':
+            try:
+                enketo_url = enketo_response.data['url']
+            except KeyError:
+                pass
+            else:
+                return HttpResponseRedirect(enketo_url)
+        return enketo_response

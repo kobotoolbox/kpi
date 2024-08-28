@@ -126,8 +126,7 @@ const mixins: MixinsObject = {
       notify(t('copied to clipboard'));
     },
 
-    saveCloneAs(evt: React.TouchEvent<HTMLElement>) {
-      const version_id = evt.currentTarget.dataset.versionId;
+    saveCloneAs(versionId?: string) {
       const name = `${t('Clone of')} ${this.state.name}`;
 
       const dialog = alertify.dialog('prompt');
@@ -144,7 +143,7 @@ const mixins: MixinsObject = {
             {
               uid: uid,
               name: value,
-              version_id: version_id,
+              version_id: versionId,
             },
             {
               onComplete: (asset: AssetResponse) => {

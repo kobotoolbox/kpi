@@ -6,7 +6,6 @@ import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import WrappedSelect from 'js/components/common/wrappedSelect';
-import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -21,6 +20,7 @@ import managedCollectionsStore from 'js/components/library/managedCollectionsSto
 import envStore from 'js/envStore';
 import {withRouter} from 'js/router/legacy';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -276,14 +276,14 @@ export class LibraryAssetFormComponent extends React.Component {
         <bem.Modal__footer>
           {renderBackButton(this.state.isPending)}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={!this.isSubmitEnabled()}
-          >
-            {this.getSubmitButtonLabel()}
-          </bem.KoboButton>
+          <Button
+            type='full'
+            color='blue'
+            size='l'
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={!this.isSubmitEnabled()}
+            label={this.getSubmitButtonLabel()}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
@@ -293,5 +293,4 @@ export class LibraryAssetFormComponent extends React.Component {
 reactMixin(LibraryAssetFormComponent.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryAssetFormComponent.prototype, mixins.contextRouter);
 
-LibraryAssetFormComponent.contextTypes = {router: PropTypes.object};
 export const LibraryAssetForm = withRouter(LibraryAssetFormComponent);

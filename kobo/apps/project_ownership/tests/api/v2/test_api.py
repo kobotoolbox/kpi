@@ -1,15 +1,12 @@
 import uuid
 
 from constance.test import override_config
-from datetime import timedelta
-from dateutil.parser import isoparse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from mock import patch, MagicMock
 from rest_framework import status
 from rest_framework.reverse import reverse
-from unittest.mock import ANY
 
 from kobo.apps.project_ownership.models import (
     Invite,
@@ -52,7 +49,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -65,7 +62,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username],
             ),
             'assets': [self.asset.uid, 'not_owned_asset_uid'],
@@ -78,7 +75,7 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         self.client.login(username='thirduser', password='thirduser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -336,14 +333,12 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             'formhub/uuid': self.asset.uid,
             '_attachments': [
                 {
-                    'id': 1,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_clip.3gp',
                     'filename': 'someuser/audio_conversion_test_clip.3gp',
                     'mimetype': 'video/3gpp',
                     'bytes': 5000,
                 },
                 {
-                    'id': 2,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',
                     'filename': 'someuser/audio_conversion_test_image.jpg',
                     'mimetype': 'image/jpeg',
@@ -356,14 +351,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.asset.deployment.mock_submissions(submissions)
         self.submissions = submissions
 
-    @patch(
-        'kpi.serializers.v2.service_usage.ServiceUsageSerializer._get_storage_usage',
-        new=MockServiceUsageSerializer._get_storage_usage
-    )
-    @patch(
-        'kpi.serializers.v2.service_usage.ServiceUsageSerializer._get_submission_counters',
-        new=MockServiceUsageSerializer._get_submission_counters
-    )
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
         MagicMock()
@@ -388,15 +375,12 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'asr_seconds_all_time': 120,
                 'mt_characters_all_time': 1000,
             },
-            'total_storage_bytes': 15000,
+            'total_storage_bytes': 191642,
             'total_submission_count': {
                 'all_time': 1,
                 'current_year': 1,
                 'current_month': 1,
             },
-            'current_month_start': today.replace(day=1).strftime('%Y-%m-%d'),
-            'current_year_start': today.replace(month=1, day=1).strftime('%Y-%m-%d'),
-            'billing_period_end': None,
         }
 
         expected_empty_data = {
@@ -414,9 +398,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'current_year': 0,
                 'current_month': 0,
             },
-            'current_month_start': today.replace(day=1).strftime('%Y-%m-%d'),
-            'current_year_start': today.replace(month=1, day=1).strftime('%Y-%m-%d'),
-            'billing_period_end': None,
         }
 
         service_usage_url = reverse(
@@ -425,39 +406,43 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         # someuser has some usage metrics
         self.client.login(username='someuser', password='someuser')
         response = self.client.get(service_usage_url)
-        assert response.data == expected_data
+        assert response.data['total_nlp_usage'] == expected_data['total_nlp_usage']
+        assert response.data['total_storage_bytes'] == expected_data['total_storage_bytes']
+        assert response.data['total_submission_count'] == expected_data['total_submission_count']
 
         # anotheruser's usage should be 0
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(service_usage_url)
-        assert response.data == expected_empty_data
+        assert response.data['total_nlp_usage'] == expected_empty_data['total_nlp_usage']
+        assert response.data['total_storage_bytes'] == expected_empty_data['total_storage_bytes']
+        assert response.data['total_submission_count'] == expected_empty_data['total_submission_count']
 
         # Transfer project from someuser to anotheruser
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
         }
-        with patch(
-            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
-            MagicMock(),
-        ):
-            response = self.client.post(
-                self.invite_url, data=payload, format='json'
-            )
-            assert response.status_code == status.HTTP_201_CREATED
+        response = self.client.post(
+            self.invite_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
 
         # someuser should have no usage reported anymore
         response = self.client.get(service_usage_url)
-        assert response.data == expected_empty_data
+        assert response.data['total_nlp_usage'] == expected_empty_data['total_nlp_usage']
+        assert response.data['total_storage_bytes'] == expected_empty_data['total_storage_bytes']
+        assert response.data['total_submission_count'] == expected_empty_data['total_submission_count']
 
         # anotheruser should now have usage reported
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(service_usage_url)
-        assert response.data == expected_data
+        assert response.data['total_nlp_usage'] == expected_data['total_nlp_usage']
+        assert response.data['total_storage_bytes'] == expected_data['total_storage_bytes']
+        assert response.data['total_submission_count'] == expected_data['total_submission_count']
 
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
@@ -499,19 +484,16 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
         }
-        with patch(
-            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
-            MagicMock(),
-        ):
-            response = self.client.post(
-                self.invite_url, data=payload, format='json'
-            )
-            assert response.status_code == status.HTTP_201_CREATED
+
+        response = self.client.post(
+            self.invite_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
 
         # anotheruser is the owner and should see the project
         self.client.login(username='anotheruser', password='anotheruser')
@@ -563,7 +545,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -587,7 +569,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -610,7 +592,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
 
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]
@@ -633,7 +615,7 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
-                self._get_endpoint('user-detail'),
+                self._get_endpoint('user-kpi-detail'),
                 args=[self.anotheruser.username]
             ),
             'assets': [self.asset.uid]

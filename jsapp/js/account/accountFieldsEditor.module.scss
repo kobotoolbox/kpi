@@ -1,6 +1,6 @@
 @use 'scss/sizes';
 @use 'js/components/common/textBox.module';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .row {
   display: flex;

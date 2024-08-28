@@ -1,5 +1,5 @@
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .form-view__group.form-view__group--items {
   > .form-view__cell {
@@ -86,7 +86,7 @@
     color: colors.$kobo-gray-40;
     border-bottom: 1px solid colors.$kobo-gray-92;
     position: relative;
-    text-align: left;
+    text-align: initial;
 
     &:last-child {
       border-bottom: none;

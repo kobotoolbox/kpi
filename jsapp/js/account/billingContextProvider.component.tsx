@@ -6,8 +6,12 @@ import {
   OrganizationContext,
   useOrganization,
 } from 'js/account/organizations/useOrganization.hook';
+import sessionStore from 'js/stores/session';
 
 export const BillingContextProvider = (props: {children: ReactNode}) => {
+  if (!sessionStore.isLoggedIn) {
+    return <>{props.children}</>;
+  }
   const [organization, reloadOrg, orgStatus] = useOrganization();
   const oneTimeAddOns = useOneTimeAddOns();
   const usage = useUsage(organization?.id);

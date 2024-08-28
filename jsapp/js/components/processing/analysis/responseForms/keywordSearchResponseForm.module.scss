@@ -1,6 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .foundInstancesRow {
   @include mixins.centerRowFlex;

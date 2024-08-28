@@ -1,11 +1,11 @@
 from datetime import datetime
 
 from constance.test import override_config
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 
 

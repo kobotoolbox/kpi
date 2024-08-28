@@ -228,13 +228,15 @@ export default class UserAssetPermsEditor extends React.Component<
   }
 
   onBulkSetAssetPermissionCompleted() {
-    this.setState({isSubmitPending: false});
-    this.notifyParentAboutSubmitEnd(true);
+    this.setState({isSubmitPending: false}, () => {
+      this.notifyParentAboutSubmitEnd(true);
+    });
   }
 
   onBulkSetAssetPermissionFailed() {
-    this.setState({isSubmitPending: false});
-    this.notifyParentAboutSubmitEnd(false);
+    this.setState({isSubmitPending: false}, () => {
+      this.notifyParentAboutSubmitEnd(false);
+    });
   }
 
   notifyParentAboutSubmitEnd(isSuccess: boolean) {

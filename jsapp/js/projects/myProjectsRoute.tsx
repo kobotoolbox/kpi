@@ -159,7 +159,7 @@ function MyProjectsRoute() {
 
             <Button
               type='bare'
-              color='storm'
+              color='dark-blue'
               size='s'
               startIcon='close'
               onClick={() => {

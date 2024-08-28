@@ -1,20 +1,14 @@
-# coding: utf-8
-import re
 import copy
-from xml.dom import Node
 from typing import Optional
 
 import requests
-from defusedxml import minidom
 from django.conf import settings
-from django.db.models import Q, F
 from django.http import HttpResponseRedirect, Http404
 from rest_framework import renderers, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
@@ -187,7 +181,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             response = requests.post(
                 f'{settings.ENKETO_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
                 # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
+                auth=(settings.ENKETO_API_KEY, ''),
                 data=data
             )
             response.raise_for_status()
@@ -232,17 +226,19 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
         # Prepare attachments even if all files are present in `request.FILES`
         # (i.e.: submission XML and attachments)
-        attachments = None
+        attachments = {}
         # Remove 'xml_submission_file' since it is already handled
         request.FILES.pop('xml_submission_file')
+
+        # TODO pass request.FILES to `edit_submission()` directly when
+        #  KobocatBackendDeployment is gone
         if len(request.FILES):
-            attachments = {}
             for name, attachment in request.FILES.items():
                 attachments[name] = attachment
 
         try:
             xml_response = asset_snapshot.asset.deployment.edit_submission(
-                xml_submission_file, request.user, attachments
+                xml_submission_file, request, attachments
             )
         except SubmissionIntegrityError as e:
             raise serializers.ValidationError(str(e))

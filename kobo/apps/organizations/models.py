@@ -63,6 +63,26 @@ class Organization(AbstractOrganization):
                 ).first()
 
         return None
+    
+    @cache_for_request
+    def canceled_subscription_billing_cycle_anchor(self):
+        """
+        Returns cancelation date of most recently canceled subscription
+        """
+        # Only check for subscriptions if Stripe is enabled
+        if settings.STRIPE_ENABLED:
+            qs = Organization.objects.prefetch_related('djstripe_customers').filter(
+                    djstripe_customers__subscriptions__status='canceled',
+                    djstripe_customers__subscriber=self.id,
+                ).order_by(
+                    '-djstripe_customers__subscriptions__ended_at'
+                ).values(
+                    anchor=F('djstripe_customers__subscriptions__ended_at'),
+                ).first()
+            if qs:
+                return qs['anchor']
+            
+        return None
 
     def update_usage_cache(self, service_usage: dict):
         if not (billing_details := self.active_subscription_billing_details()):

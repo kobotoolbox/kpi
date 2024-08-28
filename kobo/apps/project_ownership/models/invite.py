@@ -5,10 +5,11 @@ from django.db import models
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from .choices import InviteStatusChoices
 
 
-class Invite(models.Model):
+class Invite(AbstractTimeStampedModel):
 
     uid = KpiUidField(uid_prefix='poi')
     sender = models.ForeignKey(
@@ -27,8 +28,6 @@ class Invite(models.Model):
         default=InviteStatusChoices.PENDING,
         db_index=True
     )
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = 'project ownership transfer invite'
@@ -39,9 +38,3 @@ class Invite(models.Model):
             f'{self.recipient.username} '
             f'({InviteStatusChoices(self.status)})'
         )
-
-    def save(self, *args, **kwargs):
-        update_fields = kwargs.get('update_fields', {})
-        if not update_fields or 'date_modified' in update_fields:
-            self.date_modified = timezone.now()
-        super().save(*args, **kwargs)

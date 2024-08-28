@@ -1,12 +1,13 @@
-# coding: utf-8
 
+import pytest
 import responses
 from constance.test import override_config
 from mock import patch
 from rest_framework import status
+from ssrf_protect.exceptions import SSRFProtectException
 
 from kobo.apps.hook.constants import (
-    HOOK_LOG_PENDING,
+    HOOK_LOG_FAILED,
     KOBO_INTERNAL_ERROR_STATUS_CODE
 )
 from .hook_test_case import HookTestCase, MockSSRFProtect
@@ -34,9 +35,10 @@ class SSRFHookTestCase(HookTestCase):
                       content_type='application/json')
 
         # Try to send data to external endpoint
-        success = service_definition.send()
-        self.assertFalse(success)
+        with pytest.raises(SSRFProtectException):
+            service_definition.send()
+
         hook_log = hook.logs.all()[0]
         self.assertEqual(hook_log.status_code, KOBO_INTERNAL_ERROR_STATUS_CODE)
-        self.assertEqual(hook_log.status, HOOK_LOG_PENDING)
+        self.assertEqual(hook_log.status, HOOK_LOG_FAILED)
         self.assertTrue('is not allowed' in hook_log.message)

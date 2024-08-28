@@ -1,10 +1,11 @@
 # coding: utf-8
 import pytest
-from django.contrib.auth.models import User, AnonymousUser, Permission
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from rest_framework import serializers
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_QUESTION,

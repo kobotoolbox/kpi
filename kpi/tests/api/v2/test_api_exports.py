@@ -2,10 +2,10 @@
 import os
 from collections import defaultdict
 
-from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,

@@ -103,7 +103,7 @@ class ImportExportTask(models.Model):
         (COMPLETE, COMPLETE),
     )
 
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     data = models.JSONField()
     messages = models.JSONField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
@@ -570,8 +570,9 @@ class ExportTaskBase(ImportExportTask):
     }
 
     TIMESTAMP_KEY = '_submission_time'
-    # Above 244 seems to cause 'Download error' in Chrome 64/Linux
-    MAXIMUM_FILENAME_LENGTH = 240
+    # Above 244 seems to cause 'Download error' in Chrome 64/Linux and above
+    # 207 causes a 'Filename too long' error in Excel
+    MAXIMUM_FILENAME_LENGTH = 207
 
     class InaccessibleData(Exception):
         def __str__(self):

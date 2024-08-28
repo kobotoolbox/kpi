@@ -7,6 +7,7 @@ import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Button from 'js/components/common/button';
 import pageState from 'js/pageState.store';
 
 /**
@@ -60,14 +61,6 @@ export const AssetTagsForm = observer(class AssetTagsForm extends React.Componen
     this.setState({tags: newValue});
   }
 
-  getSubmitButtonLabel() {
-    if (this.state.isPending) {
-      return t('Updating…');
-    } else {
-      return t('Update');
-    }
-  }
-
   render() {
     if (!sessionStore.isLoggedIn) {
       return (<LoadingSpinner/>);
@@ -85,14 +78,15 @@ export const AssetTagsForm = observer(class AssetTagsForm extends React.Componen
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={this.state.isPending}
-          >
-            {this.getSubmitButtonLabel()}
-          </bem.KoboButton>
+          <Button
+            type='full'
+            color='blue'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isPending={this.state.isPending}
+            label={t('Update')}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );

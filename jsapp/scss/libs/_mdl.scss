@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 // Theming variables, mixins and includes
 
 $root-background: colors.$kobo-white;
@@ -40,4 +40,3 @@ $layout-desktop-header-height: 64px;
 }
 
 @import "mdl.layout";
-@import "mdl.buttons";

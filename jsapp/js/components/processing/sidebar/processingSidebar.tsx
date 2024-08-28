@@ -48,7 +48,7 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
         )}
 
         {displays.includes(StaticDisplays.Data) && (
-          <SidebarSubmissionData assetContent={props.asset.content} />
+          <SidebarSubmissionData asset={props.asset} />
         )}
 
         {displays.length === 0 && (

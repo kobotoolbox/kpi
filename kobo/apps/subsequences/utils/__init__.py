@@ -1,10 +1,9 @@
 from collections import defaultdict
 from copy import deepcopy
+
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
 from ..actions.translation import TranslationAction
 from ..actions.qual import QualAction
-
-from ..actions.unknown_action import UnknownAction
 
 
 AVAILABLE_ACTIONS = (
@@ -42,13 +41,15 @@ SUBMISSION_UUID_FIELD = 'meta/rootUuid'
 #         if not action.test_submission_passes_action(submission):
 #             return action
 
+
 def advanced_feature_instances(content, actions):
     action_instances = []
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        if action_params == True:
+        if action_params is True:
             action_params = action_kls.build_params({}, content)
         yield action_kls(action_params)
+
 
 def populate_paths(_content):
     content = deepcopy(_content)
@@ -76,6 +77,7 @@ def populate_paths(_content):
         row['qpath'] = '-'.join([*group_stack, rowname])
     return content
 
+
 def advanced_submission_jsonschema(content, actions, url=None):
     actions = deepcopy(actions)
     action_instances = []
@@ -90,7 +92,7 @@ def advanced_submission_jsonschema(content, actions, url=None):
 
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        if action_params == True:
+        if action_params is True:
             action_params = action_kls.build_params({}, content)
         if 'values' not in action_params:
             action_params['values'] = action_kls.get_values_for_content(content)
@@ -100,25 +102,31 @@ def advanced_submission_jsonschema(content, actions, url=None):
 # def _empty_obj():
 #     return {'type': 'object', 'properties': {}, 'additionalProperties': False}
 
+
 def get_jsonschema(action_instances=(), url=None):
     sub_props = {}
     if url is None:
         url = '/advanced_submission_post/<asset_uid>'
-    schema = {'type': 'object',
-                  '$description': FEATURE_JSONSCHEMA_DESCRIPTION,
-                  'url': url,
-                  'properties': {
-                    'submission': {'type': 'string',
-                                   'description': 'the uuid of the submission'},
-                  },
-                  'additionalProperties': False,
-                  'required': ['submission'],
-              }
+    schema = {
+        'type': 'object',
+        '$description': FEATURE_JSONSCHEMA_DESCRIPTION,
+        'url': url,
+        'properties': {
+            'submission': {
+                'type': 'string',
+                'description': 'the uuid of the submission',
+            },
+        },
+        'additionalProperties': False,
+        'required': ['submission'],
+    }
     for instance in action_instances:
         schema = instance.modify_jsonschema(schema)
     return schema
 
+
 SUPPLEMENTAL_DETAILS_KEY = '_supplementalDetails'
+
 
 def stream_with_extras(submission_stream, asset):
     extras = dict(
@@ -145,12 +153,15 @@ def stream_with_extras(submission_stream, asset):
                 c['uuid']: c for c in choices
             }
         qual_questions_by_uuid[qual_q['uuid']] = qual_q
+
     for submission in submission_stream:
         if SUBMISSION_UUID_FIELD in submission:
             uuid = submission[SUBMISSION_UUID_FIELD]
         else:
             uuid = submission['_uuid']
-        all_supplemental_details = extras.get(uuid, {})
+
+
+        all_supplemental_details = deepcopy(extras.get(uuid, {}))
         for qpath, supplemental_details in all_supplemental_details.items():
             try:
                 all_qual_responses = supplemental_details['qual']
@@ -176,6 +187,8 @@ def stream_with_extras(submission_stream, asset):
                         val = [val]
                     val_expanded = []
                     for v in val:
+                        if v == '':
+                            continue
                         try:
                             v_ex = qual_choices_per_question_by_uuid[
                                 qual_q['uuid']
@@ -186,7 +199,7 @@ def stream_with_extras(submission_stream, asset):
                             # added. They should simply be hidden
                             v_ex = {'uuid': v, 'error': 'unknown choice'}
                         val_expanded.append(v_ex)
-                    if single_choice:
+                    if single_choice and val_expanded:
                         val_expanded = val_expanded[0]
                     qual_response['val'] = val_expanded
                 qual_response.update(qual_q)

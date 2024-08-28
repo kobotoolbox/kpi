@@ -1,6 +1,6 @@
 @use 'scss/breakpoints';
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // drawer (sidebar)
 
@@ -88,10 +88,6 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-
-  button.mdl-button {
-    width: 100%;
-  }
 }
 
 @media screen and (min-width: breakpoints.$bMobileMenu) {

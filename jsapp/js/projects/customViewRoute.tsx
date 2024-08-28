@@ -41,7 +41,8 @@ function CustomViewRoute() {
     customView.setUp(
       viewUid,
       `${ROOT_URL}/api/v2/project-views/${viewUid}/assets/`,
-      DEFAULT_VISIBLE_FIELDS
+      DEFAULT_VISIBLE_FIELDS,
+      false
     );
   }, [viewUid]);
 
@@ -96,7 +97,7 @@ function CustomViewRoute() {
 
         <Button
           type='frame'
-          color='storm'
+          color='dark-blue'
           size='s'
           startIcon='download'
           label={t('Export all data')}
@@ -111,7 +112,9 @@ function CustomViewRoute() {
 
         {selectedAssets.length === 1 && (
           <div className={styles.actions}>
-            <ProjectQuickActions asset={selectedAssets[0]} />
+            <ProjectQuickActions
+              asset={selectedAssets[0]}
+            />
           </div>
         )}
 

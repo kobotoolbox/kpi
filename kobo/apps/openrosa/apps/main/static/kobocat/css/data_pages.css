@@ -1,0 +1,84 @@
+/* CSS styling for: ;
+ - the data table page (url: forms/PROJECT_ID/view-data)
+ - the data instance page (url: forms/PROJECT_ID/instance)
+ - the analyze data view (url: forms/PROJECT_ID/tables 
+*/
+
+/* Data table */
+
+/* Data tables - temporarily here */
+
+.data-table-container table {
+    clear: both;
+    display: block;
+    overflow-x: auto;
+    width: 98% !important;
+}
+
+.data-table-container table.table th, 
+.data-table-container table.table td {
+    font-size:12px;
+    padding: 4px 0px 4px 12px;
+    word-wrap:break-word;
+    max-width: 270px;
+    text-overflow:ellipsis;
+    width:auto;
+    text-align:left;
+}
+
+.data-table-container table.table td.view {
+  cursor: pointer;
+  color: #555;
+}
+
+.data-table-container table.table td.view:hover {
+  color: #1e8fde;
+}
+
+.data-table-container table.table th.view a {
+  display: none;
+}
+
+/* Data instance */
+
+/* Analyze data */
+
+.form-horizontal .control-label {
+  margin-left: 10px;
+  width: 150px;
+  text-align: left;
+}
+
+#step-1, 
+#step-2, 
+#step-3 {
+  position: relative;
+  padding-left: 30px;
+}
+
+#step-1:before, 
+#step-2:before, 
+#step-3:before {
+  content: "1";
+  position: absolute;
+  color: #333;
+  display: block;
+  left: -4px;
+  top: 4px;
+  border:1px solid #CCC;
+  font-weight: 600;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  border-radius: 13px;
+  text-align: center;
+  font-size: 16px;
+}
+
+#step-2:before {
+  content: "2";
+}
+
+#step-3:before {
+  content: "3";
+}

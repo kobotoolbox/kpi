@@ -1,13 +1,18 @@
 import uuid
 
-from django.contrib.auth.models import User
 from django.http import QueryDict
 from django.urls import reverse
+from mock import patch
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.tests.utils.mock import guess_type_mock
 
 
 class AttachmentApiTests(BaseAssetTestCase):
@@ -34,8 +39,12 @@ class AttachmentApiTests(BaseAssetTestCase):
         self.__add_submissions()
 
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
-        self.submission_list_url = self.asset.deployment.submission_list_url
+        self.submission_list_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
         self._deployment = self.asset.deployment
+        self.submission_id = self.submissions[0]['_id']
 
     def __add_submissions(self):
         submissions = []
@@ -50,13 +59,11 @@ class AttachmentApiTests(BaseAssetTestCase):
             'meta/instanceID': f'uuid:{_uuid}',
             '_attachments': [
                 {
-                    'id': 1,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_clip.3gp',
                     'filename': 'someuser/audio_conversion_test_clip.3gp',
                     'mimetype': 'video/3gpp',
                 },
                 {
-                    'id': 2,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',
                     'filename': 'someuser/audio_conversion_test_image.jpg',
                     'mimetype': 'image/jpeg',
@@ -65,7 +72,11 @@ class AttachmentApiTests(BaseAssetTestCase):
             '_submitted_by': 'someuser'
         }
         submissions.append(submission)
-        self.asset.deployment.mock_submissions(submissions)
+
+        with patch('mimetypes.guess_type') as guess_mock:
+            guess_mock.side_effect = guess_type_mock
+            self.asset.deployment.mock_submissions(submissions)
+
         self.submissions = submissions
 
     def test_convert_mp4_to_mp3(self):
@@ -81,7 +92,7 @@ class AttachmentApiTests(BaseAssetTestCase):
                 self._get_endpoint('attachment-list'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': 1,
+                    'parent_lookup_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -104,7 +115,7 @@ class AttachmentApiTests(BaseAssetTestCase):
                 self._get_endpoint('attachment-list'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': 1,
+                    'parent_lookup_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -128,7 +139,7 @@ class AttachmentApiTests(BaseAssetTestCase):
                 self._get_endpoint('attachment-list'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': 1,
+                    'parent_lookup_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -139,12 +150,13 @@ class AttachmentApiTests(BaseAssetTestCase):
         assert response['Content-Type'] == 'video/3gpp'
 
     def test_get_attachment_with_id(self):
+        attachment_id = self.submissions[0]['_attachments'][0]['id']
         url = reverse(
             self._get_endpoint('attachment-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_data': 1,
-                'pk': 1,
+                'parent_lookup_data': self.submission_id,
+                'pk': attachment_id,
             },
         )
 
@@ -169,14 +181,16 @@ class AttachmentApiTests(BaseAssetTestCase):
         original_file = response.data
 
         # Duplicate the submission
-        duplicate_url = reverse(
-            self._get_endpoint('submission-duplicate'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'pk': submission['_id'],
-            },
-        )
-        response = self.client.post(duplicate_url, {'format': 'json'})
+        with patch('mimetypes.guess_type') as guess_mock:
+            guess_mock.side_effect = guess_type_mock
+            duplicate_url = reverse(
+                self._get_endpoint('submission-duplicate'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'pk': submission['_id'],
+                },
+            )
+            response = self.client.post(duplicate_url, {'format': 'json'})
         duplicate_submission = response.data
 
         # Increment the max attachment id of the original submission to get the
@@ -197,7 +211,9 @@ class AttachmentApiTests(BaseAssetTestCase):
         duplicate_file = response.data
 
         # Ensure that the files are the same
-        assert original_file == duplicate_file
+        with default_storage.open(str(original_file), 'rb') as of:
+            with default_storage.open(str(duplicate_file), 'rb') as df:
+                assert of.read() == df.read()
 
     def test_xpath_not_found(self):
         query_dict = QueryDict('', mutable=True)
@@ -212,7 +228,7 @@ class AttachmentApiTests(BaseAssetTestCase):
                 self._get_endpoint('attachment-list'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': 1,
+                    'parent_lookup_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -236,7 +252,7 @@ class AttachmentApiTests(BaseAssetTestCase):
                 self._get_endpoint('attachment-list'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': 1,
+                    'parent_lookup_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -254,10 +270,39 @@ class AttachmentApiTests(BaseAssetTestCase):
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'parent_lookup_data': submission['_uuid'],
-                'pk': 1,
+                'pk': submission['_attachments'][0]['id'],
             },
         )
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'video/3gpp'
+
+    def test_thumbnail_creation_on_demand(self):
+        submission = self.submissions[0]
+        url = reverse(
+            self._get_endpoint('attachment-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'parent_lookup_data': submission['_id'],
+                'pk': submission['_attachments'][1]['id'],
+            },
+        )
+        response = self.client.get(url)
+        filename = response.data.name.replace('.jpg', '')
+        thumbnail = f'{filename}-small.jpg'
+        # Thumbs should not exist yet
+        self.assertFalse(default_storage.exists(thumbnail))
+
+        thumb_url = reverse(
+            self._get_endpoint('attachment-thumb'),
+            args=(
+                self.asset.uid,
+                submission['_id'],
+                submission['_attachments'][1]['id'],
+                'small'
+            ),
+        )
+        self.client.get(thumb_url)
+        # Thumbs should exist
+        self.assertTrue(default_storage.exists(thumbnail))

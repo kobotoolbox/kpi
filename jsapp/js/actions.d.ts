@@ -138,6 +138,28 @@ interface DuplicateSubmissionCompletedDefinition extends Function {
   listen: (callback: (assetUid: string, submissionUid: string, duplicatedSubmission: SubmissionResponse) => void) => Function;
 }
 
+interface GetUserDefinition extends Function {
+  (username: string): void;
+  completed: GetUserCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+
+interface GetUserCompletedDefinition extends Function {
+  (response: AccountResponse): void;
+  listen: (callback: (response: AccountResponse) => void) => Function;
+}
+
+interface SetAssetPublicDefinition extends Function {
+  (asset: AssetResponse, shouldSetAnonPerms: boolean): void;
+  completed: SetAssetPublicCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+
+interface SetAssetPublicCompletedDefinition extends Function {
+  (assetUid: string, shouldSetAnonPerms: boolean): void;
+  listen: (callback: (assetUid: string, shouldSetAnonPerms: boolean) => void) => Function;
+}
+
 // NOTE: as you use more actions in your ts files, please extend this namespace,
 // for now we are defining only the ones we need.
 export namespace actions {
@@ -171,7 +193,9 @@ export namespace actions {
       getAssetFiles: GenericDefinition;
     };
     const hooks: object;
-    const misc: object;
+    const misc: {
+      getUser: GetUserDefinition;
+    };
     const reports: object;
     const table: {
       updateSettings: TableUpdateSettingsDefinition;
@@ -184,6 +208,7 @@ export namespace actions {
       assignAssetPermission: GenericDefinition;
       bulkSetAssetPermissions: GenericDefinition;
       getAssetPermissions: GenericDefinition;
+      setAssetPublic: SetAssetPublicDefinition;
     };
     const help: {
       getInAppMessages: GenericDefinition;

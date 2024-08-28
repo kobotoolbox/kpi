@@ -1,7 +1,7 @@
 @use 'scss/breakpoints';
 @use "scss/_variables";
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // header and navigation styling
 
@@ -35,9 +35,13 @@
   }
 
   .header__logo {
+    // NOTE: this is overrideable, see `/kpi/templates/index.html`
     background-image: url("../img/kobologo_symbol.svg");
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
     width: 40px;
     height: 40px;
+    // Needed for non-horizontal images
     background-size: contain;
     display: block;
   }
@@ -348,7 +352,7 @@
   }
 
   .mdl-layout__header .header__logo {
-    background: url("../img/kobologo.svg") no-repeat 50% 50%;
+    background-image: url("../img/kobologo.svg");
     width: 180px;
   }
 }

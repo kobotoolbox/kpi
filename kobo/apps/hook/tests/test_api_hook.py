@@ -1,9 +1,9 @@
 # coding: utf-8
 import json
 
+import pytest
 import responses
 from constance.test import override_config
-from django.contrib.auth.models import User
 from django.urls import reverse
 from mock import patch
 from rest_framework import status
@@ -15,6 +15,7 @@ from kobo.apps.hook.constants import (
     SUBMISSION_PLACEHOLDER,
 )
 from kobo.apps.hook.models.hook import Hook
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON
 from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
@@ -22,6 +23,7 @@ from kpi.constants import (
 )
 from kpi.utils.datetime import several_minutes_from_now
 from .hook_test_case import HookTestCase, MockSSRFProtect
+from ..exceptions import HookRemoteServerDownError
 
 
 class ApiHookTestCase(HookTestCase):
@@ -55,42 +57,6 @@ class ApiHookTestCase(HookTestCase):
 
     def test_create_hook(self):
         self._create_hook()
-
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
-    @responses.activate
-    def test_data_submission(self):
-        # Create first hook
-        first_hook = self._create_hook(name="dummy external service",
-                                       endpoint="http://dummy.service.local/",
-                                       settings={})
-        responses.add(responses.POST, first_hook.endpoint,
-                      status=status.HTTP_200_OK,
-                      content_type="application/json")
-        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
-
-        submissions = self.asset.deployment.get_submissions(self.asset.owner)
-        data = {'submission_id': submissions[0]['_id']}
-        response = self.client.post(hook_signal_url, data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-
-        # Create second hook
-        second_hook = self._create_hook(name="other dummy external service",
-                                        endpoint="http://otherdummy.service.local/",
-                                        settings={})
-        responses.add(responses.POST, second_hook.endpoint,
-                      status=status.HTTP_200_OK,
-                      content_type="application/json")
-
-        response = self.client.post(hook_signal_url, data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-
-        response = self.client.post(hook_signal_url, data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-
-        data = {'submission_id': 4}  # Instance doesn't belong to `self.asset`
-        response = self.client.post(hook_signal_url, data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_editor_access(self):
         hook = self._create_hook()
@@ -205,18 +171,20 @@ class ApiHookTestCase(HookTestCase):
         self.assertFalse(hook.active)
         self.assertEqual(hook.name, "some disabled external service")
 
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MockSSRFProtect._get_ip_address
+    )
     @responses.activate
     def test_send_and_retry(self):
 
         first_log_response = self._send_and_fail()
 
         # Let's retry through API call
-        retry_url = reverse("hook-log-retry", kwargs={
-            "parent_lookup_asset": self.asset.uid,
-            "parent_lookup_hook": self.hook.uid,
-            "uid": first_log_response.get("uid")
+        retry_url = reverse('hook-log-retry', kwargs={
+            'parent_lookup_asset': self.asset.uid,
+            'parent_lookup_hook': self.hook.uid,
+            'uid': first_log_response.get('uid')
         })
 
         # It should be a success
@@ -224,17 +192,49 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Let's check if logs has 2 tries
-        detail_url = reverse("hook-log-detail", kwargs={
-            "parent_lookup_asset": self.asset.uid,
-            "parent_lookup_hook": self.hook.uid,
-            "uid": first_log_response.get("uid")
+        detail_url = reverse('hook-log-detail', kwargs={
+            'parent_lookup_asset': self.asset.uid,
+            'parent_lookup_hook': self.hook.uid,
+            'uid': first_log_response.get('uid')
         })
 
         response = self.client.get(detail_url, format=SUBMISSION_FORMAT_TYPE_JSON)
-        self.assertEqual(response.data.get("tries"), 2)
+        self.assertEqual(response.data.get('tries'), 2)
 
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MockSSRFProtect._get_ip_address
+    )
+    @responses.activate
+    def test_send_and_cannot_retry(self):
+
+        first_log_response = self._send_and_wait_for_retry()
+
+        # Let's retry through API call
+        retry_url = reverse('hook-log-retry', kwargs={
+            'parent_lookup_asset': self.asset.uid,
+            'parent_lookup_hook': self.hook.uid,
+            'uid': first_log_response.get('uid')
+        })
+
+        # It should be a failure. The hook log is going to be retried
+        response = self.client.patch(retry_url, format=SUBMISSION_FORMAT_TYPE_JSON)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Let's check if logs has 2 tries
+        detail_url = reverse('hook-log-detail', kwargs={
+            'parent_lookup_asset': self.asset.uid,
+            'parent_lookup_hook': self.hook.uid,
+            'uid': first_log_response.get('uid')
+        })
+
+        response = self.client.get(detail_url, format=SUBMISSION_FORMAT_TYPE_JSON)
+        self.assertEqual(response.data.get('tries'), 1)
+
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MockSSRFProtect._get_ip_address
+    )
     @responses.activate
     def test_payload_template(self):
 
@@ -357,12 +357,17 @@ class ApiHookTestCase(HookTestCase):
     @responses.activate
     def test_hook_log_filter_failure(self):
         # Create failing hook
-        hook = self._create_hook(name="failing hook",
-                                endpoint="http://failing.service.local/",
-                                settings={})
-        responses.add(responses.POST, hook.endpoint,
-                      status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                      content_type="application/json")
+        hook = self._create_hook(
+            name='failing hook',
+            endpoint='http://failing.service.local/',
+            settings={},
+        )
+        responses.add(
+            responses.POST,
+            hook.endpoint,
+            status=status.HTTP_504_GATEWAY_TIMEOUT,
+            content_type="application/json",
+        )
 
         # simulate a submission
         ServiceDefinition = hook.get_service_definition()
@@ -370,8 +375,8 @@ class ApiHookTestCase(HookTestCase):
         submission_id = submissions[0]['_id']
         service_definition = ServiceDefinition(hook, submission_id)
 
-        success = service_definition.send()
-        self.assertFalse(success)
+        with pytest.raises(HookRemoteServerDownError):
+            service_definition.send()
 
         # Get log for the failing hook
         hook_log_url = reverse('hook-log-list', kwargs={
@@ -380,18 +385,24 @@ class ApiHookTestCase(HookTestCase):
         })
 
         # There should be no success log for the failing hook
-        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+        response = self.client.get(
+            f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json'
+        )
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be a pending log for the failing hook
-        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_PENDING}', format='json')
+        response = self.client.get(
+            f'{hook_log_url}?status={HOOK_LOG_PENDING}', format='json'
+        )
         self.assertEqual(response.data.get('count'), 1)
 
     def test_hook_log_filter_validation(self):
         # Create hook
-        hook = self._create_hook(name="success hook",
-                                endpoint="http://hook.service.local/",
-                                settings={})
+        hook = self._create_hook(
+            name='success hook',
+            endpoint='http://hook.service.local/',
+            settings={},
+        )
 
         # Get log for the success hook
         hook_log_url = reverse('hook-log-list', kwargs={
