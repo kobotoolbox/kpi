@@ -1,24 +1,35 @@
-import React, {useEffect, useState, useMemo} from 'react';
-import useAccessLogsQuery from 'jsapp/js/query/queries/accessLogs.query';
+import React, {useEffect, useState, useMemo, Component} from 'react';
+import useAccessLogQuery from 'jsapp/js/query/queries/accessLog.query';
 import KoboSelect from 'jsapp/js/components/common/koboSelect';
+import {UseQueryResult} from '@tanstack/react-query';
+import {PaginatedResponse} from 'jsapp/js/dataInterface';
 import Button from 'jsapp/js/components/common/button';
 
-export default function AccessLogsSection() {
+interface PaginatedQueryHook extends Function {
+  (limit: number, offset: number): UseQueryResult<PaginatedResponse<any>>;
+}
+
+interface PaginatedQueryTableProps {
+  queryHook: PaginatedQueryHook,
+  renderDisplayTable: Function
+}
+
+const PaginatedQueryTable = (props: PaginatedQueryTableProps) => {
   const [currentPageLimitOffset, setCurrentPageLimitOffset] = useState({
     limit: 10,
     offset: 0,
   });
 
-  const accessLogsQuery = useAccessLogsQuery(
+  const paginatedQuery = props.queryHook(
     currentPageLimitOffset.limit,
     currentPageLimitOffset.offset
   );
 
   const availablePages = useMemo(() => {
     return Math.ceil(
-      (accessLogsQuery.data?.count ?? 0) / currentPageLimitOffset.limit
+      (paginatedQuery.data?.count ?? 0) / currentPageLimitOffset.limit
     );
-  }, [accessLogsQuery.data]);
+  }, [paginatedQuery.data]);
 
   const currentPage = useMemo(() => {
     return (
@@ -62,7 +73,7 @@ export default function AccessLogsSection() {
       limit: currentPageLimitOffset.limit,
       offset: (availablePages - 1) * currentPageLimitOffset.limit,
     });
-  }
+  };
 
   const skipToFirstPage = () => {
     setCurrentPageLimitOffset({
@@ -71,53 +82,18 @@ export default function AccessLogsSection() {
     });
   };
 
-  return (
-    <div>
-      <div>Available pages</div>
-      <div>{availablePages}</div>
-      <div>Current page</div>
-      <div>{currentPage}</div>
-      <Button
-        type='full'
-        color='dark-blue'
-        isDisabled={currentPage >= availablePages}
-        size='m'
-        label='skip to last page'
-        onClick={skipToLastPage}
-      />
-      <Button
-        type='full'
-        color='dark-blue'
-        isDisabled={currentPage <= 1}
-        size='m'
-        label='skip to first page'
-        onClick={skipToFirstPage}
-      />
-      <Button
-        type='full'
-        color='dark-blue'
-        isDisabled={currentPage >= availablePages}
-        size='m'
-        label='next'
-        onClick={onPageForward}
-      />
-      <Button
-        type='full'
-        color='dark-blue'
-        size='m'
-        label='back'
-        isDisabled={currentPage <= 1}
-        onClick={onPageBack}
-      />
-      <KoboSelect
-        name={t('Items per page')}
-        options={perPageOptions}
-        size={'s'}
-        type={'outline'}
-        onChange={onItemLimitChange}
-        selectedOption={currentPageLimitOffset.limit.toString()}
-      />
-      <div>{accessLogsQuery.data?.results.map((result) => (<div>{result.source_browser}</div>))}</div>
-    </div>
+  return props.renderDisplayTable(
+    paginatedQuery.data?.results,
+    availablePages,
+    currentPage,
+    currentPageLimitOffset.limit.toString(),
+    perPageOptions,
+    onPageForward,
+    onPageBack,
+    skipToLastPage,
+    skipToFirstPage,
+    onItemLimitChange
   );
 }
+
+export default PaginatedQueryTable

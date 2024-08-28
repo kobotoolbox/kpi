@@ -2,7 +2,7 @@ import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet} from 'jsapp/js/api';
-import data from './mockAccessLogs';
+import data from './mockAccessLog';
 
 export interface AccessLog {
   source_browser: string;
@@ -12,13 +12,13 @@ export interface AccessLog {
   submissions: number | null;
 }
 
-// async function getAccessLogs(limit: number, offset: number) {
+// async function getAccessLog(limit: number, offset: number) {
 //   const params = new URLSearchParams({
 //     limit: limit.toString(),
 //     offset: offset.toString(),
 //   });
 //   return fetchGet<PaginatedResponse<AccessLog>>(
-//     endpoints.ACCESS_LOGS_URL + '?' + params,
+//     endpoints.ACCESS_LOG_URL + '?' + params,
 //     {
 //       errorMessageDisplay: t('There was an error getting the list.'),
 //     }
@@ -41,19 +41,19 @@ function processData(limit: number, offset: number) {
   return returnData
 }
 
-async function getAccessLogs(limit: number, offset: number) {
+async function getAccessLog(limit: number, offset: number) {
   return new Promise<PaginatedResponse<AccessLog>>((resolve) => {
     setTimeout(() => resolve(processData(limit, offset)), 500);
   });
 }
 
-export default function useAccessLogsQuery(
+export default function useAccessLogQuery(
   itemLimit: number,
   pageOffset: number
 ) {
   return useQuery({
-    queryKey: ['accessLogs', itemLimit, pageOffset],
-    queryFn: () => getAccessLogs(itemLimit, pageOffset),
+    queryKey: ['accessLog', itemLimit, pageOffset],
+    queryFn: () => getAccessLog(itemLimit, pageOffset),
     placeholderData: keepPreviousData,
   });
 }

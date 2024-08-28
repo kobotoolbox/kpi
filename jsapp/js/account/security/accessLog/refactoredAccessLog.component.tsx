@@ -1,14 +1,14 @@
 import React, {useEffect, useState, useMemo} from 'react';
-import useAccessLogsQuery, {
+import useAccessLogQuery, {
   AccessLog,
-} from 'jsapp/js/query/queries/accessLogs.query';
+} from 'jsapp/js/query/queries/accessLog.query';
 import PaginatedQueryTable from './paginatedQueryTable.component';
 import KoboSelect, {
   KoboSelectOption,
 } from 'jsapp/js/components/common/koboSelect';
 import Button from 'jsapp/js/components/common/button';
 
-export default function AccessLogsSection() {
+export default function AccessLogSection() {
   function renderDataTable(
     data: AccessLog[] | undefined,
     availablePages: number,
@@ -74,9 +74,9 @@ export default function AccessLogsSection() {
 
   return (
     <>
-      <div>Access Logs</div>
+      <div>Access Log</div>
       <PaginatedQueryTable
-        queryHook={useAccessLogsQuery}
+        queryHook={useAccessLogQuery}
         renderDisplayTable={renderDataTable}
       />
     </>
