@@ -586,6 +586,11 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'ACCESS_LOG_LIFESPAN': (
+        60,
+        'Length of time in days to keep access logs.',
+        'positive_int'
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -649,6 +654,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'ACCESS_LOG_LIFESPAN',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1115,13 +1121,7 @@ if STRIPE_ENABLED:
     stripe_domain = "https://js.stripe.com"
     CSP_SCRIPT_SRC.append(stripe_domain)
     CSP_FRAME_SRC.append(stripe_domain)
-
-csp_report_uri = env.url('CSP_REPORT_URI', None)
-if csp_report_uri:  # Let environ validate uri, but set as string
-    CSP_REPORT_URI = csp_report_uri.geturl()
-CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", False)
-
-''' Celery configuration '''
+RYCelery configuration '''
 # Celery 4.0 New lowercase settings.
 # Uppercase settings can be used when using a PREFIX
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings
@@ -1198,6 +1198,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    'delete-expired-access-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_access_log_cleaning_tasks',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    }
 }
 
 

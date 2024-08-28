@@ -67,6 +67,7 @@ jsonfield
 jsonschema
 kombu
 lxml
+more-itertools
 oauthlib
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
