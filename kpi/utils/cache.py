@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from functools import wraps
 
+from django_redis import get_redis_connection
 from django_request_cache import get_request_cache
 
 
@@ -14,6 +15,7 @@ def void_cache_for_request(keys):
         keys (tuple): Substrings to be searched for
 
     """
+
     def _void_cache_for_request(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -27,5 +29,77 @@ def void_cache_for_request(keys):
                     if key.startswith(prefixed_keys):
                         delattr(cache, key)
             return func(*args, **kwargs)
+
         return wrapper
+
     return _void_cache_for_request
+
+
+class CachedClass:
+    """
+    Handles a mapping cache.
+
+    The inheriting class must define a function _get_cache_hash that creates a
+    unique name string for the underlying HSET.
+
+    The inheriting class should call self._setup_cache() at __init__
+
+    The TTL is configured through the class property CACHE_TTL.
+
+    This class must be used with the decorator defined below,
+    cached_class_property, which will be used to specify what class methods are
+    cached.
+    """
+
+    CACHE_TTL = None
+
+    def _setup_cache(self):
+        """
+        Sets up the cache client and the cache hash name for the hset
+        """
+        self._redis_client = get_redis_connection('default')
+        self._cache_hash_str = self._get_cache_hash()
+        assert self.CACHE_TTL > 0, 'Set a valid value for CACHE_TTL'
+        self._handle_cache_expiration()
+
+    def _handle_cache_expiration(self):
+        """
+        Checks if the hset is initialized, and initializes if necessary
+        """
+        if not self._redis_client.hget(self._cache_hash_str, '__initialized__'):
+            self._redis_client.hset(
+                self._cache_hash_str, '__initialized__', 'True'
+            )
+            self._redis_client.expire(self._cache_hash_str, self.CACHE_TTL)
+
+    def _clear_cache(self):
+        self._redis_client.delete(self._cache_hash_str)
+
+
+def cached_class_property(key, serializer=str, deserializer=str):
+    """
+    Function decorator that takes a key to store/retrieve a cached key value and
+    serializer and deserializer functions to convert the value for storage or
+    retrieval, respectively.
+    """
+
+    def cached_key_getter(func):
+        def wrapper(self):
+            if getattr(self, '_redis_client', None) is None:
+                self.setup_cache()
+            self._handle_cache_expiration()
+
+            value = self._redis_client.hget(self._cache_hash_str, key)
+            if value is None:
+                value = func(self)
+                self._redis_client.hset(
+                    self._cache_hash_str, key, serializer(value)
+                )
+            else:
+                value = deserializer(value)
+
+            return value
+
+        return wrapper
+
+    return cached_key_getter
