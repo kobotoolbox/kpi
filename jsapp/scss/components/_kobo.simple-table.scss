@@ -40,7 +40,7 @@
 
 .simple-table__body {
   .simple-table__cell {
-    border-bottom: 1px solid colors.$kobo-gray-96;
+    border-bottom: 1px solid colors.$kobo-gray-200;
   }
 }
 
@@ -54,8 +54,8 @@
 .simple-table__header {
   .simple-table__row:nth-child(1) {
     .simple-table__cell {
-      background-color: colors.$kobo-gray-96;
-      border-bottom: 2px solid colors.$kobo-gray-92;
+      background-color: colors.$kobo-gray-200;
+      border-bottom: 2px solid colors.$kobo-gray-300;
       font-weight: 600;
     }
   }

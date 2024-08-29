@@ -1063,7 +1063,7 @@ class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <Button
                 type='full'
-                color='dark-red'
+                color='red'
                 size='l'
                 label={t('Delete Project and Data')}
                 onClick={this.deleteProject}
