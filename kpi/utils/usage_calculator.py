@@ -1,4 +1,5 @@
 from typing import Optional
+from json import loads, dumps
 
 from django.conf import settings
 from django.db.models import Sum, Q
@@ -17,9 +18,12 @@ from kobo.apps.organizations.utils import (
 )
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
+from kpi.utils.cache import CachedClass, cached_class_property
 
 
-class ServiceUsageCalculator:
+class ServiceUsageCalculator(CachedClass):
+    CACHE_TTL = 30
+
     def __init__(self, user: User, organization: Optional[Organization]):
         self.user = user
         self.organization = organization
@@ -56,6 +60,11 @@ class ServiceUsageCalculator:
             date__range=[self.current_month_start, now]
         )
         self.current_year_filter = Q(date__range=[self.current_year_start, now])
+        self._setup_cache()
+
+    def _get_cache_hash(self):
+        org_id = self.organization.id if self.organization else None
+        return f'{self.user.id}-{org_id}'
 
     def _filter_by_user(self, user_ids: list) -> Q:
         """
@@ -63,6 +72,9 @@ class ServiceUsageCalculator:
         """
         return Q(user_id__in=user_ids)
 
+    @cached_class_property(
+        key="nlp_usage_counters", serializer=dumps, deserializer=loads
+    )
     def get_nlp_usage_counters(self):
         nlp_tracking = (
             NLPUsageCounter.objects.only(
@@ -98,6 +110,9 @@ class ServiceUsageCalculator:
 
         return total_nlp_usage
 
+    @cached_class_property(
+        key="storage_usage", serializer=str, deserializer=int
+    )
     def get_storage_usage(self):
         """
         Get the storage used by non-(soft-)deleted projects for all users
@@ -114,6 +129,9 @@ class ServiceUsageCalculator:
 
         return total_storage_bytes['bytes_sum'] or 0
 
+    @cached_class_property(
+        key="submission_counters", serializer=dumps, deserializer=loads
+    )
     def get_submission_counters(self):
         """
         Calculate submissions for all users' projects even their deleted ones
