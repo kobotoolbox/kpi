@@ -13,7 +13,6 @@ from kobo.apps.project_ownership.models import (
     InviteStatusChoices,
     Transfer,
 )
-from kobo.apps.project_ownership.tests.utils import MockServiceUsageSerializer
 from kobo.apps.trackers.utils import update_nlp_counter
 
 from kpi.constants import PERM_VIEW_ASSET

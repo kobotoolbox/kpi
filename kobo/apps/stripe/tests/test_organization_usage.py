@@ -14,20 +14,20 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.stripe.tests.utils import (
-    generate_enterprise_subscription,
-    generate_plan_subscription,
-)
 from kobo.apps.trackers.tests.submission_utils import (
     create_mock_assets,
     add_mock_submissions,
 )
-from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
+from kobo.apps.stripe.tests.utils import (
+    generate_enterprise_subscription,
+    generate_plan_subscription,
+)
+from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
 from rest_framework import status
 
 
-class OrganizationServiceUsageAPIMultiUserTestCase(ServiceUsageAPIBase):
+class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
     """
     Test organization service usage when Stripe is enabled.
 
@@ -162,7 +162,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(ServiceUsageAPIBase):
         )
 
 
-class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
+class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
     org_id = 'orgAKWMFskafsngf'
 
     @classmethod
