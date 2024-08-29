@@ -141,10 +141,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
     )
 
 
-class AccessLogPermissionsFilter:
-    pass
-
-
 class AccessLogViewSet(AuditLogViewSet):
     """
     Access logs
