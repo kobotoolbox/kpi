@@ -32,6 +32,7 @@ from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
 )
+from kobo.apps.subsequences.utils.deprecation import qpath_to_xpath
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 from kpi.constants import (
     ASSET_TYPES,
@@ -82,7 +83,6 @@ from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
-
 
 class AssetDeploymentStatus(models.TextChoices):
 
@@ -448,7 +448,7 @@ class Asset(
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
-        self._insert_qpath(self.content)
+        self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
         self._remove_version(self.content)
@@ -492,21 +492,25 @@ class Asset(
             #
             # See also injectSupplementalRowsIntoListOfRows() in
             # assetUtils.ts
-            qpath = qual_question['qpath']
+            try:
+                xpath = qual_question['xpath']
+            except KeyError:
+                xpath = qpath_to_xpath(qual_question['qpath'], self)
+
             field = dict(
                 label=qual_question['labels']['_default'],
-                name=f"{qpath}/{qual_question['uuid']}",
-                dtpath=f"{qpath}/{qual_question['uuid']}",
+                name=f"{xpath}/{qual_question['uuid']}",
+                dtpath=f"{xpath}/{qual_question['uuid']}",
                 type=qual_question['type'],
                 # could say '_default' or the language of the transcript,
                 # but really that would be meaningless and misleading
                 language='??',
-                source=qpath,
-                qpath=f"{qpath}-{qual_question['uuid']}",
+                source=xpath,
+                xpath=f"{xpath}/{qual_question['uuid']}",
                 # seems not applicable given the transx questions describe
                 # manual vs. auto here and which engine was used
                 settings='??',
-                path=[qpath, qual_question['uuid']],
+                path=[xpath, qual_question['uuid']],
             )
             if field['type'] in omit_question_types:
                 continue
@@ -515,6 +519,7 @@ class Asset(
             except KeyError:
                 pass
             additional_fields.append(field)
+
         return output
 
     def clone(self, version_uid=None):
@@ -618,7 +623,7 @@ class Asset(
         if xpaths := _get_xpaths(survey):
             return xpaths
 
-        self._insert_qpath(content)
+        self._insert_xpath(content)
         return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
@@ -1119,16 +1124,19 @@ class Asset(
 
         if children:
             languages = set(obj_languages)
-            children_languages = [child.summary.get('languages')
-                                  for child in children
-                                  if child.summary.get('languages')]
+            children_languages = [
+                child.summary.get('languages')
+                for child in children
+                if child.summary.get('languages')
+            ]
         else:
-            children_languages = list(self.children
-                                      .values_list('summary__languages',
-                                                   flat=True)
-                                      .exclude(Q(summary__languages=[]) |
-                                               Q(summary__languages=[None]))
-                                      .order_by())
+            children_languages = list(
+                self.children.values_list('summary__languages', flat=True)
+                .exclude(
+                    Q(summary__languages=[]) | Q(summary__languages=[None])
+                )
+                .order_by()
+            )
 
         if children_languages:
             # Flatten `children_languages` to 1-dimension list.
@@ -1148,6 +1156,7 @@ class Asset(
     def validate_advanced_features(self):
         if self.advanced_features is None:
             self.advanced_features = {}
+
         jsonschema_validate(
             instance=self.advanced_features,
             schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
@@ -1182,12 +1191,26 @@ class Asset(
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
     def _get_additional_fields(self):
+
+        # TODO delete the loop when every asset is repopulated with `xpath`
+        #  instead of `qpath`.
+        for idx, known_column in enumerate(self.known_cols):
+            xpath, *rest = known_column.split(':')
+            # Old `qpath` should not contain "/", but could contain "-".
+            # If the question does not belong to a group but does contain "-",
+            # it will enter this condition - which is not a problem except extra
+            # CPU usage for nothing.
+            if '-' in xpath and '/' not in xpath:
+                xpath = qpath_to_xpath(xpath, self)
+                rest.insert(0, xpath)
+                self.known_cols[idx] = ':'.join(rest)
+
         return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
-        '''
+        """
         engines are individual NLP services that can be used
-        '''
+        """
         for instance in self.get_advanced_feature_instances():
             if hasattr(instance, 'engines'):
                 for key, val in instance.engines():

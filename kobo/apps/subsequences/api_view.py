@@ -1,23 +1,24 @@
-import json
 from copy import deepcopy
 
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
-from kobo.apps.subsequences.models import SubmissionExtras
-from kpi.models import Asset
-from kpi.permissions import SubmissionPermission
-from kpi.views.environment import _check_asr_mt_access_for_user
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as APIValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from kobo.apps.subsequences.models import SubmissionExtras
+from kobo.apps.subsequences.utils.deprecation import qpath_to_xpath
+from kpi.models import Asset
+from kpi.permissions import SubmissionPermission
+from kpi.views.environment import check_asr_mt_access_for_user
 
 
 def _check_asr_mt_access_if_applicable(user, posted_data):
     # This is for proof-of-concept testing and will be replaced with proper
     # quotas and accounting
     MAGIC_STATUS_VALUE = 'requested'
-    user_has_access = _check_asr_mt_access_for_user(user)
+    user_has_access = check_asr_mt_access_for_user(user)
     if user_has_access:
         return True
     # Oops, no access. But did they request ASR/MT in the first place?
@@ -97,8 +98,27 @@ class AdvancedSubmissionView(APIView):
 
 def get_submission_processing(asset, s_uuid):
     try:
-        submission = asset.submission_extras.get(submission_uuid=s_uuid)
-        return Response(submission.content)
+        submission_extra = asset.submission_extras.get(submission_uuid=s_uuid)
+
+        # TODO delete the loop when every asset is repopulated with `xpath`
+        #  instead of `qpath`.
+        content = deepcopy(submission_extra.content)
+        changed = False
+        for old_xpath, values in submission_extra.content.items():
+            if '-' in old_xpath and '/' not in old_xpath:
+                xpath = qpath_to_xpath(old_xpath, asset)
+                if xpath == old_xpath:
+                    continue
+
+                del content[old_xpath]
+                content[xpath] = values
+                changed = True
+
+        if changed:
+            submission_extra.content = content
+            # TODO save submission_extra?
+
+        return Response(submission_extra.content)
     except SubmissionExtras.DoesNotExist:
         # submission might exist but no SubmissionExtras object has been created
         return Response({'info': f'nothing found for submission: {s_uuid}'})

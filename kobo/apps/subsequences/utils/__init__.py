@@ -43,7 +43,6 @@ SUBMISSION_UUID_FIELD = 'meta/rootUuid'
 
 
 def advanced_feature_instances(content, actions):
-    action_instances = []
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
         if action_params is True:
@@ -74,7 +73,7 @@ def populate_paths(_content):
             logging.error('missing row name', extra={'path': group_stack})
         # /HOTFIX 2022-12-06
 
-        row['qpath'] = '-'.join([*group_stack, rowname])
+        row['xpath'] = '/'.join([*group_stack, rowname])
     return content
 
 
@@ -160,9 +159,9 @@ def stream_with_extras(submission_stream, asset):
         else:
             uuid = submission['_uuid']
 
-
         all_supplemental_details = deepcopy(extras.get(uuid, {}))
-        for qpath, supplemental_details in all_supplemental_details.items():
+        # FIXME QPATH
+        for supplemental_details in all_supplemental_details.values():
             try:
                 all_qual_responses = supplemental_details['qual']
             except KeyError:

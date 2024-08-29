@@ -68,7 +68,7 @@ class FormpackXLSFormUtilsMixin:
         autoname_fields_in_place(content, '$autoname')
         autovalue_choices_in_place(content, '$autovalue')
 
-    def _insert_qpath(self, content):
+    def _insert_xpath(self, content):
         insert_full_paths_in_place(content)
 
     def _populate_fields_with_autofields(self, content):
