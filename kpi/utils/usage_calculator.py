@@ -73,7 +73,7 @@ class ServiceUsageCalculator(CachedClass):
         return Q(user_id__in=user_ids)
 
     @cached_class_property(
-        key="nlp_usage_counters", serializer=dumps, deserializer=loads
+        key='nlp_usage_counters', serializer=dumps, deserializer=loads
     )
     def get_nlp_usage_counters(self):
         nlp_tracking = (
@@ -111,7 +111,7 @@ class ServiceUsageCalculator(CachedClass):
         return total_nlp_usage
 
     @cached_class_property(
-        key="storage_usage", serializer=str, deserializer=int
+        key='storage_usage', serializer=str, deserializer=int
     )
     def get_storage_usage(self):
         """
@@ -132,7 +132,7 @@ class ServiceUsageCalculator(CachedClass):
         return total_storage_bytes['bytes_sum'] or 0
 
     @cached_class_property(
-        key="submission_counters", serializer=dumps, deserializer=loads
+        key='submission_counters', serializer=dumps, deserializer=loads
     )
     def get_submission_counters(self):
         """
