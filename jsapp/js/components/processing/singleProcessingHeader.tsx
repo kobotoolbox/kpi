@@ -2,7 +2,7 @@ import React from 'react';
 import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
 import type {AssetContent, AssetResponse} from 'js/dataInterface';
 import {
-  findRowByQpath,
+  findRowByXpath,
   getRowTypeIcon,
   getTranslatedRowLabel,
   getRowName,
@@ -62,9 +62,9 @@ class SingleProcessingHeader extends React.Component<
     this.forceUpdate();
   }
 
-  onQuestionSelectChange(newQpath: string | null) {
-    if (newQpath !== null) {
-      this.goToSubmission(newQpath, this.props.submissionEditId);
+  onQuestionSelectChange(newXpath: string | null) {
+    if (newXpath !== null) {
+      this.goToSubmission(newXpath, this.props.submissionEditId);
     }
   }
 
@@ -98,13 +98,13 @@ class SingleProcessingHeader extends React.Component<
     }
 
     if (editIds) {
-      Object.keys(editIds).forEach((qpath) => {
-        const questionData = findRowByQpath(assetContent, qpath);
+      Object.keys(editIds).forEach((xpath) => {
+        const questionData = findRowByXpath(assetContent, xpath);
         // At this point we want to find out whether the question has at least
         // one editId (i.e. there is at least one transcriptable response to
         // the question). Otherwise there's no point in having the question as
         // selectable option.
-        const questionEditIds = editIds[qpath];
+        const questionEditIds = editIds[xpath];
         const hasAtLeastOneEditId = Boolean(
           questionEditIds.find((editIdOrNull) => editIdOrNull !== null)
         );
@@ -122,7 +122,7 @@ class SingleProcessingHeader extends React.Component<
               languageIndex
             );
             options.push({
-              value: qpath,
+              value: xpath,
               label: translatedLabel !== null ? translatedLabel : rowName,
               icon: getRowTypeIcon(questionData.type),
             });
@@ -177,15 +177,15 @@ class SingleProcessingHeader extends React.Component<
   }
 
   /** Goes to another submission. */
-  goToSubmission(qpath: string, targetSubmissionEditId: string) {
-    goToProcessing(this.props.assetUid, qpath, targetSubmissionEditId, true);
+  goToSubmission(xpath: string, targetSubmissionEditId: string) {
+    goToProcessing(this.props.assetUid, xpath, targetSubmissionEditId, true);
   }
 
   goPrev() {
     const prevEditId = this.getPrevSubmissionEditId();
     if (prevEditId !== null) {
       this.goToSubmission(
-        singleProcessingStore.currentQuestionQpath,
+        singleProcessingStore.currentQuestionXpath,
         prevEditId
       );
     }
@@ -195,7 +195,7 @@ class SingleProcessingHeader extends React.Component<
     const nextEditId = this.getNextSubmissionEditId();
     if (nextEditId !== null) {
       this.goToSubmission(
-        singleProcessingStore.currentQuestionQpath,
+        singleProcessingStore.currentQuestionXpath,
         nextEditId
       );
     }
@@ -303,7 +303,7 @@ class SingleProcessingHeader extends React.Component<
             type='gray'
             size='l'
             options={this.getQuestionSelectorOptions()}
-            selectedOption={singleProcessingStore.currentQuestionQpath}
+            selectedOption={singleProcessingStore.currentQuestionXpath}
             onChange={this.onQuestionSelectChange.bind(this)}
           />
         </section>

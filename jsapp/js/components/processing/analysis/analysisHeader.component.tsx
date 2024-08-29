@@ -46,7 +46,7 @@ export default function AnalysisHeader() {
           analysisQuestions?.dispatch({
             type: 'addQuestion',
             payload: {
-              qpath: singleProcessingStore.currentQuestionQpath,
+              xpath: singleProcessingStore.currentQuestionXpath,
               type: definition.type,
             },
           });
