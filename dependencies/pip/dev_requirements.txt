@@ -369,6 +369,8 @@ modilabs-python-utils==0.1.5
     # via -r dependencies/pip/requirements.in
 mongomock==4.1.2
     # via -r dependencies/pip/dev_requirements.in
+more-itertools==10.4.0
+    # via -r dependencies/pip/requirements.in
 multidict==6.0.5
     # via
     #   aiohttp
