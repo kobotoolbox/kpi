@@ -2,8 +2,6 @@
 from copy import deepcopy
 
 from django.contrib.auth.models import Permission
-from django.db import connection
-from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework import status
 
@@ -945,20 +943,15 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         permissions = [PERM_VIEW_ASSET, PERM_CHANGE_ASSET]
 
         # Assign permissions one by one
-        with CaptureQueriesContext(connection) as old_context:
+        with self.assertNumQueries(36):
             for user in [self.someuser, self.anotheruser]:
                 for perm in permissions:
                     self.asset.assign_perm(user, perm)
-        old_method_query_count = len(old_context.captured_queries)
 
         # Bulk assign permissions
-        with CaptureQueriesContext(connection) as new_context:
+        with self.assertNumQueries(12):
             for user in [self.someuser, self.anotheruser]:
                 self.asset.assign_perm(user, permissions)
-        new_method_query_count = len(new_context.captured_queries)
-
-        # Ensure the new method reduces the number of queries
-        self.assertTrue(new_method_query_count < old_method_query_count)
 
     def test_bulk_remove_perm_reduces_queries(self):
         permissions = [
@@ -971,17 +964,12 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             self.asset.assign_perm(user, permissions)
 
         # Remove permissions one by one
-        with CaptureQueriesContext(connection) as old_context:
+        with self.assertNumQueries(56):
             for user in [self.someuser, self.anotheruser]:
                 for perm in permissions:
                     self.asset.remove_perm(user, perm)
-        old_method_query_count = len(old_context.captured_queries)
 
         # Bulk remove permissions
-        with CaptureQueriesContext(connection) as new_context:
+        with self.assertNumQueries(42):
             for user in [self.someuser, self.anotheruser]:
                 self.asset.remove_perm(user, permissions)
-        new_method_query_count = len(new_context.captured_queries)
-
-        # Ensure the new method reduces the number of queries
-        self.assertTrue(new_method_query_count < old_method_query_count)
