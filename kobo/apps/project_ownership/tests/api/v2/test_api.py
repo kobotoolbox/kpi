@@ -3,6 +3,7 @@ import uuid
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.utils import timezone
 from mock import patch, MagicMock
 from rest_framework import status
@@ -431,6 +432,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_201_CREATED
 
         # someuser should have no usage reported anymore
+        cache.clear()
         response = self.client.get(service_usage_url)
         assert response.data['total_nlp_usage'] == expected_empty_data['total_nlp_usage']
         assert response.data['total_storage_bytes'] == expected_empty_data['total_storage_bytes']

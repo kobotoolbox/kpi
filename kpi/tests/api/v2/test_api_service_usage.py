@@ -1,17 +1,11 @@
+from django.core.cache import cache
 from django.urls import reverse
 from rest_framework import status
-from unittest.mock import patch
 
 from kpi.models import Asset
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
-def clear_mock_cache(self):
-    self._clear_cache()
-
-
-# We need to disable the cache system in some test cases
-@patch('kpi.utils.cache.CachedClass._handle_cache_expiration', clear_mock_cache)
 class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
     def test_anonymous_user(self):
         """
@@ -85,6 +79,7 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
                 asset.deployment.xform.save(update_fields=['pending_delete'])
 
         # Retry endpoint
+        cache.clear()
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
 

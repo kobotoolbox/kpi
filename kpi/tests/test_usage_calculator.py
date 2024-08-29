@@ -3,6 +3,7 @@ import uuid
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -34,6 +35,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
     def setUp(self):
         super().setUp()
         self.client.login(username='anotheruser', password='anotheruser')
+        cache.clear()
 
     @classmethod
     def setUpTestData(cls):

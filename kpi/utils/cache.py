@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from functools import wraps
 
 from django_redis import get_redis_connection
@@ -37,7 +36,8 @@ def void_cache_for_request(keys):
 
 class CachedClass:
     """
-    Handles a mapping cache.
+    Handles a mapping cache for a class. It supports only getter methods that
+    receive no parameters but the self.
 
     The inheriting class must define a function _get_cache_hash that creates a
     unique name string for the underlying HSET.
