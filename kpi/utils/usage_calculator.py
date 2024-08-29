@@ -119,9 +119,11 @@ class ServiceUsageCalculator(CachedClass):
 
         Users are represented by their ids with `self._user_ids`
         """
-        xforms = XForm.objects.only('attachment_storage_bytes', 'id').exclude(
-            pending_delete=True
-        ).filter(self._user_id_query)
+        xforms = (
+            XForm.objects.only('attachment_storage_bytes', 'id')
+            .exclude(pending_delete=True)
+            .filter(self._user_id_query)
+        )
 
         total_storage_bytes = xforms.aggregate(
             bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
@@ -138,16 +140,18 @@ class ServiceUsageCalculator(CachedClass):
 
         Users are represented by their ids with `self._user_ids`
         """
-        submission_count = DailyXFormSubmissionCounter.objects.only(
-            'counter', 'user_id'
-        ).filter(self._user_id_query).aggregate(
-            all_time=Coalesce(Sum('counter'), 0),
-            current_year=Coalesce(
-                Sum('counter', filter=self.current_year_filter), 0
-            ),
-            current_month=Coalesce(
-                Sum('counter', filter=self.current_month_filter), 0
-            ),
+        submission_count = (
+            DailyXFormSubmissionCounter.objects.only('counter', 'user_id')
+            .filter(self._user_id_query)
+            .aggregate(
+                all_time=Coalesce(Sum('counter'), 0),
+                current_year=Coalesce(
+                    Sum('counter', filter=self.current_year_filter), 0
+                ),
+                current_month=Coalesce(
+                    Sum('counter', filter=self.current_month_filter), 0
+                ),
+            )
         )
 
         total_submission_count = {}

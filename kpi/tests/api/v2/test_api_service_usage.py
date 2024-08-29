@@ -49,9 +49,7 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert (
             response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
         )
-        assert (
-            response.data['total_storage_bytes'] == self.expected_file_size()
-        )
+        assert response.data['total_storage_bytes'] == self.expected_file_size()
 
     def test_multiple_forms(self):
         """
