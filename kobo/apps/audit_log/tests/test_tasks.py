@@ -5,7 +5,11 @@ from constance.test import override_config
 from django.test import override_settings
 from django.utils import timezone
 
-from kobo.apps.audit_log.tasks import spawn_access_log_cleaning_tasks
+from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.audit_log.tasks import (
+    batch_delete_audit_logs_by_id,
+    spawn_access_log_cleaning_tasks,
+)
 from kobo.apps.audit_log.tests.test_utils import (
     create_access_log_from_user_with_metadata,
     create_submission_group_log,
@@ -118,3 +122,31 @@ class AuditLogTasksTestCase(BaseTestCase):
         self.assertEqual(len(all_ids), 5)
         for log in old_logs:
             self.assertIn(log.id, all_ids)
+
+        def test_delete_logs_by_id(self):
+            user = User.objects.get(username='someuser')
+            to_delete_0 = create_access_log_from_user_with_metadata(
+                user=user, metadata_dict={'auth_type': 'token'}
+            )
+            to_delete_0.save()
+            to_delete_1 = create_access_log_from_user_with_metadata(
+                user=user, metadata_dict={'auth_type': 'token'}
+            )
+            to_delete_1.save()
+            to_keep = create_access_log_from_user_with_metadata(
+                user=user, metadata_dict={'auth_type': 'token'}
+            )
+            to_keep.save()
+            batch_delete_audit_logs_by_id([to_delete_0.id, to_delete_1.id])
+            log_0_still_exists = AuditLog.objects.filter(
+                id=to_delete_0.id
+            ).exists()
+            log_1_still_exists = AuditLog.objects.filter(
+                id=to_delete_1.id
+            ).exists()
+            kept_log_still_exists = AuditLog.objects.filter(
+                id=to_keep.id
+            ).exists()
+            self.assertFalse(log_0_still_exists)
+            self.assertFalse(log_1_still_exists)
+            self.assertTrue(kept_log_still_exists)
