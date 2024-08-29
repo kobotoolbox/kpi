@@ -7,8 +7,9 @@ from more_itertools import chunked
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.celery import celery_app
 from kpi.utils.log import logging
+from django.conf import settings
 
-BATCH_SIZE = 1000
+
 
 
 @celery_app.task()
@@ -29,7 +30,7 @@ def spawn_access_log_cleaning_tasks():
         .values_list('id', flat=True)
         .iterator()
     )
-    for id_batch in chunked(expired_logs, BATCH_SIZE):
+    for id_batch in chunked(expired_logs, settings.ACCESS_LOG_DELETION_BATCH_SIZE):
         batch_delete_audit_logs_by_id.delay(ids=id_batch)
 
 
