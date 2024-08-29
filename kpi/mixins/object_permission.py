@@ -469,13 +469,12 @@ class ObjectPermissionMixin:
         if is_user_anonymous(user_obj):
             for p in perm:
                 # Is an anonymous user allowed to have this permission?
-                fq_permission = (
-                    f'{perm_parse(p, self)[0]}.{perm_parse(p, self)[1]}'
-                )
+                parsed_perm = perm_parse(p, self)
+                fq_permission = f'{parsed_perm[0]}.{parsed_perm[1]}'
                 if (
-                    not deny
-                    and fq_permission
-                    not in settings.ALLOWED_ANONYMOUS_PERMISSIONS
+                    # fmt: off
+                    not deny and fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS
+                    # fmt: on
                 ):
                     raise serializers.ValidationError(
                         {
@@ -568,15 +567,14 @@ class ObjectPermissionMixin:
             if len(new_permissions) == 1:
                 new_permissions = new_permissions[0]
         if implied_permissions:
-            if implied_permissions:
-                self.assign_perm(
-                    user_obj=user_obj,
-                    perm=list(implied_permissions),
-                    deny=deny,
-                    defer_recalc=True,
-                    skip_kc=skip_kc,
-                    partial_perms=partial_perms,
-                )
+            self.assign_perm(
+                user_obj=user_obj,
+                perm=list(implied_permissions),
+                deny=deny,
+                defer_recalc=True,
+                skip_kc=skip_kc,
+                partial_perms=partial_perms,
+            )
         # We might have been called by ourselves to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:
