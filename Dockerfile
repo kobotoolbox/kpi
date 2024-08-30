@@ -50,7 +50,6 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 RUN apt-get -qq update && \
     apt-get -qq -y install curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get -qq -y install openjdk-17-jre && \
     apt-get -qq -y install --no-install-recommends \
         ffmpeg \
         gdal-bin \
@@ -62,6 +61,7 @@ RUN apt-get -qq update && \
         locales \
         # pin an exact Node version for stability. update this regularly.
         nodejs=$(apt-cache show nodejs | grep -F 'Version: 20.17.0' | cut -f 2 -d ' ') \
+        openjdk-17-jre \
         postgresql-client \
         procps \
         rsync \
