@@ -112,7 +112,7 @@ RUN rm -rf ${KPI_NODE_PATH} && \
     npm install --quiet && \
     npm cache clean --force
 
-ENV PATH $PATH:${KPI_NODE_PATH}/.bin
+ENV PATH=$PATH:${KPI_NODE_PATH}/.bin
 
 ######################
 # Build client code. #
