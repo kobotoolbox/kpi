@@ -89,6 +89,7 @@ ADVANCED_FEATURES_PARAMS_SCHEMA['$defs'] = {
         'required': ['labels', 'uuid'],
     },
 }
+
 ADVANCED_FEATURES_PARAMS_SCHEMA['properties']['qual'] = {
     'type': 'object',
     'additionalProperties': False,

@@ -19,7 +19,8 @@ from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
-from jsonschema import validate as jsonschema_validate
+from jsonschema import exceptions, validate as jsonschema_validate
+
 
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
@@ -1157,10 +1158,29 @@ class Asset(
         if self.advanced_features is None:
             self.advanced_features = {}
 
-        jsonschema_validate(
-            instance=self.advanced_features,
-            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
-        )
+        try:
+            jsonschema_validate(
+                instance=self.advanced_features,
+                schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+            )
+        except exceptions.ValidationError as e:
+            if "'qpath' was unexpected" not in str(e):
+                raise
+
+            # TODO delete the try/except when every asset is repopulated with
+            #  `xpath` instead of `qpath`.
+            qual_survey_orig = self.advanced_features['qual']['qual_survey']
+            qual_survey_iter = copy.deepcopy(qual_survey_orig)
+            for idx, qual_q in enumerate(qual_survey_iter):
+                qpath = qual_survey_orig[idx]['qpath']
+                xpath = qpath_to_xpath(qpath, self)
+                del qual_survey_orig[idx]['qpath']
+                qual_survey_orig[idx]['xpath'] = xpath
+
+            jsonschema_validate(
+                instance=self.advanced_features,
+                schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+            )
 
     @property
     def version__content_hash(self):
