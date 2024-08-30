@@ -73,6 +73,17 @@
       </div>
       <script src="{% static 'js/sso_buttons.js' %}"></script>
     {% endif %}
-
+    <div class="registration__legal">
+      {% if config.TERMS_OF_SERVICE_URL %}
+        <a href="{{config.TERMS_OF_SERVICE_URL}}" target="_blank">
+          {% trans "Terms of Service" %}
+        </a>
+      {% endif %}
+      {% if config.PRIVACY_POLICY_URL %}
+        <a href="{{config.PRIVACY_POLICY_URL}}" target="_blank">
+          {% trans "Privacy Policy" %}
+        </a>
+      {% endif %}
+    </div>
   </form>
 {% endblock %}
