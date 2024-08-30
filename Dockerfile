@@ -1,4 +1,4 @@
-FROM python:3.10 as build-python
+FROM python:3.10 AS build-python
 
 ENV VIRTUAL_ENV=/opt/venv \
     TMP_DIR=/srv/tmp
@@ -10,7 +10,7 @@ COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
 
-from python:3.10-slim
+FROM python:3.10-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
@@ -50,7 +50,6 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 RUN apt-get -qq update && \
     apt-get -qq -y install curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get -qq -y install openjdk-17-jre && \
     apt-get -qq -y install --no-install-recommends \
         ffmpeg \
         gdal-bin \
@@ -62,6 +61,7 @@ RUN apt-get -qq update && \
         locales \
         # pin an exact Node version for stability. update this regularly.
         nodejs=$(apt-cache show nodejs | grep -F 'Version: 20.17.0' | cut -f 2 -d ' ') \
+        openjdk-17-jre \
         postgresql-client \
         procps \
         rsync \
@@ -112,7 +112,7 @@ RUN rm -rf ${KPI_NODE_PATH} && \
     npm install --quiet && \
     npm cache clean --force
 
-ENV PATH $PATH:${KPI_NODE_PATH}/.bin
+ENV PATH=$PATH:${KPI_NODE_PATH}/.bin
 
 ######################
 # Build client code. #
