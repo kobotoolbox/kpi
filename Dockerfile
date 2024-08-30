@@ -1,4 +1,4 @@
-FROM python:3.10 as build-python
+FROM python:3.10 AS build-python
 
 ENV VIRTUAL_ENV=/opt/venv \
     TMP_DIR=/srv/tmp
@@ -10,7 +10,7 @@ COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
 
-from python:3.10-slim
+FROM python:3.10-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
