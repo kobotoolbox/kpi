@@ -18,6 +18,9 @@ from rest_framework.utils.serializer_helpers import ReturnList
 
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils.deprecation import (
+    WritableAdvancedFeaturesField,
+)
 from kobo.apps.trash_bin.exceptions import (
     TrashIntegrityError,
     TrashTaskInProgressError,
@@ -297,7 +300,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     report_custom = WritableJSONField(required=False)
     map_styles = WritableJSONField(required=False)
     map_custom = WritableJSONField(required=False)
-    advanced_features = WritableJSONField(required=False)
+    advanced_features = WritableAdvancedFeaturesField(required=False)
     advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()

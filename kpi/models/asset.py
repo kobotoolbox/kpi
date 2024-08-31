@@ -19,21 +19,22 @@ from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
-from jsonschema import exceptions, validate as jsonschema_validate
 
 
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
     DEFAULT_REPORTS_KEY,
 )
-from kobo.apps.subsequences.advanced_features_params_schema import (
-    ADVANCED_FEATURES_PARAMS_SCHEMA,
-)
 from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
 )
-from kobo.apps.subsequences.utils.deprecation import qpath_to_xpath
+from kobo.apps.subsequences.utils.deprecation import (
+    jsonschema_validate,
+    qpath_to_xpath,
+    sanitize_known_columns,
+    sanitize_submission_extra_content,
+)
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 from kpi.constants import (
     ASSET_TYPES,
@@ -1095,6 +1096,7 @@ class Asset(
                 .first()
             )
             instances = self.get_advanced_feature_instances()
+            sanitize_submission_extra_content(sub, self)
             compiled_content = {**sub.content}
             for instance in instances:
                 compiled_content = instance.compile_revised_record(
@@ -1158,29 +1160,15 @@ class Asset(
         if self.advanced_features is None:
             self.advanced_features = {}
 
-        try:
-            jsonschema_validate(
-                instance=self.advanced_features,
-                schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
-            )
-        except exceptions.ValidationError as e:
-            if "'qpath' was unexpected" not in str(e):
-                raise
+        # TODO uncomment the 4 lines below…
+        # jsonschema_validate(
+        #    instance=self.advanced_features,
+        #    schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+        # )
 
-            # TODO delete the try/except when every asset is repopulated with
-            #  `xpath` instead of `qpath`.
-            qual_survey_orig = self.advanced_features['qual']['qual_survey']
-            qual_survey_iter = copy.deepcopy(qual_survey_orig)
-            for idx, qual_q in enumerate(qual_survey_iter):
-                qpath = qual_survey_orig[idx]['qpath']
-                xpath = qpath_to_xpath(qpath, self)
-                del qual_survey_orig[idx]['qpath']
-                qual_survey_orig[idx]['xpath'] = xpath
-
-            jsonschema_validate(
-                instance=self.advanced_features,
-                schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
-            )
+        # TODO … and delete this one when every asset is repopulated with
+        #  `xpath` instead of `qpath`.
+        jsonschema_validate(self)
 
     @property
     def version__content_hash(self):
@@ -1212,18 +1200,8 @@ class Asset(
 
     def _get_additional_fields(self):
 
-        # TODO delete the loop when every asset is repopulated with `xpath`
-        #  instead of `qpath`.
-        for idx, known_column in enumerate(self.known_cols):
-            xpath, *rest = known_column.split(':')
-            # Old `qpath` should not contain "/", but could contain "-".
-            # If the question does not belong to a group but does contain "-",
-            # it will enter this condition - which is not a problem except extra
-            # CPU usage for nothing.
-            if '-' in xpath and '/' not in xpath:
-                xpath = qpath_to_xpath(xpath, self)
-                rest.insert(0, xpath)
-                self.known_cols[idx] = ':'.join(rest)
+        # TODO line below when when every asset is repopulated with `xpath`
+        sanitize_known_columns(self)
 
         return parse_known_cols(self.known_cols)
 

@@ -8,7 +8,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from kobo.apps.subsequences.models import SubmissionExtras
-from kobo.apps.subsequences.utils.deprecation import qpath_to_xpath
+from kobo.apps.subsequences.utils.deprecation import (
+    sanitize_submission_extra_content,
+)
 from kpi.models import Asset
 from kpi.permissions import SubmissionPermission
 from kpi.views.environment import check_asr_mt_access_for_user
@@ -100,23 +102,9 @@ def get_submission_processing(asset, s_uuid):
     try:
         submission_extra = asset.submission_extras.get(submission_uuid=s_uuid)
 
-        # TODO delete the loop when every asset is repopulated with `xpath`
+        # TODO delete line below when every asset is repopulated with `xpath`
         #  instead of `qpath`.
-        content = deepcopy(submission_extra.content)
-        changed = False
-        for old_xpath, values in submission_extra.content.items():
-            if '-' in old_xpath and '/' not in old_xpath:
-                xpath = qpath_to_xpath(old_xpath, asset)
-                if xpath == old_xpath:
-                    continue
-
-                del content[old_xpath]
-                content[xpath] = values
-                changed = True
-
-        if changed:
-            submission_extra.content = content
-            # TODO save submission_extra?
+        sanitize_submission_extra_content(submission_extra, asset)
 
         return Response(submission_extra.content)
     except SubmissionExtras.DoesNotExist:
