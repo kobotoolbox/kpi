@@ -27,9 +27,6 @@ from kpi.fields import KpiUidField
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
-    asr_seconds_limit = models.PositiveIntegerField(blank=True, null=True, default=None)
-    mt_character_limit = models.PositiveIntegerField(blank=True, null=True, default=None)
-    usage_updated = models.DateTimeField(blank=True, null=True, default=None)
 
     @property
     def email(self):
@@ -84,14 +81,22 @@ class Organization(AbstractOrganization):
             
         return None
 
-    def update_usage_cache(self, service_usage: dict):
+    def get_cached_usage(self, usage_key: str):
         if not (billing_details := self.active_subscription_billing_details()):
             return None
+
         interval = billing_details['recurring_interval']
-        self.asr_seconds_limit = service_usage['total_nlp_usage'][f'asr_seconds_current_{interval}']
-        self.mt_character_limit = service_usage['total_nlp_usage'][f'mt_characters_current_{interval}']
-        self.usage_updated = timezone.now()
-        return self.save()
+        service_usage = ServiceUsageSerializer(
+            get_database_user(request.user),
+            context=context,
+        ).data
+
+        cached_usage = {
+            'asr_seconds': service_usage['total_nlp_usage'][f'asr_seconds_current_{interval}'],
+            'mt_character': service_usage['total_nlp_usage'][f'mt_characters_current_{interval}'],
+        }
+
+        return cached_usage[usage_key]
 
     @cache_for_request
     def is_organization_over_plan_limit(self, limit_type: UsageType) -> Union[bool, None]:
@@ -99,12 +104,11 @@ class Organization(AbstractOrganization):
         Check if an organization is over their plan's limit for a given usage type
         Returns None if Stripe isn't enabled or the limit status couldn't be determined
         """
+
         if not settings.STRIPE_ENABLED:
             return None
-        if timezone.now() - self.usage_updated > ORGANIZATION_USAGE_MAX_CACHE_AGE:
-            # TODO: re-fetch service usage data if stale
-            pass
-        cached_usage = self.serializable_value(f'{USAGE_LIMIT_MAP[limit_type]}_limit')
+
+        cached_usage = self.get_cached_usage(USAGE_LIMIT_MAP[limit_type])
         stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[limit_type]}_limit'
         current_limit = Organization.objects.filter(
             id=self.id,
