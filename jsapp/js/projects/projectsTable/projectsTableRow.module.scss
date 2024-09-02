@@ -5,7 +5,7 @@
 @use 'scss/variables';
 @use 'scss/z-indexes';
 
-$projects-table-hover-bg: colors.$kobo-gray-98;
+$projects-table-hover-bg: colors.$kobo-gray-100;
 $projects-table-row-padding: sizes.$x8;
 // The shared height of a row: project rows are bigger due to padding, but
 // header rows use this size without paddings
@@ -23,9 +23,9 @@ $projects-table-row-height: sizes.$x36;
 }
 
 .cell {
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
   padding: $projects-table-row-padding;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   flex: 1 0 auto;
   // ensures the table columns are same width for all rows
   width: 10%;
@@ -223,7 +223,7 @@ $projects-table-row-height: sizes.$x36;
 .row.rowTypeHeader {
   .cell {
     @include mixins.centerRowFlex;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     border-top: 0;
     cursor: pointer;
     height: $projects-table-row-height;
@@ -234,7 +234,7 @@ $projects-table-row-height: sizes.$x36;
     contain: inline-size style;
 
     &:hover {
-      color: colors.$kobo-gray-14 !important;
+      color: colors.$kobo-gray-900 !important;
     }
 
     // checkbox header not clickable - use default cursor

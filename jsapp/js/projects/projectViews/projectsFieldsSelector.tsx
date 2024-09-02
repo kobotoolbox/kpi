@@ -124,7 +124,7 @@ export default function ProjectsFieldsSelector(
         <KoboModalFooter>
           <Button
             type='frame'
-            color='dark-red'
+            color='red'
             size='m'
             onClick={resetFields}
             label={t('Reset')}

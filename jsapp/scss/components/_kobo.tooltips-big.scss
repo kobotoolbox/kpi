@@ -20,7 +20,7 @@
       font-weight: normal;
       line-height: 1.35em;
       color: colors.$kobo-white;
-      background-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-gray-700;
       padding: 6px 12px;
       top: calc(100% + 6px);
       left: 50%;
@@ -44,7 +44,7 @@
       }
 
       &::before {
-        border-bottom: 5px solid colors.$kobo-gray-40;
+        border-bottom: 5px solid colors.$kobo-gray-700;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
         position: absolute;

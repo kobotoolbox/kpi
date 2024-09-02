@@ -57,7 +57,7 @@ const loadUsage = async (
       usage.total_nlp_usage[`mt_characters_current_${trackingPeriod}`],
     currentMonthStart: usage.current_month_start,
     currentYearStart: usage.current_year_start,
-    billingPeriodEnd: usage.billing_period_end,
+    billingPeriodEnd: usage[`current_${trackingPeriod}_end`],
     trackingPeriod,
     lastUpdated,
   };

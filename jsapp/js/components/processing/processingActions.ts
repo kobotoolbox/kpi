@@ -33,7 +33,7 @@ const DELETE_CHAR = '⌫';
 
 /** Response from Google for automated transcript. */
 interface GoogleTsResponse {
-  status: 'requested' | 'in_progress' | 'complete';
+  status: 'requested' | 'in_progress' | 'complete' | 'error';
   /** Full transcript text. */
   value: string;
   /** Transcript text split into chunks - scored by transcription quality. */
@@ -42,11 +42,12 @@ interface GoogleTsResponse {
     confidence: number;
   }>;
   languageCode: string;
+  regionCode: string | null;
 }
 
 /** Response from Google for automated translation. */
 interface GoogleTxResponse {
-  status: 'complete';
+  status: 'requested' | 'in_progress' | 'complete' | 'error';
   value: string;
   languageCode: string;
 }
@@ -85,7 +86,10 @@ interface TranscriptRequest {
 
 /** Object we send to Back end when requesting an automatic transcription. */
 interface AutoTranscriptRequest {
-  [qpath: string]: string | undefined | {googlets: AutoTranscriptRequestEngineParams};
+  [qpath: string]:
+    | string
+    | undefined
+    | {googlets: AutoTranscriptRequestEngineParams};
   submission?: string;
 }
 interface AutoTranscriptRequestEngineParams {
@@ -96,7 +100,10 @@ interface AutoTranscriptRequestEngineParams {
 
 /** Object we send to Back end when updating translation text manually. */
 interface TranslationRequest {
-  [qpath: string]: string | undefined | {translation: TranslationsRequestObject};
+  [qpath: string]:
+    | string
+    | undefined
+    | {translation: TranslationsRequestObject};
   submission?: string;
 }
 interface TranslationsRequestObject {
@@ -105,7 +112,10 @@ interface TranslationsRequestObject {
 
 /** Object we send to Back end when requesting an automatic translation. */
 interface AutoTranslationRequest {
-  [qpath: string]: string | undefined | {googletx: AutoTranslationRequestEngineParams};
+  [qpath: string]:
+    | string
+    | undefined
+    | {googletx: AutoTranslationRequestEngineParams};
   submission?: string;
 }
 interface AutoTranslationRequestEngineParams {
@@ -160,7 +170,7 @@ const processingActions: ProcessingActionsDefinition = Reflux.createActions({
   // Translation stuff
   setTranslation: {children: ['completed', 'failed']},
   deleteTranslation: {children: ['completed', 'failed']},
-  requestAutoTranslation: {children: ['completed', 'failed']},
+  requestAutoTranslation: {children: ['completed', 'in_progress', 'failed']},
 });
 
 /**
@@ -370,8 +380,10 @@ processingActions.setTranscript.failed.listen(() => {
  * `deleteTranscript` action
  *
  * Use it to completely remove given transcript. Currently deleting transcript
- * means setting its value to a predefined DELETE_CHAR - Back end handles the
- * cleanup.
+ * means setting its value to a predefined DELETE_CHAR. Back end handles the
+ * cleanup - it removes the transcript, and if there is zero transcripts for
+ * given language for all the submissions, it also removes that language from
+ * `advanced_feature` (i.e. makes it "not enabled").
  */
 interface DeleteTranscriptFn {
   (assetUid: string, qpath: string, submissionEditId: string): void;
@@ -475,15 +487,15 @@ processingActions.requestAutoTranscription.listen(
         data: JSON.stringify(data),
       })
         .done((response: ProcessingDataResponse) => {
-          if (
-            ['requested', 'in_progress'].includes(
-              response[qpath]?.googlets?.status ?? ''
-            )
-          ) {
+          const responseStatus = response[qpath]?.googlets?.status;
+
+          if (responseStatus === 'requested' || responseStatus === 'in_progress') {
             processingActions.requestAutoTranscription.in_progress({
               response,
               submissionEditId,
             });
+          } else if (responseStatus === 'error') {
+            processingActions.requestAutoTranscription.failed('unknown error');
           } else {
             processingActions.requestAutoTranscription.completed({
               response,
@@ -654,8 +666,10 @@ processingActions.setTranslation.failed.listen(() => {
  * `deleteTranslation` action
  *
  * Use it to completely remove given translation. Currently deleting translation
- * means setting its value to a predefined DELETE_CHAR - Back end handles the
- * cleanup.
+ * means setting its value to a predefined DELETE_CHAR. Back end handles the
+ * cleanup - it removes the translation, and if there is zero translations for
+ * given language for all the submissions, it also removes that language from
+ * `advanced_feature` (i.e. makes it "not enabled").
  */
 interface DeleteTranslationFn {
   (
@@ -702,7 +716,8 @@ processingActions.deleteTranslation.failed.listen(() => {
  * `requestAutoTranslation` action
  *
  * For requestiong automatic translation from Back end. Translations are not as
- * time consuming as transcripts, so we don't use `in_progress` callback here.
+ * time consuming as transcripts, but we also use `in_progress` callback here,
+ * as it's needed for text longer than ~30k characters.
  */
 interface RequestAutoTranslationFn {
   (
@@ -714,7 +729,14 @@ interface RequestAutoTranslationFn {
 }
 interface RequestAutoTranslationDefinition extends RequestAutoTranslationFn {
   listen: (fn: RequestAutoTranslationFn) => void;
-  completed: ListenableCallback<ProcessingDataResponse>;
+  completed: ListenableCallback<{
+    response: ProcessingDataResponse;
+    submissionEditId: string;
+  }>;
+  in_progress: ListenableCallback<{
+    response: ProcessingDataResponse;
+    submissionEditId: string;
+  }>;
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.requestAutoTranslation.listen(
@@ -733,9 +755,6 @@ processingActions.requestAutoTranslation.listen(
         },
       };
 
-      // FIXME: large translations can also be asynchronous, and the back end
-      // may return `in_progress`. We need the same kind of logic here as we
-      // have in `requestAutoTranscription`
       $.ajax({
         dataType: 'json',
         contentType: 'application/json',
@@ -743,7 +762,23 @@ processingActions.requestAutoTranslation.listen(
         url: processingUrl,
         data: JSON.stringify(data),
       })
-        .done(processingActions.requestAutoTranslation.completed)
+        .done((response: ProcessingDataResponse) => {
+          const responseStatus = response[qpath]?.googletx?.status;
+
+          if (responseStatus === 'requested' || responseStatus === 'in_progress') {
+            processingActions.requestAutoTranslation.in_progress({
+              response,
+              submissionEditId,
+            });
+          } else if (responseStatus === 'error') {
+            processingActions.requestAutoTranslation.failed('unknown error');
+          } else {
+            processingActions.requestAutoTranslation.completed({
+              response,
+              submissionEditId,
+            });
+          }
+        })
         .fail(processingActions.requestAutoTranslation.failed);
     }
   }

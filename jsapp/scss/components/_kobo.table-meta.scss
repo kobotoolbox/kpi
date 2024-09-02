@@ -41,11 +41,11 @@
   height: 20px;
   padding: 0 5px;
   border-radius: 50%;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
 
   &:hover {
     color: colors.$kobo-white;
-    background-color: colors.$kobo-dark-red;
+    background-color: colors.$kobo-red;
   }
 }
 

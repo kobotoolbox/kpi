@@ -1,10 +1,11 @@
 from copy import deepcopy
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from constance.test import override_config
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
+from google.cloud import translate_v3
 from jsonschema import validate
 from rest_framework.test import APITestCase
 
@@ -13,6 +14,10 @@ from kobo.apps.languages.models.language import Language, LanguageRegion
 from kobo.apps.languages.models.transcription import (
     TranscriptionService,
     TranscriptionServiceLanguageM2M,
+)
+from kobo.apps.languages.models.translation import (
+    TranslationService,
+    TranslationServiceLanguageM2M,
 )
 from kpi.models.asset import Asset
 from kpi.utils.fuzzy_int import FuzzyInt
@@ -23,7 +28,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from ..constants import GOOGLETS, make_async_cache_key
+from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
 
@@ -384,24 +389,36 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
         # validate(package, schema)
 
 
-class GoogleTranscriptionSubmissionTest(APITestCase):
+class GoogleNLPSubmissionTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='someuser', email='user@example.com')
         self.asset = Asset(content={'survey': [{'type': 'audio', 'name': 'q1'}]})
-        self.asset.advanced_features = {'transcript': {'values': ['q1']}}
+        self.asset.advanced_features = {
+            'transcript': {'languages': ['en']},
+            'translation': {'languages': ['en', 'es']},
+        }
         self.asset.owner = self.user
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
         self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
         self.client.force_login(self.user)
-        service = TranscriptionService.objects.create(code='goog')
+        transcription_service = TranscriptionService.objects.create(code='goog')
+        translation_service = TranslationService.objects.create(code='goog')
+
         language = Language.objects.create(name='', code='')
         language_region = LanguageRegion.objects.create(language=language, name='', code='')
+
         TranscriptionServiceLanguageM2M.objects.create(
             language=language,
             region=language_region,
-            service=service
+            service=transcription_service
         )
+        TranslationServiceLanguageM2M.objects.create(
+            language=language,
+            region=language_region,
+            service=translation_service
+        )
+
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
@@ -429,39 +446,11 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(FuzzyInt(51, 57)):
+        with self.assertNumQueries(FuzzyInt(49, 57)):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
         with self.assertNumQueries(FuzzyInt(20, 26)):
             self.client.post(url, data, format='json')
-
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
-    @override_config(ASR_MT_INVITEE_USERNAMES='*')
-    @patch('google.cloud.storage.Client')
-    @patch('googleapiclient.discovery.build')
-    def test_google_transcript_slow_post(self, m1, m2):
-        """Tests when slow running operation has already started"""
-        url = reverse('advanced-submission-post', args=[self.asset.uid])
-        submission_id = 'abc123-def456'
-        xpath = 'q1'
-        source = ''
-        operation_name = 'testop'
-        cache.set(make_async_cache_key(self.user.pk, submission_id, xpath, source), operation_name)
-        submission = {
-            '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'audio_conversion_test_clip.3gp',
-            '_uuid': submission_id,
-            '_attachments': [],
-            '_submitted_by': self.user.username
-        }
-        self.asset.deployment.mock_submissions([submission])
-
-        data = {
-            'submission': submission_id,
-            'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
-        }
-        res = self.client.post(url, data, format='json')
-        self.assertContains(res, 'complete')
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_google_transcript_permissions(self):
@@ -490,3 +479,40 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         self.asset.save()
         res = self.client.get(url + '?submission=' + submission_id, format='json')
         self.assertEqual(res.status_code, 404)
+
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_config(ASR_MT_INVITEE_USERNAMES='*')
+    @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
+    @patch('kobo.apps.subsequences.integrations.google.base.storage')
+    def test_google_translate_post(self, storage, translate):
+        url = reverse('advanced-submission-post', args=[self.asset.uid])
+        submission_id = 'abc123-def456'
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'audio_conversion_test_clip.3gp',
+            '_uuid': submission_id,
+            '_attachments': [
+                {
+                    'id': 1,
+                    'filename': 'someuser/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
+                },
+            ],
+            '_submitted_by': self.user.username
+        }
+        self.asset.deployment.mock_submissions([submission])
+
+        mock_translation_client = Mock()
+        mock_translation_client.translate_text = Mock(return_value='Test translated text')
+        translate.TranslationServiceClient = Mock(return_value=mock_translation_client)
+        # Avoid error on isinstance call with this:
+        translate.types = translate_v3.types
+        data = {
+            'submission': submission_id,
+            'q1': {
+                'transcript': {'value': 'test transcription',  'languageCode': ''},
+                GOOGLETX: {'status': 'requested', 'languageCode': ''},
+            }
+        }
+        res = self.client.post(url, data, format='json')
+        self.assertContains(res, 'complete')

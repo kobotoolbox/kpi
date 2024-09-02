@@ -35,8 +35,9 @@ export interface AssetWithUsage {
 
 export interface UsageResponse {
   current_month_start: string;
+  current_month_end: string;
   current_year_start: string;
-  billing_period_end: string | null;
+  current_year_end: string;
   total_submission_count: {
     current_month: number;
     current_year: number;

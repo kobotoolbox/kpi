@@ -7,7 +7,7 @@ from rest_framework.fields import empty
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.utils import organization_month_start, organization_year_start
+from kobo.apps.organizations.utils import get_monthly_billing_dates, get_yearly_billing_dates
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.deployment_backends.kc_access.shadow_models import (
@@ -50,8 +50,8 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
         organization = self.context.get('organization')
-        self._month_start = organization_month_start(organization)
-        self._year_start = organization_year_start(organization)
+        self._month_start, _ = get_monthly_billing_dates(organization)
+        self._year_start, _ = get_yearly_billing_dates(organization)
 
     def get_nlp_usage_current_month(self, asset):
         return self._get_nlp_tracking_data(asset, self._month_start)
@@ -111,8 +111,9 @@ class ServiceUsageSerializer(serializers.Serializer):
     total_storage_bytes = serializers.SerializerMethodField()
     total_submission_count = serializers.SerializerMethodField()
     current_month_start = serializers.SerializerMethodField()
+    current_month_end = serializers.SerializerMethodField()
     current_year_start = serializers.SerializerMethodField()
-    billing_period_end = serializers.SerializerMethodField()
+    current_year_end = serializers.SerializerMethodField()
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
@@ -121,9 +122,10 @@ class ServiceUsageSerializer(serializers.Serializer):
         self._total_storage_bytes = 0
         self._total_submission_count = {}
         self._current_month_start = None
+        self._current_month_end = None
         self._current_year_start = None
+        self._current_year_end = None
         self._organization = None
-        self._period_end = None
         self._now = timezone.now()
         self._get_per_asset_usage(instance)
 
@@ -138,14 +140,15 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def get_current_month_start(self, user):
         return self._current_month_start.isoformat()
+    
+    def get_current_month_end(self, user):
+        return self._current_month_end.isoformat()
 
     def get_current_year_start(self, user):
         return self._current_year_start.isoformat()
 
-    def get_billing_period_end(self, user):
-        if self._period_end is None:
-            return None
-        return self._period_end.isoformat()
+    def get_current_year_end(self, user):
+        return self._current_year_end.isoformat()
 
     def _filter_by_user(self, user_ids: list) -> Q:
         """
@@ -218,8 +221,8 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         self._get_storage_usage()
 
-        self._current_month_start = organization_month_start(self._organization)
-        self._current_year_start = organization_year_start(self._organization)
+        self._current_month_start, self._current_month_end = get_monthly_billing_dates(self._organization)
+        self._current_year_start, self._current_year_end = get_yearly_billing_dates(self._organization)
 
         current_month_filter = Q(
             date__range=[self._current_month_start, self._now]
