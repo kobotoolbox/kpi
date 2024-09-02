@@ -1312,23 +1312,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def suspend_submissions(user_ids: list[int]):
         UserProfile.objects.filter(
             user_id__in=user_ids
-        ).update(
-            metadata=UpdateJSONFieldAttributes(
-                'metadata',
-                updates={'submissions_suspended': True},
-            ),
-        )
+        ).update(submissions_suspended=True)
         try:
             yield
         finally:
             UserProfile.objects.filter(
                 user_id__in=user_ids
-            ).update(
-                metadata=UpdateJSONFieldAttributes(
-                    'metadata',
-                    updates={'submissions_suspended': False},
-                ),
-            )
+            ).update(submissions_suspended=False)
 
     def transfer_submissions_ownership(
         self, previous_owner_username: str

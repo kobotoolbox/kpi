@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('logger', '0028_add_user_to_daily_submission_counters'),
-        ('main', '0012_add_validate_password_flag_to_profile'),
+        ('main', '0017_userprofile_submissions_suspended'),
     ]
 
     # We don't do anything when migrating in reverse

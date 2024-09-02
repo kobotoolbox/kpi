@@ -199,24 +199,19 @@ class Command(BaseCommand):
             user_profile.metadata = {}
 
         # Set the flag to true if it was never set.
-        if not user_profile.metadata.get('submissions_suspended'):
+        if not user_profile.submissions_suspended:
             # We are using the flag `submissions_suspended` to prevent
             # new submissions from coming in while the
             # `attachment_storage_bytes` is being calculated.
-            user_profile.metadata['submissions_suspended'] = True
-            user_profile.save(update_fields=['metadata'])
+            user_profile.submissions_suspended = True
+            user_profile.save(update_fields=['submissions_suspended'])
 
     def _release_locks(self):
         # Release any locks on the users' profile from getting submissions
         if self._verbosity > 1:
             self.stdout.write('Releasing submission locks…')
 
-        UserProfile.objects.all().update(
-            metadata=ReplaceValues(
-                'metadata',
-                updates={'submissions_suspended': False},
-            ),
-        )
+        UserProfile.objects.all().update(submissions_suspended=False)
 
     def _reset_user_profile_counters(self):
 
@@ -251,7 +246,6 @@ class Command(BaseCommand):
 
         # Update user's profile (and lock the related row)
         updates = {
-            'submissions_suspended': False,
             'attachments_counting_status': 'complete',
         }
 
@@ -271,4 +265,5 @@ class Command(BaseCommand):
                 'metadata',
                 updates=updates,
             ),
+            submissions_suspended=False,
         )
