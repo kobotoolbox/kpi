@@ -10,7 +10,7 @@ from kobo.apps.audit_log.models import (
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     AuditAction,
     AuditLog,
-    AuditType,
+    AuditType, AccessLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
@@ -21,7 +21,7 @@ from kpi.tests.base_test_case import BaseTestCase
     return_value='source',
 )
 @patch('kobo.apps.audit_log.models.get_client_ip', return_value='127.0.0.1')
-class AuditLogModelTestCase(BaseTestCase):
+class AccessLogModelTestCase(BaseTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -41,14 +41,14 @@ class AuditLogModelTestCase(BaseTestCase):
         request.resolver_match = resolve(url)
         return request
 
-    def _check_common_fields(self, audit_log: AuditLog, user):
-        self.assertEqual(audit_log.user.id, user.id)
-        self.assertEqual(audit_log.app_label, ACCESS_LOG_KOBO_AUTH_APP_LABEL)
-        self.assertEqual(audit_log.model_name, 'User')
-        self.assertEqual(audit_log.object_id, user.id)
-        self.assertEqual(audit_log.user_uid, user.extra_details.uid)
-        self.assertEqual(audit_log.action, AuditAction.AUTH)
-        self.assertEqual(audit_log.log_type, AuditType.ACCESS)
+    def _check_common_fields(self, access_log: AccessLog, user):
+        self.assertEqual(access_log.user.id, user.id)
+        self.assertEqual(access_log.app_label, ACCESS_LOG_KOBO_AUTH_APP_LABEL)
+        self.assertEqual(access_log.model_name, 'User')
+        self.assertEqual(access_log.object_id, user.id)
+        self.assertEqual(access_log.user_uid, user.extra_details.uid)
+        self.assertEqual(access_log.action, AuditAction.AUTH)
+        self.assertEqual(access_log.log_type, AuditType.ACCESS)
 
     def test_basic_create_auth_log_from_request(
         self, patched_ip, patched_source
@@ -56,16 +56,16 @@ class AuditLogModelTestCase(BaseTestCase):
         request = self._create_request(
             reverse('kobo_login'),
             AnonymousUser(),
-            AuditLogModelTestCase.super_user,
+            AccessLogModelTestCase.super_user,
         )
-        log: AuditLog = AuditLog.create_access_log_for_request(request)
-        self._check_common_fields(log, AuditLogModelTestCase.super_user)
+        log: AccessLog = AccessLog.create_from_request(request)
+        self._check_common_fields(log, AccessLogModelTestCase.super_user)
         self.assertDictEqual(
             log.metadata,
             {
                 'ip_address': '127.0.0.1',
                 'source': 'source',
-                'auth_type': AuditLogModelTestCase.super_user.backend,
+                'auth_type': AccessLogModelTestCase.super_user.backend,
             },
         )
 
@@ -78,10 +78,10 @@ class AuditLogModelTestCase(BaseTestCase):
         second_user.save()
         request = self._create_request(
             reverse('loginas-user-login', args=(second_user.id,)),
-            AuditLogModelTestCase.super_user,
+            AccessLogModelTestCase.super_user,
             second_user,
         )
-        log: AuditLog = AuditLog.create_access_log_for_request(request)
+        log: AccessLog = AccessLog.create_from_request(request)
         self._check_common_fields(log, second_user)
         self.assertDictEqual(
             log.metadata,
@@ -89,8 +89,8 @@ class AuditLogModelTestCase(BaseTestCase):
                 'ip_address': '127.0.0.1',
                 'source': 'source',
                 'auth_type': ACCESS_LOG_LOGINAS_AUTH_TYPE,
-                'initial_user_uid': AuditLogModelTestCase.super_user.extra_details.uid,
-                'initial_user_username': AuditLogModelTestCase.super_user.username,
+                'initial_user_uid': AccessLogModelTestCase.super_user.extra_details.uid,
+                'initial_user_username': AccessLogModelTestCase.super_user.username,
             },
         )
 
@@ -100,12 +100,12 @@ class AuditLogModelTestCase(BaseTestCase):
         request = self._create_request(
             reverse('api_v2:asset-list'),
             AnonymousUser(),
-            AuditLogModelTestCase.super_user,
+            AccessLogModelTestCase.super_user,
         )
-        log: AuditLog = AuditLog.create_access_log_for_request(
+        log: AccessLog = AccessLog.create_from_request(
             request, authentication_type='Token'
         )
-        self._check_common_fields(log, AuditLogModelTestCase.super_user)
+        self._check_common_fields(log, AccessLogModelTestCase.super_user)
         self.assertDictEqual(
             log.metadata,
             {
@@ -125,10 +125,10 @@ class AuditLogModelTestCase(BaseTestCase):
         second_user.save()
         request = self._create_request(
             reverse('api_v2:asset-list'),
-            AuditLogModelTestCase.super_user,
+            AccessLogModelTestCase.super_user,
             second_user,
         )
-        log: AuditLog = AuditLog.create_access_log_for_request(request)
+        log: AccessLog = AccessLog.create_from_request(request)
         self._check_common_fields(log, second_user)
         self.assertDictEqual(
             log.metadata,

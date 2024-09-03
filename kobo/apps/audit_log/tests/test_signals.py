@@ -42,7 +42,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         cls.user.backend = 'django.contrib.auth.backends.ModelBackend'
         cls.user.save()
 
-    @patch('kobo.apps.audit_log.signals.AuditLog.create_access_log_for_request')
+    @patch('kobo.apps.audit_log.signals.AccessLog.create_from_request')
     def test_audit_log_created_on_login(self, patched_create):
         """
         Basic plumbing test to make sure the signal is hooked up

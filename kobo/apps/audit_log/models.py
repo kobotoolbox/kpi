@@ -18,6 +18,7 @@ from kpi.constants import (
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
+from kpi.utils.log import logging
 
 
 class AuditAction(models.TextChoices):
@@ -94,12 +95,48 @@ class AuditLog(models.Model):
             update_fields=update_fields,
         )
 
+class AccessLogManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(log_type=AuditType.ACCESS)
+
+    def create(self, **kwargs):
+        # remove any attempt to set fields that should always be the same on an access log
+        app_label=kwargs.pop('app_label', None)
+        if app_label is not None:
+            logging.warning(f'Ignoring attempt to set {app_label=} on access log')
+        model_name=kwargs.pop('model_name', None)
+        if model_name is not None:
+            logging.warning(f'Ignoring attempt to set {model_name=} on access log')
+        action=kwargs.pop('action', None)
+        if action is not None:
+            logging.warning(f'Ignoring attempt to set {action=} on access log')
+        log_type=kwargs.pop('log_type', None)
+        if log_type is not None:
+            logging.warning(f'Ignoring attempt to set {log_type=} on access log')
+        # when we initialize manually we have a user, but when we initialize from the db we don't
+        user = kwargs.pop('user')
+        return super().create(
+            # set the fields that are always the same for access logs, pass along the rest to the original constructor
+            app_label=ACCESS_LOG_KOBO_AUTH_APP_LABEL,
+            model_name=User.__qualname__,
+            action=AuditAction.AUTH,
+            log_type=AuditType.ACCESS,
+            user=user,
+            object_id=user.id,
+            user_uid=user.extra_details.uid,
+            **kwargs
+        )
+
+
+class AccessLog(AuditLog):
+    objects = AccessLogManager()
+
+    class Meta:
+        proxy = True
+
     @staticmethod
-    def create_access_log_for_request(
-        request,
-        user=None,
-        authentication_type: str = None,
-        extra_metadata: dict = None,
+    def create_from_request(
+        request, user=None, authentication_type: str = None, extra_metadata:dict = None
     ):
         """
         Create an access log for a request, assigned to either the given user or request.user if not supplied
@@ -154,7 +191,6 @@ class AuditLog(models.Model):
             'source': source,
             'auth_type': auth_type,
         }
-
         # add extra information if needed for django-loginas
         if is_loginas:
             metadata['initial_user_uid'] = initial_user.extra_details.uid
@@ -162,14 +198,4 @@ class AuditLog(models.Model):
         # add any other metadata the caller may want
         if extra_metadata is not None:
             metadata.update(extra_metadata)
-        audit_log = AuditLog(
-            user=logged_in_user,
-            app_label=ACCESS_LOG_KOBO_AUTH_APP_LABEL,
-            model_name=User.__qualname__,
-            object_id=logged_in_user.id,
-            user_uid=logged_in_user.extra_details.uid,
-            action=AuditAction.AUTH,
-            metadata=metadata,
-            log_type=AuditType.ACCESS,
-        )
-        return audit_log
+        return AccessLog.objects.create(user=logged_in_user, metadata=metadata)

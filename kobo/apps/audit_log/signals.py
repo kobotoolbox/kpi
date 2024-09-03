@@ -2,7 +2,7 @@ from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 
 from kpi.utils.log import logging
-from .models import AuditLog
+from .models import AuditLog, AccessLog
 
 
 @receiver(user_logged_in)
@@ -11,7 +11,6 @@ def create_access_log(sender, user, **kwargs):
     if not hasattr(request, 'user'):
         # This should never happen outside of tests
         logging.warning('Request does not have authenticated user attached.')
-        log = AuditLog.create_access_log_for_request(request, user)
+        AccessLog.create_from_request(request, user)
     else:
-        log = AuditLog.create_access_log_for_request(request)
-    log.save()
+        AccessLog.create_from_request(request)
