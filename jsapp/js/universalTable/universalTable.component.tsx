@@ -166,8 +166,7 @@ export default function UniversalTable(props: UniversalTableProps) {
         <footer className={styles.tableFooter}>
           <section className={styles.pagination}>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='s'
               onClick={() => table.firstPage()}
               isDisabled={!table.getCanPreviousPage()}
@@ -175,8 +174,7 @@ export default function UniversalTable(props: UniversalTableProps) {
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='s'
               onClick={() => table.previousPage()}
               isDisabled={!table.getCanPreviousPage()}
@@ -195,8 +193,7 @@ export default function UniversalTable(props: UniversalTableProps) {
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='s'
               onClick={() => table.nextPage()}
               isDisabled={!table.getCanNextPage()}
@@ -204,8 +201,7 @@ export default function UniversalTable(props: UniversalTableProps) {
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='s'
               onClick={() => table.lastPage()}
               isDisabled={!table.getCanNextPage()}
