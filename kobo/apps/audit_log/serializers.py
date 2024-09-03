@@ -47,3 +47,4 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
     def get_username(self, audit_log):
         return audit_log.user.username
+
