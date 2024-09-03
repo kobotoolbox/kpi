@@ -1,4 +1,4 @@
-FROM python:3.10 as build-python
+FROM python:3.10 AS build-python
 
 ENV VIRTUAL_ENV=/opt/venv \
     TMP_DIR=/srv/tmp
@@ -10,7 +10,7 @@ COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
 
-from python:3.10-slim
+FROM python:3.10-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
@@ -48,14 +48,8 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 # jnm (or the current on-call sysadmin). Thanks.
 
 RUN apt-get -qq update && \
-    apt-get -qq -y install ca-certificates curl gnupg && \
-    mkdir -p /etc/apt/keyrings && \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-        | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" \
-        | tee /etc/apt/sources.list.d/nodesource.list && \
-    apt-get -qq update && \
-    apt-get -qq -y install openjdk-17-jre && \
+    apt-get -qq -y install curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get -qq -y install --no-install-recommends \
         ffmpeg \
         gdal-bin \
@@ -65,7 +59,9 @@ RUN apt-get -qq update && \
         less \
         libproj-dev \
         locales \
-        nodejs=$(apt-cache show nodejs | grep -F 'Version: 16.15.0' | cut -f 2 -d ' ') \
+        # pin an exact Node version for stability. update this regularly.
+        nodejs=$(apt-cache show nodejs | grep -F 'Version: 20.17.0' | cut -f 2 -d ' ') \
+        openjdk-17-jre \
         postgresql-client \
         procps \
         rsync \
@@ -109,14 +105,14 @@ WORKDIR ${KPI_SRC_DIR}/
 RUN rm -rf ${KPI_NODE_PATH} && \
     mkdir -p "${TMP_DIR}/.npm" && \
     npm config set cache "${TMP_DIR}/.npm" --global && \
-    npm install -g npm@8.5.5 && \
+    # to pin an exact npm version, see 'git blame' here
     npm install -g check-dependencies@1 && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
     npm install --quiet && \
     npm cache clean --force
 
-ENV PATH $PATH:${KPI_NODE_PATH}/.bin
+ENV PATH=$PATH:${KPI_NODE_PATH}/.bin
 
 ######################
 # Build client code. #

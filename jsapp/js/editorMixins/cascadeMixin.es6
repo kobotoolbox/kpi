@@ -119,8 +119,7 @@ export const cascadeMixin = {
 
             <bem.CascadePopup__buttonWrapper>
               <Button
-                type='full'
-                color='blue'
+                type='primary'
                 size='l'
                 isDisabled={!this.state.cascadeReady}
                 onClick={() => {

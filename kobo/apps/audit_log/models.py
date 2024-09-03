@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils.timezone import now
+from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -50,7 +50,7 @@ class AuditLog(models.Model):
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
     object_id = models.BigIntegerField()
-    date_created = models.DateTimeField(default=now, db_index=True)
+    date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
         max_length=10,
