@@ -106,14 +106,12 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         title={t('Delete this question?')}
         buttons={[
           {
-            type: 'frame',
-            color: 'dark-blue',
+            type: 'secondary',
             label: t('Cancel'),
             onClick: () => setIsDeletePromptOpen(false),
           },
           {
-            type: 'full',
-            color: 'red',
+            type: 'danger',
             label: t('Delete'),
             onClick: deleteQuestion,
           },
@@ -135,8 +133,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
       </label>
 
       <Button
-        type='bare'
-        color='dark-blue'
+        type='secondary'
         size='s'
         startIcon='edit'
         onClick={openQuestionInEditor}
@@ -150,8 +147,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
       />
 
       <Button
-        type='bare'
-        color='red'
+        type='secondary-danger'
         size='s'
         startIcon='trash'
         onClick={() => setIsDeletePromptOpen(true)}
