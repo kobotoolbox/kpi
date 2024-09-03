@@ -6,7 +6,7 @@ from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditAction, AuditLog
 from .permissions import SuperUserPermission
-from .serializers import AuditLogSerializer
+from .serializers import AuditLogSerializer, AccessLogSerializer
 from django.db.models.functions import Coalesce
 from django.db.models import Count
 
@@ -209,3 +209,4 @@ class AccessLogViewSet(AuditLogViewSet):
     )
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
+    serializer_class = AccessLogSerializer

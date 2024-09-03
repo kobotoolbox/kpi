@@ -209,7 +209,7 @@ class AccessLog(AuditLog):
             return SubmissionAccessLog.objects.create(user=logged_in_user, metadata=metadata)
         return AccessLog.objects.create(user=logged_in_user, metadata=metadata)
 
-class SubmissionGroupManager(models.Manager):
+class SubmissionGroupManager(AccessLogManager):
     def get_queryset(self):
         return super().get_queryset().filter(metadata__auth_type=ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE)
 
@@ -225,7 +225,7 @@ class SubmissionGroup(AccessLog):
     class Meta:
         proxy = True
 
-class SubmissionAccessLogManager(models.Manager):
+class SubmissionAccessLogManager(AccessLogManager):
     def create(self, **kwargs):
         metadata = kwargs.pop('metadata', {})
         metadata['auth_type']=ACCESS_LOG_SUBMISSION_AUTH_TYPE
@@ -233,7 +233,7 @@ class SubmissionAccessLogManager(models.Manager):
         return super().create(**kwargs)
 
 class SubmissionAccessLog(AccessLog):
-
+    objects = SubmissionAccessLogManager()
     class Meta:
         proxy = True
 
