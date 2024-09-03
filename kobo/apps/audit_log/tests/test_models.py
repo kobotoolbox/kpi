@@ -176,13 +176,13 @@ class AccessLogModelTestCase(BaseTestCase):
         request = self._create_request(
             reverse('api_v2:asset-list'),
             AnonymousUser(),
-            AuditLogModelTestCase.super_user,
+            AccessLogModelTestCase.super_user,
         )
         extra_metadata = {'foo': 'bar'}
-        log: AuditLog = AuditLog.create_access_log_for_request(
+        log: AccessLog = AccessLog.create_from_request(
             request, authentication_type='Token', extra_metadata=extra_metadata
         )
-        self._check_common_fields(log, AuditLogModelTestCase.super_user)
+        self._check_common_fields(log, AccessLogModelTestCase.super_user)
         self.assertDictEqual(
             log.metadata,
             {
