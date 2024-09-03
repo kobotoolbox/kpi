@@ -1748,6 +1748,7 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed'
 ]
 
+ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=60
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']

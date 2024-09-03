@@ -14,7 +14,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
 from kpi.constants import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
-    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    ACCESS_LOG_UNKNOWN_AUTH_TYPE, ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.utils.log import logging
@@ -62,6 +62,7 @@ class AuditLog(models.Model):
         db_index=True, max_length=UUID_LENGTH + 1
     )  # 1 is prefix length
     log_type = models.CharField(choices=AuditType.choices, db_index=True)
+    submission_group = models.ForeignKey('self', null=True, on_delete=models.SET_NULL, related_name='submissions')
 
     class Meta:
         indexes = [
@@ -203,4 +204,45 @@ class AccessLog(AuditLog):
         # add any other metadata the caller may want
         if extra_metadata is not None:
             metadata.update(extra_metadata)
+        if is_submission:
+            # return a SubmissionAccessLog specifically to trigger the post_save hook
+            return SubmissionAccessLog.objects.create(user=logged_in_user, metadata=metadata)
         return AccessLog.objects.create(user=logged_in_user, metadata=metadata)
+
+class SubmissionGroupManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(metadata__auth_type=ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE)
+
+    def create(self, **kwargs):
+        metadata = kwargs.pop('metadata', {})
+        metadata['auth_type']=ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE
+        kwargs['metadata']=metadata
+        return super().create(**kwargs)
+
+class SubmissionGroup(AccessLog):
+    objects = SubmissionGroupManager()
+
+    class Meta:
+        proxy = True
+
+class SubmissionAccessLogManager(models.Manager):
+    def create(self, **kwargs):
+        metadata = kwargs.pop('metadata', {})
+        metadata['auth_type']=ACCESS_LOG_SUBMISSION_AUTH_TYPE
+        kwargs['metadata']=metadata
+        return super().create(**kwargs)
+
+class SubmissionAccessLog(AccessLog):
+
+    class Meta:
+        proxy = True
+
+    def add_to_existing_submission_group(self, submission_group: SubmissionGroup):
+        if self.user_uid != submission_group.user_uid:
+            logging.error(f'Cannot add submission log with user {self.user_uid} to group with user {submission_group.user_uid}')
+            return
+        self.submission_group = submission_group
+
+    def create_and_add_to_new_submission_group(self):
+        new_group = SubmissionGroup.objects.create(user=self.user)
+        self.submission_group = new_group
