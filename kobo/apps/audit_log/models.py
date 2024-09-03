@@ -113,7 +113,6 @@ class AccessLogManager(models.Manager):
         log_type=kwargs.pop('log_type', None)
         if log_type is not None:
             logging.warning(f'Ignoring attempt to set {log_type=} on access log')
-        # when we initialize manually we have a user, but when we initialize from the db we don't
         user = kwargs.pop('user')
         return super().create(
             # set the fields that are always the same for access logs, pass along the rest to the original constructor

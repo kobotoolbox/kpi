@@ -1,9 +1,13 @@
+from datetime import timedelta
 from unittest.mock import patch
+from django.utils import timezone
+
 
 from django.contrib.auth.models import AnonymousUser
 from django.test.client import RequestFactory
 from django.urls import resolve, reverse
 
+import kobo.apps.audit_log.models
 from kobo.apps.audit_log.models import (
     ACCESS_LOG_KOBO_AUTH_APP_LABEL,
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
@@ -14,6 +18,7 @@ from kobo.apps.audit_log.models import (
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.log import logging
 
 
 @patch(
@@ -49,6 +54,28 @@ class AccessLogModelTestCase(BaseTestCase):
         self.assertEqual(access_log.user_uid, user.extra_details.uid)
         self.assertEqual(access_log.action, AuditAction.AUTH)
         self.assertEqual(access_log.log_type, AuditType.ACCESS)
+
+    def create_access_log_sets_standard_fields(self, patched_ip, patched_source):
+        yesterday = timezone.now() - timedelta(days=1)
+        log = AccessLog.objects.create(user=AccessLogModelTestCase.super_user, metadata={'foo': 'bar'}, date_created=yesterday)
+        self._check_common_fields(log, AccessLogModelTestCase.super_user)
+        self.assertEquals(log.date_created, yesterday)
+        self.assertDictEqual(log.metadata, {'foo':'bar'})
+
+    @patch('kobo.apps.audit_log.models.logging.warning')
+    def create_access_log_ignores_attempt_to_override_standard_fields(self, patched_warning, patched_ip, patched_source):
+        log = AccessLog.objects.create(
+            log_type=AuditType.DATA_EDITING,
+            action=AuditAction.CREATE,
+            model_name='foo',
+            app_label='bar',
+            user=AccessLogModelTestCase.super_user
+        )
+        # the standard fields should be set the same as any other access logs
+        self._check_common_fields(log, AccessLogModelTestCase.super_user)
+        # we logged a warning for each attempt to override a field
+        self.assertEquals(patched_warning.call_count, 4)
+
 
     def test_basic_create_auth_log_from_request(
         self, patched_ip, patched_source
