@@ -96,8 +96,16 @@ class AuditLog(models.Model):
 
     @staticmethod
     def create_access_log_for_request(
-        request, user=None, authentication_type: str = None
+        request,
+        user=None,
+        authentication_type: str = None,
+        extra_metadata: dict = None,
     ):
+        """
+        Create an access log for a request, assigned to either the given user or request.user if not supplied
+
+        Note: Data passed in extra_metadata will override default values for the same key
+        """
         logged_in_user = user or request.user
 
         # django-loginas will keep the superuser as the _cached_user while request.user is set to the new one
@@ -151,6 +159,9 @@ class AuditLog(models.Model):
         if is_loginas:
             metadata['initial_user_uid'] = initial_user.extra_details.uid
             metadata['initial_user_username'] = initial_user.username
+        # add any other metadata the caller may want
+        if extra_metadata is not None:
+            metadata.update(extra_metadata)
         audit_log = AuditLog(
             user=logged_in_user,
             app_label=ACCESS_LOG_KOBO_AUTH_APP_LABEL,
