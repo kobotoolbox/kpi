@@ -13,14 +13,6 @@ import cx from 'classnames';
  * need to import them - just pass correct strings.
  */
 
-/**
- * Button types are:
- * 1. primary - white text on blue background
- * 2. secondary - dark blue text on light blue background
- * 3. danger - white text on red background
- * 4. secondary danger - dark red text on light red background
- * 5. text - dark blue text with no background
- */
 export type ButtonType = 'primary' | 'secondary' | 'danger' | 'secondary-danger' | 'text';
 
 /**
@@ -42,6 +34,14 @@ ButtonToIconAloneMap.set('m', 'l');
 ButtonToIconAloneMap.set('l', 'l');
 
 export interface ButtonProps {
+  /**
+   * Button types are:
+   * 1. primary - white text on blue background
+   * 2. secondary - dark blue text on light blue background
+   * 3. danger - white text on red background
+   * 4. secondary danger - dark red text on light red background
+   * 5. text - dark blue text with no background
+   */
   type: ButtonType;
   /** Note: this size will also be carried over to the icon. */
   size: ButtonSize;

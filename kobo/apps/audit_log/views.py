@@ -2,7 +2,9 @@ from rest_framework import mixins, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
 from kpi.filters import SearchFilter
-from .models import AuditLog
+from kpi.permissions import IsAuthenticated
+from .filters import AccessLogPermissionsFilter
+from .models import AuditAction, AuditLog
 from .permissions import SuperUserPermission
 from .serializers import AuditLogSerializer
 
@@ -84,3 +86,112 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
+
+
+class AllAccessLogViewSet(AuditLogViewSet):
+    """
+    Access logs
+
+    Lists all access logs for all users. Only available to superusers.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/access-logs/all
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/access-logs/all
+
+    > Response 200
+
+    >       {
+    >           "count": 10,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >                {
+    >                   "app_label": "kobo_auth",
+    >                    "model_name": "User",
+    >                    "object_id": 1,
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
+    >                    "username": "admin",
+    >                    "action": "AUTH",
+    >                    "metadata": {
+    >                        "source": "Firefox (Ubuntu)",
+    >                        "auth_type": "Digest",
+    >                        "ip_address": "172.18.0.6"
+    >                   },
+    >                    "date_created": "2024-08-19T16:48:58Z",
+    >                    "log_type": "access"
+    >                },
+    >                ...
+    >           ]
+    >       }
+
+    This endpoint can be filtered and paginated the same as the /audit-logs endpoint
+
+    """
+
+    queryset = (
+        AuditLog.objects.select_related('user')
+        .filter(action=AuditAction.AUTH)
+        .order_by('-date_created')
+    )
+
+
+class AccessLogViewSet(AuditLogViewSet):
+    """
+    Access logs
+
+    Lists all access logs for the authenticated user
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/access-logs/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/access-logs/
+
+    > Response 200
+
+    >       {
+    >           "count": 10,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >                {
+    >                   "app_label": "kobo_auth",
+    >                    "model_name": "User",
+    >                    "object_id": 1,
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
+    >                    "username": "admin",
+    >                    "action": "AUTH",
+    >                    "metadata": {
+    >                        "source": "Firefox (Ubuntu)",
+    >                        "auth_type": "Digest",
+    >                        "ip_address": "172.18.0.6"
+    >                    },
+    >                    "date_created": "2024-08-19T16:48:58Z"
+    >                    "log_type": "access"
+    >                },
+    >                ...
+    >           ]
+    >       }
+
+    This endpoint can be paginated with 'offset' and 'limit' parameters, eg
+    >      curl -X GET https://[kpi-url]/access-logs/?offset=100&limit=50
+
+    will return entries 100-149
+
+    """
+
+    queryset = (
+        AuditLog.objects.select_related('user')
+        .filter(action=AuditAction.AUTH)
+        .order_by('-date_created')
+    )
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (AccessLogPermissionsFilter,)
