@@ -434,7 +434,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     key: string,
     rootParentGroup: string | undefined
   ) {
-    if (rootParentGroup && rootParentGroup in row) {
+    if (
+      rootParentGroup &&
+      rootParentGroup in row &&
+      !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+    ) {
       return row[rootParentGroup];
     }
     return row[key];
@@ -931,7 +935,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             this.state.translationIndex
           );
 
-          if (typeof row.value === 'object') {
+          if (typeof row.value === 'object' && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
             const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
             if (repeatGroupAnswers) {
               // display a list of answers from a repeat group question
@@ -1068,7 +1072,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           ) {
             return (
               <TextModalCell
-                text={getSupplementalDetailsContent(row.original, key)}
+                text={getSupplementalDetailsContent(row.original, key) || ''}
                 columnName={columnName}
                 submissionIndex={row.index + 1}
                 submissionTotal={this.state.submissions.length}
