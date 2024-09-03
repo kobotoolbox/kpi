@@ -4,7 +4,7 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from kpi.filters import SearchFilter
 from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
-from .models import AuditAction, AuditLog, AccessLog
+from .models import AccessLog, AuditAction, AuditLog
 from .permissions import SuperUserPermission
 from .serializers import AuditLogSerializer
 
@@ -184,9 +184,8 @@ class AccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = (
-        AccessLog.objects.select_related('user')
-        .order_by('-date_created')
+    queryset = AccessLog.objects.select_related('user').order_by(
+        '-date_created'
     )
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)

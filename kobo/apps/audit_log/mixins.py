@@ -1,4 +1,4 @@
-from .models import AuditLog, AccessLog
+from .models import AccessLog
 
 
 class RequiresAccessLogMixin:
