@@ -7,6 +7,8 @@ from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditAction, AuditLog
 from .permissions import SuperUserPermission
 from .serializers import AuditLogSerializer
+from django.db.models.functions import Coalesce
+from django.db.models import Count
 
 
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -188,13 +190,22 @@ class AccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = (AccessLog.objects.select_related('user')
-    .values(
-
+    queryset = (
+        AccessLog.objects.select_related('user')
+        .values(
+            'user__username',
+            'submission_group',
+            'app_label',
+            'model_name',
+            'object_id',
+            'log_type',
+            'user_uid',
+        )
+        .annotate(metadata=Coalesce('submission_group__metadata', 'metadata'),
+                  action=Coalesce('submission_group__action', 'action'),
+                  date_created=Coalesce('submission_group__date_created', 'date_created'),
+                  count=Count('pk'))
+        .order_by('-date_created')
     )
-    .annotate()
-    .order_by(
-        '-date_created'
-    ))
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
