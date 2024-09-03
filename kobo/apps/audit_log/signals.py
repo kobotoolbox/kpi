@@ -2,7 +2,7 @@ from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 
 from kpi.utils.log import logging
-from .models import AuditLog, AccessLog
+from .models import AccessLog
 
 
 @receiver(user_logged_in)

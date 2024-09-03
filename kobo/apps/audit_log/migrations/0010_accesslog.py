@@ -12,8 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.CreateModel(
             name='AccessLog',
-            fields=[
-            ],
+            fields=[],
             options={
                 'proxy': True,
                 'indexes': [],

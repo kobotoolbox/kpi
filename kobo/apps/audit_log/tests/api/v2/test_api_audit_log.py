@@ -5,7 +5,12 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType, AccessLog
+from kobo.apps.audit_log.models import (
+    AccessLog,
+    AuditAction,
+    AuditLog,
+    AuditType,
+)
 from kobo.apps.audit_log.serializers import AuditLogSerializer
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
@@ -24,7 +29,6 @@ class BaseAuditLogTestCase(BaseTestCase):
     def setUp(self):
         super(BaseAuditLogTestCase, self).setUp()
         self.url = reverse(self._get_endpoint(self.get_endpoint_basename()))
-
 
     def login_user(self, username, password):
         # always skip creating the access logs for logins so we have full control over the logs in the test db
