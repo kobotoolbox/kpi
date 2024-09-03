@@ -5,7 +5,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import ACCESS_LOG_AUTHORIZED_APP_TYPE
 from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
@@ -58,6 +60,14 @@ def authorized_application_authenticate_user(request):
     )
     for attribute in user_attributes_to_return:
         response_data[attribute] = getattr(user, attribute)
+    # usually we would do this at the authentication level but because this is
+    # authenticated as the application and not the user, we do it here so
+    # we can have the user information
+    extra_metadata_for_log = {'authorized_app_name': request.auth.name}
+    log = AuditLog.create_access_log_for_request(
+        request, user, ACCESS_LOG_AUTHORIZED_APP_TYPE, extra_metadata_for_log
+    )
+    log.save()
     return Response(response_data)
 
 

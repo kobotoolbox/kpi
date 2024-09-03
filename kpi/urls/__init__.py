@@ -34,7 +34,8 @@ urlpatterns = [
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',
-        authorized_application_authenticate_user
+        authorized_application_authenticate_user,
+        name='authenticate_user'
     ),
     path('browser_tests/', browser_tests),
     path('modern_browsers/', modern_browsers),
