@@ -48,3 +48,26 @@ class AuditLogSerializer(serializers.ModelSerializer):
     def get_username(self, audit_log):
         return audit_log.user.username
 
+
+class AccessLogSerializer(serializers.Serializer):
+
+    user = UsernameHyperlinkField(source='user__username')
+    date_created = serializers.SerializerMethodField()
+    username = serializers.CharField(source='user__username')
+    app_label = serializers.CharField()
+    object_id = serializers.IntegerField()
+    metadata = serializers.JSONField()
+    model_name = serializers.CharField()
+    user_uid = serializers.CharField()
+    action = serializers.ChoiceField(choices=AuditAction.choices)
+    log_type = serializers.ChoiceField(choices=AuditType.choices)
+    count = serializers.SerializerMethodField()
+
+    def get_date_created(self, audit_log):
+        return audit_log['date_created'].strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def get_count(self, audit_log):
+        # subtract one so submission groups don't count themselves as additional submissions
+        return audit_log['count'] - 1
+
+
