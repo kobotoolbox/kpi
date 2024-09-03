@@ -570,8 +570,7 @@ export default class SubmissionModal extends React.Component<
             )) && (
             <Button
               onClick={this.deleteSubmission.bind(this)}
-              color='red'
-              type='full'
+              type='danger'
               size='l'
               isDisabled={!this.isSubmissionEditable()}
               label={t('Discard')}
@@ -604,8 +603,7 @@ export default class SubmissionModal extends React.Component<
 
         <Button
           onClick={this.triggerRefresh.bind(this)}
-          color='blue'
-          type='full'
+          type='primary'
           size='l'
           label={t('Refresh submission')}
         />
@@ -642,8 +640,7 @@ export default class SubmissionModal extends React.Component<
               }
             }}
             isDisabled={this.state.previous === -1}
-            color='blue'
-            type='bare'
+            type='text'
             size='l'
             label={t('Previous')}
             startIcon='angle-left'
@@ -658,8 +655,7 @@ export default class SubmissionModal extends React.Component<
               }
             }}
             isDisabled={this.state.next === -1}
-            color='blue'
-            type='bare'
+            type='text'
             size='l'
             label={t('Next')}
             endIcon='angle-right'
@@ -677,8 +673,7 @@ export default class SubmissionModal extends React.Component<
 
           <Button
             onClick={this.launchViewSubmission.bind(this)}
-            color='blue'
-            type='full'
+            type='primary'
             size='l'
             isDisabled={
               !userCan('view_submissions', this.props.asset) &&
@@ -694,8 +689,7 @@ export default class SubmissionModal extends React.Component<
 
           <Button
             onClick={this.duplicateSubmission.bind(this)}
-            color='blue'
-            type='full'
+            type='primary'
             size='l'
             isDisabled={!this.isSubmissionEditable()}
             label={t('Duplicate')}
@@ -703,8 +697,7 @@ export default class SubmissionModal extends React.Component<
 
           <Button
             onClick={launchPrinting}
-            color='dark-blue'
-            type='bare'
+            type='secondary'
             size='l'
             startIcon='print'
             className='report-button__print'
@@ -714,8 +707,7 @@ export default class SubmissionModal extends React.Component<
 
           <Button
             onClick={this.deleteSubmission.bind(this)}
-            color='red'
-            type='bare'
+            type='secondary-danger'
             size='l'
             startIcon='trash'
             tooltip={t('Delete submission')}
@@ -738,8 +730,7 @@ export default class SubmissionModal extends React.Component<
     return (
       <Button
         onClick={this.launchEditSubmission.bind(this)}
-        color='blue'
-        type='full'
+        type='primary'
         size='l'
         isDisabled={!this.isSubmissionEditable()}
         isPending={this.state.isEnketoEditLoading}

@@ -662,6 +662,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
         'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         'ASR_MT_GOOGLE_CREDENTIALS',
+        'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
@@ -1771,3 +1772,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
