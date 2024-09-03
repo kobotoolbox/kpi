@@ -7,6 +7,7 @@ import KoboSelect, {
   KoboSelectOption,
 } from 'jsapp/js/components/common/koboSelect';
 import Button from 'jsapp/js/components/common/button';
+import UniversalTable from 'js/universalTable/universalTable.component';
 
 export default function AccessLogSection() {
   function renderDataTable(
@@ -78,6 +79,38 @@ export default function AccessLogSection() {
       <PaginatedQueryTable
         queryHook={useAccessLogQuery}
         renderDisplayTable={renderDataTable}
+      />
+
+      <UniversalTable
+        columns={[
+          {key: 'source', label: t('Source')},
+          {key: 'activity', label: t('Last activity')},
+          {key: 'duration', label: t('Session duration'), isPinned: true},
+          {key: 'ip', label: t('IP Address')},
+          {key: 'a', label: 'a'},
+          {key: 'b', label: 'b'},
+          {key: 'c', label: 'c', size: 400},
+          {key: 'd', label: 'd'},
+          {key: 'e', label: 'e'},
+          {key: 'f', label: 'f'},
+          {key: 'g', label: 'g'},
+        ]}
+        data={[
+          {source: 'Safari', activity: '15 minutes ago', duration: 'Your current session', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', f: '-', g: '-'},
+          {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', f: '-', g: '-'},
+        ]}
+        pagination={{
+          currentPage: 2,
+          totalPages: 10,
+          requestPageChange: (newPage: number) => {
+            console.log('change page to', newPage);
+          },
+          pageSize: 10,
+          pageSizes: [10, 30, 50, 100],
+          requestPageSizeChange: (newPageSize: number) => {
+            console.log('change page size to', newPageSize);
+          },
+        }}
       />
     </>
   );

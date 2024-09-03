@@ -1,0 +1,120 @@
+@use 'scss/colors';
+@use 'scss/mixins';
+
+.root {
+  border: 1px solid colors.$kobo-gray-200;
+  border-radius: 6px;
+  width: 100%;
+  // TODO: see if this will not break stuff. It's here to enforce `border-radius`
+  overflow: hidden;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  position: relative;
+}
+
+.table {
+  // reset table browser styles first
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background-image: none;
+  // the actual styles:
+  background-color: colors.$kobo-white;
+  // box-shadow and borders will not work with positon: sticky otherwise
+  border-collapse: separate !important;
+}
+
+.tableCell {
+  background-color: colors.$kobo-white;
+}
+
+.tableHeaderCell {
+  background-color: colors.$kobo-gray-100;
+  color: colors.$kobo-gray-700;
+  position: relative;
+  font-size: 12px;
+  font-weight: normal;
+  text-align: initial;
+}
+
+.tableRow {
+  .tableCell, .tableHeaderCell {
+    border-bottom: 1px solid colors.$kobo-gray-200;
+  }
+}
+
+.tableCell,
+.tableHeaderCell {
+  padding: 12px 20px;
+}
+
+.tableCell.isPinned,
+.tableHeaderCell.isPinned {
+  position: sticky;
+  // TODO see if this needs to be something from `z-indexes` file.
+  // For sure it needs to be over .resizer
+  z-index: 2;
+  // react-table can handle left and right pinning, but we are only interested
+  // in left pinning here
+  left: 0;
+  border-right: 1px solid colors.$kobo-gray-200;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: calc(100% + 1px);
+    top: 0;
+    height: 100%;
+    width: 7px;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.06), transparent);
+  }
+}
+
+// TODO: this needs to look like 1px line, but be touchable in a much bigger area
+.resizer {
+  position: absolute;
+  background-color: colors.$kobo-gray-200;
+  height: 100%;
+  width: 4px;
+  right: -2px;
+  top: 0;
+  // TODO see if this needs to be something from `z-indexes` file
+  z-index: 1;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  opacity: 0;
+}
+
+.tableRow:hover .resizer {
+  opacity: 1;
+}
+
+.resizer:hover {
+  background-color: colors.$kobo-gray-300;
+}
+
+.resizer.isResizing {
+  background-color: colors.$kobo-gray-400;
+}
+
+.tableFooter {
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  background-color: colors.$kobo-gray-100;
+  padding: 10px 20px;
+}
+
+.pagination {
+  @include mixins.centerRowFlex;
+}
+
+.paginationNumbering {
+  display: inline;
+  margin: 0 15px;
+}
