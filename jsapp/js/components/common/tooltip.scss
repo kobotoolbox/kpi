@@ -34,7 +34,7 @@ Additional class names:
       font-size: 13px;
       line-height: 1.35em;
       color: colors.$kobo-white;
-      background-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-gray-700;
       padding: 6px 12px;
       top: 96%;
       left: 50%;
@@ -45,7 +45,7 @@ Additional class names:
 
     &::before {
       content: "";
-      border-bottom: 5px solid colors.$kobo-gray-40;
+      border-bottom: 5px solid colors.$kobo-gray-700;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
       top: calc(96% - 5px);
@@ -74,7 +74,7 @@ Additional class names:
       left: calc(95% - 5px);
       top: 50%;
       transform: translate(0, -50%);
-      border-right: 5px solid colors.$kobo-gray-40;
+      border-right: 5px solid colors.$kobo-gray-700;
       border-bottom: 5px solid transparent;
       border-top: 5px solid transparent;
       border-left: none;

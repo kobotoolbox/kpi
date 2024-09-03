@@ -32,7 +32,7 @@ div.tagsinput span.tag {
 
 div.tagsinput input {
   border: none;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   font-family: $font;
   font-size: 12px;
   margin: 0 5px;
@@ -58,7 +58,7 @@ div.tagsinput span.tag a:before {
 
 ul.ui-autocomplete.ui-widget-content.ui-widget {
   max-width: 680px !important;
-  border: 1px solid colors.$kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-300;
   li {
     padding: 5px;
     background: colors.$kobo-white;
@@ -74,7 +74,7 @@ ul.ui-autocomplete.ui-widget-content.ui-widget {
     }
     a {
       font-weight: normal;
-      color: colors.$kobo-gray-24;
+      color: colors.$kobo-gray-800;
     }
   }
 }

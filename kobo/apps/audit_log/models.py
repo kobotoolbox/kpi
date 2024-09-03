@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils.timezone import now
+from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -14,21 +14,20 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
 from kpi.constants import (
     ACCESS_LOG_KOBO_AUTH_APP_LABEL,
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
-    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
+    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
 
 
 class AuditAction(models.TextChoices):
-
-    CREATE = 'create', 'CREATE'
-    DELETE = 'delete', 'DELETE'
-    IN_TRASH = 'in-trash', 'IN TRASH'
-    PUT_BACK = 'put-back', 'PUT BACK'
-    REMOVE = 'remove', 'REMOVE'
-    UPDATE = 'update', 'UPDATE'
-    AUTH = 'auth', 'AUTH'
+    CREATE = 'create'
+    DELETE = 'delete'
+    IN_TRASH = 'in-trash'
+    PUT_BACK = 'put-back'
+    REMOVE = 'remove'
+    UPDATE = 'update'
+    AUTH = 'auth'
 
 
 class AuditType(models.TextChoices):
@@ -51,7 +50,7 @@ class AuditLog(models.Model):
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
     object_id = models.BigIntegerField()
-    date_created = models.DateTimeField(default=now, db_index=True)
+    date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
         max_length=10,
