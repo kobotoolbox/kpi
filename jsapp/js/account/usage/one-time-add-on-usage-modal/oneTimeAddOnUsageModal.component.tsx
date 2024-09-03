@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
@@ -30,11 +30,10 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
     [USAGE_TYPE.TRANSLATION]: 'Translation characters',
   };
 
-  const recurringUsage = useMemo(
-    () =>
-      props.usage < props.recurringLimit ? props.usage : props.recurringLimit,
-    [props.usage, props.recurringLimit]
-  );
+  const periodAdjectiveDisplay: {[key in RecurringInterval]: string} = {
+    year: 'yearly',
+    month: 'monthly',
+  };
 
   return (
     <>
@@ -50,25 +49,36 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
         <KoboModalContent>
           <div className={styles.addonUsageDetails}>
             <div className={styles.addonTypeHeader}>
-              {t('##TYPE## available').replace(
-                '##TYPE##',
-                typeTitles[props.type]
-              )}
+              {t('##TYPE##').replace('##TYPE##', typeTitles[props.type])}
             </div>
             <ul className={styles.usageBreakdown}>
               <li>
-                <label>{t('Included with plan')}</label>
+                <label>
+                  {t('Included with ##PERIOD## plan').replace(
+                    '##PERIOD##',
+                    periodAdjectiveDisplay[props.period]
+                  )}
+                </label>
                 <data>{limitDisplay(props.type, props.recurringLimit)}</data>
               </li>
               <li>
+                <label>{t('From add-ons')}</label>
+                <data>
+                  {limitDisplay(
+                    props.type,
+                    props.recurringLimit,
+                    props.remainingLimit
+                  )}
+                </data>
+              </li>
+              <li>
                 <label>
-                  {t('Add-ons this ##PERIOD##').replace(
+                  {t('Used this ##PERIOD##').replace(
                     '##PERIOD##',
                     props.period
                   )}
                 </label>
-                {/* TODO: Get correct figure when period calculations are available */}
-                <data>0</data>
+                <data>{limitDisplay(props.type, props.usage)}</data>
               </li>
               <li>
                 <label>
@@ -81,75 +91,12 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
                 </data>
               </li>
             </ul>
-
-            <div className={styles.addonTypeHeader}>
-              {t('##TYPE## used').replace('##TYPE##', typeTitles[props.type])}
-            </div>
-            <ul className={styles.usageBreakdown}>
-              <li>
-                <label>{t('Included with plan')}</label>
-                <data>{limitDisplay(props.type, recurringUsage)}</data>
-              </li>
-              <li>
-                <label>{t('Add-ons')}</label>
-                {/* TODO: Get correct figure when period calculations are available */}
-                <data>0</data>
-              </li>
-              <li>
-                <label>
-                  <strong>{t('Total used')}</strong>
-                </label>
-                <data>
-                  <strong>{limitDisplay(props.type, props.usage)}</strong>
-                </data>
-              </li>
-            </ul>
-
-            <div className={styles.addonTypeHeader}>
-              {t('##TYPE## balance').replace(
-                '##TYPE##',
-                typeTitles[props.type]
-              )}
-            </div>
-            <ul className={styles.usageBreakdown}>
-              <li>
-                <label>{t('Included with plan')}</label>
-                <data>
-                  {limitDisplay(
-                    props.type,
-                    recurringUsage,
-                    props.recurringLimit
-                  )}
-                </data>
-              </li>
-              <li>
-                <label>{t('Add-ons')}</label>
-                <data>
-                  {limitDisplay(
-                    props.type,
-                    props.recurringLimit,
-                    props.remainingLimit
-                  )}
-                </data>
-              </li>
-              <li>
-                <label>
-                  <strong>{t('Total remaining')}</strong>
-                </label>
-                <data>
-                  <strong>
-                    {limitDisplay(
-                      props.type,
-                      props.usage,
-                      props.remainingLimit
-                    )}
-                  </strong>
-                </data>
-              </li>
-            </ul>
           </div>
           <h2 className={styles.listHeaderText}>{t('Purchased add-ons')}</h2>
-          < OneTimeAddOnList oneTimeAddOns={props.oneTimeAddOns} type={props.type} />
+          <OneTimeAddOnList
+            oneTimeAddOns={props.oneTimeAddOns}
+            type={props.type}
+          />
         </KoboModalContent>
       </KoboModal>
     </>
