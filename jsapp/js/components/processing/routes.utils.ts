@@ -143,8 +143,10 @@ export function isProcessingRouteActive(targetRoute: string) {
   // string that could be "exactly" the same, just one containing `|` and
   // the other `%7C` (ASCII for `|`) - resulting in incorrect `false`.
   const routeToTest = decodeURI(applyCurrentRouteParams(targetRoute));
-
-  return getCurrentPath().startsWith(routeToTest);
+  // Sometimes current path containts `|` and sometimes with `%7C` so we need to
+  // be extra safe here.
+  const currentPath = decodeURI(getCurrentPath());
+  return currentPath.startsWith(routeToTest);
 }
 
 /**
