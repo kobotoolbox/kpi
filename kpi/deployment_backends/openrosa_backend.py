@@ -58,6 +58,7 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
     InvalidXPathException,
+    MissingXFormException,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
     XPathNotFoundException,
@@ -100,7 +101,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def attachment_storage_bytes(self):
         try:
             return self.xform.attachment_storage_bytes
-        except InvalidXFormException:
+        except (InvalidXFormException, MissingXFormException):
             return 0
 
     def bulk_assign_mapped_perms(self):
@@ -200,8 +201,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         WARNING! Deletes all submitted data!
         """
         try:
-            self._xform.delete()
-        except XForm.DoesNotExist:
+            self.xform.delete()
+        except (MissingXFormException, InvalidXFormException):
             pass
 
         super().delete()
@@ -263,7 +264,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data['submission_ids'] = submission_ids
 
         # TODO handle errors
-        deleted_count = delete_instances(self.xform, data)
+        try:
+            deleted_count = delete_instances(self.xform, data)
+        except (MissingXFormException, InvalidXFormException):
+            return {
+                'data': {'detail': f'Could not delete submissions'},
+                'content_type': 'application/json',
+                'status': status.HTTP_400_BAD_REQUEST,
+            }
 
         return {
             'data': {'detail': f'{deleted_count} submissions have been deleted'},
@@ -710,7 +718,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         try:
             return Instance.objects.filter(xform_id=self.xform_id)
-        except InvalidXFormException:
+        except (InvalidXFormException, MissingXFormException):
             return None
 
     def get_submissions(
@@ -1148,13 +1156,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def submission_count(self):
         try:
             return self.xform.num_of_submissions
-        except InvalidXFormException:
+        except (InvalidXFormException, MissingXFormException):
             return 0
 
     def submission_count_since_date(self, start_date=None):
         try:
             xform_id = self.xform_id
-        except InvalidXFormException:
+        except (InvalidXFormException, MissingXFormException):
             return 0
 
         today = timezone.now().date()
@@ -1288,14 +1296,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             .first()
         )
 
+        if not xform:
+            raise MissingXFormException
+
         if not (
-            xform
-            and xform.user.username == self.asset.owner.username
+            xform.user.username == self.asset.owner.username
             and xform.id_string == self.xform_id_string
         ):
-            raise InvalidXFormException(
-                'Deployment links to an unexpected KoboCAT XForm'
-            )
+            raise InvalidXFormException
         self._xform = xform
         return self._xform
 
@@ -1385,7 +1393,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         """
         # Delete MetaData object and its related file (on storage)
         try:
-            metadata = MetaData.objects.get(pk=metadata_file_['id'])
+            metadata = MetaData.objects.get(pk=metadata_file_['pk'])
         except MetaData.DoesNotExist:
             pass
         else:
