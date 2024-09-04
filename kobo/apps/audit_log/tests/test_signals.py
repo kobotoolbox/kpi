@@ -63,7 +63,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         }
         self.client.post(reverse('kobo_login'), data=data, follow=True)
         # no audit log should be created yet because the email has not been verified
-        self.assertEquals(AuditLog.objects.count(), 0)
+        self.assertEqual(AuditLog.objects.count(), 0)
         # verify the email and try again
         email: EmailAddress = EmailAddress.objects.filter(user=user).first()
         email.verified = True
@@ -134,15 +134,15 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
     fixtures = ['test_data']
 
     def test_new_group_for_new_submission(self):
-        self.assertEquals(AuditLog.objects.count(), 0)
+        self.assertEqual(AuditLog.objects.count(), 0)
         user = User.objects.get(username='someuser')
         new_submission = SubmissionAccessLog.objects.create(user=user)
         # make sure a new group was made and assigned as the submission group for the submission
-        self.assertEquals(SubmissionGroup.objects.count(), 1)
+        self.assertEqual(SubmissionGroup.objects.count(), 1)
         group_log = SubmissionGroup.objects.first()
-        self.assertEquals(group_log.user.id, user.id)
-        self.assertEquals(new_submission.submission_group.id, group_log.id)
-        self.assertEquals(group_log.date_created, new_submission.date_created)
+        self.assertEqual(group_log.user.id, user.id)
+        self.assertEqual(new_submission.submission_group.id, group_log.id)
+        self.assertEqual(group_log.date_created, new_submission.date_created)
 
     # make sure the time limit is long enough that the logs *could* be grouped together
     # if the users matched
@@ -154,16 +154,16 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
         user1_submission = SubmissionAccessLog.objects.create(user=user1)
         # make sure that created a new group
         user1_group_query = SubmissionGroup.objects.filter(user=user1)
-        self.assertEquals(user1_group_query.count(), 1)
+        self.assertEqual(user1_group_query.count(), 1)
         user1_group = user1_group_query.first()
-        self.assertEquals(user1_submission.submission_group.id, user1_group.id)
+        self.assertEqual(user1_submission.submission_group.id, user1_group.id)
 
         # create a submission with the second user
         user2_submission =SubmissionAccessLog.objects.create(user=user2)
         user2_group_query = SubmissionGroup.objects.filter(user=user2)
-        self.assertEquals(user2_group_query.count(), 1)
+        self.assertEqual(user2_group_query.count(), 1)
         new_group = user2_group_query.first()
-        self.assertEquals(user2_submission.submission_group.id, new_group.id)
+        self.assertEqual(user2_submission.submission_group.id, new_group.id)
 
     @override_settings(ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=5)
     def test_new_group_for_new_submission_if_existing_groups_too_old(self):
@@ -173,13 +173,13 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
 
         # make sure that created a new group
         group_query = SubmissionGroup.objects.filter(user=user)
-        self.assertEquals(group_query.count(), 1)
+        self.assertEqual(group_query.count(), 1)
         old_group = group_query.first()
-        self.assertEquals(old_submission.submission_group.id, old_group.id)
+        self.assertEqual(old_submission.submission_group.id, old_group.id)
 
         # new submission
         new_submission = SubmissionAccessLog.objects.create(user=user)
-        self.assertEquals(group_query.count(), 2)
+        self.assertEqual(group_query.count(), 2)
         new_group = group_query.order_by('-date_created').first()
-        self.assertEquals(new_submission.submission_group.id, new_group.id)
+        self.assertEqual(new_submission.submission_group.id, new_group.id)
 

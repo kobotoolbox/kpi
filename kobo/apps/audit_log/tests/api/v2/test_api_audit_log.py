@@ -40,19 +40,19 @@ class BaseAuditLogTestCase(BaseTestCase):
         with skip_login_access_log():
             self.client.force_login(user)
 
-    def assert_audit_log_results_equal(self, response, expected_kwargs):
-        # utility method for tests that are just comparing the results of an api call to the results of
-        # manually applying the expected query (simple filters only)
-        expected = AccessLog.objects.filter(**expected_kwargs).order_by(
-            '-date_created'
-        )
-        expected_count = expected.count()
-        serializer = AuditLogSerializer(
-            expected, many=True, context=response.renderer_context
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], expected_count)
-        self.assertEqual(response.data['results'], serializer.data)
+class CompareAccessLogResultsMixin:
+    def get_expected_serialization(self, log: AccessLog, count=0):
+        # the query changes results to dicts before serialization, so we can't just call serializer(log).data
+        # to get the expected serialization
+        return {
+                'object_id': log.user.id,
+                'user': f'http://testserver/api/v2/users/{log.user.username}/',
+                'user_uid': log.user.extra_details.uid,
+                'username': log.user.username,
+                'metadata': log.metadata,
+                'date_created': log.date_created.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                'count': count,
+        }
 
 
 class ApiAuditLogTestCase(BaseAuditLogTestCase):
@@ -158,24 +158,10 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         assert response.data['results'] == expected
 
 
-class ApiAccessLogTestCase(BaseAuditLogTestCase):
+class ApiAccessLogTestCase(BaseAuditLogTestCase, CompareAccessLogResultsMixin):
 
     def get_endpoint_basename(self):
         return 'access-log-list'
-
-    def get_expected_serialization(self, log: AccessLog, count=0):
-        # the query changes results to dicts before serialization, so we can't just call serializer(log).data
-        # to get the expected serialization
-        return {
-                'object_id': log.user.id,
-                'user': f'http://testserver/api/v2/users/{log.user.username}/',
-                'user_uid': log.user.extra_details.uid,
-                'username': log.user.username,
-                'metadata': log.metadata,
-                'date_created': log.date_created.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                'count': count,
-        }
-
 
     def test_list_as_anonymous_returns_unauthorized(self):
         self.client.logout()
@@ -198,17 +184,20 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
             group_2_log_1: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=user)
 
             group_1_log_1.add_to_existing_submission_group(submission_group_1)
+            group_1_log_1.save()
             group_1_log_2.add_to_existing_submission_group(submission_group_1)
+            group_1_log_2.save()
 
             group_2_log_1.add_to_existing_submission_group(submission_group_2)
+            group_2_log_1.save()
 
             # add 2 non-submission logs to make sure the grouping doesn't affect them
             regular_log_1 = AccessLog.objects.create(user=user)
             regular_log_2 = AccessLog.objects.create(user=user)
         self.force_login_user(user)
         response = self.client.get(self.url)
-        self.assertEquals(response.data['count'], 4)
-        self.assertEquals(
+        self.assertEqual(response.data['count'], 4)
+        self.assertEqual(
             response.data['results'],
             [
                 self.get_expected_serialization(regular_log_2),
@@ -227,8 +216,8 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         self.force_login_user(user1)
         response = self.client.get(self.url)
         # only return user1's access logs
-        self.assertEquals(response.data['count'], 1)
-        self.assertEquals(
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(
             response.data['results'],
             [
                 self.get_expected_serialization(log_1)
@@ -241,10 +230,10 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         log_1 = AccessLog.objects.create(user=user1)
         log_2 = AccessLog.objects.create(user=user2)
         self.force_login_user(user1)
-        response = self.client.get(self.url)
-        # only return user1's access logs
-        self.assertEquals(response.data['count'], 1)
-        self.assertEquals(
+        response = self.client.get(f'{self.url}?q=user__username:anotheruser')
+        # still only return user1's access logs
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(
             response.data['results'],
             [
                 self.get_expected_serialization(log_1)
@@ -252,30 +241,10 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         )
 
 
-class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
+class AllApiAccessLogsTestCase(BaseAuditLogTestCase, CompareAccessLogResultsMixin):
 
     def get_endpoint_basename(self):
         return 'all-access-logs-list'
-
-    def setUp(self):
-        super().setUp()
-        super_user = User.objects.get(username='admin')
-        user2 = User.objects.get(username='anotheruser')
-        # generate 3 access logs, 2 for superuser, 1 for user2
-        # generate 3 access logs, 2 for user1, 1 for user2
-        user_1_log_1 = AccessLog.objects.create(user=super_user)
-        user_1_log_2 = AccessLog.objects.create(user=super_user)
-        user_2_log_1 = AccessLog.objects.create(user=super_user)
-
-        # create a random non-auth audit log
-        log = AuditLog.objects.create(
-            user=User.objects.get(username='someuser'),
-            app_label='foo',
-            model_name='bar',
-            object_id=1,
-            action=AuditAction.DELETE,
-        )
-        self.assertEqual(AuditLog.objects.count(), 4)
 
     def test_list_as_anonymous_returns_unauthorized(self):
         self.client.logout()
@@ -290,32 +259,85 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
     def test_show_all_access_logs_succeeds_for_superuser(self):
         self.force_login_user(User.objects.get(username='admin'))
         response = self.client.get(self.url)
-        self.assert_audit_log_results_equal(
-            response=response, expected_kwargs={'action': AuditAction.AUTH}
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submission_logs_are_grouped_correctly(self):
+        admin = User.objects.get(username='admin')
+        self.force_login_user(admin)
+        with skip_all_signals():
+            # manually assigned logs to groups, and groups to themselves
+            submission_group_1: SubmissionGroup = SubmissionGroup.objects.create(user=admin)
+            submission_group_1.submission_group = submission_group_1
+            submission_group_1.save()
+            group_1_log_1: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=admin)
+            group_1_log_2: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=admin)
+
+            submission_group_2: SubmissionGroup = SubmissionGroup.objects.create(user=admin)
+            submission_group_2.submission_group = submission_group_2
+            submission_group_2.save()
+            group_2_log_1: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=admin)
+
+            group_1_log_1.add_to_existing_submission_group(submission_group_1)
+            group_1_log_1.save()
+            group_1_log_2.add_to_existing_submission_group(submission_group_1)
+            group_1_log_2.save()
+
+            group_2_log_1.add_to_existing_submission_group(submission_group_2)
+            group_2_log_1.save()
+
+            # add 2 non-submission logs to make sure the grouping doesn't affect them
+            regular_log_1 = AccessLog.objects.create(user=admin)
+            regular_log_2 = AccessLog.objects.create(user=admin)
+        self.force_login_user(admin)
+        response = self.client.get(self.url)
+        self.assertEqual(response.data['count'], 4)
+        self.assertEqual(
+            response.data['results'],
+            [
+                self.get_expected_serialization(regular_log_2),
+                self.get_expected_serialization(regular_log_1),
+                self.get_expected_serialization(submission_group_2, count = 1),
+                self.get_expected_serialization(submission_group_1, count = 2),
+            ]
+        )
+
+    def test_returns_logs_for_all_users(self):
+        self.force_login_user(User.objects.get(username='admin'))
+        user1 = User.objects.get(username='someuser')
+        user2 = User.objects.get(username='anotheruser')
+        user_1_log = AccessLog.objects.create(user=user1)
+        user_2_log = AccessLog.objects.create(user=user2)
+        response = self.client.get(self.url)
+        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(
+            response.data['results'],
+            [
+                self.get_expected_serialization(user_2_log),
+                self.get_expected_serialization(user_1_log)
+            ]
         )
 
     def test_can_search_access_logs_by_username(self):
         self.force_login_user(User.objects.get(username='admin'))
+        user1 = User.objects.get(username='someuser')
+        user2 = User.objects.get(username='anotheruser')
+        user_1_log = AccessLog.objects.create(user=user1)
+        user_2_log = AccessLog.objects.create(user=user2)
         response = self.client.get(f'{self.url}?q=user__username:anotheruser')
-        another_user = User.objects.get(username='anotheruser')
-        self.assert_audit_log_results_equal(
-            response=response,
-            expected_kwargs={'action': AuditAction.AUTH, 'user': another_user},
-        )
+        self.assertEqual(response.data['count'], 1)
+        self.assertDictEqual(response.data['results'][0], self.get_expected_serialization(user_2_log))
 
     def test_can_search_access_logs_by_date(self):
+        self.force_login_user(User.objects.get(username='admin'))
         another_user = User.objects.get(username='anotheruser')
-        with skip_login_access_log():
-            self.client.force_login(User.objects.get(username='admin'))
+
         tomorrow = timezone.now() + timedelta(days=1)
         tomorrow_str = tomorrow.strftime('%Y-%m-%d')
-        log = AccessLog.objects.create(user=another_user, date_created=tomorrow)
+        tomorrow_log = AccessLog.objects.create(user=another_user, date_created=tomorrow)
+        old_log = AccessLog.objects.create(user=another_user)
         response = self.client.get(
             f'{self.url}?q=date_created__gte:"{tomorrow_str}"'
         )
-        serializer = AuditLogSerializer(
-            [log], many=True, context=response.renderer_context
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
         self.assertEqual(response.data['count'], 1)
-        self.assertEqual(response.data['results'], serializer.data)
+        self.assertEqual(response.data['results'][0], self.get_expected_serialization(tomorrow_log))

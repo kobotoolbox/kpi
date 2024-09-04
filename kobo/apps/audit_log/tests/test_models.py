@@ -66,7 +66,7 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
             date_created=yesterday,
         )
         self._check_common_fields(log, AccessLogModelTestCase.super_user)
-        self.assertEquals(log.date_created, yesterday)
+        self.assertEqual(log.date_created, yesterday)
         self.assertDictEqual(log.metadata, {'foo': 'bar'})
 
     @patch('kobo.apps.audit_log.models.logging.warning')
@@ -83,7 +83,7 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
         # the standard fields should be set the same as any other access logs
         self._check_common_fields(log, AccessLogModelTestCase.super_user)
         # we logged a warning for each attempt to override a field
-        self.assertEquals(patched_warning.call_count, 4)
+        self.assertEqual(patched_warning.call_count, 4)
 
     def test_basic_create_auth_log_from_request(
         self, patched_ip, patched_source
@@ -239,7 +239,7 @@ class SubmissionAccessLogModelTestCase(BaseAuditLogTestCase):
         user = User.objects.get(username='someuser')
         with skip_all_signals():
             log = SubmissionAccessLog.objects.create(user=user, metadata={'auth_type':'Token'})
-        self.assertEquals(log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_AUTH_TYPE)
+        self.assertEqual(log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_AUTH_TYPE)
 
     def test_add_self_to_existing_group(self):
         user = User.objects.get(username='someuser')
@@ -248,7 +248,7 @@ class SubmissionAccessLogModelTestCase(BaseAuditLogTestCase):
             log: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=user)
             log.add_to_existing_submission_group(group)
             log.save()
-        self.assertEquals(log.submission_group.id, group.id)
+        self.assertEqual(log.submission_group.id, group.id)
 
     @patch('kobo.apps.audit_log.models.logging.error')
     def test_cannot_add_self_to_existing_group_with_wrong_user(self, patched_error):
@@ -265,12 +265,12 @@ class SubmissionAccessLogModelTestCase(BaseAuditLogTestCase):
 
     def test_create_new_group_and_add_self(self):
         user = User.objects.get(username='someuser')
-        self.assertEquals(SubmissionGroup.objects.count(), 0)
+        self.assertEqual(SubmissionGroup.objects.count(), 0)
         with skip_all_signals():
             log: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=user)
             log.create_and_add_to_new_submission_group()
         new_submission_group = SubmissionGroup.objects.first()
-        self.assertEquals(log.submission_group.id, new_submission_group.id)
+        self.assertEqual(log.submission_group.id, new_submission_group.id)
 
 class SubmissionGroupModelTestCase(BaseAuditLogTestCase):
 
@@ -293,4 +293,4 @@ class SubmissionGroupModelTestCase(BaseAuditLogTestCase):
         user = User.objects.get(username='someuser')
         with skip_all_signals():
             log = SubmissionGroup.objects.create(user=user, metadata={'auth_type':'Token'})
-        self.assertEquals(log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE)
+        self.assertEqual(log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE)
