@@ -137,7 +137,14 @@ export function isAnyProcessingRouteActive(): boolean {
  * is active)
  */
 export function isProcessingRouteActive(targetRoute: string) {
-  return getCurrentPath().startsWith(applyCurrentRouteParams(targetRoute));
+  // We need to apply actual values for the route definition `:param`s here.
+  // After that we use `decodeURI` to ensure that `|` in the test route is the
+  // same as `|` in the `getCurrentPath`. Without this we would be comparing
+  // string that could be "exactly" the same, just one containing `|` and
+  // the other `%7C` (ASCII for `|`) - resulting in incorrect `false`.
+  const routeToTest = decodeURI(applyCurrentRouteParams(targetRoute));
+
+  return getCurrentPath().startsWith(routeToTest);
 }
 
 /**
