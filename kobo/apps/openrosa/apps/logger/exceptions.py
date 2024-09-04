@@ -10,6 +10,11 @@ class BuildDbQueriesNoConfirmationProvidedError(Exception):
     pass
 
 
+class ConflictingSubmissionUUIDError(Exception):
+    def __init__(self, message='Submission with this instance ID already exists'):
+        super().__init__(message)
+
+
 class DuplicateInstanceError(Exception):
     def __init__(self, message='Duplicate Instance'):
         super().__init__(message)

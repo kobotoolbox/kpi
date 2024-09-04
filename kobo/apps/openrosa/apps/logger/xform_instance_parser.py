@@ -58,7 +58,7 @@ def get_uuid_from_xml(xml):
     def _uuid_only(uuid):
         """
         Strips the 'uuid:' prefix from the provided identifier if it exists.
-        This preserves any custom ID schemes (e.g., 'getodk.org:123456789')
+        This preserves any custom ID schemes (e.g., 'kobotoolbox.org:123456789')
         while ensuring only the 'uuid:' prefix is removed. This approach
         adheres to the OpenRosa spec, allowing custom prefixes to be stored
         intact in the database to prevent potential ID collisions.

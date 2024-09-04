@@ -45,7 +45,7 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     DuplicateUUIDError,
     FormInactiveError,
     InstanceIdMissingError,
-    TemporarilyUnavailableError,
+    TemporarilyUnavailableError, ConflictingSubmissionUUIDError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import (
@@ -174,29 +174,15 @@ def create_instance(
     with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
         if not lock_acquired:
             raise DuplicateInstanceError()
-        # Dorey's rule from 2012 (commit 890a67aa):
-        #   Ignore submission as a duplicate IFF
-        #    * a submission's XForm collects start time
-        #    * the submitted XML is an exact match with one that
-        #      has already been submitted for that user.
-        # The start-time requirement protected submissions with identical responses
-        # from being rejected as duplicates *before* KoBoCAT had the concept of
-        # submission UUIDs. Nowadays, OpenRosa requires clients to send a UUID (in
-        # `<instanceID>`) within every submission; if the incoming XML has a UUID
-        # and still exactly matches an existing submission, it's certainly a
-        # duplicate (https://docs.opendatakit.org/openrosa-metadata/#fields).
 
-        if xform.has_start_time or new_uuid:
-            # XML matches are identified by identical content hash OR, when a
-            # content hash is not present, by string comparison of the full
-            # content, which is slow! Use the management command
-            # `populate_xml_hashes_for_instances` to hash existing submissions
-            existing_instance = Instance.objects.filter(
-                xml_hash=xml_hash,
-                xform__user=xform.user,
-            ).first()
-        else:
-            existing_instance = None
+        # XML matches are identified by identical content hash OR, when a
+        # content hash is not present, by string comparison of the full
+        # content, which is slow! Use the management command
+        # `populate_xml_hashes_for_instances` to hash existing submissions
+        existing_instance = Instance.objects.filter(
+            xml_hash=xml_hash,
+            xform__user=xform.user,
+        ).first()
 
         if existing_instance:
             existing_instance.check_active(force=False)
@@ -244,15 +230,15 @@ def get_instance_lock(xml_hash: str, submission_uuid: str, xform_id: int) -> boo
     int_lock = int.from_bytes(hashlib.shake_128(f'{xform_id}!!{submission_uuid}!!{xml_hash}'.encode()).digest(7), 'little')
     acquired = False
 
-    with transaction.atomic():
-        try:
+    try:
+        with transaction.atomic():
             cur = connection.cursor()
             cur.execute('SELECT pg_try_advisory_lock(%s::bigint);', (int_lock,))
             acquired = cur.fetchone()[0]
             yield acquired
-        finally:
-            cur.execute('SELECT pg_advisory_unlock(%s::bigint);', (int_lock,))
-            cur.close()
+    finally:
+        cur.execute('SELECT pg_advisory_unlock(%s::bigint);', (int_lock,))
+        cur.close()
 
 
 def get_instance_or_404(**criteria):
@@ -607,6 +593,13 @@ def safe_create_instance(
         )
     except ExpatError as e:
         error = OpenRosaResponseBadRequest(t("Improperly formatted XML."))
+    except ConflictingSubmissionUUIDError:
+        response = OpenRosaResponse(
+            t('Submission with this instance ID already exists')
+        )
+        response.status_code = 409
+        response['Location'] = request.build_absolute_uri(request.path)
+        error = response
     except DuplicateInstanceError:
         response = OpenRosaResponse(t('Duplicate instance'))
         response.status_code = 202
@@ -861,7 +854,7 @@ def _get_instance(
 
         return instance
     except IntegrityError:
-        raise DuplicateInstanceError()
+        raise ConflictingSubmissionUUIDError()
 
 
 def _has_edit_xform_permission(

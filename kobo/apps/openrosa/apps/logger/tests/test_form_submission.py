@@ -246,7 +246,7 @@ class TestFormSubmission(TestBase):
         inst = Instance.objects.order_by('pk').last()
         with self.assertRaises(Exception):
             self._make_submission(duplicate_xml_submission_file_path)
-        self.assertEqual(self.response.status_code, 401)
+        self.assertEqual(self.response.status_code, 409)
         self.assertEqual(Instance.objects.count(), pre_count + 1)
         # this is exactly the same instance
         another_inst = Instance.objects.order_by('pk').last()

@@ -147,11 +147,11 @@ class TestXFormInstanceParser(TestBase):
         # Additional test case for a custom prefixed UUID
         submission = """<?xml version="1.0" encoding="UTF-8" ?>
         <submission xmlns:orx="http://openrosa.org/xforms">
-            <meta><instanceID>uuid:getodk.org:123456789</instanceID></meta>
+            <meta><instanceID>uuid:kobotoolbox.org:123456789</instanceID></meta>
         </submission>
         """
         custom_instance_id = get_uuid_from_xml(submission)
-        self.assertEqual(custom_instance_id, "getodk.org:123456789")
+        self.assertEqual(custom_instance_id, 'kobotoolbox.org:123456789')
 
     def test_get_deprecated_uuid_from_xml(self):
         with open(

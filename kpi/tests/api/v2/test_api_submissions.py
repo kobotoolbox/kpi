@@ -1578,6 +1578,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
 
         # Test the edit flow with a submission that has a UUID
         submission['meta/instanceID'] = "uuid:9710c729-00a5-41f1-b740-8dd618bb4a49"
+        submission['formhub/uuid'] = "633ec390e024411ba5ce634db7807e62"
         self.asset.deployment.mock_submissions([submission], create_uuids=False)
 
         # Find and verify the new submission
@@ -1595,6 +1596,10 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         submission_xml_root = fromstring_preserve_root_xmlns(submission_xml)
         assert submission_json['_id'] == submission['_id']
         assert submission_xml_root.find('./find_this').text == 'hello!'
+        assert (submission_xml_root.find('./meta/instanceID').text ==
+                "uuid:9710c729-00a5-41f1-b740-8dd618bb4a49")
+        assert (submission_xml_root.find('./formhub/uuid').text ==
+                "633ec390e024411ba5ce634db7807e62")
 
         # Get edit endpoint
         edit_url = reverse(
