@@ -1393,7 +1393,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         """
         # Delete MetaData object and its related file (on storage)
         try:
-            metadata = MetaData.objects.get(pk=metadata_file_['id'])
+            metadata = MetaData.objects.get(pk=metadata_file_['pk'])
         except MetaData.DoesNotExist:
             pass
         else:
