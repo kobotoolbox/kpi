@@ -8,6 +8,7 @@ from rest_framework.authtoken.models import Token
 from trench.utils import get_mfa_model
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.tests.test_utils import skip_all_signals
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models import AuthorizedApplication
@@ -152,8 +153,9 @@ class TestOneTimeAuthentication(BaseTestCase):
             action=AuditAction.AUTH,
             metadata__auth_type='submission',
         ).exists()
+        # this may create 2 logs because of submission groups,
+        # so just make sure the log we care about exists
         self.assertTrue(log_exists)
-        self.assertEqual(AuditLog.objects.count(), 1)
 
     def test_authorized_application_auth_creates_log(self):
         app: AuthorizedApplication = AuthorizedApplication(name='Auth app')
