@@ -178,6 +178,7 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase, CompareAccessLogResultsMixin):
         user = User.objects.get(username='someuser')
         with skip_all_signals():
             # manually assigned logs to groups, and groups to themselves
+            # submission group 1 has 2 submissions
             submission_group_1: SubmissionGroup = (
                 SubmissionGroup.objects.create(user=user)
             )
@@ -190,6 +191,12 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase, CompareAccessLogResultsMixin):
                 SubmissionAccessLog.objects.create(user=user)
             )
 
+            group_1_log_1.add_to_existing_submission_group(submission_group_1)
+            group_1_log_1.save()
+            group_1_log_2.add_to_existing_submission_group(submission_group_1)
+            group_1_log_2.save()
+
+            # submission group 2 has 1 submissions
             submission_group_2: SubmissionGroup = (
                 SubmissionGroup.objects.create(user=user)
             )
@@ -198,11 +205,6 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase, CompareAccessLogResultsMixin):
             group_2_log_1: SubmissionAccessLog = (
                 SubmissionAccessLog.objects.create(user=user)
             )
-
-            group_1_log_1.add_to_existing_submission_group(submission_group_1)
-            group_1_log_1.save()
-            group_1_log_2.add_to_existing_submission_group(submission_group_1)
-            group_1_log_2.save()
 
             group_2_log_1.add_to_existing_submission_group(submission_group_2)
             group_2_log_1.save()
@@ -277,6 +279,7 @@ class AllApiAccessLogsTestCase(
         self.force_login_user(admin)
         with skip_all_signals():
             # manually assigned logs to groups, and groups to themselves
+            # submission group 1 has 2 submissions
             submission_group_1: SubmissionGroup = (
                 SubmissionGroup.objects.create(user=admin)
             )
@@ -288,7 +291,12 @@ class AllApiAccessLogsTestCase(
             group_1_log_2: SubmissionAccessLog = (
                 SubmissionAccessLog.objects.create(user=admin)
             )
+            group_1_log_1.add_to_existing_submission_group(submission_group_1)
+            group_1_log_1.save()
+            group_1_log_2.add_to_existing_submission_group(submission_group_1)
+            group_1_log_2.save()
 
+            # submission group 2 has 2 submissions
             submission_group_2: SubmissionGroup = (
                 SubmissionGroup.objects.create(user=admin)
             )
@@ -297,11 +305,6 @@ class AllApiAccessLogsTestCase(
             group_2_log_1: SubmissionAccessLog = (
                 SubmissionAccessLog.objects.create(user=admin)
             )
-
-            group_1_log_1.add_to_existing_submission_group(submission_group_1)
-            group_1_log_1.save()
-            group_1_log_2.add_to_existing_submission_group(submission_group_1)
-            group_1_log_2.save()
 
             group_2_log_1.add_to_existing_submission_group(submission_group_2)
             group_2_log_1.save()
@@ -329,6 +332,8 @@ class AllApiAccessLogsTestCase(
         user_1_log = AccessLog.objects.create(user=user1)
         user_2_log = AccessLog.objects.create(user=user2)
         response = self.client.get(self.url)
+
+        # we should get the logs for both user1 and user2
         self.assertEqual(response.data['count'], 2)
         self.assertEqual(
             response.data['results'],
@@ -345,6 +350,8 @@ class AllApiAccessLogsTestCase(
         user_1_log = AccessLog.objects.create(user=user1)
         user_2_log = AccessLog.objects.create(user=user2)
         response = self.client.get(f'{self.url}?q=user__username:anotheruser')
+
+        # we should only get logs from user2
         self.assertEqual(response.data['count'], 1)
         self.assertDictEqual(
             response.data['results'][0],
@@ -365,6 +372,7 @@ class AllApiAccessLogsTestCase(
             f'{self.url}?q=date_created__gte:"{tomorrow_str}"'
         )
 
+        # only one log has a date_created >= tomorrow
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(
             response.data['results'][0],

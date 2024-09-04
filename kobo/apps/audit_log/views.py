@@ -91,6 +91,16 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class AccessLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    Access logs
+
+    Lists all access logs for the requesting user, with submissions grouped by time and user.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/access-logs/all
+    </pre>
+    """
+
     model = AccessLog
     serializer_class = AccessLogSerializer
     permission_classes = (IsAuthenticated,)
@@ -107,6 +117,9 @@ class AccessLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             'object_id',
             'user_uid',
         )
+        # if we have a submission group, use its metadata/date_created for all its submissions
+        # so they will be grouped correctly
+        # otherwise use the information from the log itself
         .annotate(
             metadata=Coalesce('submission_group__metadata', 'metadata'),
             date_created=Coalesce(
