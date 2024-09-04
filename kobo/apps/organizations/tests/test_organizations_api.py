@@ -1,4 +1,8 @@
+import time
+from datetime import datetime
+
 from django.urls import reverse
+from django.utils.http import parse_http_date
 from model_bakery import baker
 from rest_framework import status
 
@@ -75,5 +79,9 @@ class OrganizationTestCase(BaseTestCase):
 
     def test_service_usage(self):
         self._insert_data()
+        self.client.get(self.url_detail + 'service_usage/')
+        time.sleep(3)
         response = self.client.get(self.url_detail + 'service_usage/')
-        print("TEST", response.__dict__)
+        last_updated_date = parse_http_date(response.headers["Date"])
+        now = datetime.now().timestamp()
+        assert (now - last_updated_date) > 3

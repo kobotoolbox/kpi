@@ -1,5 +1,6 @@
-from typing import Optional
+from datetime import timedelta
 from json import loads, dumps
+from typing import Optional
 
 from django.conf import settings
 from django.db.models import Sum, Q
@@ -74,7 +75,9 @@ class ServiceUsageCalculator(CachedClass):
 
     def get_last_updated(self):
         remaining_seconds = self._redis_client.ttl(self._cache_hash_str)
-        return timezone.now() - timedelta(seconds=self.CACHE_TTL-remaining_seconds)
+        return timezone.now() - timedelta(
+            seconds=self.CACHE_TTL - remaining_seconds
+        )
 
     @cached_class_property(
         key='nlp_usage_counters', serializer=dumps, deserializer=loads
