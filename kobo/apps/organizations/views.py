@@ -84,6 +84,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >           "current_month_start": {string (date), ISO format},
         >           "current_year_start": {string (date), ISO format},
         >           "billing_period_end": {string (date), ISO format}|{None},
+        >           "last_updated": {string (date), ISO format},
         >       }
         ### CURRENT ENDPOINT
         """
@@ -97,7 +98,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             get_database_user(request.user),
             context=context,
         )
-        response = Response(data=serializer.data)
+        response = Response(data=serializer.data, headers={'Date': http_date(serializer.calculator.get_last_updated())})
 
         return response
 

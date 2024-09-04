@@ -72,3 +72,8 @@ class OrganizationTestCase(BaseTestCase):
         org_user = self.organization.add_user(user=user)
         res = self.client.patch(self.url_detail, data)
         self.assertEqual(res.status_code, 403)
+
+    def test_service_usage(self):
+        self._insert_data()
+        response = self.client.get(self.url_detail + 'service_usage/')
+        print("TEST", response.__dict__)
