@@ -1,3 +1,5 @@
+from django.db.models import Count
+from django.db.models.functions import Coalesce
 from rest_framework import mixins, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
@@ -6,9 +8,7 @@ from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditAction, AuditLog
 from .permissions import SuperUserPermission
-from .serializers import AuditLogSerializer, AccessLogSerializer
-from django.db.models.functions import Coalesce
-from django.db.models import Count
+from .serializers import AccessLogSerializer, AuditLogSerializer
 
 
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -89,6 +89,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'metadata__icontains',
     ]
 
+
 class AccessLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     model = AccessLog
     serializer_class = AccessLogSerializer
@@ -106,12 +107,15 @@ class AccessLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             'object_id',
             'user_uid',
         )
-        .annotate(metadata=Coalesce('submission_group__metadata', 'metadata'),
-                  date_created=Coalesce('submission_group__date_created', 'date_created'),
-                  count=Count('pk'))
+        .annotate(
+            metadata=Coalesce('submission_group__metadata', 'metadata'),
+            date_created=Coalesce(
+                'submission_group__date_created', 'date_created'
+            ),
+            count=Count('pk'),
+        )
         .order_by('-date_created')
     )
-
 
 
 class AllAccessLogViewSet(AccessLogViewSet):
@@ -149,6 +153,7 @@ class AllAccessLogViewSet(AccessLogViewSet):
         `/api/v2/access-logs/all/?q=metadata__auth_type:token`
 
     """
+
     permission_classes = (SuperUserPermission,)
     filter_backends = (SearchFilter,)
     search_default_field_lookups = [

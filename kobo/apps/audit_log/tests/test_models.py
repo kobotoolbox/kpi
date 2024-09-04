@@ -11,12 +11,18 @@ from kobo.apps.audit_log.models import (
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     AccessLog,
     AuditAction,
-    AuditType, SubmissionAccessLog, SubmissionGroup,
+    AuditType,
+    SubmissionAccessLog,
+    SubmissionGroup,
 )
 from kobo.apps.audit_log.tests.test_utils import skip_all_signals
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import ACCESS_LOG_SUBMISSION_AUTH_TYPE, ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE
+from kpi.constants import (
+    ACCESS_LOG_SUBMISSION_AUTH_TYPE,
+    ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+)
 from kpi.tests.base_test_case import BaseTestCase
+
 
 class BaseAuditLogTestCase(BaseTestCase):
 
@@ -54,7 +60,6 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
         request._cached_user = cached_user
         request.resolver_match = resolve(url)
         return request
-
 
     def create_access_log_sets_standard_fields(
         self, patched_ip, patched_source
@@ -198,7 +203,9 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
         )
 
     @patch('kobo.apps.audit_log.models.SubmissionAccessLog.objects.create')
-    def test_create_submission_auth_log(self, patched_create, patched_ip, patched_source):
+    def test_create_submission_auth_log(
+        self, patched_create, patched_ip, patched_source
+    ):
         request = self._create_request(
             reverse('submissions'),
             AnonymousUser(),
@@ -213,9 +220,10 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
             metadata={
                 'ip_address': '127.0.0.1',
                 'source': 'source',
-                'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE
-            }
+                'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE,
+            },
         )
+
 
 class SubmissionAccessLogModelTestCase(BaseAuditLogTestCase):
 
@@ -224,39 +232,48 @@ class SubmissionAccessLogModelTestCase(BaseAuditLogTestCase):
     def test_create_submission_access_log(self):
         user = User.objects.get(username='someuser')
         with skip_all_signals():
-            log = SubmissionAccessLog.objects.create(user=user, metadata={'foo':'bar'})
+            log = SubmissionAccessLog.objects.create(
+                user=user, metadata={'foo': 'bar'}
+            )
         self.assertIsInstance(log, SubmissionAccessLog)
         self._check_common_fields(log, user)
         self.assertDictEqual(
             log.metadata,
-            {
-                'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE,
-                'foo': 'bar'
-            }
+            {'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE, 'foo': 'bar'},
         )
 
     def test_create_submission_access_log_overrides_auth_type(self):
         user = User.objects.get(username='someuser')
         with skip_all_signals():
-            log = SubmissionAccessLog.objects.create(user=user, metadata={'auth_type':'Token'})
-        self.assertEqual(log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_AUTH_TYPE)
+            log = SubmissionAccessLog.objects.create(
+                user=user, metadata={'auth_type': 'Token'}
+            )
+        self.assertEqual(
+            log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_AUTH_TYPE
+        )
 
     def test_add_self_to_existing_group(self):
         user = User.objects.get(username='someuser')
         with skip_all_signals():
             group: SubmissionGroup = SubmissionGroup.objects.create(user=user)
-            log: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=user)
+            log: SubmissionAccessLog = SubmissionAccessLog.objects.create(
+                user=user
+            )
             log.add_to_existing_submission_group(group)
             log.save()
         self.assertEqual(log.submission_group.id, group.id)
 
     @patch('kobo.apps.audit_log.models.logging.error')
-    def test_cannot_add_self_to_existing_group_with_wrong_user(self, patched_error):
+    def test_cannot_add_self_to_existing_group_with_wrong_user(
+        self, patched_error
+    ):
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
         with skip_all_signals():
             group: SubmissionGroup = SubmissionGroup.objects.create(user=user1)
-            log: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=user2)
+            log: SubmissionAccessLog = SubmissionAccessLog.objects.create(
+                user=user2
+            )
             log.add_to_existing_submission_group(group)
             log.save()
         # make sure we reported an error
@@ -267,10 +284,13 @@ class SubmissionAccessLogModelTestCase(BaseAuditLogTestCase):
         user = User.objects.get(username='someuser')
         self.assertEqual(SubmissionGroup.objects.count(), 0)
         with skip_all_signals():
-            log: SubmissionAccessLog = SubmissionAccessLog.objects.create(user=user)
+            log: SubmissionAccessLog = SubmissionAccessLog.objects.create(
+                user=user
+            )
             log.create_and_add_to_new_submission_group()
         new_submission_group = SubmissionGroup.objects.first()
         self.assertEqual(log.submission_group.id, new_submission_group.id)
+
 
 class SubmissionGroupModelTestCase(BaseAuditLogTestCase):
 
@@ -279,18 +299,22 @@ class SubmissionGroupModelTestCase(BaseAuditLogTestCase):
     def test_create_submission_group(self):
         user = User.objects.get(username='someuser')
         with skip_all_signals():
-            log = SubmissionGroup.objects.create(user=user, metadata={'foo':'bar'})
+            log = SubmissionGroup.objects.create(
+                user=user, metadata={'foo': 'bar'}
+            )
         self.assertIsInstance(log, SubmissionGroup)
         self._check_common_fields(log, user)
         self.assertDictEqual(
             log.metadata,
-            {
-                'auth_type': ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
-                'foo': 'bar'
-            }
+            {'auth_type': ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE, 'foo': 'bar'},
         )
+
     def test_create_submission_groupoverrides_auth_type(self):
         user = User.objects.get(username='someuser')
         with skip_all_signals():
-            log = SubmissionGroup.objects.create(user=user, metadata={'auth_type':'Token'})
-        self.assertEqual(log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE)
+            log = SubmissionGroup.objects.create(
+                user=user, metadata={'auth_type': 'Token'}
+            )
+        self.assertEqual(
+            log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE
+        )

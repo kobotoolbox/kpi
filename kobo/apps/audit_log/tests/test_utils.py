@@ -1,10 +1,15 @@
 import contextlib
 
-from kobo.apps.audit_log.models import SubmissionAccessLog, SubmissionGroup
-from kobo.apps.audit_log.signals import create_access_log, add_submission_to_group, assign_self_to_group
 from django.contrib.auth.signals import user_logged_in
-from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from kobo.apps.audit_log.models import SubmissionAccessLog, SubmissionGroup
+from kobo.apps.audit_log.signals import (
+    add_submission_to_group,
+    assign_self_to_group,
+    create_access_log,
+)
 
 
 @contextlib.contextmanager

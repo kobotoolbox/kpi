@@ -7,7 +7,12 @@ from django.urls import reverse
 from django.utils import timezone
 from trench.utils import get_mfa_model
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog, SubmissionAccessLog, SubmissionGroup
+from kobo.apps.audit_log.models import (
+    AuditAction,
+    AuditLog,
+    SubmissionAccessLog,
+    SubmissionGroup,
+)
 from kobo.apps.audit_log.tests.test_utils import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.settings.base import ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES
@@ -126,6 +131,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
+
 class SubmissionGroupSignalsTestCase(BaseTestCase):
     """
     Test signals around the creation and assignment of submission groups
@@ -147,7 +153,9 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
     # make sure the time limit is long enough that the logs *could* be grouped together
     # if the users matched
     @override_settings(ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=60)
-    def test_new_group_for_new_submission_if_existing_groups_have_wrong_user(self):
+    def test_new_group_for_new_submission_if_existing_groups_have_wrong_user(
+        self,
+    ):
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
         # create a new submission with the first user
@@ -159,7 +167,7 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
         self.assertEqual(user1_submission.submission_group.id, user1_group.id)
 
         # create a submission with the second user
-        user2_submission =SubmissionAccessLog.objects.create(user=user2)
+        user2_submission = SubmissionAccessLog.objects.create(user=user2)
         user2_group_query = SubmissionGroup.objects.filter(user=user2)
         self.assertEqual(user2_group_query.count(), 1)
         new_group = user2_group_query.first()
@@ -169,7 +177,9 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
     def test_new_group_for_new_submission_if_existing_groups_too_old(self):
         user = User.objects.get(username='someuser')
         ten_minutes_ago = timezone.now() - timedelta(minutes=10)
-        old_submission = SubmissionAccessLog.objects.create(user=user, date_created=ten_minutes_ago)
+        old_submission = SubmissionAccessLog.objects.create(
+            user=user, date_created=ten_minutes_ago
+        )
 
         # make sure that created a new group
         group_query = SubmissionGroup.objects.filter(user=user)
@@ -182,4 +192,3 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
         self.assertEqual(group_query.count(), 2)
         new_group = group_query.order_by('-date_created').first()
         self.assertEqual(new_submission.submission_group.id, new_group.id)
-
