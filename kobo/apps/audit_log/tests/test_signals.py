@@ -1,29 +1,17 @@
-import contextlib
+from datetime import timedelta
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
-from django.contrib.auth.signals import user_logged_in
 from django.test import override_settings
-from django.urls import resolve, reverse
+from django.urls import reverse
+from django.utils import timezone
 from trench.utils import get_mfa_model
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
-from kobo.apps.audit_log.signals import create_access_log
+from kobo.apps.audit_log.models import AuditAction, AuditLog, SubmissionAccessLog, SubmissionGroup
+from kobo.apps.audit_log.tests.test_utils import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.settings.base import ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES
 from kpi.tests.base_test_case import BaseTestCase
-
-
-@contextlib.contextmanager
-def skip_login_access_log():
-    """
-    Context manager for skipping the creation of an access log on login
-
-    Disconnects the method that creates access logs from the user_logged_in signal within the contextmanager block.
-    Useful when you want full control over the audit logs produced in a test.
-    """
-    user_logged_in.disconnect(create_access_log)
-    yield
-    user_logged_in.connect(create_access_log)
 
 
 class AuditLogSignalsTestCase(BaseTestCase):
@@ -137,3 +125,61 @@ class AuditLogSignalsTestCase(BaseTestCase):
         audit_log = AuditLog.objects.first()
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+
+class SubmissionGroupSignalsTestCase(BaseTestCase):
+    """
+    Test signals around the creation and assignment of submission groups
+    """
+
+    fixtures = ['test_data']
+
+    def test_new_group_for_new_submission(self):
+        self.assertEquals(AuditLog.objects.count(), 0)
+        user = User.objects.get(username='someuser')
+        new_submission = SubmissionAccessLog.objects.create(user=user)
+        # make sure a new group was made and assigned as the submission group for the submission
+        self.assertEquals(SubmissionGroup.objects.count(), 1)
+        group_log = SubmissionGroup.objects.first()
+        self.assertEquals(group_log.user.id, user.id)
+        self.assertEquals(new_submission.submission_group.id, group_log.id)
+        self.assertEquals(group_log.date_created, new_submission.date_created)
+
+    # make sure the time limit is long enough that the logs *could* be grouped together
+    # if the users matched
+    @override_settings(ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=60)
+    def test_new_group_for_new_submission_if_existing_groups_have_wrong_user(self):
+        user1 = User.objects.get(username='someuser')
+        user2 = User.objects.get(username='anotheruser')
+        # create a new submission with the first user
+        user1_submission = SubmissionAccessLog.objects.create(user=user1)
+        # make sure that created a new group
+        user1_group_query = SubmissionGroup.objects.filter(user=user1)
+        self.assertEquals(user1_group_query.count(), 1)
+        user1_group = user1_group_query.first()
+        self.assertEquals(user1_submission.submission_group.id, user1_group.id)
+
+        # create a submission with the second user
+        user2_submission =SubmissionAccessLog.objects.create(user=user2)
+        user2_group_query = SubmissionGroup.objects.filter(user=user2)
+        self.assertEquals(user2_group_query.count(), 1)
+        new_group = user2_group_query.first()
+        self.assertEquals(user2_submission.submission_group.id, new_group.id)
+
+    @override_settings(ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=5)
+    def test_new_group_for_new_submission_if_existing_groups_too_old(self):
+        user = User.objects.get(username='someuser')
+        ten_minutes_ago = timezone.now() - timedelta(minutes=10)
+        old_submission = SubmissionAccessLog.objects.create(user=user, date_created=ten_minutes_ago)
+
+        # make sure that created a new group
+        group_query = SubmissionGroup.objects.filter(user=user)
+        self.assertEquals(group_query.count(), 1)
+        old_group = group_query.first()
+        self.assertEquals(old_submission.submission_group.id, old_group.id)
+
+        # new submission
+        new_submission = SubmissionAccessLog.objects.create(user=user)
+        self.assertEquals(group_query.count(), 2)
+        new_group = group_query.order_by('-date_created').first()
+        self.assertEquals(new_submission.submission_group.id, new_group.id)
+

@@ -89,124 +89,68 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'metadata__icontains',
     ]
 
-
-class AllAccessLogViewSet(AuditLogViewSet):
-    """
-    Access logs
-
-    Lists all access logs for all users. Only available to superusers.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/all
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/all
-
-    > Response 200
-
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                   "app_label": "kobo_auth",
-    >                    "model_name": "User",
-    >                    "object_id": 1,
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
-    >                    "username": "admin",
-    >                    "action": "AUTH",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "Digest",
-    >                        "ip_address": "172.18.0.6"
-    >                   },
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                    "log_type": "access"
-    >                },
-    >                ...
-    >           ]
-    >       }
-
-    This endpoint can be filtered and paginated the same as the /audit-logs endpoint
-
-    """
-
-    queryset = (
-        AccessLog.objects.select_related('user')
-        .filter(action=AuditAction.AUTH)
-        .order_by('-date_created')
+class AccessLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    model = AccessLog
+    serializer_class = AccessLogSerializer
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (AccessLogPermissionsFilter,)
+    renderer_classes = (
+        BrowsableAPIRenderer,
+        JSONRenderer,
     )
-
-
-class AccessLogViewSet(AuditLogViewSet):
-    """
-    Access logs
-
-    Lists all access logs for the authenticated user
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/
-
-    > Response 200
-
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                   "app_label": "kobo_auth",
-    >                    "model_name": "User",
-    >                    "object_id": 1,
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
-    >                    "username": "admin",
-    >                    "action": "AUTH",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "Digest",
-    >                        "ip_address": "172.18.0.6"
-    >                    },
-    >                    "date_created": "2024-08-19T16:48:58Z"
-    >                    "log_type": "access"
-    >                },
-    >                ...
-    >           ]
-    >       }
-
-    This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/access-logs/?offset=100&limit=50
-
-    will return entries 100-149
-
-    """
-
     queryset = (
         AccessLog.objects.select_related('user')
         .values(
             'user__username',
             'submission_group',
-            'app_label',
-            'model_name',
             'object_id',
-            'log_type',
             'user_uid',
         )
         .annotate(metadata=Coalesce('submission_group__metadata', 'metadata'),
-                  action=Coalesce('submission_group__action', 'action'),
                   date_created=Coalesce('submission_group__date_created', 'date_created'),
                   count=Count('pk'))
         .order_by('-date_created')
     )
-    permission_classes = (IsAuthenticated,)
-    filter_backends = (AccessLogPermissionsFilter,)
-    serializer_class = AccessLogSerializer
+
+
+
+class AllAccessLogViewSet(AccessLogViewSet):
+    """
+    Access logs
+
+    Lists all access logs for all users, with submissions grouped by time and user. Only available to superusers.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/access-logs/all
+    </pre>
+
+    Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
+    Some useful fields for filtering:
+
+    `user__username`
+
+    `date_created`
+
+    `user_uid`
+
+    `metadata__auth_type`
+
+    `metadata__ip_address`
+
+    **Examples:**
+
+    1. All access logs for user 'admin'<br>
+        `api/v2/access-logs/all/?q=username:admin`
+
+    2. All access logs after a specific date<br>
+        `/api/v2/access-logs/all/?q=date_created__gte:2022-11-15`
+
+    3. All access logs from token-authenticated requests<br>
+        `/api/v2/access-logs/all/?q=metadata__auth_type:token`
+
+    """
+    permission_classes = (SuperUserPermission,)
+    filter_backends = (SearchFilter,)
+    search_default_field_lookups = [
+        'username__icontains',
+    ]

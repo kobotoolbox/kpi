@@ -244,5 +244,6 @@ class SubmissionAccessLog(AccessLog):
         self.submission_group = submission_group
 
     def create_and_add_to_new_submission_group(self):
-        new_group = SubmissionGroup.objects.create(user=self.user)
+        # the group should have the same date_created as the submission that created it
+        new_group = SubmissionGroup.objects.create(user=self.user, date_created=self.date_created)
         self.submission_group = new_group

@@ -30,7 +30,6 @@ def add_submission_to_group(sender, instance, created, **kwargs):
         time_limit = settings.ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES
         latest_entry = latest_group.submissions.order_by('-date_created').first()
         cut_off_time = instance.date_created - timedelta(minutes=time_limit)
-        breakpoint()
         if latest_entry.date_created >= cut_off_time:
             instance.add_to_existing_submission_group(latest_group)
             instance.save()
