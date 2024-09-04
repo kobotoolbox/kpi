@@ -51,7 +51,7 @@ def update_nlp_counter(
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
         if asset_id is not None:
-            PlanAddOn.increment_add_ons_for_user(user_id, 'character', amount)
+            PlanAddOn.increment_add_ons_for_user(user_id, 'characters', amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),
