@@ -20,8 +20,9 @@ DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': show_toolbar}
 ENV = 'dev'
 
 # Expiration time in sec. after which paired data xml file must be regenerated
-# Does not need to match KoBoCAT setting
 PAIRED_DATA_EXPIRATION = 5
+
+CALCULATED_HASH_CACHE_EXPIRATION = 5
 
 # To avoid buffer to be truncated when running `runserver_plus` or `shell_plus`
 # with option `--print-sql`

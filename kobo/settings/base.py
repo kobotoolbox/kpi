@@ -1573,8 +1573,9 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
-# Should match KoBoCAT setting
 PAIRED_DATA_EXPIRATION = 300  # seconds
+
+CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
 # add some mimetype
 add_type('application/wkt', '.wkt')
@@ -1743,8 +1744,5 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
-
-DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
-
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
