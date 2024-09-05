@@ -142,6 +142,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * horizontally or vertically.
    */
   tableScrollTop = 0;
+  /**
+   * Store this value of the 'left' value of frozen columns, maintaining
+   * their alignment during horizontal scrolling or pagination.
+   */
+  frozenLeftRef = 0;
 
   /** We store it for future checks. */
   previousOverrides: AssetTableSettings = {};
@@ -1139,6 +1144,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         );
       };
 
+      // Ensure frozen columns stay correctly aligned to the left, even after
+      // scrolling or reloads.
+      if (col.className?.includes('frozen')) {
+        col.style = {...col.style, left: this.frozenLeftRef};
+      }
+
       if (frozenColumn === col.id) {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
@@ -1146,6 +1157,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         col.headerClassName = col.headerClassName
           ? `is-frozen is-last-frozen ${col.headerClassName}`
           : 'is-frozen is-last-frozen';
+          col.style = {...col.style, left: this.frozenLeftRef};
       }
     });
 
@@ -1488,6 +1500,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
 
       $frozenColumnCells.css({left: left});
+
+      // Save the reference position for the frozen column's left offset.
+      this.frozenLeftRef = left;
     } else {
       this.tableScrollTop = eventTarget.scrollTop;
     }
