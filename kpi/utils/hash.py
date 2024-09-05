@@ -1,4 +1,4 @@
-# coding: utf-8
+import time
 import hashlib
 from typing import Union, BinaryIO, Optional
 
@@ -40,8 +40,17 @@ def calculate_hash(
         Return final string with/without the algorithm as prefix and specified
         suffix if any
         """
+
         if isinstance(hashable_, str):
             hashable_ = hashable_.encode()
+
+        if suffix == 'url':
+            # When entering this condition, `hashable_` is a URL which never
+            # changes. If remote server does not provide required headers to
+            # build a hash (e.g.: ETag, Last-Modified), we want the hash to
+            # change each time (useful to force Enketo or Collect to fetch data).
+            # Too bad for the remote server, it will receive more hits.
+            hashable_ += f'-{int(time.time())}'.encode()
 
         hash_ = hashlib_def(hashable_).hexdigest()
 
@@ -102,5 +111,3 @@ def calculate_hash(
         return _finalize_hash(f'{content_type}:{content_length}', 'length')
 
     return _finalize_hash(source, 'url')
-
-
