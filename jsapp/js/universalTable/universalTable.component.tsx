@@ -6,6 +6,7 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  TableOptions,
   useReactTable,
 } from '@tanstack/react-table'
 
@@ -76,20 +77,39 @@ export default function UniversalTable(props: UniversalTableProps) {
     })
   });
 
+  // We define options as separate object to make the optional pagination truly
+  // optional
+  let options: TableOptions<UniversalTableDataItem> = {
+    columns: columns,
+    data: props.data,
+    getCoreRowModel: getCoreRowModel(),
+    state: {
+      columnPinning: {
+        left: props.columns.filter(col => col.isPinned).map(col => col.key) || [],
+      }
+    },
+    columnResizeMode: 'onChange',
+    //override default column sizing
+    defaultColumn: DEFAULT_COLUMN_SIZE,
+  }
 
-  const table = useReactTable({
-      columns: columns,
-      data: props.data,
-      getCoreRowModel: getCoreRowModel(),
-      state: {
-        columnPinning: {
-          left: props.columns.filter(col => col.isPinned).map(col => col.key) || [],
+  // Add pagination related options if needed
+  if (props.pagination) {
+    options = {
+      ...options,
+      manualPagination: true,
+      pageCount: props.pagination.totalPages,
+      initialState: {
+        pagination: {
+          pageIndex: props.pagination.currentPage,
+          pageSize: props.pagination.pageSize,
         }
-      },
-      columnResizeMode: 'onChange',
-      //override default column sizing
-      defaultColumn: DEFAULT_COLUMN_SIZE,
-  });
+      }
+    }
+  }
+
+  // Here we build the headless table that we would render below
+  const table = useReactTable(options);
 
   return (
     <div className={styles.root}>

@@ -29,32 +29,28 @@ export default function AccessLogSection() {
         <div>Current page</div>
         <div>{currentPage}</div>
         <Button
-          type='full'
-          color='dark-blue'
+          type='secondary'
           isDisabled={currentPage >= availablePages}
           size='m'
           label='skip to last page'
           onClick={skipToLastPage}
         />
         <Button
-          type='full'
-          color='dark-blue'
+          type='secondary'
           isDisabled={currentPage <= 1}
           size='m'
           label='skip to first page'
           onClick={skipToFirstPage}
         />
         <Button
-          type='full'
-          color='dark-blue'
+          type='secondary'
           isDisabled={currentPage >= availablePages}
           size='m'
           label='next'
           onClick={onPageForward}
         />
         <Button
-          type='full'
-          color='dark-blue'
+          type='secondary'
           size='m'
           label='back'
           isDisabled={currentPage <= 1}

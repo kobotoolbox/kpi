@@ -88,11 +88,6 @@
   cursor: col-resize;
   touch-action: none;
   user-select: none;
-  opacity: 0;
-}
-
-.tableRow:hover .resizer {
-  opacity: 1;
 }
 
 .resizer:hover {
@@ -101,6 +96,20 @@
 
 .resizer.isResizing {
   background-color: colors.$kobo-gray-400;
+}
+
+.tableRow:not(:hover) .resizer {
+  opacity: 0;
+}
+
+.tableRow:hover .resizer {
+  opacity: 1;
+}
+
+// We need this to avoid having 2px empty space to the right of the last table column
+.tableHeaderCell:last-child .resizer {
+  right: 0;
+  width: 2px;
 }
 
 .tableFooter {
