@@ -24,12 +24,12 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_DELETE_DATA_XFORM,
     CAN_TRANSFER_OWNERSHIP,
 )
-from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.hash import calculate_hash
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
@@ -259,11 +259,11 @@ class XForm(AbstractTimeStampedModel):
 
     @property
     def md5_hash(self):
-        return get_hash(self.xml)
+        return calculate_hash(self.xml)
 
     @property
     def md5_hash_with_disclaimer(self):
-        return get_hash(self.xml_with_disclaimer)
+        return calculate_hash(self.xml_with_disclaimer)
 
     @property
     def can_be_replaced(self):

@@ -1576,14 +1576,6 @@ OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 # Should match KoBoCAT setting
 PAIRED_DATA_EXPIRATION = 300  # seconds
 
-# Minimum size (in bytes) of files to allow fast calculation of hashes
-# Should match KoBoCAT setting
-HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 512 kB
-
-# Chunk size in bytes to read per iteration when hash of a file is calculated
-# Should match KoBoCAT setting
-HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
-
 # add some mimetype
 add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
