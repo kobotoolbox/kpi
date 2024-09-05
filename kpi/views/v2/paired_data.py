@@ -22,9 +22,9 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import strip_nodes, add_xml_declaration
 
 
-class PairedDataViewset(AssetNestedObjectViewsetMixin,
-                        NestedViewSetMixin,
-                        viewsets.ModelViewSet):
+class PairedDataViewset(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+):
     """
     ## List of paired project endpoints
 
@@ -179,12 +179,13 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     permission_classes = (AssetEditorPermission,)
     serializer_class = PairedDataSerializer
 
-    @action(detail=True,
-            methods=['GET'],
-            permission_classes=[XMLExternalDataPermission],
-            renderer_classes=[SubmissionXMLRenderer],
-            filter_backends=[],
-            )
+    @action(
+        detail=True,
+        methods=['GET'],
+        permission_classes=[XMLExternalDataPermission],
+        renderer_classes=[SubmissionXMLRenderer],
+        filter_backends=[],
+    )
     def external(self, request, paired_data_uid, **kwargs):
         """
         Returns an XML which contains data submitted to paired asset

@@ -740,15 +740,6 @@ class Asset(ObjectPermissionMixin,
         return None
 
     @property
-    def has_active_hooks(self):
-        """
-        Returns if asset has active hooks.
-        Useful to update `kc.XForm.has_kpi_hooks` field.
-        :return: {boolean}
-        """
-        return self.hooks.filter(active=True).exists()
-
-    @property
     def has_advanced_features(self):
         if self.advanced_features is None:
             return False
