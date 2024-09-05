@@ -347,7 +347,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Cast to list to help unit tests to pass.
         return self._rewrite_json_attachment_urls(
-            next(self.get_submissions(user, submission_id=instance.pk)), request
+            self.get_submission(user=user, submission_id=instance.pk), request
         )
 
     def edit_submission(
