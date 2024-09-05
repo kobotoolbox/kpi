@@ -64,7 +64,7 @@ export default function AccessLogSection() {
           onChange={onItemLimitChange}
           selectedOption={currentLimit}
         />
-        <div>{data?.map((result) => <div>{result.source_browser}</div>)}</div>
+        <div>{data?.map((result, index) => <div key={index}>{result.source_browser}</div>)}</div>
       </div>
     );
   }
@@ -98,14 +98,11 @@ export default function AccessLogSection() {
         pagination={{
           currentPage: 2,
           totalPages: 10,
-          requestPageChange: (newPage: number) => {
-            console.log('change page to', newPage);
-          },
           pageSize: 10,
           pageSizes: [10, 30, 50, 100],
-          requestPageSizeChange: (newPageSize: number) => {
-            console.log('change page size to', newPageSize);
-          },
+          requestPaginationChange: (newPageInfo) => {
+            console.log('pagination change requested', newPageInfo);
+          }
         }}
       />
     </>

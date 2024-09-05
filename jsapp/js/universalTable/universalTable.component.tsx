@@ -6,6 +6,7 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  PaginationState,
   TableOptions,
   useReactTable,
 } from '@tanstack/react-table'
@@ -44,13 +45,14 @@ interface UniversalTableProps {
   pagination?: {
     currentPage: number;
     totalPages: number;
-    /** A way for the table to say "user wants to switch to different page" */
-    requestPageChange: (newPage: number) => void;
     /** One of `pageSizes` */
     pageSize: number;
     pageSizes: number[];
-    /** A way for the table to say "user wants to change page size" */
-    requestPageSizeChange: (newPageSize: number) => void;
+    /**
+     * A way for the table to say "user wants to change pagination". It's being
+     * triggered for both page size and page changes.
+     */
+    requestPaginationChange: (newPageInfo: PaginationState) => void;
   }
 }
 
@@ -99,12 +101,21 @@ export default function UniversalTable(props: UniversalTableProps) {
       ...options,
       manualPagination: true,
       pageCount: props.pagination.totalPages,
-      initialState: {
+      state: {
         pagination: {
           pageIndex: props.pagination.currentPage,
           pageSize: props.pagination.pageSize,
         }
-      }
+      },
+      //update the pagination state when internal APIs mutate the pagination state
+      onPaginationChange: (updater) => {
+        // make sure updater is callable (to avoid typescript warning)
+        if (typeof updater !== 'function') {return};
+
+        const newPageInfo = updater(table.getState().pagination);
+
+        props.pagination?.requestPaginationChange(newPageInfo);
+      },
     }
   }
 
