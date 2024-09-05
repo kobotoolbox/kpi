@@ -138,3 +138,26 @@ class AuditLogModelTestCase(BaseTestCase):
                 'auth_type': ACCESS_LOG_UNKNOWN_AUTH_TYPE,
             },
         )
+
+    def test_create_auth_log_with_extra_metadata(
+        self, patched_ip, patched_source
+    ):
+        request = self._create_request(
+            reverse('api_v2:asset-list'),
+            AnonymousUser(),
+            AuditLogModelTestCase.super_user,
+        )
+        extra_metadata = {'foo': 'bar'}
+        log: AuditLog = AuditLog.create_access_log_for_request(
+            request, authentication_type='Token', extra_metadata=extra_metadata
+        )
+        self._check_common_fields(log, AuditLogModelTestCase.super_user)
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '127.0.0.1',
+                'source': 'source',
+                'auth_type': 'Token',
+                'foo': 'bar',
+            },
+        )

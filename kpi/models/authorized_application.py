@@ -33,7 +33,10 @@ class ApplicationTokenAuthentication(TokenAuthentication):
 
     def authenticate_credentials(self, key):
         """ Mostly duplicated from TokenAuthentication, except that we return
-        an AnonymousUser """
+        an AnonymousUser
+
+        We also do not create an AuditLog here because we only want to do so for certain endpoints,
+        and only after we get the user being accessed"""
         try:
             token = self.model.objects.get(key=key)
         except self.model.DoesNotExist:
