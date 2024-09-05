@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime
-from typing import Generator, Optional, Union
+from typing import Generator, Optional, Union, Literal
 from urllib.parse import urlparse
 try:
     from zoneinfo import ZoneInfo
@@ -166,6 +166,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'uuid': self._xform.uuid,
                     'id_string': self._xform.id_string,
                     'kpi_asset_uid': self.asset.uid,
+                    'hash': self._xform.prefixed_hash,
                 },
                 'version': self.asset.version_id,
             }
@@ -335,7 +336,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid_formatted
         )
 
-        safe_create_instance(
+        # TODO Handle errors returned by safe_create_instance
+        error, instance = safe_create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
             media_files=attachments,
@@ -345,7 +347,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Cast to list to help unit tests to pass.
         return self._rewrite_json_attachment_urls(
-            list(self.get_submissions(user, query={'_uuid': _uuid}))[0], request
+            next(self.get_submissions(user, submission_id=instance.pk)), request
         )
 
     def edit_submission(
@@ -413,6 +415,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             media_file for media_file in attachments.values()
         )
 
+        # TODO Handle errors returned by safe_create_instance
         safe_create_instance(
             username=user.username,
             xml_file=xml_submission_file,
@@ -855,7 +858,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
             publish_xls_form(xlsx_file, self.asset.owner, self.xform.id_string)
 
-        # Do not call save it, asset (and its deployment) is saved right
+        # Do not call `save_to_db()`, asset (and its deployment) is saved right
         # after calling this method in `DeployableMixin.deploy()`
         self.store_data(
             {
@@ -866,6 +869,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'uuid': self.xform.uuid,
                     'id_string': self.xform.id_string,
                     'kpi_asset_uid': self.asset.uid,
+                    'hash': self._xform.prefixed_hash,
                 },
                 'version': self.asset.version_id,
             }
@@ -1033,7 +1037,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         submission_id: int,
         user: settings.AUTH_USER_MODEL,
         data: dict,
-        method: str,
+        method: str = Literal['DELETE', 'PATCH'],
     ) -> dict:
         """
         Update validation status.
