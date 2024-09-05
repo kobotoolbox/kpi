@@ -3,7 +3,6 @@ import os
 import re
 from datetime import datetime
 
-import requests
 import rest_framework.views as rest_framework_views
 from django import forms
 from django.conf import settings
@@ -140,7 +139,8 @@ def add_tags_to_instance(request, instance):
 
 
 def get_media_file_response(
-    metadata: MetaData, request: Request = None
+    metadata: MetaData,
+    request: Request = None,
 ) -> HttpResponse:
     if metadata.data_file:
         file_path = metadata.data_file.name
@@ -176,7 +176,6 @@ def get_media_file_response(
     paired_data_viewset.cls.renderer_classes = [SubmissionXMLRenderer]
     paired_data_viewset.cls.filter_backends = []
     return paired_data_viewset(request=django_http_request, *args, **kwargs)
-
 
 
 def get_view_name(view_obj):

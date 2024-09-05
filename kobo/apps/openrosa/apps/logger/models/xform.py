@@ -114,9 +114,6 @@ class XForm(AbstractTimeStampedModel):
     objects = XFormWithoutPendingDeletedManager()
     all_objects = XFormAllManager()
 
-    def file_name(self):
-        return self.id_string + '.xml'
-
     @property
     def asset(self):
         """
@@ -140,6 +137,16 @@ class XForm(AbstractTimeStampedModel):
             setattr(self, '_cache_asset', asset)
 
         return getattr(self, '_cache_asset')
+
+    def file_name(self):
+        return self.id_string + '.xml'
+
+    @property
+    def prefixed_hash(self):
+        """
+        Matches what's returned by the KC API
+        """
+        return f'md5:{self.md5_hash}'
 
     def url(self):
         return reverse(
