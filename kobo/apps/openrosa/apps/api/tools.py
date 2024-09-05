@@ -1,11 +1,8 @@
-# coding: utf-8
 import inspect
 import os
 import re
-import time
 from datetime import datetime
 
-import requests
 import rest_framework.views as rest_framework_views
 from django import forms
 from django.conf import settings
@@ -14,6 +11,7 @@ from django.http import (
     HttpResponseNotFound,
     HttpResponseRedirect,
 )
+from django.urls import resolve, Resolver404
 from django.utils.translation import gettext as t
 from rest_framework import exceptions
 from rest_framework.request import Request
@@ -34,6 +32,11 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
 )
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
+)
+from kpi.views.v2.paired_data import (
+    PairedDataViewset,
+    SubmissionXMLRenderer,
+    XMLExternalDataPermission,
 )
 
 DECIMAL_PRECISION = 2
@@ -136,7 +139,8 @@ def add_tags_to_instance(request, instance):
 
 
 def get_media_file_response(
-    metadata: MetaData, request: Request = None
+    metadata: MetaData,
+    request: Request = None,
 ) -> HttpResponse:
     if metadata.data_file:
         file_path = metadata.data_file.name
@@ -156,18 +160,22 @@ def get_media_file_response(
         return HttpResponseRedirect(metadata.data_value)
 
     # When `request.user` is authenticated, their authentication is lost with
-    # an HTTP redirection. We use KoBoCAT to proxy the response from KPI
-    # Send the request internally to avoid extra traffic on the public interface
-    internal_url = metadata.data_value.replace(
-        settings.KOBOFORM_URL, settings.KOBOFORM_INTERNAL_URL
-    )
-    response = requests.get(internal_url)
+    # an HTTP redirection. We need to call KPI viewset directly
+    internal_url = metadata.data_value.replace(settings.KOBOFORM_URL, '')
+    try:
+        resolver_match = resolve(internal_url)
+    except Resolver404:
+        return HttpResponseNotFound()
 
-    return HttpResponse(
-        content=response.content,
-        status=response.status_code,
-        content_type=response.headers['content-type'],
-    )
+    args = resolver_match.args
+    kwargs = resolver_match.kwargs
+
+    paired_data_viewset = PairedDataViewset.as_view({'get': 'external'})
+    django_http_request = request._request
+    paired_data_viewset.cls.permission_classes = [XMLExternalDataPermission]
+    paired_data_viewset.cls.renderer_classes = [SubmissionXMLRenderer]
+    paired_data_viewset.cls.filter_backends = []
+    return paired_data_viewset(request=django_http_request, *args, **kwargs)
 
 
 def get_view_name(view_obj):
