@@ -39,8 +39,9 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     set_instance_validation_statuses,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import (
-    safe_create_instance,
+    create_instance,
     publish_xls_form,
+    safe_create_instance,
 )
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -224,17 +225,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         count, _ = Instance.objects.filter(pk=submission_id).delete()
-        if not count:
-            return {
-                'data': {'detail': 'Submission not found'},
-                'content_type': 'application/json',
-                'status': status.HTTP_404_NOT_FOUND,
-            }
-
-        return {
-            'content_type': 'application/json',
-            'status': status.HTTP_204_NO_CONTENT,
-        }
+        return count
 
     def delete_submissions(
         self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
@@ -264,21 +255,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
 
-        # TODO handle errors
-        try:
-            deleted_count = delete_instances(self.xform, data)
-        except (MissingXFormException, InvalidXFormException):
-            return {
-                'data': {'detail': f'Could not delete submissions'},
-                'content_type': 'application/json',
-                'status': status.HTTP_400_BAD_REQUEST,
-            }
-
-        return {
-            'data': {'detail': f'{deleted_count} submissions have been deleted'},
-            'content_type': 'application/json',
-            'status': status.HTTP_200_OK,
-        }
+        return delete_instances(self.xform, data)
 
     def duplicate_submission(
         self, submission_id: int, request: 'rest_framework.request.Request',
@@ -336,8 +313,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid_formatted
         )
 
-        # TODO Handle errors returned by safe_create_instance
-        error, instance = safe_create_instance(
+        instance = create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
             media_files=attachments,
@@ -347,7 +323,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Cast to list to help unit tests to pass.
         return self._rewrite_json_attachment_urls(
-            next(self.get_submissions(user, submission_id=instance.pk)), request
+            self.get_submission(submission_id=instance.pk, user=user), request
         )
 
     def edit_submission(
@@ -408,26 +384,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Request.
         xml_submission_file.seek(0)
 
-        # Retrieve only File objects to pass to `safe_create_instance`
-        # TODO remove those files as soon as the view sends request.FILES directly
-        #   See TODO in kpi/views/v2/asset_snapshot.py::submission
-        media_files = (
-            media_file for media_file in attachments.values()
-        )
-
-        # TODO Handle errors returned by safe_create_instance
-        safe_create_instance(
+        return create_instance(
             username=user.username,
             xml_file=xml_submission_file,
-            media_files=media_files,
+            media_files=attachments,
             request=request,
         )
-
-        return {
-            'headers': {},
-            'content_type': 'text/xml; charset=utf-8',
-            'status': status.HTTP_201_CREATED,
-        }
 
     @property
     def enketo_id(self):
