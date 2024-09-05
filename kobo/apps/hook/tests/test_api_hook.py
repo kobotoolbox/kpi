@@ -5,8 +5,10 @@ import pytest
 import responses
 from constance.test import override_config
 from django.urls import reverse
-from mock import patch
+from ipaddress import ip_address
+from mock import patch, MagicMock
 from rest_framework import status
+
 
 from kobo.apps.hook.constants import (
     HOOK_LOG_FAILED,
@@ -22,7 +24,7 @@ from kpi.constants import (
     PERM_CHANGE_ASSET
 )
 from kpi.utils.datetime import several_minutes_from_now
-from .hook_test_case import HookTestCase, MockSSRFProtect
+from .hook_test_case import HookTestCase
 from ..exceptions import HookRemoteServerDownError
 
 
@@ -173,7 +175,7 @@ class ApiHookTestCase(HookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-        new=MockSSRFProtect._get_ip_address
+        new=MagicMock(return_value=ip_address('1.2.3.4'))
     )
     @responses.activate
     def test_send_and_retry(self):
@@ -203,7 +205,7 @@ class ApiHookTestCase(HookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-        new=MockSSRFProtect._get_ip_address
+        new=MagicMock(return_value=ip_address('1.2.3.4'))
     )
     @responses.activate
     def test_send_and_cannot_retry(self):
@@ -233,7 +235,7 @@ class ApiHookTestCase(HookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-        new=MockSSRFProtect._get_ip_address
+        new=MagicMock(return_value=ip_address('1.2.3.4'))
     )
     @responses.activate
     def test_payload_template(self):
@@ -317,8 +319,10 @@ class ApiHookTestCase(HookTestCase):
         }
         self.assertEqual(response.data, expected_response)
 
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MagicMock(return_value=ip_address('1.2.3.4'))
+    )
     @responses.activate
     def test_hook_log_filter_success(self):
         # Create success hook
@@ -352,8 +356,10 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_FAILED}', format='json')
         self.assertEqual(response.data.get('count'), 0)
 
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MagicMock(return_value=ip_address('1.2.3.4'))
+    )
     @responses.activate
     def test_hook_log_filter_failure(self):
         # Create failing hook
@@ -414,14 +420,16 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.get(f'{hook_log_url}?status=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MagicMock(return_value=ip_address('1.2.3.4'))
+    )
     @responses.activate
     def test_hook_log_filter_date(self):
         # Create success hook
-        hook = self._create_hook(name="date hook",
-                                endpoint="http://date.service.local/",
-                                settings={})
+        hook = self._create_hook(
+            name="date hook", endpoint="http://date.service.local/", settings={}
+        )
         responses.add(responses.POST, hook.endpoint,
                       status=status.HTTP_200_OK,
                       content_type="application/json")
