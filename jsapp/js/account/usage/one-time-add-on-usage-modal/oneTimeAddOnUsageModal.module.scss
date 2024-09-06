@@ -11,7 +11,7 @@
     margin-top: sizes.$x20;
   }
 
-  margin-bottom: sizes.$x20;
+  margin-bottom: sizes.$x32;
 }
 
 .addonTypeHeader {
@@ -19,6 +19,10 @@
   font-size: sizes.$x12;
   color: colors.$kobo-gray-55;
   text-transform: uppercase;
+}
+
+.addonModalContent {
+  padding: 0 sizes.$x24 sizes.$x24 sizes.$x24
 }
 
 .usageBreakdown {
@@ -43,4 +47,5 @@
   font-weight: 700;
   color: colors.$kobo-storm;
   text-transform: uppercase;
+  margin: 0 0 sizes.$x16 0;
 }

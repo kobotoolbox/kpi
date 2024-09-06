@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
-import KoboModalContent from 'js/components/modals/koboModalContent';
 import styles from './oneTimeAddOnUsageModal.module.scss';
 import {OneTimeAddOn, RecurringInterval, USAGE_TYPE} from '../../stripe.types';
 import {useLimitDisplay} from '../../stripe.utils';
@@ -46,7 +45,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
         <KoboModalHeader headerColor='white' onRequestCloseByX={toggleModal}>
           {t('Add-on details')}
         </KoboModalHeader>
-        <KoboModalContent>
+        <section className={styles.addonModalContent}>
           <div className={styles.addonUsageDetails}>
             <div className={styles.addonTypeHeader}>
               {t('##TYPE##').replace('##TYPE##', typeTitles[props.type])}
@@ -97,7 +96,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
             oneTimeAddOns={props.oneTimeAddOns}
             type={props.type}
           />
-        </KoboModalContent>
+        </section>
       </KoboModal>
     </>
   );
