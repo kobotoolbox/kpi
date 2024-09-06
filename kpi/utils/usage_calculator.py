@@ -23,7 +23,7 @@ from kpi.utils.cache import CachedClass, cached_class_property
 
 
 class ServiceUsageCalculator(CachedClass):
-    CACHE_TTL = 30
+    CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
 
     def __init__(self, user: User, organization: Optional[Organization]):
         self.user = user
