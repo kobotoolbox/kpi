@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import traceback
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from xml.etree import ElementTree as ET
@@ -298,6 +299,70 @@ def get_xform_from_submission(xml, username, uuid=None):
     )
 
 
+@contextmanager
+def http_open_rosa_error_handler(func, request):
+    class _ContextResult:
+        def __init__(self):
+            self.func_return = None
+            self.error = None
+            self.http_error_response = None
+
+        @property
+        def status_code(self):
+            if self.http_error_response:
+                return self.http_error_response.status_code
+            return 200
+
+    result = _ContextResult()
+    try:
+        result.func_return = func()
+    except InstanceInvalidUserError:
+        result.error = t('Username or ID required.')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except InstanceEmptyError:
+        result.error = t('Received empty submission. No instance was created')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except InstanceIdMissingError:
+        result.error = t('Instance ID is required')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except FormInactiveError:
+        result.error = t('Form is not active')
+        result.http_error_response = OpenRosaResponseNotAllowed(result.error)
+    except TemporarilyUnavailableError:
+        result.error = t('Temporarily unavailable')
+        result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
+    except XForm.DoesNotExist:
+        result.error = t('Form does not exist on this account')
+        result.http_error_response = OpenRosaResponseNotFound(result.error)
+    except ExpatError:
+        result.error = t('Improperly formatted XML.')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except ConflictingSubmissionUUIDError:
+        result.error = t('Submission with this instance ID already exists')
+        response = OpenRosaResponse(result.error)
+        response.status_code = 409
+        response['Location'] = request.build_absolute_uri(request.path)
+        result.http_error_response = response
+    except DuplicateInstanceError:
+        result.error = t('Duplicate submission')
+        response = OpenRosaResponse(result.error)
+        response.status_code = 202
+        response['Location'] = request.build_absolute_uri(request.path)
+        result.http_error_response = response
+    except PermissionDenied:
+        result.error = t('Access denied')
+        result.http_error_response = OpenRosaResponseForbidden(result.error)
+    except InstanceMultipleNodeError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseBadRequest(e)
+    except DjangoUnicodeDecodeError:
+        result.error = t(
+            'File likely corrupted during ' 'transmission, please try later.'
+        )
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    yield result
+
+
 def inject_instanceid(xml_str, uuid):
     if get_uuid_from_xml(xml_str) is None:
         xml = clean_and_parse_xml(xml_str)
@@ -562,59 +627,18 @@ def safe_create_instance(
     :returns: A list [error, instance] where error is None if there was no
         error.
     """
-    error = instance = None
-
-    try:
-        instance = create_instance(
+    with http_open_rosa_error_handler(
+        lambda: create_instance(
             username,
             xml_file,
             media_files,
             uuid=uuid,
             date_created_override=date_created_override,
             request=request,
-        )
-    except InstanceInvalidUserError:
-        error = OpenRosaResponseBadRequest(t("Username or ID required."))
-    except InstanceEmptyError:
-        error = OpenRosaResponseBadRequest(
-            t("Received empty submission. No instance was created")
-        )
-    except InstanceIdMissingError:
-        error = OpenRosaResponseBadRequest(
-            t('Instance ID is required')
-        )
-    except FormInactiveError:
-        error = OpenRosaResponseNotAllowed(t("Form is not active"))
-    except TemporarilyUnavailableError:
-        error = OpenRosaTemporarilyUnavailable(t("Temporarily unavailable"))
-    except XForm.DoesNotExist:
-        error = OpenRosaResponseNotFound(
-            t("Form does not exist on this account")
-        )
-    except ExpatError as e:
-        error = OpenRosaResponseBadRequest(t("Improperly formatted XML."))
-    except ConflictingSubmissionUUIDError:
-        response = OpenRosaResponse(
-            t('Submission with this instance ID already exists')
-        )
-        response.status_code = 409
-        response['Location'] = request.build_absolute_uri(request.path)
-        error = response
-    except DuplicateInstanceError:
-        response = OpenRosaResponse(t('Duplicate instance'))
-        response.status_code = 202
-        response['Location'] = request.build_absolute_uri(request.path)
-        error = response
-    except PermissionDenied as e:
-        error = OpenRosaResponseForbidden(e)
-    except InstanceMultipleNodeError as e:
-        error = OpenRosaResponseBadRequest(e)
-    except DjangoUnicodeDecodeError:
-        error = OpenRosaResponseBadRequest(t("File likely corrupted during "
-                                             "transmission, please try later."
-                                             ))
-
-    return [error, instance]
+        ),
+        request,
+    ) as handler:
+        return [handler.http_error_response, handler.func_return]
 
 
 def save_attachments(

@@ -17,13 +17,6 @@ from ..exceptions import HookRemoteServerDownError
 from ..models import HookLog, Hook
 
 
-class MockSSRFProtect:
-
-    @staticmethod
-    def _get_ip_address(url):
-        return ip_address('1.2.3.4')
-
-
 class HookTestCase(KpiTestCase):
 
     def setUp(self):

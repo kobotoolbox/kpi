@@ -344,7 +344,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 auth = DigestAuth('alice', 'alicealice')
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
-                self.assertContains(response, 'Forbidden', status_code=403)
+                self.assertContains(response, 'Access denied', status_code=403)
 
     def test_post_submission_require_auth_data_entry_role(self):
 
