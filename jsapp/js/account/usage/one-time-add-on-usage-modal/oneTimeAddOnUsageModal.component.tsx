@@ -79,7 +79,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
                 </label>
                 <data>{limitDisplay(props.type, props.usage)}</data>
               </li>
-              <li>
+              <li className={styles.totalAvailable}>
                 <label>
                   <strong>{t('Total available')}</strong>
                 </label>

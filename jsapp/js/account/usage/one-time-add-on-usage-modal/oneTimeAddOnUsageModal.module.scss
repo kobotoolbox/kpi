@@ -42,6 +42,12 @@
   }
 }
 
+.totalAvailable {
+  padding: sizes.$x8 0;
+  border: colors.$kobo-gray-96 sizes.$x1;
+  border-style: solid none;
+}
+
 .listHeaderText {
   font-size: sizes.$r18;
   font-weight: 700;
