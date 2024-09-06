@@ -77,7 +77,7 @@ class OrganizationTestCase(BaseTestCase):
         res = self.client.patch(self.url_detail, data)
         self.assertEqual(res.status_code, 403)
 
-    def test_service_usage(self):
+    def test_service_usage_date_header(self):
         self._insert_data()
         self.client.get(self.url_detail + 'service_usage/')
         time.sleep(3)
