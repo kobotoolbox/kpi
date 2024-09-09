@@ -81,8 +81,7 @@ export default class CustomReportForm extends React.Component {
         <bem.Modal__footer>
           {this.props.asset.report_custom[crid] && (
             <Button
-              type='full'
-              color='dark-red'
+              type='danger'
               size='l'
               onClick={this.deleteCustomReport.bind(this)}
               label={t('Delete')}
@@ -90,8 +89,7 @@ export default class CustomReportForm extends React.Component {
           )}
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             onClick={this.saveCustomReport.bind(this)}
             label={t('Save')}

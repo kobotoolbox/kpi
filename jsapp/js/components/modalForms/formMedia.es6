@@ -276,8 +276,7 @@ class FormMedia extends React.Component {
                 />
 
                 <Button
-                  type='frame'
-                  color='blue'
+                  type='secondary'
                   size='l'
                   label={t('Add')}
                   onClick={this.onSubmitURL}
@@ -316,8 +315,7 @@ class FormMedia extends React.Component {
                   {this.renderFileName(item)}
 
                   <Button
-                    type='frame'
-                    color='dark-red'
+                    type='secondary-danger'
                     size='m'
                     startIcon='trash'
                     onClick={(evt) => this.onDeleteMedia(evt, item.url)}

@@ -284,8 +284,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('Next')}
@@ -331,8 +330,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerLeft>
             <Button
-              type='frame'
-              color='blue'
+              type='secondary'
               size='l'
               isFullWidth
               label={t('Download codes')}
@@ -342,8 +340,7 @@ const MFAModals = class MFAModals extends React.Component<
 
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('I saved my codes')}
@@ -406,8 +403,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('Next')}
@@ -463,8 +459,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('Next')}
@@ -514,8 +509,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('Next')}
@@ -547,8 +541,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerLeft>
             <Button
-              type='frame'
-              color='blue'
+              type='secondary'
               size='l'
               isFullWidth
               label={t('Back')}
@@ -560,8 +553,7 @@ const MFAModals = class MFAModals extends React.Component<
 
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('OK')}
