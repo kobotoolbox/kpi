@@ -1,12 +1,36 @@
 @use 'scss/colors';
 @use 'scss/mixins';
 
+$universal-table-border-radius: 6px;
+
 .root {
   border: 1px solid colors.$kobo-gray-200;
-  border-radius: 6px;
+  border-radius: $universal-table-border-radius;
   width: 100%;
-  // TODO: see if this will not break stuff. It's here to enforce `border-radius`
-  overflow: hidden;
+  // We set it here intentionally, so noone will think about setting it to
+  // `hidden`, as it breaks some non obvious things in the table (e.g. the page
+  // size dropdown in footer).
+  overflow: visible;
+}
+
+// We can't use `overflow: hidden` unfortunately, and we do have rounder
+// corners, so we will be smart about it and handle the corners of all four
+// corner cells 8-) :shrug: Also assuming here that we always have header row.
+.table .tableRow:first-of-type .tableHeaderCell:first-of-type {
+  border-top-left-radius: $universal-table-border-radius;
+}
+.table .tableRow:last-of-type .tableHeaderCell:last-of-type {
+  border-top-right-radius: $universal-table-border-radius;
+}
+.tableFooter {
+  border-bottom-left-radius: $universal-table-border-radius;
+  border-bottom-right-radius: $universal-table-border-radius;
+}
+.table:not(.hasFooter) .tableRow:last-of-type .tableCell:first-of-type {
+  border-bottom-left-radius: $universal-table-border-radius;
+}
+.table:not(.hasFooter) .tableRow:last-of-type .tableCell:last-of-type {
+  border-bottom-right-radius: $universal-table-border-radius;
 }
 
 .tableContainer {
@@ -126,4 +150,9 @@
 .paginationNumbering {
   display: inline;
   margin: 0 15px;
+}
+
+.pageSizeSelect {
+  width: auto !important;
+  min-width: 120px;
 }

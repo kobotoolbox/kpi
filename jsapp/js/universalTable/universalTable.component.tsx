@@ -13,6 +13,10 @@ import {
 
 // Partial components
 import Button from 'js/components/common/button';
+import KoboSelect from 'js/components/common/koboSelect';
+
+// Utilities
+import {generateUuid} from 'js/utils';
 
 // Styles
 import styles from './universalTable.module.scss';
@@ -81,42 +85,39 @@ export default function UniversalTable(props: UniversalTableProps) {
 
   // We define options as separate object to make the optional pagination truly
   // optional
-  let options: TableOptions<UniversalTableDataItem> = {
+  const options: TableOptions<UniversalTableDataItem> = {
     columns: columns,
     data: props.data,
     getCoreRowModel: getCoreRowModel(),
-    state: {
-      columnPinning: {
-        left: props.columns.filter(col => col.isPinned).map(col => col.key) || [],
-      }
-    },
     columnResizeMode: 'onChange',
     //override default column sizing
     defaultColumn: DEFAULT_COLUMN_SIZE,
-  }
+  };
+
+  options.state = {};
+
+  // Set separately to not get overriden by pagination options
+  options.state.columnPinning = {
+    left: props.columns.filter(col => col.isPinned).map(col => col.key) || [],
+  };
 
   // Add pagination related options if needed
   if (props.pagination) {
-    options = {
-      ...options,
-      manualPagination: true,
-      pageCount: props.pagination.totalPages,
-      state: {
-        pagination: {
-          pageIndex: props.pagination.currentPage,
-          pageSize: props.pagination.pageSize,
-        }
-      },
-      //update the pagination state when internal APIs mutate the pagination state
-      onPaginationChange: (updater) => {
-        // make sure updater is callable (to avoid typescript warning)
-        if (typeof updater !== 'function') {return};
+    options.manualPagination = true;
+    options.pageCount = props.pagination.totalPages;
+    options.state.pagination = {
+      pageIndex: props.pagination.currentPage,
+      pageSize: props.pagination.pageSize,
+    };
+    //update the pagination state when internal APIs mutate the pagination state
+    options.onPaginationChange = (updater) => {
+      // make sure updater is callable (to avoid typescript warning)
+      if (typeof updater !== 'function') {return};
 
-        const newPageInfo = updater(table.getState().pagination);
+      const newPageInfo = updater(table.getState().pagination);
 
-        props.pagination?.requestPaginationChange(newPageInfo);
-      },
-    }
+      props.pagination?.requestPaginationChange(newPageInfo);
+    };
   }
 
   // Here we build the headless table that we would render below
@@ -125,7 +126,13 @@ export default function UniversalTable(props: UniversalTableProps) {
   return (
     <div className={styles.root}>
       <div className={styles.tableContainer}>
-        <table className={styles.table} style={{width: table.getTotalSize()}}>
+        <table
+          className={cx(
+            styles.table,
+            {[styles.hasFooter]: Boolean(props.pagination)},
+          )}
+          style={{width: table.getTotalSize()}}
+        >
           <thead>
             {table.getHeaderGroups().map(headerGroup => (
               <tr
@@ -240,18 +247,23 @@ export default function UniversalTable(props: UniversalTableProps) {
             />
           </section>
 
-          <select
-            value={table.getState().pagination.pageSize}
-            onChange={e => {
-              table.setPageSize(Number(e.target.value))
-            }}
-          >
-            {props.pagination.pageSizes.map(pageSize => (
-              <option key={pageSize} value={pageSize}>
-                {t('##number## rows').replace('##number##', String(pageSize))}
-              </option>
+          <KoboSelect
+            className={styles.pageSizeSelect}
+            name={`universal-table-select-${generateUuid()}`}
+            type='outline'
+            size='s'
+            options={props.pagination.pageSizes.map((pageSize) => (
+              {
+                value: String(pageSize),
+                label: t('##number## rows').replace('##number##', String(pageSize)),
+              }
             ))}
-          </select>
+            selectedOption={String(table.getState().pagination.pageSize)}
+            onChange={(newSelectedOption: string | null) => {
+              table.setPageSize(Number(newSelectedOption));
+            }}
+            placement='up-left'
+          />
         </footer>
       }
     </div>
