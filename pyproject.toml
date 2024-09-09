@@ -13,13 +13,7 @@ src = [
     "hub",
     "kpi",
 ]
-check = true
-diff = true
 isort = true
-# Cannot be used with VSCode
-# lint = [
-#    "flake8 --max-line-length=88",
-# ]
 
 [tool.isort]
 profile = "black"

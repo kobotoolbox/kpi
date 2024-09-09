@@ -12,9 +12,13 @@ pytest
 pytest-cov
 pytest-django
 pytest-env
-ruff
-
 
 # Kobocat
 httmock
 simplejson
+
+# Formatter and linters
+ruff
+flake8
+flake8-quotes
+darker[isort]
