@@ -47,8 +47,11 @@ interface UniversalTableProps {
   data: UniversalTableDataItem[];
   /** Pass the object to see footer with pagination. */
   pagination?: {
-    currentPage: number;
-    totalPages: number;
+    /**
+     * Total number of items from all pages of data. Total pages number will be
+     * calculated from this x pageSize.
+     */
+    totalItems: number;
     /** One of `pageSizes` */
     pageSize: number;
     pageSizes: number[];
@@ -104,10 +107,11 @@ export default function UniversalTable(props: UniversalTableProps) {
   // Add pagination related options if needed
   if (props.pagination) {
     options.manualPagination = true;
-    options.pageCount = props.pagination.totalPages;
-    options.state.pagination = {
-      pageIndex: props.pagination.currentPage,
-      pageSize: props.pagination.pageSize,
+    options.rowCount = props.pagination.totalItems;
+    options.initialState = {
+      pagination: {
+        pageSize: props.pagination.pageSize,
+      }
     };
     //update the pagination state when internal APIs mutate the pagination state
     options.onPaginationChange = (updater) => {
@@ -123,149 +127,154 @@ export default function UniversalTable(props: UniversalTableProps) {
   // Here we build the headless table that we would render below
   const table = useReactTable(options);
 
+  const currentPageString = String(table.getState().pagination.pageIndex + 1);
+  const totalPagesString = String(table.getPageCount());
+
   return (
-    <div className={styles.root}>
-      <div className={styles.tableContainer}>
-        <table
-          className={cx(
-            styles.table,
-            {[styles.hasFooter]: Boolean(props.pagination)},
-          )}
-          style={{width: table.getTotalSize()}}
-        >
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr
-                key={headerGroup.id}
-                className={styles.tableRow}
-              >
-                {headerGroup.headers.map(header => (
-                  <th
-                    key={header.id}
-                    className={cx(
-                      styles.tableHeaderCell,
-                      getCommonClassNames(header.column),
-                    )}
-                    style={{width: `${header.getSize()}px`}}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+    <div className={styles.universalTableRootContainer}>
+      <div className={styles.universalTableRoot}>
+        <div className={styles.tableContainer}>
+          <table
+            className={cx(
+              styles.table,
+              {[styles.hasFooter]: Boolean(props.pagination)},
+            )}
+            style={{width: table.getTotalSize()}}
+          >
+            <thead>
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr
+                  key={headerGroup.id}
+                  className={styles.tableRow}
+                >
+                  {headerGroup.headers.map(header => (
+                    <th
+                      key={header.id}
+                      className={cx(
+                        styles.tableHeaderCell,
+                        getCommonClassNames(header.column),
+                      )}
+                      style={{width: `${header.getSize()}px`}}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
 
-                    {/*
-                      TODO: if we ever see performance issues while resizing,
-                      there is a way to fix that, see:
-                      https://tanstack.com/table/latest/docs/guide/column-sizing#advanced-column-resizing-performance
-                    */}
-                    <div
-                      {...{
-                        onDoubleClick: () => header.column.resetSize(),
-                        onMouseDown: header.getResizeHandler(),
-                        onTouchStart: header.getResizeHandler(),
-                        className: cx(
-                          styles.resizer,
-                          {[styles.isResizing]: header.column.getIsResizing()}
-                        ),
-                      }}
-                    />
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map(row => (
-              <tr
-                key={row.id}
-                className={styles.tableRow}
-              >
-                {row.getVisibleCells().map(cell => (
-                  <td
-                    key={cell.id}
-                    className={cx(
-                      styles.tableCell,
-                      getCommonClassNames(cell.column),
-                    )}
-                    style={{width: `${cell.column.getSize()}px`}}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                      {/*
+                        TODO: if we ever see performance issues while resizing,
+                        there is a way to fix that, see:
+                        https://tanstack.com/table/latest/docs/guide/column-sizing#advanced-column-resizing-performance
+                      */}
+                      <div
+                        {...{
+                          onDoubleClick: () => header.column.resetSize(),
+                          onMouseDown: header.getResizeHandler(),
+                          onTouchStart: header.getResizeHandler(),
+                          className: cx(
+                            styles.resizer,
+                            {[styles.isResizing]: header.column.getIsResizing()}
+                          ),
+                        }}
+                      />
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map(row => (
+                <tr
+                  key={row.id}
+                  className={styles.tableRow}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <td
+                      key={cell.id}
+                      className={cx(
+                        styles.tableCell,
+                        getCommonClassNames(cell.column),
+                      )}
+                      style={{width: `${cell.column.getSize()}px`}}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      {props.pagination &&
-        <footer className={styles.tableFooter}>
-          <section className={styles.pagination}>
-            <Button
-              type='text'
+        {props.pagination &&
+          <footer className={styles.tableFooter}>
+            <section className={styles.pagination}>
+              <Button
+                type='text'
+                size='s'
+                onClick={() => table.firstPage()}
+                isDisabled={!table.getCanPreviousPage()}
+                startIcon='angle-bar-left'
+              />
+
+              <Button
+                type='text'
+                size='s'
+                onClick={() => table.previousPage()}
+                isDisabled={!table.getCanPreviousPage()}
+                startIcon='angle-left'
+              />
+
+              <div
+                className={styles.paginationNumbering}
+                dangerouslySetInnerHTML={{
+                  __html: (
+                    t('Page ##current_page## of ##total_pages##')
+                      .replace('##current_page##', `<strong>${currentPageString}</strong>`)
+                      .replace('##total_pages##', `<strong>${totalPagesString}</strong>`)
+                  )
+                }}
+              />
+
+              <Button
+                type='text'
+                size='s'
+                onClick={() => table.nextPage()}
+                isDisabled={!table.getCanNextPage()}
+                startIcon='angle-right'
+              />
+
+              <Button
+                type='text'
+                size='s'
+                onClick={() => table.lastPage()}
+                isDisabled={!table.getCanNextPage()}
+                startIcon='angle-bar-right'
+              />
+            </section>
+
+            <KoboSelect
+              className={styles.pageSizeSelect}
+              name={`universal-table-select-${generateUuid()}`}
+              type='outline'
               size='s'
-              onClick={() => table.firstPage()}
-              isDisabled={!table.getCanPreviousPage()}
-              startIcon='angle-bar-left'
-            />
-
-            <Button
-              type='text'
-              size='s'
-              onClick={() => table.previousPage()}
-              isDisabled={!table.getCanPreviousPage()}
-              startIcon='angle-left'
-            />
-
-            <div
-              className={styles.paginationNumbering}
-              dangerouslySetInnerHTML={{
-                __html: (
-                  t('Page ##current_page## of ##total_pages##')
-                    .replace('##current_page##', `<strong>${String(props.pagination.currentPage)}</strong>`)
-                    .replace('##total_pages##', `<strong>${String(props.pagination.totalPages)}</strong>`)
-                )
+              options={props.pagination.pageSizes.map((pageSize) => (
+                {
+                  value: String(pageSize),
+                  label: t('##number## rows').replace('##number##', String(pageSize)),
+                }
+              ))}
+              selectedOption={String(table.getState().pagination.pageSize)}
+              onChange={(newSelectedOption: string | null) => {
+                table.setPageSize(Number(newSelectedOption));
               }}
+              placement='up-left'
             />
-
-            <Button
-              type='text'
-              size='s'
-              onClick={() => table.nextPage()}
-              isDisabled={!table.getCanNextPage()}
-              startIcon='angle-right'
-            />
-
-            <Button
-              type='text'
-              size='s'
-              onClick={() => table.lastPage()}
-              isDisabled={!table.getCanNextPage()}
-              startIcon='angle-bar-right'
-            />
-          </section>
-
-          <KoboSelect
-            className={styles.pageSizeSelect}
-            name={`universal-table-select-${generateUuid()}`}
-            type='outline'
-            size='s'
-            options={props.pagination.pageSizes.map((pageSize) => (
-              {
-                value: String(pageSize),
-                label: t('##number## rows').replace('##number##', String(pageSize)),
-              }
-            ))}
-            selectedOption={String(table.getState().pagination.pageSize)}
-            onChange={(newSelectedOption: string | null) => {
-              table.setPageSize(Number(newSelectedOption));
-            }}
-            placement='up-left'
-          />
-        </footer>
-      }
+          </footer>
+        }
+      </div>
     </div>
   );
 }
