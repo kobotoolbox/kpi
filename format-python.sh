@@ -3,7 +3,7 @@
 BASE_REVISION=$1
 
 if [ -z "$BASE_REVISION" ]; then
-    BASE_REVISION="beta"
+    BASE_REVISION="origin/beta"
 elif [ "$BASE_REVISION" == "-l" ] || [ "$BASE_REVISION" == "--last" ]; then
     BASE_REVISION=$(git log --oneline| head -n 1 | awk '{ print $1}')
 fi
