@@ -76,7 +76,7 @@ openpyxl
 psycopg
 pymongo
 python-dateutil
-pyxform==2.0.2
+pyxform==2.0.3
 requests
 regex
 responses
