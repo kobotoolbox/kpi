@@ -22,9 +22,10 @@ if [ -n "$PYTHON_CHANGES" ]; then
     echo "Using ruff..."
     git diff --name-only "$BASE_REVISION" | grep '\.py' | xargs ruff check --select Q --select I --select F401 --select UP026 --select UP034 --select UP039 --select W292 --fix
 
-    # Applying Black format on changes (since $BASE_REVISION)
+    # Applying Black format on changes
     echo "Using darker..."
-    darker -i -r "$BASE_REVISION"
+    # Use `isort` and compare changes with revision $BASE_REVISION
+    darker --isort --revision "$BASE_REVISION"
 else
     echo "No Python changes detected!"
 fi

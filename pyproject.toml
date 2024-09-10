@@ -4,7 +4,7 @@
 # Do not enable `verbose = true` unless Black changes their behavior to respect
 # `--quiet` on the command line properly
 # verbose = true
-line-length = 80
+line-length = 88
 skip-string-normalization = true
 
 [tool.darker]
@@ -17,7 +17,7 @@ isort = true
 
 [tool.isort]
 profile = "black"
-line_length = 80 # same as black
+line_length = 88 # same as black
 known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
 
