@@ -64,8 +64,10 @@ class ServiceUsageCalculator(CachedClass):
         self._setup_cache()
 
     def _get_cache_hash(self):
-        org_id = self.organization.id if self.organization else None
-        return f'{self.user.id}-{org_id}'
+        if self.organization is None:
+            return f'user-{self.user.id}'
+        else:
+            return f'organization-{self.organization.id}'
 
     def _filter_by_user(self, user_ids: list) -> Q:
         """

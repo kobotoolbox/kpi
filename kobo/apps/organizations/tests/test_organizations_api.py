@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import parse_http_date
 from model_bakery import baker
 from rest_framework import status
@@ -84,9 +85,9 @@ class OrganizationTestCase(BaseTestCase):
             self._get_endpoint('organizations-service-usage'),
             kwargs={'id': self.organization.id},
         )
-        now = datetime.now()
+        now = timezone.now()
         mock_cache_last_updated.return_value = now - timedelta(seconds=3)
         self.client.get(url_service_usage)
         response = self.client.get(url_service_usage)
-        last_updated_timestamp = parse_http_date(response.headers["Date"])
+        last_updated_timestamp = parse_http_date(response.headers['Date'])
         assert (now.timestamp() - last_updated_timestamp) > 3
