@@ -1,8 +1,15 @@
 @use 'scss/colors';
 @use 'scss/mixins';
 
+// Because of scrollable content of the table, we need to do something more
+// fancy with rounded corners.
+// The actual radius (used for outer wrapper's borders):
 $universal-table-border-radius: 6px;
+// The radius of the inner elements (used for elements with backgrounds):
+$universal-table-border-radius-inner: $universal-table-border-radius - 2px;
 
+// TODO see if this needs to be something from `z-indexes` file, or if such
+// local numbers would be ok.
 $z-index-resizer: 2;
 $z-index-pinned: 3;
 $z-index-pinned-header: 4;
@@ -16,6 +23,7 @@ $z-index-resizer-active: 5;
 
 .universalTableRoot {
   border: 1px solid colors.$kobo-gray-200;
+  background-color: colors.$kobo-white;
   border-radius: $universal-table-border-radius;
   width: 100%;
   // We set it here intentionally, so noone will think about setting it to
@@ -24,32 +32,10 @@ $z-index-resizer-active: 5;
   overflow: visible;
 }
 
-// -----------------------------------------------------------------------------
-// Rounded corners styles:
-// We can't use `overflow: hidden` unfortunately, and we do have rounder
-// corners, so we will be smart about it and handle the corners of all four
-// corner cells 8-) :shrug: Also assuming here that we always have header row.
-.table .tableRow:first-of-type .tableHeaderCell:first-of-type {
-  border-top-left-radius: $universal-table-border-radius;
-}
-.table .tableRow:last-of-type .tableHeaderCell:last-of-type {
-  border-top-right-radius: $universal-table-border-radius;
-}
-.tableFooter {
-  border-bottom-left-radius: $universal-table-border-radius;
-  border-bottom-right-radius: $universal-table-border-radius;
-}
-.table:not(.hasFooter) .tableRow:last-of-type .tableCell:first-of-type {
-  border-bottom-left-radius: $universal-table-border-radius;
-}
-.table:not(.hasFooter) .tableRow:last-of-type .tableCell:last-of-type {
-  border-bottom-right-radius: $universal-table-border-radius;
-}
-// -----------------------------------------------------------------------------
-
 .tableContainer {
   overflow-x: auto;
   position: relative;
+  border-radius: $universal-table-border-radius-inner;
 }
 
 .table {
@@ -113,14 +99,12 @@ $z-index-resizer-active: 5;
 }
 
 .tableCell.isPinned {
-  // TODO see if this needs to be something from `z-indexes` file.
   // For sure it needs to be over .resizer, so it doesn't appear in weird/funny
   // position when scrolling table horizontally
   z-index: $z-index-pinned;
 }
 
 .tableHeaderCell.isPinned {
-  // TODO see if this needs to be something from `z-indexes` file.
   z-index: $z-index-pinned-header;
 }
 // -----------------------------------------------------------------------------
@@ -138,7 +122,6 @@ $z-index-resizer-active: 5;
   width: 1px;
   top: 50%;
   transform: translateY(-50%);
-  // TODO see if this needs to be something from `z-indexes` file
   z-index: $z-index-resizer;
   cursor: col-resize;
   touch-action: none;
@@ -178,6 +161,10 @@ $z-index-resizer-active: 5;
   position: absolute;
   top: -24px;
   width: 100%;
+  // We want the line to be seen as taking the whole table, but in reality it
+  // has the height of the viewport - if user has a really long table, and tries
+  // to scroll down while dragging the resizer, they will possibly see that
+  // the line has its limits. We are ok with that :ok:.
   height: 100vh;
   background-color: colors.$kobo-blue;
 }
@@ -228,6 +215,8 @@ $z-index-resizer-active: 5;
   justify-content: space-between;
   background-color: colors.$kobo-gray-100;
   padding: 10px 20px;
+  border-bottom-left-radius: $universal-table-border-radius-inner;
+  border-bottom-right-radius: $universal-table-border-radius-inner;
 }
 
 .pagination {

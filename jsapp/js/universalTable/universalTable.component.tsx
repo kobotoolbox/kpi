@@ -49,7 +49,8 @@ interface UniversalTableProps {
   pagination?: {
     /**
      * Total number of items from all pages of data. Total pages number will be
-     * calculated from this x pageSize.
+     * calculated from this x pageSize. This makes it easier to use this table
+     * with the API endpoints (see `PaginatedResponse` interface).
      */
     totalItems: number;
     /** One of `pageSizes` */
