@@ -74,10 +74,7 @@ class ServiceUsageCalculator(CachedClass):
         return Q(user_id__in=user_ids)
 
     def get_last_updated(self):
-        remaining_seconds = self._redis_client.ttl(self._cache_hash_str)
-        return timezone.now() - timedelta(
-            seconds=self.CACHE_TTL - remaining_seconds
-        )
+        return self._cache_last_updated()
 
     @cached_class_property(
         key='nlp_usage_counters', serializer=dumps, deserializer=loads

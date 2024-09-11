@@ -2,6 +2,7 @@ from functools import wraps
 
 from django_redis import get_redis_connection
 from django_request_cache import get_request_cache
+from django.utils import timezone
 
 
 def void_cache_for_request(keys):
@@ -74,6 +75,12 @@ class CachedClass:
 
     def _clear_cache(self):
         self._redis_client.delete(self._cache_hash_str)
+
+    def _cache_last_updated(self):
+        remaining_seconds = self._redis_client.ttl(self._cache_hash_str)
+        return timezone.now() - timedelta(
+            seconds=self.CACHE_TTL - remaining_seconds
+        )
 
 
 def cached_class_property(key, serializer=str, deserializer=str):

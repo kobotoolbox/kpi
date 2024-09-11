@@ -1,5 +1,5 @@
-import time
-from datetime import datetime
+from datetime import datetime, timedelta
+from unittest.mock import patch
 
 from django.urls import reverse
 from django.utils.http import parse_http_date
@@ -77,11 +77,16 @@ class OrganizationTestCase(BaseTestCase):
         res = self.client.patch(self.url_detail, data)
         self.assertEqual(res.status_code, 403)
 
-    def test_service_usage_date_header(self):
+    @patch('kpi.utils.usage_calculator.CachedClass._cache_last_updated')
+    def test_service_usage_date_header(self, mock_cache_last_updated):
         self._insert_data()
-        self.client.get(self.url_detail + 'service_usage/')
-        time.sleep(3)
-        response = self.client.get(self.url_detail + 'service_usage/')
-        last_updated_date = parse_http_date(response.headers["Date"])
-        now = datetime.now().timestamp()
-        assert (now - last_updated_date) > 3
+        url_service_usage = reverse(
+            self._get_endpoint('organizations-service-usage'),
+            kwargs={'id': self.organization.id},
+        )
+        now = datetime.now()
+        mock_cache_last_updated.return_value = now - timedelta(seconds=3)
+        self.client.get(url_service_usage)
+        response = self.client.get(url_service_usage)
+        last_updated_timestamp = parse_http_date(response.headers["Date"])
+        assert (now.timestamp() - last_updated_timestamp) > 3
