@@ -873,6 +873,10 @@ class ProjectSettings extends React.Component {
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
     const descriptionField = envStore.data.getProjectMetadataField('description');
 
+    const deleteButtonLabel = this.state.formAsset.deployment__submission_count > 0 ?
+      t('Delete Project and Data') :
+      t('Delete Project');
+
     return (
       <bem.FormModal__form
         onSubmit={this.handleSubmit}
@@ -1058,7 +1062,7 @@ class ProjectSettings extends React.Component {
               <Button
                 type='danger'
                 size='l'
-                label={t('Delete Project and Data')}
+                label={deleteButtonLabel}
                 onClick={this.deleteProject}
               />
             </bem.FormModal__item>
