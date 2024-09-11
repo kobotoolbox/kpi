@@ -79,16 +79,16 @@ const DEFAULT_COLUMN_SIZE = {
 };
 
 export default function UniversalTable(props: UniversalTableProps) {
-  const columns = props.columns.map((columnDef) => (
+  const columns = props.columns.map((columnDef) =>
     columnHelper.accessor(columnDef.key, {
       header: () => columnDef.label,
       cell: (info) => info.renderValue(),
       size: columnDef.size || DEFAULT_COLUMN_SIZE.size,
     })
-  ));
+  );
 
   // We define options as separate object to make the optional pagination truly
-  // optional
+  // optional.
   const options: TableOptions<UniversalTableDataItem> = {
     columns: columns,
     data: props.data,
@@ -100,7 +100,8 @@ export default function UniversalTable(props: UniversalTableProps) {
 
   options.state = {};
 
-  // Set separately to not get overriden by pagination options
+  // Set separately to not get overriden by pagination options. This is a list
+  // of columns that are pinned to the left side.
   options.state.columnPinning = {
     left: props.columns.filter((col) => col.isPinned).map((col) => col.key) || [],
   };
@@ -140,22 +141,16 @@ export default function UniversalTable(props: UniversalTableProps) {
     <div className={styles.universalTableRootContainer}>
       <div className={styles.universalTableRoot}>
         <div className={styles.tableContainer}>
-          <table
-            className={styles.table}
-            style={{width: table.getTotalSize()}}
-          >
+          <table className={styles.table} style={{width: table.getTotalSize()}}>
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr
-                  key={headerGroup.id}
-                  className={styles.tableRow}
-                >
+                <tr key={headerGroup.id} className={styles.tableRow}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
                       className={cx(
                         styles.tableHeaderCell,
-                        getCommonClassNames(header.column),
+                        getCommonClassNames(header.column)
                       )}
                       style={{width: `${header.getSize()}px`}}
                     >
@@ -176,10 +171,9 @@ export default function UniversalTable(props: UniversalTableProps) {
                           onDoubleClick: () => header.column.resetSize(),
                           onMouseDown: header.getResizeHandler(),
                           onTouchStart: header.getResizeHandler(),
-                          className: cx(
-                            styles.resizer,
-                            {[styles.isResizing]: header.column.getIsResizing()}
-                          ),
+                          className: cx(styles.resizer, {
+                            [styles.isResizing]: header.column.getIsResizing(),
+                          }),
                         }}
                       />
                     </th>
@@ -189,16 +183,13 @@ export default function UniversalTable(props: UniversalTableProps) {
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={styles.tableRow}
-                >
+                <tr key={row.id} className={styles.tableRow}>
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
                       className={cx(
                         styles.tableCell,
-                        getCommonClassNames(cell.column),
+                        getCommonClassNames(cell.column)
                       )}
                       style={{width: `${cell.column.getSize()}px`}}
                     >
@@ -211,7 +202,7 @@ export default function UniversalTable(props: UniversalTableProps) {
           </table>
         </div>
 
-        {props.pagination &&
+        {props.pagination && (
           <footer className={styles.tableFooter}>
             <section className={styles.pagination}>
               <Button
@@ -233,11 +224,9 @@ export default function UniversalTable(props: UniversalTableProps) {
               <div
                 className={styles.paginationNumbering}
                 dangerouslySetInnerHTML={{
-                  __html: (
-                    t('Page ##current_page## of ##total_pages##')
-                      .replace('##current_page##', `<strong>${currentPageString}</strong>`)
-                      .replace('##total_pages##', `<strong>${totalPagesString}</strong>`)
-                  ),
+                  __html: t('Page ##current_page## of ##total_pages##')
+                    .replace('##current_page##', `<strong>${currentPageString}</strong>`)
+                    .replace('##total_pages##', `<strong>${totalPagesString}</strong>`),
                 }}
               />
 
@@ -276,7 +265,7 @@ export default function UniversalTable(props: UniversalTableProps) {
               placement='up-left'
             />
           </footer>
-        }
+        )}
       </div>
     </div>
   );
