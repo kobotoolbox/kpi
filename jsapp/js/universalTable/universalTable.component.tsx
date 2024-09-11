@@ -136,10 +136,7 @@ export default function UniversalTable(props: UniversalTableProps) {
       <div className={styles.universalTableRoot}>
         <div className={styles.tableContainer}>
           <table
-            className={cx(
-              styles.table,
-              {[styles.hasFooter]: Boolean(props.pagination)},
-            )}
+            className={styles.table}
             style={{width: table.getTotalSize()}}
           >
             <thead>
