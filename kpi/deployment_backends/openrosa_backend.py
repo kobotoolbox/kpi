@@ -14,6 +14,7 @@ import requests
 import redis.exceptions
 from defusedxml import ElementTree as DET
 from django.conf import settings
+from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db.models import Sum, F
@@ -900,13 +901,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         parsed_url = urlparse(settings.KOBOCAT_URL)
         domain_name = parsed_url.netloc
         asset_uid = self.asset.uid
-        enketo_redis_client = get_redis_connection('enketo_redis_main')
-
         try:
+            enketo_redis_client = get_redis_connection('enketo_redis_main')
             enketo_redis_client.rename(
                 src=f'or:{domain_name}/{previous_owner_username},{asset_uid}',
                 dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}'
             )
+        except InvalidCacheBackendError:
+            pass
         except redis.exceptions.ResponseError:
             # original does not exist, weird but don't raise a 500 for that
             pass
