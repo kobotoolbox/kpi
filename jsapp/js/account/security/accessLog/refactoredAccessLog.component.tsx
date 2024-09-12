@@ -131,13 +131,11 @@ export default function AccessLogSection() {
           {source: 'Safari', activity: '15 minutes ago', duration: 'Your current session', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', f: '-', g: '-'},
           {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', f: '-', g: '-'},
         ]}
-        pagination={{
-          totalItems: 38,
-          pageSize: 10,
-          pageSizes: [10, 30, 50, 100],
-          requestPaginationChange: (newPageInfo) => {
-            console.log('pagination change requested', newPageInfo);
-          }
+        totalItems={38}
+        pageSize={10}
+        pageSizes={[10, 30, 50, 100]}
+        onRequestPaginationChange={(newPageInfo, oldPageInfo) => {
+          console.log('pagination change requested', newPageInfo, oldPageInfo);
         }}
       />
     </>

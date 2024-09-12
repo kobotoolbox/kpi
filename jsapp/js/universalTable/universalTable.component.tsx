@@ -45,23 +45,26 @@ interface UniversalTableProps {
   /** A list of column definitions */
   columns: UniversalTableColumn[];
   data: UniversalTableDataItem[];
-  /** Pass the object to see footer with pagination. */
-  pagination?: {
-    /**
-     * Total number of items from all pages of data. Total pages number will be
-     * calculated from this x pageSize. This makes it easier to use this table
-     * with the API endpoints (see `PaginatedResponse` interface).
-     */
-    totalItems: number;
-    /** One of `pageSizes` */
-    pageSize: number;
-    pageSizes: number[];
-    /**
-     * A way for the table to say "user wants to change pagination". It's being
-     * triggered for both page size and page changes.
-     */
-    requestPaginationChange: (newPageInfo: PaginationState) => void;
-  };
+  // PAGINATION
+  // To see footer with pagination you need to pass all these below:
+  /**
+   * Total number of items from all pages of data. Total pages number will be
+   * calculated from this x pageSize. This makes it easier to use this table
+   * with the API endpoints (see `PaginatedResponse` interface).
+   */
+  totalItems?: number;
+  /** One of `pageSizes` */
+  pageSize?: number;
+  pageSizes?: number[];
+  /**
+   * A way for the table to say "user wants to change pagination". It's being
+   * triggered for both page size and page changes.
+   */
+  onRequestPaginationChange?: (
+    newPageInfo: PaginationState,
+    oldPageInfo: PaginationState
+  ) => void;
+  // ENDPAGINATION
 }
 
 const columnHelper = createColumnHelper<UniversalTableDataItem>();
@@ -106,13 +109,20 @@ export default function UniversalTable(props: UniversalTableProps) {
     left: props.columns.filter((col) => col.isPinned).map((col) => col.key) || [],
   };
 
+  const hasPagination = (
+    props.totalItems !== undefined &&
+    props.pageSize !== undefined &&
+    props.pageSizes !== undefined &&
+    props.onRequestPaginationChange !== undefined
+  );
+
   // Add pagination related options if needed
-  if (props.pagination) {
+  if (hasPagination) {
     options.manualPagination = true;
-    options.rowCount = props.pagination.totalItems;
+    options.rowCount = props.totalItems;
     options.initialState = {
       pagination: {
-        pageSize: props.pagination.pageSize,
+        pageSize: props.pageSize,
       },
     };
     //update the pagination state when internal APIs mutate the pagination state
@@ -125,9 +135,13 @@ export default function UniversalTable(props: UniversalTableProps) {
       // The `table` below is defined before usage, but we are sure it will be
       // there, given this is a callback function for it.
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      const newPageInfo = updater(table.getState().pagination);
+      const oldPageInfo = table.getState().pagination;
 
-      props.pagination?.requestPaginationChange(newPageInfo);
+      const newPageInfo = updater(oldPageInfo);
+
+      if (props.onRequestPaginationChange) {
+        props.onRequestPaginationChange(newPageInfo, oldPageInfo);
+      }
     };
   }
 
@@ -202,7 +216,7 @@ export default function UniversalTable(props: UniversalTableProps) {
           </table>
         </div>
 
-        {props.pagination && (
+        {hasPagination && (
           <footer className={styles.tableFooter}>
             <section className={styles.pagination}>
               <Button
@@ -252,7 +266,7 @@ export default function UniversalTable(props: UniversalTableProps) {
               name={`universal-table-select-${generateUuid()}`}
               type='outline'
               size='s'
-              options={props.pagination.pageSizes.map((pageSize) => {
+              options={(props.pageSizes || []).map((pageSize) => {
                 return {
                   value: String(pageSize),
                   label: t('##number## rows').replace('##number##', String(pageSize)),
