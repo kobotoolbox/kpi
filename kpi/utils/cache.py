@@ -1,3 +1,4 @@
+from datetime import timedelta
 from functools import wraps
 
 from django_redis import get_redis_connection
@@ -58,7 +59,13 @@ class CachedClass:
         """
         Sets up the cache client and the cache hash name for the hset
         """
-        self._redis_client = get_redis_connection('default')
+        self._redis_client = None
+        self._cache_available = True
+        try:
+            self._redis_client = get_redis_connection('default')
+        except NotImplementedError:
+            self._cache_available = False
+
         self._cache_hash_str = self._get_cache_hash()
         assert self.CACHE_TTL > 0, 'Set a valid value for CACHE_TTL'
         self._handle_cache_expiration()
@@ -67,6 +74,9 @@ class CachedClass:
         """
         Checks if the hset is initialized, and initializes if necessary
         """
+        if not self._cache_available:
+            return
+
         if not self._redis_client.hget(self._cache_hash_str, '__initialized__'):
             self._redis_client.hset(
                 self._cache_hash_str, '__initialized__', 'True'
@@ -74,9 +84,15 @@ class CachedClass:
             self._redis_client.expire(self._cache_hash_str, self.CACHE_TTL)
 
     def _clear_cache(self):
+        if not self._cache_available:
+            return
+
         self._redis_client.delete(self._cache_hash_str)
 
     def _cache_last_updated(self):
+        if not self._cache_available:
+            return timezone.now()
+
         remaining_seconds = self._redis_client.ttl(self._cache_hash_str)
         return timezone.now() - timedelta(
             seconds=self.CACHE_TTL - remaining_seconds
@@ -92,10 +108,12 @@ def cached_class_property(key, serializer=str, deserializer=str):
 
     def cached_key_getter(func):
         def wrapper(self):
-            if getattr(self, '_redis_client', None) is None:
-                self.setup_cache()
-            self._handle_cache_expiration()
+            if getattr(self, '_cache_available', None) is False:
+                return func(self)
 
+            if getattr(self, '_redis_client', None) is None:
+                self._setup_cache()
+            self._handle_cache_expiration()
             value = self._redis_client.hget(self._cache_hash_str, key)
             if value is None:
                 value = func(self)

@@ -3,7 +3,7 @@ import uuid
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
+from django.test import override_settings
 from django.utils import timezone
 from mock import patch, MagicMock
 from rest_framework import status
@@ -363,6 +363,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         'kobo.apps.project_ownership.tasks.move_media_files',
         MagicMock()
     )
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):
         today = timezone.now()
@@ -432,7 +433,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_201_CREATED
 
         # someuser should have no usage reported anymore
-        cache.clear()
         response = self.client.get(service_usage_url)
         assert response.data['total_nlp_usage'] == expected_empty_data['total_nlp_usage']
         assert response.data['total_storage_bytes'] == expected_empty_data['total_storage_bytes']
