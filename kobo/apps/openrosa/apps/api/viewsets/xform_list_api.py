@@ -203,7 +203,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         timedelta = timezone.now() - obj.date_modified
         if timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION:
-            # Force external xml regeneration
+            # Force external XML regeneration
             get_media_file_response(obj, request)
 
             # We update the modification time here to avoid requesting that KPI

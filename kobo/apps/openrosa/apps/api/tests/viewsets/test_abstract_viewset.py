@@ -61,7 +61,9 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         # during deployment. Thus, this method will create the XForm object directly
         # without an API call except if `use_api` is True.
 
-        # In unit tests, if we need to test the result of the (KoboCAT API),
+        # Some unit tests still need to test the result of API `v1`
+        # (i.e.: KoboCAT API). For example, to ensure project creation is
+        # not allowed anymore.
         if not data:
             data = {
                 'owner': self.user.username,
