@@ -25,7 +25,6 @@ class TestLogoutAll(BaseTestCase):
         self.assertEqual(count, 0)
 
     def test_logout_all_sessions_does_not_affect_other_users(self):
-        # create 2 user sessions
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
         # create sessions for user1
