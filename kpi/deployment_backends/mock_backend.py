@@ -14,7 +14,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     dict2xform,
-    safe_create_instance,
+    create_instance,
 )
 from kpi.constants import PERM_ADD_SUBMISSIONS, SUBMISSION_FORMAT_TYPE_JSON
 from kpi.tests.utils.dicts import nested_dict_from_keys
@@ -110,7 +110,8 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
 
             xml_string = dict2xform(sub_copy, self.xform.id_string)
             xml_file = io.StringIO(xml_string)
-            error, instance = safe_create_instance(
+
+            instance = create_instance(
                 owner_username,
                 xml_file,
                 media_files,
@@ -119,16 +120,6 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
                 ),
                 request=request,
             )
-            if error:
-                error_dict = error.__dict__
-                if '_container' in error_dict and len(error_dict['_container']) > 0:
-                    xml_response = error_dict['_container'][0]
-                    message_text = DET.fromstring(xml_response).findtext(
-                        './/{http://openrosa.org/http/response}message'
-                    )
-                    if message_text == 'Instance ID is required':
-                        raise InstanceIdMissingError()
-                raise Exception(error)
 
             # Inject (or update) real PKs in submission…
             submission['_id'] = instance.pk
