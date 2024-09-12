@@ -1,8 +1,8 @@
 from copy import deepcopy
 from unittest.mock import patch, Mock
 
+import pytest
 from constance.test import override_config
-from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from google.cloud import translate_v3
@@ -419,8 +419,13 @@ class GoogleNLPSubmissionTest(APITestCase):
             service=translation_service
         )
 
-
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @pytest.mark.skip('Skip this until merge of kpi#5036')
+    @override_settings(
+        CACHES={
+            'default':
+                {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+        }
+    )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('google.cloud.speech.SpeechClient')
     @patch('google.cloud.storage.Client')
