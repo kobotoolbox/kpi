@@ -198,8 +198,7 @@ class DataAttachmentColumnsForm extends React.Component {
 
             <div className='bulk-options__buttons'>
               <Button
-                type='frame'
-                color='blue'
+                type='secondary'
                 size='s'
                 onClick={this.onBulkSelect.bind(this)}
                 label={t('Select all')}
@@ -210,8 +209,7 @@ class DataAttachmentColumnsForm extends React.Component {
               </span>
 
               <Button
-                type='frame'
-                color='blue'
+                type='secondary'
                 size='s'
                 onClick={this.onBulkDeselect.bind(this)}
                 label={t('Deselect all')}
@@ -238,8 +236,7 @@ class DataAttachmentColumnsForm extends React.Component {
 
         <footer className='modal__footer'>
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             isSubmit
             onClick={this.onSubmit.bind(this)}

@@ -26,59 +26,27 @@ $button-icon-alone-l: icon.$s-icon-l;
 $button-border-width: sizes.$x1;
 $button-border-radius: sizes.$x6;
 
-// Sets colors for `bare` type button.
-@mixin button-bare($mainColor, $hoverColor) {
-  color: $mainColor;
-
-  &:hover,
-  &.k-button--pending {
-    background-color: colors.$kobo-gray-300;
-
-    .k-icon.k-icon-spinner {
-      color: inherit;
-    }
-  }
-
-  &:hover {
-    color: $hoverColor;
-  }
-
-  &.k-button--pending {
-    color: $mainColor;
-  }
-}
-
-// Sets colors for `frame` type button.
-@mixin button-frame($mainColor) {
-  color: $mainColor;
-  border-color: $mainColor;
-
-  // We use the same style for hover and pending states.
-  &:hover,
-  &.k-button--pending {
-    color: colors.$kobo-white;
-    background-color: $mainColor;
-
-    .k-icon.k-icon-spinner {
-      color: colors.$kobo-white;
-    }
-  }
-}
-
-// Sets colors for `full` type button.
-@mixin button-full($mainColor, $hoverColor, $textColor: colors.$kobo-white) {
+// Sets colors for button.
+@mixin button-colors(
+  $textColor,
+  $mainBgColor,
+  $hoverBgColor,
+) {
   color: $textColor;
-  background-color: $mainColor;
-  border-color: $mainColor;
+  background-color: $mainBgColor;
+
+  // We use similar styles for focus as for hover
+  &:focus-visible {
+    background-color: $hoverBgColor;
+    transform: translateY(sizes.$x1);
+  }
 
   &:hover {
-    background-color: $hoverColor;
-    border-color: $hoverColor;
+    background-color: $hoverBgColor;
   }
 
   &.k-button--pending {
-    background-color: $mainColor;
-    border-color: $mainColor;
+    background-color: $mainBgColor;
 
     .k-icon.k-icon-spinner {
       color: $textColor;
@@ -90,8 +58,10 @@ $button-border-radius: sizes.$x6;
 @mixin button-size($height, $font, $icon, $iconAlone) {
   min-height: $height;
   min-width: $height; // Ensure we get at minimum a square.
-  line-height: $height - 2 * $button-border-width; // Subtracting the border.
   font-size: $font;
+
+  // Add some breathing space between the text and the icon.
+  gap: $height * 0.1;
 
   // Note: paddings and margins are based on the `$height` (the "size") variable
   // to scale with button sizes.
@@ -114,25 +84,15 @@ $button-border-radius: sizes.$x6;
     // For button with icon and text, we don't need as much padding near
     // the icon as near the text.
     padding-left: $height * 0.3;
-
-    .k-button__label {
-      // Add some breathing space between the text and the icon.
-      margin-left: $height * 0.1;
-    }
   }
 
   &.k-button--has-end-icon.k-button--has-label {
     // For button with icon and text, we don't need as much padding near
     // the icon as near the text.
     padding-right: $height * 0.3;
-
-    .k-button__label {
-      // Add some breathing space between the text and the icon.
-      margin-right: $height * 0.1;
-    }
   }
 
-  // Position the spinner icon in the center;
+  // Position the spinner icon in the center.
   &.k-button--pending.k-button--has-label .k-icon.k-icon-spinner {
     top: calc(50% - #{$icon * 0.5});
     left: calc(50% - #{$icon * 0.5});
@@ -141,6 +101,13 @@ $button-border-radius: sizes.$x6;
   &.k-button--pending:not(.k-button--has-label) .k-icon.k-icon-spinner {
     top: calc(50% - #{$iconAlone * 0.5});
     left: calc(50% - #{$iconAlone * 0.5});
+  }
+
+  &.k-button--type-text {
+    // We need the text button to align better with other UI elements, so we
+    // want to avoid the transparent space on both sides.
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -158,9 +125,7 @@ $button-border-radius: sizes.$x6;
   text-align: initial;
   padding: 0;
   margin: 0;
-  border-width: $button-border-width;
-  border-style: solid;
-  border-color: transparent;
+  border-width: 0;
   border-radius: $button-border-radius;
   background-color: transparent;
   transition: background-color 0.2s, opacity 0.2s, color 0.2s;
@@ -175,12 +140,10 @@ $button-border-radius: sizes.$x6;
   transform: translateY(sizes.$x1);
 }
 
-.k-button:focus {
-  outline: none;
-}
-
+.k-button:focus,
 .k-button:focus-visible {
-  @include mixins.default-ui-focus;
+  // We handle focus styles in `button-colors` mixin
+  outline: none;
 }
 
 .k-button__label {
@@ -193,13 +156,19 @@ $button-border-radius: sizes.$x6;
   justify-content: center;
 }
 
-.k-button[aria-disabled='true'] {
+.k-button[disabled] {
   pointer-events: none;
-  opacity: 0.5;
+
+  // When button is pending, we don't want to make it "grayed out"
+  &:not(.k-button--pending) {
+    opacity: 0.5;
+  }
 }
 
 // Note: this assumes a `spinner` icon is present inside the button (already
 // handled by `button.tsx` code).
+// Note 2: when button is in pending state, it is also `disabled` by the
+// attribute
 .k-button.k-button--pending {
   // Hide button text.
   color: transparent !important;
@@ -223,58 +192,59 @@ $button-border-radius: sizes.$x6;
   text-transform: uppercase;
 }
 
-// blue button ↓
+// button types ↓
 
-.k-button.k-button--color-blue.k-button--type-bare {
-  @include button-bare(colors.$kobo-blue, colors.$kobo-hover-blue);
-}
-
-.k-button.k-button--color-blue.k-button--type-frame {
-  @include button-frame(colors.$kobo-blue);
-}
-
-.k-button.k-button--color-blue.k-button--type-full {
-  @include button-full(colors.$kobo-blue, colors.$kobo-hover-blue);
-}
-
-// red button ↓
-.k-button.k-button--color-red.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-red,
-    colors.$kobo-dark-red
+.k-button.k-button--type-primary {
+  @include button-colors(
+    $textColor: colors.$kobo-white,
+    $mainBgColor: colors.$kobo-blue,
+    $hoverBgColor: colors.$kobo-hover-blue,
   );
 }
 
-.k-button.k-button--color-red.k-button--type-frame {
-  @include button-frame(colors.$kobo-red);
-}
-
-.k-button.k-button--color-red.k-button--type-full {
-  @include button-full(
-    colors.$kobo-red,
-    colors.$kobo-dark-red
+.k-button.k-button--type-secondary {
+  @include button-colors(
+    $textColor: colors.$kobo-dark-blue,
+    $mainBgColor: colors.$kobo-bg-blue,
+    $hoverBgColor: colors.$kobo-light-blue,
   );
 }
 
-// dark-blue button ↓
-
-.k-button.k-button--color-dark-blue.k-button--type-bare {
-  @include button-bare(
-    colors.$kobo-dark-blue,
-    color.adjust(colors.$kobo-dark-blue, $lightness: -5%)
+.k-button.k-button--type-danger {
+  @include button-colors(
+    $textColor: colors.$kobo-white,
+    $mainBgColor: colors.$kobo-red,
+    $hoverBgColor: colors.$kobo-dark-red,
   );
 }
 
-.k-button.k-button--color-dark-blue.k-button--type-frame {
-  @include button-frame(colors.$kobo-dark-blue);
+.k-button.k-button--type-secondary-danger {
+  @include button-colors(
+    $textColor: colors.$kobo-dark-red,
+    $mainBgColor: colors.$kobo-light-red,
+    $hoverBgColor: colors.$kobo-hover-red,
+  );
 }
 
-.k-button.k-button--color-dark-blue.k-button--type-full {
-  @include button-full(
-    colors.$kobo-dark-blue,
-    color.adjust(colors.$kobo-dark-blue, $lightness: -5%),
-    colors.$kobo-light-storm
-  );
+// We don't use `button-colors` mixin here, as they are too many differences
+.k-button.k-button--type-text {
+  // $textColor
+  color: colors.$kobo-dark-blue;
+
+  &:focus-visible {
+    color: colors.$kobo-hover-blue;
+    transform: translateY(sizes.$x1);
+  }
+
+  &:hover {
+    color: colors.$kobo-hover-blue;
+  }
+
+  &.k-button--pending {
+    .k-icon.k-icon-spinner {
+      color: colors.$kobo-dark-blue;
+    }
+  }
 }
 
 // button sizes ↓

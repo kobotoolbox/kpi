@@ -142,9 +142,8 @@ const AccountSettings = observer(() => {
     <bem.AccountSettings onSubmit={updateProfile}>
       <bem.AccountSettings__actions>
         <Button
-          type={'full'}
+          type='primary'
           className='account-settings-save'
-          color={'blue'}
           size={'l'}
           isSubmit
           label={t('Save Changes') + (form.isPristine ? '' : ' *')}
