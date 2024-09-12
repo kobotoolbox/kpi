@@ -131,7 +131,8 @@ export default function AccessLogSection() {
           {source: 'Safari', activity: '15 minutes ago', duration: 'Your current session', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', f: '-', g: '-'},
           {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', f: '-', g: '-'},
         ]}
-        totalItems={38}
+        pageIndex={3}
+        pageCount={11}
         pageSize={10}
         pageSizes={[10, 30, 50, 100]}
         onRequestPaginationChange={(newPageInfo, oldPageInfo) => {

@@ -22,7 +22,10 @@ import {generateUuid} from 'js/utils';
 import styles from './universalTable.module.scss';
 
 interface UniversalTableColumn {
-  /** Pairs to data object properties */
+  /**
+   * Pairs to data object properties. It is using dot notation, so it's possible
+   * to match data from a nested object :ok:.
+   */
   key: string;
   /**
    * Most of the times this would be just a string, but we are open to
@@ -47,13 +50,14 @@ interface UniversalTableProps {
   data: UniversalTableDataItem[];
   // PAGINATION
   // To see footer with pagination you need to pass all these below:
+  /** Starts with `0` */
+  pageIndex?: number;
+  /** Total number of pages of data. */
+  pageCount?: number;
   /**
-   * Total number of items from all pages of data. Total pages number will be
-   * calculated from this x pageSize. This makes it easier to use this table
-   * with the API endpoints (see `PaginatedResponse` interface).
+   * One of `pageSizes`. It is de facto the `limit` from the `offset` + `limit`
+   * pair used for paginatin the endpoint.
    */
-  totalItems?: number;
-  /** One of `pageSizes` */
   pageSize?: number;
   pageSizes?: number[];
   /**
@@ -110,7 +114,8 @@ export default function UniversalTable(props: UniversalTableProps) {
   };
 
   const hasPagination = (
-    props.totalItems !== undefined &&
+    props.pageIndex !== undefined &&
+    props.pageCount !== undefined &&
     props.pageSize !== undefined &&
     props.pageSizes !== undefined &&
     props.onRequestPaginationChange !== undefined
@@ -119,10 +124,11 @@ export default function UniversalTable(props: UniversalTableProps) {
   // Add pagination related options if needed
   if (hasPagination) {
     options.manualPagination = true;
-    options.rowCount = props.totalItems;
+    options.pageCount = props.pageCount;
     options.initialState = {
       pagination: {
         pageSize: props.pageSize,
+        pageIndex: props.pageIndex,
       },
     };
     //update the pagination state when internal APIs mutate the pagination state
