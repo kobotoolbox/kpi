@@ -51,6 +51,9 @@ $z-index-resizer-active: 5;
   background-color: colors.$kobo-white;
   // box-shadow and borders will not work with positon: sticky otherwise
   border-collapse: separate !important;
+  // This is needed so that the table takes whole width if there is small amount
+  // of columns
+  min-width: 100%;
 }
 
 .tableCell {
