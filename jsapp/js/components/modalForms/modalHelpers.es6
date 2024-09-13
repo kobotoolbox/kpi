@@ -6,8 +6,7 @@ export function renderBackButton(isDisabled = false) {
   if (pageState.hasPreviousModal()) {
     return (
       <Button
-        type='frame'
-        color='dark-blue'
+        type='secondary'
         size='l'
         onClick={pageState.switchToPreviousModal.bind(pageState)}
         isDisabled={isDisabled}
