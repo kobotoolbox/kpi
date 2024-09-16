@@ -49,9 +49,9 @@ class AssetVersion(models.Model):
             return to_xlsform_structure(self.version_content,
                                         move_autonames=True)
 
-    def to_formpack_schema(self):
+    def to_formpack_unexpanded_schema(self):
         return {
-            'content': expand_content(self._deployed_content()),
+            'content': self._deployed_content(),
             'version': self.uid,
             'version_id_key': '__version__',
         }
