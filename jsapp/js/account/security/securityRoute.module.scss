@@ -1,9 +1,10 @@
 @use 'scss/mixins';
 @use 'scss/colors';
 @use 'scss/sizes';
+@use 'scss/breakpoints';
 
 .securityRouteRoot {
-  padding: sizes.$x50;
+  padding: sizes.$x20;
   overflow-y: auto;
   height: 100%;
 
@@ -55,7 +56,8 @@ h2.securityHeaderText {
 }
 
 .securitySectionTitle {
-  flex: 2;
+  width: 100%;
+  flex: initial;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -76,4 +78,15 @@ h2.securityHeaderText {
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .securitySectionTitle {
+    width: initial;
+    flex: 2;
+  }
+
+  .securityRouteRoot {
+    padding: sizes.$x50;
+  }
 }
