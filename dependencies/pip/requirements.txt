@@ -131,6 +131,7 @@ django==4.2.15
     #   django-picklefield
     #   django-redis
     #   django-reversion
+    #   django-simple-history
     #   django-storages
     #   django-taggit
     #   django-timezone-field
@@ -183,6 +184,8 @@ django-redis-sessions==0.6.2
 django-request-cache==1.4.0
     # via -r dependencies/pip/requirements.in
 django-reversion==5.0.12
+    # via -r dependencies/pip/requirements.in
+django-simple-history==3.7.0
     # via -r dependencies/pip/requirements.in
 django-storages[azure,boto3]==1.14.2
     # via -r dependencies/pip/requirements.in
@@ -530,4 +533,3 @@ yarl==1.9.4
     # via aiohttp
 yubico-client==1.13.0
     # via django-trench
-backports-zoneinfo==0.2.1; python_version < '3.9'

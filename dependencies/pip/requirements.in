@@ -47,8 +47,8 @@ django-webpack-loader
 django-loginas
 django-markdownx
 django-prometheus
-
 django-reversion
+django-simple-history
 django-taggit
 django-private-storage
 djangorestframework

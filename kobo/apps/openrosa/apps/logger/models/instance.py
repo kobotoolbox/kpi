@@ -13,6 +13,7 @@ from django.contrib.gis.geos import GeometryCollection, Point
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from jsonfield import JSONField
+from simple_history.models import HistoricalRecords
 from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -105,6 +106,7 @@ class Instance(AbstractTimeStampedModel):
 
     # TODO Don't forget to update all records with command `update_is_sync_with_mongo`.
     is_synced_with_mongo = LazyDefaultBooleanField(default=False)
+    history = HistoricalRecords()
 
     class Meta:
         app_label = 'logger'

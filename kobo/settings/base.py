@@ -142,6 +142,7 @@ INSTALLED_APPS = (
     'guardian',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
+    'simple_history',
 )
 
 MIDDLEWARE = [
@@ -167,6 +168,7 @@ MIDDLEWARE = [
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 
