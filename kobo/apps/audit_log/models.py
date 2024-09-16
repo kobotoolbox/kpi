@@ -12,7 +12,6 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_human_readable_client_user_agent,
 )
 from kpi.constants import (
-    ACCESS_LOG_KOBO_AUTH_APP_LABEL,
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
@@ -123,8 +122,8 @@ class AccessLogManager(models.Manager):
         user = kwargs.pop('user')
         return super().create(
             # set the fields that are always the same for access logs, pass along the rest to the original constructor
-            app_label=ACCESS_LOG_KOBO_AUTH_APP_LABEL,
-            model_name=User.__qualname__,
+            app_label=User._meta.app_label,
+            model_name=User._meta.model_name,
             action=AuditAction.AUTH,
             log_type=AuditType.ACCESS,
             user=user,
