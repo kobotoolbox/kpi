@@ -15,6 +15,7 @@ from rest_framework.authtoken.models import Token
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import KobocatProfileException
+from kpi.utils.database import use_db
 from kpi.utils.log import logging
 from kpi.utils.permissions import is_user_anonymous
 from .shadow_models import (
@@ -414,12 +415,10 @@ def reset_kc_permissions(
 
 
 def delete_kc_user(username: str):
-    url = settings.KOBOCAT_INTERNAL_URL + f'/api/v1/users/{username}'
-
-    response = requests.delete(
-        url, headers=get_request_headers(username)
-    )
-    response.raise_for_status()
+    with use_db(settings.OPENROSA_DB_ALIAS):
+        # Do not use `.using()` here because it does not bubble down to the
+        # Collector.
+        User.objects.filter(username=username).delete()
 
 
 def kc_transaction_atomic(using='kobocat', *args, **kwargs):
