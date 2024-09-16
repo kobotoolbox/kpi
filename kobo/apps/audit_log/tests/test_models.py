@@ -7,7 +7,6 @@ from django.urls import resolve, reverse
 from django.utils import timezone
 
 from kobo.apps.audit_log.models import (
-    ACCESS_LOG_KOBO_AUTH_APP_LABEL,
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     AccessLog,
@@ -45,8 +44,8 @@ class AccessLogModelTestCase(BaseTestCase):
 
     def _check_common_fields(self, access_log: AccessLog, user):
         self.assertEqual(access_log.user.id, user.id)
-        self.assertEqual(access_log.app_label, ACCESS_LOG_KOBO_AUTH_APP_LABEL)
-        self.assertEqual(access_log.model_name, 'User')
+        self.assertEqual(access_log.app_label, 'kobo_auth')
+        self.assertEqual(access_log.model_name, 'user')
         self.assertEqual(access_log.object_id, user.id)
         self.assertEqual(access_log.user_uid, user.extra_details.uid)
         self.assertEqual(access_log.action, AuditAction.AUTH)
