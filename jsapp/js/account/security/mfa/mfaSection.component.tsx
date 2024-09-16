@@ -1,20 +1,32 @@
+// Libraries
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
+
+// Partial components
 import Button from 'js/components/common/button';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Icon from 'js/components/common/icon';
 import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+
+// Reflux
 import type {
   MfaUserMethodsResponse,
   MfaActivatedResponse,
 } from 'js/actions/mfaActions';
 import mfaActions from 'js/actions/mfaActions';
+
+// Constants and utils
 import {MODAL_TYPES} from 'jsapp/js/constants';
-import envStore from 'js/envStore';
-import './mfaSection.scss';
 import {formatTime, formatDate} from 'js/utils';
+
+// Stores
+import envStore from 'js/envStore';
 import pageState from 'js/pageState.store';
+
+// Styles
+import './mfaSection.scss';
+import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 bem.SecurityRow = makeBem(null, 'security-row');
 bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header');
@@ -179,7 +191,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
     }
 
     return (
-      <>
+      <section className={securityStyles.securitySection}>
         <bem.SecurityRow m={{unauthorized: !this.state.isMfaAvailable}}>
           <bem.SecurityRow__header>
             <bem.SecurityRow__title>
@@ -257,6 +269,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
             />
           )}
         </bem.SecurityRow>
+
         {this.state.isPlansMessageVisible && (
           <InlineMessage
             type='default'
@@ -269,7 +282,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
           }
           />
         )}
-      </>
+      </section>
     );
   }
 }

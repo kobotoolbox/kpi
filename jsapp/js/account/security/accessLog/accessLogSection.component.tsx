@@ -1,12 +1,39 @@
+// Libraries
 import React from 'react';
-import useAccessLogQuery, {type AccessLog} from 'js/query/queries/accessLog.query';
+
+// Partial components
+import Button from 'js/components/common/button';
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
+
+// Utilities
+import useAccessLogQuery, {type AccessLog} from 'js/query/queries/accessLog.query';
 import {formatTime} from 'js/utils';
 
+// Styles
+import securityStyles from 'js/account/security/securityRoute.module.scss';
+
 export default function AccessLogSection() {
+  function logOutAllSessions() {
+    console.log('log\'em all');
+  }
+
   return (
     <>
-      <h1>{t('Recent account activity')}</h1>
+      <header className={securityStyles.securityHeader}>
+        <h2 className={securityStyles.securityHeaderText}>
+          {t('Recent account activity')}
+        </h2>
+
+        <div className={securityStyles.securityHeaderActions}>
+          <Button
+            type='text'
+            size='m'
+            onClick={logOutAllSessions}
+            label={t('Log out of all devices')}
+            startIcon='logout'
+          />
+        </div>
+      </header>
 
       <PaginatedQueryUniversalTable<AccessLog>
         queryHook={useAccessLogQuery}
