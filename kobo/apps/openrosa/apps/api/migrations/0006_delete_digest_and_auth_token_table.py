@@ -26,7 +26,7 @@ def get_operations():
                 INNER JOIN pg_catalog.pg_class rel
                            ON rel.oid = con.conrelid
                 INNER JOIN pg_catalog.pg_namespace nsp
-                           ON nsp.oid = connamespace
+                           ON nsp.oid = con.connamespace
            WHERE nsp.nspname = 'public'
                  AND rel.relname = %s;
     """
