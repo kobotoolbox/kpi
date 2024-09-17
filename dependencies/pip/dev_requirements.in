@@ -17,3 +17,9 @@ pytest-xdist
 # KoboCAT
 httmock
 simplejson
+
+# Formatter and linters
+ruff
+flake8
+flake8-quotes
+darker[isort]
