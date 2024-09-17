@@ -54,11 +54,8 @@ class AccessLogSerializer(serializers.Serializer):
     username = serializers.CharField(source='user__username')
     metadata = serializers.JSONField()
     user_uid = serializers.CharField()
-    count = serializers.SerializerMethodField()
+    count = serializers.IntegerField()
 
     def get_date_created(self, audit_log):
         return audit_log['date_created'].strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    def get_count(self, audit_log):
-        # subtract one so submission groups don't count themselves as additional submissions
-        return audit_log['count']
