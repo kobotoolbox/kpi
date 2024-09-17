@@ -117,9 +117,8 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >                   "app_label": "kobo_auth",
     >                    "model_name": "User",
     >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
+    >                    "user_uid": "u12345",
     >                    "username": "admin",
-    >                    "action": "AUTH",
     >                    "metadata": {
     >                        "source": "Firefox (Ubuntu)",
     >                        "auth_type": "Digest",
@@ -127,6 +126,15 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >                   },
     >                    "date_created": "2024-08-19T16:48:58Z",
     >                    "log_type": "access"
+    >                },
+    >                {
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "u12345",
+    >                    "username": "admin",
+    >                    "metadata": {
+    >                        "auth_type": "submission-group",
+    >                    },
+    >                    "date_created": "2024-08-19T16:00:00Z"
     >                },
     >                ...
     >           ]
@@ -139,8 +147,26 @@ class AllAccessLogViewSet(AuditLogViewSet):
     queryset = (
         AccessLog.objects.select_related('user')
         .filter(action=AuditAction.AUTH)
-        .order_by('-date_created')
+        .values(
+            'user__username',
+            'object_id',
+            'user_uid',
+            'group_key'
+        )
+        .annotate(
+            count=Count('pk'),
+            metadata=Case(
+                When(
+                    metadata__auth_type='submission',
+                    then=Value(get_submission_dict(), models.JSONField())
+                ),
+                default=F('metadata')
+            ),
+            date_created=Min('date_created')
+        )
     )
+    serializer_class = AccessLogSerializer
+
 
 
 class AccessLogViewSet(AuditLogViewSet):
@@ -148,6 +174,8 @@ class AccessLogViewSet(AuditLogViewSet):
     Access logs
 
     Lists all access logs for the authenticated user
+
+    Submissions will be grouped together by hour
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/
@@ -168,16 +196,23 @@ class AccessLogViewSet(AuditLogViewSet):
     >                   "app_label": "kobo_auth",
     >                    "model_name": "User",
     >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
+    >                    "user_uid": "u12345",
     >                    "username": "admin",
-    >                    "action": "AUTH",
     >                    "metadata": {
     >                        "source": "Firefox (Ubuntu)",
     >                        "auth_type": "Digest",
     >                        "ip_address": "172.18.0.6"
     >                    },
     >                    "date_created": "2024-08-19T16:48:58Z"
-    >                    "log_type": "access"
+    >                },
+    >                {
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "u12345",
+    >                    "username": "admin",
+    >                    "metadata": {
+    >                        "auth_type": "submission-group",
+    >                    },
+    >                    "date_created": "2024-08-19T16:00:00Z"
     >                },
     >                ...
     >           ]
