@@ -8,18 +8,14 @@ $universal-table-border-radius: 6px;
 // The radius of the inner elements (used for elements with backgrounds):
 $universal-table-border-radius-inner: $universal-table-border-radius - 2px;
 
+$universal-table-resizer-top: 8px;
+
 // TODO see if this needs to be something from `z-indexes` file, or if such
 // local numbers would be ok.
 $z-index-resizer: 2;
 $z-index-pinned: 3;
 $z-index-pinned-header: 4;
 $z-index-resizer-active: 5;
-
-// We need this to have `overflow: hidden` on the table, but we can't do it on
-// one of the other wrappers, as we need borders (sorry!).
-.universalTableRootContainer {
-  overflow: hidden;
-}
 
 .universalTableRoot {
   border: 1px solid colors.$kobo-gray-200;
@@ -115,10 +111,9 @@ $z-index-resizer-active: 5;
 .resizer {
   position: absolute;
   background-color: colors.$kobo-gray-500;
-  height: 28px;
   width: 1px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: $universal-table-resizer-top;
+  bottom: $universal-table-resizer-top;
   z-index: $z-index-resizer;
   cursor: col-resize;
   touch-action: none;
@@ -152,17 +147,13 @@ $z-index-resizer-active: 5;
 
 // This is the line that we display while resizing the table. It takes whole
 // height of the table.
-.resizer::before {
-  display: none;
+.resizerLine {
   content: '';
   position: absolute;
-  top: -24px;
+  top: -1 * $universal-table-resizer-top;
   width: 100%;
-  // We want the line to be seen as taking the whole table, but in reality it
-  // has the height of the viewport - if user has a really long table, and tries
-  // to scroll down while dragging the resizer, they will possibly see that
-  // the line has its limits. We are ok with that :ok:.
-  height: 100vh;
+  // Height is being handled by JS code
+  height: auto;
   background-color: colors.$kobo-blue;
 }
 
@@ -174,7 +165,9 @@ $z-index-resizer-active: 5;
 .resizer.isResizing {
   background-color: colors.$kobo-blue;
   outline: none;
-  z-index: $z-index-resizer;
+  // We need the resizer to appear over the pinned column - this is needed for
+  // a moment when we resize pinned column.
+  z-index: $z-index-resizer-active;
 }
 
 // We display two resizers when mouse is over the cell for them. We also display
@@ -182,20 +175,21 @@ $z-index-resizer-active: 5;
 // the resizer further away from the cell, and it didn't move yet due to
 // animation happening or lag).
 // We want to display resizer of this cell, and a fake resizer on the left side.
-// When user moves mouse to the fake resizer, the previous cell resizer (so
-// an actual one) will be used.
+// When user moves mouse to the fake resizer, the right-side resizer of
+// the previous cell resizer will be used instead.
 .tableHeaderCell:hover::before,
 .tableHeaderCell:hover .resizer,
-.resizer.isResizing,
-.resizer.isResizing::before {
+.resizer.isResizing {
   display: initial;
 }
 
-// We need the resizer to appear over the pinned column - this is needed for
-// a moment when we resize pinned column.
-.resizer.isResizing,
-.resizer.isResizing::before {
-  z-index: $z-index-resizer-active;
+// On screens without hover we want the resizers to be always visible
+@media (hover: none) {
+  .tableHeaderCell::before,
+  .tableHeaderCell .resizer,
+  .resizer.isResizing {
+    display: initial;
+  }
 }
 
 // We need this to avoid having empty space to the right of the last table
