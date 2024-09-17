@@ -1,9 +1,12 @@
 # coding: utf-8
 import re
 import io
+import logging
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
+from lxml import etree
+from lxml.etree import XPathEvalError
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import mixins
@@ -61,6 +64,38 @@ def create_instance_from_json(username, request):
 
     xml_file = io.StringIO(xml_string)
     return safe_create_instance(username, xml_file, [], None, request=request)
+
+
+def extract_confirmation_message(xml_string):
+    """
+    Extracts the confirmation message from the XML string based on the
+    kobo:submitResponseMessage attribute.
+    """
+    if isinstance(xml_string, str):
+        xml_string = xml_string.encode('utf-8')
+    parser = etree.XMLParser(recover=True)
+    root = etree.fromstring(xml_string, parser=parser)
+    namespaces = {'kobo': 'http://kobotoolbox.org/xforms'}
+
+    # Extract the kobo:submitResponseMessage attribute from the root element
+    confirmation_message_xpath = root.get(
+        '{http://kobotoolbox.org/xforms}submitResponseMessage'
+    )
+
+    if confirmation_message_xpath:
+        try:
+            # Evaluate the XPath expression to find the message
+            confirmation_message_element = root.xpath(
+                confirmation_message_xpath.strip(), namespaces=namespaces
+            )
+            return confirmation_message_element[0].text
+        except Exception as e:
+            logging.error(
+                'Failed to extract confirmation message: ' + str(e),
+                exc_info=True
+            )
+            return None
+    return None
 
 
 class XFormSubmissionApi(
@@ -187,6 +222,8 @@ class XFormSubmissionApi(
             return self.error_response(error, is_json_request, request)
 
         context = self.get_serializer_context()
+        if instance.xml and (confirmation_message := extract_confirmation_message(instance.xml)):
+            context['confirmation_message'] = confirmation_message
         serializer = SubmissionSerializer(instance, context=context)
 
         return Response(serializer.data,
