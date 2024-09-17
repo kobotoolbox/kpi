@@ -1,3 +1,6 @@
+from django.db.models.functions import Coalesce, Trunc, Concat, Cast
+from django.db.models import When, Count, Case, F, Value, Min
+from django.db import models
 from rest_framework import mixins, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
@@ -6,8 +9,11 @@ from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditAction, AuditLog
 from .permissions import SuperUserPermission
-from .serializers import AuditLogSerializer
+from .serializers import AuditLogSerializer, AccessLogSerializer
 
+
+def get_submission_dict():
+    return {'auth_type': 'submission-group'}
 
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
@@ -184,6 +190,30 @@ class AccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = AccessLog.objects.select_related('user').order_by('-date_created')
+    queryset = (
+        AccessLog.objects.select_related('user')
+        .filter(action=AuditAction.AUTH)
+        .values(
+            'user__username',
+            'object_id',
+            'user_uid',
+            'group_key'
+        )
+        # if we have a submission group, use its metadata/date_created for all its submissions
+        # so they will be grouped correctly
+        # otherwise use the information from the log itself
+        .annotate(
+            count=Count('pk'),
+            metadata=Case(
+                When(
+                    metadata__auth_type='submission',
+                    then=Value(get_submission_dict(), models.JSONField())
+                ),
+                default=F('metadata')
+            ),
+            date_created=Min('date_created')
+        )
+    )
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
+    serializer_class = AccessLogSerializer

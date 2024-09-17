@@ -7,10 +7,8 @@ from django.utils.translation import gettext as t
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import mixins
-from rest_framework.authentication import (
-    BasicAuthentication,
-    TokenAuthentication,
-    SessionAuthentication,)
+from rest_framework.authentication import SessionAuthentication
+from kpi.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer

@@ -1,6 +1,13 @@
+import logging
+from importlib.metadata import metadata
+
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
+from django.db.models.functions import Coalesce, Trunc, Concat, Cast
+from django.db.models import When, Count, Case
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -93,7 +100,16 @@ class AuditLog(models.Model):
 
 class AccessLogManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(log_type=AuditType.ACCESS)
+        return super().get_queryset().filter(log_type=AuditType.ACCESS).annotate(
+            group_key=Case(
+                When(metadata__auth_type='submission',
+                         then=Concat(
+                             Cast(Trunc('date_created', 'hour'), output_field=models.CharField()),
+                             'user_uid')
+                    ),
+                    default=Cast('id', output_field=models.CharField())
+                )
+            )
 
     def create(self, **kwargs):
         # remove any attempt to set fields that should
@@ -111,6 +127,7 @@ class AccessLogManager(models.Manager):
         if log_type is not None:
             logging.warning(f'Ignoring attempt to set {log_type=} on access log')
         user = kwargs.pop('user')
+        print(f'{user=}')
         return super().create(
             # set the fields that are always the same for access logs,
             # pass along the rest to the original constructor
@@ -152,9 +169,10 @@ class AccessLog(AuditLog):
             request.resolver_match is not None
             and request.resolver_match.url_name == 'loginas-user-login'
         )
+        print(f'{request.resolver_match.url_name}')
         is_submission = (
             request.resolver_match is not None
-            and request.resolver_match.url_name == 'submissions'
+            and request.resolver_match.url_name in ['submissions','submissions-list']
             and request.method == 'POST'
         )
         # a regular login may have an anonymous user as _cached_user, ignore that
@@ -165,6 +183,7 @@ class AccessLog(AuditLog):
         )
         is_loginas = is_loginas_url and user_changed
         if is_submission:
+            print('Is submission')
             # Submissions are special snowflakes and need to be grouped together, no matter the auth type
             auth_type = ACCESS_LOG_SUBMISSION_AUTH_TYPE
         elif authentication_type and authentication_type != '':
@@ -182,6 +201,7 @@ class AccessLog(AuditLog):
         else:
             # default: unknown
             auth_type = ACCESS_LOG_UNKNOWN_AUTH_TYPE
+        print(f'{auth_type=}')
 
         # gather information about the source of the request
         ip = get_client_ip(request)
