@@ -841,44 +841,46 @@ def _get_instance(
     `update_xform_submission_count()` from doing anything, which avoids locking
     any rows in `logger_xform` or `main_userprofile`.
     """
-    try:
-        # check if it is an edit submission
-        old_uuid = get_deprecated_uuid_from_xml(xml)
-        instances = Instance.objects.filter(uuid=old_uuid)
+    # check if it is an edit submission
+    old_uuid = get_deprecated_uuid_from_xml(xml)
+    instances = Instance.objects.filter(uuid=old_uuid)
 
-        if instances:
-            # edits
-            instance = instances[0]
-            check_edit_submission_permissions(request, xform)
-            InstanceHistory.objects.create(
-                xml=instance.xml, xform_instance=instance, uuid=old_uuid)
-            instance.xml = xml
-            instance._populate_xml_hash()
-            instance.uuid = new_uuid
+    if instances:
+        # edits
+        instance = instances[0]
+        check_edit_submission_permissions(request, xform)
+        InstanceHistory.objects.create(
+            xml=instance.xml, xform_instance=instance, uuid=old_uuid)
+        instance.xml = xml
+        instance._populate_xml_hash()
+        instance.uuid = new_uuid
+        try:
             instance.save()
-        else:
-            submitted_by = (
-                get_database_user(request.user)
-                if request and request.user.is_authenticated
-                else None
-            )
-            # new submission
-            # Avoid `Instance.objects.create()` so that we can set a Python-only
-            # attribute, `defer_counting`, before saving
-            instance = Instance()
-            instance.xml = xml
-            instance.user = submitted_by
-            instance.status = status
-            instance.xform = xform
-            if defer_counting:
-                # Only set the attribute if requested, i.e. don't bother ever
-                # setting it to `False`
-                instance.defer_counting = True
+        except IntegrityError:
+            raise ConflictingSubmissionUUIDError
+    else:
+        submitted_by = (
+            get_database_user(request.user)
+            if request and request.user.is_authenticated
+            else None
+        )
+        # new submission
+        # Avoid `Instance.objects.create()` so that we can set a Python-only
+        # attribute, `defer_counting`, before saving
+        instance = Instance()
+        instance.xml = xml
+        instance.user = submitted_by
+        instance.status = status
+        instance.xform = xform
+        if defer_counting:
+            # Only set the attribute if requested, i.e. don't bother ever
+            # setting it to `False`
+            instance.defer_counting = True
+        try:
             instance.save()
-
-        return instance
-    except IntegrityError:
-        raise ConflictingSubmissionUUIDError()
+        except IntegrityError:
+            raise ConflictingSubmissionUUIDError
+    return instance
 
 
 def _has_edit_xform_permission(
