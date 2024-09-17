@@ -20,7 +20,6 @@ class AuditLogSerializer(serializers.ModelSerializer):
         fields = (
             'app_label',
             'model_name',
-            'object_id',
             'user',
             'user_uid',
             'username',
@@ -33,7 +32,6 @@ class AuditLogSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'app_label',
             'model_name',
-            'object_id',
             'user',
             'user_uid',
             'username',
