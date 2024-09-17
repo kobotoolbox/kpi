@@ -166,7 +166,9 @@ class AccessLog(AuditLog):
         )
         is_submission = (
             request.resolver_match is not None
-            and request.resolver_match.url_name == 'submissions'
+            # submissions is the v2 endpoint, submissions-list is v1
+            and request.resolver_match.url_name
+            in ('submissions', 'submissions-list')
             and request.method == 'POST'
         )
         # a regular login may have an anonymous user as _cached_user, ignore that
@@ -218,6 +220,30 @@ class AccessLog(AuditLog):
         return AccessLog.objects.create(user=logged_in_user, metadata=metadata)
 
 
+class SubmissionAccessLogManager(AccessLogManager):
+    def create(self, **kwargs):
+        metadata = kwargs.pop('metadata', {})
+        metadata['auth_type'] = ACCESS_LOG_SUBMISSION_AUTH_TYPE
+        kwargs['metadata'] = metadata
+        return super().create(**kwargs)
+
+
+class SubmissionAccessLog(AccessLog):
+    objects = SubmissionAccessLogManager()
+
+    class Meta:
+        proxy = True
+
+    def create_and_add_to_new_submission_group(self, save=True):
+        # the group should have the same date_created as the submission that created it
+        new_group = SubmissionGroup.objects.create(
+            user=self.user, date_created=self.date_created
+        )
+        self.submission_group = new_group
+        if save:
+            self.save(update_fields=['submission_group'])
+
+
 class SubmissionGroupManager(AccessLogManager):
     def get_queryset(self):
         return (
@@ -238,35 +264,3 @@ class SubmissionGroup(AccessLog):
 
     class Meta:
         proxy = True
-
-
-class SubmissionAccessLogManager(AccessLogManager):
-    def create(self, **kwargs):
-        metadata = kwargs.pop('metadata', {})
-        metadata['auth_type'] = ACCESS_LOG_SUBMISSION_AUTH_TYPE
-        kwargs['metadata'] = metadata
-        return super().create(**kwargs)
-
-
-class SubmissionAccessLog(AccessLog):
-    objects = SubmissionAccessLogManager()
-
-    class Meta:
-        proxy = True
-
-    def add_to_existing_submission_group(
-        self, submission_group: SubmissionGroup
-    ):
-        if self.user_uid != submission_group.user_uid:
-            logging.error(
-                f'Cannot add submission log with user {self.user_uid} to group with user {submission_group.user_uid}'
-            )
-            return
-        self.submission_group = submission_group
-
-    def create_and_add_to_new_submission_group(self):
-        # the group should have the same date_created as the submission that created it
-        new_group = SubmissionGroup.objects.create(
-            user=self.user, date_created=self.date_created
-        )
-        self.submission_group = new_group

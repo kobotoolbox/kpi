@@ -2,6 +2,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
+from constance.test import override_config
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -15,7 +16,6 @@ from kobo.apps.audit_log.models import (
 )
 from kobo.apps.audit_log.tests.test_utils import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.settings.base import ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -152,7 +152,7 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
 
     # make sure the time limit is long enough that the logs *could* be grouped together
     # if the users matched
-    @override_settings(ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=60)
+    @override_config(ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=60)
     def test_new_group_for_new_submission_if_existing_groups_have_wrong_user(
         self,
     ):
@@ -168,27 +168,32 @@ class SubmissionGroupSignalsTestCase(BaseTestCase):
 
         # create a submission with the second user
         user2_submission = SubmissionAccessLog.objects.create(user=user2)
+        # make sure that created a new group
         user2_group_query = SubmissionGroup.objects.filter(user=user2)
         self.assertEqual(user2_group_query.count(), 1)
         new_group = user2_group_query.first()
         self.assertEqual(user2_submission.submission_group.id, new_group.id)
 
-    @override_settings(ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=5)
+    @override_config(ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=5)
     def test_new_group_for_new_submission_if_existing_groups_too_old(self):
         user = User.objects.get(username='someuser')
         ten_minutes_ago = timezone.now() - timedelta(minutes=10)
+        group_query = SubmissionGroup.objects.filter(user=user)
+        self.assertEqual(group_query.count(), 0)
+
         old_submission = SubmissionAccessLog.objects.create(
             user=user, date_created=ten_minutes_ago
         )
-
         # make sure that created a new group
-        group_query = SubmissionGroup.objects.filter(user=user)
         self.assertEqual(group_query.count(), 1)
         old_group = group_query.first()
         self.assertEqual(old_submission.submission_group.id, old_group.id)
 
         # new submission
         new_submission = SubmissionAccessLog.objects.create(user=user)
+
+        # make sure new submission created a new group
         self.assertEqual(group_query.count(), 2)
         new_group = group_query.order_by('-date_created').first()
         self.assertEqual(new_submission.submission_group.id, new_group.id)
+        self.assertNotEqual(new_group.id, old_group.id)

@@ -586,6 +586,12 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES': (
+        60,
+        'Time in minutes during which submission access logs are '
+        'considered one group',
+        'positive_int',
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -649,6 +655,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1748,7 +1755,6 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed'
 ]
 
-ACCESS_LOG_SUBMISSION_GROUP_TIME_LIMIT_MINUTES=60
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']

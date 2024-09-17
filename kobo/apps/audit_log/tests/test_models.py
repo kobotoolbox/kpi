@@ -28,8 +28,8 @@ class BaseAuditLogTestCase(BaseTestCase):
 
     def _check_common_fields(self, access_log: AccessLog, user):
         self.assertEqual(access_log.user.id, user.id)
-        self.assertEqual(access_log.app_label, ACCESS_LOG_KOBO_AUTH_APP_LABEL)
-        self.assertEqual(access_log.model_name, 'User')
+        self.assertEqual(access_log.app_label, 'kobo_auth')
+        self.assertEqual(access_log.model_name, 'user')
         self.assertEqual(access_log.object_id, user.id)
         self.assertEqual(access_log.user_uid, user.extra_details.uid)
         self.assertEqual(access_log.action, AuditAction.AUTH)
@@ -251,34 +251,6 @@ class SubmissionAccessLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(
             log.metadata['auth_type'], ACCESS_LOG_SUBMISSION_AUTH_TYPE
         )
-
-    def test_add_self_to_existing_group(self):
-        user = User.objects.get(username='someuser')
-        with skip_all_signals():
-            group: SubmissionGroup = SubmissionGroup.objects.create(user=user)
-            log: SubmissionAccessLog = SubmissionAccessLog.objects.create(
-                user=user
-            )
-            log.add_to_existing_submission_group(group)
-            log.save()
-        self.assertEqual(log.submission_group.id, group.id)
-
-    @patch('kobo.apps.audit_log.models.logging.error')
-    def test_cannot_add_self_to_existing_group_with_wrong_user(
-        self, patched_error
-    ):
-        user1 = User.objects.get(username='someuser')
-        user2 = User.objects.get(username='anotheruser')
-        with skip_all_signals():
-            group: SubmissionGroup = SubmissionGroup.objects.create(user=user1)
-            log: SubmissionAccessLog = SubmissionAccessLog.objects.create(
-                user=user2
-            )
-            log.add_to_existing_submission_group(group)
-            log.save()
-        # make sure we reported an error
-        patched_error.assert_called_once()
-        self.assertIsNone(log.submission_group)
 
     def test_create_new_group_and_add_self(self):
         user = User.objects.get(username='someuser')

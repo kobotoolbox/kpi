@@ -157,6 +157,30 @@ class TestOneTimeAuthentication(BaseTestCase):
         # so just make sure the log we care about exists
         self.assertTrue(log_exists)
 
+    def test_v1_submission_creates_submission_log(self):
+        """
+        Test submissions via the old API still result in submission access logs
+        """
+        header = {'HTTP_AUTHORIZATION': 'Token stuff'}
+        with patch(
+            'kpi.authentication.DRFTokenAuthentication.authenticate',
+            return_value=(TestOneTimeAuthentication.user, 'something'),
+        ):
+            # assume the submission works
+            with patch(
+                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create',
+                return_value=HttpResponse(status=200),
+            ):
+                self.client.post(reverse('submissions-list'), **header)
+        log_exists = AuditLog.objects.filter(
+            user_uid=TestOneTimeAuthentication.user.extra_details.uid,
+            action=AuditAction.AUTH,
+            metadata__auth_type='submission',
+        ).exists()
+        # this may create 2 logs because of submission groups,
+        # so just make sure the log we care about exists
+        self.assertTrue(log_exists)
+
     def test_authorized_application_auth_creates_log(self):
         app: AuthorizedApplication = AuthorizedApplication(name='Auth app')
         app.save()

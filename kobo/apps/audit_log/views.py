@@ -99,6 +99,42 @@ class AccessLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/all
     </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/access-logs/
+
+    > Response 200
+
+    >       {
+    >           "count": 2,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >               {
+    >                   "user": "http://localhost/api/v2/users/admin/",
+    >                   "date_created": "2024-09-12T18:36:13Z",
+    >                   "username": "admin",
+    >                   "metadata": {
+    >                       "source": "Firefox (Ubuntu)",
+    >                       "auth_type": "digest",
+    >                       "ip_address": "172.18.0.7"
+    >                   },
+    >                   "user_uid": "u12345",
+    >                   "count": 0
+    >               },
+    >               {
+    >                   "user": "http://localhost/api/v2/users/someuser/",
+    >                   "date_created": "2024-09-17T13:25:50Z",
+    >                   "username": "someuser",
+    >                   "metadata": {
+    >                       "auth_type": "submission-group"
+    >                   },
+    >                   "user_uid": "u678910",
+    >                   "count": 12
+    >               },
+    >           ]
+    >       }
     """
 
     model = AccessLog
@@ -140,6 +176,43 @@ class AllAccessLogViewSet(AccessLogViewSet):
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/all
     </pre>
+
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/access-logs/
+
+    > Response 200
+
+    >       {
+    >           "count": 2,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >               {
+    >                   "user": "http://localhost/api/v2/users/admin/",
+    >                   "date_created": "2024-09-12T18:36:13Z",
+    >                   "username": "admin",
+    >                   "metadata": {
+    >                       "source": "Firefox (Ubuntu)",
+    >                       "auth_type": "digest",
+    >                       "ip_address": "172.18.0.7"
+    >                   },
+    >                   "user_uid": "u12345",
+    >                   "count": 0
+    >               },
+    >               {
+    >                   "user": "http://localhost/api/v2/users/someuser/",
+    >                   "date_created": "2024-09-17T13:25:50Z",
+    >                   "username": "someuser",
+    >                   "metadata": {
+    >                       "auth_type": "submission-group"
+    >                   },
+    >                   "user_uid": "u678910",
+    >                   "count": 12
+    >               },
+    >           ]
+    >       }
 
     Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
     Some useful fields for filtering:

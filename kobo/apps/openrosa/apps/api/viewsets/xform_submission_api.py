@@ -7,10 +7,7 @@ from django.utils.translation import gettext as t
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import mixins
-from rest_framework.authentication import (
-    BasicAuthentication,
-    TokenAuthentication,
-    SessionAuthentication,)
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -27,7 +24,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     UnauthenticatedEditAttempt,
 )
 from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
-from kpi.authentication import DigestAuthentication
+from kpi.authentication import BasicAuthentication, DigestAuthentication, TokenAuthentication
 from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 

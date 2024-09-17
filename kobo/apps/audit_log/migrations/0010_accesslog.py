@@ -3,6 +3,7 @@
 from django.db import migrations
 from django.conf import settings
 
+
 def manually_update_model_name(apps, schema_editor):
     print(
         """
@@ -16,6 +17,7 @@ def manually_update_model_name(apps, schema_editor):
 
         """
     )
+
 
 class Migration(migrations.Migration):
 
@@ -48,4 +50,5 @@ class Migration(migrations.Migration):
             migrations.RunSQL(
                 sql="UPDATE audit_log_auditlog SET model_name = 'user' where model_name='User'",
                 reverse_sql=migrations.RunSQL.noop,
-        ))
+            )
+        )

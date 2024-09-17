@@ -51,7 +51,6 @@ class CompareAccessLogResultsMixin:
         # the query changes results to dicts before serialization, so we can't just call serializer(log).data
         # to get the expected serialization
         return {
-            'object_id': log.user.id,
             'user': f'http://testserver/api/v2/users/{log.user.username}/',
             'user_uid': log.user.extra_details.uid,
             'username': log.user.username,
@@ -103,7 +102,6 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
             {
                 'app_label': 'foo',
                 'model_name': 'bar',
-                'object_id': 1,
                 'user': 'http://testserver/api/v2/users/someuser/',
                 'user_uid': someuser.extra_details.uid,
                 'action': 'delete',
@@ -146,7 +144,6 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
             {
                 'app_label': 'foo',
                 'model_name': 'bar',
-                'object_id': 1,
                 'user': 'http://testserver/api/v2/users/anotheruser/',
                 'user_uid': anotheruser.extra_details.uid,
                 'action': 'delete',
@@ -191,9 +188,9 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase, CompareAccessLogResultsMixin):
                 SubmissionAccessLog.objects.create(user=user)
             )
 
-            group_1_log_1.add_to_existing_submission_group(submission_group_1)
+            group_1_log_1.submission_group = submission_group_1
             group_1_log_1.save()
-            group_1_log_2.add_to_existing_submission_group(submission_group_1)
+            group_1_log_2.submission_group = submission_group_1
             group_1_log_2.save()
 
             # submission group 2 has 1 submissions
@@ -206,12 +203,13 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase, CompareAccessLogResultsMixin):
                 SubmissionAccessLog.objects.create(user=user)
             )
 
-            group_2_log_1.add_to_existing_submission_group(submission_group_2)
+            group_2_log_1.submission_group = submission_group_2
             group_2_log_1.save()
 
             # add 2 non-submission logs to make sure the grouping doesn't affect them
             regular_log_1 = AccessLog.objects.create(user=user)
             regular_log_2 = AccessLog.objects.create(user=user)
+
         self.force_login_user(user)
         response = self.client.get(self.url)
         self.assertEqual(response.data['count'], 4)
@@ -291,9 +289,9 @@ class AllApiAccessLogsTestCase(
             group_1_log_2: SubmissionAccessLog = (
                 SubmissionAccessLog.objects.create(user=admin)
             )
-            group_1_log_1.add_to_existing_submission_group(submission_group_1)
+            group_1_log_1.submission_group = submission_group_1
             group_1_log_1.save()
-            group_1_log_2.add_to_existing_submission_group(submission_group_1)
+            group_1_log_2.submission_group = submission_group_1
             group_1_log_2.save()
 
             # submission group 2 has 2 submissions
@@ -306,7 +304,7 @@ class AllApiAccessLogsTestCase(
                 SubmissionAccessLog.objects.create(user=admin)
             )
 
-            group_2_log_1.add_to_existing_submission_group(submission_group_2)
+            group_2_log_1.submission_group = submission_group_2
             group_2_log_1.save()
 
             # add 2 non-submission logs to make sure the grouping doesn't affect them
