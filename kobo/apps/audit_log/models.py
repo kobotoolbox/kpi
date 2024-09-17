@@ -141,7 +141,10 @@ class AccessLog(AuditLog):
 
     @staticmethod
     def create_from_request(
-        request, user=None, authentication_type: str = None, extra_metadata:dict = None
+        request,
+        user=None,
+        authentication_type: str = None,
+        extra_metadata: dict = None,
     ):
         """
         Create an access log for a request, assigned to either the given user or request.user if not supplied
