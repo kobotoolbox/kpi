@@ -12,7 +12,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.testcases import LiveServerTestCase
-from django.urls import reverse
 from django_digest.test import DigestAuth
 from rest_framework.authtoken.models import Token
 
@@ -483,7 +482,7 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
         )
 
         with open(path, 'rb') as f:
-            xls_file = ContentFile(f.read(), name=f'transportation.xls')
+            xls_file = ContentFile(f.read(), name='transportation.xls')
 
         self.xform = logger_tools.publish_xls_form(xls_file, self.user)
 
@@ -554,6 +553,8 @@ def submit_data(identifier, survey_, username_, live_server_url, token_):
             files = {'xml_submission_file': sf, 'media_file': f}
             headers = {'Authorization': f'Token {token_}'}
             response = requests.post(
-                f'{live_server_url}/{username_}/submission', files=files, headers=headers
+                f'{live_server_url}/{username_}/submission',
+                files=files,
+                headers=headers
             )
             return response.status_code

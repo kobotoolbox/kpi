@@ -5,13 +5,11 @@ import os
 from typing import Optional
 from uuid import uuid4
 
-from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.dateparse import parse_datetime
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     dict2xform,
     create_instance,

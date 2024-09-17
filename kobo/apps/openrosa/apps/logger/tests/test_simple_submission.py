@@ -40,7 +40,9 @@ class TestSimpleSubmission(TestCase):
         st_xml = (
             f'<?xml version=\'1.0\' ?><start_time id="start_time">'
             f'<start_time>2012-01-11T{hour}:00:00.000+00</start_time>'
-            f'<meta><instanceID>uuid:918a1889-389f-4427-b48a-0ba16b7c9b{hour}</instanceID></meta>'
+            f'<meta><instanceID>'
+            f'uuid:918a1889-389f-4427-b48a-0ba16b7c9b{hour}'
+            f'</instanceID></meta>'
             f'</start_time>'
         )
         try:

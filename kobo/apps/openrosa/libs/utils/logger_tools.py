@@ -228,7 +228,11 @@ def dict2xform(submission: dict, xform_id_string: str) -> str:
 
 @contextlib.contextmanager
 def get_instance_lock(xml_hash: str, submission_uuid: str, xform_id: int) -> bool:
-    int_lock = int.from_bytes(hashlib.shake_128(f'{xform_id}!!{submission_uuid}!!{xml_hash}'.encode()).digest(7), 'little')
+    int_lock = int.from_bytes(
+        hashlib.shake_128(
+            f'{xform_id}!!{submission_uuid}!!{xml_hash}'.encode()
+        ).digest(7), 'little'
+    )
     acquired = False
 
     try:

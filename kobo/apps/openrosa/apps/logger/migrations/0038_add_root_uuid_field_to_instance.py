@@ -2,10 +2,6 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
-import kobo.apps.openrosa.apps.logger.models.attachment
-import kobo.apps.openrosa.apps.logger.models.xform
-import kpi.deployment_backends.kc_access.storage
 
 
 class Migration(migrations.Migration):
@@ -19,6 +15,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='instance',
             name='root_uuid',
-            field=models.CharField(db_index=True, max_length=249, null=True, unique=True),
+            field=models.CharField(
+                db_index=True, max_length=249, null=True, unique=True
+            ),
         ),
     ]

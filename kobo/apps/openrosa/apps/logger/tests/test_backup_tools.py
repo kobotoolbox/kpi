@@ -32,8 +32,8 @@ class TestBackupTools(TestBase):
         will set our date as the date_created
         """
         xml_file_path = os.path.join(
-            settings.OPENROSA_APP_DIR, "apps", "logger", "fixtures",
-            "tutorial", "instances", "tutorial_2012-06-27_11-27-53_w_uuid.xml")
+            settings.OPENROSA_APP_DIR, 'apps', 'logger', 'fixtures',
+            'tutorial', 'instances', 'tutorial_2012-06-27_11-27-53_w_uuid.xml')
         xml_file = django_file(
             xml_file_path, field_name="xml_file", content_type="text/xml")
         media_files = []

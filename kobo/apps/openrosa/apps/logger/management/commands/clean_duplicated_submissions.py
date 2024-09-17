@@ -9,7 +9,10 @@ from django.db import transaction
 from django.db.models import F
 from django.db.models.aggregates import Count
 
-from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, MonthlyXFormSubmissionCounter
+from kobo.apps.openrosa.apps.logger.models import (
+    DailyXFormSubmissionCounter,
+    MonthlyXFormSubmissionCounter
+)
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
@@ -39,7 +42,7 @@ class Command(BaseCommand):
             '--delete-unique-uuids',
             action='store_true',
             default=False,
-            help="Delete duplicates with identical uuid",
+            help='Delete duplicates with identical uuid',
         )
 
     def handle(self, *args, **options):

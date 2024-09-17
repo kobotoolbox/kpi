@@ -60,7 +60,11 @@ class TestPandasMongoBridge(TestBase):
             fixture, instance)
 
         if add_submission_uuid:
-            xml_submission_file_path = self._add_submission_uuid_to_submission_xml(xml_submission_file_path, self.xform)
+            xml_submission_file_path = (
+                self._add_submission_uuid_to_submission_xml(
+                    xml_submission_file_path, self.xform
+                )
+            )
         self._make_submission(
             xml_submission_file_path, forced_submission_time=submission_time)
         self.assertEqual(self.response.status_code, 201)

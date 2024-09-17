@@ -48,7 +48,7 @@ class MakeSubmissionMixin:
         closing_tag_index = xml_content.rfind('</new_repeats>')
 
         if closing_tag_index == -1:
-            raise ValueError("Root element closing tag not found")
+            raise ValueError('Root element closing tag not found')
 
         # Construct the meta element with a new UUID
         meta_element = f'<meta><instanceID>uuid:{str(uuid.uuid4())}</instanceID></meta>'
