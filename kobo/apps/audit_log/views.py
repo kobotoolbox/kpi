@@ -203,9 +203,6 @@ class AccessLogViewSet(AuditLogViewSet):
             'user_uid',
             'group_key'
         )
-        # if we have a submission group, use its metadata/date_created for all its submissions
-        # so they will be grouped correctly
-        # otherwise use the information from the log itself
         .annotate(
             count=Count('pk'),
             metadata=Case(
