@@ -1377,8 +1377,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             # Unparseable KC API output
             # TODO: clarify that the user cannot correct this
+            logging.error('KoBoCAT returned invalid JSON',
+                          extra={'kc_response': response.content})
             raise KobocatDeploymentException(
-                detail=str(e), response=response)
+                detail=_('Could not parse KoBoCAT response'),
+                response=response
+            )
 
         # Check for failure
         if (
