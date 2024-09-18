@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 from django.db.models.functions import Coalesce, Trunc, Concat, Cast
-from django.db.models import When, Count, Case
+from django.db.models import When, Count, Case, F, Value, Min
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -17,7 +17,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
 from kpi.constants import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
-    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    ACCESS_LOG_UNKNOWN_AUTH_TYPE, ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.utils.log import logging
@@ -100,16 +100,7 @@ class AuditLog(models.Model):
 
 class AccessLogManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(log_type=AuditType.ACCESS).annotate(
-            group_key=Case(
-                When(metadata__auth_type='submission',
-                         then=Concat(
-                             Cast(Trunc('date_created', 'hour'), output_field=models.CharField()),
-                             'user_uid')
-                    ),
-                    default=Cast('id', output_field=models.CharField())
-                )
-            )
+        return super().get_queryset().filter(log_type=AuditType.ACCESS)
 
     def create(self, **kwargs):
         # remove any attempt to set fields that should
@@ -127,7 +118,6 @@ class AccessLogManager(models.Manager):
         if log_type is not None:
             logging.warning(f'Ignoring attempt to set {log_type=} on access log')
         user = kwargs.pop('user')
-        print(f'{user=}')
         return super().create(
             # set the fields that are always the same for access logs,
             # pass along the rest to the original constructor
@@ -139,6 +129,63 @@ class AccessLogManager(models.Manager):
             object_id=user.id,
             user_uid=user.extra_details.uid,
             **kwargs,
+        )
+
+    def with_group_key(self):
+        """
+        Adds a group key to every access log. Used for grouping submissions.
+        """
+        # add a group key to every access log
+        return self.annotate(
+            group_key=Case(
+                # for submissions, the group key is hour created + user_uid
+                # this enables us to group submissions by user by hour
+                When(
+                    metadata__auth_type=ACCESS_LOG_SUBMISSION_AUTH_TYPE,
+                    then=Concat(
+                        # get the time, rounded down to the hour, as a string
+                        Cast(
+                            Trunc('date_created', 'hour'),
+                            output_field=models.CharField(),
+                        ),
+                        'user_uid',
+                    ),
+                ),
+                # for everything else, the group key is just the id since they won't be grouped
+                default=Cast('id', output_field=models.CharField()),
+            )
+        )
+
+    def with_submissions_grouped(self):
+        """
+        Returns minimal audit log representation with submissions grouped by user by hour
+        """
+        return (
+            self.with_group_key()
+            .select_related('user')
+            # adding 'group_key' in the values lets us group submissions
+            # for performance and clarity, ignore things like action and log_type,
+            # which are the same for all audit logs
+            .values('user__username', 'object_id', 'user_uid', 'group_key')
+            .annotate(
+                # include the number of submissions per group
+                # will be '1' for everything else
+                count=Count('pk'),
+                metadata=Case(
+                    When(
+                        # override the metadata for submission groups
+                        metadata__auth_type=ACCESS_LOG_SUBMISSION_AUTH_TYPE,
+                        then=Value(
+                            {'auth_type': ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE},
+                            models.JSONField(),
+                        ),
+                    ),
+                    # keep the metadata the same for everything else
+                    default=F('metadata'),
+                ),
+                # for submission groups, use the earliest submission as the date_created
+                date_created=Min('date_created'),
+            )
         )
 
 
@@ -169,10 +216,10 @@ class AccessLog(AuditLog):
             request.resolver_match is not None
             and request.resolver_match.url_name == 'loginas-user-login'
         )
-        print(f'{request.resolver_match.url_name}')
         is_submission = (
             request.resolver_match is not None
-            and request.resolver_match.url_name in ['submissions','submissions-list']
+            and request.resolver_match.url_name
+            in ['submissions', 'submissions-list']
             and request.method == 'POST'
         )
         # a regular login may have an anonymous user as _cached_user, ignore that
@@ -183,7 +230,6 @@ class AccessLog(AuditLog):
         )
         is_loginas = is_loginas_url and user_changed
         if is_submission:
-            print('Is submission')
             # Submissions are special snowflakes and need to be grouped together, no matter the auth type
             auth_type = ACCESS_LOG_SUBMISSION_AUTH_TYPE
         elif authentication_type and authentication_type != '':
@@ -201,7 +247,6 @@ class AccessLog(AuditLog):
         else:
             # default: unknown
             auth_type = ACCESS_LOG_UNKNOWN_AUTH_TYPE
-        print(f'{auth_type=}')
 
         # gather information about the source of the request
         ip = get_client_ip(request)

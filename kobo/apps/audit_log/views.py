@@ -12,9 +12,6 @@ from .permissions import SuperUserPermission
 from .serializers import AuditLogSerializer, AccessLogSerializer
 
 
-def get_submission_dict():
-    return {'auth_type': 'submission-group'}
-
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
     Audit logs
@@ -144,27 +141,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = (
-        AccessLog.objects.select_related('user')
-        .filter(action=AuditAction.AUTH)
-        .values(
-            'user__username',
-            'object_id',
-            'user_uid',
-            'group_key'
-        )
-        .annotate(
-            count=Count('pk'),
-            metadata=Case(
-                When(
-                    metadata__auth_type='submission',
-                    then=Value(get_submission_dict(), models.JSONField())
-                ),
-                default=F('metadata')
-            ),
-            date_created=Min('date_created')
-        )
-    )
+    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
 
 
@@ -224,28 +201,7 @@ class AccessLogViewSet(AuditLogViewSet):
     will return entries 100-149
 
     """
-
-    queryset = (
-        AccessLog.objects.select_related('user')
-        .filter(action=AuditAction.AUTH)
-        .values(
-            'user__username',
-            'object_id',
-            'user_uid',
-            'group_key'
-        )
-        .annotate(
-            count=Count('pk'),
-            metadata=Case(
-                When(
-                    metadata__auth_type='submission',
-                    then=Value(get_submission_dict(), models.JSONField())
-                ),
-                default=F('metadata')
-            ),
-            date_created=Min('date_created')
-        )
-    )
+    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
