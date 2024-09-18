@@ -8,13 +8,14 @@ import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniver
 // Utilities
 import useAccessLogQuery, {type AccessLog} from 'js/query/queries/accessLog.query';
 import {formatTime} from 'js/utils';
+import sessionStore from 'js/stores/session';
 
 // Styles
 import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 export default function AccessLogSection() {
   function logOutAllSessions() {
-    console.log('log\'em all');
+    sessionStore.logOutAll();
   }
 
   return (
