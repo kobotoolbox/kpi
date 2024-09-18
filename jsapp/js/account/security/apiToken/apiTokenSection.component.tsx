@@ -1,12 +1,21 @@
+// Libraries
 import React, {
   useState,
   useEffect,
 } from 'react';
-import {dataInterface} from 'js/dataInterface';
+import cx from 'classnames';
+
+// Partial components
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
+
+// Utils
+import {dataInterface} from 'js/dataInterface';
 import {notify} from 'js/utils';
+
+// Styles
 import styles from './apiTokenSection.module.scss';
+import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 const HIDDEN_TOKEN_VALUE = '*'.repeat(40);
 
@@ -42,29 +51,28 @@ export default function ApiTokenDisplay() {
   }, [isVisible]);
 
   return (
-  <div className={styles.root}>
-    <div className={styles.titleSection}>
-      <h2 className={styles.title}>{t('API Key')}</h2>
-    </div>
+    <section className={securityStyles.securitySection}>
+      <div className={securityStyles.securitySectionTitle}>
+        <h2 className={securityStyles.securitySectionTitleText}>{t('API Key')}</h2>
+      </div>
 
-    <div className={styles.bodySection}>
-      <TextBox
-        type={isVisible && !isFetching && token !== null ? 'text' : 'password'}
-        value={token !== null ? token : HIDDEN_TOKEN_VALUE}
-        readOnly
-      />
-    </div>
+      <div className={cx(securityStyles.securitySectionBody, styles.body)}>
+        <TextBox
+          type={isVisible && !isFetching && token !== null ? 'text' : 'password'}
+          value={token !== null ? token : HIDDEN_TOKEN_VALUE}
+          readOnly
+          className={styles.token}
+        />
+      </div>
 
-    <div className={styles.optionsSection}>
-      <Button
-        label='Display'
-        size='m'
-        color='blue'
-        type='frame'
-        onClick={toggleTokenVisibility}
-      />
-    </div>
-  </div>
-
+      <div className={styles.options}>
+        <Button
+          label='Display'
+          size='m'
+          type='primary'
+          onClick={toggleTokenVisibility}
+        />
+      </div>
+    </section>
   );
 }

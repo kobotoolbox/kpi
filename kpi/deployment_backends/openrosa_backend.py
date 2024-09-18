@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime
-from typing import Generator, Optional, Union
+from typing import Generator, Optional, Union, Literal
 from urllib.parse import urlparse
 try:
     from zoneinfo import ZoneInfo
@@ -39,7 +39,7 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     set_instance_validation_statuses,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import (
-    safe_create_instance,
+    create_instance,
     publish_xls_form,
 )
 from kobo.apps.subsequences.utils import stream_with_extras
@@ -58,6 +58,7 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
     InvalidXPathException,
+    MissingXFormException,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
     XPathNotFoundException,
@@ -84,7 +85,7 @@ from ..exceptions import (
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     """
-    Used to deploy a project into KoboCAT.
+    Deploy a project to OpenRosa server
     """
 
     SYNCED_DATA_FILE_TYPES = {
@@ -100,7 +101,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def attachment_storage_bytes(self):
         try:
             return self.xform.attachment_storage_bytes
-        except InvalidXFormException:
+        except (InvalidXFormException, MissingXFormException):
             return 0
 
     def bulk_assign_mapped_perms(self):
@@ -165,6 +166,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'uuid': self._xform.uuid,
                     'id_string': self._xform.id_string,
                     'kpi_asset_uid': self.asset.uid,
+                    'hash': self._xform.prefixed_hash,
                 },
                 'version': self.asset.version_id,
             }
@@ -200,8 +202,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         WARNING! Deletes all submitted data!
         """
         try:
-            self._xform.delete()
-        except XForm.DoesNotExist:
+            self.xform.delete()
+        except (MissingXFormException, InvalidXFormException):
             pass
 
         super().delete()
@@ -222,17 +224,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         count, _ = Instance.objects.filter(pk=submission_id).delete()
-        if not count:
-            return {
-                'data': {'detail': 'Submission not found'},
-                'content_type': 'application/json',
-                'status': status.HTTP_404_NOT_FOUND,
-            }
-
-        return {
-            'content_type': 'application/json',
-            'status': status.HTTP_204_NO_CONTENT,
-        }
+        return count
 
     def delete_submissions(
         self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
@@ -262,14 +254,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
 
-        # TODO handle errors
-        deleted_count = delete_instances(self.xform, data)
-
-        return {
-            'data': {'detail': f'{deleted_count} submissions have been deleted'},
-            'content_type': 'application/json',
-            'status': status.HTTP_200_OK,
-        }
+        return delete_instances(self.xform, data)
 
     def duplicate_submission(
         self, submission_id: int, request: 'rest_framework.request.Request',
@@ -327,7 +312,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid_formatted
         )
 
-        safe_create_instance(
+        instance = create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
             media_files=attachments,
@@ -337,7 +322,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Cast to list to help unit tests to pass.
         return self._rewrite_json_attachment_urls(
-            list(self.get_submissions(user, query={'_uuid': _uuid}))[0], request
+            self.get_submission(submission_id=instance.pk, user=user), request
         )
 
     def edit_submission(
@@ -398,25 +383,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Request.
         xml_submission_file.seek(0)
 
-        # Retrieve only File objects to pass to `safe_create_instance`
-        # TODO remove those files as soon as the view sends request.FILES directly
-        #   See TODO in kpi/views/v2/asset_snapshot.py::submission
-        media_files = (
-            media_file for media_file in attachments.values()
-        )
-
-        safe_create_instance(
+        return create_instance(
             username=user.username,
             xml_file=xml_submission_file,
-            media_files=media_files,
+            media_files=attachments,
             request=request,
         )
-
-        return {
-            'headers': {},
-            'content_type': 'text/xml; charset=utf-8',
-            'status': status.HTTP_201_CREATED,
-        }
 
     @property
     def enketo_id(self):
@@ -710,7 +682,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         try:
             return Instance.objects.filter(xform_id=self.xform_id)
-        except InvalidXFormException:
+        except (InvalidXFormException, MissingXFormException):
             return None
 
     def get_submissions(
@@ -847,7 +819,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
             publish_xls_form(xlsx_file, self.asset.owner, self.xform.id_string)
 
-        # Do not call save it, asset (and its deployment) is saved right
+        # Do not call `save_to_db()`, asset (and its deployment) is saved right
         # after calling this method in `DeployableMixin.deploy()`
         self.store_data(
             {
@@ -858,6 +830,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'uuid': self.xform.uuid,
                     'id_string': self.xform.id_string,
                     'kpi_asset_uid': self.asset.uid,
+                    'hash': self._xform.prefixed_hash,
                 },
                 'version': self.asset.version_id,
             }
@@ -912,7 +885,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             pass
 
     @staticmethod
-    def prepare_bulk_update_response(backend_responses: list) -> dict:
+    def prepare_bulk_update_response(backend_results: list[dict]) -> dict:
         """
         Formatting the response to allow for partial successes to be seen
         more explicitly.
@@ -920,13 +893,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         results = []
         cpt_successes = 0
-        for backend_response in backend_responses:
-            uuid = backend_response['uuid']
-            error, instance = backend_response['response']
-
-            message = t('Something went wrong')
-            status_code = status.HTTP_400_BAD_REQUEST
-            if not error:
+        for backend_result in backend_results:
+            uuid = backend_result['uuid']
+            if message := backend_result['error']:
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
                 cpt_successes += 1
                 message = t('Successful submission')
                 status_code = status.HTTP_201_CREATED
@@ -1025,7 +996,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         submission_id: int,
         user: settings.AUTH_USER_MODEL,
         data: dict,
-        method: str,
+        method: str = Literal['DELETE', 'PATCH'],
     ) -> dict:
         """
         Update validation status.
@@ -1136,7 +1107,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 media_file for media_file in attachments.values()
             )
 
-        return safe_create_instance(
+        return create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_submission),
             media_files=media_files,
@@ -1148,13 +1119,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def submission_count(self):
         try:
             return self.xform.num_of_submissions
-        except InvalidXFormException:
+        except (InvalidXFormException, MissingXFormException):
             return 0
 
     def submission_count_since_date(self, start_date=None):
         try:
             xform_id = self.xform_id
-        except InvalidXFormException:
+        except (InvalidXFormException, MissingXFormException):
             return 0
 
         today = timezone.now().date()
@@ -1288,14 +1259,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             .first()
         )
 
+        if not xform:
+            raise MissingXFormException
+
         if not (
-            xform
-            and xform.user.username == self.asset.owner.username
+            xform.user.username == self.asset.owner.username
             and xform.id_string == self.xform_id_string
         ):
-            raise InvalidXFormException(
-                'Deployment links to an unexpected KoboCAT XForm'
-            )
+            raise InvalidXFormException
         self._xform = xform
         return self._xform
 
@@ -1385,7 +1356,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         """
         # Delete MetaData object and its related file (on storage)
         try:
-            metadata = MetaData.objects.get(pk=metadata_file_['id'])
+            metadata = MetaData.objects.get(pk=metadata_file_['pk'])
         except MetaData.DoesNotExist:
             pass
         else:

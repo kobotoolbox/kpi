@@ -58,8 +58,7 @@ export default class LibrarySidebar extends React.Component<
     return (
       <>
         <Button
-          type='full'
-          color='blue'
+          type='primary'
           size='l'
           isFullWidth
           isUpperCase

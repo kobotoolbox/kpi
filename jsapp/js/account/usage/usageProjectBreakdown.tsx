@@ -176,9 +176,8 @@ const ProjectBreakdown = () => {
             </div>
           </div>
           <Button
-            color='dark-blue'
             size='s'
-            type='bare'
+            type='text'
             startIcon='close'
             onClick={dismissIntervalBanner}
           />

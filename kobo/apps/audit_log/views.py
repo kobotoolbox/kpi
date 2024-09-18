@@ -42,7 +42,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >                    "user": "http://kf.kobo.local/users/kobo_user/",
     >                    "action": "delete",
     >                    "log_type": "asset-management",
-    >                    "method": "delete",
     >               }
     >           ]
     >       }

@@ -428,8 +428,7 @@ export default function Plan(props: PlanProps) {
     hasMetaFeatures() && (
       <div className={styles.comparisonButton}>
         <Button
-          type='bare'
-          color='dark-blue'
+          type='text'
           size='m'
           label={
             expandComparison

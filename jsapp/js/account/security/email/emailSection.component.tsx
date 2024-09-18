@@ -1,4 +1,8 @@
+// Libraries
 import React, {useEffect, useState} from 'react';
+import cx from 'classnames';
+
+// Stores and email related
 import sessionStore from 'js/stores/session';
 import {
   getUserEmails,
@@ -6,12 +10,18 @@ import {
   deleteUnverifiedUserEmails,
 } from './emailSection.api';
 import type {EmailResponse} from './emailSection.api';
-import style from './emailSection.module.scss';
+
+// Partial components
 import Button from 'jsapp/js/components/common/button';
 import TextBox from 'jsapp/js/components/common/textBox';
 import Icon from 'jsapp/js/components/common/icon';
-import {formatTime} from 'jsapp/js/utils';
-import {notify} from 'js/utils';
+
+// Utils
+import {formatTime, notify} from 'js/utils';
+
+// Styles
+import styles from './emailSection.module.scss';
+import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 interface EmailState {
   emails: EmailResponse[];
@@ -23,9 +33,14 @@ interface EmailState {
 export default function EmailSection() {
   const [session] = useState(() => sessionStore);
 
+  let initialEmail = '';
+  if ('email' in session.currentAccount) {
+    initialEmail = session.currentAccount.email;
+  }
+
   const [email, setEmail] = useState<EmailState>({
     emails: [],
-    newEmail: '',
+    newEmail: initialEmail,
     refreshedEmail: false,
     refreshedEmailDate: '',
   });
@@ -103,16 +118,21 @@ export default function EmailSection() {
   );
 
   return (
-    <div className={style.root}>
-      <div className={style.titleSection}>
-        <h2 className={style.title}>{t('Email address')}</h2>
+    <section className={securityStyles.securitySection}>
+      <div className={securityStyles.securitySectionTitle}>
+        <h2 className={securityStyles.securitySectionTitleText}>{t('Email address')}</h2>
       </div>
 
-      <div className={style.bodySection}>
+      <div className={cx(securityStyles.securitySectionBody, styles.body)}>
         {!session.isPending &&
           session.isInitialLoadComplete &&
           'email' in currentAccount && (
-            <p className={style.currentEmail}>{currentAccount.email}</p>
+            <TextBox
+              value={email.newEmail}
+              placeholder={t('Type new email address')}
+              onChange={onTextFieldChange.bind(onTextFieldChange)}
+              type='email'
+            />
           )}
 
         {unverifiedEmail?.email &&
@@ -120,9 +140,9 @@ export default function EmailSection() {
           session.isInitialLoadComplete &&
           'email' in currentAccount && (
             <>
-              <div className={style.unverifiedEmail}>
+              <div className={styles.unverifiedEmail}>
                 <Icon name='alert' />
-                <p className={style['blurb']}>
+                <p className={styles.blurb}>
                   <strong>
                     {t('Check your email ##UNVERIFIED_EMAIL##. ').replace(
                       '##UNVERIFIED_EMAIL##',
@@ -136,12 +156,11 @@ export default function EmailSection() {
                 </p>
               </div>
 
-              <div className={style.editEmail}>
+              <div className={styles.editEmail}>
                 <Button
                   label='Resend'
                   size='m'
-                  color='blue'
-                  type='frame'
+                  type='secondary'
                   onClick={resendNewUserEmail.bind(
                     resendNewUserEmail,
                     unverifiedEmail.email
@@ -150,8 +169,7 @@ export default function EmailSection() {
                 <Button
                   label='Remove'
                   size='m'
-                  color='red'
-                  type='frame'
+                  type='secondary-danger'
                   onClick={deleteNewUserEmail}
                 />
               </div>
@@ -169,28 +187,19 @@ export default function EmailSection() {
       </div>
 
       <form
-        className={style.optionsSection}
+        className={styles.options}
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit();
         }}
       >
-        {/*TODO: Move TextBox into a modal--it messes up the flow of the row right now*/}
-        <TextBox
-          value={email.newEmail}
-          placeholder={t('Type new email address')}
-          onChange={onTextFieldChange.bind(onTextFieldChange)}
-          type='email'
-        />
-
         <Button
           label='Change'
           size='m'
-          color='blue'
-          type='frame'
+          type='primary'
           onClick={handleSubmit}
         />
       </form>
-    </div>
+    </section>
   );
 }
