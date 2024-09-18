@@ -1,5 +1,4 @@
 import logging
-from importlib.metadata import metadata
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser

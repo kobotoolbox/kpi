@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -8,12 +7,10 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.models import (
     AccessLog,
-    AccessLogManager,
     AuditAction,
     AuditLog,
     AuditType,
 )
-from kobo.apps.audit_log.serializers import AuditLogSerializer
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
