@@ -690,9 +690,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         ).data
 
     def get_project_ownership(self, asset) -> Optional[dict]:
-        pass
-
-    def get_project_ownership(self, asset) -> Optional[dict]:
         if not (transfer := asset.transfers.order_by('-date_created').first()):
             return
 

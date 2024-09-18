@@ -16,16 +16,13 @@ from collections import defaultdict
 def extend_col_deets(lang: str, coltype: str, label: str, xpath: str) -> dict:
     # NB: refer to commit d013bfe0f5 when trying to figure out the original
     # intent here
-    name = xpath.split('/')[-1]
     out = {
-        'label': name,
         'dtpath': f'{xpath}/{coltype}_{lang}',
         'type': coltype,
         'language': lang,
         'label': f'{label} - {coltype}',
         'name': f'{xpath}/{coltype}_{lang}',
         'source': xpath,
-        # FIXME QPATH
         'xpath': f'{xpath}/{coltype}/{lang}',
         'settings': {'mode': 'manual', 'engine': f'engines/{coltype}_manual'},
         'path': [xpath, coltype],

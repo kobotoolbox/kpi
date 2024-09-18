@@ -160,7 +160,6 @@ def stream_with_extras(submission_stream, asset):
             uuid = submission['_uuid']
 
         all_supplemental_details = deepcopy(extras.get(uuid, {}))
-        # FIXME QPATH
         for supplemental_details in all_supplemental_details.values():
             try:
                 all_qual_responses = supplemental_details['qual']

@@ -69,7 +69,7 @@ class KeywordSearchAction(BaseAction):
                 response = self._traverse_object(submission, source)
             except KeyError:
                 continue
-            # FIXME QPATH
+
             xpath = source.split('/')[0]
             all_output = submission[xpath].setdefault(self.ID, [])
             this_output = self._get_matching_element(all_output, **query)
@@ -92,7 +92,7 @@ class KeywordSearchAction(BaseAction):
             matches = 0
             for keyword in query['keywords']:
                 matches += response['value'].count(keyword)
-            # FIXME QPATH
+
             xpath = source.split('/')[0]
             all_output = submission[xpath].setdefault(self.ID, [])
             this_output = self._get_matching_element(all_output, **query)

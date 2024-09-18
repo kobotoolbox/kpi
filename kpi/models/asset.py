@@ -86,6 +86,7 @@ from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
 
+
 class AssetDeploymentStatus(models.TextChoices):
 
     ARCHIVED = 'archived', 'Archived'
