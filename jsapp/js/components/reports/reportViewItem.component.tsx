@@ -300,8 +300,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
           {this.props.data.show_graph && sessionStore.isLoggedIn && (
             <span className='report-button__question-settings'>
               <Button
-                type='bare'
-                color='dark-blue'
+                type='text'
                 size='m'
                 startIcon='more'
                 onClick={() =>

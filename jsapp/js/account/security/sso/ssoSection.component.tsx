@@ -66,8 +66,7 @@ const SsoSection = observer(() => {
               <Button
                 label={socialApp.name}
                 size='m'
-                color='blue'
-                type='frame'
+                type='secondary'
                 onClick={() => {
                   /*TODO: Handle NavLink and Button*/
                 }}
@@ -80,8 +79,7 @@ const SsoSection = observer(() => {
           <Button
             label={t('Disable')}
             size='m'
-            color='blue'
-            type='frame'
+            type='secondary'
             onClick={disconnectSocialAccount}
           />
         </div>

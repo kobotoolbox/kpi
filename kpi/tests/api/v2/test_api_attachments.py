@@ -1,8 +1,8 @@
 import uuid
+from unittest.mock import patch
 
 from django.http import QueryDict
 from django.urls import reverse
-from mock import patch
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User

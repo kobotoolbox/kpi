@@ -6,7 +6,6 @@ import pytest
 import responses
 from django.conf import settings
 from django.urls import reverse
-from ipaddress import ip_address
 from rest_framework import status
 
 from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON, SUBMISSION_FORMAT_TYPE_XML
