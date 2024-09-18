@@ -6,14 +6,14 @@ import Button from 'js/components/common/button';
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
 
 // Utilities
-import useAccessLogQuery, {type AccessLog} from 'js/query/queries/accessLog.query';
+import useAccessLogsQuery, {type AccessLog} from 'js/query/queries/accessLogs.query';
 import {formatTime} from 'js/utils';
 import sessionStore from 'js/stores/session';
 
 // Styles
 import securityStyles from 'js/account/security/securityRoute.module.scss';
 
-export default function AccessLogSection() {
+export default function AccessLogsSection() {
   function logOutAllSessions() {
     sessionStore.logOutAll();
   }
@@ -37,10 +37,10 @@ export default function AccessLogSection() {
       </header>
 
       <PaginatedQueryUniversalTable<AccessLog>
-        queryHook={useAccessLogQuery}
+        queryHook={useAccessLogsQuery}
         columns={[
           // The `key`s of these columns are matching the `AccessLog` interface
-          // properties (from `accessLog.query.ts` file) using dot notation.
+          // properties (from `accessLogs.query.ts` file) using dot notation.
           {key: 'metadata.source', label: t('Source')},
           {
             key: 'date_created',

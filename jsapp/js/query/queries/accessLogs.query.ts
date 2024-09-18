@@ -23,26 +23,26 @@ export interface AccessLog {
   log_type: 'access' | string;
 }
 
-async function getAccessLog(limit: number, offset: number) {
+async function getAccessLogs(limit: number, offset: number) {
   const params = new URLSearchParams({
     limit: limit.toString(),
     offset: offset.toString(),
   });
   return fetchGet<PaginatedResponse<AccessLog>>(
-    endpoints.ACCESS_LOG_URL + '?' + params,
+    endpoints.ACCESS_LOGS_URL + '?' + params,
     {
       errorMessageDisplay: t('There was an error getting the list.'),
     }
   );
 }
 
-export default function useAccessLogQuery(
+export default function useAccessLogsQuery(
   itemLimit: number,
   pageOffset: number
 ) {
   return useQuery({
-    queryKey: ['accessLog', itemLimit, pageOffset],
-    queryFn: () => getAccessLog(itemLimit, pageOffset),
+    queryKey: ['accessLogs', itemLimit, pageOffset],
+    queryFn: () => getAccessLogs(itemLimit, pageOffset),
     placeholderData: keepPreviousData,
     // We might want to improve this in future, for now let's not retry
     retry: false,
