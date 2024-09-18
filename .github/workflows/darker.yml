@@ -24,6 +24,6 @@ jobs:
       # darker still exit with code 1 even with no errors on changes
       - name: Run Darker with base commit
         run: |
-          output=$(darker --check --isort -L "flake8 --max-line-length=88 --ignore=F821" kpi kobo hub -r ${{ github.event.pull_request.base.sha }})
+          output=$(darker --check --isort -L "flake8 --max-line-length=88 --ignore=F821,W503,W504" kpi kobo hub -r ${{ github.event.pull_request.base.sha }})
           [[ -n "$output" ]] && echo "$output" && exit 1 || exit 0
         shell: /usr/bin/bash {0}
