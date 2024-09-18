@@ -4,23 +4,21 @@ import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet} from 'js/api';
 
 export interface AccessLog {
-  app_label: 'kobo_auth' | string;
-  model_name: 'User' | string;
-  object_id: number;
   /** User URL */
   user: string;
   user_uid: string;
-  username: string;
-  action: 'auth' | string;
-  metadata: {
-    /** E.g. "Firefox (Ubuntu)" */
-    source: string;
-    auth_type: 'Digest' | string;
-    ip_address: string;
-  };
   /** Date string */
   date_created: string;
-  log_type: 'access' | string;
+  username: string;
+  metadata: {
+    auth_type: 'digest' | 'submission-group' | string;
+    // Both `source` and `ip_address` appear only for `digest` type
+    /** E.g. "Firefox (Ubuntu)" */
+    source?: string;
+    ip_address?: string;
+  };
+  /** For `submission-group` type, here is the number of submisssions. */
+  count: number;
 }
 
 async function getAccessLogs(limit: number, offset: number) {

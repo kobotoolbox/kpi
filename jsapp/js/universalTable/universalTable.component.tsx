@@ -21,7 +21,7 @@ import {generateUuid} from 'js/utils';
 // Styles
 import styles from './universalTable.module.scss';
 
-export interface UniversalTableColumn {
+export interface UniversalTableColumn<DataItem> {
   /**
    * Pairs to data object properties. It is using dot notation, so it's possible
    * to match data from a nested object :ok:.
@@ -40,14 +40,15 @@ export interface UniversalTableColumn {
   size?: number;
   /**
    * This is an optional formatter function that will be used when rendering
-   * the cell value. Without it a literal text value will be rendered.
+   * the cell value. Without it a literal text value will be rendered. For more
+   * flexibility, funciton receives whole original data object.
    */
-  cellFormatter?: (value: string) => React.ReactNode;
+  cellFormatter?: (value: DataItem) => React.ReactNode;
 }
 
 interface UniversalTableProps<DataItem> {
   /** A list of column definitions */
-  columns: UniversalTableColumn[];
+  columns: UniversalTableColumn<DataItem>[];
   data: DataItem[];
   // PAGINATION
   // To see footer with pagination you need to pass all these below:
@@ -133,7 +134,7 @@ export default function UniversalTable<DataItem>(
       header: () => columnDef.label,
       cell: (cellProps: CellContext<DataItem, string>) => {
         if (columnDef.cellFormatter) {
-          return columnDef.cellFormatter(cellProps.getValue());
+          return columnDef.cellFormatter(cellProps.row.original);
         } else {
           return cellProps.renderValue();
         }
