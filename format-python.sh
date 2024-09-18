@@ -2,17 +2,20 @@
 
 BASE_REVISION=$1
 
-if [ -n "${UWSGI_USER}" ] && [ "${DEBIAN_FRONTEND}" == "noninteractive" ] && [ "${TMP_DIR}" == "/srv/tmp" ]; then
-    INSIDE_CONTAINER=1
-else
-    INSIDE_CONTAINER=0
+WHOAMI=$(whoami)
+OWNER=$(ls -ld . | awk '{print $3}')
+GOSU_USER=""
+
+if [ "$WHOAMI" != "$OWNER" ]; then
+    GOSU_USER=$OWNER
 fi
 
 if [ -z "$BASE_REVISION" ]; then
-    BASE_REVISION="origin/beta"
+    echo "You must provide the base branch, e.g.: format-python.sh origin/beta"
+    exit
 elif [ "$BASE_REVISION" == "-l" ] || [ "$BASE_REVISION" == "--last" ]; then
-    if [ "$INSIDE_CONTAINER" == "1" ]; then
-        BASE_REVISION=$(gosu "$UWSGI_USER" git log --oneline| head -n 1 | awk '{ print $1}')
+    if [ -n "$GOSU_USER" ]; then
+        BASE_REVISION=$(gosu "$GOSU_USER" git log --oneline| head -n 1 | awk '{ print $1}')
     else
         BASE_REVISION=$(git log --oneline| head -n 1 | awk '{ print $1}')
     fi
@@ -27,16 +30,16 @@ fi
 #  - Unnecessary parentheses after class definition (--select UP039)
 #  - Indentation warning (--select W1)
 #  - No newline at end of file (--select W292)
-if [ "$INSIDE_CONTAINER" == "1" ]; then
-    PYTHON_CHANGES=$(gosu "$UWSGI_USER" git diff --name-only "$BASE_REVISION" | grep '\.py')
+if [ -n "$GOSU_USER" ]; then
+    PYTHON_CHANGES=$(gosu "$GOSU_USER" git diff --name-only "$BASE_REVISION" | grep '\.py')
 else
     PYTHON_CHANGES=$(git diff --name-only "$BASE_REVISION" | grep '\.py')
 fi
 
 if [ -n "$PYTHON_CHANGES" ]; then
     echo "Using ruff..."
-    if [ "$INSIDE_CONTAINER" == "1" ]; then
-        gosu "$UWSGI_USER" git diff --name-only "$BASE_REVISION" | grep '\.py' | xargs ruff check --select Q --select I --select F401 --select UP026 --select UP034 --select UP039 --select W292 --fix
+    if [ -n "$GOSU_USER" ]; then
+        gosu "$GOSU_USER" git diff --name-only "$BASE_REVISION" | grep '\.py' | xargs ruff check --select Q --select I --select F401 --select UP026 --select UP034 --select UP039 --select W292 --fix
     else
         git diff --name-only "$BASE_REVISION" | grep '\.py' | xargs ruff check --select Q --select I --select F401 --select UP026 --select UP034 --select UP039 --select W292 --fix
     fi
@@ -45,8 +48,8 @@ if [ -n "$PYTHON_CHANGES" ]; then
     # --isort: Using isort
     # --revision: Compare changes with revision $BASE_REVISION
     echo "Using darker..."
-    if [ "$INSIDE_CONTAINER" == "1" ]; then
-        gosu "$UWSGI_USER" darker --isort --revision "$BASE_REVISION"
+    if [ -n "$GOSU_USER" ]; then
+        gosu "$GOSU_USER" darker --isort --revision "$BASE_REVISION"
     else
         darker --isort --revision "$BASE_REVISION"
     fi
