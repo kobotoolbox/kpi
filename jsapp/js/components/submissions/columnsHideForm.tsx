@@ -181,8 +181,7 @@ class ColumnsHideForm extends React.Component<
 
         <bem.ColumnsHideForm__footer>
           <Button
-            type='frame'
-            color='red'
+            type='secondary-danger'
             size='s'
             isFullWidth
             onClick={this.onReset.bind(this)}
@@ -191,8 +190,7 @@ class ColumnsHideForm extends React.Component<
           />
 
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='s'
             isFullWidth
             onClick={this.onApply.bind(this)}

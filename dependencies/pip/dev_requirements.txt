@@ -57,6 +57,8 @@ billiard==4.2.0
     # via
     #   -r dependencies/pip/requirements.in
     #   celery
+black==24.8.0
+    # via darker
 boto3==1.34.75
     # via
     #   django-amazon-ses
@@ -84,6 +86,7 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via
+    #   black
     #   celery
     #   click-didyoumean
     #   click-plugins
@@ -112,6 +115,12 @@ cryptography==42.0.5
     #   pyopenssl
 cssselect==1.2.0
     # via pyquery
+darker[isort]==2.1.1
+    # via -r dependencies/pip/dev_requirements.in
+darkgraylib==1.2.1
+    # via
+    #   darker
+    #   graylint
 ddt==1.7.2
     # via -r dependencies/pip/dev_requirements.in
 decorator==5.1.1
@@ -250,6 +259,12 @@ executing==2.0.1
     # via stack-data
 fabric==3.2.2
     # via -r dependencies/pip/dev_requirements.in
+flake8==7.1.1
+    # via
+    #   -r dependencies/pip/dev_requirements.in
+    #   flake8-quotes
+flake8-quotes==3.4.0
+    # via -r dependencies/pip/dev_requirements.in
 flower==2.0.1
     # via -r dependencies/pip/requirements.in
 frozenlist==1.4.1
@@ -302,6 +317,8 @@ googleapis-common-protos==1.63.0
     # via
     #   google-api-core
     #   grpcio-status
+graylint==1.1.1
+    # via darker
 grpcio==1.62.1
     # via
     #   google-api-core
@@ -328,6 +345,8 @@ ipython==8.12.3
     # via -r dependencies/pip/dev_requirements.in
 isodate==0.6.1
     # via azure-storage-blob
+isort==5.13.2
+    # via darker
 jedi==0.19.1
     # via ipython
 jmespath==1.0.1
@@ -361,6 +380,8 @@ markupsafe==2.1.5
     # via werkzeug
 matplotlib-inline==0.1.6
     # via ipython
+mccabe==0.7.0
+    # via flake8
 mock==5.1.0
     # via -r dependencies/pip/dev_requirements.in
 model-bakery==1.17.0
@@ -373,6 +394,8 @@ multidict==6.0.5
     # via
     #   aiohttp
     #   yarl
+mypy-extensions==1.0.0
+    # via black
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
 numpy==1.24.4
@@ -388,6 +411,7 @@ openpyxl==3.0.9
     #   pyxform
 packaging==24.0
     # via
+    #   black
     #   mongomock
     #   pytest
 pandas==2.0.3
@@ -400,12 +424,16 @@ path==16.10.0
     # via path-py
 path-py==12.5.0
     # via formpack
+pathspec==0.12.1
+    # via black
 pexpect==4.9.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
 pillow==10.3.0
     # via django-markdownx
+platformdirs==4.3.2
+    # via black
 pluggy==1.4.0
     # via pytest
 prometheus-client==0.20.0
@@ -443,8 +471,12 @@ pyasn1==0.6.0
     #   rsa
 pyasn1-modules==0.4.0
     # via google-auth
+pycodestyle==2.12.1
+    # via flake8
 pycparser==2.22
     # via cffi
+pyflakes==3.2.0
+    # via flake8
 pygments==2.17.2
     # via
     #   -r dependencies/pip/requirements.in
@@ -540,6 +572,8 @@ rpds-py==0.18.0
     #   referencing
 rsa==4.9
     # via google-auth
+ruff==0.6.2
+    # via -r dependencies/pip/dev_requirements.in
 s3transfer==0.10.1
     # via boto3
 sentinels==1.0.0
@@ -575,8 +609,13 @@ stripe==4.2.0
     # via dj-stripe
 tabulate==0.9.0
     # via -r dependencies/pip/requirements.in
+toml==0.10.2
+    # via
+    #   darker
+    #   darkgraylib
 tomli==2.0.1
     # via
+    #   black
     #   coverage
     #   pytest
     #   pytest-env
@@ -593,6 +632,7 @@ typing-extensions==4.10.0
     #   asgiref
     #   azure-core
     #   azure-storage-blob
+    #   black
     #   jwcrypto
     #   psycopg
 tzdata==2024.1
@@ -642,4 +682,7 @@ yarl==1.9.4
     # via aiohttp
 yubico-client==1.13.0
     # via django-trench
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
 backports-zoneinfo==0.2.1; python_version < '3.9'

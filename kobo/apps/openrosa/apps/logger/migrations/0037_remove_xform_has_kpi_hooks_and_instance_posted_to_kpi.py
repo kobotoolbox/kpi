@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('logger', '0035_alter_instance_date_created_and_more'),
+        ('logger', '0036_alter_instance_date_created_and_more'),
     ]
 
     operations = [

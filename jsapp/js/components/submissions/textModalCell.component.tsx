@@ -47,8 +47,7 @@ export default function TextModalCell(
         <span className={styles.textContent}>{props.text}</span>
 
         <Button
-          type='bare'
-          color='dark-blue'
+          type='text'
           size='s'
           startIcon='expand-arrow'
           onClick={() => setIsModalOpen(true)}
