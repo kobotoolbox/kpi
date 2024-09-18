@@ -20,6 +20,7 @@ def get_operations():
     tables = KC_TABLES_TO_DELETE
     operations = []
 
+    # SQL query to retrieve every constraint and foreign key of a specific table
     sql = """
         SELECT con.conname
            FROM pg_catalog.pg_constraint con
@@ -32,6 +33,9 @@ def get_operations():
     """
     with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
         drop_table_queries = []
+        # Loop on every table needed to be deleted:
+        # 1) Remove every constraint/FK of the table first
+        # 2) Drop the table
         for table in tables:
             cursor.execute(sql, [table])
             drop_index_queries = []

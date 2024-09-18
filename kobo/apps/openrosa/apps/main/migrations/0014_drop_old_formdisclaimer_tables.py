@@ -18,18 +18,22 @@ def get_operations():
     tables = KC_FORM_DISCLAIMER_TABLES
     operations = []
 
+    # SQL query to retrieve every constraint and foreign key of a specific table
     sql = """
         SELECT con.conname
            FROM pg_catalog.pg_constraint con
                 INNER JOIN pg_catalog.pg_class rel
                            ON rel.oid = con.conrelid
                 INNER JOIN pg_catalog.pg_namespace nsp
-                           ON nsp.oid = connamespace
+                           ON nsp.oid = con.connamespace
            WHERE nsp.nspname = 'public'
                  AND rel.relname = %s;
     """
     with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
         drop_table_queries = []
+        # Loop on every table needed to be deleted:
+        # 1) Remove every constraint/FK of the table first
+        # 2) Drop the table
         for table in tables:
             cursor.execute(sql, [table])
             drop_index_queries = []

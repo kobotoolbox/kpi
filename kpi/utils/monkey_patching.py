@@ -37,6 +37,8 @@ def get_candidate_relations_to_delete(opts):
     So, even if db connection is set to one database, Django could detect
     candidates to delete, based on `on_delete` attribute, from the other
     database - which obviously raises an error because the table does not exist.
+
+    See https://github.com/django/django/blob/52116774549e27ac5d1ba9423e2fe61c5503a4a4/django/db/models/deletion.py#L86-L93
     """
 
     db_connection = router.db_for_write(opts.model)
@@ -47,6 +49,7 @@ def get_candidate_relations_to_delete(opts):
         if f.auto_created
         and not f.concrete
         and (f.one_to_one or f.one_to_many)
+        # new condition below from monkey-patching
         and (
             f.remote_field.model._meta.app_label in SHARED_APP_LABELS
             or (
