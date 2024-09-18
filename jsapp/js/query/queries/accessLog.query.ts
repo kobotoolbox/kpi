@@ -44,5 +44,10 @@ export default function useAccessLogQuery(
     queryKey: ['accessLog', itemLimit, pageOffset],
     queryFn: () => getAccessLog(itemLimit, pageOffset),
     placeholderData: keepPreviousData,
+    // We might want to improve this in future, for now let's not retry
+    retry: false,
+    // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
+    // here so we don't forget about it.
+    refetchOnWindowFocus: true,
   });
 }
