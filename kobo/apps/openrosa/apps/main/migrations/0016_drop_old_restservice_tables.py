@@ -56,6 +56,10 @@ def get_operations():
     return operations
 
 
+def noop(*args, **kwargs):
+    pass
+
+
 def print_migration_warning(apps, schema_editor):
     if settings.TESTING or settings.SKIP_HEAVY_MIGRATIONS:
         return
@@ -74,4 +78,7 @@ class Migration(migrations.Migration):
         ('main', '0015_alter_metadata_data_file_alter_metadata_date_created_and_more'),
     ]
 
-    operations = [migrations.RunPython(print_migration_warning), *get_operations()]
+    operations = [
+        migrations.RunPython(print_migration_warning, noop),
+        *get_operations(),
+    ]

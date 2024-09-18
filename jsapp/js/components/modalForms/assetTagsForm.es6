@@ -79,8 +79,7 @@ export const AssetTagsForm = observer(class AssetTagsForm extends React.Componen
 
         <bem.Modal__footer>
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             isSubmit
             onClick={this.onSubmit.bind(this)}

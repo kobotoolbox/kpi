@@ -1,8 +1,8 @@
-
 import pytest
 import responses
 from constance.test import override_config
-from mock import patch
+from ipaddress import ip_address
+from mock import patch, MagicMock
 from rest_framework import status
 from ssrf_protect.exceptions import SSRFProtectException
 
@@ -10,13 +10,15 @@ from kobo.apps.hook.constants import (
     HOOK_LOG_FAILED,
     KOBO_INTERNAL_ERROR_STATUS_CODE
 )
-from .hook_test_case import HookTestCase, MockSSRFProtect
+from .hook_test_case import HookTestCase
 
 
 class SSRFHookTestCase(HookTestCase):
 
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MagicMock(return_value=ip_address('1.2.3.4'))
+    )
     @override_config(SSRF_DENIED_IP_ADDRESS='1.2.3.4')
     @responses.activate
     def test_send_with_ssrf_options(self):
@@ -35,6 +37,8 @@ class SSRFHookTestCase(HookTestCase):
                       content_type='application/json')
 
         # Try to send data to external endpoint
+        # Note: it should failed because we explicitly deny 1.2.3.4 and
+        # SSRFProtect._get_ip_address is mocked to return 1.2.3.4
         with pytest.raises(SSRFProtectException):
             service_definition.send()
 

@@ -1751,3 +1751,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'

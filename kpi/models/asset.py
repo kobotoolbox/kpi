@@ -8,7 +8,7 @@ from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch, Q, F
@@ -233,6 +233,9 @@ class Asset(
         indexes = [
             GinIndex(
                 F('settings__country_codes'), name='settings__country_codes_idx'
+            ),
+            BTreeIndex(
+                F('_deployment_data__formid'), name='deployment_data__formid_idx'
             ),
         ]
 
@@ -741,15 +744,6 @@ class Asset(
                 return list(perms)
 
         return None
-
-    @property
-    def has_active_hooks(self):
-        """
-        Returns if asset has active hooks.
-        Useful to update `kc.XForm.has_kpi_hooks` field.
-        :return: {boolean}
-        """
-        return self.hooks.filter(active=True).exists()
 
     @property
     def has_advanced_features(self):

@@ -148,9 +148,8 @@ export default function SidebarDisplaySettings() {
     <div className={styles.root}>
       <Button
         size='m'
-        type='bare'
+        type='text'
         label={t('Display settings')}
-        color='dark-blue'
         startIcon='settings'
         onClick={() => setIsModalOpen(true)}
       />
@@ -262,8 +261,7 @@ export default function SidebarDisplaySettings() {
           {/* This button resets the displays for current tab. */}
           <Button
             label={t('Reset')}
-            type='frame'
-            color='red'
+            type='secondary-danger'
             size='m'
             onClick={() => {
               store.resetDisplays(activeTab);
@@ -280,8 +278,7 @@ export default function SidebarDisplaySettings() {
           {/* Applies current selection of displays to the sidebar. */}
           <Button
             label={t('Apply selection')}
-            type='full'
-            color='blue'
+            type='primary'
             size='m'
             onClick={() => {
               applyFieldsSelection();

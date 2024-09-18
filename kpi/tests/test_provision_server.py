@@ -13,7 +13,7 @@ class ProvisionServerCommandTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # Delete any social app that could be added by migration
+        # Delete any social app that could have been added by migration
         # `0007_add_providers_from_environment_to_db`
         SocialApp.objects.all().delete()
 

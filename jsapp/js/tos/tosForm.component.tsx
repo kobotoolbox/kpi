@@ -225,8 +225,7 @@ export default function TOSForm() {
 
       <footer className={styles.footer}>
         <Button
-          type={'full'}
-          color={'blue'}
+          type='primary'
           size={'l'}
           isSubmit
           isFullWidth
@@ -235,8 +234,7 @@ export default function TOSForm() {
         />
 
         <Button
-          type={'bare'}
-          color={'dark-blue'}
+          type='secondary'
           size={'l'}
           isFullWidth
           isDisabled={isFormPending}

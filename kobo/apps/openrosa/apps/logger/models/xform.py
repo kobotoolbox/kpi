@@ -95,7 +95,7 @@ class XForm(AbstractTimeStampedModel):
 
     tags = TaggableManager()
 
-    kpi_asset_uid = models.CharField(max_length=32, null=True)
+    kpi_asset_uid = models.CharField(max_length=32, null=True, db_index=True)
     pending_delete = models.BooleanField(default=False)
 
     class Meta:
@@ -114,9 +114,6 @@ class XForm(AbstractTimeStampedModel):
     objects = XFormWithoutPendingDeletedManager()
     all_objects = XFormAllManager()
 
-    def file_name(self):
-        return self.id_string + '.xml'
-
     @property
     def asset(self):
         """
@@ -127,11 +124,16 @@ class XForm(AbstractTimeStampedModel):
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
         if not hasattr(self, '_cache_asset'):
+            # We only need to load the PK because XMLFormWithDisclaimer
+            # uses an Asset object only to narrow down a query with a filter,
+            # thus uses only asset PK
             try:
-                asset = Asset.objects.get(uid=self.kpi_asset_uid)
+                asset = Asset.objects.only('pk').get(uid=self.kpi_asset_uid)
             except Asset.DoesNotExist:
                 try:
-                    asset = Asset.objects.get(_deployment_data__formid=self.pk)
+                    asset = Asset.objects.only('pk').get(
+                        _deployment_data__formid=self.pk
+                    )
                 except Asset.DoesNotExist:
                     # An `Asset` object needs to be returned to avoid 500 while
                     # Enketo is fetching for project XML (e.g: /formList, /manifest)
@@ -140,6 +142,16 @@ class XForm(AbstractTimeStampedModel):
             setattr(self, '_cache_asset', asset)
 
         return getattr(self, '_cache_asset')
+
+    def file_name(self):
+        return self.id_string + '.xml'
+
+    @property
+    def prefixed_hash(self):
+        """
+        Matches what's returned by the KC API
+        """
+        return f'md5:{self.md5_hash}'
 
     def url(self):
         return reverse(
