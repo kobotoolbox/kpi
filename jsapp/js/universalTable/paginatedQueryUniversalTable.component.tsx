@@ -60,7 +60,7 @@ export default function PaginatedQueryUniversalTable<DataItem>(
       pageIndex={currentPageIndex}
       pageCount={availablePages}
       pageSize={pagination.limit}
-      pageSizes={PAGE_SIZES}
+      pageSizeOptions={PAGE_SIZES}
       onRequestPaginationChange={(newPageInfo, oldPageInfo) => {
         // Calculate new offset and limit from what we've got
         let newOffset = newPageInfo.pageIndex * newPageInfo.pageSize;
