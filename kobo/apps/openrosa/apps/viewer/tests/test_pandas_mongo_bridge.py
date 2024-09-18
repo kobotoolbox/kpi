@@ -62,12 +62,16 @@ class TestPandasMongoBridge(TestBase):
         if add_submission_uuid:
             xml_submission_file_path = (
                 self._add_submission_uuid_to_submission_xml(
-                    xml_submission_file_path, self.xform
+                    xml_submission_file_path
                 )
             )
-        self._make_submission(
-            xml_submission_file_path, forced_submission_time=submission_time)
-        self.assertEqual(self.response.status_code, 201)
+        try:
+            self._make_submission(
+                xml_submission_file_path, forced_submission_time=submission_time)
+            self.assertEqual(self.response.status_code, 201)
+        finally:
+            if add_submission_uuid:
+                os.remove(xml_submission_file_path)
 
     def _publish_single_level_repeat_form(self):
         self._publish_xls_fixture_set_xform("new_repeats")

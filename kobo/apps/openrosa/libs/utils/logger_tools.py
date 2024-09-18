@@ -170,16 +170,13 @@ def create_instance(
     # get new and deprecated uuid's
     new_uuid = get_uuid_from_xml(xml)
     if not new_uuid:
-        raise InstanceIdMissingError()
+        raise InstanceIdMissingError
 
     with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
         if not lock_acquired:
-            raise DuplicateInstanceError()
+            raise DuplicateInstanceError
 
-        # XML matches are identified by identical content hash OR, when a
-        # content hash is not present, by string comparison of the full
-        # content, which is slow! Use the management command
-        # `populate_xml_hashes_for_instances` to hash existing submissions
+        # Check for an existing instance
         existing_instance = Instance.objects.filter(
             xml_hash=xml_hash,
             xform__user=xform.user,
@@ -190,7 +187,7 @@ def create_instance(
             # ensure we have saved the extra attachments
             new_attachments, _ = save_attachments(existing_instance, media_files)
             if not new_attachments:
-                raise DuplicateInstanceError()
+                raise DuplicateInstanceError
             else:
                 # Update Mongo via the related ParsedInstance
                 existing_instance.parsed_instance.save(asynchronous=False)
@@ -847,11 +844,8 @@ def _get_instance(
     """
     # check if it is an edit submission
     old_uuid = get_deprecated_uuid_from_xml(xml)
-    instances = Instance.objects.filter(uuid=old_uuid)
-
-    if instances:
+    if old_uuid and (instance := Instance.objects.filter(uuid=old_uuid).first()):
         # edits
-        instance = instances[0]
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
             xml=instance.xml, xform_instance=instance, uuid=old_uuid)
@@ -860,8 +854,10 @@ def _get_instance(
         instance.uuid = new_uuid
         try:
             instance.save()
-        except IntegrityError:
-            raise ConflictingSubmissionUUIDError
+        except IntegrityError as e:
+            if 'root_uuid' in str(e):
+                raise ConflictingSubmissionUUIDError
+            raise
     else:
         submitted_by = (
             get_database_user(request.user)
@@ -882,8 +878,10 @@ def _get_instance(
             instance.defer_counting = True
         try:
             instance.save()
-        except IntegrityError:
-            raise ConflictingSubmissionUUIDError
+        except IntegrityError as e:
+            if 'root_uuid' in str(e):
+                raise ConflictingSubmissionUUIDError
+            raise
     return instance
 
 

@@ -1595,8 +1595,10 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         submission_xml_root = fromstring_preserve_root_xmlns(submission_xml)
         assert submission_json['_id'] == submission['_id']
         assert submission_xml_root.find('./find_this').text == 'hello!'
-        assert (submission_xml_root.find('./meta/instanceID').text ==
-                'uuid:9710c729-00a5-41f1-b740-8dd618bb4a49')
+        assert (
+            submission_xml_root.find('./meta/instanceID').text
+            == 'uuid:9710c729-00a5-41f1-b740-8dd618bb4a49'
+        )
         assert submission_xml_root.find('./formhub/uuid') is None
 
         # Get edit endpoint

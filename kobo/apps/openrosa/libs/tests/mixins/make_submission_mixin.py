@@ -40,12 +40,12 @@ class MakeSubmissionMixin:
 
         return path
 
-    def _add_submission_uuid_to_submission_xml(self, path, xform):
+    def _add_submission_uuid_to_submission_xml(self, path):
         with open(path, 'rb') as _file:
             xml_content = _file.read().decode()
 
         # Find the closing tag of the root element (e.g., </new_repeats>)
-        closing_tag_index = xml_content.rfind('</new_repeats>')
+        closing_tag_index = xml_content.rfind(f'</{self.xform.id_string}>')
 
         if closing_tag_index == -1:
             raise ValueError('Root element closing tag not found')
