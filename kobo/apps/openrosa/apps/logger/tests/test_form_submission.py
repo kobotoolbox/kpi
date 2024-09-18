@@ -284,6 +284,67 @@ class TestFormSubmission(TestBase):
             Attachment.objects.filter(instance=initial_instance).count(), 1
         )
 
+    def test_duplicate_submission_with_same_content_but_with_different_attachment(self):
+        """
+        Test duplicate submission handling:
+        - New submission without attachment should succeed.
+        - Same submission with an attachment should succeed,
+        adding the attachment.
+        - Resubmission with the same attachment should be rejected
+         with a 202 status code.
+        - Resubmission with a different attachment (same file name) should be
+         rejected with a 202 status code.
+        """
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment',
+            'tutorial_2012-06-27_11-27-53_w_attachment.xml',
+        )
+        media_file_path1 = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment',
+            '1335783522563.jpg',
+        )
+        media_file_path2 = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment/attachment_with_different_content',
+            '1335783522563.jpg',
+        )
+        initial_instance_count = Instance.objects.count()
+
+        # Test submission with XML file
+        self._make_submission(xml_submission_file_path)
+        initial_instance = Instance.objects.last()
+        self.assertEqual(self.response.status_code, 201)
+        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
+
+        # Test duplicate submission with attachment
+        with open(media_file_path1, 'rb') as media_file:
+            self._make_submission(xml_submission_file_path, media_file=media_file)
+        self.assertEqual(self.response.status_code, 201)
+        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
+        self.assertEqual(
+            Attachment.objects.filter(instance=initial_instance).count(), 1
+        )
+
+        # Test duplicate submission with same attachment
+        with open(media_file_path1, 'rb') as media_file:
+            self._make_submission(xml_submission_file_path, media_file=media_file)
+        self.assertEqual(self.response.status_code, 202)
+        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
+        self.assertEqual(
+            Attachment.objects.filter(instance=initial_instance).count(), 1
+        )
+
+        # Test duplicate submission with same attachment (different file name)
+        with open(media_file_path2, 'rb') as media_file2:
+            self._make_submission(xml_submission_file_path, media_file=media_file2)
+        self.assertEqual(self.response.status_code, 202)
+        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
+        self.assertEqual(
+            Attachment.objects.filter(instance=initial_instance).count(), 1
+        )
+
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),

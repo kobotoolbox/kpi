@@ -668,9 +668,7 @@ def save_attachments(
             media_file=attachment_filename,
             mimetype=f.content_type,
         ).first()
-        if existing_attachment and (
-            existing_attachment.file_hash == hash_attachment_contents(f.read())
-        ):
+        if existing_attachment:
             # We already have this attachment!
             continue
         f.seek(0)
