@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch, Mock
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -9,7 +10,7 @@ from kobo.apps.audit_log.models import (
     AccessLog,
     AuditAction,
     AuditLog,
-    AuditType,
+    AuditType, AccessLogManager,
 )
 from kobo.apps.audit_log.serializers import AuditLogSerializer
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
@@ -167,6 +168,7 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         super().setUp()
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
+
         # generate 3 access logs, 2 for user1, 1 for user2
         AccessLog.objects.create(user=user1)
         AccessLog.objects.create(user=user1)
@@ -191,12 +193,11 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
     def test_show_user_access_logs_correctly_filters_to_user(self):
         user1 = User.objects.get(username='someuser')
         self.force_login_user(user1)
+
         response = self.client.get(self.url)
-        # only return user1's access logs
-        self.assert_audit_log_results_equal(
-            response=response,
-            expected_kwargs={'action': AuditAction.AUTH, 'user': user1},
-        )
+        self.assertEqual(response.data['count'], 2)
+        for audit_log_dict in response.data['results']:
+            self.assertEqual(audit_log_dict['username'], 'someuser')
 
     def test_endpoint_ignores_querystring(self):
         # make sure a user can't get someone else's access logs
@@ -204,9 +205,41 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         self.force_login_user(user1)
         response = self.client.get(f'{self.url}?q=user__username:anotheruser')
         # check we still only got logs for the logged-in user
+        self.assertEqual(response.data['count'], 2)
         for audit_log_dict in response.data['results']:
             self.assertEquals(audit_log_dict['username'], 'someuser')
 
+    def test_endpoint_orders_results_by_date_desc(self):
+        today = timezone.now()
+        yesterday = today - timedelta(days=1)
+        admin = User.objects.get(username='admin')
+        self.force_login_user(admin)
+        AccessLog.objects.create(user=admin, date_created=today)
+        AccessLog.objects.create(user=admin, date_created=yesterday)
+        response = self.client.get(self.url)
+        first_result = response.data['results'][0]
+        second_result = response.data['results'][1]
+        self.assertEqual(
+            first_result['date_created'], today.strftime('%Y-%m-%dT%H:%M:%SZ')
+        )
+        self.assertEqual(
+            second_result['date_created'],
+            yesterday.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        )
+
+    def test_endpoint_queries_for_submission_groups(self):
+        # basic plumbing test to ensure we're using the right queryset
+        # the queryset itself is tested in test_models.py
+        admin = User.objects.get(username='admin')
+        self.force_login_user(admin)
+        mock_manager = Mock(spec=AccessLogManager)
+        mock_manager.with_submissions_grouped.return_value = AccessLog.objects.none()
+        with patch('kobo.apps.audit_log.views.AccessLog.objects',
+            return_value=mock_manager,
+        ) as patched_query:
+            response = self.client.get(self.url)
+        # paginated endpoints call the query twice, once for data, once for count
+        self.assertEqual(patched_query.call_count, 2)
 
 class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
 
