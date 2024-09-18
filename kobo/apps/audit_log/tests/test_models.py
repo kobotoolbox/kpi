@@ -12,10 +12,14 @@ from kobo.apps.audit_log.models import (
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     AccessLog,
     AuditAction,
-    AuditType, AuditLog,
+    AuditLog,
+    AuditType,
 )
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import ACCESS_LOG_SUBMISSION_AUTH_TYPE, ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE
+from kpi.constants import (
+    ACCESS_LOG_SUBMISSION_AUTH_TYPE,
+    ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+)
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -192,6 +196,7 @@ class AccessLogModelTestCase(BaseTestCase):
             },
         )
 
+
 class AccessLogModelManagerTestCase(BaseTestCase):
     fixtures = ['test_data']
 
@@ -199,16 +204,14 @@ class AccessLogModelManagerTestCase(BaseTestCase):
         user = User.objects.get(username='someuser')
         non_access_log = AuditLog.objects.create(
             user=user,
-            log_type = AuditType.DATA_EDITING,
-            action = AuditAction.CREATE,
-            object_id = 12345,
+            log_type=AuditType.DATA_EDITING,
+            action=AuditAction.CREATE,
+            object_id=12345,
         )
         access_log_1 = AccessLog.objects.create(
             user=user,
         )
-        access_log_2 = AccessLog.objects.create(
-            user=user
-        )
+        access_log_2 = AccessLog.objects.create(user=user)
         all_access_logs_query = AccessLog.objects.all()
         self.assertEqual(all_access_logs_query.count(), 2)
         self.assertEqual(all_access_logs_query.first().id, access_log_1.id)
@@ -217,8 +220,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
     def test_with_group_key_uses_id_for_non_submissions(self):
         user = User.objects.get(username='someuser')
         access_log = AccessLog.objects.create(
-            user=user,
-            metadata={'foo':'bar'}
+            user=user, metadata={'foo': 'bar'}
         )
         # the group key is calculated when fetching from the db
         refetched = AccessLog.objects.with_group_key().get(pk=access_log.id)
@@ -226,11 +228,13 @@ class AccessLogModelManagerTestCase(BaseTestCase):
 
     def test_with_group_key_uses_hour_plus_user_for_submissions(self):
         user = User.objects.get(username='someuser')
-        jan_1_1_30_am = datetime.datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
+        jan_1_1_30_am = datetime.datetime.fromisoformat(
+            '2024-01-01T01:30:25.123456+00:00'
+        )
         access_log = AccessLog.objects.create(
             user=user,
-            metadata={'auth_type':ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created = jan_1_1_30_am
+            metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
+            date_created=jan_1_1_30_am,
         )
         # group key should be date truncated to the hour followed by user uid
         expected_group_key = f'2024-01-01 01:00:00{user.extra_details.uid}'
@@ -239,61 +243,80 @@ class AccessLogModelManagerTestCase(BaseTestCase):
         self.assertEqual(refetched.group_key, expected_group_key)
 
     def test_with_submissions_grouped_preserves_non_submissions(self):
-        jan_1_1_30_am = datetime.datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
-        jan_1_1_45_am = datetime.datetime.fromisoformat('2024-01-01T01:45:25.123456+00:00')
+        jan_1_1_30_am = datetime.datetime.fromisoformat(
+            '2024-01-01T01:30:25.123456+00:00'
+        )
+        jan_1_1_45_am = datetime.datetime.fromisoformat(
+            '2024-01-01T01:45:25.123456+00:00'
+        )
         user = User.objects.get(username='someuser')
         log_1 = AccessLog.objects.create(
             user=user,
-            metadata={'auth_type': 'Token', 'identify_me':'1'},
-            date_created = jan_1_1_30_am
+            metadata={'auth_type': 'Token', 'identify_me': '1'},
+            date_created=jan_1_1_30_am,
         )
         log_2 = AccessLog.objects.create(
             user=user,
             metadata={'auth_type': 'Token', 'identify_me': '2'},
-            date_created=jan_1_1_45_am
+            date_created=jan_1_1_45_am,
         )
         # order by date created so we can use first() and last()
-        results = AccessLog.objects.with_submissions_grouped().order_by('date_created')
+        results = AccessLog.objects.with_submissions_grouped().order_by(
+            'date_created'
+        )
         self.assertEqual(results.count(), 2)
 
         first_result = results.first()
-        self.assertDictEqual(first_result['metadata'], {'auth_type': 'Token', 'identify_me':'1'})
+        self.assertDictEqual(
+            first_result['metadata'], {'auth_type': 'Token', 'identify_me': '1'}
+        )
         self.assertEqual(first_result['date_created'], jan_1_1_30_am)
 
         second_result = results.last()
-        self.assertDictEqual(second_result['metadata'], {'auth_type': 'Token', 'identify_me':'2'})
+        self.assertDictEqual(
+            second_result['metadata'],
+            {'auth_type': 'Token', 'identify_me': '2'},
+        )
         self.assertEqual(second_result['date_created'], jan_1_1_45_am)
 
     def test_with_submissions_grouped_groups_submissions(self):
-        jan_1_1_30_am = datetime.datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
-        jan_1_1_45_am = datetime.datetime.fromisoformat('2024-01-01T01:45:25.123456+00:00')
-        jan_1_2_15_am = datetime.datetime.fromisoformat('2024-01-01T02:15:25.123456+00:00')
+        jan_1_1_30_am = datetime.datetime.fromisoformat(
+            '2024-01-01T01:30:25.123456+00:00'
+        )
+        jan_1_1_45_am = datetime.datetime.fromisoformat(
+            '2024-01-01T01:45:25.123456+00:00'
+        )
+        jan_1_2_15_am = datetime.datetime.fromisoformat(
+            '2024-01-01T02:15:25.123456+00:00'
+        )
 
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
         user_1_submission_1 = AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created = jan_1_1_30_am
+            date_created=jan_1_1_30_am,
         )
         user1_submission_2 = AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created = jan_1_1_45_am
+            date_created=jan_1_1_45_am,
         )
         user1_submission_3 = AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created = jan_1_2_15_am
+            date_created=jan_1_2_15_am,
         )
         user2_submission_1 = AccessLog.objects.create(
             user=user2,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created = jan_1_1_30_am
+            date_created=jan_1_1_30_am,
         )
 
         # order by date created so we can use first() and last()
-        results = AccessLog.objects.with_submissions_grouped().order_by('date_created')
+        results = AccessLog.objects.with_submissions_grouped().order_by(
+            'date_created'
+        )
         # should get 3 submission groups, 2 for user1, and 1 for user2
         self.assertEqual(results.count(), 3)
 
@@ -302,16 +325,24 @@ class AccessLogModelManagerTestCase(BaseTestCase):
         # first group should have 1/1/2024 1:30am as the date created
         user_1_group_1 = user_1_groups.first()
         self.assertEqual(user_1_group_1['date_created'], jan_1_1_30_am)
-        self.assertEqual(user_1_group_1['metadata']['auth_type'], ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE)
+        self.assertEqual(
+            user_1_group_1['metadata']['auth_type'],
+            ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+        )
         # second group should have 1/1/2024 2:15am as the date created
         user_1_group_2 = user_1_groups.last()
         self.assertEqual(user_1_group_2['date_created'], jan_1_2_15_am)
-        self.assertEqual(user_1_group_2['metadata']['auth_type'], ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE)
+        self.assertEqual(
+            user_1_group_2['metadata']['auth_type'],
+            ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+        )
 
         # should only
         user_2_groups = results.filter(user__username='anotheruser')
         self.assertEqual(user_2_groups.count(), 1)
         user_2_group_1 = user_2_groups.first()
         self.assertEqual(user_2_group_1['count'], 1)
-        self.assertEqual(user_2_group_1['metadata']['auth_type'], ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE)
-
+        self.assertEqual(
+            user_2_group_1['metadata']['auth_type'],
+            ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+        )

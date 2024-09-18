@@ -1,6 +1,6 @@
-from django.db.models.functions import Coalesce, Trunc, Concat, Cast
-from django.db.models import When, Count, Case, F, Value, Min
 from django.db import models
+from django.db.models import Case, Count, F, Min, Value, When
+from django.db.models.functions import Cast, Coalesce, Concat, Trunc
 from rest_framework import mixins, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
@@ -9,7 +9,7 @@ from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditAction, AuditLog
 from .permissions import SuperUserPermission
-from .serializers import AuditLogSerializer, AccessLogSerializer
+from .serializers import AccessLogSerializer, AuditLogSerializer
 
 
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -141,9 +141,10 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
+    queryset = AccessLog.objects.with_submissions_grouped().order_by(
+        '-date_created'
+    )
     serializer_class = AccessLogSerializer
-
 
 
 class AccessLogViewSet(AuditLogViewSet):
@@ -201,7 +202,10 @@ class AccessLogViewSet(AuditLogViewSet):
     will return entries 100-149
 
     """
-    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
+
+    queryset = AccessLog.objects.with_submissions_grouped().order_by(
+        '-date_created'
+    )
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer

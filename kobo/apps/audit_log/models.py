@@ -5,9 +5,9 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Case, Count, F, Min, Value, When
+from django.db.models.functions import Cast, Coalesce, Concat, Trunc
 from django.utils import timezone
-from django.db.models.functions import Coalesce, Trunc, Concat, Cast
-from django.db.models import When, Count, Case, F, Value, Min
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -17,7 +17,8 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
 from kpi.constants import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
-    ACCESS_LOG_UNKNOWN_AUTH_TYPE, ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.utils.log import logging
@@ -176,7 +177,9 @@ class AccessLogManager(models.Manager):
                         # override the metadata for submission groups
                         metadata__auth_type=ACCESS_LOG_SUBMISSION_AUTH_TYPE,
                         then=Value(
-                            {'auth_type': ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE},
+                            {
+                                'auth_type': ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE
+                            },
                             models.JSONField(),
                         ),
                     ),

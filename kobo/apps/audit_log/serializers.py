@@ -47,6 +47,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
     def get_username(self, audit_log):
         return audit_log.user.username
 
+
 class AccessLogSerializer(serializers.Serializer):
 
     user = UsernameHyperlinkField(source='user__username')
@@ -58,4 +59,3 @@ class AccessLogSerializer(serializers.Serializer):
 
     def get_date_created(self, audit_log):
         return audit_log['date_created'].strftime('%Y-%m-%dT%H:%M:%SZ')
-

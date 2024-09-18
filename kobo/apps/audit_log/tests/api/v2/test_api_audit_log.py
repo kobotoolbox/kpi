@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -8,10 +8,10 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.models import (
     AccessLog,
+    AccessLogManager,
     AuditAction,
     AuditLog,
     AuditType,
-    AccessLogManager,
 )
 from kobo.apps.audit_log.serializers import AuditLogSerializer
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
@@ -318,7 +318,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         self.assertEqual(group1['username'], 'anotheruser')
         self.assertEqual(group1['count'], 2)
 
-        #user1's group
+        # user1's group
         group2 = response.data['results'][1]
         self.assertEqual(
             group2['metadata']['auth_type'],
@@ -445,4 +445,3 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
             group['metadata']['auth_type'],
             ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
         )
-
