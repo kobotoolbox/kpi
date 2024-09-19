@@ -21,7 +21,6 @@ from kpi.views.v2.attachment import AttachmentViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.import_task import ImportTaskViewSet
-from kpi.views.v2.logout import logout_from_all_devices
 from kpi.views.v2.paired_data import PairedDataViewset
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.service_usage import ServiceUsageViewSet
