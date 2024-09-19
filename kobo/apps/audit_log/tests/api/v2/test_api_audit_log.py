@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kobo.apps.audit_log.models import AccessLog, AuditAction, AuditLog, AuditType
 from kobo.apps.audit_log.serializers import AuditLogSerializer
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
@@ -25,20 +25,6 @@ class BaseAuditLogTestCase(BaseTestCase):
         super(BaseAuditLogTestCase, self).setUp()
         self.url = reverse(self._get_endpoint(self.get_endpoint_basename()))
 
-    def create_access_log(self, user, date_created=None):
-        params = {
-            'user': user,
-            'app_label': 'kobo_auth',
-            'model_name': 'user',
-            'action': AuditAction.AUTH,
-            'object_id': user.id,
-        }
-        if date_created is not None:
-            params['date_created'] = date_created
-        log = AuditLog.objects.create(**params)
-        log.save()
-        return log
-
     def login_user(self, username, password):
         # always skip creating the access logs for logins so we have full control over the logs in the test db
         with skip_login_access_log():
@@ -52,9 +38,7 @@ class BaseAuditLogTestCase(BaseTestCase):
     def assert_audit_log_results_equal(self, response, expected_kwargs):
         # utility method for tests that are just comparing the results of an api call to the results of
         # manually applying the expected query (simple filters only)
-        expected = AuditLog.objects.filter(**expected_kwargs).order_by(
-            '-date_created'
-        )
+        expected = AccessLog.objects.filter(**expected_kwargs).order_by('-date_created')
         expected_count = expected.count()
         serializer = AuditLogSerializer(
             expected, many=True, context=response.renderer_context
@@ -175,9 +159,9 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
         # generate 3 access logs, 2 for user1, 1 for user2
-        self.create_access_log(user1)
-        self.create_access_log(user1)
-        self.create_access_log(user2)
+        AccessLog.objects.create(user=user1)
+        AccessLog.objects.create(user=user1)
+        AccessLog.objects.create(user=user2)
 
         # create a random non-auth audit log
         log = AuditLog.objects.create(
@@ -225,19 +209,18 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         super_user = User.objects.get(username='admin')
         user2 = User.objects.get(username='anotheruser')
         # generate 3 access logs, 2 for superuser, 1 for user2
-        self.create_access_log(super_user)
-        self.create_access_log(super_user)
-        self.create_access_log(user2)
+        AccessLog.objects.create(user=super_user)
+        AccessLog.objects.create(user=super_user)
+        AccessLog.objects.create(user=user2)
 
         # create a random non-auth audit log
-        log = AuditLog.objects.create(
+        AuditLog.objects.create(
             user=User.objects.get(username='someuser'),
             app_label='foo',
             model_name='bar',
             object_id=1,
             action=AuditAction.DELETE,
         )
-        log.save()
         self.assertEqual(AuditLog.objects.count(), 4)
 
     def test_list_as_anonymous_returns_unauthorized(self):
@@ -272,8 +255,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
             self.client.force_login(User.objects.get(username='admin'))
         tomorrow = timezone.now() + timedelta(days=1)
         tomorrow_str = tomorrow.strftime('%Y-%m-%d')
-        log = self.create_access_log(user=another_user, date_created=tomorrow)
-
+        log = AccessLog.objects.create(user=another_user, date_created=tomorrow)
         response = self.client.get(
             f'{self.url}?q=date_created__gte:"{tomorrow_str}"'
         )

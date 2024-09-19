@@ -4,7 +4,7 @@ from unittest.mock import patch
 from allauth.account.models import EmailAddress
 from django.contrib.auth.signals import user_logged_in
 from django.test import override_settings
-from django.urls import resolve, reverse
+from django.urls import reverse
 from trench.utils import get_mfa_model
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog
@@ -42,7 +42,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         cls.user.backend = 'django.contrib.auth.backends.ModelBackend'
         cls.user.save()
 
-    @patch('kobo.apps.audit_log.signals.AuditLog.create_access_log_for_request')
+    @patch('kobo.apps.audit_log.signals.AccessLog.create_from_request')
     def test_audit_log_created_on_login(self, patched_create):
         """
         Basic plumbing test to make sure the signal is hooked up
