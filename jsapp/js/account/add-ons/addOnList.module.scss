@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/breakpoints';
 @use 'scss/sizes';
 @use 'js/account/plans/plan.module';
@@ -41,7 +41,7 @@
 }
 
 .price {
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }
 
 .productName {

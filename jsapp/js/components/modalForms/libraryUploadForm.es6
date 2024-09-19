@@ -13,6 +13,7 @@ import {renderBackButton} from './modalHelpers';
 import {validFileTypes} from 'utils';
 import {ASSET_TYPES} from 'js/constants';
 import envStore from 'js/envStore';
+import Button from 'js/components/common/button';
 
 /**
  * @prop {function} onSetModalTitle
@@ -130,14 +131,14 @@ const LibraryUploadForm = observer(class LibraryUploadForm extends React.Compone
         <bem.Modal__footer>
           {renderBackButton(this.state.isPending)}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={!this.isSubmitEnabled()}
-          >
-            {t('Upload')}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={!this.isSubmitEnabled()}
+            label={t('Upload')}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );

@@ -29,8 +29,7 @@ export default function StepViewer() {
 
         <nav className={bodyStyles.transxHeaderButtons}>
           <Button
-            type='bare'
-            color='storm'
+            type='text'
             size='s'
             startIcon='edit'
             onClick={openEditor}
@@ -42,8 +41,7 @@ export default function StepViewer() {
           />
 
           <Button
-            type='bare'
-            color='storm'
+            type='text'
             size='s'
             startIcon='trash'
             onClick={deleteTranscript}

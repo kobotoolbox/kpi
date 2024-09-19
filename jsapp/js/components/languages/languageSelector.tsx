@@ -276,8 +276,7 @@ class LanguageSelector extends React.Component<
     return (
       <li key={language.code}>
         <Button
-          type='bare'
-          color='storm'
+          type='text'
           size='m'
           label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
           onClick={this.selectLanguage.bind(this, language)}
@@ -419,8 +418,7 @@ class LanguageSelector extends React.Component<
         {this.isCannotFindVisible &&
           <bem.LanguageSelector__helpBar>
             <Button
-              type='bare'
-              color='blue'
+              type='text'
               startIcon='information'
               size='s'
               onClick={this.openSupportPage.bind(this)}

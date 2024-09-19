@@ -84,17 +84,18 @@ export default class AssetRoute extends React.Component<
    * from Back End.
    */
   onAssetAccessTypeChanged(setSubscribed: boolean) {
-    let newAsset = clonedeep(this.state.asset);
+    const newAsset = clonedeep(this.state.asset);
     if (newAsset) {
       if (setSubscribed && newAsset.access_types === null) {
         newAsset.access_types = [ACCESS_TYPES.subscribed];
       } else if (setSubscribed && newAsset.access_types !== null) {
         newAsset.access_types.push(ACCESS_TYPES.subscribed);
       } else if (!setSubscribed && newAsset.access_types !== null) {
-        newAsset.access_types.splice(
-          newAsset.access_types.indexOf(ACCESS_TYPES.subscribed),
-          1
-        );
+        // Remove any 'subscribed' item from the array. There is a bug where
+        // duplicated items are present in the array, so we need to make sure
+        // all of them are removed.
+        newAsset.access_types = newAsset.access_types.filter((item) => item !== ACCESS_TYPES.subscribed);
+
         // Cleanup if empty array is left
         if (newAsset.access_types.length === 0) {
           newAsset.access_types = null;

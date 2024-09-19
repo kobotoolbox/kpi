@@ -1,18 +1,17 @@
 import React from 'react';
-import bem from 'js/bem';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 export function renderBackButton(isDisabled = false) {
   if (pageState.hasPreviousModal()) {
     return (
-      <bem.KoboButton
-        m='whitegray'
-        type='button'
-        onClick={pageState.switchToPreviousModal}
-        disabled={isDisabled}
-      >
-        {t('Back')}
-      </bem.KoboButton>
+      <Button
+        type='secondary'
+        size='l'
+        onClick={pageState.switchToPreviousModal.bind(pageState)}
+        isDisabled={isDisabled}
+        label={t('Back')}
+      />
     );
   } else {
     return null;

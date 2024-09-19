@@ -76,7 +76,9 @@ export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewA
  * Returns the index of language or null if not found.
  */
 export function getLanguageIndex(asset: AssetResponse, langString: string) {
-  let foundIndex = null;
+  // Return -1 instead of null as that would allow
+  // `getQuestionOrChoiceDisplayName` to defualt to xml names.
+  let foundIndex = -1;
 
   if (
     Array.isArray(asset.summary?.languages) &&
@@ -224,6 +226,11 @@ export function getQuestionOrChoiceDisplayName(
   }
 
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
+    // If the user hasn't made translations yet for a form language show
+    // the xml names instead of blank.
+    if (questionOrChoice.label[translationIndex] === null) {
+      return getRowName(questionOrChoice);
+    }
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
     // in rare cases the label could be a string

@@ -11,8 +11,8 @@ import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from 'jsapp/js/projects/projectsTable/projectsTable';
-import {truncateNumber} from 'jsapp/js/utils';
-import {UsageContext, useUsage} from './useUsage.hook';
+import {convertSecondsToMinutes} from 'jsapp/js/utils';
+import {UsageContext} from './useUsage.hook';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
@@ -132,10 +132,8 @@ const ProjectBreakdown = () => {
         `submission_count_current_${usage.trackingPeriod}`
       ].toLocaleString();
 
-    const periodASRSeconds = truncateNumber(
-      project[`nlp_usage_current_${usage.trackingPeriod}`]
-        .total_nlp_asr_seconds / 60,
-      1
+    const periodASRSeconds = convertSecondsToMinutes(
+      project[`nlp_usage_current_${usage.trackingPeriod}`].total_nlp_asr_seconds
     ).toLocaleString();
 
     const periodMTCharacters =
@@ -145,7 +143,7 @@ const ProjectBreakdown = () => {
 
     return (
       <tr key={project.asset}>
-        <td>
+        <td dir='auto'>
           <Link
             className={styles.link}
             to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}
@@ -154,9 +152,7 @@ const ProjectBreakdown = () => {
           </Link>
         </td>
         <td>{project.submission_count_all_time.toLocaleString()}</td>
-        <td className={styles.currentMonth}>
-          {periodSubmissions}
-        </td>
+        <td className={styles.currentMonth}>{periodSubmissions}</td>
         <td>{prettyBytes(project.storage_bytes)}</td>
         <td>{periodASRSeconds}</td>
         <td>{periodMTCharacters}</td>
@@ -180,9 +176,8 @@ const ProjectBreakdown = () => {
             </div>
           </div>
           <Button
-            color='storm'
             size='s'
-            type='bare'
+            type='text'
             startIcon='close'
             onClick={dismissIntervalBanner}
           />

@@ -1,5 +1,6 @@
 # coding: utf-8
 from hashlib import sha256
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -36,6 +37,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     SUBMITTED_BY
 )
 from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
+from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
 # need to establish id_string of the xform before we run get_dict since
@@ -67,7 +69,7 @@ def submission_time():
 
 
 @reversion.register
-class Instance(models.Model):
+class Instance(AbstractTimeStampedModel):
     XML_HASH_LENGTH = 64
     DEFAULT_XML_HASH = None
 
@@ -78,12 +80,6 @@ class Instance(models.Model):
     user = models.ForeignKey(User, related_name='instances', null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(XForm, null=True, related_name='instances', on_delete=models.CASCADE)
     survey_type = models.ForeignKey(SurveyType, on_delete=models.CASCADE)
-
-    # shows when we first received this instance
-    date_created = models.DateTimeField(auto_now_add=True)
-
-    # this will end up representing "date last parsed"
-    date_modified = models.DateTimeField(auto_now=True)
 
     # this formerly represented "date instance was deleted".
     # do not use it anymore.
@@ -356,7 +352,7 @@ if Instance.XML_HASH_LENGTH / 2 != sha256().digest_size:
         Instance.XML_HASH_LENGTH, sha256().digest_size))
 
 
-class InstanceHistory(models.Model):
+class InstanceHistory(AbstractTimeStampedModel):
     class Meta:
         app_label = 'logger'
 
@@ -365,6 +361,3 @@ class InstanceHistory(models.Model):
     xml = models.TextField()
     # old instance id
     uuid = models.CharField(max_length=249, default='')
-
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)

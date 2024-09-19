@@ -5,7 +5,6 @@ from urllib.parse import unquote_plus
 
 from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
-from lxml import etree
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
@@ -18,6 +17,7 @@ from kpi.serializers.v1.asset import AssetListSerializer
 from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.utils.xml import check_lxml_fromstring
 
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
@@ -69,7 +69,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         response = self.client.get(reverse('asset-detail',
                                            kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = etree.fromstring(response.content)
+        xml = check_lxml_fromstring(response.content)
         title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertEqual(title_elts[0].text, asset_title)
@@ -83,7 +83,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         response = self.client.get(reverse('asset-detail',
                                            kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = etree.fromstring(response.content)
+        xml = check_lxml_fromstring(response.content)
         title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertEqual(title_elts[0].text, asset_name)
@@ -96,7 +96,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         response = self.client.get(reverse('asset-detail',
                                            kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = etree.fromstring(response.content)
+        xml = check_lxml_fromstring(response.content)
         title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertNotEqual(title_elts[0].text, '')
@@ -119,7 +119,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         response = self.client.get(reverse('asset-detail',
                                            kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = etree.fromstring(response.content)
+        xml = check_lxml_fromstring(response.content)
         group_elts = xml.xpath('./*[local-name()="body"]/*[local-name()="group"]')
         self.assertEqual(len(group_elts), 1)
         self.assertNotIn('relevant', group_elts[0].attrib)

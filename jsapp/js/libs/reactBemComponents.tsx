@@ -37,10 +37,10 @@
 
 */
 import React from 'react';
-import classNames from 'classnames';
-import PropTypes from 'prop-types';
+import cx from 'classnames';
+import type { Argument as ClassnamesArgument } from 'classnames'
 
-const reactCreateBemElement = function(base, el='div'){
+const reactCreateBemElement = function(base: string, el='div'){
   let elUnwrap;
   if (el.match) {
     elUnwrap = el.match(/\<(\w+)\s?\/?\>/);
@@ -49,8 +49,15 @@ const reactCreateBemElement = function(base, el='div'){
     }
   }
 
-  let reduceModify = function (s, modifier){
-    if (Object.prototype.toString.call(modifier) === '[object Object]') {
+  const reduceModify = function (
+    s: {[key: string]: boolean},
+    modifier:
+      {[key: string]: boolean}
+      | string[]
+      | string
+      | undefined
+  ){
+    if (typeof modifier === 'object' && !Array.isArray(modifier)) {
       Object.keys(modifier).forEach(function(key){
         if (modifier[key]) {
           s[`${base}--${key}`] = true;
@@ -62,38 +69,41 @@ const reactCreateBemElement = function(base, el='div'){
     return s;
   };
 
-  class c extends React.Component {
-    render () {
+
+  class c extends React.Component<{
+    m?: string[] | string;
+    className: string;
+    classNames: ClassnamesArgument;
+  }> {
+    render() {
       const props = Object.assign({}, this.props);
 
       // allows modifiers to be a string, an array, or undefined (ignored)
-      let modifier = [].concat(props.m)
+      const modifier = ([] as Array<string | undefined>).concat(props.m)
                       .reduce(reduceModify, {});
-      delete props.m;
 
       // builds the bem classNames, and allows additional classNames
       // to be specified in an object (props.classNames) or normal string
-      props.className = classNames(base,
-                                    modifier,
-                                    props.classNames,
-                                    props.className);
-      delete props.classNames;
+      const className = cx(base,
+                         modifier,
+                         props.classNames,
+                         props.className);
 
-      return React.createElement(el, props);
+      // Omitting m and classNames from new Props
+      // via "Tricky Destructuring Assignment" (https://stackoverflow.com/a/33053362)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const {m, classNames, ...newProps} = props;
+      return React.createElement(el, {...newProps, className});
     }
-  };
-  c.propTypes = {
-    m: PropTypes.any,
-    className: PropTypes.string,
-    classNames: PropTypes.any,
-  };
-  c.displayName = `BEM.${base}`;
+    static displayName = `BEM.${base}`;
+  }
+
   return c;
 };
 
-export function bemComponents (obj) {
+export function bemComponents (obj: {[key: string]: ([string, string?] | string)}) {
   let keys = Object.keys(obj);
-  return Object.freeze(keys.reduce(function(hsh, key){
+  return Object.freeze(keys.reduce(function(hsh: any, key){
     let val = obj[key];
     if (val instanceof Array) {
       hsh[key] = reactCreateBemElement.apply(null, val);

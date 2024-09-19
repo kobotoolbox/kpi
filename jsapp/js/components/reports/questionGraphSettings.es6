@@ -5,6 +5,8 @@ import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import ChartTypePicker from './chartTypePicker.component';
 import ChartColorsPicker from './chartColorsPicker';
+import Button from 'js/components/common/button';
+import cx from 'classnames';
 
 export default class QuestionGraphSettings extends React.Component {
   constructor(props) {
@@ -91,18 +93,13 @@ export default class QuestionGraphSettings extends React.Component {
 
     var tabs = [t('Chart Type'), t('Colors')];
     var modalTabs = tabs.map(function (tab, i) {
-      let tabClassNames = [
-        'mdl-button',
-        'mdl-button--tab',
-      ];
-      if (this.state.activeModalTab === i) {
-        tabClassNames.push('active');
-      }
-
       return (
         <button
-          className={tabClassNames.join(' ')}
-          onClick={this.toggleTab}
+          className={cx({
+            'legacy-modal-tab-button': true,
+            'legacy-modal-tab-button--active': this.state.activeModalTab === i,
+          })}
+          onClick={this.toggleTab.bind(this)}
           data-index={i}
           key={i}
         >
@@ -139,19 +136,20 @@ export default class QuestionGraphSettings extends React.Component {
           {(reportStyle.report_type ||
             reportStyle.report_colors ||
             reportStyle.width) && (
-            <bem.Button
-              className='reset'
+            <Button
+              type='danger'
+              size='l'
               onClick={this.saveQS.bind(this, true)}
-            >
-              {t('Reset')}
-            </bem.Button>
+              label={t('Reset')}
+            />
           )}
-          <bem.Button
-            className='primary'
+
+          <Button
+            type='primary'
+            size='l'
             onClick={this.saveQS.bind(this, false)}
-          >
-            {t('Save')}
-          </bem.Button>
+            label={t('Save')}
+          />
         </Modal.Footer>
       </bem.GraphSettings>
     );

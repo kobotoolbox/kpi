@@ -6,27 +6,14 @@ import './button.scss';
 import type {TooltipAlignment} from './tooltip';
 import Tooltip from './tooltip';
 import {useId} from 'js/hooks/useId.hook';
+import cx from 'classnames';
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't
- * need to import them, just pass correct strings.
+ * need to import them - just pass correct strings.
  */
 
-/**
- * Button types are:
- * 1. bare - no border, no background, hover sets background
- * 2. frame - border, no background, hover sets background
- * 3. full - no border, background, hover dims background
- */
-export type ButtonType = 'bare' | 'frame' | 'full';
-export type ButtonColor =
-  | 'teal'
-  | 'blue'
-  | 'light-blue'
-  | 'red'
-  | 'storm'
-  | 'light-storm'
-  | 'dark-blue';
+export type ButtonType = 'primary' | 'secondary' | 'danger' | 'secondary-danger' | 'text';
 
 /**
  * The size is the height of the button, but it also influences the paddings.
@@ -47,8 +34,15 @@ ButtonToIconAloneMap.set('m', 'l');
 ButtonToIconAloneMap.set('l', 'l');
 
 export interface ButtonProps {
+  /**
+   * Button types are:
+   * 1. primary - white text on blue background
+   * 2. secondary - dark blue text on light blue background
+   * 3. danger - white text on red background
+   * 4. secondary danger - dark red text on light red background
+   * 5. text - dark blue text with no background
+   */
   type: ButtonType;
-  color: ButtonColor;
   /** Note: this size will also be carried over to the icon. */
   size: ButtonSize;
   /**
@@ -66,13 +60,28 @@ export interface ButtonProps {
   tooltip?: string;
   /** Sets the alignment of the tooltip */
   tooltipPosition?: TooltipAlignment;
+  /**
+   * Disables the button. You don't need to use `isDisabled` if you already have
+   * `isPending`, but it doesn't hurt the component in any way to have them
+   * both, so go with what is less complicated in implementation.
+   */
   isDisabled?: boolean;
-  /** Changes the appearance to display spinner. */
+  /**
+   * Disables the button and changes the appearance: label/icon is visually
+   * hidden (still takes the same amount of space though!), and a spinner is
+   * being displayed in the center of the button.
+   */
   isPending?: boolean;
   /** Sets the button HTML type to "submit". */
   isSubmit?: boolean;
   /** Simply changes the width. */
   isFullWidth?: boolean;
+  /**
+   * Forces the label text to be uppercase. This is a legacy thing, as it is
+   * easier for us to have this here, rather than changing the labels (which
+   * requires new translations to be made).
+   */
+  isUpperCase?: boolean;
   /** Additional class names. */
   className?: string;
   /** You don't need to pass the callback for `isSubmit` option. */
@@ -96,46 +105,10 @@ const Button = (props: ButtonProps) => {
     throw new Error('Button is missing a required properties: icon or label!');
   }
 
-  let classNames: string[] = [];
-
-  // Additional class names.
-  if (props.className) {
-    classNames.push(props.className);
-  }
-
-  // Base class with mandatory ones.
-  classNames.push('k-button');
-  classNames.push(`k-button--type-${props.type}`);
-  classNames.push(`k-button--color-${props.color}`);
-
-  if (props.isPending) {
-    classNames.push('k-button--pending');
-  }
-
-  if (props.startIcon) {
-    classNames.push('k-button--has-start-icon');
-  }
-
-  // Ensures only one icon is being displayed.
-  if (!props.startIcon && props.endIcon) {
-    classNames.push('k-button--has-end-icon');
-  }
-
-  if (props.label) {
-    classNames.push('k-button--has-label');
-  }
-
-  if (props.isFullWidth) {
-    classNames.push('k-button--full-width');
-  }
-
-  const size = props.size;
-  classNames.push(`k-button--size-${size}`);
-
   // Size depends on label being there or not
-  let iconSize = ButtonToIconAloneMap.get(size);
+  let iconSize = ButtonToIconAloneMap.get(props.size);
   if (props.label) {
-    iconSize = ButtonToIconMap.get(size);
+    iconSize = ButtonToIconMap.get(props.size);
   }
 
   // For the attributes that don't have a falsy value.
@@ -158,9 +131,26 @@ const Button = (props: ButtonProps) => {
 
   const renderButton = () => (
     <button
-      className={classNames.join(' ')}
+      className={cx([
+        'k-button',
+        `k-button--type-${props.type}`,
+        `k-button--size-${props.size}`,
+        props.className,
+      ],{
+        ['k-button--pending']: props.isPending,
+        ['k-button--has-start-icon']: props.startIcon,
+        // Ensures only one icon is being displayed.
+        ['k-button--has-end-icon']: !props.startIcon && props.endIcon,
+        ['k-button--has-label']: Boolean(props.label),
+        ['k-button--full-width']: props.isFullWidth,
+        ['k-button--upper-case']: props.isUpperCase,
+      })}
       type={props.isSubmit ? 'submit' : 'button'}
-      aria-disabled={props.isDisabled}
+      // The `disabled` attribute is needed so that the button is not keyboard
+      // focusable, and `aria-disabled` is needed for accessibility.
+      // We also disable it when in pending state, so that it can't be clicked.
+      disabled={props.isDisabled || props.isPending}
+      aria-disabled={props.isDisabled || props.isPending}
       onClick={handleClick}
       onKeyUp={onKeyUp}
       aria-labelledby={props.label ? `k-button__label--${labelId}` : undefined}

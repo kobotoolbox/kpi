@@ -10,7 +10,7 @@ import UsageContainer, {
   USAGE_CONTAINER_TYPE,
 } from 'js/account/usage/usageContainer';
 import envStore from 'js/envStore';
-import {formatDate} from 'js/utils';
+import {convertSecondsToMinutes, formatDate} from 'js/utils';
 import styles from './usage.module.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {ProductsContext} from '../useProducts.hook';
@@ -104,7 +104,7 @@ export default function Usage() {
           nlpCharacterLimit: limits.nlp_character_limit,
           nlpMinuteLimit:
             typeof limits.nlp_seconds_limit === 'number'
-              ? limits.nlp_seconds_limit / 60
+              ? convertSecondsToMinutes(limits.nlp_seconds_limit)
               : limits.nlp_seconds_limit,
           submissionLimit: limits.submission_limit,
           isLoaded: true,

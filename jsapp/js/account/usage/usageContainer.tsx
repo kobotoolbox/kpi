@@ -47,11 +47,11 @@ const UsageContainer = ({
   /**
    * Render a limit amount, usage amount, or total balance as readable text
    * @param {number|'unlimited'} amount - The limit/usage amount
-   * @param {number|'unlimited'|null} [available=null] - If we're showing a balance,
+   * @param {number|'unlimited'} [available] - If we're showing a balance,
    * `amount` takes the usage amount and this takes the limit amount
    */
   const limitDisplay = useCallback(
-    (amount, available = null) => {
+    (amount: LimitAmount, available?: LimitAmount) => {
       if (amount === Limits.unlimited || available === Limits.unlimited) {
         return t('Unlimited');
       }
@@ -99,7 +99,7 @@ const UsageContainer = ({
               })}
             >
               {isNearingLimit && <Icon name='warning' color='amber' size='m' />}
-              {isOverLimit && <Icon name='warning' color='red' size='m' />}
+              {isOverLimit && <Icon name='warning' color='mid-red' size='m' />}
               <strong>{limitDisplay(usage, limit)}</strong>
             </div>
           </li>

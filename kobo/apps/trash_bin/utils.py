@@ -17,7 +17,7 @@ from django_celery_beat.models import (
 )
 from rest_framework import status
 
-from kobo.apps.audit_log.models import AuditLog, AuditAction
+from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kpi.exceptions import KobocatCommunicationError
 from kpi.models import Asset, ExportTask, ImportTask
 from kpi.utils.mongo_helper import MongoHelper
@@ -70,7 +70,8 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
             metadata={
                 'asset_uid': asset_uid,
                 'asset_name': asset.name,
-            }
+            },
+            log_type=AuditType.ASSET_MANAGEMENT,
         )
 
     # Delete media files left on storage
@@ -138,6 +139,11 @@ def move_to_trash(
                 **{fk_field_name: obj_dict['pk']},
             )
         )
+        log_type = (
+            AuditType.USER_MANAGEMENT
+            if related_model._meta.model_name == 'user'
+            else AuditType.ASSET_MANAGEMENT
+        )
         audit_logs.append(
             AuditLog(
                 app_label=related_model._meta.app_label,
@@ -147,6 +153,7 @@ def move_to_trash(
                 user_uid=request_author.extra_details.uid,
                 action=AuditAction.IN_TRASH,
                 metadata=_remove_pk_from_dict(obj_dict),
+                log_type=log_type,
             )
         )
 
@@ -217,6 +224,11 @@ def put_back(
 
     if del_pto_count != len(obj_ids):
         raise TrashTaskInProgressError
+    log_type = (
+        AuditType.USER_MANAGEMENT
+        if related_model._meta.model_name == 'user'
+        else AuditType.ASSET_MANAGEMENT
+    )
 
     AuditLog.objects.bulk_create(
         [
@@ -227,7 +239,8 @@ def put_back(
                 user=request_author,
                 user_uid=request_author.extra_details.uid,
                 action=AuditAction.PUT_BACK,
-                metadata=_remove_pk_from_dict(obj_dict)
+                metadata=_remove_pk_from_dict(obj_dict),
+                log_type=log_type,
             )
             for obj_dict in objects_list
         ]
@@ -314,18 +327,21 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
 
         submission_ids = []
         for submission in submissions:
-            audit_logs.append(AuditLog(
-                app_label=app_label,
-                model_name=model_name,
-                object_id=submission['_id'],
-                user=request_author,
-                user_uid=request_author.extra_details.uid,
-                metadata={
-                    'asset_uid': asset.uid,
-                    'uuid': submission['_uuid'],
-                },
-                action=AuditAction.DELETE,
-            ))
+            audit_logs.append(
+                AuditLog(
+                    app_label=app_label,
+                    model_name=model_name,
+                    object_id=submission['_id'],
+                    user=request_author,
+                    user_uid=request_author.extra_details.uid,
+                    metadata={
+                        'asset_uid': asset.uid,
+                        'uuid': submission['_uuid'],
+                    },
+                    action=AuditAction.DELETE,
+                    log_type=AuditType.SUBMISSION_MANAGEMENT,
+                )
+            )
             submission_ids.append(submission['_id'])
 
         json_response = asset.deployment.delete_submissions(

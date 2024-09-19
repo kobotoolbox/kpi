@@ -6,6 +6,7 @@ import myLibraryStore from './myLibraryStore';
 import {routerIsActive} from 'js/router/legacy';
 import {ROUTES} from 'js/router/routerConstants';
 import {NavLink} from 'react-router-dom';
+import Button from 'js/components/common/button';
 import pageState from 'js/pageState.store';
 
 interface LibrarySidebarState {
@@ -56,13 +57,15 @@ export default class LibrarySidebar extends React.Component<
 
     return (
       <>
-        <bem.KoboButton
-          m={['blue', 'fullwidth']}
-          disabled={!sessionStore.isLoggedIn}
+        <Button
+          type='primary'
+          size='l'
+          isFullWidth
+          isUpperCase
+          isDisabled={!sessionStore.isLoggedIn}
           onClick={this.showLibraryNewModal.bind(this)}
-        >
-          {t('new')}
-        </bem.KoboButton>
+          label={t('new')}
+        />
 
         <bem.FormSidebar m={sidebarModifier}>
           <NavLink

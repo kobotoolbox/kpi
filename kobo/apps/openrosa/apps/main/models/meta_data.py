@@ -19,6 +19,7 @@ from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.models.abstract_models import AbstractTimeStampedModel
 
 CHUNK_SIZE = 1024
 
@@ -126,7 +127,7 @@ def media_resources(media_list, download=False):
     return data
 
 
-class MetaData(models.Model):
+class MetaData(AbstractTimeStampedModel):
 
     MEDIA_FILES_TYPE = [
         'media',
@@ -146,8 +147,6 @@ class MetaData(models.Model):
     file_hash = models.CharField(max_length=50, blank=True, null=True)
     from_kpi = models.BooleanField(default=False)
     data_filename = models.CharField(max_length=255, blank=True, null=True)
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
         app_label = 'main'
@@ -158,7 +157,6 @@ class MetaData(models.Model):
         return self.data_type == 'paired_data'
 
     def save(self, *args, **kwargs):
-        self.date_modified = timezone.now()
         self._set_hash()
 
         super().save(*args, **kwargs)

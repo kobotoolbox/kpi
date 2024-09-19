@@ -29,6 +29,7 @@ import type {
   AssignablePermissionPartialLabel,
 } from 'js/dataInterface';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import AssetName from 'js/components/common/assetName';
 
 interface SharingFormProps {
   assetUid: string;
@@ -215,7 +216,9 @@ export default class SharingForm extends React.Component<
 
     return (
       <bem.FormModal m='sharing-form'>
-        <bem.Modal__subheader>{this.state.asset.name}</bem.Modal__subheader>
+        <bem.Modal__subheader dir='auto'>
+          <AssetName asset={this.state.asset} />
+        </bem.Modal__subheader>
 
         {isRequireAuthWarningVisible && (
           <bem.FormModal__item>
@@ -266,9 +269,8 @@ export default class SharingForm extends React.Component<
 
           {!this.state.isAddUserEditorVisible && (
             <Button
-              color='blue'
+              type='primary'
               isDisabled={!isManagingPossible}
-              type='full'
               size='l'
               onClick={this.toggleAddUserEditor.bind(this)}
               label={t('Add user')}
@@ -277,13 +279,13 @@ export default class SharingForm extends React.Component<
 
           {this.state.isAddUserEditorVisible && (
             <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
-              <bem.Button
-                m='icon'
+              <Button
+                type='text'
+                size='l'
+                startIcon='close'
                 className='user-permissions-editor-closer'
                 onClick={this.toggleAddUserEditor.bind(this)}
-              >
-                <i className='k-icon k-icon-close' />
-              </bem.Button>
+              />
 
               <UserAssetPermsEditor
                 assetUid={this.props.assetUid}

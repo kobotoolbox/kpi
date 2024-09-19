@@ -1,5 +1,5 @@
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 
 .security-row {
@@ -12,7 +12,7 @@
     align-items: baseline;
     column-gap: sizes.$x16;
     border-top: sizes.$x1 solid;
-    border-color: colors.$kobo-gray-92;
+    border-color: colors.$kobo-gray-300;
 
     > * {
       margin: 0;
@@ -21,7 +21,7 @@
 
   .security-row__title {
     flex: 2;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     font-weight: 600;
     line-height: 1.6;
   }
@@ -45,7 +45,7 @@
 
     .toggle-switch__label {
       font-weight: 600;
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
     }
   }
 }
@@ -68,7 +68,7 @@
     margin: sizes.$x14 0;
     padding: 0 sizes.$x14 0 sizes.$x28;
     justify-content: space-between;
-    background-color: colors.$kobo-gray-92;
+    background-color: colors.$kobo-gray-300;
   }
 
   .mfa-options__label {

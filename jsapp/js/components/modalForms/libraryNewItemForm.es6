@@ -2,7 +2,6 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import PropTypes from 'prop-types';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import sessionStore from 'js/stores/session';
@@ -105,9 +104,5 @@ class LibraryNewItemForm extends React.Component {
 
 reactMixin(LibraryNewItemForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryNewItemForm.prototype, mixins.contextRouter);
-
-LibraryNewItemForm.contextTypes = {
-  router: PropTypes.object
-};
 
 export default withRouter(LibraryNewItemForm);

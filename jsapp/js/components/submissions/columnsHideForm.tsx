@@ -10,6 +10,7 @@ import {FUSE_OPTIONS} from 'js/constants';
 import koboDropdownActions from 'js/components/common/koboDropdownActions';
 import type {AssetResponse, SubmissionResponse} from 'js/dataInterface';
 import './columnsHideDropdown.scss';
+import Button from 'js/components/common/button';
 
 bem.ColumnsHideForm = makeBem(null, 'columns-hide-form', 'section');
 bem.ColumnsHideForm__message = makeBem(bem.ColumnsHideForm, 'message', 'p');
@@ -152,7 +153,7 @@ class ColumnsHideForm extends React.Component<
         />
 
         {filteredFieldsList.length !== 0 && (
-          <bem.ColumnsHideForm__list>
+          <bem.ColumnsHideForm__list dir='auto'>
             {filteredFieldsList.map((fieldObj) => {
               return (
                 <bem.ColumnsHideForm__listItem key={fieldObj.fieldId}>
@@ -179,21 +180,23 @@ class ColumnsHideForm extends React.Component<
         )}
 
         <bem.ColumnsHideForm__footer>
-          <bem.KoboLightButton
-            m={['red', 'full-width']}
+          <Button
+            type='secondary-danger'
+            size='s'
+            isFullWidth
             onClick={this.onReset.bind(this)}
-            disabled={this.state.isPending}
-          >
-            {t('Reset')}
-          </bem.KoboLightButton>
+            isPending={this.state.isPending}
+            label={t('Reset')}
+          />
 
-          <bem.KoboLightButton
-            m={['blue', 'full-width']}
+          <Button
+            type='secondary'
+            size='s'
+            isFullWidth
             onClick={this.onApply.bind(this)}
-            disabled={this.state.isPending}
-          >
-            {t('Apply')}
-          </bem.KoboLightButton>
+            isPending={this.state.isPending}
+            label={t('Apply')}
+          />
         </bem.ColumnsHideForm__footer>
       </bem.ColumnsHideForm>
     );

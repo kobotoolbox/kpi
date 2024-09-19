@@ -1,18 +1,24 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/variables';
 @use 'scss/breakpoints';
+@use 'scss/mixins';
 
 .report-view {
   padding: 12px;
 }
 
-.form-view__cell--reportLimit {
-  padding-bottom: sizes.$x16;
+.report-view__limit-message {
+  @include mixins.centerRowFlex;
+  gap: 10px;
+
+  p {
+    margin: 0;
+  }
 }
 
 .report-view__item {
-  border: sizes.$x1 solid colors.$kobo-gray-92;
+  border: sizes.$x1 solid colors.$kobo-gray-300;
   margin: sizes.$x15 0;
   background: colors.$kobo-white;
 }
@@ -20,7 +26,7 @@
 .report-view__itemHeading {
   padding: sizes.$x10 sizes.$x24;
   border-left: sizes.$x5 solid colors.$kobo-teal;
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
   position: relative;
 
   h2 {
@@ -63,24 +69,24 @@
     thead th {
       margin: 0;
       padding: sizes.$x8;
-      background-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-gray-700;
       color: colors.$kobo-white;
       text-align: right;
       font-weight: normal;
       font-size: variables.$base-font-size;
 
       &:first-child {
-        text-align: left;
+        text-align: initial;
       }
     }
 
     tbody tr td {
-      border-bottom: sizes.$x1 solid colors.$kobo-gray-65;
+      border-bottom: sizes.$x1 solid colors.$kobo-gray-500;
       padding: sizes.$x8;
       text-align: right;
 
       &:first-child {
-        text-align: left;
+        text-align: initial;
       }
     }
   }
@@ -101,40 +107,22 @@
 
 // report buttons
 .form-view__reportButtons {
-  margin-bottom: 12px;
-
-  button:not(.mdl-button--icon) {
-    text-transform: uppercase;
-    padding-left: 0;
-  }
-
-  button {
-    &.report-button__edit,
-    &.report-button__settings {
-      overflow: visible;
-    }
-
-    &.report-button__expand,
-    &.report-button__print {
-      float: right;
-      margin-right: 0;
-      margin-left: sizes.$x8;
-      overflow: visible;
-    }
-  }
+  @include mixins.centerRowFlex;
+  gap: 10px;
 
   + .form-view__cell--iframe {
     height: calc(100% - sizes.$x60);
   }
 }
 
-.form-view__reportButtons button.report-button__print {
-  display: none;
+.form-view__report-buttons-left {
+  @include mixins.centerRowFlex;
+  gap: 5px;
+  flex: 1;
 }
 
-.form-view__reportButtons button.report-button__expand {
-  padding-left: 4px;
-  padding-right: 4px;
+.form-view__report-buttons-right {
+  @include mixins.centerRowFlex;
 }
 
 // report graph settings
@@ -152,7 +140,7 @@
     margin-bottom: sizes.$x20;
     display: block;
     font-weight: 400;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
   }
 }
 
@@ -180,7 +168,7 @@
   }
 
   input:not(:checked):hover + label {
-    border-color: colors.$kobo-gray-85;
+    border-color: colors.$kobo-gray-400;
   }
 
   &--vertical {
@@ -289,19 +277,5 @@
   .report-view__itemContent table {
     width: 80%;
     margin-left: 10%;
-  }
-
-  .form-view__reportButtons {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .form-view__reportButtons button.report-button__print {
-    display: initial;
-  }
-
-  .form-view__reportButtons button.report-button__expand {
-    padding-left: 0;
-    padding-right: 0;
   }
 }

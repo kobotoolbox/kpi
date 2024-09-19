@@ -93,11 +93,13 @@ import type {
   SurveyRow,
 } from 'js/dataInterface';
 import type {
+  SubmissionPageName,
   TableColumn,
   ReactTableState,
   ReactTableInstance,
   DataTableSelectedRows,
 } from 'js/components/submissions/table.types';
+import Button from 'js/components/common/button';
 
 const DEFAULT_PAGE_SIZE = 30;
 
@@ -122,7 +124,7 @@ interface DataTableState {
   /** A list of rows that are selected. */
   selectedRows: DataTableSelectedRows;
   selectAll: boolean;
-  submissionPager: boolean | 'next' | 'prev';
+  submissionPager?: SubmissionPageName;
   /** state of react-table table */
   fetchState?: ReactTableState;
   /** instance data of react-table table */
@@ -140,6 +142,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * horizontally or vertically.
    */
   tableScrollTop = 0;
+  /**
+   * Store this value of the 'left' value of frozen columns, maintaining
+   * their alignment during horizontal scrolling or pagination.
+   */
+  frozenLeftRef = 0;
 
   /** We store it for future checks. */
   previousOverrides: AssetTableSettings = {};
@@ -164,7 +171,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
-      submissionPager: false,
+      submissionPager: undefined,
       lastChecked: null,
       shiftSelection: {},
     };
@@ -325,10 +332,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         selectedRows: {},
         selectAll: false,
         submissions: results,
-        submissionPager: false,
+        submissionPager: undefined,
         resultsTotal: response.count,
+      }, () => {
+        this._prepColumns(results);
       });
-      this._prepColumns(results);
     } else if (options.filter?.length) {
       // if there are no results, but there is some filtering applied, we don't
       // want to display the "no data" message
@@ -421,6 +429,24 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
     tableStore.setFrozenColumn(fieldId, isFrozen);
+  }
+
+  // We need to distinguish between repeated groups with nested values
+  // and other question types that use a flat nested key (i.e. with '/').
+  // If submission response contains the parent key, we should use that.
+  _selectNestedRow(
+    row: SubmissionResponse,
+    key: string,
+    rootParentGroup: string | undefined
+  ) {
+    if (
+      rootParentGroup &&
+      rootParentGroup in row &&
+      !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+    ) {
+      return row[rootParentGroup];
+    }
+    return row[key];
   }
 
   _getColumnWidth(columnId: AnyRowTypeName | string | undefined) {
@@ -571,15 +597,21 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               />
             )}
 
-            <button
+            {/*
+            TODO: the tooltips of these two buttons appear underneath them
+            causing an unnecessary space under the last table row to happen.
+            Let's try to fix this one day by introducing better tooltips.
+            */}
+            <Button
+              type='text'
+              size='s'
+              startIcon='view'
+              tooltip={t('Open')}
+              tooltipPosition='left'
               onClick={() => {
-                this.launchSubmissionModal(row, row.original._id);
+                this.launchSubmissionModal(row.original._id);
               }}
-              className='table-link'
-              data-tip={t('Open')}
-            >
-              <i className='k-icon k-icon-view' />
-            </button>
+            />
 
             {userCanSeeEditIcon &&
               userHasPermForSubmission(
@@ -587,15 +619,16 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 this.props.asset,
                 row.original
               ) && (
-                <button
+                <Button
+                  type='text'
+                  size='s'
+                  startIcon='edit'
+                  tooltip={t('Edit')}
+                  tooltipPosition='left'
                   onClick={() => {
                     this.launchEditSubmission(row.original._id);
                   }}
-                  className='table-link'
-                  data-tip={t('Edit')}
-                >
-                  <i className='k-icon k-icon-edit' />
-                </button>
+                />
               )}
           </div>
         ),
@@ -733,8 +766,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     allColumns.forEach((key: string, columnIndex: number) => {
       let q: SurveyRow | undefined;
+      let rootParentGroup: string | undefined;
       if (key.includes('/')) {
         const qParentG = key.split('/');
+        rootParentGroup = qParentG[0];
         q = survey?.find(
           (o) =>
             o.name === qParentG[qParentG.length - 1] ||
@@ -885,7 +920,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           );
         },
         id: key,
-        accessor: (row) => row[key],
+        accessor: (row) => this._selectNestedRow(row, key, rootParentGroup),
         index: index,
         question: q,
         // This (and the Filter itself) will be set below (we do it separately,
@@ -904,6 +939,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             this.state.showGroupName,
             this.state.translationIndex
           );
+
+          if (typeof row.value === 'object' && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
+            if (repeatGroupAnswers) {
+              // display a list of answers from a repeat group question
+              return (
+                <span className='trimmed-text' dir='auto'>
+                  {repeatGroupAnswers.join(', ')}
+                </span>
+              );
+            } else {
+              return '';
+            }
+          }
 
           if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
@@ -1028,7 +1077,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           ) {
             return (
               <TextModalCell
-                text={getSupplementalDetailsContent(row.original, key)}
+                text={getSupplementalDetailsContent(row.original, key) || ''}
                 columnName={columnName}
                 submissionIndex={row.index + 1}
                 submissionTotal={this.state.submissions.length}
@@ -1036,25 +1085,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             );
           }
 
-          if (typeof row.value === 'object' || row.value === undefined) {
-            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
-            if (repeatGroupAnswers) {
-              // display a list of answers from a repeat group question
-              return (
-                <span className='trimmed-text' dir='auto'>
-                  {repeatGroupAnswers.join(', ')}
-                </span>
-              );
-            } else {
-              return '';
-            }
-          } else {
-            return (
-              <span className='trimmed-text' dir='auto'>
-                {row.value}
-              </span>
-            );
-          }
+          return (
+            <span className='trimmed-text' dir='auto'>
+              {row.value}
+            </span>
+          );
         },
       });
 
@@ -1111,6 +1146,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         );
       };
 
+      // Ensure frozen columns stay correctly aligned to the left, even after
+      // scrolling or reloads.
+      if (col.className?.includes('frozen')) {
+        col.style = {...col.style, left: this.frozenLeftRef};
+      }
+
       if (frozenColumn === col.id) {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
@@ -1118,6 +1159,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         col.headerClassName = col.headerClassName
           ? `is-frozen is-last-frozen ${col.headerClassName}`
           : 'is-frozen is-last-frozen';
+          col.style = {...col.style, left: this.frozenLeftRef};
       }
     });
 
@@ -1162,8 +1204,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         const newData = this.state.submissions;
         newData[subIndex]._validation_status = result || {};
-        this.setState({submissions: newData});
-        this._prepColumns(newData);
+        this.setState({submissions: newData}, () => {
+          this._prepColumns(newData);
+        });
       }
     }
   }
@@ -1179,9 +1222,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     sid: string,
     duplicatedSubmission: SubmissionResponse
   ) {
+    // Load fresh table of submissions
     if (this.state.fetchInstance) {
       this.fetchSubmissions(this.state.fetchInstance);
     }
+    // Open submission modal
     this.submissionModalProcessing(
       sid,
       this.state.submissions,
@@ -1243,39 +1288,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Opens submission modal
    * @param {object} row
    */
-  launchSubmissionModal(row: CellInfo, sid: string) {
-    if (row && row.original) {
-      const backgroundAudioName = getBackgroundAudioQuestionName(
-        this.props.asset
-      );
-      if (
-        backgroundAudioName &&
-        Object.keys(row.original).includes(backgroundAudioName)
-      ) {
-        const mediaAttachment = getMediaAttachment(
-          row.original,
-          row.original[backgroundAudioName],
-          META_QUESTION_TYPES['background-audio']
-        );
-
-        let backgroundAudioUrl;
-        if (typeof mediaAttachment === 'string') {
-          backgroundAudioUrl = mediaAttachment;
-        } else {
-          backgroundAudioUrl = mediaAttachment.download_medium_url;
-        }
-
-        this.submissionModalProcessing(
-          sid,
-          this.state.submissions,
-          false,
-          null,
-          backgroundAudioUrl
-        );
-      } else {
-        this.submissionModalProcessing(sid, this.state.submissions);
-      }
-    }
+  launchSubmissionModal(sid: string) {
+    this.submissionModalProcessing(sid, this.state.submissions);
   }
 
   /**
@@ -1286,7 +1300,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     submissions: SubmissionResponse[],
     isDuplicated: boolean = false,
     duplicatedSubmission: SubmissionResponse | null = null,
-    backgroundAudioUrl: string | null = null
   ) {
     const ids = submissions.map((item) => item._id);
 
@@ -1297,7 +1310,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       ids: ids,
       isDuplicated: isDuplicated,
       duplicatedSubmission: duplicatedSubmission,
-      backgroundAudioUrl: backgroundAudioUrl,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,
@@ -1320,19 +1332,29 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onPageStateUpdated(pageState: PageStateStoreState) {
     // This function serves purpose only for Submission Modal and only when
     // user reaches the end of currently loaded submissions in the table with
-    // the "next" button.
+    // the "next" button (and similarly with "prev" button).
     if (
       pageState.modal &&
       pageState.modal.type === MODAL_TYPES.SUBMISSION &&
       !pageState.modal.sid
     ) {
+      // HACK: this is our way of forcing `react-table` to switch page. There is
+      // a way to manually control pagination, but it would require some
+      // refactoring to happen. This hack (i.e. using internal `setState` of
+      // `react-table` component) will most definitely not work when we upgrade
+      // `react-table` to v7, but since that major version is a huge overhaul,
+      // we would be refactoring everything regardless.
+      let page = 0;
+      if (pageState.modal.page === 'next') {
+        page = this.state.currentPage + 1;
+      } else if (pageState.modal.page === 'prev') {
+        page = this.state.currentPage - 1;
+      }
       const fetchInstance = this.state.fetchInstance;
+      fetchInstance?.setState({page: page});
 
       this.setState(
-        {
-          fetchInstance: fetchInstance,
-          submissionPager: pageState.modal.page,
-        },
+        {submissionPager: pageState.modal.page},
         this.fetchDataForCurrentInstance.bind(this)
       );
     }
@@ -1480,6 +1502,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
 
       $frozenColumnCells.css({left: left});
+
+      // Save the reference position for the frozen column's left offset.
+      this.frozenLeftRef = left;
     } else {
       this.tableScrollTop = eventTarget.scrollTop;
     }
@@ -1531,23 +1556,23 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           {this.renderBulkSelectUI()}
 
           <bem.FormView__item m='table-buttons'>
-            <bem.Button
-              m='icon'
-              className='report-button__expand right-tooltip'
+            <Button
+              type='text'
+              size='m'
+              startIcon='expand'
               onClick={this.toggleFullscreen.bind(this)}
-              data-tip={t('Toggle fullscreen')}
-            >
-              <i className='k-icon k-icon-expand' />
-            </bem.Button>
+              tooltip={t('Toggle fullscreen')}
+              tooltipPosition='right'
+            />
 
-            <bem.Button
-              m='icon'
-              className='report-button__expand right-tooltip'
+            <Button
+              type='text'
+              size='m'
+              startIcon='settings'
               onClick={this.showTableColumnsOptionsModal.bind(this)}
-              data-tip={t('Display options')}
-            >
-              <i className='k-icon k-icon-settings' />
-            </bem.Button>
+              tooltip={t('Display options')}
+              tooltipPosition='right'
+            />
           </bem.FormView__item>
         </bem.FormView__group>
 
@@ -1585,6 +1610,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             };
           }}
           filterable
+          // Enables RTL support in table cells
+          getTdProps={() => ({dir: 'auto'})}
         />
       </bem.FormView>
     );

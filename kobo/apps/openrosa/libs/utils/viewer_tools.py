@@ -13,6 +13,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import mail_admins
 from django.utils.translation import gettext as t
+from ua_parser import user_agent_parser as ua_parse
 
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -102,6 +103,19 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+def get_human_readable_client_user_agent(request):
+    """
+    Parse the user-agent into a human-readable <Browser> (<OS>) string
+    """
+    user_agent = request.META.get('HTTP_USER_AGENT', None)
+    if not user_agent or user_agent == '':
+        return 'No information available'
+    parsed = ua_parse.Parse(user_agent)
+    browser = parsed['user_agent']['family']
+    user_os = parsed['os']['family']
+    return f'{browser} ({user_os})'
 
 
 def enketo_url(

@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use "scss/sizes";
 
 .table-media-preview {
@@ -18,7 +18,7 @@
 
   i.k-icon-file-audio {
     font-size: 128px;
-    color: colors.$kobo-gray-92;
+    color: colors.$kobo-gray-300;
   }
 }
 

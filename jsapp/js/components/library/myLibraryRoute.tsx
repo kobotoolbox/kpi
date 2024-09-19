@@ -3,7 +3,6 @@ import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import bem from 'js/bem';
 import mixins from 'js/mixins';
-import {stores} from 'js/stores';
 import {validFileTypes} from 'js/utils';
 import myLibraryStore from './myLibraryStore';
 import AssetsTable from 'js/components/assetsTable/assetsTable';

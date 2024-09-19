@@ -18,6 +18,7 @@ from kpi.deployment_backends.kc_access.utils import (
 )
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from .choices import (
     InviteStatusChoices,
     TransferStatusChoices,
@@ -29,7 +30,7 @@ from ..tasks import async_task, send_email_to_admins
 from ..utils import get_target_folder
 
 
-class Transfer(models.Model):
+class Transfer(AbstractTimeStampedModel):
 
     uid = KpiUidField(uid_prefix='pot')
     asset = models.ForeignKey(
@@ -42,8 +43,6 @@ class Transfer(models.Model):
         related_name='transfers',
         on_delete=models.CASCADE,
     )
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = 'project ownership transfer'
@@ -58,11 +57,6 @@ class Transfer(models.Model):
     def save(self, *args, **kwargs):
 
         is_new = self.pk is None
-
-        update_fields = kwargs.get('update_fields', {})
-        if not update_fields or 'date_modified' in update_fields:
-            self.date_modified = timezone.now()
-
         super().save(*args, **kwargs)
 
         if is_new:
@@ -303,7 +297,7 @@ class Transfer(models.Model):
             self.invite.refresh_from_db()
 
 
-class TransferStatus(models.Model):
+class TransferStatus(AbstractTimeStampedModel):
 
     transfer = models.ForeignKey(
         Transfer, related_name='statuses', on_delete=models.CASCADE
@@ -321,8 +315,6 @@ class TransferStatus(models.Model):
         db_index=True
     )
     error = models.TextField(null=True)
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
         constraints = [
@@ -338,13 +330,6 @@ class TransferStatus(models.Model):
             f'[{TransferStatusTypeChoices(self.status_type).label}]: '
             f'{TransferStatusChoices(self.status).label}'
         )
-
-    def save(self, *args, **kwargs):
-        update_fields = kwargs.get('update_fields', {})
-        if not update_fields or 'date_modified' in update_fields:
-            self.date_modified = timezone.now()
-
-        super().save(*args, **kwargs)
 
     @classmethod
     def update_status(

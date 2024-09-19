@@ -3,8 +3,8 @@ import Button from 'js/components/common/button';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
-import Icon from 'js/components/common/icon';
 import TextBox from 'js/components/common/textBox';
+import InlineMessage from 'js/components/common/inlineMessage';
 import {
   cancelInvite,
   sendInvite,
@@ -169,8 +169,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               label={t('Cancel transfer')}
               isFullWidth
               onClick={cancelCurrentInvite}
-              color='storm'
-              type='frame'
+              type='secondary-danger'
               size='l'
             />
           )}
@@ -181,8 +180,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               label={t('Transfer')}
               isFullWidth
               onClick={toggleModal}
-              color='storm'
-              type='frame'
+              type='secondary'
               size='l'
             />
           )}
@@ -216,44 +214,32 @@ export default function TransferProjects(props: TransferProjectsProps) {
                 )}
               </p>
 
-              <div className={styles.warning}>
-                <Icon
-                  name='warning'
-                  size='s'
-                  color='red'
-                  className={styles.warningIcon}
-                />
+              <InlineMessage
+                type='error'
+                icon='warning'
+                message={(
+                  <div>
+                    {t('You will be the owner of the project until the transfer is accepted.')}
+                    <br />
+                    <strong>
+                      {t('Once the transfer is accepted, you will not be able to undo this action.')}
+                    </strong>
+                    &nbsp;
+                    <a
+                      href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+                      target='_blank'
+                    >
+                      {t('Learn more')}
+                    </a>
+                  </div>
+                )}
+              />
 
-                <div className={styles.warningCopy}>
-                  {t(
-                    'You will be the owner of the project until the transfer is accepted.'
-                  )}
-                  <br />
-                  <strong>
-                    {t(
-                      'Once the transfer is accepted, you will not be able to undo this action.'
-                    )}
-                  </strong>
-                  &nbsp;
-                  <a
-                    href={
-                      envStore.data.support_url +
-                      HELP_ARTICLE_ANON_SUBMISSIONS_URL
-                    }
-                    target='_blank'
-                  >
-                    {t('Learn more')}
-                  </a>
-                </div>
-              </div>
-              {/* Unused element to prevent firefox autocomplete
-            suggestions on username field */}
+              {/* Unused element to prevent firefox autocomplete suggestions on username field */}
               <input type='text' style={{display: 'none'}} />
-              <div className={styles.input}>
+              <div>
                 <TextBox
-                  label={t(
-                    'To complete the transfer, enter the username of the new project owner'
-                  )}
+                  label={t('To complete the transfer, enter the username of the new project owner')}
                   type='text'
                   value={transfer.usernameInput}
                   placeholder={t('Enter username here')}
@@ -268,8 +254,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               <Button
                 label={t('Cancel')}
                 onClick={toggleModal}
-                color='blue'
-                type='frame'
+                type='secondary'
                 size='m'
               />
               <Button
@@ -279,8 +264,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
                   submitInvite(transfer.usernameInput);
                 }}
                 isPending={transfer.submitPending}
-                color='blue'
-                type='full'
+                type='primary'
                 size='m'
                 isSubmit
               />

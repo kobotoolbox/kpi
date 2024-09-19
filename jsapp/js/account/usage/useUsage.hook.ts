@@ -1,7 +1,7 @@
 import {createContext, useCallback} from 'react';
 import type {Organization, RecurringInterval} from 'js/account/stripe.types';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
-import {formatRelativeTime, truncateNumber} from 'js/utils';
+import {convertSecondsToMinutes, formatRelativeTime} from 'js/utils';
 import {getUsage} from 'js/account/usage/usage.api';
 import {useApiFetcher, withApiFetcher} from 'js/hooks/useApiFetcher.hook';
 
@@ -50,16 +50,14 @@ const loadUsage = async (
   return {
     storage: usage.total_storage_bytes,
     submissions: usage.total_submission_count[`current_${trackingPeriod}`],
-    transcriptionMinutes: Math.floor(
-      truncateNumber(
-        usage.total_nlp_usage[`asr_seconds_current_${trackingPeriod}`] / 60
-      )
-    ), // seconds to minutes
+    transcriptionMinutes: convertSecondsToMinutes(
+      usage.total_nlp_usage[`asr_seconds_current_${trackingPeriod}`]
+    ),
     translationChars:
       usage.total_nlp_usage[`mt_characters_current_${trackingPeriod}`],
     currentMonthStart: usage.current_month_start,
     currentYearStart: usage.current_year_start,
-    billingPeriodEnd: usage.billing_period_end,
+    billingPeriodEnd: usage[`current_${trackingPeriod}_end`],
     trackingPeriod,
     lastUpdated,
   };

@@ -10,7 +10,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import debounce from 'lodash.debounce';
 import PopoverMenu from 'js/popoverMenu';
-import bem, {makeBem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
@@ -41,14 +41,10 @@ import {
   manageAssetSettings
 } from 'jsapp/js/assetQuickActions';
 import {userCan} from 'js/components/permissions/utils';
-
-bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
-bem.AssetActionButtons__button = makeBem(bem.AssetActionButtons, 'button', 'a');
-bem.AssetActionButtons__iconButton = makeBem(
-  bem.AssetActionButtons,
-  'icon-button',
-  'a'
-);
+import {Link} from 'react-router-dom';
+import Button from 'js/components/common/button';
+import type {ButtonType} from 'js/components/common/button';
+import type {IconName} from 'jsapp/fonts/k-icons';
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse;
@@ -232,8 +228,7 @@ class AssetActionButtons extends React.Component<
   }
 
   getFormBuilderLink() {
-    let link =
-      '#' + ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', this.props.asset.uid);
+    let link = ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', this.props.asset.uid);
 
     // when editing a child from within a collection page
     // make sure the "Return to list" button goes back to collection
@@ -260,9 +255,13 @@ class AssetActionButtons extends React.Component<
     }
 
     return (
-      <div className='right-tooltip' data-tip={t('More actions')}>
-        <i className='k-icon k-icon-more' />
-      </div>
+      <Button
+        type='text'
+        size='m'
+        tooltip={t('More actions')}
+        tooltipPosition='right'
+        startIcon='more'
+      />
     );
   }
 
@@ -392,7 +391,7 @@ class AssetActionButtons extends React.Component<
           )}
 
         {userCanEdit && userCanDelete && (
-          <bem.PopoverMenu__link onClick={this.delete}>
+          <bem.PopoverMenu__link onClick={this.delete} m='red'>
             <i className='k-icon k-icon-trash' />
             {t('Delete')}
           </bem.PopoverMenu__link>
@@ -413,34 +412,27 @@ class AssetActionButtons extends React.Component<
       isPublic &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     ) {
-      const modifiers = isUserSubscribed ? ['off'] : ['on'];
-      const fn = isUserSubscribed
-        ? this.unsubscribeFromCollection.bind(this)
-        : this.subscribeToCollection.bind(this);
-      if (this.state.isSubscribePending) {
-        modifiers.push('pending');
-      }
-      let icon = null;
-      let title = t('Pending…');
-      if (!this.state.isSubscribePending) {
-        if (isUserSubscribed) {
-          icon = <i className='k-icon k-icon-close' />;
-          title = t('Unsubscribe');
-        } else {
-          icon = <i className='k-icon k-icon-subscribe' />;
-          title = t('Subscribe');
-        }
+      let type: ButtonType = 'secondary';
+      let callbackFunction = this.subscribeToCollection.bind(this);
+      let icon: IconName = 'subscribe';
+      let label = t('Subscribe');
+
+      if (isUserSubscribed) {
+        type = 'secondary-danger';
+        callbackFunction = this.unsubscribeFromCollection.bind(this);
+        icon = 'close';
+        label = t('Unsubscribe');
       }
 
       return (
-        <bem.AssetActionButtons__button
-          m={modifiers}
-          onClick={fn}
-          disabled={this.state.isSubscribePending}
-        >
-          {icon}
-          {title}
-        </bem.AssetActionButtons__button>
+        <Button
+          type={type}
+          size='m'
+          onClick={callbackFunction}
+          startIcon={icon}
+          label={label}
+          isPending={this.state.isSubscribePending}
+        />
       );
     }
 
@@ -461,86 +453,95 @@ class AssetActionButtons extends React.Component<
     const routeAssetUid = getRouteAssetUid();
 
     return (
-      <bem.AssetActionButtons
+      <menu
+        className='asset-action-buttons'
         onMouseLeave={this.onMouseLeave}
         onMouseEnter={this.onMouseEnter}
       >
         {this.renderSubButton()}
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id && (
-          <bem.AssetActionButtons__iconButton
-            href={this.getFormBuilderLink()}
-            data-tip={t('Edit in Form Builder')}
-            className='right-tooltip'
-          >
-            <i className='k-icon k-icon-edit' />
-          </bem.AssetActionButtons__iconButton>
+          <Link to={this.getFormBuilderLink()}>
+            <Button
+              type='text'
+              size='m'
+              tooltip={t('Edit in Form Builder')}
+              tooltipPosition='right'
+              startIcon='edit'
+            />
+          </Link>
         )}
 
         {userCanEdit && hasDetailsEditable && (
-          <bem.AssetActionButtons__iconButton
-            onClick={this.modifyDetails}
-            data-tip={t('Modify details')}
-            className='right-tooltip'
-          >
-            <i className='k-icon k-icon-settings' />
-          </bem.AssetActionButtons__iconButton>
+          <Button
+            type='text'
+            size='m'
+            onClick={this.modifyDetails.bind(this)}
+            tooltip={t('Modify details')}
+            tooltipPosition='right'
+            startIcon='settings'
+          />
         )}
 
         {userCanEdit && (
-          <bem.AssetActionButtons__iconButton
-            onClick={this.showTagsModal}
-            data-tip={t('Edit Tags')}
-            className='right-tooltip'
-          >
-            <i className='k-icon k-icon-tag' />
-          </bem.AssetActionButtons__iconButton>
+          <Button
+            type='text'
+            size='m'
+            onClick={this.showTagsModal.bind(this)}
+            tooltip={t('Edit Tags')}
+            tooltipPosition='right'
+            startIcon='tag'
+          />
         )}
 
         {userCanEdit && (
-          <bem.AssetActionButtons__iconButton
-            onClick={this.share}
-            data-tip={t('Share')}
-            className='right-tooltip'
-          >
-            <i className='k-icon k-icon-user-share' />
-          </bem.AssetActionButtons__iconButton>
+          <Button
+            type='text'
+            size='m'
+            onClick={this.share.bind(this)}
+            tooltip={t('Share')}
+            tooltipPosition='right'
+            startIcon='user-share'
+          />
         )}
 
         {assetType !== ASSET_TYPES.collection.id && (
-          <bem.AssetActionButtons__iconButton
-            onClick={this.clone}
-            data-tip={t('Clone')}
-            className='right-tooltip'
-          >
-            <i className='k-icon k-icon-duplicate' />
-          </bem.AssetActionButtons__iconButton>
+          <Button
+            type='text'
+            size='m'
+            onClick={this.clone.bind(this)}
+            tooltip={t('Clone')}
+            tooltipPosition='right'
+            startIcon='duplicate'
+          />
         )}
 
         {assetType === ASSET_TYPES.template.id && (
-          <bem.AssetActionButtons__iconButton
-            onClick={this.cloneAsSurvey}
-            data-tip={t('Create project')}
-            className='right-tooltip'
-          >
-            <i className='k-icon k-icon-projects' />
-          </bem.AssetActionButtons__iconButton>
+          <Button
+            type='text'
+            size='m'
+            onClick={this.cloneAsSurvey.bind(this)}
+            tooltip={t('Create project')}
+            tooltipPosition='right'
+            startIcon='projects'
+          />
         )}
 
         {routeAssetUid &&
           this.props.asset.parent !== null &&
           !this.props.asset.parent.includes(routeAssetUid) && (
-            <bem.AssetActionButtons__iconButton
-              onClick={this.viewContainingCollection}
-              data-tip={t('View containing Collection')}
-              className='right-tooltip'
-            >
-              <i className='k-icon k-icon-folder' />
-            </bem.AssetActionButtons__iconButton>
+            <Button
+              type='text'
+              size='m'
+              onClick={this.viewContainingCollection.bind(this)}
+              tooltip={t('View containing Collection')}
+              tooltipPosition='right'
+              startIcon='folder'
+            />
           )}
 
         {this.renderMoreActions()}
-      </bem.AssetActionButtons>
+      </menu>
     );
   }
 }

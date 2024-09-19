@@ -11,16 +11,21 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import type {AssetContent} from 'js/dataInterface';
 import {getActiveTab} from 'js/components/processing/routes.utils';
 import styles from './sidebarDisplaySettings.module.scss';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import cx from 'classnames';
+import KoboSelect from 'js/components/common/koboSelect';
 
 export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [labelLanguage, setLabelLanguage] = useState<LanguageCode | string>(
+    store.getCurrentlyDisplayedLanguage()
+  );
+
+  const displayedLanguageList = store.getDisplayedLanguagesList();
 
   const activeTab = getActiveTab();
 
@@ -143,9 +148,8 @@ export default function SidebarDisplaySettings() {
     <div className={styles.root}>
       <Button
         size='m'
-        type='bare'
+        type='text'
         label={t('Display settings')}
-        color='storm'
         startIcon='settings'
         onClick={() => setIsModalOpen(true)}
       />
@@ -159,7 +163,13 @@ export default function SidebarDisplaySettings() {
         }}
         size='medium'
       >
-        <KoboModalHeader>{t('Customize display settings')}</KoboModalHeader>
+        <KoboModalHeader
+          onRequestCloseByX={() => {
+            setSelectedDisplays(store.getDisplays(activeTab));
+            setSelectedFields(getInitialFields());
+            setIsModalOpen(false);
+          }}
+        >{t('Customize display settings')}</KoboModalHeader>
 
         <KoboModalContent>
           <p className={styles.description}>
@@ -169,6 +179,22 @@ export default function SidebarDisplaySettings() {
           </p>
 
           <ul className={styles.options}>
+            <li className={styles.display}>
+              <KoboSelect
+                label={t('Display labels or XML values?')}
+                name='displayedLanguage'
+                type='outline'
+                size='s'
+                options={displayedLanguageList}
+                selectedOption={labelLanguage}
+                onChange={(languageCode) => {
+                  if (languageCode) {
+                    setLabelLanguage(languageCode);
+                  }
+                }}
+              />
+            </li>
+
             {availableDisplays.map((entry) => {
               const isEnabled = selectedDisplays.includes(entry);
 
@@ -234,9 +260,8 @@ export default function SidebarDisplaySettings() {
         <KoboModalFooter alignment='center'>
           {/* This button resets the displays for current tab. */}
           <Button
-            label={<strong>{t('Reset')}</strong>}
-            type='frame'
-            color='light-blue'
+            label={t('Reset')}
+            type='secondary-danger'
             size='m'
             onClick={() => {
               store.resetDisplays(activeTab);
@@ -245,19 +270,20 @@ export default function SidebarDisplaySettings() {
               // when the modal is closed.
               resetFieldsSelection();
               setSelectedDisplays(store.getDisplays(activeTab));
+              setLabelLanguage(store.getCurrentlyDisplayedLanguage());
               setIsModalOpen(false);
             }}
           />
 
           {/* Applies current selection of displays to the sidebar. */}
           <Button
-            label={<strong>{t('Apply selection')}</strong>}
-            type='full'
-            color='light-blue'
+            label={t('Apply selection')}
+            type='primary'
             size='m'
             onClick={() => {
               applyFieldsSelection();
               store.setDisplays(activeTab, selectedDisplays);
+              store.setCurrentlyDisplayedLanguage(labelLanguage);
               setIsModalOpen(false);
             }}
           />

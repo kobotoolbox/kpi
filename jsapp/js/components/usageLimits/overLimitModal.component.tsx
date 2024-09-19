@@ -84,21 +84,19 @@ function OverLimitModal(props: OverLimitModalProps) {
 
         <KoboModalFooter alignment='end'>
           <Button
-            type='frame'
-            color='dark-blue'
+            type='secondary'
             size='l'
             onClick={handleClose}
             label={t('remind me later')}
-            className={cx([styles.button, styles.frame])}
+            isUpperCase
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
             label={t('upgrade now')}
-            className={cx([styles.button, styles.full])}
+            isUpperCase
           />
         </KoboModalFooter>
       </KoboModal>

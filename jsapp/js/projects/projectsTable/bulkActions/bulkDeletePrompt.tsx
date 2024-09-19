@@ -59,15 +59,13 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
       )}
       buttons={[
         {
-          type: 'frame',
-          color: 'storm',
+          type: 'secondary',
           label: 'Cancel',
           onClick: props.onRequestClose,
           isDisabled: isConfirmDeletePending,
         },
         {
-          type: 'full',
-          color: 'red',
+          type: 'danger',
           label: 'Delete',
           onClick: onConfirmDelete,
           isDisabled: !isDataChecked || !isFormChecked || !isRecoverChecked,

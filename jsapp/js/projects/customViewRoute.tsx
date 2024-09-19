@@ -41,7 +41,8 @@ function CustomViewRoute() {
     customView.setUp(
       viewUid,
       `${ROOT_URL}/api/v2/project-views/${viewUid}/assets/`,
-      DEFAULT_VISIBLE_FIELDS
+      DEFAULT_VISIBLE_FIELDS,
+      false
     );
   }, [viewUid]);
 
@@ -95,8 +96,7 @@ function CustomViewRoute() {
         />
 
         <Button
-          type='frame'
-          color='storm'
+          type='secondary'
           size='s'
           startIcon='download'
           label={t('Export all data')}

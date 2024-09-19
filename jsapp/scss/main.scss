@@ -26,9 +26,8 @@
 @import "stylesheets/partials/helpers";
 
 @import "./components/kobo.bem.ui";
+@import "jsapp/js/popoverMenu.scss";
 @import "./components/kobo.button";
-@import "./components/kobo.light-button";
-@import "./components/kobo.text-button";
 @import "./components/kobo.tooltips-big";
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";
@@ -45,6 +44,7 @@
 @import "./components/kobo.simple-table";
 @import "./components/kobo.background-audio-player";
 @import "./components/kobo.dropzone";
+@import './components/kobo.table-meta';
 @import 'jsapp/js/components/common/tooltip.scss';
 
 @import "./formbuild/kobomatrix";

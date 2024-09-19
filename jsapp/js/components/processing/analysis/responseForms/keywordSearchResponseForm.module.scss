@@ -1,6 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .foundInstancesRow {
   @include mixins.centerRowFlex;
@@ -12,7 +12,7 @@
 }
 
 .loading {
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }
 
 .keywords {

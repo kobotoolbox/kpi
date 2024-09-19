@@ -5,6 +5,7 @@ import MultiCheckbox from 'js/components/common/multiCheckbox';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Button from 'js/components/common/button';
 
 /**
  * Attributes from source needed to generate `columnsToDisplay`
@@ -182,7 +183,7 @@ class DataAttachmentColumnsForm extends React.Component {
 
   render() {
     return (
-      // TODO: Use BEM elements
+      // TODO: Don't use BEM elements
       // See: https://github.com/kobotoolbox/kpi/issues/3912
       <bem.FormModal__form m='data-attachment-columns'>
         <div className='header'>
@@ -196,23 +197,23 @@ class DataAttachmentColumnsForm extends React.Component {
             </span>
 
             <div className='bulk-options__buttons'>
-              <bem.KoboLightButton
-                m='blue'
-                onClick={this.onBulkSelect}
-              >
-                {t('Select all')}
-              </bem.KoboLightButton>
+              <Button
+                type='secondary'
+                size='s'
+                onClick={this.onBulkSelect.bind(this)}
+                label={t('Select all')}
+              />
 
               <span>
                 {t('|')}
               </span>
 
-              <bem.KoboLightButton
-                m='blue'
-                onClick={this.onBulkDeselect}
-              >
-                {t('Deselect all')}
-              </bem.KoboLightButton>
+              <Button
+                type='secondary'
+                size='s'
+                onClick={this.onBulkDeselect.bind(this)}
+                label={t('Deselect all')}
+              />
             </div>
           </div>
         </div>
@@ -234,14 +235,15 @@ class DataAttachmentColumnsForm extends React.Component {
         }
 
         <footer className='modal__footer'>
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={this.state.isLoading}
-          >
-            {t('Accept')}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={this.state.isLoading}
+            label={t('Accept')}
+            className='data-attachment-modal-footer-button'
+          />
         </footer>
 
       </bem.FormModal__form>

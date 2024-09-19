@@ -341,7 +341,7 @@ export default function Plan(props: PlanProps) {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, []);
 
   const isSubscribedProduct = useCallback(
-    (product: SinglePricedProduct, quantity = null) => {
+    (product: SinglePricedProduct, quantity: number | undefined) => {
       if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true;
       }
@@ -356,7 +356,7 @@ export default function Plan(props: PlanProps) {
           (subscription: SubscriptionInfo) =>
             subscription.items[0].price.id === product.price.id &&
             hasManageableStatus(subscription) &&
-            quantity &&
+            quantity !== undefined &&
             quantity === subscription.quantity
         );
       }
@@ -428,16 +428,15 @@ export default function Plan(props: PlanProps) {
     hasMetaFeatures() && (
       <div className={styles.comparisonButton}>
         <Button
-          type='full'
-          color='light-storm'
+          type='text'
           size='m'
-          isFullWidth
           label={
             expandComparison
               ? t('Collapse full comparison')
               : t('Display full comparison')
           }
           onClick={() => setExpandComparison(!expandComparison)}
+          endIcon={expandComparison ? 'angle-up' : 'angle-down'}
         />
       </div>
     );

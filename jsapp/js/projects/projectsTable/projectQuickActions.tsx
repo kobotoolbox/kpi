@@ -45,8 +45,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
             asset.asset_type !== ASSET_TYPES.survey.id ||
             !asset.has_deployment
           }
-          type='bare'
-          color='storm'
+          type='secondary'
           size='s'
           startIcon='archived'
           onClick={() =>
@@ -66,8 +65,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
             asset.asset_type !== ASSET_TYPES.survey.id ||
             !asset.has_deployment
           }
-          type='bare'
-          color='storm'
+          type='secondary'
           size='s'
           startIcon='archived'
           onClick={() =>
@@ -83,8 +81,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
       {asset.deployment_status === 'draft' && (
         <Button
           isDisabled
-          type='bare'
-          color='storm'
+          type='secondary'
           size='s'
           startIcon='archived'
           tooltip={t('Draft project selected')}
@@ -95,8 +92,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
       {/* Share */}
       <Button
         isDisabled={!isManagingPossible && !isProjectViewAsset}
-        type='bare'
-        color='storm'
+        type='secondary'
         size='s'
         startIcon='user-share'
         onClick={() => manageAssetSharing(asset.uid)}
@@ -106,9 +102,8 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
 
       {/* Delete */}
       <Button
-        isDisabled={!isChangingPossible}
-        type='bare'
-        color='storm'
+        isDisabled={!isManagingPossible}
+        type='secondary-danger'
         size='s'
         startIcon='trash'
         onClick={() =>
@@ -121,7 +116,7 @@ const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
           )
         }
         tooltip={
-          isChangingPossible ? t('Delete 1 project') : t('Delete project')
+          isManagingPossible ? t('Delete 1 project') : t('Delete project')
         }
         tooltipPosition='right'
       />

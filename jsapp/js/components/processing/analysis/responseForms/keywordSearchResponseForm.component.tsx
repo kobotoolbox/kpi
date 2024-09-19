@@ -111,8 +111,7 @@ export default function KeywordSearchResponseForm(
           } else if (!question.response) {
             return (
               <Button
-                type='frame'
-                color='storm'
+                type='secondary'
                 size='m'
                 label={t('Apply search')}
                 onClick={applySearch}

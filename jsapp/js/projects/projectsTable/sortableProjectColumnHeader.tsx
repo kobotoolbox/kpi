@@ -70,8 +70,7 @@ export default function SortableProjectColumnHeader(props: SortableProjectColumn
               <div className={styles.dropdownContent}>
                 {props.orderableFields.includes(props.field.name) && (
                   <Button
-                    type='bare'
-                    color='storm'
+                    type='text'
                     size='m'
                     label={t('Default sort')}
                     startIcon='sort-default'
@@ -82,8 +81,7 @@ export default function SortableProjectColumnHeader(props: SortableProjectColumn
                 )}
                 {props.orderableFields.includes(props.field.name) && (
                   <Button
-                    type='bare'
-                    color='storm'
+                    type='text'
                     size='m'
                     label={t('Sort A→Z')}
                     startIcon='sort-ascending'
@@ -97,8 +95,7 @@ export default function SortableProjectColumnHeader(props: SortableProjectColumn
                 )}
                 {props.orderableFields.includes(props.field.name) && (
                   <Button
-                    type='bare'
-                    color='storm'
+                    type='text'
                     size='m'
                     label={t('Sort Z→A')}
                     startIcon='sort-descending'
@@ -113,8 +110,7 @@ export default function SortableProjectColumnHeader(props: SortableProjectColumn
                 {/* The `name` field is always visible, no need for the button */}
                 {props.onHideFieldRequested && props.field.name !== 'name' && (
                   <Button
-                    type='bare'
-                    color='storm'
+                    type='text'
                     size='m'
                     label={t('Hide field')}
                     startIcon='hide'

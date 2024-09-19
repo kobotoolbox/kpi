@@ -2,7 +2,7 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use 'scss/breakpoints';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'js/components/common/button';
 @use 'js/components/common/koboSelect';
 
@@ -42,14 +42,14 @@ $menu-padding: koboSelect.$k-select-menu-padding;
   justify-content: space-between;
   width: 100%;
   height: $option-height;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   padding: 0 #{sizes.$x16 - sizes.$x2};
-  text-align: left;
+  text-align: initial;
   font-weight: 500;
 
   &:hover {
-    color: colors.$kobo-gray-24;
-    background-color: colors.$kobo-gray-96;
+    color: colors.$kobo-gray-800;
+    background-color: colors.$kobo-gray-200;
   }
 
   :global .k-icon {
@@ -73,8 +73,8 @@ $menu-padding: koboSelect.$k-select-menu-padding;
 }
 
 .addQuestionMenu :global h2 {
-  text-align: left;
-  border-top: sizes.$x1 solid colors.$kobo-gray-92;
+  text-align: initial;
+  border-top: sizes.$x1 solid colors.$kobo-gray-300;
   font-size: sizes.$x12;
   line-height: $option-height;
   padding: 0;

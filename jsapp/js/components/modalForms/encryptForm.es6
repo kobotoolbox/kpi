@@ -9,6 +9,7 @@ import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import {stores} from 'js/stores';
 import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 class EncryptForm extends React.Component {
   constructor(props) {
@@ -137,24 +138,33 @@ class EncryptForm extends React.Component {
           </bem.FormModal__item>
         </bem.FormView__cell>
 
-        <bem.FormView__cell m='submit-button'>
-          <button
-            className='mdl-button mdl-button--raised mdl-button--colored'
-            disabled={this.state.isPending}
-            onClick={this.onSubmit} type='submit'
-          >
-            {t('Set encryption')}
-          </button>
-          <button
-            className='remove-encryption mdl-button mdl-button--colored mdl-button--red mdl-button--raised'
-            disabled={this.state.isPending}
-            onClick={this.onRemove} type='submit'
-          >
-            {t('Remove encryption')}
-          </button>
-          <button className="encrypt-help" onClick={this.openEncryptionHelp} data-tip={t('Learn more about encrypting forms')}>
-            <i className='k-icon k-icon-help'/>
-          </button>
+        <bem.FormView__cell m='submit-button' className='encrypt-form-footer'>
+          <span className='encrypt-form-footer-left'>
+            <Button
+              type='primary'
+              size='l'
+              isDisabled={this.state.isPending}
+              onClick={this.onSubmit.bind(this)}
+              isSubmit
+              label={t('Set encryption')}
+            />
+
+            <Button
+              type='text'
+              size='m'
+              onClick={this.openEncryptionHelp.bind(this)}
+              tooltip={t('Learn more about encrypting forms')}
+              startIcon='help'
+            />
+          </span>
+
+          <Button
+            type='danger'
+            size='l'
+            isDisabled={this.state.isPending}
+            onClick={this.onRemove.bind(this)}
+            label={t('Remove encryption')}
+          />
         </bem.FormView__cell>
       </bem.FormView__form>
       );

@@ -13,6 +13,7 @@ from trench.utils import get_mfa_model
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.accounts.mfa.forms import MfaLoginForm
+from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.tests.kpi_test_case import KpiTestCase
 
@@ -31,7 +32,7 @@ class TestStripeMFALogin(KpiTestCase):
         email_address.save()
 
         # Activate MFA for someuser
-        get_mfa_model().objects.create(
+        self.mfa_object = get_mfa_model().objects.create(
             user=self.someuser,
             secret='dummy_mfa_secret',
             name='app',
@@ -62,13 +63,29 @@ class TestStripeMFALogin(KpiTestCase):
             status=billing_status,
         )
 
+    def _reset_whitelist(self, whitelisted_users=[]):
+        MfaAvailableToUser.objects.all().delete()
+        for user in whitelisted_users:
+            MfaAvailableToUser.objects.create(user=user)
+
+    def _assert_mfa_login(self, response):
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'verification token')
+
+    def _assert_no_mfa_login(self, response):
+        self.assertEqual(len(response.redirect_chain), 1)
+        redirection, status_code = response.redirect_chain[0]
+        self.assertEqual(status_code, status.HTTP_302_FOUND)
+        self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
+
     @override_config(MFA_ENABLED=True)
     def test_no_mfa_login_without_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
         successful login if the user doesn't have a paid subscription
         """
-
+        # Enable whitelist but do not whitelist self.someuser
+        self._reset_whitelist([self.anotheruser])
         data = {
             'login': 'someuser',
             'password': 'someuser',
@@ -76,10 +93,7 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(
             reverse('kobo_login'), data=data, follow=True
         )
-        self.assertEqual(len(response.redirect_chain), 1)
-        redirection, status_code = response.redirect_chain[0]
-        self.assertEqual(status_code, status.HTTP_302_FOUND)
-        self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
+        self._assert_no_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_login_works_with_paid_subscription(self):
@@ -87,7 +101,8 @@ class TestStripeMFALogin(KpiTestCase):
         Validate that multi-factor authentication form is displayed after
         successful login if the user has a paid subscription
         """
-
+        # Enable whitelist but do not whitelist self.someuser
+        self._reset_whitelist([self.anotheruser])
         self._create_subscription(unit_amount=2000)
 
         data = {
@@ -95,8 +110,39 @@ class TestStripeMFALogin(KpiTestCase):
             'password': 'someuser',
         }
         response = self.client.post(reverse('kobo_login'), data=data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertContains(response, 'verification token')
+        self._assert_mfa_login(response)
+
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_login_without_subscription_no_whitelist(self):
+        """
+        Validate MFA form is displayed after login when the user
+        has no subscription and whitelist is disabled
+        """
+        self._reset_whitelist()
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(
+            reverse('kobo_login'), data=data, follow=True
+        )
+        self._assert_mfa_login(response)
+
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_login_without_subscription_but_whitelisted(self):
+        """
+        Validate MFA form is displayed after login when the user
+        has no subscription but is whitelisted
+        """
+        self._reset_whitelist([self.someuser])
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(
+            reverse('kobo_login'), data=data, follow=True
+        )
+        self._assert_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
     def test_no_mfa_login_with_free_subscription(self):
@@ -104,7 +150,7 @@ class TestStripeMFALogin(KpiTestCase):
         Validate that multi-factor authentication form is not displayed after
         successful login if the user has a free subscription
         """
-
+        self._reset_whitelist([self.anotheruser])
         self._create_subscription()
 
         data = {
@@ -114,19 +160,16 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(
             reverse('kobo_login'), data=data, follow=True
         )
-        self.assertEqual(len(response.redirect_chain), 1)
-        redirection, status_code = response.redirect_chain[0]
-        self.assertEqual(status_code, status.HTTP_302_FOUND)
-        self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
+        self._assert_no_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
-    def test_no_mfa_login_with_canceled_subscription(self):
+    def test_mfa_login_with_free_subscription_and_whitelisted(self):
         """
-        Validate that multi-factor authentication form is not displayed after
-        successful login if the user only has a cancelled subscription
+        Validate MFA form is displayed after login when the user
+        has free subscription and is whitelisted
         """
-
-        self._create_subscription(billing_status='canceled')
+        self._reset_whitelist([self.someuser])
+        self._create_subscription()
 
         data = {
             'login': 'someuser',
@@ -135,10 +178,63 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(
             reverse('kobo_login'), data=data, follow=True
         )
-        self.assertEqual(len(response.redirect_chain), 1)
-        redirection, status_code = response.redirect_chain[0]
-        self.assertEqual(status_code, status.HTTP_302_FOUND)
-        self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
+        self._assert_mfa_login(response)
+
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_login_with_free_subscription_no_whitelist(self):
+        """
+        Validate MFA form is displayed after login when the user
+        has free subscription and whitelist is disabled
+        """
+        self._reset_whitelist()
+        self._create_subscription()
+
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(
+            reverse('kobo_login'), data=data, follow=True
+        )
+        self._assert_mfa_login(response)
+
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_login_with_canceled_subscription_but_previously_set(self):
+        """
+        Validate that multi-factor authentication form is displayed after
+        successful login if the user only has a cancelled subscription
+        but MFA was enabled before subscription was canceled.
+        """
+        self._reset_whitelist([self.anotheruser])
+        self._create_subscription(unit_amount=2000, billing_status='canceled')
+
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(
+            reverse('kobo_login'), data=data, follow=True
+        )
+        self._assert_mfa_login(response)
+
+    @override_config(MFA_ENABLED=True)
+    def test_no_mfa_login_with_canceled_subscription(self):
+        """
+        Validate that multi-factor authentication form is not displayed after
+        successful login if the user only has a cancelled subscription and
+        MFA was not enabled before.
+        """
+        self._reset_whitelist([self.anotheruser])
+        self._create_subscription(billing_status='canceled')
+        self.mfa_object.delete()
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(
+            reverse('kobo_login'), data=data, follow=True
+        )
+        self._assert_no_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
     def test_no_mfa_login_with_wrong_password(self):

@@ -7,6 +7,7 @@ import {
 import {ANY_ROW_TYPE_NAMES} from 'js/constants';
 import type {FlatQuestion} from 'js/assetUtils';
 import type {AssetResponse} from 'js/dataInterface';
+import Button from 'js/components/common/button';
 
 interface AssetContentSummaryProps {
   asset: AssetResponse;
@@ -91,16 +92,19 @@ export default class AssetContentSummary extends React.Component<
 
     return (
       <React.Fragment>
-        <bem.FormView__cell m={['box', 'bordered']}>
+        <bem.FormView__cell m={['box', 'bordered']} dir='auto'>
           {items.map(this.renderQuestion.bind(this))}
         </bem.FormView__cell>
 
         {isExpandable &&
-          <bem.FormView__cell m={['toggle-details']}>
-            <button onClick={this.toggleExpanded.bind(this)}>
-              {this.state.isExpanded ? <i className='k-icon k-icon-angle-up'/> : <i className='k-icon k-icon-angle-down'/>}
-              {this.state.isExpanded ? t('Show less') : t('Show more')}
-            </button>
+          <bem.FormView__cell>
+            <Button
+              type='text'
+              size='m'
+              onClick={this.toggleExpanded.bind(this)}
+              label={this.state.isExpanded ? t('Show less') : t('Show more')}
+              startIcon={this.state.isExpanded ? 'angle-up' : 'angle-down'}
+            />
           </bem.FormView__cell>
         }
       </React.Fragment>

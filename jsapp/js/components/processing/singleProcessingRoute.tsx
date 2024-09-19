@@ -160,7 +160,7 @@ export default class SingleProcessingRoute extends React.Component<
             <SingleProcessingHeader
               submissionEditId={this.props.params.submissionEditId}
               assetUid={this.props.params.uid}
-              assetContent={this.state.asset.content}
+              asset={this.state.asset}
             />
           </section>
 

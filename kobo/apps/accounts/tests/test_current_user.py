@@ -1,7 +1,5 @@
-import json
 import re
 
-import constance
 import dateutil
 from constance.test import override_config
 from django.conf import settings
@@ -13,6 +11,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.utils.json import LazyJSONSerializable
 
 
 class CurrentUserAPITestCase(APITestCase):
@@ -52,11 +51,12 @@ class CurrentUserAPITestCase(APITestCase):
         # …and what we didn't touch should still be there as well
         assert response_extra_details['name'] == 'SpongeBob'
 
+    @override_config(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
+            [{'name': 'organization', 'required': True}]
+        )
+    )
     def test_validate_extra_detail(self):
-        constance.config.USER_METADATA_FIELDS = json.dumps([
-            {'name': 'organization', 'required': True}
-        ])
-
         # Setting an unrelated field should not be subject to validation
         patch_data = {'extra_details': {'name': 'SpongeBob'}}
         response = self.client.patch(self.url, data=patch_data, format='json')
@@ -153,15 +153,16 @@ class CurrentUserAPITestCase(APITestCase):
         response = self.client.get(self.url)
         assert response.data['accepted_tos'] == True
 
-    def test_validate_extra_detail_organization_type(self):
-        constance.config.USER_METADATA_FIELDS = json.dumps(
+    @override_config(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
             [
                 {'name': 'organization', 'required': True},
                 {'name': 'organization_type', 'required': True},
                 {'name': 'organization_website', 'required': True},
             ]
         )
-
+    )
+    def test_validate_extra_detail_organization_type(self):
         # Validate that a user can submit empty strings for `organization`
         # and `organization_website` if `organization_type` is none
         patch_data = {
@@ -196,14 +197,15 @@ class CurrentUserAPITestCase(APITestCase):
             }
         }
 
-    def test_validate_extra_detail_no_organization_type(self):
-        constance.config.USER_METADATA_FIELDS = json.dumps(
+    @override_config(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
             [
                 {'name': 'organization', 'required': True},
                 {'name': 'organization_website', 'required': True},
             ]
         )
-
+    )
+    def test_validate_extra_detail_no_organization_type(self):
         # Ensure `organization` and `organization_website` fields behave normally
         # if `organization_type` is not enabled
         patch_data = {

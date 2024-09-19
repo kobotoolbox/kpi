@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
+import Button from 'js/components/common/button';
 
 export default class CustomReportForm extends React.Component {
   constructor(props) {
@@ -79,13 +80,20 @@ export default class CustomReportForm extends React.Component {
 
         <bem.Modal__footer>
           {this.props.asset.report_custom[crid] && (
-            <bem.KoboButton m='red' onClick={this.deleteCustomReport}>
-              {t('Delete')}
-            </bem.KoboButton>
+            <Button
+              type='danger'
+              size='l'
+              onClick={this.deleteCustomReport.bind(this)}
+              label={t('Delete')}
+            />
           )}
-          <bem.KoboButton m='blue' onClick={this.saveCustomReport}>
-            {t('Save')}
-          </bem.KoboButton>
+
+          <Button
+            type='primary'
+            size='l'
+            onClick={this.saveCustomReport.bind(this)}
+            label={t('Save')}
+          />
         </bem.Modal__footer>
       </div>
     );

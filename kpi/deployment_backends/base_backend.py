@@ -185,7 +185,6 @@ class BaseDeploymentBackend(abc.ABC):
 
         return self.prepare_bulk_update_response(kc_responses)
 
-
     @abc.abstractmethod
     def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
         pass
@@ -194,14 +193,19 @@ class BaseDeploymentBackend(abc.ABC):
     def connect(self, active=False):
         pass
 
-    @property
-    @abc.abstractmethod
-    def form_uuid(self):
-        pass
-
-    @abc.abstractmethod
-    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
-        pass
+    def copy_submission_extras(self, origin_uuid: str, dest_uuid: str):
+        """
+        Copy the submission extras from an origin submission uuid
+        to a destination uuid. Should be used along with duplicate_submission,
+        after it succeeds at duplicating a submission
+        """
+        original_extras = self.asset.submission_extras.filter(
+            submission_uuid=origin_uuid
+        ).first()
+        if original_extras is not None:
+            duplicated_extras = copy.deepcopy(original_extras.content)
+            duplicated_extras['submission'] = dest_uuid
+            self.asset.update_submission_extra(duplicated_extras)
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
@@ -223,6 +227,11 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     @abc.abstractmethod
     def enketo_id(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def form_uuid(self):
         pass
 
     @staticmethod
@@ -381,6 +390,10 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def mongo_userform_id(self):
         return None
+
+    @abc.abstractmethod
+    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
+        pass
 
     @abc.abstractmethod
     def redeploy(self, active: bool = None):

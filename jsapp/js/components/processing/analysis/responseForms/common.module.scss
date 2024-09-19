@@ -1,6 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use '../analysisVariables';
 
 $label-left-position: analysisVariables.$icon-size +
@@ -17,7 +17,7 @@ $label-left-position: analysisVariables.$icon-size +
 }
 
 .headerLabel {
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   font-size: sizes.$x16;
   font-weight: 600;
   flex: 1;

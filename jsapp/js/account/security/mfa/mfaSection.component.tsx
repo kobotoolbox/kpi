@@ -219,8 +219,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
 
                 <bem.MFAOptions__buttons>
                   <Button
-                    type='frame'
-                    color='storm'
+                    type='secondary'
                     label={t('Reconfigure')}
                     size='m'
                     onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,8 +236,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
 
                 <bem.MFAOptions__buttons>
                   <Button
-                    type='frame'
-                    color='storm'
+                    type='secondary'
                     label={t('Generate new')}
                     size='m'
                     onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {

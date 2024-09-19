@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import Button from 'js/components/common/button';
+import InlineMessage from 'js/components/common/inlineMessage';
 import {observer} from 'mobx-react';
 import type {Form} from 'react-router-dom';
 import {unstable_usePrompt as usePrompt} from 'react-router-dom';
@@ -141,9 +142,8 @@ const AccountSettings = observer(() => {
     <bem.AccountSettings onSubmit={updateProfile}>
       <bem.AccountSettings__actions>
         <Button
-          type={'full'}
+          type='primary'
           className='account-settings-save'
-          color={'blue'}
           size={'l'}
           isSubmit
           label={t('Save Changes') + (form.isPristine ? '' : ' *')}
@@ -161,32 +161,27 @@ const AccountSettings = observer(() => {
 
         {sessionStore.isInitialLoadComplete && form.isUserDataLoaded && (
           <bem.AccountSettings__item m='fields'>
-            <bem.AccountSettings__item m='anonymous-submission-notice'>
-              <Icon name='information' color='amber' size='m' />
-              <div className='anonymous-submission-notice-copy'>
-                <strong>
-                  {t(
-                    'You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.'
-                  )}
-                </strong>
-                &nbsp;
-                <div>
-                  {t(
-                    'This privacy feature is now a per-project setting. New projects will require authentication by default.'
-                  )}
-                </div>
-                &nbsp;
-                <a
-                  href={
-                    envStore.data.support_url +
-                    HELP_ARTICLE_ANON_SUBMISSIONS_URL
-                  }
-                  target='_blank'
-                >
-                  {t('Learn more about these changes here.')}
-                </a>
-              </div>
-            </bem.AccountSettings__item>
+            <InlineMessage
+              type='warning'
+              icon='information'
+              message={(
+                <>
+                  <strong>
+                    {t('You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.')}
+                  </strong>
+                  &nbsp;
+                  {t('This privacy feature is now a per-project setting. New projects will require authentication by default.')}
+                  &nbsp;
+                  <a
+                    href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+                    target='_blank'
+                  >
+                    {t('Learn more about these changes here.')}
+                  </a>
+                </>
+              )}
+              className='anonymous-submission-notice'
+            />
 
             <AccountFieldsEditor
               errors={form.fieldsWithErrors.extra_details}

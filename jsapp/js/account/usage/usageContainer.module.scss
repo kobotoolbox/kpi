@@ -1,5 +1,5 @@
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .usage {
   display: grid;
@@ -44,7 +44,7 @@
 }
 
 .warningIcon {
-  color: colors.$kobo-red;
+  color: colors.$kobo-mid-red;
 }
 
 .overlimit {

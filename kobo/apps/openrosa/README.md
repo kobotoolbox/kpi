@@ -1,15 +1,14 @@
-# KoboCAT
+Code in this directory is based on
+[KoboCAT](https://github.com/kobotoolbox/kobocat), derived from the excellent
+[onadata](http://github.com/onaio/onadata) platform developed by Ona LLC, which
+in itself is a redevelopment of the
+[formhub](http://github.com/SEL-Columbia/formhub) platform developed by the
+Sustainable Engineering Lab at Columbia University.
 
-## About
+Please see the LICENSE file in this directory for more details. A copy is available at
+https://github.com/kobotoolbox/kpi/blob/release/2.024.25/kobo/apps/openrosa/LICENSE.
 
-KoboCAT is the data collection platform used in KoboToolbox. It is based
-on the excellent [onadata](http://github.com/onaio/onadata) platform
-developed by Ona LLC, which in itself is a redevelopment of the
-[formhub](http://github.com/SEL-Columbia/formhub) platform developed by
-the Sustainable Engineering Lab at Columbia University.
-
-Please refer to
-[kobo-install](https://github.com/kobotoolbox/kobo-install) for
+Please refer to [kobo-install](https://github.com/kobotoolbox/kobo-install) for
 instructions on how to install KoboToolbox.
 
 ⚠️ _Note_: Starting from version [2.024.25](https://github.com/kobotoolbox/kpi/releases/tag/2.024.25),
