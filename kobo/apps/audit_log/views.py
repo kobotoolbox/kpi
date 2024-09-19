@@ -184,8 +184,6 @@ class AccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = AccessLog.objects.select_related('user').order_by(
-        '-date_created'
-    )
+    queryset = AccessLog.objects.select_related('user').order_by('-date_created')
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)

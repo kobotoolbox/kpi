@@ -7,6 +7,4 @@ class RequiresAccessLogMixin:
     """
 
     def create_access_log(self, request, user, auth_type):
-        AccessLog.create_from_request(
-            request, user, authentication_type=auth_type
-        )
+        AccessLog.create_from_request(request, user, authentication_type=auth_type)

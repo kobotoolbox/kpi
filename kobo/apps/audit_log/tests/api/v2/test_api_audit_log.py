@@ -5,12 +5,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.audit_log.models import (
-    AccessLog,
-    AuditAction,
-    AuditLog,
-    AuditType,
-)
+from kobo.apps.audit_log.models import AccessLog, AuditAction, AuditLog, AuditType
 from kobo.apps.audit_log.serializers import AuditLogSerializer
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
@@ -43,9 +38,7 @@ class BaseAuditLogTestCase(BaseTestCase):
     def assert_audit_log_results_equal(self, response, expected_kwargs):
         # utility method for tests that are just comparing the results of an api call to the results of
         # manually applying the expected query (simple filters only)
-        expected = AccessLog.objects.filter(**expected_kwargs).order_by(
-            '-date_created'
-        )
+        expected = AccessLog.objects.filter(**expected_kwargs).order_by('-date_created')
         expected_count = expected.count()
         serializer = AuditLogSerializer(
             expected, many=True, context=response.renderer_context

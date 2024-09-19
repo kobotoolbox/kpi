@@ -1,8 +1,6 @@
 import logging
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
@@ -103,22 +101,16 @@ class AccessLogManager(models.Manager):
         # remove any attempt to set fields that should always be the same on an access log
         app_label = kwargs.pop('app_label', None)
         if app_label is not None:
-            logging.warning(
-                f'Ignoring attempt to set {app_label=} on access log'
-            )
+            logging.warning(f'Ignoring attempt to set {app_label=} on access log')
         model_name = kwargs.pop('model_name', None)
         if model_name is not None:
-            logging.warning(
-                f'Ignoring attempt to set {model_name=} on access log'
-            )
+            logging.warning(f'Ignoring attempt to set {model_name=} on access log')
         action = kwargs.pop('action', None)
         if action is not None:
             logging.warning(f'Ignoring attempt to set {action=} on access log')
         log_type = kwargs.pop('log_type', None)
         if log_type is not None:
-            logging.warning(
-                f'Ignoring attempt to set {log_type=} on access log'
-            )
+            logging.warning(f'Ignoring attempt to set {log_type=} on access log')
         user = kwargs.pop('user')
         return super().create(
             # set the fields that are always the same for access logs, pass along the rest to the original constructor

@@ -14,14 +14,14 @@ from kpi.serializers import AuthorizedApplicationUserSerializer
 
 
 def home(request):
-    return TemplateResponse(request, "index.html")
+    return TemplateResponse(request, 'index.html')
 
 
 def browser_tests(request):
-    return TemplateResponse(request, "browser_tests.html")
+    return TemplateResponse(request, 'browser_tests.html')
 
 def modern_browsers(request):
-    return TemplateResponse(request, "modern_browsers.html")
+    return TemplateResponse(request, 'modern_browsers.html')
 
 
 @api_view(['POST'])
@@ -72,4 +72,6 @@ def authorized_application_authenticate_user(request):
 
 # TODO Verify if it's still used
 def _wrap_html_pre(content):
-    return "<!doctype html><html><body><code><pre>%s</pre></code></body></html>" % content
+    return (
+        '<!doctype html><html><body><code><pre>%s</pre></code></body></html>' % content
+    )
