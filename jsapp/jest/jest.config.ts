@@ -9,9 +9,7 @@ const config: Config = {
     '\\.(css|scss)$': 'identity-obj-proxy',
   },
   setupFilesAfterEnv: ['<rootDir>/setupJestTest.ts'],
-  transform: {
-    '\\.[jt]sx?$': ['babel-jest', {configFile: `${__dirname}/../../.babelrc.json`}],
-  },
+  transform: {'^.+\\.(t|j)sx?$': '@swc/jest'},
 };
 
 export default config;
