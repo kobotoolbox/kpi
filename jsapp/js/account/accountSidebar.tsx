@@ -5,7 +5,6 @@ import {observer} from 'mobx-react-lite';
 import Icon from 'js/components/common/icon';
 import {IconName} from 'jsapp/fonts/k-icons';
 import subscriptionStore from 'js/account/subscriptionStore';
-import './accountSidebar.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
