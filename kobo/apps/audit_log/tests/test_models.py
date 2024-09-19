@@ -219,9 +219,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
 
     def test_with_group_key_uses_id_for_non_submissions(self):
         user = User.objects.get(username='someuser')
-        access_log = AccessLog.objects.create(
-            user=user, metadata={'foo': 'bar'}
-        )
+        access_log = AccessLog.objects.create(user=user, metadata={'foo': 'bar'})
         # the group key is calculated when fetching from the db
         refetched = AccessLog.objects.with_group_key().get(pk=access_log.id)
         self.assertEqual(refetched.group_key, str(refetched.id))
@@ -261,9 +259,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
             date_created=jan_1_1_45_am,
         )
         # order by date created so we can use first() and last()
-        results = AccessLog.objects.with_submissions_grouped().order_by(
-            'date_created'
-        )
+        results = AccessLog.objects.with_submissions_grouped().order_by('date_created')
         self.assertEqual(results.count(), 2)
 
         first_result = results.first()
@@ -314,9 +310,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
         )
 
         # order by date created so we can use first() and last()
-        results = AccessLog.objects.with_submissions_grouped().order_by(
-            'date_created'
-        )
+        results = AccessLog.objects.with_submissions_grouped().order_by('date_created')
         # should get 3 submission groups, 2 for user1, and 1 for user2
         self.assertEqual(results.count(), 3)
 

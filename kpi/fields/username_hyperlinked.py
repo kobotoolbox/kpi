@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+
 class UsernameHyperlinkField(serializers.HyperlinkedRelatedField):
     """
     Special hyperlinked field to handle when a query returns a dict rather than a User object

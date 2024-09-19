@@ -1,11 +1,9 @@
 import logging
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Case, Count, F, Min, Value, When
-from django.db.models.functions import Cast, Coalesce, Concat, Trunc
+from django.db.models.functions import Cast, Concat, Trunc
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -176,9 +174,7 @@ class AccessLogManager(models.Manager):
                         # override the metadata for submission groups
                         metadata__auth_type=ACCESS_LOG_SUBMISSION_AUTH_TYPE,
                         then=Value(
-                            {
-                                'auth_type': ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE
-                            },
+                            {'auth_type': ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE},
                             models.JSONField(),
                         ),
                     ),
@@ -220,8 +216,7 @@ class AccessLog(AuditLog):
         )
         is_submission = (
             request.resolver_match is not None
-            and request.resolver_match.url_name
-            in ['submissions', 'submissions-list']
+            and request.resolver_match.url_name in ['submissions', 'submissions-list']
             and request.method == 'POST'
         )
         # a regular login may have an anonymous user as _cached_user, ignore that

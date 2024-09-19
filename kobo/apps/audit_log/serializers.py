@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from kpi.fields.username_hyperlinked import UsernameHyperlinkField
-from .models import AuditAction, AuditLog
+from .models import AuditLog
 
 
 class AuditLogSerializer(serializers.ModelSerializer):

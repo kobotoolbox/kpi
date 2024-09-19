@@ -5,12 +5,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.audit_log.models import (
-    AccessLog,
-    AuditAction,
-    AuditLog,
-    AuditType,
-)
+from kobo.apps.audit_log.models import AccessLog, AuditAction, AuditLog, AuditType
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
@@ -201,12 +196,8 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         # this is just to ensure that we're using the grouping query
         user = User.objects.get(username='someuser')
         self.force_login_user(user)
-        jan_1_1_30_am = datetime.fromisoformat(
-            '2024-01-01T01:30:25.123456+00:00'
-        )
-        jan_1_1_45_am = datetime.fromisoformat(
-            '2024-01-01T01:45:25.123456+00:00'
-        )
+        jan_1_1_30_am = datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
+        jan_1_1_45_am = datetime.fromisoformat('2024-01-01T01:45:25.123456+00:00')
         AccessLog.objects.create(
             user=user,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
@@ -268,15 +259,9 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         admin = User.objects.get(username='admin')
 
         self.force_login_user(admin)
-        jan_1_1_30_am = datetime.fromisoformat(
-            '2024-01-01T01:30:25.123456+00:00'
-        )
-        jan_1_1_45_am = datetime.fromisoformat(
-            '2024-01-01T01:45:25.123456+00:00'
-        )
-        jan_1_1_50_am = datetime.fromisoformat(
-            '2024-01-01T01:50:25.123456+00:00'
-        )
+        jan_1_1_30_am = datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
+        jan_1_1_45_am = datetime.fromisoformat('2024-01-01T01:45:25.123456+00:00')
+        jan_1_1_50_am = datetime.fromisoformat('2024-01-01T01:50:25.123456+00:00')
 
         # create 2 submissions for user1
         AccessLog.objects.create(
@@ -348,12 +333,8 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
 
         # create two submissions that will be grouped together
         # these are the only two logs for user admin
-        jan_1_1_30_am = datetime.fromisoformat(
-            '2024-01-01T01:30:25.123456+00:00'
-        )
-        jan_1_1_45_am = datetime.fromisoformat(
-            '2024-01-01T01:45:25.123456+00:00'
-        )
+        jan_1_1_30_am = datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
+        jan_1_1_45_am = datetime.fromisoformat('2024-01-01T01:45:25.123456+00:00')
         AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
@@ -426,9 +407,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         )
 
         # search for logs created after tomorrow
-        response = self.client.get(
-            f'{self.url}?q=date_created__gte:"{tomorrow_str}"'
-        )
+        response = self.client.get(f'{self.url}?q=date_created__gte:"{tomorrow_str}"')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # should only return the submission group

@@ -1,9 +1,9 @@
-from unittest import TestCase, mock
+from unittest import mock
 from unittest.mock import patch
 
 from ddt import data, ddt, unpack
 from django.http import HttpResponse
-from django.urls import resolve, reverse
+from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from trench.utils import get_mfa_model
 
