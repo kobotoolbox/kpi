@@ -76,6 +76,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-react": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@storybook/addon-a11y": "^7.0.24",
     "@storybook/addon-actions": "^7.0.24",
@@ -92,6 +93,7 @@
     "@testing-library/react": "^16.0.1",
     "@types/chai": "^4.3.1",
     "@types/gtag.js": "^0.0.12",
+    "@types/jest": "^29.5.13",
     "@types/jquery": "^3.5.10",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.debounce": "^4.0.7",
@@ -110,6 +112,7 @@
     "@types/lodash.values": "^4.3.7",
     "@types/lodash.zip": "^4.2.7",
     "@types/mocha": "^9.1.1",
+    "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",
     "@types/react-document-title": "^2.0.9",
     "@types/react-dom": "^18.3.0",
@@ -169,6 +172,7 @@
     "swc-loader": "^0.2.6",
     "terser-webpack-plugin": "^5.3.10",
     "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.5.3",
     "typescript-plugin-css-modules": "^5.1.0",
     "webpack": "^5.92.1",
@@ -212,8 +216,8 @@
     "hint": "node ./scripts/hints.js",
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build",
-    "jest": "jest",
-    "jest:watch": "jest --watch"
+    "jest": "jest --config ./jsapp/jest/jest.config.ts",
+    "jest-watch": "jest --config ./jsapp/jest/jest.config.ts --watch"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",

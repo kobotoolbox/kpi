@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import Button from './button';
 
 import {render, screen} from '@testing-library/react';
-import {expect, jest} from '@jest/globals';
+import {describe, it, expect, jest} from '@jest/globals';
 import userEvent from '@testing-library/user-event';
 
 describe('Button renders', () => {

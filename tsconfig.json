@@ -26,10 +26,11 @@
     "allowJs": true,
     "outDir": "out",
     "jsx": "react-jsx",
-    "plugins": [{ "name": "typescript-plugin-css-modules"}]
+    "plugins": [{ "name": "typescript-plugin-css-modules"}],
+    "types": ["@testing-library/jest-dom"]
   },
   "include": [
     "jsapp/**/*.ts",
     "jsapp/**/*.tsx"
-  ]
+  ],
 }
