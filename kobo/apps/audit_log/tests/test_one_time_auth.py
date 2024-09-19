@@ -107,7 +107,8 @@ class TestOneTimeAuthentication(BaseTestCase):
         """
 
         def side_effect(request):
-            # Digest authentication sets request.user, so include that as a side effect when necessary
+            # Digest authentication sets request.user,
+            # so include that as a side effect when necessary
             request.user = TestOneTimeAuthentication.user
             return mock.DEFAULT
 
@@ -134,7 +135,7 @@ class TestOneTimeAuthentication(BaseTestCase):
     )
     def test_any_auth_for_submissions(self, authetication_method):
         """
-        Test any normal one-time authenticated submission results in a submission access log
+        Test most one-time authenticated submissions result in a submission access log
         """
 
         with patch(
@@ -143,7 +144,7 @@ class TestOneTimeAuthentication(BaseTestCase):
         ):
             # assume the submission works, we don't actually care
             with patch(
-                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create',
+                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create', # noqa
                 return_value=HttpResponse(status=200),
             ):
                 # try both v1 and v2
@@ -174,7 +175,7 @@ class TestOneTimeAuthentication(BaseTestCase):
         ):
             # assume the submission works, we don't actually care
             with patch(
-                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create',
+                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create', # noqa
                 return_value=HttpResponse(status=200),
             ):
                 # check v1 and v2

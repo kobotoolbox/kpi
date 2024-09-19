@@ -315,7 +315,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         admin = User.objects.get(username='admin')
         AccessLog.objects.create(user=user1)
         AccessLog.objects.create(user=user2)
-        self.force_login_user(User.objects.get(username='admin'))
+        self.force_login_user(admin)
         response = self.client.get(f'{self.url}?q=user__username:anotheruser')
 
         # only return logs from user1

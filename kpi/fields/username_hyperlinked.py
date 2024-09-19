@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 class UsernameHyperlinkField(serializers.HyperlinkedRelatedField):
     """
-    Special hyperlinked field to handle when a query returns a dict rather than a User object
+    Special hyperlinked field to handle a dict rather than a User object
     """
 
     queryset = get_user_model().objects.all()

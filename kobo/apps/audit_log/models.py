@@ -147,14 +147,15 @@ class AccessLogManager(models.Manager):
                         'user_uid',
                     ),
                 ),
-                # for everything else, the group key is just the id since they won't be grouped
+                # for everything else, the group key is just the id
+                # since they won't be grouped
                 default=Cast('id', output_field=models.CharField()),
             )
         )
 
     def with_submissions_grouped(self):
         """
-        Returns minimal audit log representation with submissions grouped by user by hour
+        Returns minimal representation with submissions grouped by user by hour
         """
         return (
             self.with_group_key()

@@ -202,7 +202,8 @@ class AccessLogModelManagerTestCase(BaseTestCase):
 
     def test_access_log_manager_only_gets_access_logs(self):
         user = User.objects.get(username='someuser')
-        non_access_log = AuditLog.objects.create(
+        # non-access log
+        AuditLog.objects.create(
             user=user,
             log_type=AuditType.DATA_EDITING,
             action=AuditAction.CREATE,
@@ -248,12 +249,12 @@ class AccessLogModelManagerTestCase(BaseTestCase):
             '2024-01-01T01:45:25.123456+00:00'
         )
         user = User.objects.get(username='someuser')
-        log_1 = AccessLog.objects.create(
+        AccessLog.objects.create(
             user=user,
             metadata={'auth_type': 'Token', 'identify_me': '1'},
             date_created=jan_1_1_30_am,
         )
-        log_2 = AccessLog.objects.create(
+        AccessLog.objects.create(
             user=user,
             metadata={'auth_type': 'Token', 'identify_me': '2'},
             date_created=jan_1_1_45_am,
@@ -288,22 +289,25 @@ class AccessLogModelManagerTestCase(BaseTestCase):
 
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
-        user_1_submission_1 = AccessLog.objects.create(
+        # two submissions for user1 between 1-2am
+        AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
             date_created=jan_1_1_30_am,
         )
-        user1_submission_2 = AccessLog.objects.create(
+        AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
             date_created=jan_1_1_45_am,
         )
-        user1_submission_3 = AccessLog.objects.create(
+        # one submission for user1 after 2am
+        AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
             date_created=jan_1_2_15_am,
         )
-        user2_submission_1 = AccessLog.objects.create(
+        # one submission for user2 between 1-2am
+        AccessLog.objects.create(
             user=user2,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
             date_created=jan_1_1_30_am,
@@ -331,7 +335,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
             ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
         )
 
-        # should only
+        # one group for user2
         user_2_groups = results.filter(user__username='anotheruser')
         self.assertEqual(user_2_groups.count(), 1)
         user_2_group_1 = user_2_groups.first()
