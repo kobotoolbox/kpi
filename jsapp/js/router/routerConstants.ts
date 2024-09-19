@@ -9,6 +9,7 @@ export const PATHS = Object.freeze({
 export const ROUTES = Object.freeze({
   ROOT: '',
   ACCOUNT_ROOT: '/account',
+  ORGANIZATION: '/account/organization',
   LIBRARY: '/library',
   MY_LIBRARY: '/library/my-library',
   PUBLIC_COLLECTIONS: '/library/public-collections',

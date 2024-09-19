@@ -9,11 +9,10 @@ import type {
   AccountLimit,
   ChangePlan,
   Checkout,
-  Organization,
   PriceMetadata,
   Product,
-  TransformQuantity,
 } from 'js/account/stripe.types';
+import type { Organization } from './organizations/organizations.constants';
 import {Limits} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
 

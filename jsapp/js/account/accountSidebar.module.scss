@@ -1,0 +1,57 @@
+@use 'scss/colors';
+@use 'scss/sizes';
+
+.accountSidebar {
+  margin-top: 10px;
+  padding: sizes.$x14 sizes.$x20 sizes.$x20 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  color: colors.$kobo-gray-700;
+}
+
+.navGroup + .navGroup {
+  margin-top: sizes.$x40;
+}
+
+.navlink {
+  color: inherit;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.navlinkIcon {
+  margin: 0 sizes.$x6 0 sizes.$x1 !important;
+}
+
+.navlinkLabel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+  color: inherit;
+  padding: 0 0 0 sizes.$x18 !important;
+  border-left: sizes.$x3 solid transparent;
+  margin-bottom: sizes.$x18;
+
+  &:hover {
+    color: colors.$kobo-gray-800;
+  }
+}
+
+.activeNavlink {
+  label {
+    border-left: sizes.$x3 solid colors.$kobo-teal;
+    color: colors.$kobo-gray-800;
+  }
+}
+
+.subhead {
+  padding: 0 0 0 sizes.$x18 !important;
+  margin-bottom: sizes.$x16;
+  font-size: sizes.$x12;
+  font-weight: 600;
+  color: colors.$kobo-gray-600;
+}

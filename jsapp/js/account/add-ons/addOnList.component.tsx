@@ -3,11 +3,11 @@ import useWhen from 'js/hooks/useWhen.hook';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {
   Price,
-  Organization,
   Product,
   SubscriptionChangeType,
   SubscriptionInfo,
 } from 'js/account/stripe.types';
+import type {Organization} from 'js/account/organizations/organizations.constants';
 import {
   getSubscriptionChangeDetails,
   isAddonProduct,

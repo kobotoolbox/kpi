@@ -1,43 +1,39 @@
+import styles from './accountSidebar.module.scss';
 import React, {useContext, useMemo, useState} from 'react';
 import {NavLink} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
-import bem from 'js/bem';
 import Icon from 'js/components/common/icon';
 import {IconName} from 'jsapp/fonts/k-icons';
-import Badge from '../components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
 import './accountSidebar.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {OrgMemberRole} from './organizations/organizations.constants';
 
 interface AccountNavLinkProps {
   iconName: IconName;
   name: string;
   to: string;
-  isNew?: boolean;
 }
 function AccountNavLink(props: AccountNavLinkProps) {
   return (
-    <NavLink to={props.to} className='form-sidebar__navlink'>
-      {/* There shouldn't be a nested <a> tag here, NavLink already generates one */}
-      <bem.FormSidebar__label>
-        <Icon name={props.iconName} size='xl' />
-        <bem.FormSidebar__labelText m={props.isNew ? 'isNew' : ''}>
-          {props.name}
-        </bem.FormSidebar__labelText>
-        {props.isNew && <Badge color='light-blue' size='s' label='New' />}
-      </bem.FormSidebar__label>
+    <NavLink
+      to={props.to}
+      className={({isActive}) =>
+        [styles.navlink, isActive ? styles.activeNavlink : ''].join(' ')
+      }
+    >
+      <label className={styles.navlinkLabel}>
+        <Icon name={props.iconName} className={styles.navlinkIcon} size='xl' />
+        <span>{props.name}</span>
+      </label>
     </NavLink>
   );
 }
 
-function AccountSidebar() {
-  const [showPlans, setShowPlans] = useState(false);
-  const [organization, _] = useContext(OrganizationContext);
-
-  const isOrgOwner = useMemo(() => organization?.is_owner, [organization]);
-
+function BillingLinks() {
+  const [showPlans, setShowPlans] = useState(true);
   useWhenStripeIsEnabled(() => {
     if (!subscriptionStore.isInitialised) {
       subscriptionStore.fetchSubscriptionInfo();
@@ -45,49 +41,78 @@ function AccountSidebar() {
     setShowPlans(true);
   }, [subscriptionStore.isInitialised]);
 
-  const showAddOnsLink = useMemo(() => {
-    return !subscriptionStore.planResponse.length;
-  }, [subscriptionStore.isInitialised]);
+  return showPlans ? (
+    <>
+      <AccountNavLink
+        iconName='editor'
+        name={t('Plans')}
+        to={ACCOUNT_ROUTES.PLAN}
+      />
+      <AccountNavLink
+        iconName='plus'
+        name={t('Add-ons')}
+        to={ACCOUNT_ROUTES.ADD_ONS}
+      />
+    </>
+  ) : null;
+}
+
+function AccountSidebar() {
+  const [organization, _] = useContext(OrganizationContext);
+  const displayOrgGroup = useMemo(() => true, [organization]);
+  const orgRole = useMemo(() => OrgMemberRole.OWNER, [organization]);
 
   return (
-    <bem.FormSidebar m='account'>
-      <AccountNavLink
-        iconName='user'
-        name={t('Profile')}
-        to={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
-      />
-      <AccountNavLink
-        iconName='lock-alt'
-        name={t('Security')}
-        to={ACCOUNT_ROUTES.SECURITY}
-      />
-      {isOrgOwner && (
-        <>
+    <nav className={styles.accountSidebar}>
+      <div className={styles.navGroup}>
+        <div className={styles.subhead}>{t('ACCOUNT')}</div>
+        <AccountNavLink
+          iconName='user'
+          name={t('Profile')}
+          to={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+        />
+        <AccountNavLink
+          iconName='lock-alt'
+          name={t('Security')}
+          to={ACCOUNT_ROUTES.SECURITY}
+        />
+        {!displayOrgGroup && (
+          <>
+            <BillingLinks />
+            <AccountNavLink
+              iconName='reports'
+              name={t('Usage')}
+              to={ACCOUNT_ROUTES.USAGE}
+            />
+          </>
+        )}
+      </div>
+      {displayOrgGroup && (
+        <div className={styles.navGroup}>
+          <div className={styles.subhead}>{t('ORGANIZATION')}</div>
           <AccountNavLink
-            iconName='reports'
-            name={t('Usage')}
-            to={ACCOUNT_ROUTES.USAGE}
+            iconName='user-share'
+            name={t('Members')}
+            to={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
           />
-          {showPlans && (
+          {[OrgMemberRole.OWNER, OrgMemberRole.ADMIN].includes(orgRole) && (
             <>
               <AccountNavLink
-                iconName='editor'
-                name={t('Plans')}
-                to={ACCOUNT_ROUTES.PLAN}
+                iconName='reports'
+                name={t('Usage')}
+                to={ACCOUNT_ROUTES.USAGE}
               />
-              {showAddOnsLink && (
-                <AccountNavLink
-                  iconName='plus'
-                  name={t('Add-ons')}
-                  to={ACCOUNT_ROUTES.ADD_ONS}
-                  isNew={true}
-                />
-              )}
+              {orgRole === OrgMemberRole.OWNER && <BillingLinks />}
+              <AccountNavLink
+                iconName='settings'
+                name={t('Settings')}
+                to={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
+              />
             </>
           )}
-        </>
+        </div>
       )}
-    </bem.FormSidebar>
+    </nav>
   );
 }
 

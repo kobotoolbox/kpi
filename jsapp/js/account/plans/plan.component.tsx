@@ -28,11 +28,11 @@ import {
 } from 'js/account/stripe.utils';
 import type {
   Price,
-  Organization,
   Product,
   SubscriptionInfo,
   SinglePricedProduct,
 } from 'js/account/stripe.types';
+import type { Organization } from '../organizations/organizations.constants';
 import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.component';
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 import {PlanContainer} from 'js/account/plans/planContainer.component';

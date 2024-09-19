@@ -2,7 +2,6 @@ import BillingButton from 'js/account/plans/billingButton.component';
 import React, {useContext} from 'react';
 import type {
   Price,
-  Organization,
   SinglePricedProduct,
 } from 'js/account/stripe.types';
 import {postCustomerPortal} from 'js/account/stripe.api';
