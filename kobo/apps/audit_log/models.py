@@ -1,5 +1,3 @@
-import logging
-
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -98,7 +96,8 @@ class AccessLogManager(models.Manager):
         return super().get_queryset().filter(log_type=AuditType.ACCESS)
 
     def create(self, **kwargs):
-        # remove any attempt to set fields that should always be the same on an access log
+        # remove any attempt to set fields that should
+        # always be the same on an access log
         app_label = kwargs.pop('app_label', None)
         if app_label is not None:
             logging.warning(f'Ignoring attempt to set {app_label=} on access log')
@@ -113,7 +112,8 @@ class AccessLogManager(models.Manager):
             logging.warning(f'Ignoring attempt to set {log_type=} on access log')
         user = kwargs.pop('user')
         return super().create(
-            # set the fields that are always the same for access logs, pass along the rest to the original constructor
+            # set the fields that are always the same for access logs,
+            # pass along the rest to the original constructor
             app_label=User._meta.app_label,
             model_name=User._meta.model_name,
             action=AuditAction.AUTH,

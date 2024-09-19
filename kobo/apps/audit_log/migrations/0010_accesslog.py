@@ -8,7 +8,8 @@ def manually_update_model_name(apps, schema_editor):
     print(
         """
         !!! ATTENTION !!!
-        If you have existing projects you may wish to run the SQL query below in PostgreSQL directly:
+        If you have existing projects you may wish to run the SQL query below
+        in PostgreSQL directly:
 
            > "UPDATE audit_log_auditlog SET model_name = 'user' where model_name='User'"
 
@@ -48,7 +49,8 @@ class Migration(migrations.Migration):
     else:
         operations.append(
             migrations.RunSQL(
-                sql="UPDATE audit_log_auditlog SET model_name = 'user' where model_name='User'",
+                sql="UPDATE audit_log_auditlog SET model_name = 'user' "
+                "where model_name='User'",
                 reverse_sql=migrations.RunSQL.noop,
             )
         )

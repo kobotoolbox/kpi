@@ -209,13 +209,12 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         super_user = User.objects.get(username='admin')
         user2 = User.objects.get(username='anotheruser')
         # generate 3 access logs, 2 for superuser, 1 for user2
-        # generate 3 access logs, 2 for user1, 1 for user2
-        user_1_log_1 = AccessLog.objects.create(user=super_user)
-        user_1_log_2 = AccessLog.objects.create(user=super_user)
-        user_2_log_1 = AccessLog.objects.create(user=super_user)
+        AccessLog.objects.create(user=super_user)
+        AccessLog.objects.create(user=super_user)
+        AccessLog.objects.create(user=user2)
 
         # create a random non-auth audit log
-        log = AuditLog.objects.create(
+        AuditLog.objects.create(
             user=User.objects.get(username='someuser'),
             app_label='foo',
             model_name='bar',
