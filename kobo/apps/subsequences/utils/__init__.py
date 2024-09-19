@@ -212,7 +212,13 @@ def stream_with_extras(submission_stream, asset):
                         val_expanded = val_expanded[0]
                     qual_response['val'] = val_expanded
                 qual_response.update(qual_q)
-        submission[SUPPLEMENTAL_DETAILS_KEY] = get_sanitized_dict_keys(
+
+        # Remove `qpath` if present
+        if sanitized_suppl_details := get_sanitized_dict_keys(
             all_supplemental_details, asset
-        )
+        ):
+            all_supplemental_details = sanitized_suppl_details
+
+        submission[SUPPLEMENTAL_DETAILS_KEY] = all_supplemental_details
+
         yield submission

@@ -102,7 +102,7 @@ def get_submission_processing(asset, s_uuid):
     try:
         submission_extra = asset.submission_extras.get(submission_uuid=s_uuid)
 
-        # TODO delete two lines below when every asset is repopulated with
+        # TODO delete "if" statement below when every asset is repopulated with
         #  `xpath` instead of `qpath`.
         if content := get_sanitized_dict_keys(
             submission_extra.content, asset
