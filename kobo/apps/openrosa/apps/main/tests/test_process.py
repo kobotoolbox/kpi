@@ -59,11 +59,24 @@ class TestProcess(TestBase):
                 {UUID: uuid}, {'$set': {SUBMISSION_TIME: submission_time}})
 
     def test_uuid_submit(self):
-        self._publish_xls_file()
+        xls_path = os.path.join(
+            self.this_directory,
+            'fixtures',
+            'transportation',
+            'transportation.xls',
+        )
+        self._publish_file(xls_path)
+        self.assertEqual(self.xform.id_string, 'transportation_2011_07_25')
+
         survey = 'transport_2011-07-25_19-05-49'
         path = os.path.join(
-            self.this_directory, 'fixtures', 'transportation',
-            'instances', survey, survey + '.xml')
+            self.this_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            survey,
+            survey + '.xml',
+        )
         with open(path, 'rb') as f:
             post_data = {'xml_submission_file': f, 'uuid': self.xform.uuid}
             url = '/submission'
@@ -98,9 +111,7 @@ class TestProcess(TestBase):
         Returns False if not strict and publish fails
         """
         pre_count = XForm.objects.count()
-        self.response = TestBase._publish_xls_file(self, xls_path)
-        # make sure publishing the survey worked
-        self.assertEqual(self.response.status_code, 201)
+        TestBase._publish_xls_file(self, xls_path)
         if XForm.objects.count() != pre_count + 1:
             # print file location
             print('\nPublish Failure for file: %s' % xls_path)
@@ -110,12 +121,6 @@ class TestProcess(TestBase):
                 return False
         self.xform = list(XForm.objects.all())[-1]
         return True
-
-    def _publish_xls_file(self):
-        xls_path = os.path.join(self.this_directory, "fixtures",
-                                "transportation", "transportation.xls")
-        self._publish_file(xls_path)
-        self.assertEqual(self.xform.id_string, "transportation_2011_07_25")
 
     def _check_formList(self):
         url = '/%s/formList' % self.user.username
@@ -365,11 +370,11 @@ class TestProcess(TestBase):
         """
         self._create_user_and_login()
         path = os.path.join(
-            self.this_directory, 'fixtures',
-            'form_with_unicode_in_relevant_column.xlsx')
-        response = TestBase._publish_xls_file(self, path)
-        # make sure we get a 200 response
-        self.assertEqual(response.status_code, 201)
+            self.this_directory,
+            'fixtures',
+            'form_with_unicode_in_relevant_column.xlsx',
+        )
+        self._publish_xls_file(path)
 
     def test_metadata_file_hash(self):
         self._publish_transportation_form()
@@ -392,10 +397,12 @@ class TestProcess(TestBase):
         """
         pre_count = XForm.objects.count()
         xls_path = os.path.join(
-            self.this_directory, "fixtures", "cascading_selects",
-            "new_cascading_select.xls")
-        file_name, file_ext = os.path.splitext(os.path.split(xls_path)[1])
-        self.response = TestBase._publish_xls_file(self, xls_path)
+            self.this_directory,
+            'fixtures',
+            'cascading_selects',
+            'new_cascading_select.xls',
+        )
+        self._publish_xls_file(xls_path)
         post_count = XForm.objects.count()
         self.assertEqual(post_count, pre_count + 1)
         xform = XForm.objects.latest('date_created')

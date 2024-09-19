@@ -1,8 +1,11 @@
-# coding: utf-8
+from __future__ import annotations
+
 import logging
 import re
 import sys
+from datetime import datetime
 from xml.dom import Node
+from typing import Optional
 
 import dateutil.parser
 import six
@@ -71,6 +74,7 @@ def get_meta_from_xml(xml_str, meta_name):
 
 
 def get_uuid_from_xml(xml):
+
     def _uuid_only(uuid, regex):
         matches = regex.match(uuid)
         if matches and len(matches.groups()) > 0:
@@ -94,7 +98,7 @@ def get_uuid_from_xml(xml):
     return None
 
 
-def get_submission_date_from_xml(xml):
+def get_submission_date_from_xml(xml) -> Optional[datetime]:
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)
     children = xml.childNodes
@@ -103,9 +107,9 @@ def get_submission_date_from_xml(xml):
     if children.length == 0:
         raise ValueError(t("XML string must have a survey element."))
     survey_node = children[0]
-    submissionDate = survey_node.getAttribute('submissionDate')
-    if submissionDate != '':
-        return dateutil.parser.parse(submissionDate)
+    submission_date = survey_node.getAttribute('submissionDate')
+    if submission_date != '':
+        return dateutil.parser.parse(submission_date)
     return None
 
 

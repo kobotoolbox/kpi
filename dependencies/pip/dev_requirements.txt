@@ -10,8 +10,6 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/formpack.git@451df4cd2a0d614be69a3b3309259c67369f7efb#egg=formpack
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/kobo-service-account.git@cb52c6221b68af9b13237d0a1157e3f1965a82b1#egg=kobo-service-account
-    # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
@@ -171,7 +169,6 @@ django==4.2.15
     #   django-timezone-field
     #   djangorestframework
     #   jsonfield
-    #   kobo-service-account
     #   model-bakery
 django-allauth==0.61.1
     # via -r dependencies/pip/requirements.in
@@ -238,7 +235,6 @@ djangorestframework==3.15.1
     #   -r dependencies/pip/requirements.in
     #   djangorestframework-csv
     #   drf-extensions
-    #   kobo-service-account
 djangorestframework-csv==3.0.2
     # via -r dependencies/pip/requirements.in
 djangorestframework-jsonp==1.0.2
@@ -257,6 +253,8 @@ et-xmlfile==1.1.0
     # via openpyxl
 exceptiongroup==1.2.0
     # via pytest
+execnet==2.1.1
+    # via pytest-xdist
 executing==2.0.1
     # via stack-data
 fabric==3.2.2
@@ -507,11 +505,14 @@ pytest==8.1.1
     #   pytest-cov
     #   pytest-django
     #   pytest-env
+    #   pytest-xdist
 pytest-cov==5.0.0
     # via -r dependencies/pip/dev_requirements.in
 pytest-django==4.8.0
     # via -r dependencies/pip/dev_requirements.in
 pytest-env==1.1.3
+    # via -r dependencies/pip/dev_requirements.in
+pytest-xdist==3.6.1
     # via -r dependencies/pip/dev_requirements.in
 python-crontab==3.0.0
     # via django-celery-beat
@@ -539,7 +540,6 @@ redis==5.0.3
     #   celery
     #   django-redis
     #   django-redis-sessions
-    #   kobo-service-account
 referencing==0.34.0
     # via
     #   jsonschema

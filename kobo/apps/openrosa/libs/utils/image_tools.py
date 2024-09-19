@@ -72,7 +72,6 @@ def _save_thumbnails(image, original_path, size, suffix):
 
 def resize(filename):
     image = None
-
     if isinstance(default_storage, FileSystemStorage):
         path = default_storage.path(filename)
         image = Image.open(path)

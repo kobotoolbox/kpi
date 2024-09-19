@@ -15,10 +15,12 @@ from django_celery_beat.models import (
     PeriodicTask,
     PeriodicTasks,
 )
-from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
-from kpi.exceptions import KobocatCommunicationError
+from kpi.exceptions import (
+    InvalidXFormException,
+    MissingXFormException,
+)
 from kpi.models import Asset, ExportTask, ImportTask
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
@@ -28,7 +30,6 @@ from .exceptions import (
     TrashNotImplementedError,
     TrashMongoDeleteOrphansError,
     TrashTaskInProgressError,
-    TrashUnknownKobocatError,
 )
 from .models import TrashStatus
 from .models.account import AccountTrash
@@ -300,11 +301,6 @@ def replace_user_with_placeholder(
 
 def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
 
-    (
-        app_label,
-        model_name,
-    ) = asset.deployment.submission_model.get_app_label_and_model_name()
-
     while True:
         audit_logs = []
         submissions = list(asset.deployment.get_submissions(
@@ -329,8 +325,8 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
         for submission in submissions:
             audit_logs.append(
                 AuditLog(
-                    app_label=app_label,
-                    model_name=model_name,
+                    app_label='logger',
+                    model_name='instance',
                     object_id=submission['_id'],
                     user=request_author,
                     user_uid=request_author.extra_details.uid,
@@ -342,26 +338,19 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
                     log_type=AuditType.SUBMISSION_MANAGEMENT,
                 )
             )
+
             submission_ids.append(submission['_id'])
 
-        json_response = asset.deployment.delete_submissions(
-            {'submission_ids': submission_ids, 'query': ''}, request_author
-        )
-
-        if json_response['status'] in [
-            status.HTTP_502_BAD_GATEWAY,
-            status.HTTP_504_GATEWAY_TIMEOUT,
-        ]:
-            raise KobocatCommunicationError
-
-        if json_response['status'] not in [
-            status.HTTP_404_NOT_FOUND,
-            status.HTTP_200_OK,
-        ]:
-            raise TrashUnknownKobocatError(response=json_response)
+        try:
+            deleted = asset.deployment.delete_submissions(
+                {'submission_ids': submission_ids, 'query': ''}, request_author
+            )
+        except (MissingXFormException, InvalidXFormException):
+            # XForm is invalid or gone
+            deleted = 0
 
         if audit_logs:
-            if json_response['status'] == status.HTTP_404_NOT_FOUND:
+            if not deleted:
                 # Submissions are lingering in MongoDB but XForm has been
                 # already deleted
                 if not MongoHelper.delete(

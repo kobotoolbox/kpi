@@ -6,7 +6,9 @@ import os
 import re
 import sys
 import traceback
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
+from typing import Generator, Optional, Union
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
 try:
@@ -17,6 +19,7 @@ except ImportError:
 from dict2xml import dict2xml
 from django.conf import settings
 from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.files.base import File
 from django.core.mail import mail_admins
 from django.db import IntegrityError, transaction
 from django.db.models import Q
@@ -30,7 +33,6 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
-from kobo_service_account.utils import get_real_user
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
 from pyxform.errors import PyXFormError
 from pyxform.xform2json import create_survey_element_from_xml
@@ -81,6 +83,8 @@ from kobo.apps.openrosa.libs.utils.model_tools import (
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.object_permission import get_database_user
+
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -107,6 +111,7 @@ def check_submission_permissions(
     :returns: None.
     :raises: PermissionDenied based on the above criteria.
     """
+
     if not xform.require_auth:
         # Anonymous submissions are allowed!
         return
@@ -137,12 +142,12 @@ def check_edit_submission_permissions(
 @transaction.atomic  # paranoia; redundant since `ATOMIC_REQUESTS` set to `True`
 def create_instance(
     username: str,
-    xml_file: str,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    xml_file: File,
+    media_files: Generator[File],
     status: str = 'submitted_via_web',
     uuid: str = None,
     date_created_override: datetime = None,
-    request: 'rest_framework.request.Request' = None,
+    request: Optional['rest_framework.request.Request'] = None,
 ) -> Instance:
     """
     Submission cases:
@@ -195,8 +200,15 @@ def create_instance(
             existing_instance.parsed_instance.save(asynchronous=False)
             return existing_instance
     else:
-        instance = save_submission(request, xform, xml, media_files, new_uuid,
-                                   status, date_created_override)
+        instance = save_submission(
+            request,
+            xform,
+            xml,
+            media_files,
+            new_uuid,
+            status,
+            date_created_override,
+        )
         return instance
 
 
@@ -208,12 +220,14 @@ def disposition_ext_and_date(name, extension, show_date=True):
     return 'attachment; filename=%s.%s' % (name, extension)
 
 
-def dict2xform(jsform, form_id):
-    dd = {'form_id': form_id}
-    xml_head = "<?xml version='1.0' ?>\n<%(form_id)s id='%(form_id)s'>\n" % dd
-    xml_tail = "\n</%(form_id)s>" % dd
+def dict2xform(submission: dict, xform_id_string: str) -> str:
+    xml_head = (
+        f'<?xml version="1.0" encoding="utf-8"?>\n'
+        f'   <{xform_id_string} id="{xform_id_string}">\n'
+    )
+    xml_tail = f'\n</{xform_id_string}>\n'
 
-    return xml_head + dict2xml(jsform) + xml_tail
+    return xml_head + dict2xml(submission) + xml_tail
 
 
 def get_instance_or_404(**criteria):
@@ -271,6 +285,61 @@ def get_xform_from_submission(xml, username, uuid=None):
     return get_object_or_404(
         XForm, id_string__exact=id_string, user__username=username
     )
+
+
+@contextmanager
+def http_open_rosa_error_handler(func, request):
+    class _ContextResult:
+        def __init__(self):
+            self.func_return = None
+            self.error = None
+            self.http_error_response = None
+
+        @property
+        def status_code(self):
+            if self.http_error_response:
+                return self.http_error_response.status_code
+            return 200
+
+    result = _ContextResult()
+    try:
+        result.func_return = func()
+    except InstanceInvalidUserError:
+        result.error = t('Username or ID required.')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except InstanceEmptyError:
+        result.error = t('Received empty submission. No instance was created')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except FormInactiveError:
+        result.error = t('Form is not active')
+        result.http_error_response = OpenRosaResponseNotAllowed(result.error)
+    except TemporarilyUnavailableError:
+        result.error = t('Temporarily unavailable')
+        result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
+    except XForm.DoesNotExist:
+        result.error = t('Form does not exist on this account')
+        result.http_error_response = OpenRosaResponseNotFound(result.error)
+    except ExpatError:
+        result.error = t('Improperly formatted XML.')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except DuplicateInstance:
+        result.error = t('Duplicate submission')
+        response = OpenRosaResponse(result.error)
+        response.status_code = 202
+        response['Location'] = request.build_absolute_uri(request.path)
+        result.http_error_response = response
+    except PermissionDenied:
+        result.error = t('Access denied')
+        result.http_error_response = OpenRosaResponseForbidden(result.error)
+    except InstanceMultipleNodeError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseBadRequest(e)
+    except DjangoUnicodeDecodeError:
+        result.error = t(
+            'File likely corrupted during ' 'transmission, please try later.'
+        )
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    yield result
 
 
 def inject_instanceid(xml_str, uuid):
@@ -524,53 +593,36 @@ def response_with_mimetype_and_name(
     return response
 
 
-def safe_create_instance(username, xml_file, media_files, uuid, request):
+def safe_create_instance(
+    username: str,
+    xml_file: File,
+    media_files: Union[list, Generator[File]],
+    uuid: Optional[str] = None,
+    date_created_override: Optional[datetime] = None,
+    request: Optional['rest_framework.request.Request'] = None,
+):
     """Create an instance and catch exceptions.
 
     :returns: A list [error, instance] where error is None if there was no
         error.
     """
-    error = instance = None
-
-    try:
-        instance = create_instance(
-            username, xml_file, media_files, uuid=uuid, request=request)
-    except InstanceInvalidUserError:
-        error = OpenRosaResponseBadRequest(t("Username or ID required."))
-    except InstanceEmptyError:
-        error = OpenRosaResponseBadRequest(
-            t("Received empty submission. No instance was created")
-        )
-    except FormInactiveError:
-        error = OpenRosaResponseNotAllowed(t("Form is not active"))
-    except TemporarilyUnavailableError:
-        error = OpenRosaTemporarilyUnavailable(t("Temporarily unavailable"))
-    except XForm.DoesNotExist:
-        error = OpenRosaResponseNotFound(
-            t("Form does not exist on this account")
-        )
-    except ExpatError as e:
-        error = OpenRosaResponseBadRequest(t("Improperly formatted XML."))
-    except DuplicateInstance:
-        response = OpenRosaResponse(t("Duplicate submission"))
-        response.status_code = 202
-        response['Location'] = request.build_absolute_uri(request.path)
-        error = response
-    except PermissionDenied as e:
-        error = OpenRosaResponseForbidden(e)
-    except InstanceMultipleNodeError as e:
-        error = OpenRosaResponseBadRequest(e)
-    except DjangoUnicodeDecodeError:
-        error = OpenRosaResponseBadRequest(t("File likely corrupted during "
-                                             "transmission, please try later."
-                                             ))
-
-    return [error, instance]
+    with http_open_rosa_error_handler(
+        lambda: create_instance(
+            username,
+            xml_file,
+            media_files,
+            uuid=uuid,
+            date_created_override=date_created_override,
+            request=request,
+        ),
+        request,
+    ) as handler:
+        return [handler.http_error_response, handler.func_return]
 
 
 def save_attachments(
     instance: Instance,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    media_files: Generator[File],
     defer_counting: bool = False,
 ) -> tuple[list[Attachment], list[Attachment]]:
     """
@@ -584,15 +636,19 @@ def save_attachments(
     which avoids locking any rows in `logger_xform` or `main_userprofile`.
     """
     new_attachments = []
+
     for f in media_files:
-        attachment_filename = generate_attachment_filename(instance, f.name)
+        attachment_filename = generate_attachment_filename(
+            instance, os.path.basename(f.name)
+        )
         existing_attachment = Attachment.objects.filter(
             instance=instance,
             media_file=attachment_filename,
             mimetype=f.content_type,
         ).first()
-        if existing_attachment and (existing_attachment.file_hash ==
-                                    hash_attachment_contents(f.read())):
+        if existing_attachment and (
+            existing_attachment.file_hash == hash_attachment_contents(f.read())
+        ):
             # We already have this attachment!
             continue
         f.seek(0)
@@ -616,7 +672,7 @@ def save_submission(
     request: 'rest_framework.request.Request',
     xform: XForm,
     xml: str,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    media_files: Union[list, Generator[File]],
     new_uuid: str,
     status: str,
     date_created_override: datetime,
@@ -652,13 +708,15 @@ def save_submission(
         if not dj_timezone.is_aware(date_created_override):
             # default to utc?
             date_created_override = dj_timezone.make_aware(
-                date_created_override, timezone.utc)
+                date_created_override, timezone.utc
+            )
         instance.date_created = date_created_override
-        instance.save()
+        instance.save(update_fields=['date_created'])
 
     if instance.xform is not None:
         pi, created = ParsedInstance.objects.get_or_create(
-            instance=instance)
+            instance=instance
+        )
 
     if not created:
         pi.save(asynchronous=False)
@@ -778,7 +836,7 @@ def _get_instance(
         instance.save()
     else:
         submitted_by = (
-            get_real_user(request)
+            get_database_user(request.user)
             if request and request.user.is_authenticated
             else None
         )
@@ -806,7 +864,12 @@ def _has_edit_xform_permission(
         if request.user.is_superuser:
             return True
 
-        return request.user.has_perm('logger.change_xform', xform)
+        if request.user.has_perm('logger.change_xform', xform):
+            return True
+
+        # User's permissions have been already checked when calling KPI endpoint
+        # If `has_partial_perms` is True, user is allowed to perform the action.
+        return getattr(request.user, 'has_partial_perms', False)
 
     return False
 

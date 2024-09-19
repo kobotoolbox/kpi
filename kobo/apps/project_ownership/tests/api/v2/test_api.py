@@ -1,22 +1,18 @@
 import uuid
 
 from constance.test import override_config
-from datetime import timedelta
-from dateutil.parser import isoparse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from mock import patch, MagicMock
 from rest_framework import status
 from rest_framework.reverse import reverse
-from unittest.mock import ANY
 
 from kobo.apps.project_ownership.models import (
     Invite,
     InviteStatusChoices,
     Transfer,
 )
-from kobo.apps.project_ownership.tests.utils import MockServiceUsageSerializer
 from kobo.apps.trackers.utils import update_nlp_counter
 
 from kpi.constants import PERM_VIEW_ASSET
@@ -336,14 +332,12 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             'formhub/uuid': self.asset.uid,
             '_attachments': [
                 {
-                    'id': 1,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_clip.3gp',
                     'filename': 'someuser/audio_conversion_test_clip.3gp',
                     'mimetype': 'video/3gpp',
                     'bytes': 5000,
                 },
                 {
-                    'id': 2,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',
                     'filename': 'someuser/audio_conversion_test_image.jpg',
                     'mimetype': 'image/jpeg',
@@ -356,14 +350,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.asset.deployment.mock_submissions(submissions)
         self.submissions = submissions
 
-    @patch(
-        'kpi.serializers.v2.service_usage.ServiceUsageSerializer._get_storage_usage',
-        new=MockServiceUsageSerializer._get_storage_usage
-    )
-    @patch(
-        'kpi.serializers.v2.service_usage.ServiceUsageSerializer._get_submission_counters',
-        new=MockServiceUsageSerializer._get_submission_counters
-    )
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
         MagicMock()
@@ -388,7 +374,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 'asr_seconds_all_time': 120,
                 'mt_characters_all_time': 1000,
             },
-            'total_storage_bytes': 15000,
+            'total_storage_bytes': 191642,
             'total_submission_count': {
                 'all_time': 1,
                 'current_year': 1,
@@ -439,14 +425,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ),
             'assets': [self.asset.uid]
         }
-        with patch(
-            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
-            MagicMock(),
-        ):
-            response = self.client.post(
-                self.invite_url, data=payload, format='json'
-            )
-            assert response.status_code == status.HTTP_201_CREATED
+        response = self.client.post(
+            self.invite_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
 
         # someuser should have no usage reported anymore
         response = self.client.get(service_usage_url)
@@ -506,14 +488,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ),
             'assets': [self.asset.uid]
         }
-        with patch(
-            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
-            MagicMock(),
-        ):
-            response = self.client.post(
-                self.invite_url, data=payload, format='json'
-            )
-            assert response.status_code == status.HTTP_201_CREATED
+
+        response = self.client.post(
+            self.invite_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
 
         # anotheruser is the owner and should see the project
         self.client.login(username='anotheruser', password='anotheruser')

@@ -20,41 +20,57 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='instance',
             name='date_created',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='instance',
             name='date_modified',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='instancehistory',
             name='date_created',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='instancehistory',
             name='date_modified',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='note',
             name='date_created',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='note',
             name='date_modified',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='xform',
             name='date_created',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='xform',
             name='date_modified',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
     ]

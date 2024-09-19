@@ -1,4 +1,5 @@
 import timeit
+import itertools
 
 import pytest
 import pytz
@@ -13,15 +14,20 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.stripe.tests.utils import generate_enterprise_subscription, generate_plan_subscription
-from kobo.apps.trackers.tests.submission_utils import create_mock_assets, add_mock_submissions
-from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
+from kobo.apps.trackers.tests.submission_utils import (
+    create_mock_assets,
+    add_mock_submissions,
+)
+from kobo.apps.stripe.tests.utils import (
+    generate_enterprise_subscription,
+    generate_plan_subscription,
+)
+from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
 from rest_framework import status
 
 
-
-class OrganizationServiceUsageAPIMultiUserTestCase(ServiceUsageAPIBase):
+class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
     """
     Test organization service usage when Stripe is enabled.
 
@@ -29,9 +35,10 @@ class OrganizationServiceUsageAPIMultiUserTestCase(ServiceUsageAPIBase):
     when Stripe is installed.
     """
 
-    user_count = 5
-    assets_per_user = 5
-    submissions_per_asset = 5
+    names = ['alice', 'bob']
+    user_count = len(names)
+    assets_per_user = 2
+    submissions_per_asset = 2
     org_id = 'orgAKWMFskafsngf'
 
     @classmethod
@@ -43,7 +50,12 @@ class OrganizationServiceUsageAPIMultiUserTestCase(ServiceUsageAPIBase):
         cls.organization.add_user(cls.anotheruser, is_admin=True)
         assets = create_mock_assets([cls.anotheruser], cls.assets_per_user)
 
-        users = baker.make(User, _quantity=cls.user_count - 1, _bulk_create=True)
+        users = baker.make(
+            User,
+            username=itertools.cycle(cls.names),
+            _quantity=cls.user_count - 1,
+            _bulk_create=True,
+        )
         baker.make(
             OrganizationUser,
             user=users.__iter__(),
@@ -149,7 +161,8 @@ class OrganizationServiceUsageAPIMultiUserTestCase(ServiceUsageAPIBase):
             self.expected_file_size() * self.expected_submissions_multi
         )
 
-class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
+
+class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
     org_id = 'orgAKWMFskafsngf'
 
     @classmethod
@@ -162,7 +175,6 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         )
         cls.organization.add_user(cls.anotheruser, is_admin=True)
         cls.asset = create_mock_assets([cls.anotheruser])[0]
-
 
     def setUp(self):
         super().setUp()
@@ -258,7 +270,7 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         current_billing_period_end = canceled_at + relativedelta(months=1)
 
         response = self.client.get(self.detail_url)
-        
+
         assert (
             response.data['total_submission_count']['current_month']
             == 0
@@ -282,7 +294,7 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
             months=1
         )
         response = self.client.get(self.detail_url)
-        
+
         assert (
             response.data['total_submission_count']['current_month']
             == num_submissions

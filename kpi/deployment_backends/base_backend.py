@@ -13,7 +13,6 @@ from typing import Union, Iterator, Optional
 
 from bson import json_util
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -23,6 +22,9 @@ from rest_framework.reverse import reverse
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    http_open_rosa_error_handler,
+)
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_XML,
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -87,7 +89,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     def bulk_update_submissions(
-        self, data: dict, user: settings.AUTH_USER_MODEL
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
         """
         Allows for bulk updating (bulk editing) of submissions. A
@@ -118,6 +120,11 @@ class BaseDeploymentBackend(abc.ABC):
             # Reset query, because all the submission ids have been already
             # retrieve
             data['query'] = {}
+
+            # Set `has_partial_perms` flag on `request.user` to grant them
+            # permissions while calling `logger_tool.py::_has_edit_xform_permission()`
+            if request := kwargs.get('request'):
+                request.user.has_partial_perms = True
         else:
             submission_ids = data['submission_ids']
 
@@ -145,7 +152,7 @@ class BaseDeploymentBackend(abc.ABC):
             )
         }
 
-        kc_responses = []
+        backend_results = []
         for submission in submissions:
             xml_parsed = fromstring_preserve_root_xmlns(submission)
 
@@ -173,17 +180,24 @@ class BaseDeploymentBackend(abc.ABC):
             for path, value in update_data.items():
                 edit_submission_xml(xml_parsed, path, value)
 
-            kc_response = self.store_submission(
-                user, xml_tostring(xml_parsed), _uuid
-            )
-            kc_responses.append(
-                {
-                    'uuid': _uuid,
-                    'response': kc_response,
-                }
-            )
-
-        return self.prepare_bulk_update_response(kc_responses)
+            request = kwargs.get('request')
+            with http_open_rosa_error_handler(
+                lambda: self.store_submission(
+                    user,
+                    xml_tostring(xml_parsed),
+                    _uuid,
+                    request=request,
+                ),
+                request,
+            ) as handler:
+                backend_results.append(
+                    {
+                        'uuid': _uuid,
+                        'error': handler.error,
+                        'result': handler.func_return
+                    }
+                )
+        return self.prepare_bulk_update_response(backend_results)
 
     @abc.abstractmethod
     def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
@@ -211,16 +225,20 @@ class BaseDeploymentBackend(abc.ABC):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
+    def delete_submission(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         pass
 
     @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs) -> dict:
+    def delete_submissions(
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
+    ) -> dict:
         pass
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, user: settings.AUTH_USER_MODEL
+        self, submission_id: int, request: 'rest_framework.request.Request',
     ) -> dict:
         pass
 
@@ -340,16 +358,6 @@ class BaseDeploymentBackend(abc.ABC):
         return None
 
     @abc.abstractmethod
-    def get_submission_detail_url(self, submission_id: int) -> str:
-        pass
-
-    def get_submission_validation_status_url(self, submission_id: int) -> str:
-        url = '{detail_url}validation_status/'.format(
-            detail_url=self.get_submission_detail_url(submission_id)
-        )
-        return url
-
-    @abc.abstractmethod
     def get_submissions(
         self,
         user: settings.AUTH_USER_MODEL,
@@ -393,6 +401,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
+        pass
+
+    @abc.abstractmethod
+    def prepare_bulk_update_response(self, backend_results: list[dict]) -> dict:
         pass
 
     @abc.abstractmethod
@@ -452,19 +464,17 @@ class BaseDeploymentBackend(abc.ABC):
     ):
         pass
 
-    @abc.abstractmethod
-    def set_has_kpi_hooks(self):
-        pass
-
     def set_status(self, status):
         self.save_to_db({'status': status})
 
     @abc.abstractmethod
-    def set_validation_status(self,
-                              submission_id: int,
-                              user: settings.AUTH_USER_MODEL,
-                              data: dict,
-                              method: str) -> dict:
+    def set_validation_status(
+        self,
+        submission_id: int,
+        user: settings.AUTH_USER_MODEL,
+        data: dict,
+        method: str,
+    ) -> dict:
         pass
 
     @abc.abstractmethod
@@ -486,10 +496,9 @@ class BaseDeploymentBackend(abc.ABC):
     def stored_data_key(self):
         return self.__stored_data_key
 
-    @property
     @abc.abstractmethod
     def store_submission(
-        self, user, xml_submission, submission_uuid, attachments=None
+        self, user, xml_submission, submission_uuid, attachments=None, **kwargs
     ):
         pass
 
@@ -503,11 +512,6 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_count_since_date(
         self, start_date: Optional[datetime.date] = None
     ):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def submission_list_url(self):
         pass
 
     @property
@@ -675,7 +679,7 @@ class BaseDeploymentBackend(abc.ABC):
         perm: str,
         submission_ids: list = [],
         query: dict = {},
-    ) -> list:
+    ) -> Optional[list]:
         """
         Validate whether `user` is allowed to perform write actions on
         submissions with the permission `perm`.
@@ -692,11 +696,11 @@ class BaseDeploymentBackend(abc.ABC):
         allowed_submission_ids = []
 
         if not submission_ids:
-            # if no submission ids are provided, the back end must rebuild the
+            # If no submission ids are provided, the back end must rebuild the
             # query to retrieve the related submissions. Unfortunately, the
             # current back end (KoBoCAT) does not support row level permissions.
             # Thus, we need to fetch all the submissions the user is allowed to
-            # see in order to to compare the requested subset of submissions to
+            # see in order to compare the requested subset of submissions to
             # all
             all_submissions = self.get_submissions(
                 user=user,
@@ -711,8 +715,8 @@ class BaseDeploymentBackend(abc.ABC):
             if not allowed_submission_ids:
                 raise PermissionDenied
 
-            # if `query` is not provided, the action is performed on all
-            # submissions. There are no needs to go further.
+            # If `query` is not provided, the action is performed on all
+            # submissions. There is no need to go further.
             if not query:
                 return allowed_submission_ids
 
@@ -738,7 +742,7 @@ class BaseDeploymentBackend(abc.ABC):
              and set(requested_submission_ids).issubset(allowed_submission_ids))
             or sorted(requested_submission_ids) == sorted(submission_ids)
         ):
-            # Regardless of whether or not the request contained a query or a
+            # Regardless of whether the request contained a query or a
             # list of IDs, always return IDs here because the results of a
             # query may contain submissions that the requesting user is not
             # allowed to access. For example,
@@ -761,10 +765,6 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def version_id(self):
         return self.get_data('version')
-
-    @property
-    def _open_rosa_server_storage(self):
-        return default_storage
 
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
         """

@@ -126,7 +126,6 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
     'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'kobo.apps.languages.LanguageAppConfig',
@@ -139,7 +138,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.logger.app.LoggerAppConfig',
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
-    'kobo.apps.openrosa.apps.restservice.app.RestServiceConfig',
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
@@ -917,7 +915,6 @@ REST_FRAMEWORK = {
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
         'kpi.authentication.OAuth2Authentication',
-        'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
@@ -954,7 +951,6 @@ OPENROSA_REST_FRAMEWORK = {
         # Session if it comes first (which bypass BasicAuthentication and MFA validation)
         'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
         'kpi.authentication.SessionAuthentication',
-        'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         # Keep JSONRenderer at the top "in order to send JSON responses to
@@ -1025,13 +1021,14 @@ KOBOCAT_INTERNAL_URL = os.environ.get(
 KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'https://change-me.invalid')
 
 if 'KOBOCAT_URL' in os.environ:
-    DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
+    DEFAULT_DEPLOYMENT_BACKEND = 'openrosa'
 else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
 
 
 ''' Stripe configuration intended for kf.kobotoolbox.org only, tracks usage limit exceptions '''
 STRIPE_ENABLED = env.bool('STRIPE_ENABLED', False)
+
 
 
 def dj_stripe_request_callback_method():
@@ -1213,7 +1210,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
     # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#redis-visibility-timeout
     # TODO figure out how to pass `Constance.HOOK_MAX_RETRIES` or `HookLog.get_remaining_seconds()
     # Otherwise hardcode `HOOK_MAX_RETRIES` in Settings
-    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService (seconds)
+    "visibility_timeout": 60 * (10 ** 2)  # Longest ETA for RestService (seconds)
 }
 
 CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"
@@ -1636,13 +1633,6 @@ MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-SERVICE_ACCOUNT = {
-    'BACKEND': env.cache_url(
-        'SERVICE_ACCOUNT_BACKEND_URL', default='redis://change-me.invalid:6380/6'
-    ),
-    'WHITELISTED_HOSTS': env.list('SERVICE_ACCOUNT_WHITELISTED_HOSTS', default=[]),
-}
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'kpi.password_validation.UserAttributeSimilarityValidator',
@@ -1725,23 +1715,11 @@ SUPPORT_BRIEFCASE_SUBMISSION_DATE = (
     os.environ.get('SUPPORT_BRIEFCASE_SUBMISSION_DATE') != 'True'
 )
 
-DEFAULT_VALIDATION_STATUSES = [
-    {
-        'uid': 'validation_status_not_approved',
-        'color': '#ff0000',
-        'label': 'Not Approved'
-    },
-    {
-        'uid': 'validation_status_approved',
-        'color': '#00ff00',
-        'label': 'Approved'
-    },
-    {
-        'uid': 'validation_status_on_hold',
-        'color': '#0000ff',
-        'label': 'On Hold'
-    },
-]
+DEFAULT_VALIDATION_STATUSES = {
+    'validation_status_not_approved': 'Not Approved',
+    'validation_status_approved': 'Approved',
+    'validation_status_on_hold': 'On Hold',
+}
 
 THUMB_CONF = {
     'large': 1280,
@@ -1779,8 +1757,5 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
-
-DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
-
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'

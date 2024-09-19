@@ -1,0 +1,226 @@
+@use 'scss/colors';
+@use 'scss/mixins';
+
+// Because of scrollable content of the table, we need to do something more
+// fancy with rounded corners.
+// The actual radius (used for outer wrapper's borders):
+$universal-table-border-radius: 6px;
+// The radius of the inner elements (used for elements with backgrounds):
+$universal-table-border-radius-inner: $universal-table-border-radius - 2px;
+
+$universal-table-resizer-top: 8px;
+
+// TODO see if this needs to be something from `z-indexes` file, or if such
+// local numbers would be ok.
+$z-index-resizer: 2;
+$z-index-pinned: 3;
+$z-index-pinned-header: 4;
+$z-index-resizer-active: 5;
+
+.universalTableRoot {
+  border: 1px solid colors.$kobo-gray-200;
+  background-color: colors.$kobo-white;
+  border-radius: $universal-table-border-radius;
+  width: 100%;
+  // We set it here intentionally, so noone will think about setting it to
+  // `hidden`, as it breaks some non obvious things in the table (e.g. the page
+  // size dropdown in footer).
+  overflow: visible;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  position: relative;
+  border-radius: $universal-table-border-radius-inner;
+}
+
+.table {
+  // reset table browser styles first
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-spacing: 0;
+  background-image: none;
+  // the actual styles:
+  background-color: colors.$kobo-white;
+  // box-shadow and borders will not work with positon: sticky otherwise
+  border-collapse: separate !important;
+  // This is needed so that the table takes whole width if there is small amount
+  // of columns
+  min-width: 100%;
+}
+
+.tableCell {
+  background-color: colors.$kobo-white;
+}
+
+.tableHeaderCell {
+  background-color: colors.$kobo-gray-100;
+  color: colors.$kobo-gray-700;
+  position: relative;
+  font-size: 12px;
+  font-weight: normal;
+  text-align: initial;
+}
+
+.tableCell,
+.tableHeaderCell {
+  padding: 12px 20px;
+  border-bottom: 1px solid colors.$kobo-gray-200;
+}
+
+// -----------------------------------------------------------------------------
+// Pinned column styles:
+.tableCell.isPinned,
+.tableHeaderCell.isPinned {
+  position: sticky;
+  // react-table can handle left and right pinning, but we are only interested
+  // in left pinning here
+  left: 0;
+  border-right: 1px solid colors.$kobo-gray-200;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: calc(100% + 1px);
+    top: 0;
+    height: 100%;
+    width: 7px;
+    background: linear-gradient(to right, rgba(0, 0, 0, 6%), transparent);
+  }
+}
+
+.tableCell.isPinned {
+  // For sure it needs to be over .resizer, so it doesn't appear in weird/funny
+  // position when scrolling table horizontally
+  z-index: $z-index-pinned;
+}
+
+.tableHeaderCell.isPinned {
+  z-index: $z-index-pinned-header;
+}
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Column resizing styles:
+// We display resizer of a cell on a right side of it, the left side would be
+// handled by previous cell. To make things easier, left side resizer of current
+// cell will be a "fake" resizer.
+.tableHeaderCell::before,
+.resizer {
+  position: absolute;
+  background-color: colors.$kobo-gray-500;
+  width: 1px;
+  top: $universal-table-resizer-top;
+  bottom: $universal-table-resizer-top;
+  z-index: $z-index-resizer;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  border-radius: 2px;
+  // We start off with these not being visible
+  display: none;
+}
+
+.tableHeaderCell::before {
+  content: '';
+  left: -1px;
+  pointer-events: none;
+}
+
+.resizer {
+  right: 0;
+}
+
+// We want the resizer to have more active space than what's being seen. This
+// will improve UX by makin it easier to aim and hit it :)
+.resizer::after {
+  content: '';
+  position: absolute;
+  background-color: transparent;
+  width: 24px;
+  height: 150%;
+  top: -25%;
+  left: -12px;
+}
+
+// This is the line that we display while resizing the table. It takes whole
+// height of the table.
+.resizerLine {
+  content: '';
+  position: absolute;
+  top: -1 * $universal-table-resizer-top;
+  width: 100%;
+  // Height is being handled by JS code
+  height: auto;
+  background-color: colors.$kobo-blue;
+}
+
+.resizer:hover {
+  background-color: colors.$kobo-blue;
+  outline: 4px solid colors.$kobo-light-blue;
+}
+
+.resizer.isResizing {
+  background-color: colors.$kobo-blue;
+  outline: none;
+  // We need the resizer to appear over the pinned column - this is needed for
+  // a moment when we resize pinned column.
+  z-index: $z-index-resizer-active;
+}
+
+// We display two resizers when mouse is over the cell for them. We also display
+// them while resizing is being done (useful for a moment, when user drags
+// the resizer further away from the cell, and it didn't move yet due to
+// animation happening or lag).
+// We want to display resizer of this cell, and a fake resizer on the left side.
+// When user moves mouse to the fake resizer, the right-side resizer of
+// the previous cell resizer will be used instead.
+.tableHeaderCell:hover::before,
+.tableHeaderCell:hover .resizer,
+.resizer.isResizing {
+  display: initial;
+}
+
+// On screens without hover we want the resizers to be always visible
+@media (hover: none) {
+  .tableHeaderCell::before,
+  .tableHeaderCell .resizer,
+  .resizer.isResizing {
+    display: initial;
+  }
+}
+
+// We need this to avoid having empty space to the right of the last table
+// column due to the resizer active space ::after "hack"
+.tableHeaderCell:last-child .resizer::after {
+  width: 12px;
+}
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Table footer and pagination styles:
+.tableFooter {
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  background-color: colors.$kobo-gray-100;
+  padding: 10px 20px;
+  border-bottom-left-radius: $universal-table-border-radius-inner;
+  border-bottom-right-radius: $universal-table-border-radius-inner;
+}
+
+.pagination {
+  @include mixins.centerRowFlex;
+}
+
+.paginationNumbering {
+  display: inline;
+  margin: 0 15px;
+}
+
+.pageSizeSelect {
+  width: auto !important;
+  min-width: 120px;
+}
+// -----------------------------------------------------------------------------
