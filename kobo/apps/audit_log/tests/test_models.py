@@ -51,7 +51,7 @@ class AccessLogModelTestCase(BaseTestCase):
         self.assertEqual(access_log.action, AuditAction.AUTH)
         self.assertEqual(access_log.log_type, AuditType.ACCESS)
 
-    def create_access_log_sets_standard_fields(self, patched_ip, patched_source):
+    def test_create_access_log_sets_standard_fields(self, patched_ip, patched_source):
         yesterday = timezone.now() - timedelta(days=1)
         log = AccessLog.objects.create(
             user=AccessLogModelTestCase.super_user,
@@ -63,7 +63,7 @@ class AccessLogModelTestCase(BaseTestCase):
         self.assertDictEqual(log.metadata, {'foo': 'bar'})
 
     @patch('kobo.apps.audit_log.models.logging.warning')
-    def create_access_log_ignores_attempt_to_override_standard_fields(
+    def test_create_access_log_ignores_attempt_to_override_standard_fields(
         self, patched_warning, patched_ip, patched_source
     ):
         log = AccessLog.objects.create(
