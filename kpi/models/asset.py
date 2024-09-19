@@ -1,11 +1,10 @@
-# coding: utf-8
-# 😬
 import copy
 import re
 from functools import reduce
 from operator import add
 from typing import Optional, Union
 
+import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
@@ -20,7 +19,6 @@ from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 
-
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
     DEFAULT_REPORTS_KEY,
@@ -29,11 +27,14 @@ from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
 )
+from kobo.apps.subsequences.advanced_features_params_schema import (
+    ADVANCED_FEATURES_PARAMS_SCHEMA,
+)
 from kobo.apps.subsequences.utils.deprecation import (
-    jsonschema_validate,
+    get_sanitized_known_columns,
+    get_sanitized_dict_keys,
+    get_sanitized_advanced_features,
     qpath_to_xpath,
-    sanitize_known_columns,
-    sanitize_submission_extra_content,
 )
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 from kpi.constants import (
@@ -144,15 +145,15 @@ class KpiTaggableManager(_TaggableManager):
         strips leading and trailng whitespace. Behavior should match the
         cleanupTags function in jsapp/js/utils.ts. """
         tags_out = []
-        for t in tags:
+        for tag in tags:
             # Modify strings only; the superclass' add() method will then
             # create Tags or use existing ones as appropriate.  We do not fix
             # existing Tag objects, which could also be passed into this
             # method, because a fixed name could collide with the name of
             # another Tag object already in the database.
-            if isinstance(t, str):
-                t = t.strip().replace(' ', '-')
-            tags_out.append(t)
+            if isinstance(tag, str):
+                tag = tag.strip().replace(' ', '-')
+            tags_out.append(tag)
         super().add(*tags_out, **kwargs)
 
 
@@ -580,9 +581,14 @@ class Asset(
         return advanced_feature_instances(self.content, self.advanced_features)
 
     def get_advanced_submission_schema(self, url=None, content=False):
+
         if len(self.advanced_features) == 0:
             NO_FEATURES_MSG = 'no advanced features activated for this form'
             return {'type': 'object', '$description': NO_FEATURES_MSG}
+
+        if advanced_features := get_sanitized_advanced_features(self):
+            self.advanced_features = advanced_features
+
         last_deployed_version = self.deployed_versions.first()
         if content:
             return advanced_submission_jsonschema(
@@ -1091,8 +1097,11 @@ class Asset(
                 .first()
             )
             instances = self.get_advanced_feature_instances()
-            sanitize_submission_extra_content(sub, self)
+            if sub_extra_content := get_sanitized_dict_keys(sub.content, self):
+                sub.content = sub_extra_content
+
             compiled_content = {**sub.content}
+
             for instance in instances:
                 compiled_content = instance.compile_revised_record(
                     compiled_content, edits=content
@@ -1155,15 +1164,13 @@ class Asset(
         if self.advanced_features is None:
             self.advanced_features = {}
 
-        # TODO uncomment the 4 lines below…
-        # jsonschema_validate(
-        #    instance=self.advanced_features,
-        #    schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
-        # )
+        if advanced_features := get_sanitized_advanced_features(self):
+            self.advanced_features = advanced_features
 
-        # TODO … and delete this one when every asset is repopulated with
-        #  `xpath` instead of `qpath`.
-        jsonschema_validate(self)
+        jsonschema.validate(
+           instance=self.advanced_features,
+           schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+        )
 
     @property
     def version__content_hash(self):
@@ -1195,8 +1202,8 @@ class Asset(
 
     def _get_additional_fields(self):
 
-        # TODO line below when when every asset is repopulated with `xpath`
-        sanitize_known_columns(self)
+        # TODO Remove line below when when every asset is repopulated with `xpath`
+        self.known_cols = get_sanitized_known_columns(self)
 
         return parse_known_cols(self.known_cols)
 

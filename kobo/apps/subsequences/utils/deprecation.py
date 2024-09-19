@@ -1,45 +1,79 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
-from typing import Optional
-
-import jsonschema
 
 from kpi.fields import WritableJSONField
-from ..advanced_features_params_schema import (
-    ADVANCED_FEATURES_PARAMS_SCHEMA,
-)
 
 
-def jsonschema_validate(asset: 'Asset'):
-    try:
-        jsonschema.validate(
-            instance=asset.advanced_features,
-            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
-        )
-    except jsonschema.exceptions.ValidationError as e:
-        if "'qpath' was unexpected" not in str(e):
-            raise
+def get_sanitized_advanced_features(asset: 'Asset') -> dict | None:
+    """
+    Replace `qpath` attributes (if present) with their `xpath`
+    counterparts in asset.advanced_features
+    """
 
-        qual_survey_orig = asset.advanced_features['qual']['qual_survey']
-        qual_survey_iter = deepcopy(qual_survey_orig)
-        for idx, qual_q in enumerate(qual_survey_iter):
-            qpath = qual_survey_orig[idx]['qpath']
-            xpath = qpath_to_xpath(qpath, asset)
-            del qual_survey_orig[idx]['qpath']
-            qual_survey_orig[idx]['xpath'] = xpath
+    if not asset.advanced_features:
+        return
 
-        jsonschema.validate(
-            instance=asset.advanced_features,
-            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
-        )
+    if 'qpath' not in json.dumps(asset.advanced_features):
+        return
+
+    advanced_features = deepcopy(asset.advanced_features)
+    qual_survey_orig = advanced_features['qual']['qual_survey']
+    qual_survey_iter = deepcopy(qual_survey_orig)
+    for idx, qual_q in enumerate(qual_survey_iter):
+        qpath = qual_survey_orig[idx]['qpath']
+        xpath = qpath_to_xpath(qpath, asset)
+        del qual_survey_orig[idx]['qpath']
+        qual_survey_orig[idx]['xpath'] = xpath
+
+    return advanced_features
+
+
+def get_sanitized_dict_keys(dict_to_update: dict, asset: 'Asset') -> dict | None:
+    """
+    Update `dict_to_update` keys created with `qpath`(if they are present) with
+    their `xpath` counterpart.
+    """
+    updated_dict = deepcopy(dict_to_update)
+    changed = False
+    for old_xpath, values in dict_to_update.items():
+        if '-' in old_xpath and '/' not in old_xpath:
+            xpath = qpath_to_xpath(old_xpath, asset)
+            if xpath == old_xpath:
+                continue
+
+            del updated_dict[old_xpath]
+            updated_dict[xpath] = values
+            changed = True
+
+    if changed:
+        return updated_dict
+
+
+def get_sanitized_known_columns(asset: 'Asset') -> list:
+
+    known_cols = list(asset.known_cols)
+
+    for idx, known_column in enumerate(known_cols):
+        xpath, *rest = known_column.split(':')
+        # Old `qpath` should not contain "/", but could contain "-".
+        # If the question does not belong to a group but does contain "-",
+        # it will enter this condition - which is not a problem except extra
+        # CPU usage for nothing.
+        if '-' in xpath and '/' not in xpath:
+            xpath = qpath_to_xpath(xpath, asset)
+            rest.insert(0, xpath)
+            known_cols[idx] = ':'.join(rest)
+
+    return known_cols
 
 
 def qpath_to_xpath(qpath: str, asset: 'Asset') -> str:
     """
     We have abandoned `qpath` attribute in favor of `xpath`.
     Existing projects may still use it though.
-    We need to find the equivalent `xpath`
+    We need to find the equivalent `xpath`.
     """
     for row in asset.content['survey']:
         if '$qpath' in row and '$xpath' in row and row['$qpath'] == qpath:
@@ -53,44 +87,6 @@ def qpath_to_xpath(qpath: str, asset: 'Asset') -> str:
             return xpath
 
     raise KeyError(f'xpath for {qpath} not found')
-
-
-def sanitize_known_columns(asset: 'Asset'):
-    for idx, known_column in enumerate(asset.known_cols):
-        xpath, *rest = known_column.split(':')
-        # Old `qpath` should not contain "/", but could contain "-".
-        # If the question does not belong to a group but does contain "-",
-        # it will enter this condition - which is not a problem except extra
-        # CPU usage for nothing.
-        if '-' in xpath and '/' not in xpath:
-            xpath = qpath_to_xpath(xpath, asset)
-            rest.insert(0, xpath)
-            asset.known_cols[idx] = ':'.join(rest)
-
-    # TODO Should we save asset.known_cols if it has changed?
-
-
-def sanitize_submission_extra_content(
-    submission_extra: 'SubmissionExtras', asset: 'Asset'
-) -> Optional[dict]:
-    """
-    Replace with `qpath` attribute (if it exists) with `xpath` counterpart
-    """
-    content = deepcopy(submission_extra.content)
-    changed = False
-    for old_xpath, values in submission_extra.content.items():
-        if '-' in old_xpath and '/' not in old_xpath:
-            xpath = qpath_to_xpath(old_xpath, asset)
-            if xpath == old_xpath:
-                continue
-
-            del content[old_xpath]
-            content[xpath] = values
-            changed = True
-
-    if changed:
-        submission_extra.content = content
-        # TODO Should we save submission_extra?
 
 
 class WritableAdvancedFeaturesField(WritableJSONField):
@@ -107,7 +103,7 @@ class WritableAdvancedFeaturesField(WritableJSONField):
 
     def to_representation(self, value):
         self._model_instance.validate_advanced_features()
-        return value
+        return self._model_instance.advanced_features
 
     def get_attribute(self, instance):
         self._model_instance = instance

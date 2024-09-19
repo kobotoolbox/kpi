@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import (
-    sanitize_submission_extra_content,
+    get_sanitized_dict_keys,
 )
 from kpi.models import Asset
 from kpi.permissions import SubmissionPermission
@@ -102,9 +102,12 @@ def get_submission_processing(asset, s_uuid):
     try:
         submission_extra = asset.submission_extras.get(submission_uuid=s_uuid)
 
-        # TODO delete line below when every asset is repopulated with `xpath`
-        #  instead of `qpath`.
-        sanitize_submission_extra_content(submission_extra, asset)
+        # TODO delete two lines below when every asset is repopulated with
+        #  `xpath` instead of `qpath`.
+        if content := get_sanitized_dict_keys(
+            submission_extra.content, asset
+        ):
+            submission_extra.content = content
 
         return Response(submission_extra.content)
     except SubmissionExtras.DoesNotExist:

@@ -1,6 +1,10 @@
 from collections import defaultdict
 from copy import deepcopy
 
+from .deprecation import (
+    get_sanitized_advanced_features,
+    get_sanitized_dict_keys,
+)
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
 from ..actions.translation import TranslationAction
 from ..actions.qual import QualAction
@@ -83,10 +87,10 @@ def advanced_submission_jsonschema(content, actions, url=None):
     content = populate_paths(content)
     # devhack: this keeps serializer from breaking when old params
     # are still in the database
-    if 'translated' in actions: # migration
+    if 'translated' in actions:  # migration
         actions['translation'] = actions['translated']  # migration
         assert 'languages' in actions['translation']
-        del actions['translated'] # migration
+        del actions['translated']  # migration
     # /devhack
 
     for action_id, action_params in actions.items():
@@ -131,12 +135,19 @@ def stream_with_extras(submission_stream, asset):
     extras = dict(
         asset.submission_extras.values_list('submission_uuid', 'content')
     )
+
+    if asset.advanced_features and (
+        advanced_features := get_sanitized_advanced_features(asset)
+    ):
+        asset.advanced_features = advanced_features
+
     try:
         qual_survey = asset.advanced_features['qual']['qual_survey']
     except KeyError:
         qual_survey = []
     else:
         qual_survey = deepcopy(qual_survey)
+
     # keys are question UUIDs, values are question definitions
     qual_questions_by_uuid = {}
     # outer keys are question UUIDs, inner keys are choice UUIDs, values are
@@ -201,5 +212,7 @@ def stream_with_extras(submission_stream, asset):
                         val_expanded = val_expanded[0]
                     qual_response['val'] = val_expanded
                 qual_response.update(qual_q)
-        submission[SUPPLEMENTAL_DETAILS_KEY] = all_supplemental_details
+        submission[SUPPLEMENTAL_DETAILS_KEY] = get_sanitized_dict_keys(
+            all_supplemental_details, asset
+        )
         yield submission
