@@ -307,7 +307,8 @@ class TestFormSubmission(TestBase):
         )
         media_file_path2 = os.path.join(
             os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment/attachment_with_different_content',
+            '../fixtures/tutorial/instances/tutorial_with_attachment/'
+            'attachment_with_different_content',
             '1335783522563.jpg',
         )
         initial_instance_count = Instance.objects.count()
@@ -336,7 +337,8 @@ class TestFormSubmission(TestBase):
             Attachment.objects.filter(instance=initial_instance).count(), 1
         )
 
-        # Test duplicate submission with same attachment (different file name)
+        # Test duplicate submission with same attachment name but with
+        # different content
         with open(media_file_path2, 'rb') as media_file2:
             self._make_submission(xml_submission_file_path, media_file=media_file2)
         self.assertEqual(self.response.status_code, 202)

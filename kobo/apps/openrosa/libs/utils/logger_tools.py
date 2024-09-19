@@ -51,7 +51,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import (
     generate_attachment_filename,
-    hash_attachment_contents,
 )
 from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,

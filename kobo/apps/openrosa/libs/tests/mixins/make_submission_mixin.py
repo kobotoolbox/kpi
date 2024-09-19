@@ -55,9 +55,9 @@ class MakeSubmissionMixin:
 
         # Insert the meta element before the closing tag of the root element
         xml_content = (
-            xml_content[:closing_tag_index] +
-            meta_element +
-            xml_content[closing_tag_index:]
+            xml_content[:closing_tag_index]
+            + meta_element  # noqa: W503
+            + xml_content[closing_tag_index:]   # noqa: W503
         )
 
         # Write the updated XML content to a temporary file and return the path
