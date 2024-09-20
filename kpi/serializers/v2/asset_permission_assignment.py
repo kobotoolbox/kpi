@@ -348,7 +348,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         # Identify the removals and group by user
         user_permissions_to_remove = defaultdict(list)
         for removal in existing_assignments.difference(incoming_assignments):
-            user_permissions_to_remove[removal.user_pk].append(removal.permission_codename)
+            user_permissions_to_remove[removal.user_pk].append(
+                removal.permission_codename
+            )
 
         # Perform the removals for each user
         for user_pk, permissions in user_permissions_to_remove.items():
@@ -379,7 +381,11 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             asset.assign_perms(
                 user_obj=user_pk_to_obj_cache[user_pk],
                 perms=permissions,
-                partial_perms=user_partial_perms[user_pk] if user_partial_perms[user_pk] else None
+                partial_perms=(
+                    user_partial_perms[user_pk]
+                    if user_partial_perms[user_pk]
+                    else None
+                ),
             )
 
         # Return nothing, in a nice way, because the view is responsible for

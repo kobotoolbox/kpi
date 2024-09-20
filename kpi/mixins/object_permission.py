@@ -596,7 +596,8 @@ class ObjectPermissionMixin:
                 ):
                     raise serializers.ValidationError(
                         {
-                            'permission': f'Anonymous users cannot be granted the permission {p}.'
+                            'permission': f'Anonymous users cannot be granted the
+                            permission {p}.'
                         }
                     )
 
@@ -609,7 +610,8 @@ class ObjectPermissionMixin:
                 # Some permissions are calculated and not stored in the database
                 raise serializers.ValidationError(
                     {
-                        'permission': f'{codename} cannot be assigned explicitly to {self}'
+                        'permission': f'{codename} cannot be assigned explicitly to
+                        {self}'
                     }
                 )
 
@@ -810,22 +812,22 @@ class ObjectPermissionMixin:
     @kc_transaction_atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
         """
-        Revoke the given `perm` on this object from `user_obj`. By default,
-        recalculate descendant objects' permissions and remove any
-        applicable KC permissions.  May delete granted permissions or add
-        deny permissions as appropriate:
-        Current access      Action
-        ==============      ======
-        None                None
-        Direct              Remove direct permission
-        Inherited           Add deny permission
-        Direct & Inherited  Remove direct permission; add deny permission
-        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
-        :param perm str: The `codename` of the `Permission`
-        :param defer_recalc bool: When `True`, skip recalculating
-            descendants
-        :param skip_kc bool: When `True`, skip assignment of applicable KC
-            permissions
+            Revoke the given `perm` on this object from `user_obj`. By default,
+            recalculate descendant objects' permissions and remove any
+            applicable KC permissions.  May delete granted permissions or add
+            deny permissions as appropriate:
+            Current access      Action
+            ==============      ======
+            None                None
+            Direct              Remove direct permission
+            Inherited           Add deny permission
+            Direct & Inherited  Remove direct permission; add deny permission
+            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+            :param perm str: The `codename` of the `Permission`
+            :param defer_recalc bool: When `True`, skip recalculating
+                descendants
+            :param skip_kc bool: When `True`, skip assignment of applicable KC
+                permissions
         """
         user_obj = get_database_user(user_obj)
         app_label, codename = perm_parse(perm, self)
@@ -878,7 +880,6 @@ class ObjectPermissionMixin:
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()
-
 
     @transaction.atomic
     @kc_transaction_atomic
