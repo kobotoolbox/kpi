@@ -381,7 +381,7 @@ interface KoboSelect3Props {
   // 'data-cy'?: string;  // not yet needed
 }
 
-interface KoboSelectOption {
+export interface KoboSelectOption {
   /** Must be unique! */
   value: string;
   /** Should be unique, too! */
