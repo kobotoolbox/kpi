@@ -352,9 +352,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
 
         # Perform the removals for each user
         for user_pk, permissions in user_permissions_to_remove.items():
-            asset.remove_perm(
+            asset.remove_perms(
                 user_obj=user_pk_to_obj_cache[user_pk],
-                perm=permissions
+                perms=permissions
             )
 
         user_permissions = defaultdict(list)
@@ -376,9 +376,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
 
         # Assign the permissions for each user
         for user_pk, permissions in user_permissions.items():
-            asset.assign_perm(
+            asset.assign_perms(
                 user_obj=user_pk_to_obj_cache[user_pk],
-                perm=permissions,
+                perms=permissions,
                 partial_perms=user_partial_perms[user_pk] if user_partial_perms[user_pk] else None
             )
 
