@@ -596,8 +596,10 @@ class ObjectPermissionMixin:
                 ):
                     raise serializers.ValidationError(
                         {
-                            'permission': f'Anonymous users cannot be granted the
-                            permission {p}.'
+                            'permission': (
+                                f'Anonymous users cannot be granted the '
+                                f'permission {p}.'
+                            )
                         }
                     )
 
@@ -610,8 +612,9 @@ class ObjectPermissionMixin:
                 # Some permissions are calculated and not stored in the database
                 raise serializers.ValidationError(
                     {
-                        'permission': f'{codename} cannot be assigned explicitly to
-                        {self}'
+                        'permission': (
+                            f'{codename} cannot be assigned explicitly to {self}'
+                        )
                     }
                 )
 
