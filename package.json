@@ -74,9 +74,7 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.25.4",
-    "@babel/preset-react": "^7.24.7",
-    "@babel/preset-typescript": "^7.24.7",
+    "@babel/preset-env": "^7.22.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@storybook/addon-a11y": "^7.0.24",
     "@storybook/addon-actions": "^7.0.24",
@@ -128,7 +126,6 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@vusion/webfonts-generator": "^0.7.3",
     "autoprefixer": "^10.4.19",
-    "babel-jest": "^29.7.0",
     "chai": "^4.2.0",
     "chai-exclude": "^2.1.0",
     "chart.js": "^4.4.0",

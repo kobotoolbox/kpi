@@ -4,7 +4,7 @@ import {render, screen} from '@testing-library/react';
 import {describe, it, expect, jest} from '@jest/globals';
 import userEvent from '@testing-library/user-event';
 
-describe('Button renders', () => {
+describe('Button', () => {
   it('Should render and be clickable when enabled', async () => {
     const user = userEvent.setup();
 
