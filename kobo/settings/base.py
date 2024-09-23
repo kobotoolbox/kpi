@@ -105,6 +105,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
+    'allauth.usersessions',
     'hub.HubAppConfig',
     'loginas',
     'webpack_loader',
@@ -154,6 +155,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hub.middleware.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.common.CommonMiddleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',

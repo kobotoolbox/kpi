@@ -1,6 +1,6 @@
 # coding: utf-8
-SUBMISSION_FORMAT_TYPE_XML = "xml"
-SUBMISSION_FORMAT_TYPE_JSON = "json"
+SUBMISSION_FORMAT_TYPE_XML = 'xml'
+SUBMISSION_FORMAT_TYPE_JSON = 'json'
 
 GEO_QUESTION_TYPES = ('geopoint', 'geotrace', 'geoshape')
 ATTACHMENT_QUESTION_TYPES = (
@@ -46,9 +46,9 @@ ASSET_TYPES_WITH_CONTENT = [
     # notably not ASSET_TYPE_COLLECTION
 ]
 
-CLONE_ARG_NAME = "clone_from"
-CLONE_FROM_VERSION_ID_ARG_NAME = "clone_from_version_id"
-COLLECTION_CLONE_FIELDS = {"name"}
+CLONE_ARG_NAME = 'clone_from'
+CLONE_FROM_VERSION_ID_ARG_NAME = 'clone_from_version_id'
+COLLECTION_CLONE_FIELDS = {'name'}
 
 # Types are declared in `kpi.models.assets.ASSET_TYPES`.
 # These values correspond to index 0 of each tuple of ASSET_TYPES
@@ -81,7 +81,7 @@ SHARED_APP_LABELS = [
 
 # List of nested attributes which bypass 'dots' encoding
 NESTED_MONGO_RESERVED_ATTRIBUTES = [
-    "_validation_status",
+    '_validation_status',
 ]
 
 PREFIX_PARTIAL_PERMS = 'partial_'
@@ -136,7 +136,6 @@ SKIP_HEAVY_MIGRATIONS_GUIDANCE = (
 
 LIMIT_HOURS_23 = 82800
 
-ACCESS_LOG_KOBO_AUTH_APP_LABEL = 'kobo_auth'
 ACCESS_LOG_LOGINAS_AUTH_TYPE = 'django-loginas'
 ACCESS_LOG_UNKNOWN_AUTH_TYPE = 'unknown'
 ACCESS_LOG_SUBMISSION_AUTH_TYPE = 'submission'
