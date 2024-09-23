@@ -85,3 +85,11 @@ translation.
 8. Upon `error` a notification appear, upon `success`, the translation text is
    being opened in the editor. If user saves the editor, translation will be
    stored, if they don't, it would not.
+
+## Why we make so many calls?
+
+When we open NLP view (besides the stuff that happens for the first time; see "How it works (in a nutshell)" above), Front-end code is making multiple calls. Some of the calls are being made to the same endpoint, and it might look like a mistake (it's not). Here's the reasoning for each of them:
+
+1. `/api/v2/assets/<asset_uid>/data/?query=<query for rootuid>` - we need whole submission object for that single particular submission. This is the submission that is being displayed in the NLP view at this very moment. We use that data to display stuff (responses to all the other questions) in the sidebar.
+2. `/api/v2/assets/<asset_uid>/data/?fields=[<question_we_care_about>]` - we need responses to all rows that were activated in advanced features - and we need them for all submissions. This is needed for that dropdown in the top that allows users to select other question. It is also needed for the arrows in the top that allows users to change between submissions (we omit submissions without responses to currently selected question).
+3. `/advanced_submission_post/<asset_uid>/?submission=<submission_uid>` - this only contains NLP data for current submission
