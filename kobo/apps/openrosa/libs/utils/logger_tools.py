@@ -811,16 +811,23 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
 
+    # If the new attachment has the same basename as an existing one but
+    # different content, update the existing one.
+
     # FIXME Temporary hack to leave background-audio files and audit files alone
     #  Bug comes from `get_xform_media_question_xpaths()`
     queryset = Attachment.objects.filter(instance=instance).exclude(
-        Q(media_file_basename__in=basenames)
-        | Q(media_file_basename__endswith='.enc')
+        Q(media_file_basename__endswith='.enc')
         | Q(media_file_basename='audit.csv')
         | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
+    ).order_by('-id')
+
+    latest_attachments = queryset[:len(basenames)]
+    remaining_attachments = queryset.exclude(
+        id__in=latest_attachments.values_list('id', flat=True)
     )
-    soft_deleted_attachments = list(queryset.all())
-    queryset.update(deleted_at=dj_timezone.now())
+    soft_deleted_attachments = list(remaining_attachments.all())
+    remaining_attachments.update(deleted_at=dj_timezone.now())
 
     return soft_deleted_attachments
 

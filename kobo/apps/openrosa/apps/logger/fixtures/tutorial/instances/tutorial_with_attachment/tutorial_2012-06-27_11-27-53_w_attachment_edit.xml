@@ -9,7 +9,8 @@
   <gps>-1.2836198 36.8795437 0.0 1044.0</gps>
   <web_browsers>firefox chrome safari</web_browsers>
   <meta>
-    <instanceID>uuid:729f173c688e482486a48661700455ff</instanceID>
+    <instanceID>uuid:031c585a-88b7-4962-a566-849a7dd15891</instanceID>
+    <deprecatedID>uuid:729f173c688e482486a48661700455ff</deprecatedID>
   </meta>
   <formhub>
     <uuid>c2f940a2f1e8490d8d3c3030452ed401</uuid>
