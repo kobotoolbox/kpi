@@ -109,14 +109,6 @@ class Migration(migrations.Migration):
             delete_null_user_daily_counters,
             migrations.RunPython.noop,
         ),
-        migrations.RunPython(
-            populate_missing_monthly_counters,
-            migrations.RunPython.noop,
-        ),
-        migrations.RunPython(
-            delete_null_user_daily_counters,
-            migrations.RunPython.noop,
-        ),
     ]
 
     replaces = [
