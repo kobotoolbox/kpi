@@ -37,9 +37,8 @@ export default function AudioCell(props: AudioCellProps) {
         )}
 
       <Button
-        type='full'
+        type='primary'
         size='s'
-        color='blue'
         endIcon='arrow-up-right'
         label={t('Open')}
         isDisabled={typeof props.mediaAttachment === 'string'}

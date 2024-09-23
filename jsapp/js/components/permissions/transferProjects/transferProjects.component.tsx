@@ -169,8 +169,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               label={t('Cancel transfer')}
               isFullWidth
               onClick={cancelCurrentInvite}
-              color='red'
-              type='frame'
+              type='secondary-danger'
               size='l'
             />
           )}
@@ -181,8 +180,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               label={t('Transfer')}
               isFullWidth
               onClick={toggleModal}
-              color='dark-blue'
-              type='frame'
+              type='secondary'
               size='l'
             />
           )}
@@ -256,8 +254,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               <Button
                 label={t('Cancel')}
                 onClick={toggleModal}
-                color='blue'
-                type='frame'
+                type='secondary'
                 size='m'
               />
               <Button
@@ -267,8 +264,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
                   submitInvite(transfer.usernameInput);
                 }}
                 isPending={transfer.submitPending}
-                color='blue'
-                type='full'
+                type='primary'
                 size='m'
                 isSubmit
               />
