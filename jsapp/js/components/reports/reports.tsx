@@ -27,7 +27,7 @@ import {getDataWithResponses} from './reports.utils';
 
 // Types & constants
 import {
-  REPORT_STYLES,
+  CHART_STYLES,
   DEFAULT_MINIMAL_REPORT_STYLE,
   type AssetResponseReportStyles,
   type CustomReport,

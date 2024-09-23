@@ -120,6 +120,9 @@ export interface AssetResponseReportCustom {
   [crid: string]: CustomReport;
 }
 
+/**
+ * A name of the report type as KoboToolbox understands it.
+ */
 export type ReportStyleName =
   | 'vertical'
   | 'horizontal'
@@ -132,22 +135,32 @@ export type ReportStyleName =
   | 'polar'
   | 'radar';
 
-interface ReportStyleDefinition {
+/**
+ * Combines together `ReportStyleName`, label (for users) and `ChartType` (from
+ * Chart.js library).
+ */
+interface ChartStyleDefinition {
+  /** This is our internal name of a report style/type. */
   value: ReportStyleName;
+  /**
+   * This is a user friendly version of `ReportStyleName`, we use it to display
+   * all available options in the settings.
+   */
   label: string;
+  /**
+   * This is the name of a chart that Chart.js understands. For some definitions
+   * it matches our internal `ReportStyleName`. We use this name to render
+   * a nice graph/chart in the UI for our users.
+   */
   chartJsType: ChartType;
 }
 
-type ReportStyleDefinitions = {[P in ReportStyleName]: ReportStyleDefinition};
+type ChartStyleDefinitions = {[P in ReportStyleName]: ChartStyleDefinition};
 
 /**
- * A list of definitions of styles. Despite `REPORT_STYLES` (the `const`) name
- * being similar to `ReportStyle` (the `interface`), these are not the same
- * thing. The first is list of definitions of possible styles (mainly for
- * the Chart.js), the latter is the instance of a report style (as Back end
- * understands it).
+ * A list of definitions of chart styles.
  */
-export const REPORT_STYLES: ReportStyleDefinitions = Object.freeze({
+export const CHART_STYLES: ChartStyleDefinitions = Object.freeze({
   vertical: {
     value: 'vertical',
     label: t('Vertical'),
@@ -207,12 +220,12 @@ export const REPORT_STYLES: ReportStyleDefinitions = Object.freeze({
   },
 });
 
-export interface ReportColorSet {
+export interface ChartColorSet {
   label: string;
   colors: string[];
 }
 
-export const REPORT_COLOR_SETS: ReportColorSet[] = [
+export const CHART_COLOR_SETS: ChartColorSet[] = [
   {
     label: 'set1',
     colors: [
@@ -282,9 +295,9 @@ export const REPORT_COLOR_SETS: ReportColorSet[] = [
 
 /**
  * The default report style. An minimal instance of `ReportStyle` that uses
- * values from of `REPORT_STYLES` and `REPORT_COLOR_SETS`.
+ * values from of `CHART_STYLES` and `REPORT_COLOR_SETS`.
  */
 export const DEFAULT_MINIMAL_REPORT_STYLE: ReportStyle = {
-  report_type: REPORT_STYLES.vertical.value,
-  report_colors: REPORT_COLOR_SETS[0].colors,
+  report_type: CHART_STYLES.vertical.value,
+  report_colors: CHART_COLOR_SETS[0].colors,
 };

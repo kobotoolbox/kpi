@@ -20,7 +20,7 @@ import ReportTable from './reportTable.component';
 import Button from 'js/components/common/button';
 
 // Constants
-import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
+import {CHART_STYLES, CHART_COLOR_SETS} from './reportsConstants';
 
 // Types
 import type {ReportsResponse, ReportsResponseData} from './reportsConstants';
@@ -132,11 +132,11 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     Chart.defaults.maintainAspectRatio = false;
 
     // If there is some invalid data we default to bar type
-    const chartJsType: ChartType = REPORT_STYLES[chartType]?.chartJsType || 'bar';
+    const chartJsType: ChartType = CHART_STYLES[chartType]?.chartJsType || 'bar';
 
     const datasets: ChartDataset[] = [];
 
-    const isArea = this.props.style.report_type === REPORT_STYLES.area.value;
+    const isArea = this.props.style.report_type === CHART_STYLES.area.value;
 
     if (data.values !== undefined) {
       if (data.responseLabels) {
@@ -247,7 +247,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       }
     }
 
-    if (this.props.style.report_type === REPORT_STYLES.area.value) {
+    if (this.props.style.report_type === CHART_STYLES.area.value) {
       opts.data.datasets[0].backgroundColor = colors[0];
     }
 
@@ -255,7 +255,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
   }
 
   buildChartColors() {
-    let output = this.props.style.report_colors || REPORT_COLOR_SETS[0].colors;
+    let output = this.props.style.report_colors || CHART_COLOR_SETS[0].colors;
 
     const c1 = output.slice(0).map((c) => {
       c = c.replace('1)', '0.75)');

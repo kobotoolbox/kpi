@@ -1,5 +1,5 @@
 import React from 'react';
-import {REPORT_STYLES} from './reportsConstants';
+import {CHART_STYLES} from './reportsConstants';
 import type {ReportStyle, ReportStyleName} from './reportsConstants';
 import styles from './chartTypePicker.module.scss';
 
@@ -15,7 +15,7 @@ export default function ChartTypePicker(props: ChartTypePickerProps) {
 
   return (
     <section className={styles.root}>
-      {Object.entries(REPORT_STYLES).map(([, styleDefinition], i) => (
+      {Object.entries(CHART_STYLES).map(([, styleDefinition], i) => (
         <div key={i} className={styles.style} data-name={styleDefinition.value}>
           <input
             className={styles.styleInput}
