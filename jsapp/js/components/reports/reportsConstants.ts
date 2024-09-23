@@ -2,7 +2,7 @@ import type {ChartType} from 'chart.js/auto';
 import type {AnyRowTypeName} from 'js/constants';
 
 export interface ReportStyle {
-  /** This is row name (see `AnyRowTypeName` from `js/constants.ts`) */
+  /** Asset row type name (`AnyRowTypeName`) */
   groupDataBy?: string;
   report_type: ReportStyleName;
   report_colors: string[];
