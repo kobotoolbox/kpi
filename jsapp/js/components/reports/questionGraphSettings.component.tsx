@@ -145,7 +145,7 @@ export default class QuestionGraphSettings extends React.Component<
   }
 
   onTypeChange(
-    params: {
+    _params: {
       default?: boolean;
       id?: string;
       value?: number | boolean;
@@ -158,15 +158,11 @@ export default class QuestionGraphSettings extends React.Component<
       newStyles.report_type = value.report_type;
     }
 
-    if (params && params.id === 'width') {
-      newStyles.width = params.value;
-    }
-
     this.setState({reportStyle: newStyles});
   }
 
   onColorChange(
-    params: {
+    _params: {
       default?: boolean;
       id?: string;
       value?: number | boolean;
@@ -177,9 +173,6 @@ export default class QuestionGraphSettings extends React.Component<
 
     if (value.report_colors) {
       newStyles.report_colors = value.report_colors;
-    }
-    if (params && params.id === 'width') {
-      newStyles.width = params.value;
     }
 
     this.setState({reportStyle: newStyles});
@@ -219,8 +212,7 @@ export default class QuestionGraphSettings extends React.Component<
 
         <Modal.Footer>
           {(this.state.reportStyle.report_type ||
-            this.state.reportStyle.report_colors ||
-            this.state.reportStyle.width) && (
+            this.state.reportStyle.report_colors) && (
             <Button
               type='danger'
               size='l'

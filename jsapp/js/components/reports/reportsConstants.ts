@@ -8,11 +8,6 @@ export interface ReportStyle {
   report_colors: string[];
   translationIndex?: number;
   graphWidth?: number;
-  /**
-   * This happens to be `false` sometimes, not sure if it's possible to set it
-   * to a number using UI.
-   */
-  width?: number | boolean;
 }
 
 export interface CustomReport {
