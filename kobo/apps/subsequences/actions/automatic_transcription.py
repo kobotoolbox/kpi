@@ -9,25 +9,26 @@ PENDING = 'PENDING'
 DT_MOD = BaseAction.DATE_MODIFIED_FIELD
 DT_CREATED = BaseAction.DATE_CREATED_FIELD
 
+
 class AutomaticTranscriptionAction(BaseAction):
     ID = 'transcript'
     MANUAL = 'user_transcribed'
 
     @classmethod
-    def build_params(kls, params, content):
+    def build_params(cls, params, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(kls.get_qpath(kls, row))
+                possible_transcribed_fields.append(cls.get_xpath(cls, row))
         params = {'values': possible_transcribed_fields, 'services': []}
         return params
 
     @classmethod
-    def get_values_for_content(kls, content):
+    def get_values_for_content(cls, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(kls.get_qpath(kls, row))
+                possible_transcribed_fields.append(cls.get_xpath(cls, row))
         return possible_transcribed_fields
 
     def load_params(self, params):

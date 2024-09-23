@@ -173,12 +173,11 @@ class GoogleTranslationService(GoogleService):
         )
         return source_path, output_path
 
-    def process_data(self, qpath: str, vals: dict) -> dict:
+    def process_data(self, xpath: str, vals: dict) -> dict:
         """
-        Translates the value for a given qpath and it's json values.
+        Translates the value for a given xpath and its json values.
         """
         autoparams = vals[GOOGLETX]
-        xpath = self.qpath_to_xpath(qpath)
         try:
             content = vals['transcript']['value']
             source_lang = vals['transcript']['languageCode']
