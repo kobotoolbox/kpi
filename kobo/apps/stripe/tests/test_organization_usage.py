@@ -2,9 +2,13 @@ import timeit
 import itertools
 
 import pytest
-import pytz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
@@ -196,7 +200,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
 
         response = self.client.get(self.detail_url)
         now = timezone.now()
-        first_of_month = datetime(now.year, now.month, 1, tzinfo=pytz.UTC)
+        first_of_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
         first_of_next_month = first_of_month + relativedelta(months=1)
 
         assert response.data['total_submission_count']['current_month'] == num_submissions
@@ -312,7 +316,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         billing cycle to end on the last day of the next month, but we also need to make
         sure the cycle starts on the cancelation date
         """
-        cancel_date = datetime(year=2024, month=8, day=31, tzinfo=pytz.UTC)
+        cancel_date = datetime(year=2024, month=8, day=31, tzinfo=ZoneInfo('UTC'))
         with freeze_time(cancel_date.replace(day=1)):
             subscription = generate_plan_subscription(self.organization)
 
