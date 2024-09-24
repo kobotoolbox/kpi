@@ -409,7 +409,7 @@ oauthlib==3.2.2
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
     #   requests-oauthlib
-openpyxl==3.0.9
+openpyxl==3.1.2
     # via
     #   -r dependencies/pip/requirements.in
     #   pyxform
@@ -530,7 +530,7 @@ pytz==2024.1
     # via
     #   flower
     #   pandas
-pyxform==1.9.0
+pyxform==2.0.3
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
