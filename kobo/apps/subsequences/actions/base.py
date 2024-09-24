@@ -11,6 +11,7 @@ from kobo.apps.subsequences.constants import (GOOGLETS, GOOGLETX)
 ACTION_NEEDED = 'ACTION_NEEDED'
 PASSES = 'PASSES'
 
+
 class BaseAction:
     ID = None
     _destination_field = '_supplementalDetails'

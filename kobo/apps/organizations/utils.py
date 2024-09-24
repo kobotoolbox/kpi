@@ -1,4 +1,8 @@
 from typing import Union
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -16,9 +20,7 @@ def get_monthly_billing_dates(organization: Union[Organization, None]):
     """Returns start and end dates of an organization's monthly billing cycle"""
 
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
-    first_of_this_month = datetime(
-        now.year, now.month, 1, tzinfo=ZoneInfo('UTC')
-    )
+    first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
     first_of_next_month = (
         first_of_this_month
         + relativedelta(months=1)
@@ -28,7 +30,7 @@ def get_monthly_billing_dates(organization: Union[Organization, None]):
     if not organization:
         return first_of_this_month, first_of_next_month
 
-    # If no active subscription, check for canceled subscription 
+    # If no active subscription, check for canceled subscription
     if not (billing_details := organization.active_subscription_billing_details()):
         if not (
             canceled_subscription_anchor
@@ -62,7 +64,8 @@ def get_monthly_billing_dates(organization: Union[Organization, None]):
         )
         return period_start, period_end
 
-    # Subscription is billed yearly - count backwards from the end of the current billing year
+    # Subscription is billed yearly - count backwards from the end of the
+    # current billing year
     period_start = billing_details.get('current_period_end').replace(
         tzinfo=ZoneInfo('UTC')
     )
@@ -96,9 +99,7 @@ def get_yearly_billing_dates(organization: Union[Organization, None]):
         return period_start, period_end
 
     # Subscription is monthly, calculate this year's start based on anchor date
-    period_start = anchor_date.replace(
-        tzinfo=ZoneInfo('UTC')
-    ) + relativedelta(years=1)
+    period_start = anchor_date.replace(tzinfo=ZoneInfo('UTC')) + relativedelta(years=1)
     while period_start < now:
         anchor_date += relativedelta(years=1)
     period_end = period_start + relativedelta(years=1)
