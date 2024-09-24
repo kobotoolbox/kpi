@@ -23,6 +23,7 @@ from organizations.abstract import (
 from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
 class Organization(AbstractOrganization):
@@ -86,19 +87,18 @@ class Organization(AbstractOrganization):
             return None
 
         interval = billing_details['recurring_interval']
-        service_usage = ServiceUsageSerializer(
-            get_database_user(request.user),
-            context=context,
-        ).data
+        usage_calc = ServiceUsageCalculator(
+            self.owner.organization_user.user, self
+        )
+        nlp_usage = usage_calc.get_nlp_usage_counters()
 
         cached_usage = {
-            'asr_seconds': service_usage['total_nlp_usage'][f'asr_seconds_current_{interval}'],
-            'mt_character': service_usage['total_nlp_usage'][f'mt_characters_current_{interval}'],
+            'asr_seconds': nlp_usage[f'asr_seconds_current_{interval}'],
+            'mt_character': nlp_usage[f'mt_characters_current_{interval}'],
         }
 
         return cached_usage[usage_key]
 
-    @cache_for_request
     def is_organization_over_plan_limit(self, limit_type: UsageType) -> Union[bool, None]:
         """
         Check if an organization is over their plan's limit for a given usage type

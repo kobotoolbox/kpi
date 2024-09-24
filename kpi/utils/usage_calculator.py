@@ -12,7 +12,6 @@ from kobo.apps.openrosa.apps.logger.models import (
     DailyXFormSubmissionCounter,
     XForm,
 )
-from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import (
     get_monthly_billing_dates,
     get_yearly_billing_dates,
@@ -25,7 +24,7 @@ from kpi.utils.cache import CachedClass, cached_class_property
 class ServiceUsageCalculator(CachedClass):
     CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
 
-    def __init__(self, user: User, organization: Optional[Organization]):
+    def __init__(self, user: User, organization: Optional['Organization']):
         self.user = user
         self.organization = organization
 
