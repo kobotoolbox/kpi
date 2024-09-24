@@ -2,10 +2,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.db import migrations
 from django.db.migrations.recorder import MigrationRecorder
-from django.db.models import Sum
-from django.db.models import Value, F, DateField
-from django.db.models.functions import Cast, Concat
-from django.db.models.functions import ExtractYear, ExtractMonth
+from django.db.models import DateField, F, Sum, Value
+from django.db.models.functions import Cast, Concat, ExtractMonth, ExtractYear
 from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.utils.counters import (
@@ -15,8 +13,12 @@ from kobo.apps.openrosa.apps.logger.utils.counters import (
 
 def populate_missing_monthly_counters(apps, schema_editor):
 
-    DailyXFormSubmissionCounter = apps.get_model('logger', 'DailyXFormSubmissionCounter')  # noqa
-    MonthlyXFormSubmissionCounter = apps.get_model('logger', 'MonthlyXFormSubmissionCounter')  # noqa
+    DailyXFormSubmissionCounter = apps.get_model(
+        'logger', 'DailyXFormSubmissionCounter'
+    )  # noqa
+    MonthlyXFormSubmissionCounter = apps.get_model(
+        'logger', 'MonthlyXFormSubmissionCounter'
+    )  # noqa
 
     if not DailyXFormSubmissionCounter.objects.all().exists():
         return
@@ -28,9 +30,7 @@ def populate_missing_monthly_counters(apps, schema_editor):
     # Delete monthly counters in the range if any (to avoid conflicts in bulk_create below)
     MonthlyXFormSubmissionCounter.objects.annotate(
         date=Cast(
-            Concat(
-                F('year'), Value('-'), F('month'), Value('-'), 1
-            ),
+            Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
             DateField(),
         )
     ).filter(date__gte=previous_migration.applied.date().replace(day=1)).delete()
@@ -39,7 +39,7 @@ def populate_missing_monthly_counters(apps, schema_editor):
         DailyXFormSubmissionCounter.objects.filter(
             date__range=[
                 previous_migration.applied.date().replace(day=1),
-                timezone.now().date()
+                timezone.now().date(),
             ]
         )
         .annotate(year=ExtractYear('date'), month=ExtractMonth('date'))
@@ -61,7 +61,7 @@ def populate_missing_monthly_counters(apps, schema_editor):
             )
             for r in records
         ],
-        batch_size=5000
+        batch_size=5000,
     )
 
 

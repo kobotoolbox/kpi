@@ -11,7 +11,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE
-
 from kpi.utils.fuzzy_int import FuzzyInt
 
 

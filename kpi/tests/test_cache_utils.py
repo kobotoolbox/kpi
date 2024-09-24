@@ -15,9 +15,7 @@ class MockCachedClass(CachedClass):
     def _get_cache_hash(self):
         return 'test'
 
-    @cached_class_property(
-        key='dict_value', serializer=dumps, deserializer=loads
-    )
+    @cached_class_property(key='dict_value', serializer=dumps, deserializer=loads)
     def get_dict(self):
         self.dict_value['value'] += 1
         return self.dict_value
@@ -48,6 +46,7 @@ def test_cached_class_dict_property():
 
 def clear_mock_cache(self):
     self._clear_cache()
+
 
 @patch('kpi.utils.cache.CachedClass._handle_cache_expiration', clear_mock_cache)
 def test_override_cache():

@@ -1,9 +1,9 @@
 from datetime import timedelta
 from functools import wraps
 
+from django.utils import timezone
 from django_redis import get_redis_connection
 from django_request_cache import get_request_cache
-from django.utils import timezone
 
 
 def void_cache_for_request(keys):
@@ -78,9 +78,7 @@ class CachedClass:
             return
 
         if not self._redis_client.hget(self._cache_hash_str, '__initialized__'):
-            self._redis_client.hset(
-                self._cache_hash_str, '__initialized__', 'True'
-            )
+            self._redis_client.hset(self._cache_hash_str, '__initialized__', 'True')
             self._redis_client.expire(self._cache_hash_str, self.CACHE_TTL)
 
     def _clear_cache(self):
@@ -94,9 +92,7 @@ class CachedClass:
             return timezone.now()
 
         remaining_seconds = self._redis_client.ttl(self._cache_hash_str)
-        return timezone.now() - timedelta(
-            seconds=self.CACHE_TTL - remaining_seconds
-        )
+        return timezone.now() - timedelta(seconds=self.CACHE_TTL - remaining_seconds)
 
 
 def cached_class_property(key, serializer=str, deserializer=str):
@@ -117,9 +113,7 @@ def cached_class_property(key, serializer=str, deserializer=str):
             value = self._redis_client.hget(self._cache_hash_str, key)
             if value is None:
                 value = func(self)
-                self._redis_client.hset(
-                    self._cache_hash_str, key, serializer(value)
-                )
+                self._redis_client.hset(self._cache_hash_str, key, serializer(value))
             else:
                 value = deserializer(value)
 

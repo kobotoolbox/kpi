@@ -1,4 +1,5 @@
 from django.db import migrations
+
 # NOTE:
 # This migrations was moved to 0037 in order to avoid conflict with the new
 # field user_profile.submissions_suspended introduced on main migration 0017.

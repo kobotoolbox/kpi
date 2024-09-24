@@ -1,17 +1,13 @@
-from datetime import timedelta
-from json import loads, dumps
+from json import dumps, loads
 from typing import Optional
 
 from django.conf import settings
-from django.db.models import Sum, Q
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import (
-    DailyXFormSubmissionCounter,
-    XForm,
-)
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
 from kobo.apps.organizations.utils import (
     get_monthly_billing_dates,
     get_yearly_billing_dates,
@@ -136,9 +132,7 @@ class ServiceUsageCalculator(CachedClass):
 
         return total_nlp_usage
 
-    @cached_class_property(
-        key='storage_usage', serializer=str, deserializer=int
-    )
+    @cached_class_property(key='storage_usage', serializer=str, deserializer=int)
     def get_storage_usage(self):
         """
         Get the storage used by non-(soft-)deleted projects for all users
