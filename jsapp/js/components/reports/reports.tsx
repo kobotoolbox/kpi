@@ -49,6 +49,9 @@ interface ReportsProps extends WithRouterProps {
   assetid?: string;
 }
 
+// TODO FIXME: Instead of passing this whole state to child components as
+// `parentState`, please build some kind of store, or resolve this in other
+// sensible way.
 export interface ReportsState {
   asset?: AssetResponse;
   currentCustomReport?: CustomReportSettings;
@@ -94,10 +97,6 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
 
   componentDidMount() {
     this.loadReportData();
-    // NOTE: here we listen to `setStyle` and `setCustom` being triggered, not
-    // to the API call responses. Why?
-    // actions.reports.setStyle.listen(this.reportStyleListener.bind(this));
-    // actions.reports.setCustom.listen(this.reportCustomListener.bind(this));
 
     this.unlisteners.push(
       actions.reports.setStyle.completed.listen(this.onSetStyleCompleted.bind(this)),
