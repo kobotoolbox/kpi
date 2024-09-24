@@ -105,6 +105,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
+    'allauth.usersessions',
     'hub.HubAppConfig',
     'loginas',
     'webpack_loader',
@@ -154,6 +155,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hub.middleware.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.common.CommonMiddleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
@@ -1751,3 +1753,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'

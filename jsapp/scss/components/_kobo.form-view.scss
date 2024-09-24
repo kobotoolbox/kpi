@@ -47,7 +47,7 @@ $side-tabs-width-mobile: 70px;
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: colors.$kobo-gray-96;
+  background: colors.$kobo-gray-200;
 
   &.form-view--fullscreen {
     // We force the position to avoid problems with stronger specificity
@@ -89,7 +89,7 @@ $side-tabs-width-mobile: 70px;
   overflow-y: auto;
   float: left;
   background: colors.$kobo-white;
-  border-right: 1px solid colors.$kobo-gray-92;
+  border-right: 1px solid colors.$kobo-gray-300;
 
   & + .form-view,
   & + .report-view,
@@ -120,7 +120,7 @@ $side-tabs-width-mobile: 70px;
     font-size: variables.$base-font-size;
     cursor: pointer;
     position: relative;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     font-weight: normal;
     letter-spacing: -0.01em;
     display: flex;
@@ -129,7 +129,7 @@ $side-tabs-width-mobile: 70px;
 
     &:hover,
     &.active {
-      color: colors.$kobo-gray-24;
+      color: colors.$kobo-gray-800;
     }
 
     &.active {
@@ -218,7 +218,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--bordered {
-    border: 1px solid colors.$kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-300;
   }
 
   &.form-view__cell--page-title {
@@ -263,33 +263,11 @@ $side-tabs-width-mobile: 70px;
     width: 30px;
     margin-inline-end: 10px;
     text-align: center;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
 
     .k-icon {
       font-size: 24px;
       display: block;
-    }
-  }
-
-  &.form-view__cell--toggle-details button {
-    cursor: pointer;
-    color: colors.$kobo-blue;
-    background: transparent;
-    border: 0;
-    padding: 5px;
-    text-align: center;
-
-    &:hover {
-      color: colors.$kobo-dark-blue;
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
-
-    .k-icon {
-      font-size: 18px;
-      vertical-align: -5px;
     }
   }
 
@@ -298,7 +276,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--bordertop {
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
   }
 
   &.form-view__cell--padding {
@@ -320,12 +298,12 @@ $side-tabs-width-mobile: 70px;
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
     font-size: variables.$base-font-size;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
     font-weight: 500;
 
     span {
       display: block;
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
       font-size: 12px;
     }
 
@@ -418,7 +396,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--thin-label {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     opacity: 0.6;
     font-size: 12px;
     line-height: 18px;
@@ -463,7 +441,7 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__group--items {
     padding: 0;
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
     display: flex;
     align-items: center;
 
@@ -491,7 +469,7 @@ $side-tabs-width-mobile: 70px;
 
   .form-view__group--deployments {
     .form-view__group--items:hover {
-      background: colors.$kobo-gray-96;
+      background: colors.$kobo-gray-200;
     }
   }
 
@@ -593,8 +571,8 @@ $side-tabs-width-mobile: 70px;
     display: block;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid colors.$kobo-gray-92;
-    background: colors.$kobo-gray-96;
+    border: 1px solid colors.$kobo-gray-300;
+    background: colors.$kobo-gray-200;
     font-size: 13px;
     white-space: normal;
   }
@@ -619,8 +597,8 @@ $side-tabs-width-mobile: 70px;
 
   code {
     padding: 4px;
-    border: 1px solid colors.$kobo-gray-92;
-    background: colors.$kobo-gray-96;
+    border: 1px solid colors.$kobo-gray-300;
+    background: colors.$kobo-gray-200;
     margin-left: 5px;
     margin-right: 5px;
   }

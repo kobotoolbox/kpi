@@ -29,10 +29,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         'username__icontains',
     ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.authentication_classes += [ApplicationTokenAuthentication]
-
     def get_serializer_class(self):
         if self.action == 'list':
             return UserListSerializer

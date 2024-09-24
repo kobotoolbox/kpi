@@ -30,12 +30,12 @@ class AssetVersionTestCase(TestCase):
             }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
         _vc = deepcopy(new_asset.latest_version.version_content)
-        pop_atts = ['$kuid',
+        pop_atts = [
+            '$kuid',
             '$autoname',
             '$prev',
-            '$qpath',
             '$xpath',
-            ]
+        ]
         for row in _vc['survey']:
             for att in pop_atts:
                 row.pop(att, None)

@@ -4,11 +4,14 @@ from typing import Optional
 import requests
 from django.conf import settings
 from django.http import HttpResponseRedirect, Http404
-from rest_framework import renderers, serializers
+from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    http_open_rosa_error_handler,
+)
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
@@ -224,28 +227,29 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
         xml_submission_file = request.data['xml_submission_file']
 
-        # Prepare attachments even if all files are present in `request.FILES`
-        # (i.e.: submission XML and attachments)
-        attachments = {}
         # Remove 'xml_submission_file' since it is already handled
         request.FILES.pop('xml_submission_file')
 
-        # TODO pass request.FILES to `edit_submission()` directly when
-        #  KobocatBackendDeployment is gone
-        if len(request.FILES):
-            for name, attachment in request.FILES.items():
-                attachments[name] = attachment
-
         try:
-            xml_response = asset_snapshot.asset.deployment.edit_submission(
-                xml_submission_file, request, attachments
-            )
+            with http_open_rosa_error_handler(
+                lambda: asset_snapshot.asset.deployment.edit_submission(
+                    xml_submission_file, request, request.FILES.values()
+                ),
+                request,
+            ) as handler:
+                if handler.http_error_response:
+                    return handler.http_error_response
+                else:
+                    instance = handler.func_return
+                    response = {
+                        'headers': self.get_headers(),
+                        'data': instance.xml,
+                        'content_type': 'text/xml; charset=utf-8',
+                        'status': status.HTTP_201_CREATED,
+                    }
+                    return Response(**response)
         except SubmissionIntegrityError as e:
             raise serializers.ValidationError(str(e))
-
-        # Add OpenRosa headers to response
-        xml_response['headers'].update(self.get_headers())
-        return Response(**xml_response)
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):

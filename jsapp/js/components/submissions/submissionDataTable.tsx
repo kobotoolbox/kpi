@@ -58,7 +58,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       if (foundRow) {
         goToProcessing(
           this.props.asset.uid,
-          foundRow.$qpath,
+          foundRow.$xpath,
           this.props.submissionData._uuid
         );
       }
@@ -287,9 +287,8 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               <AudioPlayer mediaURL={attachment.download_url} />
 
               <Button
-                type='full'
+                type='primary'
                 size='s'
-                color='blue'
                 endIcon='arrow-up-right'
                 label={t('Open')}
                 onClick={this.openProcessing.bind(this, name)}

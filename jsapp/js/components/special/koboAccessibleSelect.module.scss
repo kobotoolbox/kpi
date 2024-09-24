@@ -9,7 +9,7 @@
 //     koboSelect.scss
 //     textBox.module.scss
 
-$input-color: colors.$kobo-gray-24;
+$input-color: colors.$kobo-gray-800;
 
 .root {
   width: 100%;
@@ -50,7 +50,7 @@ $input-color: colors.$kobo-gray-24;
   color: $input-color;
   border-style: solid;
   border-width: sizes.$x1;
-  border-color: colors.$kobo-gray-92;
+  border-color: colors.$kobo-gray-300;
   border-radius: sizes.$x6;
   background-color: colors.$kobo-white;
 
@@ -59,7 +59,7 @@ $input-color: colors.$kobo-gray-24;
   transition: outline-width 20ms, border-color 20ms;
 
   &:hover {
-    border-color: colors.$kobo-gray-85;
+    border-color: colors.$kobo-gray-400;
   }
 
   &:focus {
@@ -75,18 +75,14 @@ $input-color: colors.$kobo-gray-24;
   }
 
   &.hasError {
-    border-color: colors.$kobo-red;
-    &:hover {
-      border-color: colors.$kobo-dark-red;
-    }
-    &:focus {
-      border-color: colors.$kobo-dark-blue;
-    }
+    border-color: colors.$kobo-mid-red;
+    &:hover {border-color: colors.$kobo-red;}
+    &:focus {border-color: colors.$kobo-dark-blue;}
   }
 
   :global .k-icon {
-    color: colors.$kobo-gray-55; // chosen for balance
-    // color: colors.$kobo-gray-85; // - old design with caret triangle
+    color: colors.$kobo-gray-600; // chosen for balance
+    // color: colors.$kobo-gray-400; // - old design with caret triangle
   }
 
   &[aria-expanded='true'] {
@@ -97,7 +93,7 @@ $input-color: colors.$kobo-gray-24;
   }
 
   &.placeholding {
-    color: colors.$kobo-gray-55;
+    color: colors.$kobo-gray-600;
   }
 
   &button {
@@ -141,7 +137,7 @@ $k-select-menu-padding: sizes.$x6;
 // Menu option
 .option {
   background: colors.$kobo-white;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
 
   min-height: $k-select-option-height;
 
@@ -150,9 +146,9 @@ $k-select-menu-padding: sizes.$x6;
   text-indent: 0 - sizes.$x4;
 
   &.selected {
-    // background: colors.$kobo-gray-96; // prior design
+    // background: colors.$kobo-gray-200; // prior design
     background: colors.$kobo-light-blue; // a11y: adds contrast for keyboard use
-    color: colors.$kobo-gray-14;
+    color: colors.$kobo-gray-900;
     border-radius: 2px;
   }
 }
@@ -162,9 +158,8 @@ $k-select-menu-padding: sizes.$x6;
   font-size: sizes.$x12;
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;
-  &.label.label {
-    // selector specificity-fighting with kobo bem
-    color: colors.$kobo-gray-24;
+  &.label.label { // selector specificity-fighting with kobo bem
+    color: colors.$kobo-gray-800;
   }
 }
 

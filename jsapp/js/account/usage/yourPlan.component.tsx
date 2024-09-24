@@ -130,15 +130,12 @@ export const YourPlan = () => {
         <nav>
           <BillingButton
             label={'See plans'}
-            type={'frame'}
-            color={'blue'}
+            type='secondary'
             onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
           />
           {/* This is commented out until the add-ons tab on the Plans page is implemented
         <BillingButton
           label={'get add-ons'}
-          type={'full'}
-          color={'blue'}
           // TODO: change this to point to the add-ons tab
           onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
         />

@@ -260,8 +260,7 @@ class BulkEditSubmissionsForm extends React.Component {
 
         <bem.SimpleTable__cell>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             onClick={() => {
               if (!this.isEditDisabled(question.type)) {
@@ -388,8 +387,7 @@ class BulkEditSubmissionsForm extends React.Component {
 
         <bem.Modal__footer>
           <Button
-            type='full'
-            color='dark-red'
+            type='danger'
             size='l'
             onClick={this.onReset.bind(this)}
             isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
@@ -397,8 +395,7 @@ class BulkEditSubmissionsForm extends React.Component {
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             isSubmit
             onClick={this.onSubmit.bind(this)}
@@ -428,8 +425,7 @@ class BulkEditSubmissionsForm extends React.Component {
 
         <bem.Modal__footer>
           <Button
-            type='frame'
-            color='dark-blue'
+            type='secondary'
             size='l'
             onClick={this.goBackToList.bind(this)}
             label={t('Back')}
@@ -437,8 +433,7 @@ class BulkEditSubmissionsForm extends React.Component {
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             onClick={this.saveOverride.bind(this)}
             label={t('Save')}
@@ -536,8 +531,7 @@ class BulkEditRowForm extends React.Component {
         <bem.SimpleTable__cell>{percentage}</bem.SimpleTable__cell>
         <bem.SimpleTable__cell>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             onClick={this.onChange.bind(this, responseValue)}
             label={t('Select')}

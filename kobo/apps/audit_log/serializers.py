@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import AuditLog, AuditAction
+from .models import AuditAction, AuditLog
 
 
 class AuditLogSerializer(serializers.ModelSerializer):
@@ -12,16 +12,16 @@ class AuditLogSerializer(serializers.ModelSerializer):
         view_name='user-kpi-detail',
     )
     date_created = serializers.SerializerMethodField()
-    action = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
 
     class Meta:
         model = AuditLog
         fields = (
             'app_label',
             'model_name',
-            'object_id',
             'user',
             'user_uid',
+            'username',
             'action',
             'metadata',
             'date_created',
@@ -31,17 +31,17 @@ class AuditLogSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'app_label',
             'model_name',
-            'object_id',
             'user',
             'user_uid',
+            'username',
             'action',
             'metadata',
             'date_created',
             'log_type',
         )
 
-    def get_action(self, audit_log):
-        return AuditAction(audit_log.action).label
-
     def get_date_created(self, audit_log):
         return audit_log.date_created.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def get_username(self, audit_log):
+        return audit_log.user.username
