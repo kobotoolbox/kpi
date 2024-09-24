@@ -106,7 +106,6 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
             {
                 'app_label': 'foo',
                 'model_name': 'bar',
-                'object_id': 1,
                 'user': 'http://testserver/api/v2/users/someuser/',
                 'user_uid': someuser.extra_details.uid,
                 'action': 'delete',
@@ -149,7 +148,6 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
             {
                 'app_label': 'foo',
                 'model_name': 'bar',
-                'object_id': 1,
                 'user': 'http://testserver/api/v2/users/anotheruser/',
                 'user_uid': anotheruser.extra_details.uid,
                 'action': 'delete',

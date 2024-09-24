@@ -40,6 +40,7 @@ django-csp
 django-debug-toolbar
 django-environ
 django-filter
+django-import-export
 django-extensions
 django-oauth-toolkit
 django-organizations
@@ -76,7 +77,7 @@ openpyxl
 psycopg
 pymongo
 python-dateutil
-pyxform==2.1.0
+pyxform==2.0.3
 requests
 regex
 responses

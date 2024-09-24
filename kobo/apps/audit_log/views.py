@@ -36,11 +36,9 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >               {
     >                    "app_label": "foo",
     >                    "model_name": "bar",
-    >                    "object_id": 1,
     >                    "user": "http://kf.kobo.local/users/kobo_user/",
     >                    "action": "delete",
     >                    "log_type": "asset-management",
-    >                    "method": "delete",
     >               }
     >           ]
     >       }
@@ -112,7 +110,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >                {
     >                   "app_label": "kobo_auth",
     >                    "model_name": "User",
-    >                    "object_id": 1,
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
     >                    "username": "admin",
@@ -164,7 +161,6 @@ class AccessLogViewSet(AuditLogViewSet):
     >                {
     >                   "app_label": "kobo_auth",
     >                    "model_name": "User",
-    >                    "object_id": 1,
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
     >                    "username": "admin",

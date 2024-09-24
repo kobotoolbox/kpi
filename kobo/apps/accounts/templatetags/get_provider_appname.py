@@ -1,6 +1,5 @@
 from allauth.socialaccount.models import SocialApp
 from django import template
-from django.conf import settings
 from django.db.models import Q
 
 register = template.Library()

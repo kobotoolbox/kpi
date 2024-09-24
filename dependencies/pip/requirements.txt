@@ -165,6 +165,8 @@ django-filter==24.2
     # via -r dependencies/pip/requirements.in
 django-guardian==2.4.0
     # via -r dependencies/pip/requirements.in
+django-import-export==4.1.0
+    # via -r dependencies/pip/requirements.in
 django-loginas==0.3.11
     # via -r dependencies/pip/requirements.in
 django-markdownx==4.0.7
@@ -333,7 +335,7 @@ oauthlib==3.2.2
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
     #   requests-oauthlib
-openpyxl==3.0.9
+openpyxl==3.1.2
     # via
     #   -r dependencies/pip/requirements.in
     #   pyxform
@@ -409,7 +411,7 @@ pytz==2024.1
     # via
     #   flower
     #   pandas
-pyxform==2.1.0
+pyxform==2.0.3
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack

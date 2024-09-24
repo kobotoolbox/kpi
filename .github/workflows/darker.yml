@@ -1,0 +1,29 @@
+name: Python linter (Darker)
+
+on: [pull_request]
+jobs:
+  darker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install pip dependencies
+        run: python -m pip install darker[isort] flake8 flake8-quotes isort --quiet
+
+      # use `--ignore=F821` to avoid raising false positive error in typing
+      # annotations with string, e.g. def my_method(my_model: 'ModelName')
+
+      # darker still exit with code 1 even with no errors on changes
+      - name: Run Darker with base commit
+        run: |
+          output=$(darker --check --isort -L "flake8 --max-line-length=88 --ignore=F821" kpi kobo hub -r ${{ github.event.pull_request.base.sha }})
+          [[ -n "$output" ]] && echo "$output" && exit 1 || exit 0
+        shell: /usr/bin/bash {0}

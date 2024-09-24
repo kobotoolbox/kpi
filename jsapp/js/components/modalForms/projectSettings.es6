@@ -1058,7 +1058,9 @@ class ProjectSettings extends React.Component {
               <Button
                 type='danger'
                 size='l'
-                label={t('Delete Project and Data')}
+                label={this.state.formAsset.deployment__submission_count > 0 ?
+                  t('Delete Project and Data') :
+                  t('Delete Project')}
                 onClick={this.deleteProject}
               />
             </bem.FormModal__item>
