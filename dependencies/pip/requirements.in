@@ -111,4 +111,4 @@ djangorestframework-jsonp
 pandas
 
 # Python 3.8 support
-backports.zoneinfo; python_version < '3.9'
+# backports.zoneinfo; python_version < '3.9'

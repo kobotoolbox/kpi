@@ -1,8 +1,11 @@
 import timeit
 import itertools
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 import pytest
-import pytz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.core.cache import cache
@@ -11,6 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import Customer
 from model_bakery import baker
+from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
@@ -24,7 +28,6 @@ from kobo.apps.stripe.tests.utils import (
 )
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
-from rest_framework import status
 
 
 class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
@@ -46,7 +49,9 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         super().setUpTestData()
         cls.now = timezone.now()
 
-        cls.organization = baker.make(Organization, id=cls.org_id, name='test organization')
+        cls.organization = baker.make(
+            Organization, id=cls.org_id, name='test organization'
+        )
         cls.organization.add_user(cls.anotheruser, is_admin=True)
         assets = create_mock_assets([cls.anotheruser], cls.assets_per_user)
 
@@ -195,7 +200,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
 
         response = self.client.get(self.detail_url)
         now = timezone.now()
-        first_of_month = datetime(now.year, now.month, 1, tzinfo=pytz.UTC)
+        first_of_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
         first_of_next_month = first_of_month + relativedelta(months=1)
 
         assert response.data['total_submission_count']['current_month'] == num_submissions
