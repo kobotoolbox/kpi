@@ -267,6 +267,8 @@ flake8-quotes==3.4.0
     # via -r dependencies/pip/dev_requirements.in
 flower==2.0.1
     # via -r dependencies/pip/requirements.in
+freezegun==1.5.1
+    # via -r dependencies/pip/dev_requirements.in
 frozenlist==1.4.1
     # via
     #   aiohttp
@@ -521,6 +523,7 @@ python-dateutil==2.9.0.post0
     #   -r dependencies/pip/requirements.in
     #   botocore
     #   celery
+    #   freezegun
     #   pandas
     #   python-crontab
 python3-openid==3.2.0
@@ -685,4 +688,3 @@ yubico-client==1.13.0
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
-backports-zoneinfo==0.2.1; python_version < '3.9'
