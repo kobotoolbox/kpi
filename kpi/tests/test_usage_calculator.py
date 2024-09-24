@@ -15,6 +15,7 @@ from kobo.apps.openrosa.apps.logger.models import (
     DailyXFormSubmissionCounter,
 )
 from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import generate_enterprise_subscription
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
@@ -214,3 +215,6 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['mt_characters_all_time'] == 6726
 
         assert calculator.get_storage_usage() == 5 * self.expected_file_size()
+
+        assert calculator.get_cached_usage(USAGE_LIMIT_MAP['character']) == 5473
+        assert calculator.get_cached_usage(USAGE_LIMIT_MAP['seconds']) == 4586

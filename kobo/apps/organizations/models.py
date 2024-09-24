@@ -82,23 +82,6 @@ class Organization(AbstractOrganization):
             
         return None
 
-    def get_cached_usage(self, usage_key: str):
-        if not (billing_details := self.active_subscription_billing_details()):
-            return None
-
-        interval = billing_details['recurring_interval']
-        usage_calc = ServiceUsageCalculator(
-            self.owner.organization_user.user, self
-        )
-        nlp_usage = usage_calc.get_nlp_usage_counters()
-
-        cached_usage = {
-            'asr_seconds': nlp_usage[f'asr_seconds_current_{interval}'],
-            'mt_character': nlp_usage[f'mt_characters_current_{interval}'],
-        }
-
-        return cached_usage[usage_key]
-
     def is_organization_over_plan_limit(self, limit_type: UsageType) -> Union[bool, None]:
         """
         Check if an organization is over their plan's limit for a given usage type
@@ -107,8 +90,10 @@ class Organization(AbstractOrganization):
 
         if not settings.STRIPE_ENABLED:
             return None
-
-        cached_usage = self.get_cached_usage(USAGE_LIMIT_MAP[limit_type])
+        usage_calc = ServiceUsageCalculator(
+            self.owner.organization_user.user, self
+        )
+        cached_usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[limit_type])
         stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[limit_type]}_limit'
         current_limit = Organization.objects.filter(
             id=self.id,

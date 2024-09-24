@@ -74,6 +74,27 @@ class ServiceUsageCalculator(CachedClass):
         """
         return Q(user_id__in=user_ids)
 
+    def get_cached_usage(self, usage_key: str) -> int:
+        """Returns the usage for a given organization and usage key. The usage key
+        should be the value from the USAGE_LIMIT_MAP found in the stripe kobo app.
+        """
+        if self.organization is None:
+            return None
+
+        billing_details = self.organization.active_subscription_billing_details()
+        if not billing_details:
+            return None
+
+        interval = billing_details['recurring_interval']
+        nlp_usage = self.get_nlp_usage_counters()
+
+        cached_usage = {
+            'asr_seconds': nlp_usage[f'asr_seconds_current_{interval}'],
+            'mt_character': nlp_usage[f'mt_characters_current_{interval}'],
+        }
+
+        return cached_usage[usage_key]
+
     def get_last_updated(self):
         return self._cache_last_updated()
 
