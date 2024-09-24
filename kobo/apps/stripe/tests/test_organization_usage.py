@@ -309,7 +309,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
     def test_plan_canceled_edge_date(self):
         """
         If a plan is canceled on the last day of a 31-day month, we want the subsequent
-        billing cycle to end on the last day of the next month, but we also need to make 
+        billing cycle to end on the last day of the next month, but we also need to make
         sure the cycle starts on the cancelation date
         """
         cancel_date = datetime(year=2024, month=8, day=31, tzinfo=pytz.UTC)
@@ -322,8 +322,12 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
 
         with freeze_time(cancel_date.replace(month=9, day=1)):
             response = self.client.get(self.detail_url)
-        current_month_start = datetime.fromisoformat(response.data['current_month_start'])
-        current_month_end = datetime.fromisoformat(response.data['current_month_end'])
+        current_month_start = datetime.fromisoformat(
+            response.data['current_month_start']
+        )
+        current_month_end = datetime.fromisoformat(
+            response.data['current_month_end']
+        )
 
         assert current_month_start.month == cancel_date.month
         assert current_month_start.day == cancel_date.day
