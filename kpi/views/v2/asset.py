@@ -667,7 +667,7 @@ class AssetViewSet(
             # the issue here: https://github.com/kobotoolbox/kpi/issues/2576
             queryset = self.__filtered_queryset
 
-            # 1) Retrieve all asset IDs of current list
+            # 1) Retrieve all asset IDs of the current list
             asset_ids = AssetPagination.get_all_asset_ids_from_queryset(
                 queryset
             )
