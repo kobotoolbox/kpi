@@ -535,3 +535,4 @@ yarl==1.9.4
     # via aiohttp
 yubico-client==1.13.0
     # via django-trench
+backports-zoneinfo==0.2.1; python_version < '3.9'
