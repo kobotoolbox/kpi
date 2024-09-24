@@ -1,11 +1,16 @@
 import datetime
-import pytz
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 from django.utils import timezone
 
 from kobo.apps.subsequences.constants import (GOOGLETS, GOOGLETX)
 
 ACTION_NEEDED = 'ACTION_NEEDED'
 PASSES = 'PASSES'
+
 
 class BaseAction:
     ID = None
@@ -19,7 +24,7 @@ class BaseAction:
         self.load_params(params)
 
     def cur_time(self):
-        return datetime.datetime.now(tz=pytz.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
+        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def load_params(self, params):
         raise NotImplementedError('subclass must define a load_params method')
