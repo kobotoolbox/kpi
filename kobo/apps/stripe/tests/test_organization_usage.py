@@ -8,10 +8,6 @@ except ImportError:
 import pytest
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
 
 from django.core.cache import cache
 from django.test import override_settings
