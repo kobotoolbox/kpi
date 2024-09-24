@@ -8,19 +8,15 @@ import Modal from 'js/components/common/modal';
 import ReportTypeEditor from './reportTypeEditor.component';
 import ReportColorsEditor from './reportColorsEditor.component';
 import Button from 'js/components/common/button';
-import ReportsModalTabs, {DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports/reportsModalTabs.component';
+import ReportsModalTabs, {ReportsModalTabNames, DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports/reportsModalTabs.component';
 
 // Utilities
 import {actions} from 'js/actions';
 import {handleApiFail} from 'js/api';
 
 // Types & constants
-import {
-  type ReportStyleName,
-  type ReportStyle,
-} from './reportsConstants';
+import type {ReportStyleName, ReportStyle} from './reportsConstants';
 import type {ReportsState} from './reports';
-import type {ReportsModalTabName} from 'js/components/reports/reportsModalTabs.component';
 import type {FailResponse} from 'js/dataInterface';
 
 interface ReportStyleSettingsSingleQuestionProps {
@@ -29,7 +25,7 @@ interface ReportStyleSettingsSingleQuestionProps {
 }
 
 interface ReportStyleSettingsSingleQuestionState {
-  activeModalTab: ReportsModalTabName;
+  activeModalTab: ReportsModalTabNames;
   reportStyle: ReportStyle;
   isPending: boolean;
 }
@@ -56,7 +52,7 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
     };
   }
 
-  toggleTab(tabName: ReportsModalTabName) {
+  toggleTab(tabName: ReportsModalTabNames) {
     this.setState({activeModalTab: tabName});
   }
 
@@ -166,7 +162,7 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
       <bem.GraphSettings>
         <Modal.Tabs>
           <ReportsModalTabs
-            tabs={['chart-type', 'colors']}
+            tabs={[ReportsModalTabNames['chart-type'], ReportsModalTabNames.colors]}
             activeTabName={this.state.activeModalTab}
             onRequestTabChange={this.toggleTab.bind(this)}
           />
@@ -174,7 +170,7 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
 
         <Modal.Body>
           <div className='tabs-content'>
-            {this.state.activeModalTab === 'chart-type' && (
+            {this.state.activeModalTab === ReportsModalTabNames['chart-type'] && (
               <div id='graph-type'>
                 <ReportTypeEditor
                   style={this.state.reportStyle}
@@ -182,7 +178,7 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
                 />
               </div>
             )}
-            {this.state.activeModalTab === 'colors' && (
+            {this.state.activeModalTab === ReportsModalTabNames.colors && (
               <div id='graph-colors'>
                 <ReportColorsEditor
                   style={this.state.reportStyle}

@@ -8,7 +8,7 @@ import Modal from 'js/components/common/modal';
 import ReportTypeEditor from './reportTypeEditor.component';
 import ReportColorsEditor from './reportColorsEditor.component';
 import Button from 'js/components/common/button';
-import ReportsModalTabs, {DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports/reportsModalTabs.component';
+import ReportsModalTabs, {ReportsModalTabNames, DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports/reportsModalTabs.component';
 
 // Utilities
 import bem from 'js/bem';
@@ -17,19 +17,15 @@ import {handleApiFail} from 'jsapp/js/api';
 
 // Types & constants
 import type {FailResponse, LabelValuePair} from 'js/dataInterface';
-import {
-  type ReportStyle,
-  type ReportStyleName,
-} from './reportsConstants';
+import type {ReportStyle, ReportStyleName} from './reportsConstants';
 import type {ReportsState} from './reports';
-import type {ReportsModalTabName} from 'js/components/reports/reportsModalTabs.component';
 
 interface ReportStyleSettingsProps {
   parentState: ReportsState;
 }
 
 interface ReportStyleSettingsState {
-  activeModalTab: ReportsModalTabName;
+  activeModalTab: ReportsModalTabNames;
   reportStyle: ReportStyle;
   isPending: boolean;
 }
@@ -92,7 +88,7 @@ export default class ReportStyleSettings extends React.Component<
     this.setState({isPending: false});
   }
 
-  toggleTab(tabName: ReportsModalTabName) {
+  toggleTab(tabName: ReportsModalTabNames) {
     this.setState({activeModalTab: tabName});
   }
 
@@ -179,15 +175,18 @@ export default class ReportStyleSettings extends React.Component<
       }
     }
 
-    const tabs: ReportsModalTabName[] = ['chart-type', 'colors'];
+    const tabs: ReportsModalTabNames[] = [
+      ReportsModalTabNames['chart-type'],
+      ReportsModalTabNames.colors
+    ];
 
     if (groupByOptions.length > 1) {
-      tabs.push('group-by');
+      tabs.push(ReportsModalTabNames['group-by']);
     }
 
     const selectedTranslationOptions: LabelValuePair[] = [];
     if (translations.length > 1) {
-      tabs.push('translation');
+      tabs.push(ReportsModalTabNames.translation);
       translations?.map((row, i) => {
         selectedTranslationOptions.push({
           value: String(i),
@@ -208,7 +207,7 @@ export default class ReportStyleSettings extends React.Component<
 
         <Modal.Body>
           <div className='tabs-content'>
-            {this.state.activeModalTab === 'chart-type' && (
+            {this.state.activeModalTab === ReportsModalTabNames['chart-type'] && (
               <div id='graph-type'>
                 <ReportTypeEditor
                   style={reportStyle}
@@ -216,7 +215,7 @@ export default class ReportStyleSettings extends React.Component<
                 />
               </div>
             )}
-            {this.state.activeModalTab === 'colors' && (
+            {this.state.activeModalTab === ReportsModalTabNames.colors && (
               <div id='graph-colors'>
                 <ReportColorsEditor
                   style={reportStyle}
@@ -224,7 +223,7 @@ export default class ReportStyleSettings extends React.Component<
                 />
               </div>
             )}
-            {this.state.activeModalTab === 'group-by' &&
+            {this.state.activeModalTab === ReportsModalTabNames['group-by'] &&
               groupByOptions.length > 1 && (
                 <div className='graph-tab__groupby' id='graph-labels' dir='auto'>
                   <Radio
@@ -235,7 +234,7 @@ export default class ReportStyleSettings extends React.Component<
                   />
                 </div>
               )}
-            {this.state.activeModalTab === 'translation' &&
+            {this.state.activeModalTab === ReportsModalTabNames.translation &&
               selectedTranslationOptions.length > 1 && (
                 <div className='graph-tab__translation' id='graph-labels'>
                   <Radio
