@@ -14,15 +14,15 @@ def populate_asset_created_by_and_last_modified_by(apps, schema_editor):
 
                > python manage.py populate_asset_created_and_modified_by
 
-            Otherwise, the 'created_by' and 'last_modified_by' fields will 
+            Otherwise, the 'created_by' and 'last_modified_by' fields will
             not be populated for existing assets.
             """
         )
     else:
         print(
             """
-            This might take a while. If it is too slow, you may want to re-run 
-            the migration with SKIP_HEAVY_MIGRATIONS=True and run the management 
+            This might take a while. If it is too slow, you may want to re-run
+            the migration with SKIP_HEAVY_MIGRATIONS=True and run the management
             command `populate_asset_created_and_modified_by`.
             """
         )
@@ -36,7 +36,7 @@ def noop(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0057_assetexportsettings_date_created_and_more'),
+        ('kpi', '0057_add_index_on_kpi_asset__deployment_data__formid'),
     ]
 
     operations = [
