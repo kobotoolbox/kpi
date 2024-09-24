@@ -94,7 +94,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('logger', '0036_remove_xform_has_kpi_hooks_and_instance_posted_to_kpi'),
+        ('logger', '0037_remove_xform_has_kpi_hooks_and_instance_posted_to_kpi'),
         ('main', '0017_userprofile_submissions_suspended'),
     ]
 
