@@ -1,16 +1,17 @@
 import React from 'react';
 import {CHART_STYLES} from './reportsConstants';
 import type {ReportStyle, ReportStyleName} from './reportsConstants';
-import styles from './chartTypePicker.module.scss';
+import styles from './reportTypeEditor.module.scss';
 
-interface ChartTypePickerProps {
-  onChange: (params: {default: boolean}, value: {report_type: ReportStyleName}) => void;
-  defaultStyle: ReportStyle;
+interface ReportTypeEditorProps {
+  onChange: (newType: ReportStyleName) => void;
+  /** The style that is being edited */
+  style: ReportStyle;
 }
 
-export default function ChartTypePicker(props: ChartTypePickerProps) {
-  function defaultReportStyleChange(newStyle: ReportStyleName) {
-    props.onChange({default: true}, {report_type: newStyle || 'bar'});
+export default function ReportTypeEditor(props: ReportTypeEditorProps) {
+  function onStyleChange(newStyle: ReportStyleName) {
+    props.onChange(newStyle);
   }
 
   return (
@@ -22,8 +23,8 @@ export default function ChartTypePicker(props: ChartTypePickerProps) {
             type='radio'
             name='chart_type'
             value={styleDefinition.value}
-            checked={props.defaultStyle.report_type === styleDefinition.value}
-            onChange={() => defaultReportStyleChange(styleDefinition.value)}
+            checked={props.style.report_type === styleDefinition.value}
+            onChange={() => onStyleChange(styleDefinition.value)}
             id={'type-' + styleDefinition.value}
           />
 

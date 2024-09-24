@@ -5,8 +5,8 @@ import clonedeep from 'lodash.clonedeep';
 // Partial components
 import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
-import ChartTypePicker from './chartTypePicker.component';
-import ChartColorsPicker from './chartColorsPicker.component';
+import ReportTypeEditor from './reportTypeEditor.component';
+import ReportColorsEditor from './reportColorsEditor.component';
 import Button from 'js/components/common/button';
 import ReportsModalTabs, {DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports/reportsModalTabs.component';
 
@@ -18,35 +18,40 @@ import {handleApiFail} from 'js/api';
 import {
   type ReportStyleName,
   type ReportStyle,
-  DEFAULT_MINIMAL_REPORT_STYLE,
 } from './reportsConstants';
 import type {ReportsState} from './reports';
 import type {ReportsModalTabName} from 'js/components/reports/reportsModalTabs.component';
 import type {FailResponse} from 'js/dataInterface';
 
-interface QuestionGraphSettingsProps {
+interface ReportStyleSettingsSingleQuestionProps {
   parentState: ReportsState;
   question: string;
 }
 
-interface QuestionGraphSettingsState {
+interface ReportStyleSettingsSingleQuestionState {
   activeModalTab: ReportsModalTabName;
   reportStyle: ReportStyle;
   isPending: boolean;
 }
 
-export default class QuestionGraphSettings extends React.Component<
-  QuestionGraphSettingsProps,
-  QuestionGraphSettingsState
+/**
+ * This is a component that is being used for editing report styles for a single
+ * question. So basically for overriding the main report settings.
+ *
+ * It displays 2 available tabs ("type" and "color").
+ */
+export default class ReportStyleSettingsSingleQuestion extends React.Component<
+  ReportStyleSettingsSingleQuestionProps,
+  ReportStyleSettingsSingleQuestionState
 > {
   private unlisteners: Function[] = [];
 
-  constructor(props: QuestionGraphSettingsProps) {
+  constructor(props: ReportStyleSettingsSingleQuestionProps) {
     super(props);
 
     this.state = {
       activeModalTab: DEFAULT_REPORTS_MODAL_TAB,
-      reportStyle: DEFAULT_MINIMAL_REPORT_STYLE,
+      reportStyle: {},
       isPending: false,
     };
   }
@@ -105,7 +110,7 @@ export default class QuestionGraphSettings extends React.Component<
   }
 
 
-  saveQS(reset: boolean) {
+  saveSettings(reset: boolean) {
     const assetUid = this.props.parentState.asset?.uid;
     const customReport = this.props.parentState.currentCustomReport;
 
@@ -116,7 +121,7 @@ export default class QuestionGraphSettings extends React.Component<
     if (!customReport) {
       const parentReportStyles = this.props.parentState.reportStyles;
       if (parentReportStyles) {
-        parentReportStyles.specified[this.props.question] = reset ? DEFAULT_MINIMAL_REPORT_STYLE : this.state.reportStyle;
+        parentReportStyles.specified[this.props.question] = reset ? {} : this.state.reportStyle;
         actions.reports.setStyle(assetUid, parentReportStyles);
         this.setState({isPending: true});
       }
@@ -125,7 +130,7 @@ export default class QuestionGraphSettings extends React.Component<
       const parentReportCustom = this.props.parentState.asset?.report_custom;
 
       if (parentReportCustom) {
-        const newStyle = reset ? DEFAULT_MINIMAL_REPORT_STYLE : this.state.reportStyle;
+        const newStyle = reset ? {} : this.state.reportStyle;
 
         const cridReport = parentReportCustom[customReport.crid];
 
@@ -144,37 +149,15 @@ export default class QuestionGraphSettings extends React.Component<
     }
   }
 
-  onTypeChange(
-    _params: {
-      default?: boolean;
-      id?: string;
-      value?: number | boolean;
-    },
-    value: {report_type: ReportStyleName}
-  ) {
+  onReportTypeChange(newType: ReportStyleName) {
     const newStyles = clonedeep(this.state.reportStyle);
-
-    if (value?.report_type) {
-      newStyles.report_type = value.report_type;
-    }
-
+    newStyles.report_type = newType;
     this.setState({reportStyle: newStyles});
   }
 
-  onColorChange(
-    _params: {
-      default?: boolean;
-      id?: string;
-      value?: number | boolean;
-    },
-    value: {report_colors: string[]}
-  ) {
+  onReportColorsChange(newColors: string[]) {
     const newStyles = clonedeep(this.state.reportStyle);
-
-    if (value.report_colors) {
-      newStyles.report_colors = value.report_colors;
-    }
-
+    newStyles.report_colors = newColors;
     this.setState({reportStyle: newStyles});
   }
 
@@ -193,17 +176,17 @@ export default class QuestionGraphSettings extends React.Component<
           <div className='tabs-content'>
             {this.state.activeModalTab === 'chart-type' && (
               <div id='graph-type'>
-                <ChartTypePicker
-                  defaultStyle={this.state.reportStyle}
-                  onChange={this.onTypeChange.bind(this)}
+                <ReportTypeEditor
+                  style={this.state.reportStyle}
+                  onChange={this.onReportTypeChange.bind(this)}
                 />
               </div>
             )}
             {this.state.activeModalTab === 'colors' && (
               <div id='graph-colors'>
-                <ChartColorsPicker
-                  defaultStyle={this.state.reportStyle}
-                  onChange={this.onColorChange.bind(this)}
+                <ReportColorsEditor
+                  style={this.state.reportStyle}
+                  onChange={this.onReportColorsChange.bind(this)}
                 />
               </div>
             )}
@@ -216,7 +199,7 @@ export default class QuestionGraphSettings extends React.Component<
             <Button
               type='danger'
               size='l'
-              onClick={this.saveQS.bind(this, true)}
+              onClick={this.saveSettings.bind(this, true)}
               label={t('Reset')}
               isPending={this.state.isPending}
             />
@@ -225,7 +208,7 @@ export default class QuestionGraphSettings extends React.Component<
           <Button
             type='primary'
             size='l'
-            onClick={this.saveQS.bind(this, false)}
+            onClick={this.saveSettings.bind(this, false)}
             label={t('Save')}
             isPending={this.state.isPending}
           />

@@ -8,13 +8,13 @@ import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
 import DocumentTitle from 'react-document-title';
-import CustomReportForm from './customReportForm.component';
-import QuestionGraphSettings from './questionGraphSettings.component';
-import ReportContents from './reportContents.component';
-import ReportStyleSettings from './reportStyleSettings.component';
 import CenteredMessage from 'js/components/common/centeredMessage.component';
 import Button from 'js/components/common/button';
 import KoboSelect from 'js/components/common/koboSelect';
+import CustomReportEditor from './customReportEditor.component';
+import ReportContents from './reportContents.component';
+import ReportStyleSettings from './reportStyleSettings.component';
+import ReportStyleSettingsSingleQuestion from './reportStyleSettingsSingleQuestion.component';
 
 // Utilities
 import {dataInterface} from 'js/dataInterface';
@@ -30,7 +30,7 @@ import {
   CHART_STYLES,
   DEFAULT_MINIMAL_REPORT_STYLE,
   type AssetResponseReportStyles,
-  type CustomReport,
+  type CustomReportSettings,
   type ReportsPaginatedResponse,
   type ReportsResponse,
 } from './reportsConstants';
@@ -51,14 +51,14 @@ interface ReportsProps extends WithRouterProps {
 
 export interface ReportsState {
   asset?: AssetResponse;
-  currentCustomReport?: CustomReport;
+  currentCustomReport?: CustomReportSettings;
   /** This is question name. */
   currentQuestionGraph?: string;
   error?: FailResponse;
   groupBy?: string;
   isFullscreen: boolean;
   reportCustom?: {
-    [crid: string]: CustomReport;
+    [crid: string]: CustomReportSettings;
   };
   reportData?: ReportsResponse[];
   reportLimit?: number;
@@ -266,7 +266,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
 
   reportCustomListener(
     _assetUid: string,
-    reportCustom: {[crid: string]: CustomReport}
+    reportCustom: {[crid: string]: CustomReportSettings}
   ) {
     const crid = this.state.currentCustomReport?.crid;
     let newGroupBy;
@@ -340,7 +340,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
    */
   setCustomReport(crid?: string) {
     if (!this.state.showCustomReportModal) {
-      let currentCustomReport: CustomReport | undefined;
+      let currentCustomReport: CustomReportSettings | undefined;
       if (crid) {
         // existing report
         currentCustomReport = this.state.reportCustom?.[crid];
@@ -477,28 +477,6 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
           />
         </div>
       </bem.FormView__reportButtons>
-    );
-  }
-
-  renderCustomReportModal() {
-    if (
-      !this.state.reportData ||
-      !this.state.currentCustomReport ||
-      !this.state.asset
-    ) {
-      return null;
-    }
-
-    return (
-      <bem.GraphSettings>
-        <Modal.Body>
-          <CustomReportForm
-            reportData={this.state.reportData}
-            customReport={this.state.currentCustomReport}
-            asset={this.state.asset}
-          />
-        </Modal.Body>
-      </bem.GraphSettings>
     );
   }
 
@@ -680,7 +658,13 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
                 onClose={this.closeCustomReportModal.bind(this)}
                 title={t('Custom Report')}
               >
-                {this.renderCustomReportModal()}
+                {this.state.currentCustomReport &&
+                  <CustomReportEditor
+                    reportData={this.state.reportData}
+                    customReport={this.state.currentCustomReport}
+                    asset={this.state.asset}
+                  />
+                }
               </Modal>
             )}
 
@@ -690,7 +674,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
                 onClose={this.closeQuestionSettings.bind(this)}
                 title={t('Question Style')}
               >
-                <QuestionGraphSettings
+                <ReportStyleSettingsSingleQuestion
                   question={this.state.currentQuestionGraph}
                   parentState={this.state}
                 />

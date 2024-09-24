@@ -5,8 +5,8 @@ import clonedeep from 'lodash.clonedeep';
 // Partial components
 import Radio from 'js/components/common/radio';
 import Modal from 'js/components/common/modal';
-import ChartTypePicker from './chartTypePicker.component';
-import ChartColorsPicker from './chartColorsPicker.component';
+import ReportTypeEditor from './reportTypeEditor.component';
+import ReportColorsEditor from './reportColorsEditor.component';
 import Button from 'js/components/common/button';
 import ReportsModalTabs, {DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports/reportsModalTabs.component';
 
@@ -18,7 +18,6 @@ import {handleApiFail} from 'jsapp/js/api';
 // Types & constants
 import type {FailResponse, LabelValuePair} from 'js/dataInterface';
 import {
-  DEFAULT_MINIMAL_REPORT_STYLE,
   type ReportStyle,
   type ReportStyleName,
 } from './reportsConstants';
@@ -35,6 +34,12 @@ interface ReportStyleSettingsState {
   isPending: boolean;
 }
 
+/**
+ * This component is being used to modify existing report style settings.
+ *
+ * It displays up to 4 available tabs ("type" and "color" are always available,
+ * "group by" and "translation" based on the form questions).
+ */
 export default class ReportStyleSettings extends React.Component<
   ReportStyleSettingsProps,
   ReportStyleSettingsState
@@ -51,7 +56,7 @@ export default class ReportStyleSettings extends React.Component<
 
     this.state = {
       activeModalTab: DEFAULT_REPORTS_MODAL_TAB,
-      reportStyle: initialReportStyle || DEFAULT_MINIMAL_REPORT_STYLE,
+      reportStyle: initialReportStyle || {},
       isPending: false,
     };
   }
@@ -91,27 +96,19 @@ export default class ReportStyleSettings extends React.Component<
     this.setState({activeModalTab: tabName});
   }
 
-  reportColorsChange({}, value: {report_colors: string[]}) {
+  onReportColorsChange(newColors: string[]) {
     const newStyle = clonedeep(this.state.reportStyle);
-    Object.assign(newStyle, value);
+    newStyle.report_colors = newColors;
     this.setState({reportStyle: newStyle});
   }
 
-  reportTypeChange({}, value: {report_type: ReportStyleName}) {
-    const newStyle = clonedeep(this.state.reportStyle);
-    Object.assign(newStyle, value);
-    this.setState({reportStyle: newStyle});
+  onReportTypeChange(newType: ReportStyleName) {
+    const newStyles = clonedeep(this.state.reportStyle);
+    newStyles.report_type = newType;
+    this.setState({reportStyle: newStyles});
   }
 
-  reportSizeChange(params: {id: string; value: number}) {
-    if (params.id === 'width') {
-      const newStyle = clonedeep(this.state.reportStyle);
-      newStyle.graphWidth = params.value;
-      this.setState({reportStyle: newStyle});
-    }
-  }
-
-  translationIndexChange(newIndex: string) {
+  onTranslationIndexChange(newIndex: string) {
     const newStyle = clonedeep(this.state.reportStyle);
     newStyle.translationIndex = parseInt(newIndex);
     this.setState({reportStyle: newStyle});
@@ -213,17 +210,17 @@ export default class ReportStyleSettings extends React.Component<
           <div className='tabs-content'>
             {this.state.activeModalTab === 'chart-type' && (
               <div id='graph-type'>
-                <ChartTypePicker
-                  defaultStyle={reportStyle}
-                  onChange={this.reportTypeChange.bind(this)}
+                <ReportTypeEditor
+                  style={reportStyle}
+                  onChange={this.onReportTypeChange.bind(this)}
                 />
               </div>
             )}
             {this.state.activeModalTab === 'colors' && (
               <div id='graph-colors'>
-                <ChartColorsPicker
-                  defaultStyle={reportStyle}
-                  onChange={this.reportColorsChange.bind(this)}
+                <ReportColorsEditor
+                  style={reportStyle}
+                  onChange={this.onReportColorsChange.bind(this)}
                 />
               </div>
             )}
@@ -244,7 +241,7 @@ export default class ReportStyleSettings extends React.Component<
                   <Radio
                     name='reports-selected-translation'
                     options={selectedTranslationOptions}
-                    onChange={this.translationIndexChange.bind(this)}
+                    onChange={this.onTranslationIndexChange.bind(this)}
                     selected={String(reportStyle.translationIndex)}
                   />
                 </div>

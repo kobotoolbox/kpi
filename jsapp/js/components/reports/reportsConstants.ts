@@ -4,13 +4,13 @@ import type {AnyRowTypeName} from 'js/constants';
 export interface ReportStyle {
   /** Asset row type name (`AnyRowTypeName`) */
   groupDataBy?: string;
-  report_type: ReportStyleName;
-  report_colors: string[];
+  report_type?: ReportStyleName;
+  report_colors?: string[];
   translationIndex?: number;
   graphWidth?: number;
 }
 
-export interface CustomReport {
+export interface CustomReportSettings {
   crid: string;
   name: string;
   /** A list of asset content rows */
@@ -117,7 +117,7 @@ export interface AssetResponseReportStyles {
  * This is the `report_custom` object from `AssetResponse`.
  */
 export interface AssetResponseReportCustom {
-  [crid: string]: CustomReport;
+  [crid: string]: CustomReportSettings;
 }
 
 /**

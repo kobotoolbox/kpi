@@ -112,7 +112,7 @@ export default class Modal extends React.Component<ModalProps> {
 
   render() {
     return (
-      <bem.Modal__backdrop onClick={this.backdropClick}>
+      <bem.Modal__backdrop onClick={this.backdropClick.bind(this)}>
         <div className={classNames(
           'modal',
           this.props.className,

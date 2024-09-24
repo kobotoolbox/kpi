@@ -14,6 +14,11 @@ interface ReportsModalTabsProps {
   onRequestTabChange: (tabName: ReportsModalTabName) => void;
 }
 
+/**
+ * This is a helper component that displays tabs for reports modals. You can
+ * tell it which tabs you want to display, and it uses a callback whenever one
+ * of the tabs is selected.
+ */
 export default function ReportsModalTabs(props: ReportsModalTabsProps) {
   const displayedTabs: Array<{name: ReportsModalTabName; label: string}> = [];
 
