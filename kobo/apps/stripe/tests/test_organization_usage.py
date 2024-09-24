@@ -314,7 +314,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         """
         cancel_date = datetime(year=2024, month=8, day=31, tzinfo=pytz.UTC)
         with freeze_time(cancel_date.replace(day=1)):
-            subscription = generate_plan_subscription(self.organization, age_days=1095)
+            subscription = generate_plan_subscription(self.organization)
 
         subscription.status = 'canceled'
         subscription.ended_at = cancel_date
