@@ -12,7 +12,7 @@ from django.utils.dateparse import parse_datetime
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     dict2xform,
-    safe_create_instance,
+    create_instance,
 )
 from kpi.constants import PERM_ADD_SUBMISSIONS, SUBMISSION_FORMAT_TYPE_JSON
 from kpi.tests.utils.dicts import nested_dict_from_keys
@@ -108,7 +108,8 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
 
             xml_string = dict2xform(sub_copy, self.xform.id_string)
             xml_file = io.StringIO(xml_string)
-            error, instance = safe_create_instance(
+
+            instance = create_instance(
                 owner_username,
                 xml_file,
                 media_files,
@@ -117,8 +118,6 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
                 ),
                 request=request,
             )
-            if error:
-                raise Exception(error)
 
             # Inject (or update) real PKs in submission…
             submission['_id'] = instance.pk

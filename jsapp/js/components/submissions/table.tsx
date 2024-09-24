@@ -142,6 +142,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * horizontally or vertically.
    */
   tableScrollTop = 0;
+  /**
+   * Store this value of the 'left' value of frozen columns, maintaining
+   * their alignment during horizontal scrolling or pagination.
+   */
+  frozenLeftRef = 0;
 
   /** We store it for future checks. */
   previousOverrides: AssetTableSettings = {};
@@ -434,7 +439,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     key: string,
     rootParentGroup: string | undefined
   ) {
-    if (rootParentGroup && rootParentGroup in row) {
+    if (
+      rootParentGroup &&
+      rootParentGroup in row &&
+      !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+    ) {
       return row[rootParentGroup];
     }
     return row[key];
@@ -594,8 +603,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             Let's try to fix this one day by introducing better tooltips.
             */}
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='s'
               startIcon='view'
               tooltip={t('Open')}
@@ -612,8 +620,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 row.original
               ) && (
                 <Button
-                  type='bare'
-                  color='dark-blue'
+                  type='text'
                   size='s'
                   startIcon='edit'
                   tooltip={t('Edit')}
@@ -933,7 +940,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             this.state.translationIndex
           );
 
-          if (typeof row.value === 'object') {
+          if (typeof row.value === 'object' && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
             const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
             if (repeatGroupAnswers) {
               // display a list of answers from a repeat group question
@@ -969,7 +976,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                   return (
                     <AudioCell
                       assetUid={this.props.asset.uid}
-                      qpath={q.$qpath}
+                      xpath={q.$xpath}
                       submissionEditId={submissionEditId}
                       mediaAttachment={mediaAttachment}
                     />
@@ -986,7 +993,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                     submissionIndex={row.index + 1}
                     submissionTotal={this.state.submissions.length}
                     assetUid={this.props.asset.uid}
-                    qpath={q.$qpath}
+                    xpath={q.$xpath}
                     submissionUuid={row.original._uuid}
                   />
                 );
@@ -1070,7 +1077,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           ) {
             return (
               <TextModalCell
-                text={getSupplementalDetailsContent(row.original, key)}
+                text={getSupplementalDetailsContent(row.original, key) || ''}
                 columnName={columnName}
                 submissionIndex={row.index + 1}
                 submissionTotal={this.state.submissions.length}
@@ -1139,6 +1146,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         );
       };
 
+      // Ensure frozen columns stay correctly aligned to the left, even after
+      // scrolling or reloads.
+      if (col.className?.includes('frozen')) {
+        col.style = {...col.style, left: this.frozenLeftRef};
+      }
+
       if (frozenColumn === col.id) {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
@@ -1146,6 +1159,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         col.headerClassName = col.headerClassName
           ? `is-frozen is-last-frozen ${col.headerClassName}`
           : 'is-frozen is-last-frozen';
+          col.style = {...col.style, left: this.frozenLeftRef};
       }
     });
 
@@ -1488,6 +1502,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
 
       $frozenColumnCells.css({left: left});
+
+      // Save the reference position for the frozen column's left offset.
+      this.frozenLeftRef = left;
     } else {
       this.tableScrollTop = eventTarget.scrollTop;
     }
@@ -1540,8 +1557,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           <bem.FormView__item m='table-buttons'>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='expand'
               onClick={this.toggleFullscreen.bind(this)}
@@ -1550,8 +1566,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='settings'
               onClick={this.showTableColumnsOptionsModal.bind(this)}

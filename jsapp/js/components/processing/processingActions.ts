@@ -80,13 +80,13 @@ export interface TransxObject extends TransxRequestObject {
 
 /** Object we send to Back end when updating transcript text manually. */
 interface TranscriptRequest {
-  [qpath: string]: string | undefined | {transcript: TransxRequestObject};
+  [xpath: string]: string | undefined | {transcript: TransxRequestObject};
   submission?: string;
 }
 
 /** Object we send to Back end when requesting an automatic transcription. */
 interface AutoTranscriptRequest {
-  [qpath: string]:
+  [xpath: string]:
     | string
     | undefined
     | {googlets: AutoTranscriptRequestEngineParams};
@@ -100,7 +100,7 @@ interface AutoTranscriptRequestEngineParams {
 
 /** Object we send to Back end when updating translation text manually. */
 interface TranslationRequest {
-  [qpath: string]:
+  [xpath: string]:
     | string
     | undefined
     | {translation: TranslationsRequestObject};
@@ -112,7 +112,7 @@ interface TranslationsRequestObject {
 
 /** Object we send to Back end when requesting an automatic translation. */
 interface AutoTranslationRequest {
-  [qpath: string]:
+  [xpath: string]:
     | string
     | undefined
     | {googletx: AutoTranslationRequestEngineParams};
@@ -261,7 +261,7 @@ processingActions.getProcessingData.failed.listen(() => {
  */
 function setTranscriptInnerMethod(
   assetUid: string,
-  qpath: string,
+  xpath: string,
   submissionEditId: string,
   languageCode: LanguageCode,
   value: string
@@ -273,7 +273,7 @@ function setTranscriptInnerMethod(
     const data: TranscriptRequest = {
       submission: submissionEditId,
     };
-    data[qpath] = {
+    data[xpath] = {
       transcript: {
         value: value,
         languageCode: languageCode,
@@ -304,7 +304,7 @@ function setTranscriptInnerMethod(
 interface SetTranscriptFn {
   (
     assetUid: string,
-    qpath: string,
+    xpath: string,
     submissionEditId: string,
     languageCode: LanguageCode,
     value: string
@@ -316,7 +316,7 @@ interface SetTranscriptDefinition extends SetTranscriptFn {
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.setTranscript.listen(
-  (assetUid, qpath, submissionEditId, languageCode, value) => {
+  (assetUid, xpath, submissionEditId, languageCode, value) => {
     // This first block of code is about getting currently enabled languages.
     const currentFeatures = getAssetAdvancedFeatures(assetUid);
     if (currentFeatures?.transcript === undefined) {
@@ -332,7 +332,7 @@ processingActions.setTranscript.listen(
     ) {
       setTranscriptInnerMethod(
         assetUid,
-        qpath,
+        xpath,
         submissionEditId,
         languageCode,
         value
@@ -362,7 +362,7 @@ processingActions.setTranscript.listen(
         onComplete: setTranscriptInnerMethod.bind(
           this,
           assetUid,
-          qpath,
+          xpath,
           submissionEditId,
           languageCode,
           value
@@ -380,11 +380,13 @@ processingActions.setTranscript.failed.listen(() => {
  * `deleteTranscript` action
  *
  * Use it to completely remove given transcript. Currently deleting transcript
- * means setting its value to a predefined DELETE_CHAR - Back end handles the
- * cleanup.
+ * means setting its value to a predefined DELETE_CHAR. Back end handles the
+ * cleanup - it removes the transcript, and if there is zero transcripts for
+ * given language for all the submissions, it also removes that language from
+ * `advanced_feature` (i.e. makes it "not enabled").
  */
 interface DeleteTranscriptFn {
-  (assetUid: string, qpath: string, submissionEditId: string): void;
+  (assetUid: string, xpath: string, submissionEditId: string): void;
 }
 interface DeleteTranscriptDefinition extends DeleteTranscriptFn {
   listen: (fn: DeleteTranscriptFn) => void;
@@ -392,7 +394,7 @@ interface DeleteTranscriptDefinition extends DeleteTranscriptFn {
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.deleteTranscript.listen(
-  (assetUid, qpath, submissionEditId) => {
+  (assetUid, xpath, submissionEditId) => {
     const processingUrl = getAssetProcessingUrl(assetUid);
     if (processingUrl === undefined) {
       processingActions.deleteTranscript.failed(NO_FEATURE_ERROR);
@@ -400,7 +402,7 @@ processingActions.deleteTranscript.listen(
       const data: TranscriptRequest = {
         submission: submissionEditId,
       };
-      data[qpath] = {
+      data[xpath] = {
         transcript: {
           value: DELETE_CHAR,
           languageCode: '',
@@ -436,7 +438,7 @@ processingActions.deleteTranscript.failed.listen(() => {
 interface RequestAutoTranscriptionFn {
   (
     assetUid: string,
-    qpath: string,
+    xpath: string,
     submissionEditId: string,
     languageCode?: string,
     regionCode?: string | null
@@ -456,7 +458,7 @@ interface RequestAutoTranscriptionDefinition
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.requestAutoTranscription.listen(
-  (assetUid, qpath, submissionEditId, languageCode, regionCode) => {
+  (assetUid, xpath, submissionEditId, languageCode, regionCode) => {
     const processingUrl = getAssetProcessingUrl(assetUid);
     if (processingUrl === undefined) {
       processingActions.requestAutoTranscription.failed(NO_FEATURE_ERROR);
@@ -473,7 +475,7 @@ processingActions.requestAutoTranscription.listen(
       if (regionCode) {
         autoparams.regionCode = regionCode;
       }
-      data[qpath] = {
+      data[xpath] = {
         googlets: autoparams,
       };
 
@@ -485,7 +487,7 @@ processingActions.requestAutoTranscription.listen(
         data: JSON.stringify(data),
       })
         .done((response: ProcessingDataResponse) => {
-          const responseStatus = response[qpath]?.googlets?.status;
+          const responseStatus = response[xpath]?.googlets?.status;
 
           if (responseStatus === 'requested' || responseStatus === 'in_progress') {
             processingActions.requestAutoTranscription.in_progress({
@@ -509,10 +511,10 @@ processingActions.requestAutoTranscription.listen(
 /** A small utility function for getting easier to use data. */
 function pickTranslationsFromProcessingDataResponse(
   response: ProcessingDataResponse,
-  qpath: string
+  xpath: string
 ): TransxObject[] {
   const translations: TransxObject[] = [];
-  Object.values(response[qpath]?.translation).forEach((translation) => {
+  Object.values(response[xpath]?.translation).forEach((translation) => {
     translations.push(translation);
   });
   return translations;
@@ -520,7 +522,7 @@ function pickTranslationsFromProcessingDataResponse(
 
 /** A function that builds translation data object for processing endpoint. */
 function getTranslationDataObject(
-  qpath: string,
+  xpath: string,
   submissionEditId: string,
   languageCode: LanguageCode,
   value: string
@@ -535,7 +537,7 @@ function getTranslationDataObject(
   const data: TranslationRequest = {
     submission: submissionEditId,
   };
-  data[qpath] = {
+  data[xpath] = {
     translation: translationsObj,
   };
   return data;
@@ -547,7 +549,7 @@ function getTranslationDataObject(
  */
 function setTranslationInnerMethod(
   assetUid: string,
-  qpath: string,
+  xpath: string,
   submissionEditId: string,
   languageCode: LanguageCode,
   value: string
@@ -557,7 +559,7 @@ function setTranslationInnerMethod(
     processingActions.setTranslation.failed(NO_FEATURE_ERROR);
   } else {
     const data = getTranslationDataObject(
-      qpath,
+      xpath,
       submissionEditId,
       languageCode,
       value
@@ -571,7 +573,7 @@ function setTranslationInnerMethod(
     })
       .done((response: ProcessingDataResponse) => {
         processingActions.setTranslation.completed(
-          pickTranslationsFromProcessingDataResponse(response, qpath)
+          pickTranslationsFromProcessingDataResponse(response, xpath)
         );
       })
       .fail(processingActions.setTranslation.failed);
@@ -588,7 +590,7 @@ function setTranslationInnerMethod(
 interface SetTranslationFn {
   (
     assetUid: string,
-    qpath: string,
+    xpath: string,
     submissionEditId: string,
     languageCode: LanguageCode,
     value: string
@@ -600,7 +602,7 @@ interface SetTranslationDefinition extends SetTranslationFn {
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.setTranslation.listen(
-  (assetUid, qpath, submissionEditId, languageCode, value) => {
+  (assetUid, xpath, submissionEditId, languageCode, value) => {
     // This first block of code is about getting currently enabled languages.
     const currentFeatures = getAssetAdvancedFeatures(assetUid);
     if (currentFeatures?.translation === undefined) {
@@ -616,7 +618,7 @@ processingActions.setTranslation.listen(
     ) {
       setTranslationInnerMethod(
         assetUid,
-        qpath,
+        xpath,
         submissionEditId,
         languageCode,
         value
@@ -646,7 +648,7 @@ processingActions.setTranslation.listen(
         onComplete: setTranslationInnerMethod.bind(
           this,
           assetUid,
-          qpath,
+          xpath,
           submissionEditId,
           languageCode,
           value
@@ -664,13 +666,15 @@ processingActions.setTranslation.failed.listen(() => {
  * `deleteTranslation` action
  *
  * Use it to completely remove given translation. Currently deleting translation
- * means setting its value to a predefined DELETE_CHAR - Back end handles the
- * cleanup.
+ * means setting its value to a predefined DELETE_CHAR. Back end handles the
+ * cleanup - it removes the translation, and if there is zero translations for
+ * given language for all the submissions, it also removes that language from
+ * `advanced_feature` (i.e. makes it "not enabled").
  */
 interface DeleteTranslationFn {
   (
     assetUid: string,
-    qpath: string,
+    xpath: string,
     submissionEditId: string,
     languageCode: LanguageCode
   ): void;
@@ -681,13 +685,13 @@ interface DeleteTranslationDefinition extends DeleteTranslationFn {
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.deleteTranslation.listen(
-  (assetUid, qpath, submissionEditId, languageCode) => {
+  (assetUid, xpath, submissionEditId, languageCode) => {
     const processingUrl = getAssetProcessingUrl(assetUid);
     if (processingUrl === undefined) {
       processingActions.deleteTranslation.failed(NO_FEATURE_ERROR);
     } else {
       const data = getTranslationDataObject(
-        qpath,
+        xpath,
         submissionEditId,
         languageCode,
         DELETE_CHAR
@@ -718,7 +722,7 @@ processingActions.deleteTranslation.failed.listen(() => {
 interface RequestAutoTranslationFn {
   (
     assetUid: string,
-    qpath: string,
+    xpath: string,
     submissionEditId: string,
     languageCode: string
   ): void;
@@ -736,7 +740,7 @@ interface RequestAutoTranslationDefinition extends RequestAutoTranslationFn {
   failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.requestAutoTranslation.listen(
-  (assetUid, qpath, submissionEditId, languageCode) => {
+  (assetUid, xpath, submissionEditId, languageCode) => {
     const processingUrl = getAssetProcessingUrl(assetUid);
     if (processingUrl === undefined) {
       processingActions.requestAutoTranslation.failed(NO_FEATURE_ERROR);
@@ -744,7 +748,7 @@ processingActions.requestAutoTranslation.listen(
       const data: AutoTranslationRequest = {
         submission: submissionEditId,
       };
-      data[qpath] = {
+      data[xpath] = {
         googletx: {
           status: 'requested',
           languageCode: languageCode,
@@ -759,7 +763,7 @@ processingActions.requestAutoTranslation.listen(
         data: JSON.stringify(data),
       })
         .done((response: ProcessingDataResponse) => {
-          const responseStatus = response[qpath]?.googletx?.status;
+          const responseStatus = response[xpath]?.googletx?.status;
 
           if (responseStatus === 'requested' || responseStatus === 'in_progress') {
             processingActions.requestAutoTranslation.in_progress({

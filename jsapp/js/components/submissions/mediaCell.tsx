@@ -39,7 +39,7 @@ interface MediaCellProps {
  /** Total submissions for text questions. */
  submissionTotal: number;
  assetUid: string;
- qpath: string;
+ xpath: string;
  submissionUuid: string;
 }
 
@@ -121,8 +121,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
               href={mediaURL}
             >
               <Button
-                type='frame'
-                color='blue'
+                type='secondary'
                 size='s'
                 startIcon='download'
                 label={t('download')}
@@ -141,7 +140,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
       return (
         <bem.MediaCell>
           <bem.MediaCellIconWrapper data-tip={this.props.mediaAttachment}>
-            <Icon name='alert' color='red' size='s'/>
+            <Icon name='alert' color='mid-red' size='s'/>
           </bem.MediaCellIconWrapper>
         </bem.MediaCell>
       );
@@ -151,8 +150,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
       <bem.MediaCell>
         <bem.MediaCellIconWrapper>
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='s'
             startIcon={this.getQuestionIcon()}
             onClick={this.launchMediaModal.bind(this)}

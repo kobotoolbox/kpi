@@ -1,10 +1,6 @@
-import logging
-
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils.timezone import now
+from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -12,23 +8,22 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_human_readable_client_user_agent,
 )
 from kpi.constants import (
-    ACCESS_LOG_KOBO_AUTH_APP_LABEL,
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
-    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
+    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
+from kpi.utils.log import logging
 
 
 class AuditAction(models.TextChoices):
-
-    CREATE = 'create', 'CREATE'
-    DELETE = 'delete', 'DELETE'
-    IN_TRASH = 'in-trash', 'IN TRASH'
-    PUT_BACK = 'put-back', 'PUT BACK'
-    REMOVE = 'remove', 'REMOVE'
-    UPDATE = 'update', 'UPDATE'
-    AUTH = 'auth', 'AUTH'
+    CREATE = 'create'
+    DELETE = 'delete'
+    IN_TRASH = 'in-trash'
+    PUT_BACK = 'put-back'
+    REMOVE = 'remove'
+    UPDATE = 'update'
+    AUTH = 'auth'
 
 
 class AuditType(models.TextChoices):
@@ -51,7 +46,7 @@ class AuditLog(models.Model):
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
     object_id = models.BigIntegerField()
-    date_created = models.DateTimeField(default=now, db_index=True)
+    date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
         max_length=10,
@@ -95,10 +90,59 @@ class AuditLog(models.Model):
             update_fields=update_fields,
         )
 
+
+class AccessLogManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(log_type=AuditType.ACCESS)
+
+    def create(self, **kwargs):
+        # remove any attempt to set fields that should
+        # always be the same on an access log
+        app_label = kwargs.pop('app_label', None)
+        if app_label is not None:
+            logging.warning(f'Ignoring attempt to set {app_label=} on access log')
+        model_name = kwargs.pop('model_name', None)
+        if model_name is not None:
+            logging.warning(f'Ignoring attempt to set {model_name=} on access log')
+        action = kwargs.pop('action', None)
+        if action is not None:
+            logging.warning(f'Ignoring attempt to set {action=} on access log')
+        log_type = kwargs.pop('log_type', None)
+        if log_type is not None:
+            logging.warning(f'Ignoring attempt to set {log_type=} on access log')
+        user = kwargs.pop('user')
+        return super().create(
+            # set the fields that are always the same for access logs,
+            # pass along the rest to the original constructor
+            app_label=User._meta.app_label,
+            model_name=User._meta.model_name,
+            action=AuditAction.AUTH,
+            log_type=AuditType.ACCESS,
+            user=user,
+            object_id=user.id,
+            user_uid=user.extra_details.uid,
+            **kwargs,
+        )
+
+
+class AccessLog(AuditLog):
+    objects = AccessLogManager()
+
+    class Meta:
+        proxy = True
+
     @staticmethod
-    def create_access_log_for_request(
-        request, user=None, authentication_type: str = None
+    def create_from_request(
+        request,
+        user=None,
+        authentication_type: str = None,
+        extra_metadata: dict = None,
     ):
+        """
+        Create an access log for a request, assigned to either the given user or request.user if not supplied
+
+        Note: Data passed in extra_metadata will override default values for the same key
+        """
         logged_in_user = user or request.user
 
         # django-loginas will keep the superuser as the _cached_user while request.user is set to the new one
@@ -147,19 +191,11 @@ class AuditLog(models.Model):
             'source': source,
             'auth_type': auth_type,
         }
-
         # add extra information if needed for django-loginas
         if is_loginas:
             metadata['initial_user_uid'] = initial_user.extra_details.uid
             metadata['initial_user_username'] = initial_user.username
-        audit_log = AuditLog(
-            user=logged_in_user,
-            app_label=ACCESS_LOG_KOBO_AUTH_APP_LABEL,
-            model_name=User.__qualname__,
-            object_id=logged_in_user.id,
-            user_uid=logged_in_user.extra_details.uid,
-            action=AuditAction.AUTH,
-            metadata=metadata,
-            log_type=AuditType.ACCESS,
-        )
-        return audit_log
+        # add any other metadata the caller may want
+        if extra_metadata is not None:
+            metadata.update(extra_metadata)
+        return AccessLog.objects.create(user=logged_in_user, metadata=metadata)

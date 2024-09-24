@@ -1,12 +1,11 @@
 import styles from 'js/account/add-ons/addOnList.module.scss';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {
   Organization,
   Product,
   SubscriptionInfo,
 } from 'js/account/stripe.types';
 import KoboSelect3 from 'js/components/special/koboAccessibleSelect';
-import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import BillingButton from 'js/account/plans/billingButton.component';
 import {postCheckout, postCustomerPortal} from 'js/account/stripe.api';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
@@ -45,7 +44,7 @@ export const OneTimeAddOnRow = ({
     selectedProduct.prices[0]
   );
   const displayPrice = useDisplayPrice(selectedPrice, parseInt(quantity));
-  const priceOptions: KoboSelectOption[] = useMemo(
+  const priceOptions = useMemo(
     () =>
       selectedProduct.prices.map((price) => {
         return {value: price.id, label: price.recurring?.interval || 'me'};

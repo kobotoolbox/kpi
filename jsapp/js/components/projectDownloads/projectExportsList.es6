@@ -212,8 +212,7 @@ export default class ProjectExportsList extends React.Component {
         <bem.SimpleTable__cell className='export-list-buttons'>
           {exportData.status === EXPORT_STATUSES.complete &&
             <Button
-              type='frame'
-              color='blue'
+              type='secondary'
               size='m'
               startIcon='download'
               label={t('Download')}
@@ -238,8 +237,7 @@ export default class ProjectExportsList extends React.Component {
 
           {userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
             <Button
-              type='frame'
-              color='dark-red'
+              type='secondary-danger'
               size='m'
               startIcon='trash'
               onClick={this.deleteExport.bind(this, exportData.uid)}

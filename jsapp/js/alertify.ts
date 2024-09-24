@@ -10,7 +10,7 @@ import {createRoot} from 'react-dom/client';
 interface MultiConfirmButton {
   label: string;
   /** Defaults to gray. */
-  color?: 'blue' | 'dark-red';
+  color?: 'blue' | 'red';
   icon?: IconName;
   isDisabled?: boolean;
   callback: (() => void) | undefined;
@@ -65,7 +65,7 @@ export function multiConfirm(
               let buttonClass = alertify.defaults.theme.input;
               if (button.color === 'blue') {
                 buttonClass = alertify.defaults.theme.ok;
-              } else if (button.color === 'dark-red') {
+              } else if (button.color === 'red') {
                 buttonClass = alertify.defaults.theme.cancel;
               }
 

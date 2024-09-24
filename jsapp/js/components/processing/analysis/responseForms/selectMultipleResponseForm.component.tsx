@@ -63,7 +63,7 @@ export default function SelectMultipleResponseForm(
     // Update endpoint and reducer
     updateResponseAndReducer(
       analysisQuestions.dispatch,
-      question.qpath,
+      question.xpath,
       props.uuid,
       question.type,
       newResponse

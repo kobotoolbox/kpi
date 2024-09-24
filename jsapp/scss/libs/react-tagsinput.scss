@@ -4,7 +4,7 @@
   &.react-tagsinput-invalid {
     .react-tagsinput-input {
       color: colors.$kobo-red;
-      border-bottom-color: colors.$kobo-red;
+      border-bottom-color: colors.$kobo-mid-red;
     }
   }
 
@@ -17,7 +17,7 @@
 }
 
 .react-tagsinput-tag {
-  background-color: colors.$kobo-gray-40;
+  background-color: colors.$kobo-gray-700;
   color: colors.$kobo-white;
   font-weight: 400;
   margin-bottom: 4px;
@@ -47,7 +47,7 @@
 .react-tagsinput-input {
   background: transparent;
   border: 0 none;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   font-size: 13px;
   font-weight: 400;
   margin-bottom: 2px;

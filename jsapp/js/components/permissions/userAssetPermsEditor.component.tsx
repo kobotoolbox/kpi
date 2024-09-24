@@ -478,10 +478,10 @@ export default class UserAssetPermsEditor extends React.Component<
         false,
         true
       );
-      for (const [, qPath] of Object.entries(flatPaths)) {
+      for (const [, path] of Object.entries(flatPaths)) {
         output.push({
-          value: qPath,
-          label: qPath,
+          value: path,
+          label: path,
         });
       }
     }
@@ -545,8 +545,7 @@ export default class UserAssetPermsEditor extends React.Component<
               </span>
 
               <Button
-                type='bare'
-                color='blue'
+                type='text'
                 size='m'
                 label={t('Reset changes')}
                 onClick={() => {
@@ -639,12 +638,12 @@ export default class UserAssetPermsEditor extends React.Component<
 
         <div className={styles.row}>
           <Button
-            color='blue'
-            type='full'
+            type='primary'
             size='l'
             onClick={this.onSubmit.bind(this)}
             label={isNew ? t('Grant permissions') : t('Update permissions')}
             isDisabled={!this.isSubmitEnabled()}
+            isPending={this.state.isSubmitPending}
             isSubmit
           />
         </div>

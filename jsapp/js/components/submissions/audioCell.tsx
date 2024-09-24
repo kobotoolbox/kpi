@@ -11,7 +11,7 @@ bem.AudioCell = makeBem(null, 'audio-cell');
 
 interface AudioCellProps {
   assetUid: string;
-  qpath: string;
+  xpath: string;
   /* submissionEditId is meta/rootUuid || _uuid */
   submissionEditId: string;
   /** Required by the mini player. String passed is an error message */
@@ -27,7 +27,7 @@ export default function AudioCell(props: AudioCellProps) {
     <bem.AudioCell>
       {typeof props.mediaAttachment === 'string' && (
         <span data-tip={props.mediaAttachment}>
-          <Icon name='alert' color='red' size='s' />
+          <Icon name='alert' color='mid-red' size='s' />
         </span>
       )}
 
@@ -37,14 +37,13 @@ export default function AudioCell(props: AudioCellProps) {
         )}
 
       <Button
-        type='full'
+        type='primary'
         size='s'
-        color='blue'
         endIcon='arrow-up-right'
         label={t('Open')}
         isDisabled={typeof props.mediaAttachment === 'string'}
         onClick={() => {
-          goToProcessing(props.assetUid, props.qpath, props.submissionEditId);
+          goToProcessing(props.assetUid, props.xpath, props.submissionEditId);
         }}
       />
     </bem.AudioCell>
