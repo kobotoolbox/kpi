@@ -58,18 +58,6 @@ class ServiceUsageCalculator(CachedClass):
         self.current_year_filter = Q(date__range=[self.current_year_start, now])
         self._setup_cache()
 
-    def _get_cache_hash(self):
-        if self.organization is None:
-            return f'user-{self.user.id}'
-        else:
-            return f'organization-{self.organization.id}'
-
-    def _filter_by_user(self, user_ids: list) -> Q:
-        """
-        Turns a list of user ids into a query object to filter by
-        """
-        return Q(user_id__in=user_ids)
-
     def get_cached_usage(self, usage_key: str) -> int:
         """Returns the usage for a given organization and usage key. The usage key
         should be the value from the USAGE_LIMIT_MAP found in the stripe kobo app.
@@ -181,3 +169,15 @@ class ServiceUsageCalculator(CachedClass):
             )
 
         return total_submission_count
+
+    def _get_cache_hash(self):
+        if self.organization is None:
+            return f'user-{self.user.id}'
+        else:
+            return f'organization-{self.organization.id}'
+
+    def _filter_by_user(self, user_ids: list) -> Q:
+        """
+        Turns a list of user ids into a query object to filter by
+        """
+        return Q(user_id__in=user_ids)

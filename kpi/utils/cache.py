@@ -55,21 +55,20 @@ class CachedClass:
 
     CACHE_TTL = None
 
-    def _setup_cache(self):
-        """
-        Sets up the cache client and the cache hash name for the hset
-        """
-        self._redis_client = None
-        self._cache_available = True
+    @cache_for_request
+    def _cache_last_updated(self):
+        if not self._cache_available:
+            return timezone.now()
+
+        remaining_seconds = self._redis_client.ttl(self._cache_hash_str)
+        return timezone.now() - timedelta(seconds=self.CACHE_TTL - remaining_seconds)
+
+    def _clear_cache(self):
+        if not self._cache_available:
+            return
+
+        self._redis_client.delete(self._cache_hash_str)
         self._cached_hset = {}
-        try:
-            self._redis_client = get_redis_connection('default')
-        except NotImplementedError:
-            self._cache_available = False
-        self._cache_hash_str = self._get_cache_hash()
-        assert self.CACHE_TTL > 0, 'Set a valid value for CACHE_TTL'
-        self._cached_hset = self._redis_client.hgetall(self._cache_hash_str)
-        self._handle_cache_expiration()
 
     def _handle_cache_expiration(self):
         """
@@ -83,20 +82,23 @@ class CachedClass:
             self._redis_client.expire(self._cache_hash_str, self.CACHE_TTL)
             self._cached_hset[b'__initialized__'] = True
 
-    def _clear_cache(self):
-        if not self._cache_available:
+    def _setup_cache(self):
+        """
+        Sets up the cache client and the cache hash name for the hset
+        """
+        self._redis_client = None
+        self._cache_available = True
+        self._cached_hset = {}
+        try:
+            self._redis_client = get_redis_connection('default')
+        except NotImplementedError:
+            self._cache_available = False
             return
 
-        self._redis_client.delete(self._cache_hash_str)
-        self._cached_hset = {}
-
-    @cache_for_request
-    def _cache_last_updated(self):
-        if not self._cache_available:
-            return timezone.now()
-
-        remaining_seconds = self._redis_client.ttl(self._cache_hash_str)
-        return timezone.now() - timedelta(seconds=self.CACHE_TTL - remaining_seconds)
+        self._cache_hash_str = self._get_cache_hash()
+        assert self.CACHE_TTL > 0, 'Set a valid value for CACHE_TTL'
+        self._cached_hset = self._redis_client.hgetall(self._cache_hash_str)
+        self._handle_cache_expiration()
 
 
 def cached_class_property(key, serializer=str, deserializer=str):
