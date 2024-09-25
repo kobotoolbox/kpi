@@ -82,6 +82,41 @@ class Organization(AbstractOrganization):
             
         return None
 
+    def get_remaining_usage(self, limit_type: UsageType) -> Union[int, None]:
+        """
+        Get the organization remaining usage count for a given limit type
+        """
+        plan_limit = self.get_plan_limit(limit_type)
+        usage_calc = ServiceUsageCalculator(
+            self.owner.organization_user.user, self
+        )
+        cached_usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[limit_type])
+        over_usage = plan_limit - cached_usage
+        # addons_limit =
+        return
+
+    def get_plan_limit(self, limit_type: UsageType) -> Union[int, None]:
+        """
+        Get the organization plan limit for a given usage type
+        """
+        if not settings.STRIPE_ENABLED:
+            return None
+        stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[limit_type]}_limit'
+        current_limit = Organization.objects.filter(
+            id=self.id,
+            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',
+        ).values(
+            price_limit=F(f'djstripe_customers__subscriptions__items__price__metadata__{stripe_key}'),
+            product_limit=F(f'djstripe_customers__subscriptions__items__price__product__metadata__{stripe_key}'),
+        ).first()
+        if current_limit:
+            relevant_limit = current_limit.get('price_limit') or current_limit.get('product_limit')
+        else:
+            # TODO: get the limits from the community plan, overrides
+            relevant_limit = 2000
+        return relevant_limit
+
     def is_organization_over_plan_limit(self, limit_type: UsageType) -> Union[bool, None]:
         """
         Check if an organization is over their plan's limit for a given usage type
