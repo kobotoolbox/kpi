@@ -115,7 +115,7 @@ module.exports = do ->
 
   viewRowDetail.Templates = {
     textbox: (cid, key, key_label = key, input_class = '') ->
-      @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
+      @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" dir="auto" />""", cid, key_label
 
     checkbox: (cid, key, key_label = key, input_label = t("Yes")) ->
       input_label = input_label

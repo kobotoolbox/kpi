@@ -10,7 +10,7 @@
   padding: sizes.$x12 sizes.$x24;
   width: 100%;
   border-radius: sizes.$x6;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   line-height: sizes.$x22;
 
   a {
@@ -32,13 +32,13 @@
 }
 
 .k-inline-message--type-default {
-  background-color: colors.$kobo-gray-96;
-  .k-icon {color: colors.$kobo-gray-65;}
+  background-color: colors.$kobo-gray-200;
+  .k-icon {color: colors.$kobo-gray-500;}
 }
 
 .k-inline-message--type-error {
   background-color: colors.$kobo-light-red;
-  .k-icon {color: colors.$kobo-red;}
+  .k-icon {color: colors.$kobo-mid-red;}
 }
 
 .k-inline-message--type-success {
@@ -54,7 +54,7 @@
 // We need a bit stronger specificity here
 .k-inline-message p.k-inline-message__message {
   margin: 0;
-  text-align: left;
+  text-align: initial;
   font-size: sizes.$x14;
   line-height: inherit;
 }

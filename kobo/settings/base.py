@@ -106,6 +106,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
     'hub.HubAppConfig',
+    'import_export',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -147,6 +148,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
+    'kobo.apps.service_health.middleware.HealthCheckMiddleware',
     'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
     'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
@@ -304,6 +306,13 @@ CONSTANCE_CONFIG = {
         'List of invited usernames, one per line, who will have access to NLP '
         'ASR/MT processing via external (costly) APIs.\nEnter * to invite '
         'all users.'
+    ),
+    'ASR_MT_GOOGLE_REQUEST_TIMEOUT': (
+        10,
+        (
+            'Timeout in seconds for google NLP data processing requests using'
+            ' the operations API. '
+        )
     ),
     'ASR_MT_GOOGLE_PROJECT_ID': (
         'kobo-asr-mt',
@@ -654,6 +663,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
         'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         'ASR_MT_GOOGLE_CREDENTIALS',
+        'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
@@ -907,7 +917,7 @@ REST_FRAMEWORK = {
         'kpi.authentication.SessionAuthentication',
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kpi.authentication.OAuth2Authentication',
         'kobo_service_account.authentication.ServiceAccountAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
@@ -938,7 +948,7 @@ OPENROSA_REST_FRAMEWORK = {
     # ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'kpi.authentication.DigestAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'kpi.authentication.OAuth2Authentication',
         'kpi.authentication.TokenAuthentication',
         # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
         # Django authentication is called before DRF authentication and users get authenticated with
@@ -1763,3 +1773,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'

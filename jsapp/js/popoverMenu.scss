@@ -16,7 +16,7 @@
   margin: 0;
   padding: 0;
   cursor: pointer;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   display: inline-block;
   vertical-align: middle;
 
@@ -32,7 +32,7 @@
   position: absolute;
   min-width: 160px;
   max-width: 300px;
-  text-align: left;
+  text-align: initial;
   background: colors.$kobo-white;
   z-index: z-indexes.$z-dropdown;
   right: -10px;
@@ -92,7 +92,7 @@
   }
 
   &:hover {
-    background-color: colors.$kobo-gray-96;
+    background-color: colors.$kobo-gray-200;
     color: color.adjust(colors.$kobo-dark-blue, $lightness: -5%);
   }
 
@@ -101,7 +101,7 @@
   }
 
   &.divider {
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
   }
 }
 
@@ -109,14 +109,14 @@
   max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
-  background-color: colors.$kobo-gray-96;
-  border-bottom: 1px solid colors.$kobo-gray-92;
+  background-color: colors.$kobo-gray-200;
+  border-bottom: 1px solid colors.$kobo-gray-300;
 }
 
 .popover-menu__item--move-coll-item {
-  background-color: colors.$kobo-gray-96;
+  background-color: colors.$kobo-gray-200;
   position: relative;
-  text-align: left;
+  text-align: initial;
   padding: 3px 8px 3px 5px;
 
   span {
@@ -130,15 +130,15 @@
   &.popover-menu__item--move-coll-item-parent {
     pointer-events: none;
     font-weight: 700;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 }
 
 .popover-menu__heading {
   padding: 8px 15px;
-  color: colors.$kobo-gray-24;
-  border-top: 1px solid colors.$kobo-gray-92;
-  background-color: colors.$kobo-gray-96;
+  color: colors.$kobo-gray-800;
+  border-top: 1px solid colors.$kobo-gray-300;
+  background-color: colors.$kobo-gray-200;
   margin: 0px;
 }
 
@@ -198,7 +198,7 @@
       max-width: 100%;
       white-space: normal;
       padding: 12px;
-      border-bottom: 1px solid colors.$kobo-gray-92;
+      border-bottom: 1px solid colors.$kobo-gray-300;
       border-left: 2px solid transparent;
 
       &:last-child {
@@ -207,7 +207,7 @@
 
       .collect-data-label {
         font-weight: 600;
-        color: colors.$kobo-gray-24;
+        color: colors.$kobo-gray-800;
       }
 
       .collect-data-desc {
@@ -223,7 +223,7 @@
 }
 
 .popover-menu__link.popover-menu__link--red {
-  color: colors.$kobo-dark-red;
+  color: colors.$kobo-red;
 }
 
 @media screen and (max-height: 475px) {
@@ -236,10 +236,6 @@
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {
-  .popover-menu--collectData-menu .popover-menu__toggle {
-    min-width: 300px;
-  }
-
   .popover-menu--collectData-menu .popover-menu__content {
     min-width: 550px;
     max-width: 780px;

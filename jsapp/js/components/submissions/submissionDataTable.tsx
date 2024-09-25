@@ -70,11 +70,11 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
-
     return (
       <bem.SubmissionDataTable__row
         m={['group', `type-${item.type}`]}
         key={`${item.name}__${itemIndex}`}
+        dir='auto'
       >
         {item.name !== null &&
           <bem.SubmissionDataTable__row m='group-label'>
@@ -121,6 +121,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       <bem.SubmissionDataTable__row
         m={['columns', 'response', `type-${item.type}`]}
         key={`${item.name}__${itemIndex}`}
+        dir='auto'
       >
         <bem.SubmissionDataTable__column m='type'>
           {item.type !== null && renderQuestionTypeIcon(item.type)}
@@ -302,9 +303,8 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               <AudioPlayer mediaURL={attachment.download_url} />
 
               <Button
-                type='full'
+                type='primary'
                 size='s'
-                color='blue'
                 endIcon='arrow-up-right'
                 label={t('Open')}
                 onClick={this.openProcessing.bind(this, name)}
@@ -351,7 +351,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
 
   renderMetaResponse(dataName: MetaQuestionTypeName | string, label: string) {
     return (
-      <bem.SubmissionDataTable__row m={['columns', 'response', 'metadata']}>
+      <bem.SubmissionDataTable__row
+        m={['columns', 'response', 'metadata']}
+        dir='auto'
+      >
         <bem.SubmissionDataTable__column m='type'>
           {typeof dataName !== 'string' && renderQuestionTypeIcon(dataName)}
         </bem.SubmissionDataTable__column>

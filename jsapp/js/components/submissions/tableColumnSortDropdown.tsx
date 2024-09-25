@@ -42,7 +42,7 @@ export default function TableColumnSortDropdown(
     }
 
     return (
-      <div className='table-column-sort-dropdown-trigger'>
+      <div className='table-column-sort-dropdown-trigger' dir='auto'>
         {props.additionalTriggerContent}
         {props.sortValue && <i className={sortIcon.join(' ')} />}
         <i className='k-icon k-icon-caret-up' />

@@ -4,22 +4,52 @@
 # Do not enable `verbose = true` unless Black changes their behavior to respect
 # `--quiet` on the command line properly
 # verbose = true
-line-length = 80
+line-length = 88
 skip-string-normalization = true
+
+[tool.darker]
+src = [
+    "kobo",
+    "hub",
+    "kpi",
+]
+isort = true
+
 [tool.isort]
 profile = "black"
+line_length = 88 # same as black
 known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
 
 [tool.ruff]
-line-length = 80
+line-length = 88
 [tool.ruff.format]
 quote-style = "single"  # Preserve is coming soon to ruff
 [tool.ruff.lint]
-# Enable ruff isort
-extend-select = ["I"]
+extend-select = [
+    "I", # Enable ruff isort
+    "Q", # Flake quotes
+    "E", # pycodestyle, some needs `--preview` to be enable
+    "N", # PEP-8 naming convention
+    "UP026", # deprecated mock
+    "UP034", # extraneous-parentheses
+    "UP039", # Unnecessary parentheses after class definition
+    "W1", # Indentation warning
+    "W292", # no newline at end of file
+    "T20", # (p)print found
+]
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single" # To prefer single quotes over double quote
+multiline-quotes = "double"
+docstring-quotes = "double"
 [tool.ruff.lint.isort]
 known-first-party = ["kobo"]
+
+[tool.flake8]
+inline-quotes = "single"
+multiline-quotes = "double"
+docstring-quotes = "double"
+max-line-length = 88
 
 [tool.pytest.ini_options]
 testpaths = [

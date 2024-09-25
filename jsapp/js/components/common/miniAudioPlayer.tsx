@@ -155,10 +155,9 @@ class MiniAudioPlayer extends React.Component<
     return (
       <React.Fragment>
         <Button
-          type='bare'
+          type='text'
           startIcon={this.state.isPlaying ? 'stop' : 'play'}
           size='s'
-          color='blue'
           onClick={this.onButtonClick.bind(this)}
           data-cy='mini audio player playstop'
         />
@@ -177,10 +176,9 @@ class MiniAudioPlayer extends React.Component<
     return (
       <React.Fragment>
         <Button
-          type='bare'
+          type='text'
           startIcon='play'
           size='s'
-          color='blue'
           onClick={() => null}
           isDisabled
         />

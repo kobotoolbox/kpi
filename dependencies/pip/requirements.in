@@ -10,7 +10,7 @@
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
--e git+https://github.com/kobotoolbox/django-digest@43f3100a7e257942c313ad79057e6a0b1612a74a#egg=django_digest
+-e git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
 
 # ssrf protect
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
@@ -40,6 +40,7 @@ django-csp
 django-debug-toolbar
 django-environ
 django-filter
+django-import-export
 django-extensions
 django-oauth-toolkit
 django-organizations
@@ -84,6 +85,7 @@ shortuuid
 sqlparse
 static3
 tabulate
+ua-parser
 uWSGI
 Werkzeug
 xlrd

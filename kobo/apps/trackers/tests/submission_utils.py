@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.utils import timezone
 from model_bakery import baker
@@ -61,12 +62,15 @@ def expected_file_size(submissions: int = 1):
 
 
 def update_xform_counters(
-    asset: Asset, xform: KobocatXForm = None, submissions: int = 1
+    asset: Asset,
+    xform: KobocatXForm = None,
+    submissions: int = 1,
+    age_days: int = 0,
 ):
     """
     Create/update the daily submission counter and the shadow xform we use to query it
     """
-    today = timezone.now()
+    today = timezone.now() - relativedelta(days=age_days)
     if xform:
         xform.attachment_storage_bytes += (
             expected_file_size(submissions)
@@ -124,7 +128,7 @@ def update_xform_counters(
         counter.save()
 
 
-def add_mock_submissions(assets: list, submissions_per_asset: int = 1):
+def add_mock_submissions(assets: list, submissions_per_asset: int = 1, age_days: int = 0):
     """
     Add one (default) or more submissions to an asset
     """
@@ -158,6 +162,6 @@ def add_mock_submissions(assets: list, submissions_per_asset: int = 1):
 
         asset.deployment.mock_submissions(asset_submissions, flush_db=False)
         all_submissions = all_submissions + asset_submissions
-        update_xform_counters(asset, submissions=submissions_per_asset)
+        update_xform_counters(asset, submissions=submissions_per_asset, age_days=age_days)
 
     return all_submissions

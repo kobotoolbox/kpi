@@ -49,16 +49,16 @@
 .root th {
   font-weight: 700;
   font-size: sizes.$x13;
-  color: colors.$kobo-gray-40;
-  text-align: left;
+  color: colors.$kobo-gray-700;
+  text-align: initial;
   padding-block: 1.5%;
 }
 
 .root tr {
   font-weight: 400;
   font-size: sizes.$x16;
-  color: colors.$kobo-gray-24;
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  color: colors.$kobo-gray-800;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
 }
 
 .root td {
@@ -77,11 +77,11 @@
 .pagination {
   font-weight: 400;
   font-size: sizes.$x14;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   position: fixed;
   bottom: sizes.$x20;
   background-color: white;
-  border: sizes.$x1 solid colors.$kobo-gray-85;
+  border: sizes.$x1 solid colors.$kobo-gray-400;
   width: sizes.$x150;
   border-radius: sizes.$x4;
   padding: sizes.$x5 0;
@@ -94,18 +94,18 @@
   background: transparent;
   border: none;
   padding: 0 sizes.$x8 0 sizes.$x8;
-  color: colors.$kobo-gray-85;
+  color: colors.$kobo-gray-400;
   cursor: pointer;
 
   &.active {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 }
 
 .range {
   padding: sizes.$x6 sizes.$x6;
-  border-right: sizes.$x1 solid colors.$kobo-gray-85;
-  border-left: sizes.$x1 solid colors.$kobo-gray-85;
+  border-right: sizes.$x1 solid colors.$kobo-gray-400;
+  border-left: sizes.$x1 solid colors.$kobo-gray-400;
   flex: 1;
   text-align: center;
 }

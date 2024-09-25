@@ -182,6 +182,8 @@ export default function TextBox(props: TextBoxProps) {
     // For `number` type we allow only positive integers
     step: props.type === 'number' ? 1 : undefined,
     min: props.type === 'number' ? 0 : undefined,
+    // All textboxes handles text direction of user content with browser
+    // built-in functionality
     dir: 'auto',
   };
 
@@ -262,7 +264,7 @@ export default function TextBox(props: TextBoxProps) {
           <Icon
             size={iconSize}
             name='alert'
-            color='red'
+            color='mid-red'
             className={styles.errorIcon}
           />
         )}

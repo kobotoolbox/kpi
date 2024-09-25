@@ -18,7 +18,7 @@
 }
 
 .report-view__item {
-  border: sizes.$x1 solid colors.$kobo-gray-92;
+  border: sizes.$x1 solid colors.$kobo-gray-300;
   margin: sizes.$x15 0;
   background: colors.$kobo-white;
 }
@@ -26,7 +26,7 @@
 .report-view__itemHeading {
   padding: sizes.$x10 sizes.$x24;
   border-left: sizes.$x5 solid colors.$kobo-teal;
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
   position: relative;
 
   h2 {
@@ -69,24 +69,24 @@
     thead th {
       margin: 0;
       padding: sizes.$x8;
-      background-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-gray-700;
       color: colors.$kobo-white;
       text-align: right;
       font-weight: normal;
       font-size: variables.$base-font-size;
 
       &:first-child {
-        text-align: left;
+        text-align: initial;
       }
     }
 
     tbody tr td {
-      border-bottom: sizes.$x1 solid colors.$kobo-gray-65;
+      border-bottom: sizes.$x1 solid colors.$kobo-gray-500;
       padding: sizes.$x8;
       text-align: right;
 
       &:first-child {
-        text-align: left;
+        text-align: initial;
       }
     }
   }
@@ -140,7 +140,7 @@
     margin-bottom: sizes.$x20;
     display: block;
     font-weight: 400;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
   }
 }
 
@@ -168,7 +168,7 @@
   }
 
   input:not(:checked):hover + label {
-    border-color: colors.$kobo-gray-85;
+    border-color: colors.$kobo-gray-400;
   }
 
   &--vertical {

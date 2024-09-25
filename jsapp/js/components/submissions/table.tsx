@@ -142,6 +142,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * horizontally or vertically.
    */
   tableScrollTop = 0;
+  /**
+   * Store this value of the 'left' value of frozen columns, maintaining
+   * their alignment during horizontal scrolling or pagination.
+   */
+  frozenLeftRef = 0;
 
   /** We store it for future checks. */
   previousOverrides: AssetTableSettings = {};
@@ -426,6 +431,24 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen);
   }
 
+  // We need to distinguish between repeated groups with nested values
+  // and other question types that use a flat nested key (i.e. with '/').
+  // If submission response contains the parent key, we should use that.
+  _selectNestedRow(
+    row: SubmissionResponse,
+    key: string,
+    rootParentGroup: string | undefined
+  ) {
+    if (
+      rootParentGroup &&
+      rootParentGroup in row &&
+      !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+    ) {
+      return row[rootParentGroup];
+    }
+    return row[key];
+  }
+
   _getColumnWidth(columnId: AnyRowTypeName | string | undefined) {
     if (!columnId) {
       return DEFAULT_DATA_CELL_WIDTH;
@@ -580,8 +603,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             Let's try to fix this one day by introducing better tooltips.
             */}
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='s'
               startIcon='view'
               tooltip={t('Open')}
@@ -598,8 +620,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 row.original
               ) && (
                 <Button
-                  type='bare'
-                  color='dark-blue'
+                  type='text'
                   size='s'
                   startIcon='edit'
                   tooltip={t('Edit')}
@@ -745,8 +766,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     allColumns.forEach((key: string, columnIndex: number) => {
       let q: SurveyRow | undefined;
+      let rootParentGroup: string | undefined;
       if (key.includes('/')) {
         const qParentG = key.split('/');
+        rootParentGroup = qParentG[0];
         q = survey?.find(
           (o) =>
             o.name === qParentG[qParentG.length - 1] ||
@@ -897,7 +920,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           );
         },
         id: key,
-        accessor: (row) => row[key],
+        accessor: (row) => this._selectNestedRow(row, key, rootParentGroup),
         index: index,
         question: q,
         // This (and the Filter itself) will be set below (we do it separately,
@@ -916,6 +939,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             this.state.showGroupName,
             this.state.translationIndex
           );
+
+          if (typeof row.value === 'object' && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
+            if (repeatGroupAnswers) {
+              // display a list of answers from a repeat group question
+              return (
+                <span className='trimmed-text' dir='auto'>
+                  {repeatGroupAnswers.join(', ')}
+                </span>
+              );
+            } else {
+              return '';
+            }
+          }
 
           if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
@@ -1040,7 +1077,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           ) {
             return (
               <TextModalCell
-                text={getSupplementalDetailsContent(row.original, key)}
+                text={getSupplementalDetailsContent(row.original, key) || ''}
                 columnName={columnName}
                 submissionIndex={row.index + 1}
                 submissionTotal={this.state.submissions.length}
@@ -1048,25 +1085,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             );
           }
 
-          if (typeof row.value === 'object' || row.value === undefined) {
-            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
-            if (repeatGroupAnswers) {
-              // display a list of answers from a repeat group question
-              return (
-                <span className='trimmed-text' dir='auto'>
-                  {repeatGroupAnswers.join(', ')}
-                </span>
-              );
-            } else {
-              return '';
-            }
-          } else {
-            return (
-              <span className='trimmed-text' dir='auto'>
-                {row.value}
-              </span>
-            );
-          }
+          return (
+            <span className='trimmed-text' dir='auto'>
+              {row.value}
+            </span>
+          );
         },
       });
 
@@ -1123,6 +1146,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         );
       };
 
+      // Ensure frozen columns stay correctly aligned to the left, even after
+      // scrolling or reloads.
+      if (col.className?.includes('frozen')) {
+        col.style = {...col.style, left: this.frozenLeftRef};
+      }
+
       if (frozenColumn === col.id) {
         col.className = col.className
           ? `is-frozen is-last-frozen ${col.className}`
@@ -1130,6 +1159,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         col.headerClassName = col.headerClassName
           ? `is-frozen is-last-frozen ${col.headerClassName}`
           : 'is-frozen is-last-frozen';
+          col.style = {...col.style, left: this.frozenLeftRef};
       }
     });
 
@@ -1472,6 +1502,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
 
       $frozenColumnCells.css({left: left});
+
+      // Save the reference position for the frozen column's left offset.
+      this.frozenLeftRef = left;
     } else {
       this.tableScrollTop = eventTarget.scrollTop;
     }
@@ -1524,8 +1557,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           <bem.FormView__item m='table-buttons'>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='expand'
               onClick={this.toggleFullscreen.bind(this)}
@@ -1534,8 +1566,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='settings'
               onClick={this.showTableColumnsOptionsModal.bind(this)}
@@ -1579,6 +1610,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             };
           }}
           filterable
+          // Enables RTL support in table cells
+          getTdProps={() => ({dir: 'auto'})}
         />
       </bem.FormView>
     );

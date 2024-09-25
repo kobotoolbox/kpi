@@ -119,8 +119,7 @@ export default function FormGallery(props: FormGalleryProps) {
           <h1>{t('Image Gallery')}</h1>
           <bem.Gallery__headerIcons>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               startIcon='expand'
               onClick={() => dispatch({type: 'toggleFullscreen'})}
@@ -189,8 +188,7 @@ export default function FormGallery(props: FormGalleryProps) {
         {showLoadMore && (
           <bem.GalleryFooter>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               isPending={isLoading}
               label={t('Load more')}

@@ -105,7 +105,7 @@ export default class SubmissionDataList extends React.Component<
     );
 
     return (
-      <bem.SubmissionDataList>
+      <bem.SubmissionDataList dir='auto'>
         {items.map(this.renderQuestion.bind(this))}
       </bem.SubmissionDataList>
     );

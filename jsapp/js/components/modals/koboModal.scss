@@ -23,7 +23,7 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   left: 50%;
   top: 50%;
   background-color: colors.$kobo-white;
-  box-shadow: 0 0 sizes.$x12 0 color.change(colors.$kobo-gray-24, $alpha: 0.25);
+  box-shadow: 0 0 sizes.$x12 0 color.change(colors.$kobo-gray-800, $alpha: 0.25);
   display: flex;
   flex-direction: column;
 
@@ -67,10 +67,10 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   border-radius: sizes.$x6 sizes.$x6 0 0;
 
   &.kobo-modal__header--red {
-    background-color: color.change(colors.$kobo-red, $alpha: 0.1);
+    background-color: color.change(colors.$kobo-mid-red, $alpha: 0.1);
   }
   &.kobo-modal__header--grey {
-    background-color: colors.$kobo-gray-98;
+    background-color: colors.$kobo-gray-100;
   }
   &.kobo-modal__header--white {
     background-color: colors.$kobo-white;
@@ -79,11 +79,13 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   h1 {
     @include mixins.centerRowFlex;
 
-    color: colors.$kobo-gray-24;
+    flex: 1;
+    color: colors.$kobo-gray-800;
     font-size: sizes.$x18;
     font-weight: 700;
     margin: 0;
     line-height: 1;
+    margin-inline-end: 10px;
 
     // If there is close button, we need to limit the width (for a long content)
     &:not(:only-child) {

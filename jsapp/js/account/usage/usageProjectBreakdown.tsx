@@ -143,7 +143,7 @@ const ProjectBreakdown = () => {
 
     return (
       <tr key={project.asset}>
-        <td>
+        <td dir='auto'>
           <Link
             className={styles.link}
             to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}
@@ -176,9 +176,8 @@ const ProjectBreakdown = () => {
             </div>
           </div>
           <Button
-            color='dark-blue'
             size='s'
-            type='bare'
+            type='text'
             startIcon='close'
             onClick={dismissIntervalBanner}
           />

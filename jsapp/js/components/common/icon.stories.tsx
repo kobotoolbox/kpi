@@ -6,9 +6,11 @@ import type {IconColor} from './icon';
 
 const iconColors: Array<IconColor | undefined> = [
   undefined,
+  'mid-red',
   'storm',
-  'red',
   'teal',
+  'amber',
+  'blue',
 ];
 export default {
   title: 'common/Icon',

@@ -4,7 +4,7 @@
 #
 #    pip-compile dependencies/pip/requirements.in
 #
--e git+https://github.com/kobotoolbox/django-digest@43f3100a7e257942c313ad79057e6a0b1612a74a#egg=django_digest
+-e git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
@@ -112,7 +112,7 @@ dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
 dj-stripe==2.8.3
     # via -r dependencies/pip/requirements.in
-django==4.2.11
+django==4.2.15
     # via
     #   -r dependencies/pip/requirements.in
     #   dj-stripe
@@ -164,6 +164,8 @@ django-extensions==3.2.3
 django-filter==24.2
     # via -r dependencies/pip/requirements.in
 django-guardian==2.4.0
+    # via -r dependencies/pip/requirements.in
+django-import-export==4.1.0
     # via -r dependencies/pip/requirements.in
 django-loginas==0.3.11
     # via -r dependencies/pip/requirements.in
@@ -495,6 +497,8 @@ tzdata==2024.1
     #   celery
     #   django-celery-beat
     #   pandas
+ua-parser==0.18.0
+    # via -r dependencies/pip/requirements.in
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==1.26.18

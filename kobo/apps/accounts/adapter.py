@@ -2,7 +2,7 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from constance import config
 from django.conf import settings
-from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth import REDIRECT_FIELD_NAME, login
 from django.db import transaction
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
@@ -17,6 +17,14 @@ from .utils import user_has_inactive_paid_subscription
 
 
 class AccountAdapter(DefaultAccountAdapter):
+
+    def is_open_for_signup(self, request):
+        return config.REGISTRATION_OPEN
+
+    def login(self, request, user):
+        # Override django-allauth login method to use specified authentication backend
+        user.backend = settings.AUTHENTICATION_BACKENDS[0]
+        super().login(request, user)
 
     def pre_login(self, request, user, **kwargs):
 
@@ -55,9 +63,6 @@ class AccountAdapter(DefaultAccountAdapter):
                 template='mfa_token.html',
                 context=context,
             )
-
-    def is_open_for_signup(self, request):
-        return config.REGISTRATION_OPEN
 
     def save_user(self, request, user, form, commit=True):
         # Compare allauth SignupForm with our custom field

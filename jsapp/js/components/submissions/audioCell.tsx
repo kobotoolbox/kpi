@@ -28,7 +28,7 @@ export default function AudioCell(props: AudioCellProps) {
     <bem.AudioCell>
       {typeof props.mediaAttachment === 'string' && (
         <span data-tip={props.mediaAttachment}>
-          <Icon name='alert' color='red' size='s' />
+          <Icon name='alert' color='mid-red' size='s' />
         </span>
       )}
 
@@ -48,9 +48,8 @@ export default function AudioCell(props: AudioCellProps) {
       )}
 
       <Button
-        type='full'
+        type='primary'
         size='s'
-        color='blue'
         endIcon='arrow-up-right'
         label={t('Open')}
         isDisabled={typeof props.mediaAttachment === 'string'}

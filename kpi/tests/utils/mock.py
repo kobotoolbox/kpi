@@ -1,6 +1,5 @@
 # coding: utf-8
 import json
-import lxml
 import os
 from mimetypes import guess_type
 from tempfile import NamedTemporaryFile
@@ -23,6 +22,7 @@ from kpi.deployment_backends.kc_access.storage import (
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 
 def enketo_edit_instance_response(request):
@@ -76,7 +76,7 @@ def enketo_edit_instance_response_with_uuid_validation(request):
     body = {k: v[0] for k, v in parse_qs(unquote(request.body)).items()}
 
     submission = body['instance']
-    submission_xml_root = lxml.etree.fromstring(submission)
+    submission_xml_root = fromstring_preserve_root_xmlns(submission)
     assert submission_xml_root.find(
         'formhub/uuid'
     ).text.strip()

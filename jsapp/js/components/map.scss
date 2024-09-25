@@ -35,7 +35,7 @@
     background: colors.$kobo-white;
     z-index: z-indexes.$z-map-settings-2;
     cursor: pointer;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
 
     &--heatmap {
       top: 118px;
@@ -61,7 +61,7 @@
 
     &.active,
     &:hover {
-      color: colors.$kobo-gray-24;
+      color: colors.$kobo-gray-800;
     }
 
     &:active {
@@ -114,8 +114,7 @@
 
     border-radius: 6px;
     padding: 12px;
-    text-align: left;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
   }
 
   .popover-menu__content {
@@ -126,12 +125,12 @@
     overflow: auto;
     max-height: 300px;
     border-radius: 5px;
-    box-shadow: 0 0 5px 5px rgba(colors.$kobo-gray-24, 0.15);
+    box-shadow: 0 0 5px 5px rgba(colors.$kobo-gray-800, 0.15);
     bottom: calc(100% + 10px);
 
     .popover-menu__link.see-all {
-      background: colors.$kobo-gray-96;
-      border-top: 1px solid colors.$kobo-gray-92;
+      background: colors.$kobo-gray-200;
+      border-top: 1px solid colors.$kobo-gray-300;
     }
 
     .popover-menu__heading {
@@ -211,7 +210,7 @@ body .leaflet-control-layers,
     }
 
     &.selected {
-      background: colors.$kobo-gray-96;
+      background: colors.$kobo-gray-200;
 
       &::after {
         content: "";
@@ -224,7 +223,7 @@ body .leaflet-control-layers,
 
       &::after {
         content: "";
-        background: colors.$kobo-gray-65;
+        background: colors.$kobo-gray-500;
       }
 
       &:hover {
@@ -262,7 +261,7 @@ body .leaflet-control-layers,
     padding: 0 3px;
     position: relative;
     text-shadow: 0 0 1px colors.$kobo-white;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
 
     &::after {
       position: absolute;
@@ -305,13 +304,13 @@ body .leaflet-control-layers,
   }
 
   .form-modal__item--list-files {
-    border: 1px solid colors.$kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-300;
     padding: 10px;
     max-width: 600px;
     margin-bottom: 20px;
 
     .list-file-row {
-      border-top: 1px solid colors.$kobo-gray-92;
+      border-top: 1px solid colors.$kobo-gray-300;
       padding: 5px;
 
       > span {
@@ -337,7 +336,7 @@ body .leaflet-control-layers,
 
         i {
           font-size: 24px;
-          color: colors.$kobo-red;
+          color: colors.$kobo-mid-red;
         }
       }
     }
@@ -465,7 +464,7 @@ body .leaflet-control-layers,
   margin-left: 5px;
   margin-top: 5px;
   text-align: center;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
 }
 
 .marker-cluster span {

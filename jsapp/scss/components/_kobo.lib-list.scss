@@ -21,7 +21,7 @@
 }
 
 .lib-list__item {
-  border: 1px solid colors.$kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-300;
   padding-left: 20px;
   position: relative;
   margin: 5px 0;
@@ -59,7 +59,7 @@
 }
 
 .lib-list__tag {
-  background-color: colors.$kobo-gray-40;
+  background-color: colors.$kobo-gray-700;
   color: colors.$kobo-white;
   font-weight: 400;
   margin-bottom: sizes.$x4;
@@ -79,13 +79,14 @@
   width: 12px;
   height: 12px;
   margin-top: -8px;
-  background-color: colors.$kobo-gray-92;
+  background-color: colors.$kobo-gray-300;
   border-radius: 6px;
 }
 
 .lib-list__label {
   padding: 5px;
   line-height: 1.4em;
+  text-align: initial;
 
   .asset-name {
     font-weight: 600;

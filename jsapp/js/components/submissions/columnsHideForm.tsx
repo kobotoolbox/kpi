@@ -153,7 +153,7 @@ class ColumnsHideForm extends React.Component<
         />
 
         {filteredFieldsList.length !== 0 && (
-          <bem.ColumnsHideForm__list>
+          <bem.ColumnsHideForm__list dir='auto'>
             {filteredFieldsList.map((fieldObj) => {
               return (
                 <bem.ColumnsHideForm__listItem key={fieldObj.fieldId}>
@@ -181,8 +181,7 @@ class ColumnsHideForm extends React.Component<
 
         <bem.ColumnsHideForm__footer>
           <Button
-            type='frame'
-            color='dark-red'
+            type='secondary-danger'
             size='s'
             isFullWidth
             onClick={this.onReset.bind(this)}
@@ -191,8 +190,7 @@ class ColumnsHideForm extends React.Component<
           />
 
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='s'
             isFullWidth
             onClick={this.onApply.bind(this)}

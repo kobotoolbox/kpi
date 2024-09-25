@@ -96,7 +96,9 @@ export default class AssetInfoBox extends React.Component<
           {this.state.areDetailsVisible &&
           <bem.AssetInfoBox__cell>
             <label>{t('Description')}</label>
-            {this.props.asset.settings.description || '-'}
+            <div dir='auto'>
+              {this.props.asset.settings.description || '-'}
+            </div>
           </bem.AssetInfoBox__cell>
           }
 
@@ -155,8 +157,7 @@ export default class AssetInfoBox extends React.Component<
 
         <bem.AssetInfoBox__column m='toggle'>
           <Button
-            type='bare'
-            color='blue'
+            type='text'
             size='s'
             onClick={this.toggleDetails.bind(this)}
             startIcon={this.state.areDetailsVisible ? 'angle-up' : 'angle-down'}

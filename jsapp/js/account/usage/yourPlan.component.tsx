@@ -51,6 +51,10 @@ export const YourPlan = () => {
     let date;
     if (subscriptions.planResponse.length) {
       date = subscriptions.planResponse[0].start_date;
+    } else if (subscriptions.canceledPlans.length){
+      date =
+        subscriptions.canceledPlans[subscriptions.canceledPlans.length - 1]
+          .ended_at;
     } else {
       date = session.currentAccount.date_joined;
     }
@@ -126,15 +130,12 @@ export const YourPlan = () => {
         <nav>
           <BillingButton
             label={'See plans'}
-            type={'frame'}
-            color={'blue'}
+            type='secondary'
             onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
           />
           {/* This is commented out until the add-ons tab on the Plans page is implemented
         <BillingButton
           label={'get add-ons'}
-          type={'full'}
-          color={'blue'}
           // TODO: change this to point to the add-ons tab
           onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
         />

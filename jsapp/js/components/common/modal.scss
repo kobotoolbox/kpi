@@ -20,7 +20,7 @@ $z-modal-x: 10;
   z-index: $z-modal-backdrop;
   top: 0px;
   left: 0px;
-  background-color: rgba(colors.$kobo-gray-24, 0.4) !important;
+  background-color: rgba(colors.$kobo-gray-800, 0.4) !important;
 }
 
 .modal {
@@ -142,7 +142,7 @@ $z-modal-x: 10;
   .modal-submission &,
   .modal--media-preview &,
   .modal--mfa-setup & {
-    color: colors.$kobo-gray-55;
+    color: colors.$kobo-gray-600;
   }
 }
 
@@ -151,10 +151,10 @@ $z-modal-x: 10;
 // Unfortunately we can't rely on `overflow: hidden` being there, so negative
 // margins hack isn't good enough. Other hacks are no good too.
 .modal__subheader {
-  background: colors.$kobo-gray-96;
+  background: colors.$kobo-gray-200;
   padding: 20px 30px;
   margin: -30px -30px 20px;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 
   i {
     margin: 5px 10px 10px 3px;
@@ -188,7 +188,7 @@ $z-modal-x: 10;
 .modal__hr {
   margin: 20px -30px;
   border: 0;
-  background-color: colors.$kobo-gray-92;
+  background-color: colors.$kobo-gray-300;
   height: 1px;
 }
 
@@ -210,7 +210,7 @@ $modal-custom-header-height: sizes.$x60;
   }
 
   .modal__header {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
     height: $modal-custom-header-height;
 
     .modal__x {
@@ -236,13 +236,13 @@ $modal-custom-header-height: sizes.$x60;
   min-height: 0;
 
   .modal__header {
-    background-color: colors.$kobo-gray-98;
+    background-color: colors.$kobo-gray-100;
     font-size: sizes.$x24;
     padding: sizes.$x32 sizes.$x32 sizes.$x48 sizes.$x32;
 
     .modal__x {
       font-size: sizes.$x12;
-      color: rgba(colors.$kobo-gray-24, 0.4);
+      color: rgba(colors.$kobo-gray-800, 0.4);
     }
   }
 
@@ -260,7 +260,7 @@ $modal-custom-header-height: sizes.$x60;
   min-width: 25%;
 
   .modal__content {
-    background-color: colors.$kobo-gray-98;
+    background-color: colors.$kobo-gray-100;
   }
 
   .modal__header {
@@ -282,7 +282,7 @@ $modal-custom-header-height: sizes.$x60;
         margin-right: 6px;
 
         i.k-icon {
-          color: colors.$kobo-gray-65;
+          color: colors.$kobo-gray-500;
           margin-right: 6px;
           font-size: 20px;
         }
@@ -325,7 +325,7 @@ $modal-custom-header-height: sizes.$x60;
 .enketo-iframe-icon {
   color: colors.$kobo-white;
   background-image: url("~/node_modules/jquery-ui/themes/base/images/ui-icons_ffffff_256x240.png");
-  background-color: colors.$kobo-gray-65;
+  background-color: colors.$kobo-gray-500;
   background-position: -81px -129px;
   position: absolute;
   right: 6px;
@@ -353,7 +353,7 @@ $modal-custom-header-height: sizes.$x60;
 
   .intro {
     margin-bottom: 20px;
-    text-align: left;
+    text-align: initial;
   }
 
   .form-modal__item[disabled] {
@@ -370,9 +370,9 @@ $modal-custom-header-height: sizes.$x60;
       display: inline-block;
       vertical-align: top;
       border: none;
-      background: colors.$kobo-gray-96;
+      background: colors.$kobo-gray-200;
       border-radius: 6px;
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
       cursor: pointer;
       margin: 0.5*$buttons-spacing;
       padding: $buttons-spacing;
@@ -394,8 +394,8 @@ $modal-custom-header-height: sizes.$x60;
       }
 
       &:hover {
-        color: colors.$kobo-gray-24;
-        background-color: colors.$kobo-gray-92;
+        color: colors.$kobo-gray-800;
+        background-color: colors.$kobo-gray-300;
       }
 
       &:active {
@@ -407,9 +407,9 @@ $modal-custom-header-height: sizes.$x60;
     }
   }
   .dropzone {
-    background: colors.$kobo-gray-96;
+    background: colors.$kobo-gray-200;
     padding: 30px;
-    border: 2px dashed colors.$kobo-gray-92;
+    border: 2px dashed colors.$kobo-gray-300;
     cursor: pointer;
     border-radius: 6px;
     text-align: center;
@@ -455,7 +455,7 @@ $modal-custom-header-height: sizes.$x60;
     margin-top: 10px;
 
     input[type="text"] {
-      background-color: rgba(colors.$kobo-gray-24, 0.05);
+      background-color: rgba(colors.$kobo-gray-800, 0.05);
       padding: 5px;
     }
   }
@@ -481,7 +481,7 @@ $modal-custom-header-height: sizes.$x60;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
     padding: 6px 0px;
 
     .form-view__cell--translation-name {
@@ -492,7 +492,10 @@ $modal-custom-header-height: sizes.$x60;
   }
 
   .form-view__cell--translation-actions {
+    @include mixins.centerRowFlex;
+
     white-space: nowrap;
+    gap: 5px;
   }
 
   .form-view__label--default-language {
@@ -504,7 +507,7 @@ $modal-custom-header-height: sizes.$x60;
   .form-view__cell--add-language {
     padding-top: 20px;
     text-align: right;
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
   }
 
   .form-view__cell--add-language-form {
@@ -524,7 +527,7 @@ $modal-custom-header-height: sizes.$x60;
   .translation-table-container {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid colors.$kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-300;
   }
 
   .form-view__cell--add-language-form,
@@ -551,7 +554,7 @@ $modal-custom-header-height: sizes.$x60;
 
     .rt-thead.-header {
       box-shadow: none;
-      border-bottom: 2px solid colors.$kobo-gray-92;
+      border-bottom: 2px solid colors.$kobo-gray-300;
     }
 
     .rt-thead > .rt-tr,
@@ -560,13 +563,13 @@ $modal-custom-header-height: sizes.$x60;
         white-space: normal;
 
         .rt-td--disabled {
-          color: colors.$kobo-gray-65;
+          color: colors.$kobo-gray-500;
         }
       }
       > .rt-th:first-child,
       > .rt-td:first-child {
         min-width: 30%;
-        color: colors.$kobo-gray-40;
+        color: colors.$kobo-gray-700;
       }
 
       > .rt-th:last-child,
@@ -575,7 +578,7 @@ $modal-custom-header-height: sizes.$x60;
       }
       .translation {
         padding: 0px;
-        color: colors.$kobo-gray-40;
+        color: colors.$kobo-gray-700;
         textarea {
           background: colors.$kobo-light-green;
           display: block;
@@ -583,13 +586,13 @@ $modal-custom-header-height: sizes.$x60;
           border: none;
           width: 100%;
           height: 100% !important;
-          color: colors.$kobo-gray-24;
+          color: colors.$kobo-gray-800;
           &:focus {
             background: colors.$kobo-white;
           }
           &:disabled {
-            color: colors.$kobo-gray-65;
-            background-color: colors.$kobo-gray-96;
+            color: colors.$kobo-gray-500;
+            background-color: colors.$kobo-gray-200;
           }
         }
       }
@@ -613,7 +616,7 @@ $modal-custom-header-height: sizes.$x60;
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: colors.$kobo-gray-96;
+    background: colors.$kobo-gray-200;
     padding: 15px;
     position: relative;
 

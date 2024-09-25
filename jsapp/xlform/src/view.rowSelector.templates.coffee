@@ -10,7 +10,7 @@ module.exports = do ->
       """
           <div class="row__questiontypes row-fluid clearfix">
             #{closeRowSelectorButton}
-            <input type="text" value="#{name}" class="row__questiontypes__new-question-name js-cancel-sort" />
+            <input type="text" value="#{name}" class="row__questiontypes__new-question-name js-cancel-sort" dir="auto" />
             <div class="row__questiontypes__list clearfix"></div>
           </div>
       """
@@ -28,7 +28,7 @@ module.exports = do ->
       <div class="row__questiontypes row__questiontypes--namer">
         #{closeRowSelectorButton}
         <form class="row__questiontypes__form" action="javascript:void(0);" >
-          <input type="text" class="js-cancel-sort mdl-textfield__input" data-cy="textfield_input" />
+          <input type="text" class="js-cancel-sort mdl-textfield__input" data-cy="textfield_input" dir="auto" />
           <button class="kobo-button kobo-button--storm" data-cy="add_question" >+ #{t("Add Question")}</button>
         </form>
       </div>
