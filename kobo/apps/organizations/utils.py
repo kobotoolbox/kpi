@@ -6,6 +6,7 @@ except ImportError:
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+
 from django.utils import timezone
 
 from kobo.apps.organizations.models import Organization
@@ -33,10 +34,17 @@ def get_monthly_billing_dates(organization: Union[Organization, None]):
         ):
             return first_of_this_month, first_of_next_month
 
-        period_end = canceled_subscription_anchor.replace(tzinfo=ZoneInfo('UTC'))
+        canceled_subscription_anchor = canceled_subscription_anchor.replace(
+            tzinfo=ZoneInfo('UTC')
+        )
+        period_end = canceled_subscription_anchor
         while period_end < now:
             period_end += relativedelta(months=1)
-        period_start = period_end - relativedelta(months=1)
+        # Avoid pushing billing cycle back to before cancelation date
+        period_start = max(
+            period_end - relativedelta(months=1),
+            canceled_subscription_anchor,
+        )
         return period_start, period_end
 
     if not billing_details.get('billing_cycle_anchor'):
