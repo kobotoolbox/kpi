@@ -111,10 +111,9 @@ def cached_class_property(key, serializer=str, deserializer=str):
             if getattr(self, '_cache_available', None) is False:
                 return func(self)
 
-            if getattr(self, '_redis_client', None) is None:
-                self._setup_cache()
+
             self._handle_cache_expiration()
-            value = self._cached_hset.get(key.encode())
+            value = self._cached_hset.get(key)
             if value is None:
                 value = func(self)
                 serialized_value = serializer(value)
