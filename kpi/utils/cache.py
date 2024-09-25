@@ -3,7 +3,7 @@ from functools import wraps
 
 from django.utils import timezone
 from django_redis import get_redis_connection
-from django_request_cache import get_request_cache
+from django_request_cache import cache_for_request, get_request_cache
 
 
 def void_cache_for_request(keys):
@@ -61,13 +61,14 @@ class CachedClass:
         """
         self._redis_client = None
         self._cache_available = True
+        self._cached_hset = {}
         try:
             self._redis_client = get_redis_connection('default')
         except NotImplementedError:
             self._cache_available = False
-
         self._cache_hash_str = self._get_cache_hash()
         assert self.CACHE_TTL > 0, 'Set a valid value for CACHE_TTL'
+        self._cached_hset = self._redis_client.hgetall(self._cache_hash_str)
         self._handle_cache_expiration()
 
     def _handle_cache_expiration(self):
@@ -77,16 +78,19 @@ class CachedClass:
         if not self._cache_available:
             return
 
-        if not self._redis_client.hget(self._cache_hash_str, '__initialized__'):
+        if not self._cached_hset.get(b'__initialized__'):
             self._redis_client.hset(self._cache_hash_str, '__initialized__', 'True')
             self._redis_client.expire(self._cache_hash_str, self.CACHE_TTL)
+            self._cached_hset[b'__initialized__'] = True
 
     def _clear_cache(self):
         if not self._cache_available:
             return
 
         self._redis_client.delete(self._cache_hash_str)
+        self._cached_hset = {}
 
+    @cache_for_request
     def _cache_last_updated(self):
         if not self._cache_available:
             return timezone.now()
@@ -110,10 +114,12 @@ def cached_class_property(key, serializer=str, deserializer=str):
             if getattr(self, '_redis_client', None) is None:
                 self._setup_cache()
             self._handle_cache_expiration()
-            value = self._redis_client.hget(self._cache_hash_str, key)
+            value = self._cached_hset.get(key.encode())
             if value is None:
                 value = func(self)
-                self._redis_client.hset(self._cache_hash_str, key, serializer(value))
+                serialized_value = serializer(value)
+                self._redis_client.hset(self._cache_hash_str, key, serialized_value)
+                self._cached_hset[key] = serialized_value
             else:
                 value = deserializer(value)
 
