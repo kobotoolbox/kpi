@@ -4,6 +4,8 @@ from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import F, Sum, IntegerField
+from django.db.models.functions import Coalesce, Cast
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from djstripe.enums import PaymentIntentStatus
@@ -156,10 +158,41 @@ class PlanAddOn(models.Model):
         Returns the number of PlanAddOns created.
         """
         created_count = 0
+        # TODO: This should filter out charges that are already matched to an add on
         for charge in Charge.objects.all().iterator(chunk_size=500):
             if PlanAddOn.create_or_update_one_time_add_on(charge):
                 created_count += 1
         return created_count
+
+    @staticmethod
+    def get_totals_for_user(user_id: int, add_on_type: UsageType) -> (int, int):
+        """
+        Returns the total limit and the total remaining usage for a given user
+        and usage type.
+        """
+        usage_type = USAGE_LIMIT_MAP[add_on_type]
+        limit_key = f'{usage_type}_limit'
+        usage_key = f'{usage_type}_limit'
+        limit_field = f'limits_remaining__{limit_key}'
+        usage_field = f'usage_limits__{usage_key}'
+        totals = PlanAddOn.objects.filter(
+            organization__organization_users__user__id=user_id,
+            limits_remaining__has_key=limit_key,
+            usage_limits__has_key=usage_key,
+            charge__refunded=False,
+            charge__payment_intent__status=PaymentIntentStatus.succeeded,
+        ).aggregate(
+            total_usage_limit=Coalesce(
+                Sum(Cast(usage_field, output_field=IntegerField())*F('quantity')),
+                0,
+                output_field=IntegerField()
+            ),
+            total_remaining=Coalesce(
+                Sum(Cast(limit_field, output_field=IntegerField())), 0,
+            ),
+        )
+
+        return totals['total_usage_limit'], totals['total_remaining']
 
     @staticmethod
     def increment_add_ons_for_user(user_id: int, add_on_type: UsageType, amount: int):
@@ -180,10 +213,8 @@ class PlanAddOn(models.Model):
         ).order_by(metadata_key)
         remaining = amount
         for add_on in add_ons.iterator():
-            if not add_on.organization.is_organization_over_plan_limit(add_on_type):
-                return remaining
             if add_on.is_available():
-                remaining -= add_on.increment(limit_type=usage_type, amount_used=remaining)
+                remaining -= add_on.increment(limit_type=limit_key, amount_used=remaining)
         return remaining
 
 

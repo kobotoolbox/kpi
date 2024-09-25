@@ -24,6 +24,7 @@ def update_nlp_counter(
                 on the service
             user_id (int): id of the asset owner
             asset_id (int) or None: Primary key for Asset Model
+            counter_id (int) or None: Primary key for NLPUsageCounter instance
     """
     # Avoid circular import
     NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa

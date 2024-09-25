@@ -13,6 +13,8 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
+from kobo.apps.stripe.models import PlanAddOn
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -176,3 +178,33 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         response_get_list = self.client.get(self.url)
         assert response_get_list.status_code == status.HTTP_200_OK
         assert response_get_list.data['results'] == []
+
+    def _assert_get_user_totals(self, usage_type):
+        limit = 2000
+        quantity=5
+        usage_limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        self._create_product(
+            metadata={
+                'product_type': 'addon_onetime',
+                usage_limit_key: limit,
+                'valid_tags': 'all',
+            }
+        )
+        self._create_payment()
+        self._create_payment()
+        self._create_payment(quantity=quantity)
+
+        total_limit, remaining = PlanAddOn.get_totals_for_user(self.someuser.pk, usage_type)
+        assert total_limit == limit*(quantity+2)
+        assert remaining == limit*(quantity+2)
+
+        PlanAddOn.increment_add_ons_for_user(self.someuser.pk, usage_type, limit*quantity)
+        total_limit, remaining = PlanAddOn.get_totals_for_user(self.someuser.pk, usage_type)
+        assert total_limit == limit*(quantity+2)
+        assert remaining == limit*2
+
+    def test_get_user_totals_seconds(self):
+        self._assert_get_user_totals('seconds')
+
+    def test_get_user_totals_character(self):
+        self._assert_get_user_totals('character')
