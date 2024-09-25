@@ -318,15 +318,22 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         billing cycle to end on the last day of the next month, but we also need to make
         sure the cycle starts on the cancelation date
         """
-        cancel_date = datetime(year=2024, month=8, day=31, tzinfo=ZoneInfo('UTC'))
-        with freeze_time(cancel_date.replace(day=1)):
+        frozen_datetime_now = datetime(
+            year=2024,
+            month=9,
+            day=1,
+            tzinfo=ZoneInfo('UTC'),
+        )
+        subscribe_date = frozen_datetime_now.replace(month=8, day=1)
+        cancel_date = frozen_datetime_now.replace(month=8, day=31)
+        with freeze_time(subscribe_date):
             subscription = generate_plan_subscription(self.organization)
 
         subscription.status = 'canceled'
         subscription.ended_at = cancel_date
         subscription.save()
 
-        with freeze_time(cancel_date.replace(month=9, day=1)):
+        with freeze_time(frozen_datetime_now):
             response = self.client.get(self.detail_url)
         current_month_start = datetime.fromisoformat(
             response.data['current_month_start']
