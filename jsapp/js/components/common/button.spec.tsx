@@ -4,55 +4,65 @@ import {render, screen} from '@testing-library/react';
 import {describe, it, expect, jest} from '@jest/globals';
 import userEvent from '@testing-library/user-event';
 
-describe('Button', () => {
-  it('Should render and be clickable when enabled', async () => {
-    const user = userEvent.setup();
+const user = userEvent.setup();
 
-    // Mock
-    const handleClickFunction = jest.fn();
+// Mock
+const handleClickFunction = jest.fn();
 
-    // Render
+
+describe('Enabled button', () => {
+  beforeEach(() => {
     render(
       <Button
-        type={'primary'}
-        size={'l'}
+        type='primary'
+        size='l'
         label='Button Label'
         onClick={handleClickFunction}
       />
     );
+  });
+
+  it('should render', async () => {
+    // Assert
+    expect(screen.getByLabelText('Button Label')).toBeInTheDocument();
+  });
+
+  it('should be clickable', async () => {
+    handleClickFunction.mockReset();
 
     // Act
     const button = screen.getByLabelText('Button Label');
     await user.click(button);
 
-    // Assert
-    expect(button).toBeInTheDocument();
-    expect(handleClickFunction).toHaveBeenCalled();
+    expect(handleClickFunction).toHaveBeenCalledTimes(1);
   });
+});
 
-  it('Should render and not be clickable when disabled', async () => {
-    const user = userEvent.setup();
-
-    // Mock
-    const handleClickFunction = jest.fn();
-
-    // Render
+describe('Disabled button', () => {
+  beforeEach(() => {
     render(
       <Button
-        type={'primary'}
-        size={'l'}
+        type='primary'
+        size='l'
         label='Button Label'
         onClick={handleClickFunction}
         isDisabled
       />
     );
+  });
+
+  it('should render', async () => {
+    // Assert
+    expect(screen.getByLabelText('Button Label')).toBeInTheDocument();
+  });
+
+  it('should not be clickable', async () => {
+    handleClickFunction.mockReset();
 
     // Act
     const button = screen.getByLabelText('Button Label');
     await user.click(button);
 
-    // Assert
-    expect(button).toBeInTheDocument();
     expect(handleClickFunction).not.toHaveBeenCalled();
   });
 });
