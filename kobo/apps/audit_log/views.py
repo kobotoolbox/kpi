@@ -91,7 +91,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
     Access logs
 
     Lists all access logs for all users. Only available to superusers.
-    
+
     Submissions will be grouped together by hour
 
     <pre class="prettyprint">
