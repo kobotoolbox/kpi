@@ -91,6 +91,8 @@ class AllAccessLogViewSet(AuditLogViewSet):
     Access logs
 
     Lists all access logs for all users. Only available to superusers.
+    
+    Submissions will be grouped together by hour
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/all
@@ -108,8 +110,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >           "previous": null,
     >           "results": [
     >                {
-    >                   "app_label": "kobo_auth",
-    >                    "model_name": "User",
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "u12345",
     >                    "username": "admin",
@@ -119,7 +119,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >                        "ip_address": "172.18.0.6"
     >                   },
     >                    "date_created": "2024-08-19T16:48:58Z",
-    >                    "log_type": "access"
     >                },
     >                {
     >                    "user": "http://localhost/api/v2/users/admin/",
@@ -166,8 +165,6 @@ class AccessLogViewSet(AuditLogViewSet):
     >           "previous": null,
     >           "results": [
     >                {
-    >                   "app_label": "kobo_auth",
-    >                    "model_name": "User",
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "u12345",
     >                    "username": "admin",
