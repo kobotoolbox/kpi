@@ -14,7 +14,7 @@ export default function AnalysisContent() {
 
   // We only want to display analysis questions for this survey question
   const filteredQuestions = analysisQuestions.state.questions.filter(
-    (question) => question.qpath === singleProcessingStore.currentQuestionQpath
+    (question) => question.xpath === singleProcessingStore.currentQuestionXpath
   );
 
   return (

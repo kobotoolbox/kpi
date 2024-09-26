@@ -478,10 +478,10 @@ export default class UserAssetPermsEditor extends React.Component<
         false,
         true
       );
-      for (const [, qPath] of Object.entries(flatPaths)) {
+      for (const [, path] of Object.entries(flatPaths)) {
         output.push({
-          value: qPath,
-          label: qPath,
+          value: path,
+          label: path,
         });
       }
     }

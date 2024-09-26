@@ -1,7 +1,7 @@
 // This is a collection of various utility functions related to processing
 // routes and navigation.
 
-import {generatePath, matchPath} from 'react-router-dom';
+import {generatePath, matchPath, useNavigate} from 'react-router-dom';
 import {router} from 'js/router/legacy';
 import {ROUTES, PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC} from 'js/router/routerConstants';
 import {getCurrentPath} from 'js/router/routerUtils';
@@ -24,7 +24,7 @@ const TabToRouteMap: Map<ProcessingTab, string> = new Map([
 
 interface ProcessingRouteParts {
   assetUid: string;
-  qpath: string;
+  xpath: string;
   submissionEditId: string;
   tabName?: ProcessingTab;
 }
@@ -35,7 +35,7 @@ interface ProcessingRouteParts {
 export function getProcessingRouteParts(path: string): ProcessingRouteParts {
   const output: ProcessingRouteParts = {
     assetUid: '',
-    qpath: '',
+    xpath: '',
     submissionEditId: '',
   };
 
@@ -57,7 +57,7 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
 
   // Step 4. Assign all the found values to output
   output.assetUid = matchProfile.params.uid as string;
-  output.qpath = matchProfile.params.qpath as string;
+  output.xpath = decodeURLParamWithSlash(matchProfile.params.xpath || '') as string;
   output.submissionEditId = matchProfile.params.submissionEditId as string;
   if (
     'tabName' in matchProfile.params &&
@@ -65,9 +65,30 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
   ) {
     output.tabName = matchProfile.params.tabName as ProcessingTab;
   }
-
   return output;
 };
+
+/**
+ * Restore previously encoded value with encodeURLParamWithSlash to its
+ * original value
+ *
+ * @param value
+ */
+export function decodeURLParamWithSlash(value: string) {
+  return value.replace('|', '/');
+}
+
+/**
+ * Replace slashes ("/") with pipe ("|")
+ *
+ * React router seems to decode `%2F` automatically, thus we cannot use
+ * `encodeComponentURI()` to pass params with encoded slashes (i.e.: %2F)
+ * to `router.navigate()` without navigating to url with decoded slashes ("/")
+ * @param value
+ */
+export function encodeURLParamWithSlash(value: string) {
+  return encodeURIComponent(value.replace(/\//g, '|'));
+}
 
 export function getCurrentProcessingRouteParts(): ProcessingRouteParts {
   return getProcessingRouteParts(getCurrentPath());
@@ -82,7 +103,7 @@ function applyCurrentRouteParams(targetRoute: string) {
 
   return generatePath(targetRoute, {
     uid: routeParams.assetUid,
-    qpath: routeParams.qpath,
+    xpath: encodeURLParamWithSlash(routeParams.xpath),
     submissionEditId: routeParams.submissionEditId,
   });
 }
@@ -100,7 +121,7 @@ export function isAnyProcessingRoute(path?: string): boolean {
   return Boolean(
     processingRouteParts.assetUid &&
     processingRouteParts.submissionEditId &&
-    processingRouteParts.qpath
+    processingRouteParts.xpath
   );
 }
 
@@ -116,7 +137,16 @@ export function isAnyProcessingRouteActive(): boolean {
  * is active)
  */
 export function isProcessingRouteActive(targetRoute: string) {
-  return getCurrentPath().startsWith(applyCurrentRouteParams(targetRoute));
+  // We need to apply actual values for the route definition `:param`s here.
+  // After that we use `decodeURI` to ensure that `|` in the test route is the
+  // same as `|` in the `getCurrentPath`. Without this we would be comparing
+  // string that could be "exactly" the same, just one containing `|` and
+  // the other `%7C` (ASCII for `|`) - resulting in incorrect `false`.
+  const routeToTest = decodeURI(applyCurrentRouteParams(targetRoute));
+  // Sometimes current path containts `|` and sometimes with `%7C` so we need to
+  // be extra safe here.
+  const currentPath = decodeURI(getCurrentPath());
+  return currentPath.startsWith(routeToTest);
 }
 
 /**
@@ -155,7 +185,7 @@ export function goToTabRoute(targetTabRoute: string) {
  */
 export function goToProcessing(
   assetUid: string,
-  qpath: string,
+  xpath: string,
   submissionEditId: string,
   remainOnSameTab?: boolean
 ) {
@@ -173,7 +203,7 @@ export function goToProcessing(
 
   const path = generatePath(targetRoute, {
     uid: assetUid,
-    qpath,
+    xpath: encodeURLParamWithSlash(xpath),
     submissionEditId,
   });
   router!.navigate(path);
