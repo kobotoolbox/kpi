@@ -6,11 +6,10 @@ import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
 
-// Mock
-const handleClickFunction = jest.fn();
-
-
 describe('Enabled button', () => {
+  // Mock
+  const handleClickFunction = jest.fn();
+
   beforeEach(() => {
     render(
       <Button
@@ -28,8 +27,6 @@ describe('Enabled button', () => {
   });
 
   it('should be clickable', async () => {
-    handleClickFunction.mockReset();
-
     // Act
     const button = screen.getByLabelText('Button Label');
     await user.click(button);
@@ -39,6 +36,9 @@ describe('Enabled button', () => {
 });
 
 describe('Disabled button', () => {
+  // Mock
+  const handleClickFunction = jest.fn();
+
   beforeEach(() => {
     render(
       <Button
@@ -57,8 +57,6 @@ describe('Disabled button', () => {
   });
 
   it('should not be clickable', async () => {
-    handleClickFunction.mockReset();
-
     // Act
     const button = screen.getByLabelText('Button Label');
     await user.click(button);
