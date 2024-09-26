@@ -11,5 +11,5 @@ export const endpoints = {
   /** Expected parameters: price_id and subscription_id **/
   CHANGE_PLAN_URL: '/api/v2/stripe/change-plan',
   ACCESS_LOGS_URL: '/api/v2/access-logs/',
-  LOGOUT_ALL: '/api/v2/logout-all',
+  LOGOUT_ALL: '/logout-all/',
 };
