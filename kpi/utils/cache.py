@@ -113,7 +113,6 @@ def cached_class_property(key, serializer=str, deserializer=str):
             if getattr(self, '_cache_available', None) is False:
                 return func(self)
 
-
             self._handle_cache_expiration()
             value = self._cached_hset.get(key.encode())
             if value is None:

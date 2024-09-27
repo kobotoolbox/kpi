@@ -1,7 +1,12 @@
 from math import ceil, floor
 
 from django.conf import settings
+from django.db.models import F
 from djstripe.models import Price
+
+from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.types import UsageType
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP_STRIPE
 
 
 def get_default_add_on_limits():
@@ -36,3 +41,26 @@ def generate_return_url(product_metadata):
         'addons' if product_metadata['product_type'] == 'addon' else 'plan'
     )
     return base_url + return_page
+
+def get_organization_plan_limit(organization: Organization, usage_type: UsageType) -> int:
+    """
+    Get organization plan limit for a given usage type
+    """
+    if not settings.STRIPE_ENABLED:
+        return None
+    stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
+    current_limit = Organization.objects.filter(
+        id=organization.id,
+        djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+        djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',
+    ).values(
+        price_limit=F(f'djstripe_customers__subscriptions__items__price__metadata__{stripe_key}'),
+        product_limit=F(f'djstripe_customers__subscriptions__items__price__product__metadata__{stripe_key}'),
+        prod_metadata=F('djstripe_customers__subscriptions__items__price__product__metadata')
+    ).first()
+    relevant_limit = current_limit.get('price_limit') or current_limit.get('product_limit')
+    if relevant_limit is None:
+        # TODO: get the limits from the community plan, overrides
+        relevant_limit = 2000
+
+    return relevant_limit

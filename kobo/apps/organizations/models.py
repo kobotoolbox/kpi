@@ -82,68 +82,54 @@ class Organization(AbstractOrganization):
             
         return None
 
-    def get_remaining_usage(self, limit_type: UsageType) -> Union[int, None]:
+    @cache_for_request
+    def get_current_usage(self, usage_type: UsageType) -> int:
+        usage_calc = ServiceUsageCalculator(
+            self.owner.organization_user.user, self
+        )
+        usage_calc._clear_cache() # Use the most recent usage counters
+        usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[usage_type])
+
+        return usage
+
+    @classmethod
+    def get_from_user_id(cls, user_id: int):
+        """
+        Get organization that this user is a member of.
+        """
+        # TODO: validate this is the correct way to get a user's organization
+        org = cls.objects.filter(
+            organization_users__user__id=user_id,
+        ).first()
+
+        return org
+
+    @cache_for_request
+    def get_remaining_usage(self, usage_type: UsageType) -> Union[int, None]:
         """
         Get the organization remaining usage count for a given limit type
         """
-        plan_limit = self.get_plan_limit(limit_type)
-        usage_calc = ServiceUsageCalculator(
-            self.owner.organization_user.user, self
+        plan_limit = self.get_plan_limit(usage_type)
+        usage = self.get_current_usage(usage_type)
+        addon_limit, addon_remaining = PlanAddOn.get_organization_totals(
+            self,
+            usage_type,
         )
-        cached_usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[limit_type])
-        over_usage = plan_limit - cached_usage
-        # addons_limit =
-        return
+        remaining = addon_limit + plan_limit - usage
 
-    def get_plan_limit(self, limit_type: UsageType) -> Union[int, None]:
-        """
-        Get the organization plan limit for a given usage type
-        """
-        if not settings.STRIPE_ENABLED:
-            return None
-        stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[limit_type]}_limit'
-        current_limit = Organization.objects.filter(
-            id=self.id,
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',
-        ).values(
-            price_limit=F(f'djstripe_customers__subscriptions__items__price__metadata__{stripe_key}'),
-            product_limit=F(f'djstripe_customers__subscriptions__items__price__product__metadata__{stripe_key}'),
-        ).first()
-        if current_limit:
-            relevant_limit = current_limit.get('price_limit') or current_limit.get('product_limit')
-        else:
-            # TODO: get the limits from the community plan, overrides
-            relevant_limit = 2000
-        return relevant_limit
+        return remaining
 
-    def is_organization_over_plan_limit(self, limit_type: UsageType) -> Union[bool, None]:
+    def handle_usage_increment(self, usage_type: UsageType, amount: int):
         """
-        Check if an organization is over their plan's limit for a given usage type
-        Returns None if Stripe isn't enabled or the limit status couldn't be determined
+        Increment the given usage type for this organization by the given amount
         """
-
-        if not settings.STRIPE_ENABLED:
-            return None
-        usage_calc = ServiceUsageCalculator(
-            self.owner.organization_user.user, self
-        )
-        cached_usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[limit_type])
-        stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[limit_type]}_limit'
-        current_limit = Organization.objects.filter(
-            id=self.id,
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',
-        ).values(
-            price_limit=F(f'djstripe_customers__subscriptions__items__price__metadata__{stripe_key}'),
-            product_limit=F(f'djstripe_customers__subscriptions__items__price__product__metadata__{stripe_key}'),
-        ).first()
-        if current_limit:
-            relevant_limit = current_limit.get('price_limit') or current_limit.get('product_limit')
-        else:
-            # TODO: get the limits from the community plan, overrides
-            relevant_limit = 2000
-        return int(relevant_limit) and cached_usage > int(relevant_limit)
+        plan_limit = self.get_plan_limit(usage_type)
+        current_usage = self.get_current_usage(usage_type)
+        plan_remaining = plan_limit - current_usage
+        new_total_usage = current_usage + amount
+        if new_total_usage > plan_limit:
+            increment = amount if current_usage >= plan_limit else new_total_usage - plan_limit
+            PlanAddOn.increment_for_organization(self.pk, usage_type, increment)
 
 
 class OrganizationUser(AbstractOrganizationUser):

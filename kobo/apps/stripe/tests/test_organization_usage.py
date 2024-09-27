@@ -12,22 +12,25 @@ from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import Customer
+from djstripe.models import Customer, SubscriptionItem
 from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
+from kobo.apps.stripe.constants import USAGE_LIMIT_MAP_STRIPE
 from kobo.apps.trackers.tests.submission_utils import (
     create_mock_assets,
     add_mock_submissions,
 )
+from kobo.apps.stripe.utils import get_organization_plan_limit
 from kobo.apps.stripe.tests.utils import (
     generate_enterprise_subscription,
     generate_plan_subscription,
 )
-from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
+from kpi.tests.kpi_test_case import BaseTestCase
+from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
 class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
@@ -423,3 +426,40 @@ class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
         response = self.client.get(self.detail_url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
+
+
+class OrganizationsUtilsTestCase(BaseTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.organization = baker.make(
+            Organization, id='123456abcdef', name='test organization'
+        )
+        self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.newuser = baker.make(User, username='newuser')
+        self.organization.add_user(self.anotheruser, is_admin=True)
+
+    def test_get_plan_community_limit(self):
+        generate_enterprise_subscription(self.organization)
+        limit = get_organization_plan_limit(self.organization, 'seconds')
+        assert limit == 2000 # TODO get the limits from the community plan, overrides
+        limit = get_organization_plan_limit(self.organization, 'character')
+        assert limit == 2000 # TODO get the limits from the community plan, overrides
+
+    def _test_get_suscription_limit(self, usage_type):
+        stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
+        product_metadata = {
+            stripe_key: 1234,
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        generate_plan_subscription(self.organization, metadata=product_metadata)
+        limit = get_organization_plan_limit(self.organization, usage_type)
+        assert limit == 1234
+
+    def test_get_subscription_limits_seconds(self):
+        self._test_get_suscription_limit('seconds')
+
+    def test_get_subscription_limits_characters(self):
+        self._test_get_suscription_limit('character')

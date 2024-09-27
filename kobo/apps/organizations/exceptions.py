@@ -1,0 +1,2 @@
+class UsageLimitExceeded(Exception):
+    pass

@@ -28,7 +28,8 @@ def update_nlp_counter(
     """
     # Avoid circular import
     NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
-    PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
+    Organization = apps.get_model('organizaions', 'Organization')  # noqa
+    org = Organization.get_from_user_id(user_id)
 
     if not counter_id:
         date = timezone.now()
@@ -46,13 +47,12 @@ def update_nlp_counter(
     kwargs = {}
     if service.endswith('asr_seconds'):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
-        if asset_id is not None:
-            # If we're not updating the catch-all counter, increment any NLP add-ons the user may have
-            PlanAddOn.increment_add_ons_for_user(user_id, 'seconds', amount)
+        if asset_id is not None and org is not None:
+            org.handle_usage_increment('seconds', amount)
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
-        if asset_id is not None:
-            PlanAddOn.increment_add_ons_for_user(user_id, 'character', amount)
+        if asset_id is not None and org is not None:
+            org.handle_usage_increment('character', amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),

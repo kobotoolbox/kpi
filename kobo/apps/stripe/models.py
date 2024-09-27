@@ -165,9 +165,9 @@ class PlanAddOn(models.Model):
         return created_count
 
     @staticmethod
-    def get_totals_for_user(user_id: int, add_on_type: UsageType) -> (int, int):
+    def get_organization_totals(organization: 'Organization', add_on_type: UsageType) -> (int, int):
         """
-        Returns the total limit and the total remaining usage for a given user
+        Returns the total limit and the total remaining usage for a given org.
         and usage type.
         """
         usage_type = USAGE_LIMIT_MAP[add_on_type]

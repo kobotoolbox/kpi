@@ -12,6 +12,7 @@ from google.api_core.exceptions import InvalidArgument
 from google.cloud import translate_v3 as translate, storage
 
 from kobo.apps.languages.models.translation import TranslationService
+from kobo.apps.organizations.models import Organization
 from kpi.utils.log import logging
 from .base import GoogleService
 from .utils import google_credentials_from_constance_config
@@ -92,6 +93,11 @@ class GoogleTranslationService(GoogleService):
         if stored_result := self.get_stored_result(target_lang, output_path):
             logging.info(f'Found stored results in {output_path=}')
             return (stored_result, len(content))
+
+        # Check if organization nlp usage limit has been exceeded
+        org = Organization.get_from_user_id(self.user.pk)
+        if org.get_remaining_usage('character') < len(content):
+            raise UsageLimitExceeded
 
         logging.info(
             f'Starting async translation for {self.submission.submission_uuid=} {xpath=}'
