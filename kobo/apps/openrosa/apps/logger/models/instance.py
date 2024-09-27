@@ -12,6 +12,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
 from django.utils import timezone
 from django.utils.encoding import smart_str
+from django.db.models import UniqueConstraint
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 
@@ -90,7 +91,7 @@ class Instance(AbstractTimeStampedModel):
     # do not use it anymore.
     deleted_at = models.DateTimeField(null=True, default=None)
 
-    root_uuid = models.CharField(max_length=249, null=True, unique=True, db_index=True)
+    root_uuid = models.CharField(max_length=249, null=True, db_index=True)
     # ODK keeps track of three statuses for an instance:
     # incomplete, submitted, complete
     # we add a fourth status: submitted_via_web
@@ -110,6 +111,12 @@ class Instance(AbstractTimeStampedModel):
 
     class Meta:
         app_label = 'logger'
+        constraints = [
+            UniqueConstraint(
+                fields=['root_uuid', 'xform'],
+                name='unique_root_uuid_per_xform'
+            )
+        ]
 
     @property
     def asset(self):
