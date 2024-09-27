@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from kpi.fields.username_hyperlinked import UsernameHyperlinkField
+from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from .models import AuditLog
 
 
@@ -49,8 +49,13 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
 
 class AccessLogSerializer(serializers.Serializer):
-
-    user = UsernameHyperlinkField(source='user__username')
+    user = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-kpi-detail',
+        lookup_field='user__username',
+        lookup_url_kwarg='username',
+        read_only=True,
+        source='user__username',
+    )
     date_created = serializers.SerializerMethodField()
     username = serializers.CharField(source='user__username')
     metadata = serializers.JSONField()
