@@ -1,27 +1,25 @@
 from __future__ import annotations
 
-import uuid
 import posixpath
-from concurrent.futures import TimeoutError
+import uuid
 from datetime import timedelta
-from typing import Union, Any
+from typing import Any, Union
 
 import constance
 from django.conf import settings
 from google.api_core.exceptions import InvalidArgument
-from google.cloud import speech, storage
+from google.cloud import speech
 
-from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.organizations.models import Organization
 from kobo.apps.trackers.utils import get_organization_remaining_usage
 from kpi.utils.log import logging
-from .base import GoogleService
-from ...constants import GOOGLE_CODE, GOOGLETS
+from ...constants import GOOGLETS
 from ...exceptions import (
     AudioTooLongError,
     SubsequenceTimeoutError,
     TranscriptionResultsNotFound,
 )
+from .base import GoogleService
 
 # https://cloud.google.com/speech-to-text/quotas#content
 ASYNC_MAX_LENGTH = timedelta(minutes=479)

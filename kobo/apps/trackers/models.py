@@ -2,7 +2,6 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.signals import post_delete
-from django_request_cache import cache_for_request
 
 from kobo.apps.kobo_auth.shortcuts import User
 from .utils import update_nlp_counter

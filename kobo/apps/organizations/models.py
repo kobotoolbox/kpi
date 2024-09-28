@@ -1,15 +1,15 @@
 from functools import partial
-from typing import Union
 
 from django.conf import settings
-from django.db import models
 from django.db.models import F
-from django.utils import timezone
 from django_request_cache import cache_for_request
 
 if settings.STRIPE_ENABLED:
-   from djstripe.models import Customer, Subscription
-   from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, ORGANIZATION_USAGE_MAX_CACHE_AGE
+    from djstripe.models import Customer, Subscription
+
+    from kobo.apps.stripe.constants import (
+        ACTIVE_STRIPE_STATUSES,
+    )
 
 from organizations.abstract import (
     AbstractOrganization,
@@ -65,17 +65,21 @@ class Organization(AbstractOrganization):
         """
         # Only check for subscriptions if Stripe is enabled
         if settings.STRIPE_ENABLED:
-            qs = Organization.objects.prefetch_related('djstripe_customers').filter(
+            qs = (
+                Organization.objects.prefetch_related('djstripe_customers')
+                .filter(
                     djstripe_customers__subscriptions__status='canceled',
                     djstripe_customers__subscriber=self.id,
-                ).order_by(
-                    '-djstripe_customers__subscriptions__ended_at'
-                ).values(
+                )
+                .order_by('-djstripe_customers__subscriptions__ended_at')
+                .values(
                     anchor=F('djstripe_customers__subscriptions__ended_at'),
-                ).first()
+                )
+                .first()
+            )
             if qs:
                 return qs['anchor']
-            
+
         return None
 
     @classmethod
@@ -100,7 +104,8 @@ class OrganizationUser(AbstractOrganizationUser):
         try:
             customer = Customer.objects.get(subscriber=self.organization.id)
             subscriptions = Subscription.objects.filter(
-                customer=customer, status__in=ACTIVE_STRIPE_STATUSES,
+                customer=customer,
+                status__in=ACTIVE_STRIPE_STATUSES,
             )
 
             unique_plans = set()

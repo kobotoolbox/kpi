@@ -64,6 +64,7 @@ def update_nlp_counter(
         **kwargs,
     )
 
+
 @cache_for_request
 def get_organization_usage(organization: Organization, usage_type: UsageType) -> int:
     """
@@ -72,12 +73,15 @@ def get_organization_usage(organization: Organization, usage_type: UsageType) ->
     usage_calc = ServiceUsageCalculator(
         organization.owner.organization_user.user, organization
     )
-    usage_calc._clear_cache() # Do not use cached values
+    usage_calc._clear_cache()  # Do not use cached values
     usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[usage_type])
 
     return usage
 
-def get_organization_remaining_usage(organization: Organization, usage_type: UsageType) -> Union[int, None]:
+
+def get_organization_remaining_usage(
+    organization: Organization, usage_type: UsageType
+) -> Union[int, None]:
     """
     Get the organization remaining usage count for a given limit type
     """
@@ -93,7 +97,10 @@ def get_organization_remaining_usage(organization: Organization, usage_type: Usa
 
     return remaining
 
-def handle_usage_increment(organization: Organization, usage_type: UsageType, amount: int):
+
+def handle_usage_increment(
+    organization: Organization, usage_type: UsageType, amount: int
+):
     """
     Increment the given usage type for this organization by the given amount
     """
@@ -102,5 +109,9 @@ def handle_usage_increment(organization: Organization, usage_type: UsageType, am
     plan_remaining = plan_limit - current_usage
     new_total_usage = current_usage + amount
     if new_total_usage > plan_limit:
-        increment = amount if current_usage >= plan_limit else new_total_usage - plan_limit
-        PlanAddOn.increment_add_ons_for_organization(organization.id, usage_type, increment)
+        increment = (
+            amount if current_usage >= plan_limit else new_total_usage - plan_limit
+        )
+        PlanAddOn.increment_add_ons_for_organization(
+            organization.id, usage_type, increment
+        )

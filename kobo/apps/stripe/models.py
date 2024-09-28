@@ -4,16 +4,16 @@ from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Sum, IntegerField
-from django.db.models.functions import Coalesce, Cast
+from django.db.models import F, IntegerField, Sum
+from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from djstripe.enums import PaymentIntentStatus
 from djstripe.models import Charge, Price, Subscription
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 from kobo.apps.organizations.types import UsageType
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 from kobo.apps.stripe.utils import get_default_add_on_limits
 from kpi.fields import KpiUidField
 
@@ -37,7 +37,7 @@ class PlanAddOn(models.Model):
     )
     limits_remaining = models.JSONField(
         default=get_default_add_on_limits,
-        help_text='The amount of each of the add-on\'s individual limits left to use.',
+        help_text="The amount of each of the add-on's individual limits left to use.",
     )
     product = models.ForeignKey('djstripe.Product', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
     charge = models.ForeignKey('djstripe.Charge', to_field='id', on_delete=models.CASCADE)
@@ -165,7 +165,9 @@ class PlanAddOn(models.Model):
         return created_count
 
     @staticmethod
-    def get_organization_totals(organization: 'Organization', usage_type: UsageType) -> (int, int):
+    def get_organization_totals(
+        organization: 'Organization', usage_type: UsageType
+    ) -> (int, int):
         """
         Returns the total limit and the total remaining usage for a given org.
         and usage type.
@@ -182,19 +184,22 @@ class PlanAddOn(models.Model):
             charge__payment_intent__status=PaymentIntentStatus.succeeded,
         ).aggregate(
             total_usage_limit=Coalesce(
-                Sum(Cast(usage_field, output_field=IntegerField())*F('quantity')),
+                Sum(Cast(usage_field, output_field=IntegerField()) * F('quantity')),
                 0,
-                output_field=IntegerField()
+                output_field=IntegerField(),
             ),
             total_remaining=Coalesce(
-                Sum(Cast(limit_field, output_field=IntegerField())), 0,
+                Sum(Cast(limit_field, output_field=IntegerField())),
+                0,
             ),
         )
 
         return totals['total_usage_limit'], totals['total_remaining']
 
     @staticmethod
-    def increment_add_ons_for_organization(organization: 'Organization', usage_type: UsageType, amount: int):
+    def increment_add_ons_for_organization(
+        organization: 'Organization', usage_type: UsageType, amount: int
+    ):
         """
         Increments the usage counter for limit_type by amount_used for a given user.
         Will always increment the add-on with the most used first, so that add-ons are used up in FIFO order.
@@ -213,7 +218,9 @@ class PlanAddOn(models.Model):
         remaining = amount
         for add_on in add_ons.iterator():
             if add_on.is_available():
-                remaining -= add_on.increment(limit_type=limit_key, amount_used=remaining)
+                remaining -= add_on.increment(
+                    limit_type=limit_key, amount_used=remaining
+                )
         return remaining
 
 

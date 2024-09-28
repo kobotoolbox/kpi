@@ -1,9 +1,9 @@
 from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import (
+    Charge,
     Customer,
     PaymentIntent,
-    Charge,
     Price,
     Product,
     Subscription,
@@ -181,7 +181,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
 
     def _assert_get_user_totals(self, usage_type):
         limit = 2000
-        quantity=5
+        quantity = 5
         usage_limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         self._create_product(
             metadata={
@@ -194,14 +194,20 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self._create_payment()
         self._create_payment(quantity=quantity)
 
-        total_limit, remaining = PlanAddOn.get_organization_totals(self.organization, usage_type)
-        assert total_limit == limit*(quantity+2)
-        assert remaining == limit*(quantity+2)
+        total_limit, remaining = PlanAddOn.get_organization_totals(
+            self.organization, usage_type
+        )
+        assert total_limit == limit * (quantity + 2)
+        assert remaining == limit * (quantity + 2)
 
-        PlanAddOn.increment_add_ons_for_organization(self.organization, usage_type, limit*quantity)
-        total_limit, remaining = PlanAddOn.get_organization_totals(self.organization, usage_type)
-        assert total_limit == limit*(quantity+2)
-        assert remaining == limit*2
+        PlanAddOn.increment_add_ons_for_organization(
+            self.organization, usage_type, limit * quantity
+        )
+        total_limit, remaining = PlanAddOn.get_organization_totals(
+            self.organization, usage_type
+        )
+        assert total_limit == limit * (quantity + 2)
+        assert remaining == limit * 2
 
     def test_get_user_totals_seconds(self):
         self._assert_get_user_totals('seconds')

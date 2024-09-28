@@ -1,32 +1,34 @@
-import timeit
 import itertools
+import timeit
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-import pytest
 from datetime import datetime
+
+import pytest
 from dateutil.relativedelta import relativedelta
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import Customer, SubscriptionItem
+from djstripe.models import Customer
 from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP_STRIPE
-from kobo.apps.trackers.tests.submission_utils import (
-    create_mock_assets,
-    add_mock_submissions,
-)
-from kobo.apps.stripe.utils import get_organization_plan_limit
 from kobo.apps.stripe.tests.utils import (
     generate_enterprise_subscription,
     generate_plan_subscription,
+)
+from kobo.apps.stripe.utils import get_organization_plan_limit
+from kobo.apps.trackers.tests.submission_utils import (
+    add_mock_submissions,
+    create_mock_assets,
 )
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
 from kpi.tests.kpi_test_case import BaseTestCase
@@ -443,9 +445,9 @@ class OrganizationsUtilsTestCase(BaseTestCase):
     def test_get_plan_community_limit(self):
         generate_enterprise_subscription(self.organization)
         limit = get_organization_plan_limit(self.organization, 'seconds')
-        assert limit == 2000 # TODO get the limits from the community plan, overrides
+        assert limit == 2000  # TODO get the limits from the community plan, overrides
         limit = get_organization_plan_limit(self.organization, 'character')
-        assert limit == 2000 # TODO get the limits from the community plan, overrides
+        assert limit == 2000  # TODO get the limits from the community plan, overrides
 
     def test_get_subscription_limits_characters(self):
         self._test_get_suscription_limit('character')
