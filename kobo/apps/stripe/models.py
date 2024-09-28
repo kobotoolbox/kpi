@@ -165,20 +165,19 @@ class PlanAddOn(models.Model):
         return created_count
 
     @staticmethod
-    def get_organization_totals(organization: 'Organization', add_on_type: UsageType) -> (int, int):
+    def get_organization_totals(organization: 'Organization', usage_type: UsageType) -> (int, int):
         """
         Returns the total limit and the total remaining usage for a given org.
         and usage type.
         """
-        usage_type = USAGE_LIMIT_MAP[add_on_type]
-        limit_key = f'{usage_type}_limit'
-        usage_key = f'{usage_type}_limit'
+        usage_mapped = USAGE_LIMIT_MAP[usage_type]
+        limit_key = f'{usage_mapped}_limit'
         limit_field = f'limits_remaining__{limit_key}'
-        usage_field = f'usage_limits__{usage_key}'
+        usage_field = f'usage_limits__{limit_key}'
         totals = PlanAddOn.objects.filter(
             organization__id=organization.id,
             limits_remaining__has_key=limit_key,
-            usage_limits__has_key=usage_key,
+            usage_limits__has_key=limit_key,
             charge__refunded=False,
             charge__payment_intent__status=PaymentIntentStatus.succeeded,
         ).aggregate(
@@ -195,14 +194,14 @@ class PlanAddOn(models.Model):
         return totals['total_usage_limit'], totals['total_remaining']
 
     @staticmethod
-    def increment_add_ons_for_organization(organization: 'Organization', add_on_type: UsageType, amount: int):
+    def increment_add_ons_for_organization(organization: 'Organization', usage_type: UsageType, amount: int):
         """
         Increments the usage counter for limit_type by amount_used for a given user.
         Will always increment the add-on with the most used first, so that add-ons are used up in FIFO order.
         Returns the amount of usage that was not applied to an add-on.
         """
-        usage_type = USAGE_LIMIT_MAP[add_on_type]
-        limit_key = f'{usage_type}_limit'
+        usage_mapped = USAGE_LIMIT_MAP[usage_type]
+        limit_key = f'{usage_mapped}_limit'
         metadata_key = f'limits_remaining__{limit_key}'
         add_ons = PlanAddOn.objects.filter(
             organization__id=organization.id,

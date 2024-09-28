@@ -40,8 +40,24 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         )
         self.asset.deploy(backend='mock', active=True)
 
+    def test_org_usage_seconds(self):
+        self._test_organization_usage_utils('seconds')
+
+
+    def _create_product(self, product_metadata):
+        product = baker.make(
+            Product,
+            active=True,
+            metadata=product_metadata,
+        )
+        price = baker.make(
+            Price, active=True, product=product, type='one_time'
+        )
+        product.save()
+        return product, price
+
     def _make_payment(
-        self, price, customer, payment_status='succeeded', refunded=False, quantity=1,
+        self, price, customer, payment_status='succeeded', quantity=1,
     ):
         payment_total = quantity * 2000
         payment_intent = baker.make(
@@ -57,13 +73,13 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         charge = baker.prepare(
             Charge,
             customer=customer,
-            refunded=refunded,
+            refunded=False,
             created=timezone.now(),
             payment_intent=payment_intent,
             paid=True,
             status=payment_status,
             livemode=False,
-            amount_refunded=0 if refunded else payment_total,
+            amount_refunded=0,
             amount=payment_total,
         )
         charge.metadata = {
@@ -73,20 +89,11 @@ class TrackersUtilitiesTestCase(BaseTestCase):
             **(price.product.metadata or {}),
         }
         charge.save()
-
-    def _create_product(self, product_metadata):
-        product = baker.make(
-            Product,
-            active=True,
-            metadata=product_metadata,
-        )
-        price = baker.make(
-            Price, active=True, product=product, type='one_time'
-        )
-        return product, price
+        return charge
 
     def _test_organization_usage_utils(self, usage_type):
         stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
+        usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         sub_metadata = {
             stripe_key: 1234,
             'product_type': 'plan',
@@ -95,7 +102,7 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         subscription = generate_plan_subscription(self.organization, metadata=sub_metadata)
         addon_metadata = {
             'product_type': 'addon_onetime',
-            stripe_key: 12345,
+            usage_key: 12345,
             'valid_tags': 'all',
         }
         product, price = self._create_product(addon_metadata)
@@ -105,12 +112,7 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == expected_limit
 
-        service_key = USAGE_LIMIT_MAP[usage_type]
-        update_nlp_counter(service_key, 1000, self.someuser.id, self.asset.id)
+        update_nlp_counter(usage_key, 1000, self.someuser.id, self.asset.id)
 
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == expected_limit - 1000
-
-
-    def test_org_usage_seconds(self):
-        self._test_organization_usage_utils('seconds')
