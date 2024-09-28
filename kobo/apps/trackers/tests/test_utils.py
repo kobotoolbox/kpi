@@ -112,7 +112,7 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == expected_limit
 
-        update_nlp_counter(usage_key, 1000, self.someuser.id, self.asset.id)
+        update_nlp_counter(USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id)
 
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == expected_limit - 1000

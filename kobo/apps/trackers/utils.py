@@ -72,11 +72,11 @@ def get_organization_usage(organization: Organization, usage_type: UsageType) ->
     usage_calc = ServiceUsageCalculator(
         organization.owner.organization_user.user, organization
     )
+    usage_calc._clear_cache() # Do not use cached values
     usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[usage_type])
 
     return usage
 
-@cache_for_request
 def get_organization_remaining_usage(organization: Organization, usage_type: UsageType) -> Union[int, None]:
     """
     Get the organization remaining usage count for a given limit type
@@ -97,11 +97,10 @@ def handle_usage_increment(organization: Organization, usage_type: UsageType, am
     """
     Increment the given usage type for this organization by the given amount
     """
-    plan_limit = organization.get_plan_limit(usage_type)
+    plan_limit = get_organization_plan_limit(organization, usage_type)
     current_usage = get_organization_usage(organization, usage_type)
     plan_remaining = plan_limit - current_usage
     new_total_usage = current_usage + amount
     if new_total_usage > plan_limit:
         increment = amount if current_usage >= plan_limit else new_total_usage - plan_limit
         PlanAddOn.increment_add_ons_for_organization(organization.id, usage_type, increment)
-
