@@ -1,6 +1,7 @@
 from json import dumps, loads
 from typing import Optional
 
+from django.apps import apps
 from django.conf import settings
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
@@ -13,7 +14,6 @@ from kobo.apps.organizations.utils import (
     get_yearly_billing_dates,
 )
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
@@ -86,6 +86,8 @@ class ServiceUsageCalculator(CachedClass):
         key='nlp_usage_counters', serializer=dumps, deserializer=loads
     )
     def get_nlp_usage_counters(self):
+        NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
+
         nlp_tracking = (
             NLPUsageCounter.objects.only(
                 'date', 'total_asr_seconds', 'total_mt_characters'

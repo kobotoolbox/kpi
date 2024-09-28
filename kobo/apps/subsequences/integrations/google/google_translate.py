@@ -13,6 +13,7 @@ from google.cloud import translate_v3 as translate, storage
 
 from kobo.apps.languages.models.translation import TranslationService
 from kobo.apps.organizations.models import Organization
+from kobo.apps.trackers.utils import get_organization_remaining_usage
 from kpi.utils.log import logging
 from .base import GoogleService
 from .utils import google_credentials_from_constance_config
@@ -96,7 +97,7 @@ class GoogleTranslationService(GoogleService):
 
         # Check if organization nlp usage limit has been exceeded
         org = Organization.get_from_user_id(self.user.pk)
-        if org.get_remaining_usage('character') < len(content):
+        if get_organization_remaining_usage(org, 'character') < len(content):
             raise UsageLimitExceeded
 
         logging.info(

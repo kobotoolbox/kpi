@@ -447,6 +447,12 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         limit = get_organization_plan_limit(self.organization, 'character')
         assert limit == 2000 # TODO get the limits from the community plan, overrides
 
+    def test_get_subscription_limits_characters(self):
+        self._test_get_suscription_limit('character')
+
+    def test_get_subscription_limits_seconds(self):
+        self._test_get_suscription_limit('seconds')
+
     def _test_get_suscription_limit(self, usage_type):
         stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
         product_metadata = {
@@ -457,9 +463,3 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_plan_subscription(self.organization, metadata=product_metadata)
         limit = get_organization_plan_limit(self.organization, usage_type)
         assert limit == 1234
-
-    def test_get_subscription_limits_seconds(self):
-        self._test_get_suscription_limit('seconds')
-
-    def test_get_subscription_limits_characters(self):
-        self._test_get_suscription_limit('character')

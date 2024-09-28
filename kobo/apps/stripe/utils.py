@@ -2,7 +2,6 @@ from math import ceil, floor
 
 from django.conf import settings
 from django.db.models import F
-from djstripe.models import Price
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
@@ -17,7 +16,7 @@ def get_default_add_on_limits():
     }
 
 
-def get_total_price_for_quantity(price: Price, quantity: int):
+def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
     """
     Calculate a total price (dividing and rounding as necessary) for an item quantity
     and djstripe Price object

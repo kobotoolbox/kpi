@@ -13,6 +13,7 @@ from google.cloud import speech, storage
 
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.organizations.models import Organization
+from kobo.apps.trackers.utils import get_organization_remaining_usage
 from kpi.utils.log import logging
 from .base import GoogleService
 from ...constants import GOOGLE_CODE, GOOGLETS
@@ -77,7 +78,7 @@ class GoogleTranscriptionService(GoogleService):
         total_seconds = int(duration.total_seconds())
         # Check if the user's organization has available usage credits
         org = Organization.get_from_user_id(self.user.pk)
-        if org.get_remaining_usage('seconds') < total_seconds:
+        if get_organization_remaining_usage(org, 'seconds') < total_seconds:
             raise UsageLimitExceeded
 
         # Create the parameters required for the transcription

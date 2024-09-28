@@ -194,12 +194,12 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self._create_payment()
         self._create_payment(quantity=quantity)
 
-        total_limit, remaining = PlanAddOn.get_totals_for_user(self.someuser.pk, usage_type)
+        total_limit, remaining = PlanAddOn.get_organization_totals(self.organization, usage_type)
         assert total_limit == limit*(quantity+2)
         assert remaining == limit*(quantity+2)
 
-        PlanAddOn.increment_add_ons_for_user(self.someuser.pk, usage_type, limit*quantity)
-        total_limit, remaining = PlanAddOn.get_totals_for_user(self.someuser.pk, usage_type)
+        PlanAddOn.increment_add_ons_for_organization(self.organization, usage_type, limit*quantity)
+        total_limit, remaining = PlanAddOn.get_organization_totals(self.organization, usage_type)
         assert total_limit == limit*(quantity+2)
         assert remaining == limit*2
 

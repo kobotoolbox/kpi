@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Union
 
 from django.conf import settings
@@ -6,13 +7,9 @@ from django.db.models import F
 from django.utils import timezone
 from django_request_cache import cache_for_request
 
-from kobo.apps.organizations.types import UsageType
-
 if settings.STRIPE_ENABLED:
    from djstripe.models import Customer, Subscription
-   from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, ORGANIZATION_USAGE_MAX_CACHE_AGE, \
-    USAGE_LIMIT_MAP_STRIPE, USAGE_LIMIT_MAP
-from functools import partial
+   from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, ORGANIZATION_USAGE_MAX_CACHE_AGE
 
 from organizations.abstract import (
     AbstractOrganization,
@@ -23,7 +20,6 @@ from organizations.abstract import (
 from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
-from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
 class Organization(AbstractOrganization):
@@ -82,16 +78,6 @@ class Organization(AbstractOrganization):
             
         return None
 
-    @cache_for_request
-    def get_current_usage(self, usage_type: UsageType) -> int:
-        usage_calc = ServiceUsageCalculator(
-            self.owner.organization_user.user, self
-        )
-        usage_calc._clear_cache() # Use the most recent usage counters
-        usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[usage_type])
-
-        return usage
-
     @classmethod
     def get_from_user_id(cls, user_id: int):
         """
@@ -103,33 +89,6 @@ class Organization(AbstractOrganization):
         ).first()
 
         return org
-
-    @cache_for_request
-    def get_remaining_usage(self, usage_type: UsageType) -> Union[int, None]:
-        """
-        Get the organization remaining usage count for a given limit type
-        """
-        plan_limit = self.get_plan_limit(usage_type)
-        usage = self.get_current_usage(usage_type)
-        addon_limit, addon_remaining = PlanAddOn.get_organization_totals(
-            self,
-            usage_type,
-        )
-        remaining = addon_limit + plan_limit - usage
-
-        return remaining
-
-    def handle_usage_increment(self, usage_type: UsageType, amount: int):
-        """
-        Increment the given usage type for this organization by the given amount
-        """
-        plan_limit = self.get_plan_limit(usage_type)
-        current_usage = self.get_current_usage(usage_type)
-        plan_remaining = plan_limit - current_usage
-        new_total_usage = current_usage + amount
-        if new_total_usage > plan_limit:
-            increment = amount if current_usage >= plan_limit else new_total_usage - plan_limit
-            PlanAddOn.increment_for_organization(self.pk, usage_type, increment)
 
 
 class OrganizationUser(AbstractOrganizationUser):
