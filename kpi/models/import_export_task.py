@@ -16,6 +16,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import constance
+import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -24,7 +25,6 @@ from django.db import models, transaction
 from django.db.models import F
 from django.urls import reverse
 from django.utils.translation import gettext as t
-import formpack
 from formpack.constants import (
     KOBO_LOCK_SHEET,
 )
