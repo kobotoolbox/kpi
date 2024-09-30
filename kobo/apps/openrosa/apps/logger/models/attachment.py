@@ -1,4 +1,3 @@
-# coding: utf-8
 import mimetypes
 import os
 
@@ -10,6 +9,7 @@ from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.fields.file import ExtendedFileField
 from .instance import Instance
 
 
@@ -41,7 +41,7 @@ class Attachment(models.Model):
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
-    media_file = models.FileField(
+    media_file = ExtendedFileField(
         storage=default_storage,
         upload_to=upload_to,
         max_length=380,
