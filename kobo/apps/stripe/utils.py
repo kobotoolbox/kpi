@@ -70,9 +70,11 @@ def get_organization_plan_limit(
         )
         .first()
     )
-    relevant_limit = current_limit.get('price_limit') or current_limit.get(
-        'product_limit'
-    )
+    relevant_limit = None
+    if current_limit is not None:
+        relevant_limit = current_limit.get('price_limit') or current_limit.get(
+            'product_limit'
+        )
     if relevant_limit is None:
         # TODO: get the limits from the community plan, overrides
         relevant_limit = 2000

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from constance.test import override_config
 from django.test import override_settings
@@ -18,8 +18,8 @@ from kobo.apps.languages.models.translation import (
     TranslationService,
     TranslationServiceLanguageM2M,
 )
-from kpi.models.asset import Asset
-from kpi.utils.fuzzy_int import FuzzyInt
+from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.tests.utils import generate_plan_subscription
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -27,6 +27,9 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.models.asset import Asset
+from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.fuzzy_int import FuzzyInt
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
@@ -391,11 +394,16 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
         # validate(package, schema)
 
 
-class GoogleNLPSubmissionTest(APITestCase):
+class GoogleNLPSubmissionTest(BaseTestCase):
+    fixtures = ['test_data']
+
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='someuser', email='user@example.com'
+        self.user = User.objects.get(username='someuser')
+        self.organization = Organization.objects.create(
+            id='123456abcdef', name='test organization'
         )
+        self.organization.add_user(self.user, is_admin=True)
+        generate_plan_subscription(self.organization)
         self.asset = Asset(
             content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]}
         )
@@ -408,12 +416,11 @@ class GoogleNLPSubmissionTest(APITestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
         self.client.force_login(self.user)
-        transcription_service = TranscriptionService.objects.create(code='goog')
-        translation_service = TranslationService.objects.create(code='goog')
+        transcription_service = TranscriptionService.objects.get(code='goog')
+        translation_service = TranslationService.objects.get(code='goog')
 
         language = Language.objects.create(name='', code='')
         language_region = LanguageRegion.objects.create(language=language, name='', code='')
-
         TranscriptionServiceLanguageM2M.objects.create(
             language=language,
             region=language_region,
