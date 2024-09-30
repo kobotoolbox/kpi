@@ -16,9 +16,10 @@ from kpi.utils.log import logging
 @celery_app.task()
 def spawn_access_log_cleaning_tasks():
     """
-    Enqueue tasks to delete access logs older than ACCESS_LOG_LIFESPAN days old, in batches.
+    Enqueue tasks to delete access logs older than ACCESS_LOG_LIFESPAN days old.
 
     ACCESS_LOG_LIFESPAN is configured via constance.
+    Ids are batched into multiple tasks.
     """
 
     expiration_date = timezone.now() - timedelta(
