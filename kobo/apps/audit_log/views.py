@@ -144,12 +144,12 @@ class AccessLogViewSet(AuditLogViewSet):
     Lists all access logs for the authenticated user
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/user
+    <b>GET</b> /api/v2/access-logs/me
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/access-logs/user
+    >       curl -X GET https://[kpi-url]/access-logs/me
 
     > Response 200
 
