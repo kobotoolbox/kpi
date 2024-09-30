@@ -63,7 +63,7 @@ export default function EmailSection() {
           newEmail: '',
         });
       });
-    });
+    }, () => {/* Avoid crashing app when 500 error happens */});
   }
 
   function deleteNewUserEmail() {
@@ -156,7 +156,7 @@ export default function EmailSection() {
                 </p>
               </div>
 
-              <div className={styles.editEmail}>
+              <div className={styles.unverifiedEmailButtons}>
                 <Button
                   label='Resend'
                   size='m'
