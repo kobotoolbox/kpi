@@ -7,7 +7,7 @@ router = DefaultRouter()
 router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 router.register(r'access-logs', AllAccessLogViewSet, basename='all-access-logs')
 router.register(
-    r'access-logs/me', AccessLogViewSet, basename='access-logs'
+    r'access-logs/me', AccessLogViewSet, basename='access-log'
 )
 
 urlpatterns = []
