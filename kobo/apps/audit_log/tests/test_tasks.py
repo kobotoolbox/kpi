@@ -44,7 +44,6 @@ class AuditLogTasksTestCase(BaseTestCase):
         self.assertIn(older_log.id, all_deleted_ids)
         self.assertNotIn(new_log.id, all_deleted_ids)
 
-
     @override_settings(ACCESS_LOG_DELETION_BATCH_SIZE=2)
     @patch('kobo.apps.audit_log.tasks.batch_delete_audit_logs_by_id.delay')
     def test_spawn_task_batches_ids(self, patched_task):
