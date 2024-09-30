@@ -4,6 +4,12 @@
 [![Python Coverage Status](https://coveralls.io/repos/github/kobotoolbox/kpi/badge.svg?branch=main)](https://coveralls.io/github/kobotoolbox/kpi?branch=main)
 [![JavaScript Build Status](https://github.com/kobotoolbox/kpi/workflows/npm-test/badge.svg)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Anpm-test)
 
+For production always use a specific release tag, `main` can include breaking changes. Run the following to switch to latest release branch:
+```sh
+git switch "$(git branch -rl 'origin/release/*' | tail -1 | sed -r 's/^.*n\///')"
+```
+
+
 We're open for [contributions](./CONTRIBUTING.md)!
 
 ## Important notice when upgrading from any release older than [`2.024.19`](https://github.com/kobotoolbox/kpi/releases/tag/2.024.19)
