@@ -162,6 +162,20 @@ class FormViewSideTabs extends Reflux.Component {
           path: ROUTES.FORM_REST.replace(':uid', this.state.asset.uid),
         });
       }
+
+      // TODO: Fix permissions
+      if (
+        userCan(
+          PERMISSIONS_CODENAMES.manage_asset,
+          this.state.asset
+        )
+      ) {
+        sideTabs.push({
+          label: t('Activity'),
+          icon: 'k-icon k-icon-document',
+          path: ROUTES.FORM_ACTIVITY.replace(':uid', this.state.asset.uid),
+        });
+      }
     }
 
     if (sideTabs.length > 0) {

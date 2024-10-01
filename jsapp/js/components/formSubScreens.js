@@ -33,6 +33,10 @@ const FormGallery = React.lazy(() =>
   import(/* webpackPrefetch: true */ './formGallery/formGallery.component')
 );
 
+const FormActivity = React.lazy(() =>
+  import(/* webpackPrefetch: true */ './formActivity')
+);
+
 export class FormSubScreens extends React.Component {
   constructor(props) {
     super(props);
@@ -104,6 +108,8 @@ export class FormSubScreens extends React.Component {
           );
         case ROUTES.FORM_RESET.replace(':uid', this.state.uid):
           return this.renderReset();
+        case ROUTES.FORM_ACTIVITY.replace(':uid', this.state.uid):
+          return <FormActivity />
       }
     }
 
