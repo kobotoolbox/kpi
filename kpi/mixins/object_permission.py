@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import copy
 from collections import defaultdict
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
@@ -565,8 +565,8 @@ class ObjectPermissionMixin:
         deny: bool = False,
         defer_recalc: bool = False,
         skip_kc: bool = False,
-        partial_perms: Optional[Dict] = None,
-    ) -> Union[List['ObjectPermission'], None]:
+        partial_perms: Optional[dict] = None,
+    ) -> Union[list['ObjectPermission'], None]:
         r"""
         Assign `user_obj` a list of permissions (`perms`) on this object,
         or break inheritance from a parent object. This method allows bulk
@@ -889,7 +889,7 @@ class ObjectPermissionMixin:
     def remove_perms(
         self,
         user_obj: 'User',
-        perms: List[str],
+        perms: list[str],
         defer_recalc: bool = False,
         skip_kc: bool = False,
     ) -> None:

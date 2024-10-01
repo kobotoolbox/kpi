@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Union
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -103,7 +103,7 @@ def post_assign_asset_perm(
     sender,
     instance,
     user: Union[settings.AUTH_USER_MODEL, 'AnonymousUser'],
-    codenames: Union[str, List[str]],
+    codenames: Union[str, list[str]],
     **kwargs
 ):
     # If codenames is a string, convert it to a list
