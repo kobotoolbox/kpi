@@ -1439,6 +1439,7 @@ if sentry_dsn:
             sentry_logging
         ],
         traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.01),
+        environment=env.str('SENTRY_ENVIRONMENT', 'production'),
         send_default_pii=True
     )
 
