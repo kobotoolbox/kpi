@@ -22,19 +22,7 @@ from kpi.exceptions import BadAssetTypeException
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
-
-class AccessLogModelTestCase(BaseTestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.super_user = User.objects.create_user(
-            'user', 'user@example.com', 'userpass'
-        )
-        cls.super_user.is_super = True
-        cls.super_user.backend = 'django.contrib.auth.backends.ModelBackend'
-        cls.super_user.save()
-
+class BaseAuditLogTestCase(BaseTestCase):
     def setUp(self):
         source_patcher = patch(
             'kobo.apps.audit_log.models.get_human_readable_client_user_agent',
@@ -47,6 +35,20 @@ class AccessLogModelTestCase(BaseTestCase):
         ip_patcher.start()
         self.addCleanup(source_patcher.stop)
         self.addCleanup(ip_patcher.stop)
+
+
+class AccessLogModelTestCase(BaseAuditLogTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.super_user = User.objects.create_user(
+            'user', 'user@example.com', 'userpass'
+        )
+        cls.super_user.is_super = True
+        cls.super_user.backend = 'django.contrib.auth.backends.ModelBackend'
+        cls.super_user.save()
+
 
     def _create_request(self, url: str, cached_user, new_user):
         factory = RequestFactory()
@@ -196,22 +198,9 @@ class AccessLogModelTestCase(BaseTestCase):
 
 
 @ddt
-class ProjectHistoryLogModelTestCase(BaseTestCase):
+class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
     fixtures = ['test_data']
-
-    def setUp(self):
-        source_patcher = patch(
-            'kobo.apps.audit_log.models.get_human_readable_client_user_agent',
-            return_value='source',
-        )
-        ip_patcher = patch(
-            'kobo.apps.audit_log.models.get_client_ip', return_value='1.2.3.4'
-        )
-        source_patcher.start()
-        ip_patcher.start()
-        self.addCleanup(source_patcher.stop)
-        self.addCleanup(ip_patcher.stop)
 
     def _check_common_fields(self, log: ProjectHistoryLog, user, asset):
         self.assertEqual(log.user.id, user.id)
@@ -293,7 +282,7 @@ class ProjectHistoryLogModelTestCase(BaseTestCase):
         )
         self._check_common_fields(log, user, asset)
         expected_metadata = {
-            'ip_address': '1.2.3.4',
+            'ip_address': '127.0.0.1',
             'source': 'source',
             'asset_uid': asset.uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
