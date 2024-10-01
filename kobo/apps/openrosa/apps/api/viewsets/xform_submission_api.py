@@ -6,7 +6,6 @@ import logging
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from lxml import etree
-from lxml.etree import XPathEvalError
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import mixins
@@ -222,7 +221,9 @@ class XFormSubmissionApi(
             return self.error_response(error, is_json_request, request)
 
         context = self.get_serializer_context()
-        if instance.xml and (confirmation_message := extract_confirmation_message(instance.xml)):
+        if instance.xml and (
+            confirmation_message := extract_confirmation_message(instance.xml)
+        ):
             context['confirmation_message'] = confirmation_message
         serializer = SubmissionSerializer(instance, context=context)
 
