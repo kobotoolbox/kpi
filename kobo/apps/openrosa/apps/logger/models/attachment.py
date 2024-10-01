@@ -1,4 +1,3 @@
-# coding: utf-8
 import mimetypes
 import os
 from typing import Optional
@@ -18,6 +17,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
     KobocatFileSystemStorage,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from .instance import Instance
 
@@ -50,7 +50,7 @@ class Attachment(models.Model, AudioTranscodingMixin):
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
-    media_file = models.FileField(
+    media_file = ExtendedFileField(
         storage=default_storage,
         upload_to=upload_to,
         max_length=380,
