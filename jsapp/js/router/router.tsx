@@ -275,6 +275,17 @@ export const router = createHashRouter(
                 />
               }
             />
+
+            {/* TODO: Fix permissions */}
+            <Route
+              path={ROUTES.FORM_ACTIVITY}
+              element={
+                <PermProtectedRoute
+                  protectedComponent={FormSubScreens}
+                  requiredPermissions={[PERMISSIONS_CODENAMES.manage_asset]}
+                />
+              }
+            />
           </Route>
 
           <Route
