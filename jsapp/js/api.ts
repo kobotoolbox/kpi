@@ -16,7 +16,7 @@ import * as Sentry from '@sentry/react';
 export function handleApiFail(response: FailResponse, toastMessage?: string) {
   // Don't do anything if we purposefully aborted the request
   if (response.status === 0 && response.statusText === 'abort') {
-    return;
+    return; // TEST ts-only change
   }
 
   const responseMessage = response.responseText;
