@@ -1,0 +1,37 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'scss/colors';
+
+.root {
+  @include mixins.centerRowFlex;
+  align-items: flex-start;
+  gap: sizes.$x10;
+}
+
+.sideLabel {
+  color: colors.$kobo-storm;
+  font-size: sizes.$x12;
+  font-weight: 700;
+  line-height: 200%;
+  margin-bottom: sizes.$x3;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.left {
+  flex: 3;
+}
+
+.right {
+  flex: 2;
+}
+
+.helpLink {
+  @include mixins.centerRowFlex;
+  color: colors.$kobo-dark-blue;
+  float: right;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

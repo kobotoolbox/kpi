@@ -103,7 +103,7 @@ class ImportExportTask(models.Model):
         (COMPLETE, COMPLETE),
     )
 
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     data = models.JSONField()
     messages = models.JSONField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
@@ -570,8 +570,9 @@ class ExportTaskBase(ImportExportTask):
     }
 
     TIMESTAMP_KEY = '_submission_time'
-    # Above 244 seems to cause 'Download error' in Chrome 64/Linux
-    MAXIMUM_FILENAME_LENGTH = 240
+    # Above 244 seems to cause 'Download error' in Chrome 64/Linux and above
+    # 207 causes a 'Filename too long' error in Excel
+    MAXIMUM_FILENAME_LENGTH = 207
 
     class InaccessibleData(Exception):
         def __str__(self):
@@ -852,19 +853,16 @@ class ExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
-            extr = dict(
-                source.submission_extras.values_list(
-                    'submission_uuid', 'content'
-                )
-            )
-            submission_stream = stream_with_extras(submission_stream, extr)
+            submission_stream = stream_with_extras(submission_stream, source)
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
 
         if source.has_advanced_features:
-            pack.extend_survey(source.analysis_form_json())
+            pack.extend_survey(
+                source.analysis_form_json(omit_question_types=['qual_note'])
+            )
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp

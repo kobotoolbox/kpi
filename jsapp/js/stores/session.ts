@@ -1,5 +1,5 @@
 import {action, makeAutoObservable} from 'mobx';
-import {ANON_USERNAME} from 'js/constants';
+import {ANON_USERNAME} from 'js/users/utils';
 import {dataInterface} from 'js/dataInterface';
 import type {AccountResponse, FailResponse} from 'js/dataInterface';
 import {log, currentLang} from 'js/utils';
@@ -7,8 +7,9 @@ import type {Json} from 'js/components/common/common.interfaces';
 import type {ProjectViewsSettings} from 'js/projects/customViewStore';
 
 class SessionStore {
-  currentAccount: AccountResponse | {username: string} = {
+  currentAccount: AccountResponse | {username: string; date_joined: string} = {
     username: ANON_USERNAME,
+    date_joined: '',
   };
   isAuthStateKnown = false;
   isLoggedIn = false;
@@ -20,6 +21,13 @@ class SessionStore {
     makeAutoObservable(this);
     this.verifyLogin();
     // TODO make this not awful
+    //
+    // HACK FIX: avoid double calls to `/me` endpoint.
+    // Context: when this store is being initialized, a call to `/me/` endpoint
+    // is being made (to get all the user info). When `AccountSettingsRoute` is
+    // being initialized (either by any navigation to the route or visiting it
+    // via a direct url) it also makes a call. We want to avoid double calls
+    // (happens in some cases), so we've introduced that `isInitialRoute` flag.
     setTimeout(() => (this.isInitialRoute = false), 1000);
   }
 
@@ -72,6 +80,20 @@ class SessionStore {
           this.currentAccount = account;
         }
       })
+    );
+  }
+
+  public logOut() {
+    dataInterface.logout().then(
+      action('logOutSuccess', () => {
+        // Reload so a new CSRF token is issued
+        window.setTimeout(() => {
+          window.location.replace('');
+        }, 1);
+      }),
+      action('logOutFailed', () => {
+        console.error('logout failed for some reason. what should happen now?');
+      }),
     );
   }
 

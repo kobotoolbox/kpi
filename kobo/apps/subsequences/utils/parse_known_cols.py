@@ -15,15 +15,17 @@ from collections import defaultdict
 
 
 def extend_col_deets(lang, coltype, label, q_path):
+    # NB: refer to commit d013bfe0f5 when trying to figure out the original
+    # intent here
     name = q_path.split('-')[-1]
-    out = {'label': name, 'name': name}
+    out = {'label': name}
     out['dtpath'] = f'{q_path}/{coltype}_{lang}'
     out['type'] = coltype
     out['language'] = lang
     out['label'] = f'{label} - {coltype}'
-    out['name'] = f'{name}/{coltype}_{lang}'
+    out['name'] = f'{q_path}/{coltype}_{lang}'
     out['source'] = q_path
-    out['qpath'] = f'{name}-{coltype}-{lang}'
+    out['qpath'] = f'{q_path}-{coltype}-{lang}'
     out['settings'] = {'mode': 'manual', 'engine': f'engines/{coltype}_manual'}
     out['path'] = [q_path, coltype]
     return out

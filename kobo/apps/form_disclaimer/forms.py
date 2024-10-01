@@ -1,6 +1,5 @@
 from django.forms import ModelForm, ValidationError
 
-from kpi.deployment_backends.kc_access.shadow_models import KobocatFormDisclaimer
 from .models import FormDisclaimer
 
 
@@ -42,7 +41,6 @@ class FormDisclaimerForm(ModelForm):
             .exists()
         ):
             FormDisclaimer.objects.filter(default=True).update(default=False)
-            KobocatFormDisclaimer.objects.filter(default=True).update(default=False)
 
         if (
             FormDisclaimer.objects.filter(language=language, asset__isnull=True)

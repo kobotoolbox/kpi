@@ -8,6 +8,7 @@
     action="{% url 'mfa_token' %}"
     class="registration registration--login mfa-token-form"
     data-mfa-token-form-current-section="form"
+    autocomplete="off"
   >
     <div class="registration--logo">
       <a href="/">{% block logo %}{{ block.super }}{% endblock %}</a>

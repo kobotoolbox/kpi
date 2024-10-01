@@ -1,5 +1,5 @@
 @use 'sass:color';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // global and shared variables
 
@@ -8,17 +8,17 @@ $s-breadcrumbs-height: 70px;
 $s-fb-row-locking-icons-width: 25px;
 $s-fb-row-buttons-width: 25px;
 
-$drawer-background: colors.$kobo-gray-96;
+$drawer-background: colors.$kobo-gray-200;
 $drawer-icons-width: 58px;
 $s-drawer-width: 270px;
 
-$mdl-layout-width: 1440px;
+$mdl-layout-width: 100%;
 
 $base-font-size: 14px;
 
 // Form Builder variables
 
-$cardBorderColor: colors.$kobo-gray-65;
+$cardBorderColor: colors.$kobo-gray-500;
 $cardInSortBorderColor: colors.$kobo-blue;
 $linkColor: colors.$kobo-blue;
 $cardBorderStyle: 1px solid $cardBorderColor;

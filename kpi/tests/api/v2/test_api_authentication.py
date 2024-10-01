@@ -1,15 +1,15 @@
 # coding: utf-8
 import base64
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.test import override_settings
 from rest_framework import status
-
 from rest_framework.authtoken.models import Token
+from trench.utils import get_mfa_model
+
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from trench.utils import get_mfa_model
 
 
 class AuthenticationApiTests(BaseAssetTestCase):
@@ -45,13 +45,7 @@ class AuthenticationApiTests(BaseAssetTestCase):
         with override_settings(MFA_SUPPORTED_AUTH_CLASSES=[]):
             response = self.client.get(self.list_url, **auth_headers)
 
-        # DRF looks at the first authentication class to expose
-        # a `WWW-authenticate` header. If the first one does not implement a
-        # `authenticate_header()` method, it coerces exceptions to 403
-        # Because SessionAuthentication is the first one, a 403 is returned.
-        # If it had been BasicAuthentication, it would have been a 401 response
-        # instead.
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertTrue(
             'Multi-factor authentication is enabled for this account.'
             in response.content.decode()
@@ -78,13 +72,8 @@ class AuthenticationApiTests(BaseAssetTestCase):
         }
 
         response = self.client.get(self.list_url, **auth_headers)
-        # DRF looks at the first authentication class to expose
-        # a `WWW-authenticate` header. If the first one does not implement a
-        # `authenticate_header()` method, it coerces exceptions to 403
-        # Because SessionAuthentication is the first one, a 403 is returned.
-        # If it had been BasicAuthentication, it would have been a 401 response
-        # instead.
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertTrue(
             'Multi-factor authentication is enabled for this account.'
             in response.content.decode()

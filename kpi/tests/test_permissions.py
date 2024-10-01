@@ -1,8 +1,9 @@
 # coding: utf-8
 import unittest
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
@@ -255,7 +256,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
     def test_implied_asset_grant_permissions(self):
         implications = {
             PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
-            PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
             PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
             PERM_CHANGE_SUBMISSIONS: (
                 PERM_VIEW_ASSET,
@@ -304,6 +304,9 @@ class PermissionsTestCase(BasePermissionsTestCase):
             sorted(asset.get_perms(grantee)), sorted(expected_perms)
         )
         asset.remove_perm(grantee, PERM_VIEW_ASSET)
+        # `add_submissions` does not imply `view_asset` anymore.
+        self.assertListEqual(asset.get_perms(grantee), [PERM_ADD_SUBMISSIONS])
+        asset.remove_perm(grantee, PERM_ADD_SUBMISSIONS)
         self.assertListEqual(asset.get_perms(grantee), [])
 
         asset.assign_perm(grantee, PERM_VALIDATE_SUBMISSIONS)
@@ -350,7 +353,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 user=grantee, deny=True).values_list(
                     'permission__codename', flat=True)
             ), [
-                PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
                 PERM_DELETE_SUBMISSIONS,
@@ -378,7 +380,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 user=grantee, deny=True).values_list(
                     'permission__codename', flat=True)
             ), [
-                PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
                 PERM_DELETE_SUBMISSIONS,
@@ -764,6 +765,10 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertDictEqual(expected_partial_perms, partial_perms)
 
     def test_merged_implied_partial_submission_permission(self):
+        """
+        Mongo operators like $in are allowed, however they should not be simplified
+        when processing implied permissions.
+        """
         asset = self.admin_asset
         grantee = self.someuser
         partial_perms = {
@@ -783,8 +788,20 @@ class PermissionsTestCase(BasePermissionsTestCase):
                     '_submitted_by': {
                         '$in': [
                             self.admin.username,
-                            self.someuser.username,
+                        ]
+                    }
+                },
+                {
+                    '_submitted_by': {
+                        '$in': [
                             self.anotheruser.username,
+                        ]
+                    }
+                },
+                {
+                    '_submitted_by': {
+                        '$in': [
+                            self.someuser.username,
                         ]
                     }
                 },
@@ -815,23 +832,16 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 {'_submitted_by': self.someuser.username},
             ],
             PERM_DELETE_SUBMISSIONS: [
-                {'_submission_date': {'$lte': '2021-01-01'}},
-                {'_submission_date': {'$gte': '2020-01-01'}},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ]
         }
         expected_partial_perms = {
             PERM_VIEW_SUBMISSIONS: [
-                [
-                    {'_submission_date': {'$lte': '2021-01-01'}},
-                    {'_submission_date': {'$gte': '2020-01-01'}},
-                ],
-                [
-                    {'_submitted_by': self.someuser.username},
-                ],
+                {'_submitted_by': self.someuser.username},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ],
             PERM_DELETE_SUBMISSIONS: [
-                {'_submission_date': {'$lte': '2021-01-01'}},
-                {'_submission_date': {'$gte': '2020-01-01'}},
+                {'_submission_date': {'$and': [{'$lte': '2021-01-01', '$gte': '2020-01-01'}]}},
             ]
         }
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,

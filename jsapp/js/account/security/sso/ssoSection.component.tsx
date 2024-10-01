@@ -1,11 +1,10 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {observer} from 'mobx-react-lite';
 import sessionStore from 'js/stores/session';
-import {PATHS} from 'js/router/routerConstants';
 import styles from './ssoSection.module.scss';
 import {deleteSocialAccount} from './sso.api';
 import Button from 'jsapp/js/components/common/button';
-import envStore from 'jsapp/js/envStore';
+import envStore, {SocialApp} from 'jsapp/js/envStore';
 import classNames from 'classnames';
 
 const SsoSection = observer(() => {
@@ -24,7 +23,17 @@ const SsoSection = observer(() => {
     }
   };
 
-  if (socialApps.length === 0) {
+  const providerLink = useCallback((socialApp: SocialApp) => {
+    let providerPath = '';
+    if(socialApp.provider === 'openid_connect') {
+      providerPath = 'oidc/' + socialApp.provider_id;
+    } else {
+      providerPath = socialApp.provider_id || socialApp.provider;
+    }
+    return `accounts/${providerPath}/login/?process=connect&next=%2F%23%2Faccount%2Fsecurity`;
+  }, [sessionStore.currentAccount])
+
+  if (socialApps.length === 0 && socialAccounts.length === 0) {
     return <></>;
   }
 
@@ -51,18 +60,13 @@ const SsoSection = observer(() => {
         <div className={classNames(styles.optionsSection, styles.ssoSetup)}>
           {socialApps.map((socialApp) => (
             <a
-              href={
-                'accounts/' +
-                socialApp.provider +
-                '/login/?process=connect&next=%2F%23%2Faccount%2Fsecurity'
-              }
+              href={providerLink(socialApp)}
               className={styles.passwordLink}
             >
               <Button
                 label={socialApp.name}
                 size='m'
-                color='blue'
-                type='frame'
+                type='secondary'
                 onClick={() => {
                   /*TODO: Handle NavLink and Button*/
                 }}
@@ -75,8 +79,7 @@ const SsoSection = observer(() => {
           <Button
             label={t('Disable')}
             size='m'
-            color='blue'
-            type='frame'
+            type='secondary'
             onClick={disconnectSocialAccount}
           />
         </div>

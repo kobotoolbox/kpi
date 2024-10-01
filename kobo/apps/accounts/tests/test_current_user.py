@@ -1,8 +1,8 @@
-import json
 import re
 
-import constance
+import dateutil
 from constance.test import override_config
+from django.conf import settings
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
@@ -11,11 +11,12 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.utils.json import LazyJSONSerializable
 
 
 class CurrentUserAPITestCase(APITestCase):
     def setUp(self):
-        self.user = baker.make('auth.User', username='spongebob', email='me@sponge.bob')
+        self.user = baker.make(settings.AUTH_USER_MODEL, username='spongebob', email='me@sponge.bob')
         self.client.force_login(self.user)
         self.url = reverse('currentuser-detail')
 
@@ -50,11 +51,12 @@ class CurrentUserAPITestCase(APITestCase):
         # …and what we didn't touch should still be there as well
         assert response_extra_details['name'] == 'SpongeBob'
 
+    @override_config(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
+            [{'name': 'organization', 'required': True}]
+        )
+    )
     def test_validate_extra_detail(self):
-        constance.config.USER_METADATA_FIELDS = json.dumps([
-            {'name': 'organization', 'required': True}
-        ])
-
         # Setting an unrelated field should not be subject to validation
         patch_data = {'extra_details': {'name': 'SpongeBob'}}
         response = self.client.patch(self.url, data=patch_data, format='json')
@@ -124,3 +126,96 @@ class CurrentUserAPITestCase(APITestCase):
         assert self.user.extra_details.validated_password
         assert self.user.extra_details.password_date_changed is not None
         assert self.user.extra_details.password_date_changed >= now
+
+    def test_accepted_tos(self):
+        # Ensure accepted_tos is initially False
+        response = self.client.get(self.url)
+        assert response.data['accepted_tos'] == False
+        assert (
+            'last_tos_accept_time' not in self.user.extra_details.private_data
+        )
+
+        def now_without_microseconds():
+            return timezone.now().replace(microsecond=0)
+
+        # Submit a ToS acceptance request and save the current time
+        time_before_signup = now_without_microseconds()
+        response = self.client.post(reverse('tos'))
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.user.refresh_from_db()
+        accept_time_str = (
+            self.user.extra_details.private_data['last_tos_accept_time']
+        )
+        accept_time = dateutil.parser.isoparse(accept_time_str)
+        assert time_before_signup <= accept_time <= now_without_microseconds()
+
+        # Ensure accepted_tos is now True after accepting ToS
+        response = self.client.get(self.url)
+        assert response.data['accepted_tos'] == True
+
+    @override_config(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
+            [
+                {'name': 'organization', 'required': True},
+                {'name': 'organization_type', 'required': True},
+                {'name': 'organization_website', 'required': True},
+            ]
+        )
+    )
+    def test_validate_extra_detail_organization_type(self):
+        # Validate that a user can submit empty strings for `organization`
+        # and `organization_website` if `organization_type` is none
+        patch_data = {
+            'extra_details': {
+                'organization': '',
+                'organization_type': 'none',
+                'organization_website': '',
+            }
+        }
+        response = self.client.patch(self.url, data=patch_data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        response_extra_details = response.json()['extra_details']
+        assert response_extra_details['organization'] == ''
+        assert response_extra_details['organization_type'] == 'none'
+        assert response_extra_details['organization_website'] == ''
+
+        # Validate that a user cannot submit empty strings for `organization`
+        # and `organization_website` if `organization_type` is not none
+        patch_data = {
+            'extra_details': {
+                'organization': '',
+                'organization_type': 'government',
+                'organization_website': '',
+            }
+        }
+        response = self.client.patch(self.url, data=patch_data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            'extra_details': {
+                'organization': 'This field may not be blank.',
+                'organization_website': 'This field may not be blank.',
+            }
+        }
+
+    @override_config(
+        USER_METADATA_FIELDS=LazyJSONSerializable(
+            [
+                {'name': 'organization', 'required': True},
+                {'name': 'organization_website', 'required': True},
+            ]
+        )
+    )
+    def test_validate_extra_detail_no_organization_type(self):
+        # Ensure `organization` and `organization_website` fields behave normally
+        # if `organization_type` is not enabled
+        patch_data = {
+            'extra_details': {
+                'organization': 'sample',
+                'organization_website': 'sample.org',
+            }
+        }
+        response = self.client.patch(self.url, data=patch_data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        response_extra_details = response.json()['extra_details']
+        assert response_extra_details['organization'] == 'sample'
+        assert response_extra_details['organization_website'] == 'sample.org'

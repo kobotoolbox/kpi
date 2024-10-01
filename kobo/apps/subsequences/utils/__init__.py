@@ -1,6 +1,8 @@
+from collections import defaultdict
 from copy import deepcopy
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
 from ..actions.translation import TranslationAction
+from ..actions.qual import QualAction
 
 from ..actions.unknown_action import UnknownAction
 
@@ -8,6 +10,7 @@ from ..actions.unknown_action import UnknownAction
 AVAILABLE_ACTIONS = (
     AutomaticTranscriptionAction,
     TranslationAction,
+    QualAction,
 )
 
 ACTIONS_BY_ID = dict([
@@ -117,11 +120,77 @@ def get_jsonschema(action_instances=(), url=None):
 
 SUPPLEMENTAL_DETAILS_KEY = '_supplementalDetails'
 
-def stream_with_extras(submission_stream, extras):
+def stream_with_extras(submission_stream, asset):
+    extras = dict(
+        asset.submission_extras.values_list('submission_uuid', 'content')
+    )
+    try:
+        qual_survey = asset.advanced_features['qual']['qual_survey']
+    except KeyError:
+        qual_survey = []
+    else:
+        qual_survey = deepcopy(qual_survey)
+    # keys are question UUIDs, values are question definitions
+    qual_questions_by_uuid = {}
+    # outer keys are question UUIDs, inner keys are choice UUIDs, values are
+    # choice definitions
+    qual_choices_per_question_by_uuid = defaultdict(dict)
+    for qual_q in qual_survey:
+        try:
+            choices = qual_q['choices']
+        except KeyError:
+            pass
+        else:
+            qual_choices_per_question_by_uuid[qual_q['uuid']] = {
+                c['uuid']: c for c in choices
+            }
+        qual_questions_by_uuid[qual_q['uuid']] = qual_q
     for submission in submission_stream:
         if SUBMISSION_UUID_FIELD in submission:
             uuid = submission[SUBMISSION_UUID_FIELD]
         else:
             uuid = submission['_uuid']
-        submission[SUPPLEMENTAL_DETAILS_KEY] = extras.get(uuid, {})
+        all_supplemental_details = deepcopy(extras.get(uuid, {}))
+        for qpath, supplemental_details in all_supplemental_details.items():
+            try:
+                all_qual_responses = supplemental_details['qual']
+            except KeyError:
+                continue
+            for qual_response in all_qual_responses:
+                try:
+                    qual_q = qual_questions_by_uuid[qual_response['uuid']]
+                except KeyError:
+                    # TODO: make sure this can never happen by refusing to
+                    # remove qualitative analysis questions once added. They
+                    # should simply be hidden
+                    qual_response['error'] = 'unknown question'
+                    continue
+                qual_q = deepcopy(qual_q)
+                choices = qual_q.pop('choices', None)
+                if choices:
+                    val = qual_response['val']
+                    if isinstance(val, list):
+                        single_choice = False
+                    else:
+                        single_choice = True
+                        val = [val]
+                    val_expanded = []
+                    for v in val:
+                        if v == '':
+                            continue
+                        try:
+                            v_ex = qual_choices_per_question_by_uuid[
+                                qual_q['uuid']
+                            ][v]
+                        except KeyError:
+                            # TODO: make sure this can never happen by refusing
+                            # to remove qualitative analysis *choices* once
+                            # added. They should simply be hidden
+                            v_ex = {'uuid': v, 'error': 'unknown choice'}
+                        val_expanded.append(v_ex)
+                    if single_choice and val_expanded:
+                        val_expanded = val_expanded[0]
+                    qual_response['val'] = val_expanded
+                qual_response.update(qual_q)
+        submission[SUPPLEMENTAL_DETAILS_KEY] = all_supplemental_details
         yield submission

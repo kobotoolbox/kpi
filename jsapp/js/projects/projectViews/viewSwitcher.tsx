@@ -4,7 +4,7 @@ import {observer} from 'mobx-react-lite';
 import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
 import KoboDropdown from 'js/components/common/koboDropdown';
-import {PROJECTS_ROUTES} from 'js/projects/routes';
+import {PROJECTS_ROUTES} from 'jsapp/js/router/routerConstants';
 import projectViewsStore from './projectViewsStore';
 import styles from './viewSwitcher.module.scss';
 import {HOME_VIEW} from './constants';

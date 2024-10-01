@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/mixins';
 @use 'scss/breakpoints';
@@ -9,18 +9,28 @@
  */
 
 .root {
-  padding: sizes.$x30;
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.root.viewAnalysis {
+  // These styles are needed for the sticky header to work
+  height: auto;
+  min-height: 100%;
+  // AnalysisHeader handles the top padding
+  padding-top: 0;
 }
 
 // The content of these steps is different.
 .root.stepBegin,
 .root.stepConfig {
   max-width: sizes.$x600 + (2 * sizes.$x30); // include paddings
-  padding-top: sizes.$x50;
   margin: 0 auto;
+}
+
+.root.stepConfig :global .loadingSpinner {
+  height: auto;
 }
 
 .root.stepBegin {
@@ -57,52 +67,9 @@
   }
 }
 
-.transxHeader {
-  @include mixins.centerRowFlex;
-  margin-bottom: sizes.$x12;
-}
-
-.transxHeaderDate {
-  @include mixins.textEllipsis;
-
-  background-color: colors.$kobo-cloud;
-  height: sizes.$x28;
-  line-height: sizes.$x28;
-  border-radius: sizes.$x14;
-  padding: 0 sizes.$x14;
-
-  &:not(:first-child) {
-    margin-left: sizes.$x20;
-  }
-}
-
-.transxHeaderLanguage {
-  font-weight: 700;
-
-  &:not(:first-child) {
-    margin-left: sizes.$x4;
-  }
-
-  @media screen and (min-width: #{breakpoints.$b1440}) {
-    max-width: sizes.$x300;
-  }
-  @media screen and (max-width: #{breakpoints.$b1440 - 1px}) {
-    max-width: sizes.$x200;
-  }
-}
-
-.transxHeaderButtons {
-  @include mixins.centerRowFlex;
-
-  flex: 1;
-  margin-left: sizes.$x20;
-  justify-content: flex-end;
-  gap: sizes.$x12;
-}
-
 .text {
   white-space: pre-wrap;
-  border-top: sizes.$x2 solid colors.$kobo-gray-96;
+  border-top: sizes.$x2 solid colors.$kobo-gray-200;
   padding-top: sizes.$x16;
   width: 100%;
   overflow-y: auto;
@@ -110,7 +77,7 @@
 }
 
 .textarea {
-  border: sizes.$x2 solid colors.$kobo-gray-96;
+  border: sizes.$x2 solid colors.$kobo-gray-200;
   border-radius: sizes.$x6;
   padding: sizes.$x16;
   resize: none;
@@ -119,11 +86,13 @@
 }
 
 .header {
-  font-size: sizes.$x18;
   font-weight: 400;
   text-align: center;
-  line-height: sizes.$x20;
   margin-bottom: sizes.$x24;
+}
+
+.header:not(:first-child) {
+  margin-top: sizes.$x32;
 }
 
 .footer {
@@ -146,4 +115,104 @@
   flex: 1;
   justify-content: center;
   gap: sizes.$x14;
+}
+
+/*
+ * transxHeader
+ */
+
+.transxHeader {
+  @include mixins.centerRowFlex;
+  margin-bottom: sizes.$x12;
+  gap: 8px;
+}
+
+.transxHeaderButtons {
+  @include mixins.centerRowFlex;
+
+  flex: 1;
+  justify-content: flex-end;
+  gap: inherit;
+}
+
+.transxHeaderLanguage {
+  font-weight: 700;
+  // With single column layout this can get very long or very short
+  max-width: 30%;
+
+  &:not(:first-child) {
+    margin-left: sizes.$x4;
+  }
+}
+
+.transxHeaderDate {
+  @include mixins.textEllipsis;
+
+  background-color: colors.$kobo-light-storm;
+  height: sizes.$x28;
+  line-height: sizes.$x28;
+  border-radius: sizes.$x14;
+  padding: 0 sizes.$x14;
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .root {padding: 20px;}
+
+  .root.stepBegin,
+  .root.stepConfig {
+    padding-top: sizes.$x30;
+  }
+
+  .header {
+    font-size: 16px;
+    line-height: 18px;
+  }
+
+  .transxHeaderDateLong {display: none;}
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .root {padding: 30px;}
+
+  .root.stepBegin,
+  .root.stepConfig {
+    padding-top: sizes.$x50;
+  }
+
+  .header {
+    font-size: 18px;
+    line-height: 20px;
+  }
+
+  .transxHeaderDateShort {display: none;}
+}
+
+@include breakpoints.breakpoint(medium) {
+  .transxHeader {
+    gap: 12px;
+  }
+
+  .transxHeaderLanguage {
+    // cramped two columns layout - this value makes sure we don't overflow
+    // horizontally
+    max-width: 140px;
+  }
+}
+
+@include breakpoints.breakpoint(wide) {
+  .transxHeaderLanguage {
+    max-width: 140px;
+  }
+}
+
+@include breakpoints.breakpoint(wideAndUp) {
+  .transxHeader {
+    gap: 20px;
+  }
+}
+
+@include breakpoints.breakpoint(veryWide) {
+  .transxHeaderLanguage {
+    max-width: 250px;
+  }
 }

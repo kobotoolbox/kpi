@@ -34,14 +34,17 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
     switch (field.name) {
       case 'name':
         return (
-          <Link to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}>
+          <Link
+            to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}
+            data-cy="asset"
+          >
             <AssetName asset={props.asset} />
           </Link>
         );
       case 'description':
         return props.asset.settings.description;
       case 'status':
-        return <AssetStatusBadge asset={props.asset} />;
+        return <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />;
       case 'ownerUsername':
         if (isSelfOwned(props.asset)) {
           return t('me');
@@ -73,21 +76,24 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           return props.asset.settings.country.map((country) => (
             <Badge
               key={country.value}
-              color='cloud'
+              color='light-storm'
               size='m'
               label={country.label}
             />
           ));
         } else if (typeof props.asset.settings.country === 'string') {
-          <Badge color='cloud' size='m' label={props.asset.settings.country} />;
+          <Badge color='light-storm' size='m' label={props.asset.settings.country} />;
         }
         return null;
       case 'languages':
         return assetUtils.getLanguagesDisplayString(props.asset);
       case 'submissions':
+        if (props.asset.deployment__submission_count === null) {
+          return null;
+        }
         return (
           <Badge
-            color='cloud'
+            color='light-storm'
             size='m'
             label={props.asset.deployment__submission_count}
           />
@@ -117,6 +123,14 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           return null;
         }
 
+        // All the columns that could have user content
+        const isUserContent = (
+          field.name === 'name' ||
+          field.name === 'description' ||
+          field.name === 'ownerFullName' ||
+          field.name === 'ownerOrganization'
+        );
+
         return (
           <div
             className={classNames({
@@ -130,6 +144,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
             // This attribute is being used for styling and for ColumnResizer
             data-field={field.name}
             key={field.name}
+            dir={isUserContent ? 'auto' : undefined}
           >
             {renderColumnContent(field)}
           </div>

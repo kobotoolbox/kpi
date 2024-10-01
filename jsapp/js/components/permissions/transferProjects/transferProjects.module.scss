@@ -1,0 +1,57 @@
+@use 'scss/sizes';
+@use 'scss/breakpoints';
+@use 'scss/colors';
+
+.root {
+  background: colors.$kobo-white;
+  padding: sizes.$x20;
+  margin: sizes.$x24 sizes.$x40;
+  border: 1px solid colors.$kobo-gray-300;
+  border-radius: sizes.$x5;
+}
+
+.form {
+  overflow-x: auto;
+}
+
+.bar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  .transferButton {
+    max-width: sizes.$x180;
+  }
+}
+
+.description {
+  margin-right: sizes.$x16;
+}
+
+.copy {
+  margin-top: sizes.$x8;
+}
+
+.modalBody {
+  line-height: sizes.$x24;
+  padding: 0 sizes.$x24;
+
+  p {
+    // Reset browser defaults
+    margin: 0;
+  }
+
+  p:not(:last-child) {
+    margin-bottom: sizes.$x16;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .bar {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+}

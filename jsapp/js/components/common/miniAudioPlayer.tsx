@@ -1,11 +1,8 @@
-import React from 'react';
+import React, {createRef} from 'react';
 import bem, {makeBem} from 'js/bem';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
-import {
-  formatSeconds,
-  generateUid,
-} from 'js/utils';
+import {formatSeconds, generateUuid, notify} from 'js/utils';
 import 'js/components/common/miniAudioPlayer.scss';
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player');
@@ -29,10 +26,13 @@ interface MiniAudioPlayerState {
 const PLAYER_STARTED_EVENT = 'MiniAudioPlayer:started';
 
 /** Custom audio player to be placed inline in small containers. */
-class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPlayerState> {
-  audioInterface: HTMLAudioElement = new Audio();
+class MiniAudioPlayer extends React.Component<
+  MiniAudioPlayerProps,
+  MiniAudioPlayerState
+> {
+  audioRef = createRef<HTMLAudioElement>();
   /** Useful for stopping. */
-  uid = generateUid();
+  uid = generateUuid();
 
   private onAudioLoadedBound = this.onAudioLoaded.bind(this);
   private onAudioErrorBound = this.onAudioError.bind(this);
@@ -52,9 +52,6 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   }
 
   componentDidUpdate(prevProps: MiniAudioPlayerProps) {
-    if (prevProps.preload !== this.props.preload) {
-      this.audioInterface.preload = this.props.preload ? 'metadata' : 'none';
-    }
     if (prevProps.mediaURL !== this.props.mediaURL) {
       // If the URL changed, and `preload` is not enabled, we need to clear the
       // time from previous file.
@@ -64,35 +61,29 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
           totalTime: 0,
         });
       }
-      // Reload audio element when URL changes.
-      this.audioInterface.src = this.props.mediaURL;
     }
   }
 
   componentDidMount() {
-    // Prepare audio.
-    this.audioInterface = document.createElement('audio');
-    // NOTE: 'metadata' causes an immediate download of part of the file (to get
-    // the metadata), usually requires around 30-50KB, but it may vary. Some
-    // browser may simply download whole file.
-    this.audioInterface.preload = this.props.preload ? 'metadata' : 'none';
-    this.audioInterface.src = this.props.mediaURL;
-
-    // Set up listeners for audio component.
-    this.audioInterface.addEventListener('loadedmetadata', this.onAudioLoadedBound);
-    this.audioInterface.addEventListener('error', this.onAudioErrorBound);
-    this.audioInterface.addEventListener('timeupdate', this.onAudioTimeUpdatedBound);
-    document.addEventListener(PLAYER_STARTED_EVENT, this.onAnyPlayerStartedBound);
+    // Set up listener for custom event
+    document.addEventListener(
+      PLAYER_STARTED_EVENT,
+      this.onAnyPlayerStartedBound
+    );
   }
 
   componentWillUnmount() {
-    // Pausing makes it subject to garbage collection.
-    this.audioInterface.pause();
+    // We know that audioRef will be ready each time we use audioRef.current
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    // (But you may wish to re-enable this rule while working on this file.)
 
-    this.audioInterface.removeEventListener('loadedmetadata', this.onAudioLoadedBound);
-    this.audioInterface.removeEventListener('error', this.onAudioErrorBound);
-    this.audioInterface.removeEventListener('timeupdate', this.onAudioTimeUpdatedBound);
-    document.removeEventListener(PLAYER_STARTED_EVENT, this.onAnyPlayerStartedBound);
+    // Pausing makes it subject to garbage collection.
+    this.audioRef.current!.pause();
+
+    document.removeEventListener(
+      PLAYER_STARTED_EVENT,
+      this.onAnyPlayerStartedBound
+    );
   }
 
   onAnyPlayerStarted(evt: CustomEventInit<string>) {
@@ -112,20 +103,20 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     this.setState({
       isLoading: false,
       isBroken: false,
-      totalTime: this.audioInterface.duration,
+      totalTime: this.audioRef.current!.duration,
     });
   }
 
   onAudioTimeUpdated() {
     // Pause the player when it reaches the end
     if (
-      this.audioInterface.currentTime === this.state.totalTime &&
+      this.audioRef.current!.currentTime === this.state.totalTime &&
       this.state.isPlaying
     ) {
       this.stop();
     }
 
-    this.setState({currentTime: this.audioInterface.currentTime});
+    this.setState({currentTime: this.audioRef.current!.currentTime});
   }
 
   onButtonClick() {
@@ -141,15 +132,19 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   }
 
   start() {
-    this.audioInterface.play();
-    const event = new CustomEvent(PLAYER_STARTED_EVENT, {detail: this.uid});
-    document.dispatchEvent(event);
+    const playPromise = this.audioRef.current!.play();
+    playPromise.then(() => {
+      const event = new CustomEvent(PLAYER_STARTED_EVENT, {detail: this.uid});
+      document.dispatchEvent(event);
+    }).catch((reason) => {
+      notify.error(reason.name + ' ' + reason.message);
+    });
   }
 
   stop() {
     // Setting time to 0 and pausing is a silly way to "stop" audio.
-    this.audioInterface.currentTime = 0;
-    this.audioInterface.pause();
+    this.audioRef.current!.currentTime = 0;
+    this.audioRef.current!.pause();
     this.setState({
       currentTime: 0,
       isPlaying: false,
@@ -160,20 +155,19 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     return (
       <React.Fragment>
         <Button
-          type='bare'
+          type='text'
           startIcon={this.state.isPlaying ? 'stop' : 'play'}
           size='s'
-          color='blue'
           onClick={this.onButtonClick.bind(this)}
           data-cy='mini audio player playstop'
         />
 
-        {this.state.totalTime > 0 &&
+        {this.state.totalTime > 0 && (
           <bem.MiniAudioPlayer__time dateTime={this.state.totalTime}>
             {this.state.isPlaying && formatSeconds(this.state.currentTime)}
             {!this.state.isPlaying && formatSeconds(this.state.totalTime)}
           </bem.MiniAudioPlayer__time>
-        }
+        )}
       </React.Fragment>
     );
   }
@@ -182,10 +176,9 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     return (
       <React.Fragment>
         <Button
-          type='bare'
+          type='text'
           startIcon='play'
           size='s'
-          color='blue'
           onClick={() => null}
           isDisabled
         />
@@ -198,7 +191,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   renderError() {
     return (
       <React.Fragment>
-        <Icon name='alert' size='s'/>
+        <Icon name='alert' size='s' />
 
         <bem.MiniAudioPlayer__time>--:--</bem.MiniAudioPlayer__time>
       </React.Fragment>
@@ -217,20 +210,31 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     }
 
     const additionalProps = {
-      'data-tip': this.state.isBroken ? t('Could not load media file') : undefined,
+      'data-tip': this.state.isBroken
+        ? t('Could not load media file')
+        : undefined,
     };
 
     return (
-      <bem.MiniAudioPlayer data-cy={this.props['data-cy']} m={modifiers} {...additionalProps}>
-        {this.state.isLoading &&
-          this.renderLoading()
-        }
-        {!this.state.isLoading && this.state.isBroken &&
-          this.renderError()
-        }
-        {!this.state.isLoading && !this.state.isBroken &&
-          this.renderPlayer()
-        }
+      <bem.MiniAudioPlayer
+        data-cy={this.props['data-cy']}
+        m={modifiers}
+        {...additionalProps}
+      >
+        <audio
+          ref={this.audioRef}
+          src={this.props.mediaURL}
+          // NOTE: 'metadata' causes an immediate download of part of the file
+          // (to get the metadata), usually requires around 30-50KB, but it may
+          // vary. Some browser may simply download whole file.
+          preload={this.props.preload ? 'metadata' : 'none'}
+          onLoadedMetadata={this.onAudioLoadedBound}
+          onTimeUpdate={this.onAudioTimeUpdatedBound}
+          onError={this.onAudioErrorBound}
+        />
+        {this.state.isLoading && this.renderLoading()}
+        {!this.state.isLoading && this.state.isBroken && this.renderError()}
+        {!this.state.isLoading && !this.state.isBroken && this.renderPlayer()}
       </bem.MiniAudioPlayer>
     );
   }

@@ -1,0 +1,14 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Projects:" as projects_label %}
+
+{% trans "Dear" %} {{ username }},
+
+{% blocktrans %}The request you have sent to {{ recipient }} has expired.{% endblocktrans %}
+
+{{ projects_label }}
+{% for transfer in transfers %}
+* {{ transfer.asset_name }} - [{{ base_url }}/#/forms/{{ transfer.asset_uid }}/landing]
+{% endfor %}
+
+- KoboToolbox

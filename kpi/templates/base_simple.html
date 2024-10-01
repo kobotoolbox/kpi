@@ -1,22 +1,43 @@
-{% load i18n %}
-<!DOCTYPE html>
+{# NOTE: All the templates we use should extend this either directly or indirectly to ensure every path visited by users behaves the same. #}
+
+{% load static %}
+<!doctype html>
 <html>
+  <head>
+    <!-- Setup -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% if google_analytics_token %}
+      <meta name="google-analytics-token" content="{{ google_analytics_token }}">
+    {% endif %}
+    {% block head_meta %}{% endblock %}
 
-<head>
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
-  <link rel="stylesheet" href="{% static 'css/kpi_simple.css' %}">
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>KoboToolbox {% block title %}{% endblock %}</title>
-  <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
-  {% block head %}{% endblock %}
-</head>
+    <!-- Title and description -->
+    <title>KoboToolbox {% block title %}{% endblock %}</title>
+    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
 
-<body>
-  {% block content %}{% endblock %}
-</body>
+    <!-- Icons -->
+    <link rel="icon" href="{% static 'favicon.png' %}" />
+    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'site.webmanifest' %}" />
+    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#2095f3" />
 
+    <!-- Scripts -->
+    <!-- Make Django's internationalization functionality available in client code. -->
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'js/global_t.js' %}"></script>
+    {% block head_scripts %}{% endblock %}
+
+    <!-- Stylesheets -->
+    {% block head_stylesheets%}
+      <link rel="stylesheet" href="{% static 'css/kpi_simple.css' %}">
+    {% endblock %}
+
+    {% block head_end %}{% endblock %}
+  </head>
+
+  <body>
+    {% block body %}{% endblock %}
+  </body>
 </html>

@@ -24,7 +24,7 @@ def grant_object_level_perms(apps):
     Grant `manage_asset` to the owner of every asset
     """
     ContentType = apps.get_model('contenttypes', 'ContentType')  # noqa
-    User = apps.get_model('auth', 'User')  # noqa
+    User = apps.get_model('kobo_auth', 'User')  # noqa
     Permission = apps.get_model('auth', 'Permission')  # noqa
     Asset = apps.get_model('kpi', 'Asset')  # noqa
     ObjectPermission = apps.get_model('kpi', 'ObjectPermission')  # noqa
@@ -86,4 +86,3 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(forwards_func, reverse_func),
     ]
-

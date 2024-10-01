@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {when} from 'mobx';
@@ -11,21 +10,22 @@ import TextBox from 'js/components/common/textBox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import InlineMessage from 'js/components/common/inlineMessage';
 import assetUtils from 'js/assetUtils';
-import {stores} from 'js/stores';
+import pageState from 'js/pageState.store';
 import sessionStore from 'js/stores/session';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
-  addRequiredToLabel,
   escapeHtml,
   isAValidUrl,
   validFileTypes,
   notify,
   join,
-} from 'utils';
+} from 'js/utils';
+import {addRequiredToLabel} from 'js/textUtils';
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS,
@@ -344,20 +344,20 @@ class ProjectSettings extends React.Component {
    */
 
   goToFormBuilder(assetUid) {
-    stores.pageState.hideModal();
+    pageState.hideModal();
     this.props.router.navigate(`/forms/${assetUid}/edit`);
   }
 
   goToFormLanding() {
-    stores.pageState.hideModal();
+    pageState.hideModal();
 
     let targetUid;
     if (this.state.formAsset) {
       targetUid = this.state.formAsset.uid;
-    } else if (this.context.router && this.context.router.params.assetid) {
-      targetUid = this.context.router.params.assetid;
-    } else if (this.context.router && this.context.router.params.uid) {
-      targetUid = this.context.router.params.uid;
+    } else if (this.props.router.params.assetid) {
+      targetUid = this.props.router.params.assetid;
+    } else if (this.props.router.params.uid) {
+      targetUid = this.props.router.params.uid;
     }
 
     if (!targetUid) {
@@ -368,7 +368,7 @@ class ProjectSettings extends React.Component {
   }
 
   goToProjectsList() {
-    stores.pageState.hideModal();
+    pageState.hideModal();
     this.props.router.navigate(ROUTES.FORMS);
   }
 
@@ -776,14 +776,13 @@ class ProjectSettings extends React.Component {
         <bem.Modal__footer>
           {this.renderBackButton()}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.applyTemplate}
-            disabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
-          >
-            {this.state.applyTemplateButton}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            onClick={this.applyTemplate.bind(this)}
+            isDisabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
+            label={this.state.applyTemplateButton}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
@@ -849,14 +848,14 @@ class ProjectSettings extends React.Component {
         <bem.Modal__footer>
           {this.renderBackButton()}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.importFromURL}
-            disabled={!this.state.importUrlButtonEnabled}
-          >
-            {this.state.importUrlButton}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={this.importFromURL.bind(this)}
+            isDisabled={!this.state.importUrlButtonEnabled}
+            label={this.state.importUrlButton}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
@@ -886,13 +885,13 @@ class ProjectSettings extends React.Component {
       >
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.Modal__footer>
-            <bem.KoboButton
-              type='submit'
-              m='blue'
-              onClick={this.handleSubmit}
-            >
-              {t('Save Changes')}
-            </bem.KoboButton>
+            <Button
+              type='primary'
+              size='l'
+              isSubmit
+              onClick={this.handleSubmit.bind(this)}
+              label={t('Save Changes')}
+            />
           </bem.Modal__footer>
         }
 
@@ -1001,16 +1000,20 @@ class ProjectSettings extends React.Component {
                 this.renderBackButton()
               }
 
-              <bem.KoboButton
-                m='blue'
-                type='submit'
-                onClick={this.handleSubmit}
-                disabled={this.state.isSubmitPending}
-              >
-                {this.state.isSubmitPending && t('Please wait…')}
-                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
-                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
-              </bem.KoboButton>
+              <Button
+                type='primary'
+                size='l'
+                isSubmit
+                onClick={this.handleSubmit.bind(this)}
+                isDisabled={this.state.isSubmitPending}
+                label={(
+                  <>
+                    {this.state.isSubmitPending && t('Please wait…')}
+                    {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
+                    {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
+                  </>
+                )}
+              />
             </bem.Modal__footer>
           }
 
@@ -1019,8 +1022,7 @@ class ProjectSettings extends React.Component {
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
                   <Button
-                    type='frame'
-                    color='blue'
+                    type='secondary'
                     size='l'
                     label={t('Unarchive Project')}
                     onClick={this.unarchiveProject}
@@ -1029,8 +1031,7 @@ class ProjectSettings extends React.Component {
 
                 {this.isArchivable() &&
                   <Button
-                    type='frame'
-                    color='red'
+                    type='secondary'
                     size='l'
                     label={t('Archive Project')}
                     onClick={this.archiveProject}
@@ -1055,10 +1056,11 @@ class ProjectSettings extends React.Component {
           {isSelfOwned && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <Button
-                type='full'
-                color='red'
+                type='danger'
                 size='l'
-                label={t('Delete Project and Data')}
+                label={this.state.formAsset.deployment__submission_count > 0 ?
+                  t('Delete Project and Data') :
+                  t('Delete Project')}
                 onClick={this.deleteProject}
               />
             </bem.FormModal__item>
@@ -1077,14 +1079,13 @@ class ProjectSettings extends React.Component {
         this.state.isUploadFilePending
       );
       return (
-        <bem.KoboButton
-          m='whitegray'
-          type='button'
-          onClick={this.displayPreviousStep}
-          disabled={isBackButtonDisabled}
-        >
-          {t('Back')}
-        </bem.KoboButton>
+        <Button
+          type='secondary'
+          size='l'
+          onClick={this.displayPreviousStep.bind(this)}
+          isDisabled={isBackButtonDisabled}
+          label={t('Back')}
+        />
       );
     } else {
       return false;
@@ -1098,12 +1099,11 @@ class ProjectSettings extends React.Component {
 
     if (this.isReplacingFormLocked()) {
       return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i className='k-icon k-icon-alert'/>
-            {t("Form replacing is not available due to form's Locking Profile restrictions.")}
-          </bem.Loading__inner>
-        </bem.Loading>
+        <InlineMessage
+          type='warning'
+          icon='alert'
+          message={t("Form replacing is not available due to form's Locking Profile restrictions.")}
+        />
       );
     }
 
@@ -1123,7 +1123,5 @@ reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix);
-
-ProjectSettings.contextTypes = {router: PropTypes.object};
 
 export default withRouter(ProjectSettings);

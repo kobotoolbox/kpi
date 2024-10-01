@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
 from ..constants import (
     HookLogStatus,
@@ -16,7 +17,7 @@ from ..constants import (
 )
 
 
-class HookLog(models.Model):
+class HookLog(AbstractTimeStampedModel):
 
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="hl")
@@ -29,8 +30,6 @@ class HookLog(models.Model):
     event = models.TextField(default=HOOK_EVENT_SUBMIT)
     status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
     message = models.TextField(default="")
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-date_created"]
@@ -109,8 +108,6 @@ class HookLog(models.Model):
         return True
 
     def save(self, *args, **kwargs):
-        # Update date_modified each time object is saved
-        self.date_modified = timezone.now()
         # We don't want to alter tries when we only change the status
         if kwargs.pop("reset_status", False) is False:
             self.tries += 1

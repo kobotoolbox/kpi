@@ -19,8 +19,9 @@ import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
+import type {AssetStoreData} from 'js/assetStore';
 import {actions} from './actions';
-import {log, assign, notify, escapeHtml, join} from 'js/utils';
+import {log, notify, escapeHtml, join} from 'js/utils';
 import type {
   AssetResponse,
   CreateImportRequest,
@@ -38,6 +39,7 @@ import {
   deployAsset,
 } from 'js/assetQuickActions';
 import type {DropFilesEventHandler} from 'react-dropzone';
+import pageState from 'js/pageState.store';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -124,8 +126,7 @@ const mixins: MixinsObject = {
       notify(t('copied to clipboard'));
     },
 
-    saveCloneAs(evt: React.TouchEvent<HTMLElement>) {
-      const version_id = evt.currentTarget.dataset.versionId;
+    saveCloneAs(versionId?: string) {
       const name = `${t('Clone of')} ${this.state.name}`;
 
       const dialog = alertify.dialog('prompt');
@@ -142,12 +143,12 @@ const mixins: MixinsObject = {
             {
               uid: uid,
               name: value,
-              version_id: version_id,
+              version_id: versionId,
             },
             {
               onComplete: (asset: AssetResponse) => {
                 dialog.destroy();
-                router!.navigate(`/forms/${asset.uid}`);
+                router!.navigate(ROUTES.FORM.replace(':uid', asset.uid));
               },
             }
           );
@@ -234,7 +235,7 @@ const mixins: MixinsObject = {
       const uid = this._getAssetUid();
       const asset = data[uid];
       if (asset) {
-        this.setState(assign({}, data[uid]));
+        this.setState(Object.assign({}, asset));
       }
     },
     _getAssetUid() {
@@ -264,7 +265,12 @@ const mixins: MixinsObject = {
     },
 
     componentDidMount() {
-      assetStore.listen(this.dmixAssetStoreChange, this);
+      this.dmixAssetStoreCancelListener = assetStore.listen(
+        (data: AssetStoreData) => {
+          this.dmixAssetStoreChange(data);
+        },
+        this
+      );
 
       // TODO 2/2
       // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -272,9 +278,15 @@ const mixins: MixinsObject = {
       // this nice SSOT as described in TODO comment above.
       const uid = this._getAssetUid();
       if (uid && this.props.initialAssetLoadNotNeeded) {
-        this.setState(assign({}, assetStore.data[uid]));
+        this.setState(Object.assign({}, assetStore.data[uid]));
       } else if (uid) {
-        actions.resources.loadAsset({id: uid});
+        actions.resources.loadAsset({id: uid}, true);
+      }
+    },
+
+    componentWillUnmount() {
+      if (typeof this.dmixAssetStoreCancelListener === 'function') {
+        this.dmixAssetStoreCancelListener();
       }
     },
 
@@ -340,12 +352,12 @@ const mixins: MixinsObject = {
     _forEachDroppedFile(params: CreateImportRequest = {}) {
       const totalFiles = params.totalFiles || 1;
 
-      const isLibrary = routerIsActive('library');
+      const isLibrary = routerIsActive(ROUTES.LIBRARY);
       const multipleFiles = params.totalFiles && totalFiles > 1 ? true : false;
-      params = assign({library: isLibrary}, params);
+      params = Object.assign({library: isLibrary}, params);
 
       if (params.base64Encoded) {
-        stores.pageState.showModal({
+        pageState.showModal({
           type: MODAL_TYPES.UPLOADING_XLS,
           filename: multipleFiles
             ? t('## files').replace('##', String(totalFiles))
@@ -358,7 +370,7 @@ const mixins: MixinsObject = {
       if (!isLibrary && params.base64Encoded) {
         const destination = params.destination || this.state.url;
         if (destination) {
-          params = assign({destination: destination}, params);
+          params = Object.assign({destination: destination}, params);
         }
       }
 
@@ -391,16 +403,19 @@ const mixins: MixinsObject = {
                       )
                     );
                     if (params.assetUid) {
-                      router!.navigate(`/forms/${params.assetUid}`);
+                      router!.navigate(
+                        ROUTES.FORM.replace(':uid', params.assetUid)
+                      );
                     }
                   } else {
                     if (
-                      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-                      routerIsActive('forms')
+                      this.props.context ===
+                        PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+                      routerIsActive(ROUTES.FORMS)
                     ) {
                       actions.resources.loadAsset({id: assetUid});
                     } else if (!isLibrary) {
-                      router!.navigate(`/forms/${assetUid}`);
+                      router!.navigate(ROUTES.FORM.replace(':uid', assetUid));
                     }
                     notify(t('XLS Import completed'));
                   }
@@ -440,7 +455,7 @@ const mixins: MixinsObject = {
                 notify.error(t('Import Failed!'));
                 log('import failed', failData);
               });
-            stores.pageState.hideModal();
+            pageState.hideModal();
           }, 2500);
         },
         (jqxhr: string) => {
@@ -457,7 +472,7 @@ const mixins: MixinsObject = {
       files.map((file) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const params = assign(
+          const params = Object.assign(
             {
               name: file.name,
               base64Encoded: reader.result,

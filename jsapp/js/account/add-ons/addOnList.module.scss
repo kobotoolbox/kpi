@@ -1,0 +1,64 @@
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'scss/sizes';
+@use 'js/account/plans/plan.module';
+
+.header {
+  font-size: sizes.$r18;
+  font-weight: 700;
+  color: colors.$kobo-storm;
+  text-transform: uppercase;
+}
+
+.caption {
+  text-align: start;
+}
+
+.table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  max-width: plan.$plans-page-max-width;
+
+  tr {
+    border-top: 1px solid colors.$kobo-light-storm;
+
+    &:last-child {
+      border-bottom: 1px solid colors.$kobo-light-storm;
+    }
+  }
+
+  td {
+    padding-block: 1em;
+    font-weight: 600;
+    font-size: sizes.$x16;;
+  }
+}
+
+.productAndPrice {
+  line-height: 2em;
+}
+
+.price {
+  color: colors.$kobo-gray-700;
+}
+
+.productName {
+  margin-right: sizes.$x12;
+}
+
+.buy {
+  width: 140px;
+  padding-left: 20px;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .productAndPrice {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 20px;
+  }
+}

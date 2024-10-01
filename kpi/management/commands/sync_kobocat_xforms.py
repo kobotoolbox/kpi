@@ -8,7 +8,7 @@ from collections import defaultdict
 import requests
 import xlwt
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
@@ -18,13 +18,13 @@ from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatPermission,
     KobocatUserObjectPermission,
     KobocatXForm,
-    ShadowModel,
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models import Asset, ObjectPermission
@@ -261,8 +261,6 @@ def _sync_form_metadata(asset, xform, changes):
         kc_deployment = KobocatDeploymentBackend(asset)
         kc_deployment.store_data({
             'backend': 'kobocat',
-            'identifier': KobocatDeploymentBackend.make_identifier(
-                user.username, xform.id_string),
             'active': xform.downloadable,
             'backend_response': _get_kc_backend_response(xform),
             'version': asset.version_id
@@ -286,15 +284,6 @@ def _sync_form_metadata(asset, xform, changes):
         modified = True
         fetch_backend_response = True
         changes.append('ACTIVE')
-
-    if settings.KOBOCAT_URL not in asset.deployment.identifier:
-        # Issue #1122
-        asset.deployment.store_data({
-            'identifier': KobocatDeploymentBackend.make_identifier(
-                user.username, xform.id_string)})
-        fetch_backend_response = True
-        modified = True
-        changes.append('IDENTIFIER')
 
     # Check to see if the asset name matches the xform title. Per #857, the
     # xform title takes priority.  The first check is a cheap one:

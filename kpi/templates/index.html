@@ -1,72 +1,60 @@
+{% extends "base_simple.html" %}
+
 {% load static %}
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>{{title}}</title>
-    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {# From the Django documentation: the `url` tag "Returns an absolute path reference (a URL without the domain name)" #}
-    <meta name="kpi-root-path" content="{% url 'kpi-root' %}">
-    {% if csrf_token %}<meta name="csrf-token" content="{{csrf_token}}">{% endif %}
+{% load render_bundle from webpack_loader %}
 
-    <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
+{% block head_meta %}
+  {# From the Django documentation: the `url` tag "Returns an absolute path reference (a URL without the domain name)" #}
+  <meta name="kpi-root-path" content="{% url 'kpi-root' %}">
+  {% if csrf_token %}
+    <meta name="csrf-token" content="{{csrf_token}}">
+  {% endif %}
+{% endblock %}
 
-    {% if raven_js_dsn %}
-      <meta name="sentry-dsn" content="{{ raven_js_dsn }}">
-      <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
-      <script src="{% static 'js/sentry.js' %}"></script>
-    {% endif %}
-    {% if google_analytics_token %}
-      <meta name="google-analytics-token" content="{{ google_analytics_token }}">
-    {% endif %}
+{% block title %}{{title}}{% endblock %}
 
-    {% load render_bundle from webpack_loader %}
+{% block head_scripts %}
+  <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}" />
-    <link rel="manifest" href="{% static 'site.webmanifest' %}" />
-    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#2095f3" />
-    <link rel="icon" href="{% static 'favicon.png' %}" />
+  <!-- Sentry setup -->
+  {% if sentry_js_dsn %}
+    <meta name="sentry-dsn" content="{{ sentry_js_dsn }}">
+  {% endif %}
+{% endblock %}
 
-    {% render_bundle 'app' 'css' %}
+{% block head_stylesheets %}
+  {% render_bundle 'app' 'css' %}
+{% endblock %}
 
-    {% if config.logo %}
-      <style>
+{% block head_end %}
+  <!-- Logo overrides -->
+  {% if config.logo %}
+    <style>
+      .mdl-layout__header .header__logo {
+        background-image: url('{{ config.logo }}') !important;
+      }
+    </style>
+  {% endif %}
+  {% if config.logo_small %}
+    <style>
+      @media screen and (width < 768px) {
         .mdl-layout__header .header__logo {
-          background-image: url("{{ config.logo }}") !important;
+          background-image: url('{{ config.logo_small }}') !important;
         }
-      </style>
-    {% endif %}
-    {% if config.logo_small %}
-      <style>
-        @media screen and (max-width: 767px) {
-          .mdl-layout__header .header__logo {
-            background-image: url("{{ config.logo_small }}") !important;
-          }
-        }
-      </style>
-    {% endif %}
-  </head>
-  <body>
-    <!--[if lt IE 8]>
-      <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-    <![endif]-->
-    {% block content %}{% endblock content %}
+      }
+    </style>
+  {% endif %}
+{% endblock %}
 
-    {% block footer %}
-      <!-- Make Django's internationalization functionality available in client code. -->
-      <script src="{% url 'javascript-catalog' %}"></script>
-      <script src="{% static 'js/global_t.js' %}"></script>
+{% block body %}
+  {# Here the `/jsapp/js/main.es6` file will create and inject some HTML element, so that React SPA would render inside of it. #}
 
-      {% render_bundle 'app' 'js' %}
+  {# We load the main js file here, not in the head, because we need the body element to exist in order to inject stuff into it with JS. #}
+  {% render_bundle 'app' 'js' %}
 
-    {% endblock footer %}
-
-    {% if google_analytics_token %}
-      <!-- Google tag (gtag.js) -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
-      <!-- The rest of the setup is in main.es6 file -->
-    {% endif %}
-  </body>
-</html>
+  {% if google_analytics_token %}
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
+    <!-- The rest of the GA setup is in `/jsapp/js/main.es6` file -->
+  {% endif %}
+{% endblock %}

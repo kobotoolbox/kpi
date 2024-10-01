@@ -1,6 +1,6 @@
 @use 'sass:color';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 @mixin buttonReset() {
   display: inline-block;
@@ -48,7 +48,7 @@
 }
 
 @mixin default-ui-focus() {
-  outline: sizes.$x3 solid colors.$kobo-alt-blue !important;
+  outline: sizes.$x3 solid colors.$kobo-mid-blue !important;
   border-color: colors.$kobo-blue !important;
 }
 

@@ -1,11 +1,11 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django.template.response import TemplateResponse
 from rest_framework import exceptions
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
@@ -20,10 +20,6 @@ def browser_tests(request):
 
 def modern_browsers(request):
     return TemplateResponse(request, "modern_browsers.html")
-
-
-def design_system(request):
-    return TemplateResponse(request, "design_system.html")
 
 
 @api_view(['POST'])

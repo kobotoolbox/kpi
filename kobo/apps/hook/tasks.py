@@ -144,6 +144,8 @@ def failures_reports():
             max_length = max(max_length, hook_name_length)
             records[record.hook.asset.owner.id]['assets'][record.hook.asset.uid]['max_length'] = max_length
 
+        # TODO use kpi.utils.mailer.EmailMessage and kpi.utils.mailer.Mailer
+        #  classes to send emails
         # Get templates
         plain_text_template = get_template('reports/failures_email_body.txt')
         html_template = get_template('reports/failures_email_body.html')

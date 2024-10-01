@@ -2,10 +2,8 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import PropTypes from 'prop-types';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import {
   MODAL_TYPES,
@@ -13,9 +11,10 @@ import {
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
-import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import managedCollectionsStore from 'js/components/library/managedCollectionsStore';
 import {withRouter} from 'js/router/legacy';
 import {when} from 'mobx';
+import pageState from 'js/pageState.store';
 
 class LibraryNewItemForm extends React.Component {
   constructor(props) {
@@ -34,11 +33,11 @@ class LibraryNewItemForm extends React.Component {
   }
 
   goToAssetCreator() {
-    stores.pageState.hideModal();
+    pageState.hideModal();
 
     let targetPath = ROUTES.NEW_LIBRARY_ITEM;
     if (this.isLibrarySingle()) {
-      const found = ownedCollectionsStore.find(this.currentAssetID());
+      const found = managedCollectionsStore.find(this.currentAssetID());
       if (found && found.asset_type === ASSET_TYPES.collection.id) {
         // when creating from within a collection page, make the new asset
         // a child of this collection
@@ -50,21 +49,21 @@ class LibraryNewItemForm extends React.Component {
   }
 
   goToCollection() {
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.LIBRARY_COLLECTION,
       previousType: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
   }
 
   goToTemplate() {
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.LIBRARY_TEMPLATE,
       previousType: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
   }
 
   goToUpload() {
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.LIBRARY_UPLOAD,
       previousType: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
@@ -105,9 +104,5 @@ class LibraryNewItemForm extends React.Component {
 
 reactMixin(LibraryNewItemForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryNewItemForm.prototype, mixins.contextRouter);
-
-LibraryNewItemForm.contextTypes = {
-  router: PropTypes.object
-};
 
 export default withRouter(LibraryNewItemForm);

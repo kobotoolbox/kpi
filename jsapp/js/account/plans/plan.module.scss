@@ -1,0 +1,305 @@
+@use 'scss/sizes';
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'sass:color';
+@use 'scss/_variables';
+
+$plans-page-card-width: 320px;
+$plans-page-gap: 20px;
+$plans-page-max-width: $plans-page-card-width * 3 + $plans-page-gap * 2;
+$plan-badge-height: 38px;
+
+.accountPlan {
+  padding: sizes.$x30 sizes.$x40;
+  overflow-y: auto;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: $plans-page-gap;
+}
+
+.accountPlan.showAddOns {
+  padding: sizes.$x15 0 0 0;
+}
+
+.wait {
+  cursor: wait;
+}
+
+.sticky {
+  position: fixed;
+  z-index: 10;
+  height: 5em;
+}
+
+.unauthorized {
+  opacity: 50%;
+}
+
+.allPlans {
+  display: flex;
+  flex-direction: column;
+  row-gap: $plans-page-gap;
+}
+
+.stripePlans {
+  flex: 0 0 $plans-page-card-width;
+  display: flex;
+  flex-direction: column;
+  margin-top: 0;
+}
+
+.intervalToggle {
+  background-color: colors.$kobo-light-storm;
+  padding: sizes.$x3;
+  border-radius: sizes.$x4;
+  margin: 0 auto;
+}
+
+.intervalToggle input[type='radio'] {
+  display: none;
+  appearance: none;
+
+  &[aria-disabled=true] + label {
+    pointer-events: none;
+  }
+}
+
+.intervalToggle label {
+  color: colors.$kobo-dark-blue;
+  padding: 0 sizes.$x12;
+  font-size: sizes.$x18;
+  line-height: sizes.$x32;
+  display: inline-block;
+  min-width: sizes.$x100;
+  text-align: center;
+  cursor: pointer;
+}
+
+.intervalToggle input[type='radio']:checked + label {
+  background-color: colors.$kobo-blue;
+  color: colors.$kobo-white;
+  border-radius: sizes.$x4;
+
+  &:after {
+    background-color: colors.$kobo-blue;
+    padding: sizes.$x8 sizes.$x12;
+  }
+
+  &:before {
+    width: sizes.$x20;
+    height: sizes.$x20;
+    color: colors.$kobo-light-storm;
+    padding: sizes.$x8 sizes.$x12;
+  }
+
+  &:hover {
+    background-color: color.adjust(colors.$kobo-blue, $lightness: -5%);
+  }
+}
+
+.intervalToggle input[type='radio'] + label:hover {
+  background-color: color.adjust(colors.$kobo-light-storm, $lightness: -5%);
+  border-radius: sizes.$x4;
+}
+
+.plansSection {
+  display: flex;
+  flex-direction: column;
+  row-gap: $plans-page-gap;
+  align-items: center;
+}
+
+.priceName,
+.enterpriseTitle {
+  color: colors.$kobo-gray-700;
+  font-weight: 600;
+  font-size: sizes.$x24;
+  line-height: sizes.$x32;
+  margin: 0;
+  padding: 0 0 sizes.$x12 0;
+}
+
+.priceTitle {
+  color: colors.$kobo-dark-blue;
+  font-size: sizes.$x20;
+  padding-bottom: sizes.$x16;
+  font-weight: 700;
+  line-height: sizes.$x20;
+  height: 2em;
+}
+
+.planContainer {
+  border-radius: sizes.$x6;
+  border: colors.$kobo-gray-400 solid sizes.$x1;
+  padding: sizes.$x24;
+  width: $plans-page-card-width;
+  display: flex;
+  flex-direction: column;
+  height: 100%; // So it stretches to match the height of other containers
+}
+
+.planContainer.planContainerWithBadge {
+  border-radius: 0 0 sizes.$x6 sizes.$x6;
+}
+
+.featureContainer {
+  height: 16em;
+}
+
+.planContainer :global hr {
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-200;
+  border-top: none;
+  margin: sizes.$x24 auto;
+  width: 100%;
+}
+
+.planContainer :global li {
+  padding: sizes.$x6 0;
+  vertical-align: middle;
+  display: flex;
+  font-weight: 400;
+}
+
+.iconContainer {
+  height: 100%;
+  width: auto;
+  display: inline-flex;
+  margin-right: sizes.$x12;
+}
+
+.selectableFeature {
+  display: inline-flex;
+  align-items: center;
+  gap: sizes.$x6;
+  margin-top: -(sizes.$x10);
+}
+
+.enterprisePlanContainer {
+  flex: 0 0 $plans-page-card-width;
+  display: flex;
+  flex-direction: column;
+}
+
+.enterprisePlan {
+  background-color: colors.$kobo-bg-blue;
+  padding: sizes.$x24;
+  border-radius: sizes.$x6;
+  width: $plans-page-card-width;
+  height: 100%;
+}
+
+.enterpriseDetails {
+  line-height: sizes.$x22;
+}
+
+a.enterpriseLink {
+  color: colors.$kobo-dark-blue;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.listTitle {
+  color: colors.$kobo-gray-700;
+  font-size: sizes.$x14;
+  font-weight: 600;
+  padding: 0;
+}
+
+.planContainer ul :global {
+  margin: sizes.$x5 0 0;
+}
+
+// This is the badge on top of the card
+.currentPlan {
+  background-color: colors.$kobo-storm;
+  color: colors.$kobo-white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  top: 0;
+  border-radius: sizes.$x6 sizes.$x6 0 0;
+  height: $plan-badge-height;
+  width: $plans-page-card-width;
+  font-weight: 700;
+  font-size: sizes.$x16;
+}
+
+.comparisonButton {
+  margin-left: auto;
+  margin-right: auto;
+  width: $plans-page-card-width;
+  text-align: center;
+}
+
+.planButton {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  &:not(:empty) {
+    margin-top: 30px;
+  }
+}
+
+.scrollToTopButton{
+  position: fixed;
+  bottom: sizes.$x20;
+  right: sizes.$x20;
+  border-radius: sizes.$x6;
+  background-color: colors.$kobo-gray-700;
+  width: sizes.$x50;
+  height: sizes.$x40;
+	color: colors.$kobo-white;
+	border: none;
+	cursor: pointer;
+  box-shadow: 0 sizes.$x4 sizes.$x12 0 rgba(0, 0, 0, 0.2);
+}
+
+.maximizedCards {
+  width: 100%;
+  display: none;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .allPlans {
+    column-gap: $plans-page-gap;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    max-width: $plans-page-max-width;
+  }
+
+  .planContainer:not(.planContainerWithBadge) {
+    margin-top: $plan-badge-height;
+  }
+
+  .enterprisePlanContainer {
+    margin-top: $plan-badge-height;
+  }
+
+  .expandedContainer > :nth-child(2) {
+    min-height: sizes.$x200;
+  }
+
+  .expandedContainer > :nth-child(4) {
+    min-height: sizes.$x120;
+  }
+
+  .comparisonButton {
+    width: 100%;
+    max-width: $plans-page-max-width;
+  }
+
+  .minimizedCards {
+    display: none;
+  }
+
+  .maximizedCards {
+    display: unset;
+  }
+}

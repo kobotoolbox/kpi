@@ -276,8 +276,7 @@ class FormMedia extends React.Component {
                 />
 
                 <Button
-                  type='frame'
-                  color='blue'
+                  type='secondary'
                   size='l'
                   label={t('Add')}
                   onClick={this.onSubmitURL}
@@ -315,12 +314,12 @@ class FormMedia extends React.Component {
 
                   {this.renderFileName(item)}
 
-                  <bem.KoboLightButton
-                    m={['red', 'icon-only']}
+                  <Button
+                    type='secondary-danger'
+                    size='m'
+                    startIcon='trash'
                     onClick={(evt) => this.onDeleteMedia(evt, item.url)}
-                  >
-                    <i className='k-icon k-icon-trash' />
-                  </bem.KoboLightButton>
+                  />
                 </bem.FormMedia__listItem>
               ))}
             </ul>

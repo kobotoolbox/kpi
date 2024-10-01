@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Optional
+from urllib.parse import quote as urlquote
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -13,17 +13,23 @@ from django.db import (
     ProgrammingError,
     connections,
     models,
-    router,
     transaction,
 )
 from django.utils import timezone
-from django.utils.http import urlquote
 from django_digest.models import PartialDigest
 
+from kobo.apps.openrosa.libs.utils.image_tools import (
+    get_optimized_image_path,
+    resize,
+)
 from kpi.constants import SHADOW_MODEL_APP_LABEL
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage,
+)
 from kpi.exceptions import (
     BadContentTypeException,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
 from .storage import (
@@ -37,9 +43,18 @@ def update_autofield_sequence(model):
     Fixes the PostgreSQL sequence for the first (and only?) `AutoField` on
     `model`, à la `manage.py sqlsequencereset`
     """
+    # Updating sequences on fresh environments fails because the only user
+    # in the DB is django-guardian AnonymousUser and `max(pk)` returns -1.
+    # Error:
+    #   > setval: value -1 is out of bounds for sequence
+    # Using abs() and testing if max(pk) equals -1, leaves the sequence alone.
     sql_template = (
-        "SELECT setval(pg_get_serial_sequence('{table}','{column}'), "
-        "coalesce(max({column}), 1), max({column}) IS NOT null) FROM {table};"
+        "SELECT setval("
+        "   pg_get_serial_sequence('{table}','{column}'), "
+        "   abs(coalesce(max({column}), 1)), "
+        "   max({column}) IS NOT null and max({column}) != -1"
+        ") "
+        "FROM {table};"
     )
     autofield = None
     for f in model._meta.get_fields():
@@ -51,7 +66,7 @@ def update_autofield_sequence(model):
     query = sql_template.format(
         table=model._meta.db_table, column=autofield.column
     )
-    connection = connections[router.db_for_write(model)]
+    connection = connections[settings.OPENROSA_DB_ALIAS]
     with connection.cursor() as cursor:
         cursor.execute(query)
 
@@ -94,6 +109,122 @@ class ShadowModel(models.Model):
             app_label=app_label, model=model_name)
 
 
+class KobocatAttachmentManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(deleted_at__isnull=False)
+
+
+class KobocatAttachment(ShadowModel, AudioTranscodingMixin):
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_attachment'
+
+    instance = models.ForeignKey(
+        'superuser_stats.ReadOnlyKobocatInstance',
+        related_name='attachments',
+        on_delete=models.CASCADE,
+    )
+    media_file = ExtendedFileField(
+        storage=get_kobocat_storage(), max_length=380, db_index=True
+    )
+    media_file_basename = models.CharField(
+        max_length=260, null=True, blank=True, db_index=True)
+    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
+    # `PositiveBigIntegerField` after upgrading to Django 3.1+
+    media_file_size = models.PositiveIntegerField(blank=True, null=True)
+    mimetype = models.CharField(
+        max_length=100, null=False, blank=True, default=''
+    )
+    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    objects = KobocatAttachmentManager()
+    all_objects = models.Manager()
+
+    @property
+    def absolute_mp3_path(self):
+        """
+        Return the absolute path on local file system of the converted version of
+        attachment. Otherwise, return the AWS url (e.g. https://...)
+        """
+
+        kobocat_storage = get_kobocat_storage()
+
+        if not kobocat_storage.exists(self.mp3_storage_path):
+            content = self.get_transcoded_audio('mp3')
+            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
+
+        if isinstance(kobocat_storage, KobocatFileSystemStorage):
+            return f'{self.media_file.path}.mp3'
+
+        return kobocat_storage.url(self.mp3_storage_path)
+
+    @property
+    def absolute_path(self):
+        """
+        Return the absolute path on local file system of the attachment.
+        Otherwise, return the AWS url (e.g. https://...)
+        """
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
+            return self.media_file.path
+
+        return self.media_file.url
+
+    @property
+    def mp3_storage_path(self):
+        """
+        Return the path of file after conversion. It is the exact same name, plus
+        the conversion audio format extension concatenated.
+        E.g: file.mp4 and file.mp4.mp3
+        """
+        return f'{self.storage_path}.mp3'
+
+    def protected_path(
+        self, format_: Optional[str] = None, suffix: Optional[str] = None
+    ) -> str:
+        """
+        Return path to be served as protected file served by NGINX
+        """
+        if format_ == 'mp3':
+            attachment_file_path = self.absolute_mp3_path
+        else:
+            attachment_file_path = self.absolute_path
+
+        optimized_image_path = None
+        if suffix and self.mimetype.startswith('image/'):
+            optimized_image_path = get_optimized_image_path(
+                self.media_file.name, suffix
+            )
+            if not default_kobocat_storage.exists(optimized_image_path):
+                resize(self.media_file.name)
+
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
+            # Django normally sanitizes accented characters in file names during
+            # save on disk but some languages have extra letters
+            # (out of ASCII character set) and must be encoded to let NGINX serve
+            # them
+            if optimized_image_path:
+                attachment_file_path = default_kobocat_storage.path(
+                    optimized_image_path
+                )
+            protected_url = urlquote(attachment_file_path.replace(
+                settings.KOBOCAT_MEDIA_ROOT, '/protected')
+            )
+        else:
+            # Double-encode the S3 URL to take advantage of NGINX's
+            # otherwise troublesome automatic decoding
+            if optimized_image_path:
+                attachment_file_path = default_kobocat_storage.url(
+                    optimized_image_path
+                )
+            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
+
+        return protected_url
+
+    @property
+    def storage_path(self):
+        return str(self.media_file)
+
+
 class KobocatContentType(ShadowModel):
     """
     Minimal representation of Django 1.8's
@@ -113,79 +244,23 @@ class KobocatContentType(ShadowModel):
         return self.model
 
 
-class KobocatDigestPartial(ShadowModel):
+class KobocatDailyXFormSubmissionCounter(ShadowModel):
 
-    user = models.ForeignKey('KobocatUser', on_delete=models.CASCADE)
-    login = models.CharField(max_length=128, db_index=True)
-    partial_digest = models.CharField(max_length=100)
-    confirmed = models.BooleanField(default=True)
-
-    class Meta(ShadowModel.Meta):
-        db_table = "django_digest_partialdigest"
-
-    @classmethod
-    def sync(cls, user):
-        """
-        Mimics the behavior of `django_digest.models._store_partial_digests()`,
-        but updates `KobocatDigestPartial` in the KoBoCAT database instead of
-        `PartialDigest` in the KPI database
-        """
-
-        # No need to decorate this method with a `kc_transaction_atomic` because
-        # it is only used in KobocatUser.sync() which is called only in
-        # `save_kobocat_user()` inside a (KoBoCAT) transaction.
-        cls.objects.filter(user=user).delete()
-        # Query for `user_id` since user PKs are synchronized
-        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-            cls.objects.create(
-                user=user,
-                login=partial_digest.login,
-                confirmed=partial_digest.confirmed,
-                partial_digest=partial_digest.partial_digest,
-            )
-
-
-class KobocatFormDisclaimer(ShadowModel):
-
-    language_code = models.CharField(max_length=5, null=True)
+    date = models.DateField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser', null=True, on_delete=models.CASCADE
+    )
     xform = models.ForeignKey(
         'shadow_model.KobocatXForm',
-        related_name='disclaimers',
+        related_name='daily_counts',
         null=True,
         on_delete=models.CASCADE,
     )
-    message = models.TextField(default='')
-    default = models.BooleanField(default=False)
-    hidden = models.BooleanField(default=False)
+    counter = models.IntegerField(default=0)
 
     class Meta(ShadowModel.Meta):
-        db_table = 'form_disclaimer_formdisclaimer'
-
-    @classmethod
-    def sync(cls, form_disclaimer):
-
-        xform = None
-        language_code = None
-
-        if form_disclaimer.language:
-            language_code = form_disclaimer.language.code
-
-        if form_disclaimer.asset:
-            xform = form_disclaimer.asset.deployment.xform
-
-        try:
-            kc_form_disclaimer = cls.objects.get(
-                language_code=language_code, xform=xform
-            )
-        except cls.DoesNotExist:
-            kc_form_disclaimer = cls(
-                pk=form_disclaimer.pk, language_code=language_code, xform=xform
-            )
-
-        kc_form_disclaimer.message = form_disclaimer.message
-        kc_form_disclaimer.default = form_disclaimer.default
-        kc_form_disclaimer.hidden = form_disclaimer.hidden
-        kc_form_disclaimer.save()
+        db_table = 'logger_dailyxformsubmissioncounter'
+        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
 
 
 class KobocatGenericForeignKey(GenericForeignKey):
@@ -253,6 +328,49 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 return []
 
 
+class KobocatMetadata(ShadowModel):
+
+    MEDIA_FILES_TYPE = [
+        'media',
+        'paired_data',
+    ]
+
+    xform = models.ForeignKey('shadow_model.KobocatXForm', on_delete=models.CASCADE)
+    data_type = models.CharField(max_length=255)
+    data_value = models.CharField(max_length=255)
+    data_file = ExtendedFileField(storage=get_kobocat_storage(), blank=True, null=True)
+    data_file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_hash = models.CharField(max_length=50, blank=True, null=True)
+    from_kpi = models.BooleanField(default=False)
+    data_filename = models.CharField(max_length=255, blank=True, null=True)
+    date_created = models.DateTimeField(default=timezone.now)
+    date_modified = models.DateTimeField(default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'main_metadata'
+
+
+class KobocatMonthlyXFormSubmissionCounter(ShadowModel):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser',
+        on_delete=models.CASCADE,
+    )
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='monthly_counts',
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ShadowModel.Meta):
+        app_label = 'superuser_stats'
+        db_table = 'logger_monthlyxformsubmissioncounter'
+        verbose_name_plural = 'User Statistics'
+
+
 class KobocatPermission(ShadowModel):
     """
     Minimal representation of Django 1.8's contrib.auth.models.Permission
@@ -294,7 +412,7 @@ class KobocatUser(ShadowModel):
     @transaction.atomic
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
-        # upon PKs being synchronized between KPI and KoBoCAT
+        # upon PKs being synchronized between KPI and KoboCAT
         kc_auth_user = cls.get_kc_user(auth_user)
         kc_auth_user.password = auth_user.password
         kc_auth_user.last_login = auth_user.last_login
@@ -312,12 +430,8 @@ class KobocatUser(ShadowModel):
         # `auth_user_id_seq` now lags behind `max(id)`. Fix it now!
         update_autofield_sequence(cls)
 
-        # Update django-digest `PartialDigest`s in KoBoCAT.  This is only
-        # necessary if the user's password has changed, but we do it always
-        KobocatDigestPartial.sync(kc_auth_user)
-
     @classmethod
-    def get_kc_user(cls, auth_user: 'auth.User') -> KobocatUser:
+    def get_kc_user(cls, auth_user: settings.AUTH_USER_MODEL) -> KobocatUser:
         try:
             kc_auth_user = cls.objects.get(pk=auth_user.pk)
             assert kc_auth_user.username == auth_user.username
@@ -391,7 +505,6 @@ class KobocatUserPermission(ShadowModel):
 class KobocatUserProfile(ShadowModel):
     """
     From onadata/apps/main/models/user_profile.py
-    Not read-only because we need write access to `require_auth`
     """
     class Meta(ShadowModel.Meta):
         db_table = 'main_userprofile'
@@ -411,10 +524,7 @@ class KobocatUserProfile(ShadowModel):
     home_page = models.CharField(max_length=255, blank=True)
     twitter = models.CharField(max_length=255, blank=True)
     description = models.CharField(max_length=255, blank=True)
-    require_auth = models.BooleanField(
-        default=False,
-        verbose_name="Require authentication to see forms and submit data"
-    )
+    require_auth = models.BooleanField(default=True)
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
     num_of_submissions = models.IntegerField(default=0)
@@ -480,10 +590,11 @@ class KobocatXForm(ShadowModel):
         verbose_name_plural = 'xforms'
 
     XFORM_TITLE_LENGTH = 255
-    xls = models.FileField(null=True)
+    xls = ExtendedFileField(null=True)
     xml = models.TextField()
-    user = models.ForeignKey(KobocatUser, related_name='xforms', null=True,
-                             on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        KobocatUser, related_name='xforms', null=True, on_delete=models.CASCADE
+    )
     shared = models.BooleanField(default=False)
     shared_data = models.BooleanField(default=False)
     downloadable = models.BooleanField(default=True)
@@ -497,6 +608,7 @@ class KobocatXForm(ShadowModel):
     attachment_storage_bytes = models.BigIntegerField(default=0)
     kpi_asset_uid = models.CharField(max_length=32, null=True)
     pending_delete = models.BooleanField(default=False)
+    require_auth = models.BooleanField(default=True)
 
     @property
     def md5_hash(self):
@@ -519,117 +631,6 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
-class ReadOnlyKobocatAttachmentManager(models.Manager):
-
-    def get_queryset(self):
-        return super().get_queryset().exclude(deleted_at__isnull=False)
-
-
-class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_attachment'
-
-    instance = models.ForeignKey(
-        'superuser_stats.ReadOnlyKobocatInstance',
-        related_name='attachments',
-        on_delete=models.CASCADE,
-    )
-    media_file = models.FileField(storage=get_kobocat_storage(), max_length=380,
-                                  db_index=True)
-    media_file_basename = models.CharField(
-        max_length=260, null=True, blank=True, db_index=True)
-    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
-    # `PositiveBigIntegerField` after upgrading to Django 3.1+
-    media_file_size = models.PositiveIntegerField(blank=True, null=True)
-    mimetype = models.CharField(
-        max_length=100, null=False, blank=True, default=''
-    )
-    deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
-    objects = ReadOnlyKobocatAttachmentManager()
-
-    @property
-    def absolute_mp3_path(self):
-        """
-        Return the absolute path on local file system of the converted version of
-        attachment. Otherwise, return the AWS url (e.g. https://...)
-        """
-
-        kobocat_storage = get_kobocat_storage()
-
-        if not kobocat_storage.exists(self.mp3_storage_path):
-            content = self.get_transcoded_audio('mp3')
-            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
-
-        if isinstance(kobocat_storage, KobocatFileSystemStorage):
-            return f'{self.media_file.path}.mp3'
-
-        return kobocat_storage.url(self.mp3_storage_path)
-
-    @property
-    def absolute_path(self):
-        """
-        Return the absolute path on local file system of the attachment.
-        Otherwise, return the AWS url (e.g. https://...)
-        """
-        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
-            return self.media_file.path
-
-        return self.media_file.url
-
-    @property
-    def mp3_storage_path(self):
-        """
-        Return the path of file after conversion. It is the exact same name, plus
-        the conversion audio format extension concatenated.
-        E.g: file.mp4 and file.mp4.mp3
-        """
-        return f'{self.storage_path}.mp3'
-
-    def protected_path(self, format_: Optional[str] = None):
-        """
-        Return path to be served as protected file served by NGINX
-        """
-
-        if format_ == 'mp3':
-            attachment_file_path = self.absolute_mp3_path
-        else:
-            attachment_file_path = self.absolute_path
-
-        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
-            # Django normally sanitizes accented characters in file names during
-            # save on disk but some languages have extra letters
-            # (out of ASCII character set) and must be encoded to let NGINX serve
-            # them
-            protected_url = urlquote(attachment_file_path.replace(
-                settings.KOBOCAT_MEDIA_PATH, '/protected')
-            )
-        else:
-            # Double-encode the S3 URL to take advantage of NGINX's
-            # otherwise troublesome automatic decoding
-            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
-
-        return protected_url
-
-    @property
-    def storage_path(self):
-        return str(self.media_file)
-
-
-class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
-
-    date = models.DateField()
-    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(
-        KobocatXForm, related_name='daily_counts', null=True, on_delete=models.CASCADE
-    )
-    counter = models.IntegerField(default=0)
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_dailyxformsubmissioncounter'
-        unique_together = [['date', 'xform', 'user'], ['date', 'user']]
-
-
 class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     class Meta(ReadOnlyModel.Meta):
@@ -648,27 +649,6 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     status = models.CharField(max_length=20,
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
-
-
-class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
-    year = models.IntegerField()
-    month = models.IntegerField()
-    user = models.ForeignKey(
-        'shadow_model.KobocatUser',
-        on_delete=models.CASCADE,
-    )
-    xform = models.ForeignKey(
-        'shadow_model.KobocatXForm',
-        related_name='monthly_counts',
-        null=True,
-        on_delete=models.SET_NULL,
-    )
-    counter = models.IntegerField(default=0)
-
-    class Meta:
-        app_label = 'superuser_stats'
-        db_table = 'logger_monthlyxformsubmissioncounter'
-        verbose_name_plural = 'User Statistics'
 
 
 def safe_kc_read(func):

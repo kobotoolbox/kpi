@@ -48,6 +48,8 @@ module.exports = do ->
   addIconToRow(constants.QUESTION_TYPES.range, "r6")
   # row 7
   addIconToRow(constants.QUESTION_TYPES['xml-external'], "r7")
+  addIconToRow(constants.QUESTION_TYPES['select_one_from_file'], "r7")
+  addIconToRow(constants.QUESTION_TYPES['select_multiple_from_file'], "r7")
 
   class QtypeIcon extends Backbone.Model
     defaults: {

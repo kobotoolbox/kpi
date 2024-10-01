@@ -77,7 +77,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
         await fetchPatch(endpoints.ME_URL, {
           current_password: currentPassword,
           new_password: newPassword,
-        });
+        }, {notifyAboutError: false});
         setIsPending(false);
         setCurrentPassword('');
         setNewPassword('');
@@ -173,8 +173,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
 
       <div className={styles.row}>
         <Button
-          type='full'
-          color='blue'
+          type='primary'
           size='l'
           label={t('Save Password')}
           isSubmit

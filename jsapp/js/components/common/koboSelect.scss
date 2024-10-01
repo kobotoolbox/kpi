@@ -1,7 +1,8 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use 'js/components/common/button';
+@use 'js/components/common/textBox.module';
 
 $k-select-option-height: sizes.$x36;
 $k-select-menu-padding: sizes.$x6;
@@ -14,17 +15,27 @@ $k-select-menu-padding: sizes.$x6;
   }
 }
 
+// Focus styles for the trigger. The element getting actual focus here is the
+// trigger from KoboDropdown, so we need this long selector
+.k-select .kobo-dropdown__trigger:focus-visible .k-select__trigger {
+  @include mixins.default-ui-focus;
+}
+// And we need to remove the default styles from the de facto trigger
+.k-select .kobo-dropdown__trigger:focus-visible {
+  outline: none;
+}
+
 .k-select__trigger {
   @include mixins.centerRowFlex;
   justify-content: space-between;
   font-weight: 400;
-  text-align: left;
+  text-align: initial;
   border-width: button.$button-border-width;
   border-style: solid;
   border-color: transparent;
   border-radius: button.$button-border-radius;
   background-color: transparent;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   position: relative; // Needed for pending state.
   padding: 0 sizes.$x16;
 
@@ -44,7 +55,7 @@ $k-select-menu-padding: sizes.$x6;
 
 // Styles for when menu is opened.
 .k-select .kobo-dropdown--menu-visible .k-select__trigger {
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
 }
 
 .k-select__clear {
@@ -59,7 +70,7 @@ $k-select-menu-padding: sizes.$x6;
 }
 
 .k-select__trigger-selected-option:not(.k-select__trigger-selected-option--empty) label {
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
 }
 
 .k-select__menu {
@@ -78,9 +89,23 @@ $k-select-menu-padding: sizes.$x6;
 
 .k-select__option {
   @include mixins.buttonReset;
+  font-weight: 400;
+  position: relative;
+
+  &:hover,
+  &.k-select__option--selected {
+    color: colors.$kobo-gray-800;
+    background-color: colors.$kobo-gray-200;
+  }
+
+  &:focus-visible {
+    @include mixins.default-ui-focus;
+    // Needed so that option--selected never appears above focus styles
+    z-index: 1;
+  }
 
   .k-icon {
-    color: colors.$kobo-gray-85;
+    color: inherit;
   }
 }
 
@@ -90,9 +115,9 @@ $k-select-menu-padding: sizes.$x6;
   justify-content: space-between;
   width: 100%;
   height: $k-select-option-height;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   padding: 0 #{sizes.$x16 - sizes.$x2};
-  text-align: left;
+  text-align: initial;
 }
 
 .k-select__menu-message {
@@ -100,13 +125,27 @@ $k-select-menu-padding: sizes.$x6;
   margin: 0;
 }
 
-.k-select__option {
-  font-weight: 500;
+.k-select__error {
+  font-size: sizes.$x12;
+  line-height: 1.6;
+  font-weight: 400;
+  font-style: normal;
+  color: colors.$kobo-red;
+  margin: sizes.$x6 auto 0;
+}
 
-  &:hover ,
-  &.k-select__option--selected {
-    color: colors.$kobo-gray-24;
-    background-color: colors.$kobo-gray-96;
+.k-select.k-select--has-error {
+  &.k-select--type-outline {
+    .k-select__trigger {
+      border-color: colors.$kobo-mid-red;
+    }
+  }
+
+  &.k-select--type-blue,
+  &.k-select--type-gray {
+    .k-select__trigger {
+      background-color: colors.$kobo-light-red;
+    }
   }
 }
 
@@ -121,7 +160,7 @@ $k-select-menu-padding: sizes.$x6;
   background-color: transparent;
   border: 0;
   padding: 0;
-  font-size: inherit;
+  font-size: sizes.$x14;
 
   &:focus-visible {
     // wrapper element is handling that
@@ -195,7 +234,7 @@ $k-select-menu-padding: sizes.$x6;
 .k-select.k-select--type-gray {
   &.k-select--is-menu-visible {
     .k-select__trigger {
-      border-color: colors.$kobo-alt-blue;
+      border-color: colors.$kobo-mid-blue;
 
       &:focus-within {
         @include mixins.default-ui-focus;
@@ -209,43 +248,44 @@ $k-select-menu-padding: sizes.$x6;
   }
 
   .k-select__trigger .k-icon {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
   }
 }
 
 .k-select.k-select--type-blue {
   .k-select__trigger {
-    background-color: colors.$kobo-light-blue;
+    background-color: colors.$kobo-bg-blue;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
-    color: colors.$kobo-gray-24;
-    background-color: darken(colors.$kobo-light-blue, 2);
+    color: colors.$kobo-gray-800;
+    background-color: darken(colors.$kobo-bg-blue, 2);
   }
 }
 
 .k-select.k-select--type-gray {
   .k-select__trigger {
-    background-color: colors.$kobo-cloud;
+    background-color: colors.$kobo-light-storm;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
-    color: colors.$kobo-gray-24;
-    background-color: darken(colors.$kobo-cloud, 2);
+    color: colors.$kobo-gray-800;
+    background-color: darken(colors.$kobo-light-storm, 2);
   }
 }
 
 .k-select.k-select--type-outline {
   .k-select__trigger {
-    border-color: colors.$kobo-gray-92;
+    border-color: colors.$kobo-gray-300;
+    background-color: colors.$kobo-white;
   }
 
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
-    border-color: colors.$kobo-gray-85;
-    color: colors.$kobo-gray-24;
+    border-color: colors.$kobo-gray-400;
+    color: colors.$kobo-gray-800;
   }
 
   &.k-select--is-menu-visible {
@@ -264,8 +304,29 @@ $k-select-menu-padding: sizes.$x6;
   }
 
   .k-select__trigger .k-icon {
-    color: colors.$kobo-gray-85;
+    color: colors.$kobo-gray-400;
   }
+}
+
+// This needs to have stronger specificity because of `.form-modal__item`
+.k-select label.k-select__label {
+  color: colors.$kobo-gray-800;
+  font-size: sizes.$x12;
+  line-height: textBox.$label-leading;
+  margin-bottom: textBox.$label-margin;
+}
+
+.k-select__required-mark {
+  // NOTE: copied from textBox.module.scss
+  // Smaller than the design, because there is also a single whitespace
+  // character between the label and this mark
+  margin-left: sizes.$x2;
+  color: colors.$kobo-mid-red;
+  font-size: sizes.$x14;
+  // Magic number to align it similarly to Figma designs
+  line-height: sizes.$x16;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 // Sets the different sizes for given size of a trigger button.

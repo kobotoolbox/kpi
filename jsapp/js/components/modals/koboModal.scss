@@ -1,10 +1,11 @@
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/z-indexes';
 @use 'scss/sizes';
 @use 'scss/breakpoints';
 @use 'sass:color';
 @use 'js/components/common/icon';
+@use 'js/components/common/button';
 
 $kobo-modal-elements-height-min: sizes.$x60;
 $kobo-modal-width-min: 280px;
@@ -22,7 +23,7 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   left: 50%;
   top: 50%;
   background-color: colors.$kobo-white;
-  box-shadow: 0 0 sizes.$x12 0 color.change(colors.$kobo-gray-24, $alpha: 0.25);
+  box-shadow: 0 0 sizes.$x12 0 color.change(colors.$kobo-gray-800, $alpha: 0.25);
   display: flex;
   flex-direction: column;
 
@@ -32,6 +33,13 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 
   @media all and (max-height: breakpoints.$b480) {
     transform: translate(-50%, -50%);
+
+    // This ensures that modal layout is better adapting to very short screens.
+    .kobo-modal__header,
+    .kobo-modal__content,
+    .kobo-modal__footer {
+      min-height: $kobo-modal-elements-height-min;
+    }
   }
 
   @media all and (min-height: (breakpoints.$b480 + 1px)) {
@@ -47,11 +55,8 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   width: $kobo-modal-width-medium;
 }
 
-// This ensures that modal layout is better adapting to very short screens.
-.kobo-modal__header,
-.kobo-modal__content,
-.kobo-modal__footer {
-  min-height: $kobo-modal-elements-height-min;
+.kobo-modal__footer--isCentered {
+  justify-content: center !important;
 }
 
 .kobo-modal__header {
@@ -61,21 +66,31 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   padding: $kobo-modal-padding;
   border-radius: sizes.$x6 sizes.$x6 0 0;
 
-    &.kobo-modal__header--red{
-      background-color: color.change(colors.$kobo-red, $alpha: 0.1);
-    }
-    &.kobo-modal__header--grey{
-      background-color: colors.$kobo-gray-98;
-    }
+  &.kobo-modal__header--red {
+    background-color: color.change(colors.$kobo-mid-red, $alpha: 0.1);
+  }
+  &.kobo-modal__header--grey {
+    background-color: colors.$kobo-gray-100;
+  }
+  &.kobo-modal__header--white {
+    background-color: colors.$kobo-white;
+  }
 
   h1 {
     @include mixins.centerRowFlex;
 
-    color: colors.$kobo-gray-24;
+    flex: 1;
+    color: colors.$kobo-gray-800;
     font-size: sizes.$x18;
     font-weight: 700;
     margin: 0;
     line-height: 1;
+    margin-inline-end: 10px;
+
+    // If there is close button, we need to limit the width (for a long content)
+    &:not(:only-child) {
+      max-width: calc(100% - button.$button-height-s);
+    }
   }
 }
 

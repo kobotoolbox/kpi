@@ -14,7 +14,7 @@
             "user_permissions": [],
             "username": "admin"
         },
-        "model": "auth.user",
+        "model": "kobo_auth.user",
         "pk": 1
     },
     {
@@ -43,7 +43,7 @@
                ["view_submissions", "kpi", "asset"]
             ]
         },
-        "model": "auth.user",
+        "model": "kobo_auth.user",
         "pk": 2
     },
     {
@@ -72,7 +72,7 @@
                ["view_submissions", "kpi", "asset"]
             ]
         },
-        "model": "auth.user",
+        "model": "kobo_auth.user",
         "pk": 3
     },
     {
@@ -119,15 +119,6 @@
         }
     },
     {
-        "model": "authtoken.token",
-        "pk": 1,
-        "fields": {
-            "key": "3a8da043dd1b669688dae523b015177a1d4201d5",
-            "created": "2017-05-09 10:49:34.273769-04",
-            "user": 3
-        }
-    },
-    {
         "model": "hub.sitewidemessage",
         "pk": 1,
         "fields": {
@@ -141,6 +132,17 @@
         "fields": {
             "slug": "welcome_message_fr",
             "body": "Le message de bienvenue"
+        }
+    },
+    {
+        "model": "djstripe.apikey",
+        "pk": 1,
+        "fields": {
+            "type": "publishable",
+            "livemode": false,
+            "secret": "fake_public_key",
+            "djstripe_created": "2024-05-31T00:00:00Z",
+            "djstripe_updated": "2024-05-31T00:10:00Z"
         }
     }
 ]

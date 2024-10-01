@@ -1,6 +1,6 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import { observer } from 'mobx-react';
+import {observer} from 'mobx-react';
 import sessionStore from 'js/stores/session';
 import QRCode from 'qrcode.react';
 import Button from 'js/components/common/button';
@@ -70,19 +70,27 @@ const MFAModals = class MFAModals extends React.Component<
 
   componentDidMount() {
     this.unlisteners.push(
-      mfaActions.activate.completed.listen(this.onMfaActivateCompleted.bind(this)),
-      mfaActions.confirmCode.completed.listen(this.onMfaCodesReceived.bind(this)),
-      mfaActions.regenerate.completed.listen(this.onMfaCodesReceived.bind(this)),
+      mfaActions.activate.completed.listen(
+        this.onMfaActivateCompleted.bind(this)
+      ),
+      mfaActions.confirmCode.completed.listen(
+        this.onMfaCodesReceived.bind(this)
+      ),
+      mfaActions.regenerate.completed.listen(
+        this.onMfaCodesReceived.bind(this)
+      ),
       mfaActions.deactivate.completed.listen(this.onMfaDeactivated.bind(this)),
 
       mfaActions.confirmCode.failed.listen(this.onCallFailed.bind(this)),
       mfaActions.regenerate.failed.listen(this.onCallFailed.bind(this)),
-      mfaActions.deactivate.failed.listen(this.onCallFailed.bind(this)),
+      mfaActions.deactivate.failed.listen(this.onCallFailed.bind(this))
     );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   onMfaActivateCompleted(response: MfaActivatedResponse) {
@@ -136,11 +144,9 @@ const MFAModals = class MFAModals extends React.Component<
     const keyFromBackend = this.props.qrCode || this.state.qrCode;
 
     if (keyFromBackend) {
-      return (
-        keyFromBackend.split('=')[1].split('&')[0]
-      );
+      return keyFromBackend.split('=')[1].split('&')[0];
     } else {
-      return (t('Could not generate secret key'));
+      return t('Could not generate secret key');
     }
   }
 
@@ -176,16 +182,15 @@ const MFAModals = class MFAModals extends React.Component<
     this.setState({inputString: inputString});
   }
 
-  changeStep(
-    evt: React.ChangeEvent<HTMLInputElement>,
-    newStep: ModalSteps
-  ) {
+  changeStep(evt: React.ChangeEvent<HTMLInputElement>, newStep: ModalSteps) {
     evt.preventDefault();
     this.setState({currentStep: newStep});
   }
 
   isTokenValid() {
-    return this.state.inputString !== null && this.state.inputString.length >= 1;
+    return (
+      this.state.inputString !== null && this.state.inputString.length >= 1
+    );
   }
 
   downloadCodes() {
@@ -211,7 +216,9 @@ const MFAModals = class MFAModals extends React.Component<
   // HACK FIX: since the header is seperate from the modal we do this
   // roundabout way of disabling the close icon
   disableCloseIcon() {
-    const closeIcon = document.getElementsByClassName('modal__x')[0] as HTMLElement;
+    const closeIcon = document.getElementsByClassName(
+      'modal__x'
+    )[0] as HTMLElement;
     closeIcon.hidden = true;
   }
 
@@ -219,11 +226,11 @@ const MFAModals = class MFAModals extends React.Component<
     return (
       <bem.MFAModal__p>
         {t(
-          'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. '
-          + 'We recommend enabling two-factor authentication for an additional layer of protection.'
+          'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
+            'We recommend enabling two-factor authentication for an additional layer of protection.'
         )}
       </bem.MFAModal__p>
-    )
+    );
   }
 
   renderQRCodeStep() {
@@ -233,37 +240,37 @@ const MFAModals = class MFAModals extends React.Component<
           {this.renderIntroText()}
           <bem.MFAModal__p>
             <strong>
-              {t('Scan QR code and enter the ##number##-digit token from the application').replace('##number##', String(envStore.data.mfa_code_length))}
+              {t(
+                'Scan QR code and enter the ##number##-digit token from the application'
+              ).replace('##number##', String(envStore.data.mfa_code_length))}
             </strong>
           </bem.MFAModal__p>
         </bem.MFAModal__description>
 
         <bem.MFAModal__body>
           <bem.MFAModal__qrcodeWrapper>
-            <QRCode
-              value={this.state.qrCode || ''}
-              size={170}
-            />
+            <QRCode value={this.state.qrCode || ''} size={170} />
           </bem.MFAModal__qrcodeWrapper>
 
           <bem.MFAModal__p>
-            {t('After scanning the QR code image, the authenticator app will display a ##number##-digit code that you can enter below.').replace('##number##', String(envStore.data.mfa_code_length))}
+            {t(
+              'After scanning the QR code image, the authenticator app will display a ##number##-digit code that you can enter below.'
+            ).replace('##number##', String(envStore.data.mfa_code_length))}
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
             <TextBox
-              customClassNames={['mfa-modals-textbox']}
+              className='mfa-modals-textbox'
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
+              disableAutocomplete
             />
           </bem.MFAModal__p>
 
           <bem.MFAModal__p m='align-right'>
             {t('No QR code?')}
-
             &nbsp;
-
             <bem.MFAModal__helpLink
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                 this.changeStep(evt, 'manual');
@@ -277,8 +284,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('Next')}
@@ -299,31 +305,32 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__description>
           <bem.MFAModal__p>
             {t(
-              'The following recovery codes will help you access your account in case your authenticator app fails. These codes are unique and will not be stored in your Kobo account. '
-              + 'This is your only opportunity to save them. Please download the file and keep it somewhere safe.'
+              'The following recovery codes will help you access your account in case your authenticator app fails. These codes are unique and will not be stored in your Kobo account. ' +
+                'This is your only opportunity to save them. Please download the file and keep it somewhere safe.'
             )}
           </bem.MFAModal__p>
         </bem.MFAModal__description>
 
         <bem.MFAModal__body>
-          {this.state.backupCodes &&
+          {this.state.backupCodes && (
             <bem.MFAModal__codesWrapper>
               <bem.MFAModal__codes>
                 <bem.MFAModal__list>
                   {this.state.backupCodes.map((backupCode, index) => (
-                    <li key={index}><strong>{backupCode}</strong></li>
+                    <li key={index}>
+                      <strong>{backupCode}</strong>
+                    </li>
                   ))}
                 </bem.MFAModal__list>
               </bem.MFAModal__codes>
             </bem.MFAModal__codesWrapper>
-          }
+          )}
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
           <bem.MFAModal__footerLeft>
             <Button
-              type='frame'
-              color='blue'
+              type='secondary'
               size='l'
               isFullWidth
               label={t('Download codes')}
@@ -333,8 +340,7 @@ const MFAModals = class MFAModals extends React.Component<
 
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('I saved my codes')}
@@ -351,34 +357,35 @@ const MFAModals = class MFAModals extends React.Component<
     return (
       <bem.MFAModal m='step-manual'>
         <bem.MFAModal__description>
-          <bem.MFAModal__p>
-            {this.renderIntroText()}
-          </bem.MFAModal__p>
+          <bem.MFAModal__p>{this.renderIntroText()}</bem.MFAModal__p>
 
           <bem.MFAModal__p>
             <strong>
-              {t('Enter this key into your authenticator app to generate a ##number##-digit token').replace('##number##', String(envStore.data.mfa_code_length))}
+              {t(
+                'Enter this key into your authenticator app to generate a ##number##-digit token'
+              ).replace('##number##', String(envStore.data.mfa_code_length))}
             </strong>
           </bem.MFAModal__p>
         </bem.MFAModal__description>
 
         <bem.MFAModal__body>
           <bem.MFAModal__codesWrapper>
-            <bem.MFAModal__codes>
-              {this.getSecretKey()}
-            </bem.MFAModal__codes>
+            <bem.MFAModal__codes>{this.getSecretKey()}</bem.MFAModal__codes>
           </bem.MFAModal__codesWrapper>
 
           <bem.MFAModal__p>
-            {t('Once your authenticator app is set up, generate a ##number##-digit token and enter it in the field below.').replace('##number##', String(envStore.data.mfa_code_length))}
+            {t(
+              'Once your authenticator app is set up, generate a ##number##-digit token and enter it in the field below.'
+            ).replace('##number##', String(envStore.data.mfa_code_length))}
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
             <TextBox
-              customClassNames={['mfa-modals-textbox']}
+              className='mfa-modals-textbox'
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
+              disableAutocomplete
             />
           </bem.MFAModal__p>
 
@@ -396,8 +403,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('Next')}
@@ -418,21 +424,24 @@ const MFAModals = class MFAModals extends React.Component<
             <strong>
               {/*This is safe as this step only shows if not on qr step*/}
               {this.props.modalType === 'regenerate' &&
-                t('Please enter your ##number##-digit authenticator token to regenerate your backup codes.').replace('##number##', String(envStore.data.mfa_code_length))
-              }
+                t(
+                  'Please enter your ##number##-digit authenticator token to regenerate your backup codes.'
+                ).replace('##number##', String(envStore.data.mfa_code_length))}
 
               {this.props.modalType !== 'regenerate' &&
-                t('Please enter your ##number##-digit authenticator token to deactivate two-factor authentication.').replace('##number##', String(envStore.data.mfa_code_length))
-              }
+                t(
+                  'Please enter your ##number##-digit authenticator token to deactivate two-factor authentication.'
+                ).replace('##number##', String(envStore.data.mfa_code_length))}
             </strong>
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
             <TextBox
-              customClassNames={['mfa-modals-textbox']}
+              className='mfa-modals-textbox'
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
+              disableAutocomplete
             />
           </bem.MFAModal__p>
 
@@ -450,14 +459,11 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__footer>
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('Next')}
-              onClick={
-                this.onSubmit.bind(this)
-              }
+              onClick={this.onSubmit.bind(this)}
               isDisabled={!this.isTokenValid()}
             />
           </bem.MFAModal__footerRight>
@@ -479,30 +485,31 @@ const MFAModals = class MFAModals extends React.Component<
             <strong>
               {/*This is safe as this step only shows if on reconfigure or regenerate*/}
               {this.props.modalType === 'regenerate' &&
-                t('Please note that generating new recovery codes will invalidate any previously generated codes.')
-              }
+                t(
+                  'Please note that generating new recovery codes will invalidate any previously generated codes.'
+                )}
 
               {this.props.modalType !== 'regenerate' &&
-                t('Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will first be deleted. Tokens or recovery codes from the previous set up will not be valid anymore.')
-              }
+                t(
+                  'Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will first be deleted. Tokens or recovery codes from the previous set up will not be valid anymore.'
+                )}
             </strong>
           </bem.MFAModal__p>
 
-          {this.props.modalType === 'reconfigure' &&
+          {this.props.modalType === 'reconfigure' && (
             <bem.MFAModal__p>
               {t(
-                "Once your current 2FA has been deactivated, you'll be prompted to configure it again. If you cannot complete the process, 2FA will remain disabled for your account. "
-                + "In this case, you can enable it again at any time through the usual process."
+                "Once your current 2FA has been deactivated, you'll be prompted to configure it again. If you cannot complete the process, 2FA will remain disabled for your account. " +
+                  'In this case, you can enable it again at any time through the usual process.'
               )}
             </bem.MFAModal__p>
-          }
+          )}
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('Next')}
@@ -520,16 +527,21 @@ const MFAModals = class MFAModals extends React.Component<
     return (
       <bem.MFAModal m='step-help'>
         <bem.MFAModal__body>
-          <bem.MFAModal__p><strong>{t('Issues with the token')}</strong></bem.MFAModal__p>
+          <bem.MFAModal__p>
+            <strong>{t('Issues with the token')}</strong>
+          </bem.MFAModal__p>
 
-          <bem.MFAModal__p dangerouslySetInnerHTML={{__html: envStore.data.mfa_localized_help_text}} />
+          <bem.MFAModal__p
+            dangerouslySetInnerHTML={{
+              __html: envStore.data.mfa_localized_help_text,
+            }}
+          />
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
           <bem.MFAModal__footerLeft>
             <Button
-              type='frame'
-              color='blue'
+              type='secondary'
               size='l'
               isFullWidth
               label={t('Back')}
@@ -541,8 +553,7 @@ const MFAModals = class MFAModals extends React.Component<
 
           <bem.MFAModal__footerRight>
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isFullWidth
               label={t('OK')}
@@ -577,6 +588,6 @@ const MFAModals = class MFAModals extends React.Component<
         return null;
     }
   }
-}
+};
 
 export default (observer as any)(MFAModals);

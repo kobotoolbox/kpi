@@ -3,8 +3,9 @@ from __future__ import annotations
 
 from typing import Union
 
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.http import Http404
+from kobo_service_account.utils import get_real_user
 from rest_framework import exceptions, permissions
 from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
 
@@ -15,8 +16,9 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import DeploymentNotFound
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
-from kpi.models.asset import Asset
+from kpi.models.asset import Asset, AssetSnapshot
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
@@ -83,7 +85,7 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
             return cls._get_asset(view)
 
     def _get_user_permissions(
-        self, object_: Union['kpi.Asset', 'kpi.Collection'], user: 'auth.User'
+        self, object_: Union['kpi.Asset', 'kpi.Collection'], user: settings.AUTH_USER_MODEL
     ) -> list[str]:
         """
         Returns a list of `user`'s permission for `asset`
@@ -351,7 +353,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
 
-    def _get_user_permissions(self, asset: Asset, user: 'auth.User') -> list:
+    def _get_user_permissions(self, asset: Asset, user: 'settings.AUTH_USER_MODEL') -> list:
         """
         Overrides parent method to include partial permissions (which are
         specific to submissions)
@@ -415,14 +417,19 @@ class EditLinkSubmissionPermission(SubmissionPermission):
 
 
 class EditSubmissionPermission(EditLinkSubmissionPermission):
-
+    # TODO: Refactor this so we don't have to check for the object twice
     def has_permission(self, request, view):
         try:
             return super().has_permission(request, view)
         except Http404:
-            # When we receive a 404, we want to force a 401 to let the user
-            # log in with different credentials. Enketo Express will prompt
-            # the credential form only if it receives a 401.
+            uid = request.parser_context['kwargs']['uid']
+            # Is this a real 404 (object does not exist)? If so, raise it
+            if not AssetSnapshot.objects.filter(uid=uid).exists():
+                raise
+
+            # If we forced a 404 for permissions issues, we want to
+            # change it to a 401 to allow the user log in with different credentials.
+            # Enketo Express will prompt the credential form only if it receives a 401.
             raise exceptions.AuthenticationFailed()
 
 
@@ -462,20 +469,24 @@ class XMLExternalDataPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         """
         The responsibility for securing data behove to the owner of the
-        asset `obj` by requiring authentication on their form.
-        Otherwise, the paired source data may be exposed to anyone
+        asset `obj` (the child project) by requiring authentication on
+        their form.
+        Otherwise, the paired source (the parent project) data may be exposed
+        to anyone.
         """
-        # Check whether `asset` owner's account requires authentication:
+        # Check whether the project requires authentication
         try:
-            require_auth = obj.asset.owner.extra_details.data['require_auth']
-        except (User.extra_details.RelatedObjectDoesNotExist, KeyError):
-            require_auth = False
+            require_auth = obj.asset.deployment.xform.require_auth
+        except (DeploymentNotFound, AttributeError):
+            require_auth = True
+
+        real_user = get_real_user(request)
 
         # If authentication is required, `request.user` should have
         # 'add_submission' permission on `obj`
         if (
             require_auth
-            and not obj.asset.has_perm(request.user, PERM_ADD_SUBMISSIONS)
+            and not obj.asset.has_perm(real_user, PERM_ADD_SUBMISSIONS)
         ):
             raise Http404
 

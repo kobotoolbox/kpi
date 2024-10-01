@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
@@ -48,8 +49,17 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
                     raise PermissionDenied('ASR/MT features are not available')
 
 
+class AdvancedSubmissionPermission(SubmissionPermission):
+    """
+    Regular `SubmissionPermission` maps POST to `add_submissions`, but
+    `change_submissions` should be required here
+    """
+    perms_map = deepcopy(SubmissionPermission.perms_map)
+    perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
+
+
 class AdvancedSubmissionView(APIView):
-    permission_classes = [SubmissionPermission]
+    permission_classes = [AdvancedSubmissionPermission]
     queryset = Asset.objects.all()
     asset = None
 

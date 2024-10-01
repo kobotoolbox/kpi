@@ -187,7 +187,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             response = requests.post(
                 f'{settings.ENKETO_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
                 # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
+                auth=(settings.ENKETO_API_KEY, ''),
                 data=data
             )
             response.raise_for_status()

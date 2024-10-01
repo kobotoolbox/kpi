@@ -1,14 +1,11 @@
 import React, {Suspense} from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import {actions} from '../actions';
 import bem from 'js/bem';
-import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
-import SharingForm from './permissions/sharingForm';
+import SharingForm from './permissions/sharingForm.component';
 import ProjectSettings from './modalForms/projectSettings';
 import FormMedia from './modalForms/formMedia';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -17,6 +14,7 @@ import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
+import TransferProjects from 'js/components/permissions/transferProjects/transferProjects.component';
 
 const ConnectProjects = React.lazy(() =>
   import(
@@ -42,8 +40,7 @@ export class FormSubScreens extends React.Component {
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(assetStore, this.dmixAssetStoreChange);
-    var uid =
+    const uid =
       this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
       actions.resources.loadAsset({id: uid});
@@ -55,12 +52,8 @@ export class FormSubScreens extends React.Component {
     }
 
     var iframeUrl = '';
-    var deployment__identifier = '';
 
     if (this.state.uid != undefined) {
-      if (this.state.deployment__identifier != undefined) {
-        deployment__identifier = this.state.deployment__identifier;
-      }
       switch (this.props.router.location.pathname) {
         case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
           return (
@@ -141,9 +134,12 @@ export class FormSubScreens extends React.Component {
   }
   renderSharing() {
     const uid = this.props.params.assetid || this.props.params.uid;
+
     return (
       <bem.FormView m='form-settings-sharing'>
-        <SharingForm uid={uid} />
+        <SharingForm assetUid={uid} />
+
+        <TransferProjects asset={this.state} />
       </bem.FormView>
     );
   }
@@ -165,12 +161,7 @@ export class FormSubScreens extends React.Component {
   }
 }
 
-reactMixin(FormSubScreens.prototype, Reflux.ListenerMixin);
 reactMixin(FormSubScreens.prototype, mixins.dmix);
 reactMixin(FormSubScreens.prototype, mixins.contextRouter);
-
-FormSubScreens.contextTypes = {
-  router: PropTypes.object,
-};
 
 export default withRouter(FormSubScreens);

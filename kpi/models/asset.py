@@ -8,11 +8,12 @@ from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch, Q, F
 from django.utils.translation import gettext_lazy as t
+from django_request_cache import cache_for_request
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
@@ -42,6 +43,7 @@ from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     ASSET_TYPE_TEXT,
+    ATTACHMENT_QUESTION_TYPES,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
@@ -72,6 +74,7 @@ from kpi.mixins import (
     XlsExportableMixin,
     StandardizeSearchableFieldMixin,
 )
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
@@ -79,7 +82,6 @@ from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
-from kpi.tasks import remove_asset_snapshots
 
 
 class AssetDeploymentStatus(models.TextChoices):
@@ -151,15 +153,15 @@ class KpiTaggableManager(_TaggableManager):
         super().add(*tags_out, **kwargs)
 
 
-class Asset(ObjectPermissionMixin,
-            DeployableMixin,
-            XlsExportableMixin,
-            FormpackXLSFormUtilsMixin,
-            StandardizeSearchableFieldMixin,
-            models.Model):
+class Asset(
+    ObjectPermissionMixin,
+    DeployableMixin,
+    XlsExportableMixin,
+    FormpackXLSFormUtilsMixin,
+    StandardizeSearchableFieldMixin,
+    AbstractTimeStampedModel,
+):
     name = models.CharField(max_length=255, blank=True, default='')
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
     date_deployed = models.DateTimeField(null=True)
     content = models.JSONField(default=dict)
     summary = models.JSONField(default=dict)
@@ -174,7 +176,7 @@ class Asset(ObjectPermissionMixin,
     )
     parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
-    owner = models.ForeignKey('auth.User', related_name='assets', null=True,
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assets', null=True,
                               on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
@@ -216,6 +218,8 @@ class Asset(ObjectPermissionMixin,
         blank=True,
         db_index=True
     )
+    created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
+    last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -229,6 +233,9 @@ class Asset(ObjectPermissionMixin,
         indexes = [
             GinIndex(
                 F('settings__country_codes'), name='settings__country_codes_idx'
+            ),
+            BTreeIndex(
+                F('_deployment_data__formid'), name='deployment_data__formid_idx'
             ),
         ]
 
@@ -379,7 +386,6 @@ class Asset(ObjectPermissionMixin,
                 if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
             )
         ),
-        PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (
@@ -406,15 +412,17 @@ class Asset(ObjectPermissionMixin,
 
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
-        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
-        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
-        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
-        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can Delete Data" in KC UI
-        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can Validate" in KC UI
+        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can change XForm" in KC shell
+        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can view XForm" in KC shell
+        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell
+        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell
+        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell
+        PERM_DELETE_ASSET: 'delete_xform',  # "Can delete XForm" in KC shell
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
+        PERM_ADD_SUBMISSIONS: {'require_auth': False},
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 
@@ -469,10 +477,48 @@ class Asset(ObjectPermissionMixin,
             # Remove newlines and tabs (they are stripped in front end anyway)
             self.name = re.sub(r'[\n\t]+', '', _title)
 
-    def analysis_form_json(self):
+    def analysis_form_json(self, omit_question_types=None):
+        if omit_question_types is None:
+            omit_question_types = []
+
         additional_fields = list(self._get_additional_fields())
         engines = dict(self._get_engines())
-        return {'engines': engines, 'additional_fields': additional_fields}
+        output = {'engines': engines, 'additional_fields': additional_fields}
+        try:
+            qual_survey = self.advanced_features['qual']['qual_survey']
+        except KeyError:
+            return output
+        for qual_question in qual_survey:
+            # Surely some of this stuff is not actually used…
+            # (added to match extend_col_deets() from
+            # kobo/apps/subsequences/utils/parse_known_cols)
+            #
+            # See also injectSupplementalRowsIntoListOfRows() in
+            # assetUtils.ts
+            qpath = qual_question['qpath']
+            field = dict(
+                label=qual_question['labels']['_default'],
+                name=f"{qpath}/{qual_question['uuid']}",
+                dtpath=f"{qpath}/{qual_question['uuid']}",
+                type=qual_question['type'],
+                # could say '_default' or the language of the transcript,
+                # but really that would be meaningless and misleading
+                language='??',
+                source=qpath,
+                qpath=f"{qpath}-{qual_question['uuid']}",
+                # seems not applicable given the transx questions describe
+                # manual vs. auto here and which engine was used
+                settings='??',
+                path=[qpath, qual_question['uuid']],
+            )
+            if field['type'] in omit_question_types:
+                continue
+            try:
+                field['choices'] = qual_question['choices']
+            except KeyError:
+                pass
+            additional_fields.append(field)
+        return output
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -541,6 +587,42 @@ class Asset(ObjectPermissionMixin,
         return advanced_submission_jsonschema(
             content, self.advanced_features, url=url
         )
+
+    @cache_for_request
+    def get_attachment_xpaths(self, deployed: bool = True) -> Optional[list]:
+        version = (
+            self.latest_deployed_version if deployed else self.latest_version
+        )
+
+        if version:
+            content = version.to_formpack_schema()['content']
+        else:
+            content = self.content
+
+        survey = content['survey']
+
+        def _get_xpaths(survey_: dict) -> Optional[list]:
+            """
+            Returns an empty list if no questions that take attachments are
+            present. Returns `None` if XPath are missing from the survey
+            content
+            """
+            xpaths = []
+            for question in survey_:
+                if question['type'] not in ATTACHMENT_QUESTION_TYPES:
+                    continue
+                try:
+                    xpath = question['$xpath']
+                except KeyError:
+                    return None
+                xpaths.append(xpath)
+            return xpaths
+
+        if xpaths := _get_xpaths(survey):
+            return xpaths
+
+        self._insert_qpath(content)
+        return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
@@ -1106,9 +1188,13 @@ class Asset(ObjectPermissionMixin,
         return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
+        '''
+        engines are individual NLP services that can be used
+        '''
         for instance in self.get_advanced_feature_instances():
-            for key, val in instance.engines():
-                yield key, val
+            if hasattr(instance, 'engines'):
+                for key, val in instance.engines():
+                    yield key, val
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
@@ -1160,8 +1246,6 @@ class Asset(ObjectPermissionMixin,
 
         if regenerate:
             snapshot = False
-            # Let's do some housekeeping
-            remove_asset_snapshots.delay(self.id)
         else:
             snapshot = AssetSnapshot.objects.filter(**snap_params).order_by(
                 '-date_created'
@@ -1194,7 +1278,7 @@ class Asset(ObjectPermissionMixin,
 
     def _update_partial_permissions(
         self,
-        user: 'auth.User',
+        user: 'settings.AUTH_USER_MODEL',
         perm: str,
         remove: bool = False,
         partial_perms: Optional[dict] = None,
@@ -1320,7 +1404,7 @@ class UserAssetSubscription(models.Model):
     """ Record a user's subscription to a publicly-discoverable collection,
     i.e. one where the anonymous user has been granted `discover_asset` """
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='b')
 
     class Meta:

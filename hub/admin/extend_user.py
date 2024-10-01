@@ -15,20 +15,33 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+from kobo.apps.accounts.mfa.models import MfaMethod
 from kobo.apps.accounts.validators import (
     USERNAME_MAX_LENGTH,
     USERNAME_INVALID_MESSAGE,
     username_validators,
 )
+from kobo.apps.organizations.models import OrganizationUser
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.deployment_backends.kc_access.shadow_models import (
-    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
+    KobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import AssetDeploymentStatus
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
+
+
+def validate_superuser_auth(obj) -> bool:
+    if (
+        obj.is_superuser
+        and config.SUPERUSER_AUTH_ENFORCEMENT
+        and obj.has_usable_password()
+        and not MfaMethod.objects.filter(user=obj, is_active=True).exists()
+    ):
+        return False
+    return True
 
 
 class UserChangeForm(DjangoUserChangeForm):
@@ -52,6 +65,10 @@ class UserChangeForm(DjangoUserChangeForm):
                 f'User is in <a href="{url}">trash</a> and cannot be reactivated'
                 f' from here.'
             ))
+        if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(self.instance):
+            raise ValidationError(
+                "Superusers with a usable password must enable MFA."
+            )
 
         return cleaned_data
 
@@ -64,6 +81,30 @@ class UserCreationForm(DjangoUserCreationForm):
         help_text=USERNAME_INVALID_MESSAGE,
         validators=username_validators,
     )
+
+
+class OrgInline(admin.StackedInline):
+    model = OrganizationUser
+    verbose_name_plural = 'Organization'
+    view_on_site = False
+    list_display = [
+        'user',
+        'organization',
+        'is_admin',
+    ]
+    raw_id_fields = ('user', 'organization')
+    readonly_fields = (
+        settings.STRIPE_ENABLED and ('active_subscription_status',) or []
+    )
+
+    def active_subscription_status(self, obj):
+        if settings.STRIPE_ENABLED:
+            return obj.active_subscription_status if obj.active_subscription_status else "None"
+
+    def has_add_permission(self, request, obj=OrganizationUser):
+        return False
+
+    active_subscription_status.short_description = 'Active Subscription'
 
 
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
@@ -85,6 +126,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
 
     form = UserChangeForm
     add_form = UserCreationForm
+    inlines = [OrgInline]
     change_form_template = 'admin/loginas/change_form.html'
     list_display = (
         'username',
@@ -215,7 +257,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         displayed in the Django admin user changelist page
         """
         today = timezone.now().date()
-        instances = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+        instances = KobocatMonthlyXFormSubmissionCounter.objects.filter(
             user_id=obj.id,
             year=today.year,
             month=today.month,

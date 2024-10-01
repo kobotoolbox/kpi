@@ -8,19 +8,19 @@ from .base import BaseApiTestCase
 class LanguageListApiTestCase(BaseApiTestCase):
 
     def test_can_list_as_authenticated_user(self):
-        response = self.client.get(reverse('language-list'))
+        response = self.client.get(reverse(self._get_endpoint('language-list')))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_list_as_anonymous_user(self):
         self.client.logout()
-        response = self.client.get(reverse('language-list'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(reverse(self._get_endpoint('language-list')))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_with_search(self):
         """
         Search within language names and codes.
         """
-        url = f"{reverse('language-list')}?q=fr"
+        url = f"{reverse(self._get_endpoint('language-list'))}?q=fr"
         response = self.client.get(url)
         expected_codes = ['fr', 'af']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -33,7 +33,7 @@ class LanguageListApiTestCase(BaseApiTestCase):
         """
         Search within language names and codes with non-ascii characters
         """
-        url = f"{reverse('language-list')}?q=hé"
+        url = f"{reverse(self._get_endpoint('language-list'))}?q=hé"
         response = self.client.get(url)
         expected_codes = ['guq']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -51,7 +51,7 @@ class LanguageListApiTestCase(BaseApiTestCase):
             'translation_services__code:msft '
             'AND transcription_services__code:goog'
         )
-        url = f"{reverse('language-list')}?q={search_query}"
+        url = f"{reverse(self._get_endpoint('language-list'))}?q={search_query}"
         response = self.client.get(url)
         expected_names = ['French']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -64,7 +64,7 @@ class LanguageListApiTestCase(BaseApiTestCase):
         """
         Should sort by featured DESC, name ASC
         """
-        response = self.client.get(reverse('language-list'))
+        response = self.client.get(reverse(self._get_endpoint('language-list')))
         expected_names = [
             'English',
             'French',
@@ -84,7 +84,9 @@ class LanguageApiTestCase(BaseApiTestCase):
 
     def setUp(self):
         super().setUp()
-        self.detail_url = reverse('language-detail', kwargs={'code': 'fr'})
+        self.detail_url = reverse(
+            self._get_endpoint('language-detail'), kwargs={'code': 'fr'}
+        )
 
     def test_can_read_as_authenticated_user(self):
         expected = {
@@ -128,4 +130,4 @@ class LanguageApiTestCase(BaseApiTestCase):
     def test_cannot_read_as_anonymous_user(self):
         self.client.logout()
         response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

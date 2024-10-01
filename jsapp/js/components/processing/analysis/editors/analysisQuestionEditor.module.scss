@@ -1,0 +1,20 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'scss/colors';
+@use '../analysisVariables';
+
+.header {
+  &:not(:last-child) {
+    margin-bottom: analysisVariables.$inner-vertical-gap;
+  }
+}
+
+.headerForm {
+  @include mixins.centerRowFlex;
+  align-items: flex-start;
+  gap: analysisVariables.$inner-horizontal-gap;
+}
+
+.labelInput {
+  flex: 1;
+}

@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
-import {fetchPost} from 'js/api';
-import {handleApiFail, notify} from 'js/utils';
+import {fetchPost, handleApiFail} from 'js/api';
+import {notify} from 'js/utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
 import Checkbox from 'js/components/common/checkbox';
 import styles from './bulkDeletePrompt.module.scss';
@@ -59,15 +59,13 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
       )}
       buttons={[
         {
-          type: 'frame',
-          color: 'storm',
+          type: 'secondary',
           label: 'Cancel',
           onClick: props.onRequestClose,
           isDisabled: isConfirmDeletePending,
         },
         {
-          type: 'full',
-          color: 'red',
+          type: 'danger',
           label: 'Delete',
           onClick: onConfirmDelete,
           isDisabled: !isDataChecked || !isFormChecked || !isRecoverChecked,

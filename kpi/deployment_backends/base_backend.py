@@ -1,36 +1,63 @@
 # coding: utf-8
 from __future__ import annotations
+
 import abc
 import copy
 import datetime
 import json
+import os
+import uuid
 from datetime import date
+from contextlib import contextmanager
 from typing import Union, Iterator, Optional
 
 from bson import json_util
+from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_XML,
     SUBMISSION_FORMAT_TYPE_JSON,
+    PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    get_or_create_element,
+    xml_tostring,
+)
 
 
 class BaseDeploymentBackend(abc.ABC):
     """
     Defines the interface for a deployment backend.
     """
+
+    PROTECTED_XML_FIELDS = [
+        '__version__',
+        'formhub',
+        'meta',
+    ]
+
+    # XPaths are relative to the root node
+    SUBMISSION_CURRENT_UUID_XPATH = 'meta/instanceID'
+    SUBMISSION_DEPRECATED_UUID_XPATH = 'meta/deprecatedID'
+    FORM_UUID_XPATH = 'formhub/uuid'
 
     def __init__(self, asset):
         self.asset = asset
@@ -59,51 +86,169 @@ class BaseDeploymentBackend(abc.ABC):
     def bulk_assign_mapped_perms(self):
         pass
 
-    @abc.abstractmethod
     def bulk_update_submissions(
-        self, data: dict, user: 'auth.User'
+        self, data: dict, user: settings.AUTH_USER_MODEL
     ) -> dict:
-        pass
+        """
+        Allows for bulk updating (bulk editing) of submissions. A
+        `deprecatedID` for each submission is given the previous value of
+        `instanceID` and `instanceID` receives an updated uuid. For each key
+        and value within `request_data`, either a new element is created on the
+        submission's XML tree, or the existing value is replaced by the updated
+        value.
+
+        Args:
+            data (dict): must contain a list of `submission_ids` and at
+                least one other key:value field for updating the submissions
+            user (User)
+
+        Returns:
+            dict: formatted dict to be passed to a Response object
+        """
+        submission_ids = self.validate_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=data['submission_ids'],
+            query=data['query'],
+        )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have full access.
+        if submission_ids:
+            # Reset query, because all the submission ids have been already
+            # retrieve
+            data['query'] = {}
+        else:
+            submission_ids = data['submission_ids']
+
+        submissions = self.get_submissions(
+            user=user,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            submission_ids=submission_ids,
+            query=data['query'],
+        )
+
+        if not self.current_submission_count:
+            raise BulkUpdateSubmissionsClientException(
+                detail=t('No submissions match the given `submission_ids`')
+            )
+
+        # Remove potentially destructive keys from the payload
+        update_data = copy.deepcopy(data['data'])
+        update_data = {
+            k: v
+            for k, v in update_data.items()
+            if not (
+                k in self.PROTECTED_XML_FIELDS
+                or '/' in k
+                and k.split('/')[0] in self.PROTECTED_XML_FIELDS
+            )
+        }
+
+        kc_responses = []
+        for submission in submissions:
+            xml_parsed = fromstring_preserve_root_xmlns(submission)
+
+            _uuid, uuid_formatted = self.generate_new_instance_id()
+
+            # Updating xml fields for submission. In order to update an existing
+            # submission, the current `instanceID` must be moved to the value
+            # for `deprecatedID`.
+            instance_id = get_or_create_element(
+                xml_parsed, self.SUBMISSION_CURRENT_UUID_XPATH
+            )
+            # If the submission has been edited before, it will already contain
+            # a deprecatedID element - otherwise create a new element
+            deprecated_id = get_or_create_element(
+                xml_parsed, self.SUBMISSION_DEPRECATED_UUID_XPATH
+            )
+            deprecated_id.text = instance_id.text
+            instance_id.text = uuid_formatted
+
+            # If the form has been updated with new fields and earlier
+            # submissions have been selected as part of the bulk update,
+            # a new element has to be created before a value can be set.
+            # However, with this new power, arbitrary fields can be added
+            # to the XML tree through the API.
+            for path, value in update_data.items():
+                edit_submission_xml(xml_parsed, path, value)
+
+            kc_response = self.store_submission(
+                user, xml_tostring(xml_parsed), _uuid
+            )
+            kc_responses.append(
+                {
+                    'uuid': _uuid,
+                    'response': kc_response,
+                }
+            )
+
+        return self.prepare_bulk_update_response(kc_responses)
 
     @abc.abstractmethod
-    def calculated_submission_count(self, user: 'auth.User', **kwargs):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def submission_count_since_date(self, start_date: Optional[datetime.date] = None):
+    def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
         pass
 
     @abc.abstractmethod
     def connect(self, active=False):
         pass
 
-    @abc.abstractmethod
-    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
-        pass
+    def copy_submission_extras(self, origin_uuid: str, dest_uuid: str):
+        """
+        Copy the submission extras from an origin submission uuid
+        to a destination uuid. Should be used along with duplicate_submission,
+        after it succeeds at duplicating a submission
+        """
+        original_extras = self.asset.submission_extras.filter(
+            submission_uuid=origin_uuid
+        ).first()
+        if original_extras is not None:
+            duplicated_extras = copy.deepcopy(original_extras.content)
+            duplicated_extras['submission'] = dest_uuid
+            self.asset.update_submission_extra(duplicated_extras)
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+    def delete_submission(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
         pass
 
     @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
+    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs) -> dict:
         pass
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:
         pass
+
+    @property
+    @abc.abstractmethod
+    def enketo_id(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def form_uuid(self):
+        pass
+
+    @staticmethod
+    def generate_new_instance_id() -> (str, str):
+        """
+        Returns:
+            - Generated uuid
+            - Formatted uuid for OpenRosa xml
+        """
+        _uuid = str(uuid.uuid4())
+        return _uuid, f'uuid:{_uuid}'
 
     @abc.abstractmethod
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
-        user: 'auth.User',
+        user: 'settings.AUTH_USER_MODEL',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> tuple:
@@ -113,7 +258,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
+    def get_daily_counts(self, user: settings.AUTH_USER_MODEL, timeframe: tuple[date, date]) -> dict:
         pass
 
     def get_data(
@@ -157,7 +302,7 @@ class BaseDeploymentBackend(abc.ABC):
     def get_submission(
         self,
         submission_id: int,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params: dict
@@ -207,7 +352,7 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def get_submissions(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
         request: Optional['rest_framework.request.Request'] = None,
@@ -232,15 +377,11 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
+    def get_validation_status(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
         """
         Return a formatted dict to be passed to a Response object
         """
         pass
-
-    @property
-    def identifier(self):
-        return self.get_data('identifier')
 
     @property
     def last_submission_time(self):
@@ -249,6 +390,10 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def mongo_userform_id(self):
         return None
+
+    @abc.abstractmethod
+    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
+        pass
 
     @abc.abstractmethod
     def redeploy(self, active: bool = None):
@@ -263,6 +408,10 @@ class BaseDeploymentBackend(abc.ABC):
         # about whether the back end is KoBoCAT or something else
         pass
 
+    @abc.abstractmethod
+    def rename_enketo_id_key(self, previous_owner_username: str):
+        pass
+
     def save_to_db(self, updates: dict):
         """
         Persist values from deployment data into the DB.
@@ -275,8 +424,12 @@ class BaseDeploymentBackend(abc.ABC):
 
         self.store_data(updates)
         self.asset.set_deployment_status()
+
+        # never save `_stored_data_key` attribute
+        updates.pop('_stored_data_key', None)
+
         self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=ReplaceValues(
+            _deployment_data=UpdateJSONFieldAttributes(
                 '_deployment_data',
                 updates=updates,
             ),
@@ -294,6 +447,12 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
+        pass
+
+    @abc.abstractmethod
     def set_has_kpi_hooks(self):
         pass
 
@@ -303,13 +462,13 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def set_validation_status(self,
                               submission_id: int,
-                              user: 'auth.User',
+                              user: settings.AUTH_USER_MODEL,
                               data: dict,
                               method: str) -> dict:
         pass
 
     @abc.abstractmethod
-    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+    def set_validation_statuses(self, user: settings.AUTH_USER_MODEL, data: dict) -> dict:
         pass
 
     @property
@@ -318,6 +477,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def store_data(self, values: dict):
         """ Saves in memory only; writes nothing to the database """
+        values = copy.deepcopy(values)
         self.__stored_data_key = ShortUUID().random(24)
         values['_stored_data_key'] = self.__stored_data_key
         self.asset._deployment_data.update(values)  # noqa
@@ -328,7 +488,21 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def store_submission(
+        self, user, xml_submission, submission_uuid, attachments=None
+    ):
+        pass
+
+    @property
+    @abc.abstractmethod
     def submission_count(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def submission_count_since_date(
+        self, start_date: Optional[datetime.date] = None
+    ):
         pass
 
     @property
@@ -341,13 +515,29 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_model(self):
         pass
 
+    @staticmethod
+    @abc.abstractmethod
+    @contextmanager
+    def suspend_submissions(user_ids: list[int]):
+        pass
+
     @abc.abstractmethod
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
         pass
 
+    @abc.abstractmethod
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
+        pass
+
+    @abc.abstractmethod
+    def transfer_submissions_ownership(
+        self, previous_owner_username: str
+    ) -> bool:
+        pass
+
     def validate_submission_list_params(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         validate_count: bool = False,
         partial_perm=PERM_VIEW_SUBMISSIONS,
@@ -481,7 +671,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def validate_access_with_partial_perms(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         perm: str,
         submission_ids: list = [],
         query: dict = {},
@@ -572,6 +762,10 @@ class BaseDeploymentBackend(abc.ABC):
     def version_id(self):
         return self.get_data('version')
 
+    @property
+    def _open_rosa_server_storage(self):
+        return default_storage
+
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
         """
         Returns a list of objects, or a QuerySet to pass to Celery to
@@ -587,3 +781,67 @@ class BaseDeploymentBackend(abc.ABC):
         else:
             queryset = PairedData.objects(self.asset).values()
             return queryset
+
+    def _rewrite_json_attachment_urls(
+        self, submission: dict, request
+    ) -> dict:
+        if not request or '_attachments' not in submission:
+            return submission
+
+        attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            submission, attachment_xpaths
+        )
+
+        for attachment in submission['_attachments']:
+            # We should use 'attachment-list' with `?xpath=` but we do not
+            # know what the XPath is here. Since the primary key is already
+            # exposed, let's use it to build the url.
+            kpi_url = reverse(
+                'attachment-detail',
+                args=(
+                    self.asset.uid,
+                    submission['_id'],
+                    attachment['id'],
+                ),
+                request=request,
+            )
+            key = f'download_url'
+            attachment[key] = kpi_url
+            if attachment['mimetype'].startswith('image/'):
+                for suffix in settings.THUMB_CONF.keys():
+                    kpi_url = reverse(
+                        'attachment-thumb',
+                        args=(
+                            self.asset.uid,
+                            submission['_id'],
+                            attachment['id'],
+                            suffix,
+                        ),
+                        request=request,
+                    )
+                    key = f'download_{suffix}_url'
+                    attachment[key] = kpi_url
+            else:
+                for suffix in settings.THUMB_CONF.keys():
+                    try:
+                        key = f'download_{suffix}_url'
+                        del attachment[key]
+                    except KeyError:
+                        continue
+
+            filename = attachment['filename']
+            attachment['filename'] = os.path.join(
+                self.asset.owner.username,
+                'attachments',
+                # KoboCAT accepts submissions even when they lack `formhub/uuid`
+                self.form_uuid or submission['formhub/uuid'],
+                submission['_uuid'],
+                os.path.basename(filename)
+            )
+
+            # Retrieve XPath and add it to attachment dictionary
+            basename = os.path.basename(attachment['filename'])
+            attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
+
+        return submission

@@ -46,10 +46,12 @@ class Radio extends React.Component<RadioProps> {
   }
 
   onClick(evt: React.ChangeEvent<HTMLInputElement>) {
-    // For clearable radio, we unselect checked option when clicked
+    // For clearable radio, we unselect checked option when clicked,
+    // Note: we can't simply check `evt.currentTarget.checked`, because
+    // the input toggles before `onClick` event occurs, so it is always checked
     if (
       this.props.isClearable &&
-      evt.currentTarget.checked
+      this.props.selected === evt.currentTarget.value
     ) {
       this.props.onChange('', this.props.name);
     }

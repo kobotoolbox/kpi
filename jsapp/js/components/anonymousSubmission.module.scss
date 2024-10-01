@@ -1,0 +1,12 @@
+@use 'scss/sizes';
+@use 'scss/colors';
+
+.root {
+  display: flex;
+  align-items: flex-start;
+  padding-top: sizes.$x8;
+}
+
+.root > *:not(:last-child) {
+  margin-right: sizes.$x8;
+}

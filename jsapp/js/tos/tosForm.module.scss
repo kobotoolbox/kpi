@@ -1,0 +1,46 @@
+@use 'scss/sizes';
+@use 'scss/colors';
+
+.root {
+  max-width: sizes.$x800;
+  margin: 0 auto;
+}
+
+.message {
+  margin-bottom: sizes.$x24;
+}
+
+.message :global h1 {
+  font-weight: 600;
+  font-size: sizes.$x18;
+  margin-bottom: sizes.$x16;
+}
+
+.message :global p {
+  &:not(:last-child) {
+    margin-bottom: sizes.$x16;
+  }
+}
+
+.message :global a {
+  text-decoration: underline;
+  color: colors.$kobo-dark-blue;
+}
+
+.fieldsHeader {
+  font-weight: 600;
+  font-size: sizes.$x16;
+  margin-bottom: sizes.$x16;
+}
+
+.metaFields {
+  margin-bottom: sizes.$x24;
+}
+
+.footer :global button:not(:last-child) {
+  margin-bottom: sizes.$x6;
+}
+
+.footer :global button[type='submit'] {
+  text-transform: uppercase;
+}

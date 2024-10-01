@@ -1,11 +1,11 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 $message-box-icon-size: 28px;
 
 .form-builder-message-box {
   width: 100%;
   margin: 0 auto 20px;
-  background-color: colors.$kobo-gray-40;
+  background-color: colors.$kobo-gray-700;
   color: colors.$kobo-white;
   padding: 10px;
   display: flex;
@@ -36,7 +36,7 @@ $message-box-icon-size: 28px;
     padding: 0;
     border: 0;
     background: none;
-    color: colors.$kobo-mid-blue;
+    color: colors.$kobo-light-blue;
     cursor: pointer;
 
     &:active {

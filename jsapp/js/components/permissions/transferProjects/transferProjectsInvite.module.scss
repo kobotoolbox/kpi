@@ -1,0 +1,28 @@
+@use 'scss/sizes';
+@use 'scss/colors';
+
+.modalBody {
+  line-height: sizes.$x24;
+  padding: 0 sizes.$x24;
+
+  p:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.note {
+  display: flex;
+  padding: sizes.$x12;
+  margin: sizes.$x24 0 0 0;
+  background-color: colors.$kobo-light-blue;
+  border-radius: sizes.$x5;
+}
+
+.note.declinedNote {
+  margin-bottom: sizes.$x30;
+}
+
+.noteIcon {
+  margin-right: sizes.$x8;
+}
+

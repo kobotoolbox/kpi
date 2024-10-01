@@ -1,6 +1,6 @@
 @use 'scss/sizes';
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/_variables';
 
 // Note: this needs to override a lot of styles defined in `_kobo.bem.ui.scss`,
@@ -8,33 +8,37 @@
 // because of too general styles of Form Builder.
 // See: https://github.com/kobotoolbox/kpi/issues/3914
 
-$input-color: colors.$kobo-gray-24;
+$input-color: colors.$kobo-gray-800;
+$wrapper-border-radius: sizes.$x6;
+// This is being shared by multiple components
+$label-margin: sizes.$x3;
+$label-leading: sizes.$x20;
 
 .root {
   width: 100%;
 
   &.hasValue {
     .inputWrapper {
-      border-color: colors.$kobo-gray-85;
+      border-color: colors.$kobo-gray-400;
     }
   }
 
   &.isDisabled {
     .inputWrapper {
-      color: colors.$kobo-gray-65;
-      background-color: colors.$kobo-gray-98;
-      border-color: colors.$kobo-gray-65;
+      color: colors.$kobo-gray-500;
+      background-color: colors.$kobo-gray-100;
+      border-color: colors.$kobo-gray-500;
     }
 
     .startIcon,
     .endIcon {
-      color: colors.$kobo-gray-65;
+      color: colors.$kobo-gray-500;
     }
   }
 
   &.hasError {
     .inputWrapper {
-      border-color: colors.$kobo-red;
+      border-color: colors.$kobo-mid-red;
     }
 
     .input {
@@ -50,10 +54,10 @@ $input-color: colors.$kobo-gray-24;
 }
 
 .label {
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   font-size: sizes.$x12;
-  line-height: 1.6;
-  margin-bottom: sizes.$x3;
+  line-height: $label-leading;
+  margin-bottom: $label-margin;
 }
 
 .requiredMark {
@@ -74,9 +78,10 @@ $input-color: colors.$kobo-gray-24;
   align-content: flex-start;
   color: $input-color;
   background-color: colors.$kobo-white;
-  border: sizes.$x1 solid colors.$kobo-gray-92;
-  padding: sizes.$x10 sizes.$x16;
-  border-radius: sizes.$x6;
+  border: sizes.$x1 solid colors.$kobo-gray-300;
+  padding: 0; // size dictates the paddings
+  border-radius: $wrapper-border-radius;
+  cursor: text;
 
   &:focus-within {
     @include mixins.default-ui-focus;
@@ -101,23 +106,28 @@ input[class].input.input {
   }
 
   &:disabled {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
     pointer-events: none;
 
     &::placeholder {
-      color: colors.$kobo-gray-55;
+      color: colors.$kobo-gray-600;
     }
   }
 
   &::placeholder {
-    color: colors.$kobo-gray-55;
+    color: colors.$kobo-gray-600;
     opacity: 1;
   }
 }
 
+textarea[class].input.input {
+  // Disallows resizing resizeable textarea to tiny size
+  min-height: 20px;
+}
+
 .startIcon,
 .endIcon {
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }
 
 .startIcon {
@@ -140,4 +150,20 @@ input[class].input.input {
   font-style: normal;
   color: colors.$kobo-red;
   margin-top: sizes.$x6;
+}
+
+// Note: TextBox is built differently from Button (for many reasons) so we can't
+// connect their styles via some shared bulletproof variables. Just ensure that
+// both components in the same size have the same height :)
+
+.sizeL .inputWrapper {
+  padding: sizes.$x8 sizes.$x16;
+}
+
+.sizeM .inputWrapper {
+  padding: sizes.$x5 sizes.$x12;
+}
+
+.sizeS .inputWrapper {
+  padding: sizes.$x3 sizes.$x10;
 }

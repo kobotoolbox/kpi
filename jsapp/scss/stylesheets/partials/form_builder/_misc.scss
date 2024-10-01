@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // form_builder miscellaneous rules
 
@@ -6,7 +6,7 @@
   border: $cardBorderStyle;
   padding: 20px;
   background: colors.$kobo-white;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   font-weight: 600;
   font-style: italic;
   font-size: 13px;
@@ -47,10 +47,7 @@ code input[type="text"] {
   background: none;
   font-size: 11px;
   color: $linkColor;
-  float: right;
-  width: 64%;
   height: auto !important;
-  text-align: right;
 }
 
 // ==========================================================================
@@ -111,5 +108,5 @@ code input[type="text"] {
 
 .survey-editor__message {
   text-align: center;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }

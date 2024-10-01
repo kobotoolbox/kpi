@@ -6,18 +6,19 @@ import json
 import os
 from io import StringIO
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_MANAGE_ASSET,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
-    PERM_PARTIAL_SUBMISSIONS,
 )
 from kpi.models import Asset, AssetFile, AssetVersion
 from kpi.models.asset import AssetDeploymentStatus
@@ -505,6 +506,42 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # ensure that anotheruser can still see asset detail since has
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK
+
+    def test_project_views_for_anotheruser_can_view_all_asset_permission_assignments(
+        self,
+    ):
+        # get the first asset from the first project view
+        self._login_as_anotheruser()
+        anotheruser = User.objects.get(username='anotheruser')
+        proj_view_list = self.client.get(self.region_views_url).data['results']
+        first_proj_view = proj_view_list[0]
+        asset_list = self.client.get(first_proj_view['assets']).data['results']
+        first_asset_entry = asset_list[0]
+        asset_obj = Asset.objects.get(uid=first_asset_entry['uid'])
+
+        # make sure any access that would allow listing permission assignments
+        # is coming exclusively from the project view
+        assert asset_obj.owner != anotheruser
+        assert not asset_obj.has_perm(anotheruser, PERM_MANAGE_ASSET)
+
+        # add a non-owner, non-anon, non-`anotheruser` perm assignment
+        new_user = User.objects.create(username='a_whole_new_user')
+        asset_obj.assign_perm(new_user, PERM_VIEW_ASSET)
+
+        # get the permission assignments from the asset detail endpoint while
+        # authenticated as `anotheruser`
+        proj_view_asset_perms = self.client.get(first_asset_entry['url']).data[
+            'permissions'
+        ]
+
+        # compare those assignments to the complete list of permission
+        # assignments seen by the asset owner
+        self.client.force_login(asset_obj.owner)
+        all_asset_perms = self.client.get(first_asset_entry['url']).data[
+            'permissions'
+        ]
+        assert proj_view_asset_perms == all_asset_perms
+
 
     def test_project_views_for_anotheruser_can_preview_form(self):
         someuser = User.objects.get(username='someuser')
@@ -1043,7 +1080,9 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(self.asset_url, format='json')
-        self.assertEqual(response.data['deployment__submission_count'], 1)
+        # No submission count is provided any longer to users with only
+        # row-level permissions
+        self.assertEqual(response.data['deployment__submission_count'], None)
 
     def test_assignable_permissions(self):
         self.assertEqual(self.asset.asset_type, 'survey')
@@ -1341,12 +1380,16 @@ class AssetFileTest(BaseTestCase):
         response_dict = json.loads(response.content)
         self.assertEqual(
             response_dict['asset'],
-            self.absolute_reverse(self._get_endpoint('asset-detail'), args=[self.asset.uid])
+            self.absolute_reverse(
+                self._get_endpoint('asset-detail'), args=[self.asset.uid]
+            ),
         )
         self.assertEqual(
             response_dict['user'],
-            self.absolute_reverse(self._get_endpoint('user-detail'),
-                                  args=[self.current_username])
+            self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.current_username],
+            ),
         )
         self.assertEqual(
             response_dict['user__username'],
@@ -1877,3 +1920,48 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert response.status_code == status.HTTP_200_OK
         self.asset.refresh_from_db()
         assert self.asset.date_deployed == original_date_deployed
+
+
+class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.url = reverse('asset-list')
+        self.client.login(username='someuser', password='someuser')
+        self.some_user = User.objects.get(username='someuser')
+
+    def create_and_fetch_asset(self):
+        # Create a new asset and verify it was created successfully
+        create_response = self.create_asset()
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        return Asset.objects.order_by('date_created').last(), create_response
+
+    def test_created_by_field(self):
+        # Fetch the most recently created asset and check if
+        # 'created_by' is correct
+        asset, _ = self.create_and_fetch_asset()
+        self.assertEqual(asset.created_by, self.some_user.username)
+
+    def test_last_modified_by_field(self):
+        # Fetch the most recently created asset and check if
+        # 'last_modified_by' is correct
+        asset, create_response = self.create_and_fetch_asset()
+        self.assertEqual(asset.last_modified_by, self.some_user.username)
+
+        # Logout the current user and login as 'anotheruser'
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        another_user = User.objects.get(username='anotheruser')
+
+        # Assign permission to 'anotheruser' to modify the asset
+        asset.assign_perm(another_user, PERM_CHANGE_ASSET)
+        self.assertTrue(asset.has_perm(another_user, PERM_CHANGE_ASSET))
+
+        # Modify the asset and verify the 'last_modified_by' field is updated
+        patch_url = create_response.data['url']
+        patch_response = self.client.patch(patch_url, data={'name': 'A new name'})
+        self.assertEqual(patch_response.status_code, status.HTTP_200_OK)
+
+        asset.refresh_from_db()
+        self.assertEqual(asset.created_by, self.some_user.username)
+        self.assertEqual(asset.last_modified_by, another_user.username)

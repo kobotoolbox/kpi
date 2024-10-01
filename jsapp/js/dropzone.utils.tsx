@@ -2,12 +2,12 @@ import React from 'react';
 import type {FileWithPreview} from 'react-dropzone';
 import type {CreateImportRequest, ImportResponse} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
-import {escapeHtml, join, log, notify} from 'js/utils';
+import {escapeHtml, join, log, notify, getExponentialDelayTime} from 'js/utils';
 import {MODAL_TYPES} from './constants';
 import {router, routerIsActive} from 'js/router/legacy';
 import {ROUTES} from './router/routerConstants';
-import {stores} from './stores';
-import {getExponentialDelayTime} from 'js/components/projectDownloads/exportFetcher';
+import envStore from './envStore'
+import pageState from 'js/pageState.store';
 
 const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed');
 
@@ -22,7 +22,7 @@ function onImportSingleXLSFormFile(
   name: string,
   base64Encoded: string | ArrayBuffer | null
 ) {
-  const isLibrary = routerIsActive('library');
+  const isLibrary = routerIsActive(ROUTES.LIBRARY);
 
   const importPromise = new Promise<ImportResponse>((resolve, reject) => {
     if (!base64Encoded) {
@@ -104,7 +104,11 @@ function onImportSingleXLSFormFile(
           // value, so we use `setTimout` instead).
           timeoutId = window.setTimeout(
             makeIntervalStatusCheck,
-            getExponentialDelayTime(callCount)
+            getExponentialDelayTime(
+              callCount,
+              envStore.data.min_retry_time,
+              envStore.data.max_retry_time
+            )
           );
         }
 
@@ -149,11 +153,11 @@ function onImportOneAmongMany(
   fileIndex: number,
   totalFilesInBatch: number
 ) {
-  const isLibrary = routerIsActive('library');
+  const isLibrary = routerIsActive(ROUTES.LIBRARY);
   const isLastFileInBatch = fileIndex + 1 === totalFilesInBatch;
 
   // We open the modal that displays the message with total files count.
-  stores.pageState.showModal({
+  pageState.showModal({
     type: MODAL_TYPES.UPLOADING_XLS,
     filename: t('## files').replace('##', String(totalFilesInBatch)),
   });
@@ -179,7 +183,7 @@ function onImportOneAmongMany(
       // the edges).
       if (isLastFileInBatch) {
         // After the last import is created, we hide the modal…
-        stores.pageState.hideModal();
+        pageState.hideModal();
         // …and display a helpful toast
         notify.warning(
           t(

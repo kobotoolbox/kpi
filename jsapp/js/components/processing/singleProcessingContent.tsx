@@ -1,10 +1,14 @@
 import React from 'react';
-import singleProcessingStore, {
-  SingleProcessingTabs,
-} from 'js/components/processing/singleProcessingStore';
-import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
-import TranslationsTabContent from 'js/components/processing/translationsTabContent';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import AnalysisTab from 'js/components/processing/analysis/analysisTab.component';
+import TranscriptTab from 'js/components/processing/transcript/transcriptTab.component';
+import TranslationsTab from 'js/components/processing/translations/translationsTab.component';
 import protectorHelpers from 'js/protector/protectorHelpers';
+import {
+  goToTabRoute,
+  isProcessingRouteActive,
+} from 'js/components/processing/routes.utils';
+import {PROCESSING_ROUTES} from 'js/router/routerConstants';
 import styles from './singleProcessingContent.module.scss';
 import classNames from 'classnames';
 
@@ -44,21 +48,18 @@ export default class SingleProcessingContent extends React.Component<{}> {
     );
   }
 
-  activateTab(tabName: SingleProcessingTabs) {
-    singleProcessingStore.activateTab(tabName);
-  }
-
   renderTabContent() {
-    switch (singleProcessingStore.getActiveTab()) {
-      case SingleProcessingTabs.Transcript:
-        return <TranscriptTabContent />;
-      case SingleProcessingTabs.Translations:
-        return <TranslationsTabContent />;
-      case SingleProcessingTabs.Analysis:
-        return null;
-      default:
-        return null;
+    if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
+      return <TranscriptTab />;
     }
+    if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS)) {
+      return <TranslationsTab />;
+    }
+    if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
+      return <AnalysisTab />;
+    }
+
+    return null;
   }
 
   render() {
@@ -68,13 +69,11 @@ export default class SingleProcessingContent extends React.Component<{}> {
           <li
             className={classNames({
               [styles.tab]: true,
-              [styles.activeTab]:
-                singleProcessingStore.getActiveTab() ===
-                SingleProcessingTabs.Transcript,
+              [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT),
             })}
             onClick={this.safeExecute.bind(
               this,
-              this.activateTab.bind(this, SingleProcessingTabs.Transcript)
+              () => goToTabRoute(PROCESSING_ROUTES.TRANSCRIPT)
             )}
           >
             {t('Transcript')}
@@ -83,15 +82,11 @@ export default class SingleProcessingContent extends React.Component<{}> {
           <li
             className={classNames({
               [styles.tab]: true,
-              [styles.activeTab]:
-                singleProcessingStore.getActiveTab() ===
-                SingleProcessingTabs.Translations,
-              [styles.disabledTab]:
-                singleProcessingStore.getTranscript() === undefined,
+              [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS),
             })}
             onClick={this.safeExecute.bind(
               this,
-              this.activateTab.bind(this, SingleProcessingTabs.Translations)
+              () => goToTabRoute(PROCESSING_ROUTES.TRANSLATIONS)
             )}
           >
             {t('Translations')}
@@ -100,14 +95,11 @@ export default class SingleProcessingContent extends React.Component<{}> {
           <li
             className={classNames({
               [styles.tab]: true,
-              [styles.activeTab]:
-                singleProcessingStore.getActiveTab() ===
-                SingleProcessingTabs.Analysis,
-              [styles.disabledTab]: true,
+              [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS),
             })}
             onClick={this.safeExecute.bind(
               this,
-              this.activateTab.bind(this, SingleProcessingTabs.Analysis)
+              () => goToTabRoute(PROCESSING_ROUTES.ANALYSIS)
             )}
           >
             {t('Analysis')}

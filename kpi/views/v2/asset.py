@@ -55,8 +55,9 @@ from kpi.serializers.v2.asset import (
     AssetListSerializer,
     AssetSerializer,
 )
-from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
+from kpi.utils.bugfix import repair_file_column_content_and_save
+from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.utils.object_permission import (
@@ -403,6 +404,16 @@ class AssetViewSet(
                 raise Http404
 
             self.check_object_permissions(self.request, asset)
+
+            # Cope with kobotoolbox/formpack#322, which wrote invalid content
+            # into the database. For performance, consider only the current
+            # content, not previous versions. Previous versions are handled in
+            # `kobo.apps.reports.report_data.build_formpack()`
+            if self.request.method == 'GET':
+                repair_file_column_content_and_save(
+                    asset, include_versions=False
+                )
+
             return asset
 
         return super().get_object()
@@ -452,18 +463,8 @@ class AssetViewSet(
         serializer_context = self.get_serializer_context()
         serializer_context['asset'] = asset
 
-        # TODO: Require the client to provide a fully-qualified identifier,
-        # otherwise provide less kludgy solution
         if 'identifier' not in request.data and 'id_string' in request.data:
-            id_string = request.data.pop('id_string')[0]
-            backend_name = request.data['backend']
-            try:
-                backend = DEPLOYMENT_BACKENDS[backend_name]
-            except KeyError:
-                raise KeyError(
-                    'cannot retrieve asset backend: "{}"'.format(backend_name))
-            request.data['identifier'] = backend.make_identifier(
-                request.user.username, id_string)
+            raise NotImplementedError
 
         if request.method == 'GET':
             if not asset.has_deployment:
@@ -675,6 +676,7 @@ class AssetViewSet(
             context_[
                 'object_permissions_per_asset'
             ] = self.cache_all_assets_perms(asset_ids)
+            context_['asset_ids_cache'] = asset_ids
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (
@@ -781,7 +783,11 @@ class AssetViewSet(
 
     def perform_create(self, serializer):
         user = get_database_user(self.request.user)
-        serializer.save(owner=user)
+        serializer.save(
+            owner=user,
+            created_by=user.username,
+            last_modified_by=user.username
+        )
 
     def perform_destroy(self, instance):
         self._bulk_asset_actions(

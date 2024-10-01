@@ -1,30 +1,25 @@
 # coding: utf-8
 from __future__ import annotations
+
 import copy
 import os
-import re
 import time
 import uuid
 from collections import defaultdict
+from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Optional, Union
-from xml.etree import ElementTree as ET
-
-from django.db.models import Sum
-from django.db.models.functions import Coalesce
-from django.utils import timezone
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 from deepmerge import always_merger
-from dict2xml import dict2xml
+from dict2xml import dict2xml as dict2xml_real
 from django.conf import settings
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.urls import reverse
-from django.utils.translation import gettext as t
-from lxml import etree
 from rest_framework import status
 
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -45,9 +40,13 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.tests.utils.mock import MockAttachment
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
-from kpi.utils.xml import edit_submission_xml
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 from .base_backend import BaseDeploymentBackend
-from ..exceptions import KobocatBulkUpdateSubmissionsClientException
+
+
+def dict2xml(*args, **kwargs):
+    """To facilitate mocking in unit tests"""
+    return dict2xml_real(*args, **kwargs)
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
@@ -55,102 +54,52 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     Only used for unit testing and interface testing.
     """
 
-    PROTECTED_XML_FIELDS = [
-        '__version__',
-        'formhub',
-        'meta',
-    ]
-
     @property
     def attachment_storage_bytes(self):
         submissions = self.get_submissions(self.asset.owner)
         storage_bytes = 0
         for submission in submissions:
             attachments = self.get_attachment_objects_from_dict(submission)
-            storage_bytes += sum([attachment.media_file_size for attachment in attachments])
+            storage_bytes += sum(
+                [attachment.media_file_size for attachment in attachments]
+            )
         return storage_bytes
 
     def bulk_assign_mapped_perms(self):
         pass
 
-    def bulk_update_submissions(
-        self, data: dict, user: 'auth.User'
-    ) -> dict:
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=data['submission_ids'],
-            query=data['query'],
+    def calculated_submission_count(
+        self, user: settings.AUTH_USER_MODEL, **kwargs
+    ) -> int:
+        params = self.validate_submission_list_params(
+            user, validate_count=True, **kwargs
         )
-
-        if submission_ids:
-            data['query'] = {}
-        else:
-            submission_ids = data['submission_ids']
-
-        submissions = self.get_submissions(
-            user=user,
-            format_type=SUBMISSION_FORMAT_TYPE_XML,
-            submission_ids=submission_ids,
-            query=data['query'],
-        )
-
-        if not self.current_submission_count:
-            raise KobocatBulkUpdateSubmissionsClientException(
-                detail=t('No submissions match the given `submission_ids`')
-            )
-
-        update_data = self.__prepare_bulk_update_data(data['data'])
-        kc_responses = []
-        for submission in submissions:
-            # Remove XML declaration from submission
-            submission = re.sub(r'(<\?.*\?>)', '', submission)
-            xml_parsed = etree.fromstring(submission)
-
-            _uuid, uuid_formatted = self.generate_new_instance_id()
-
-            instance_id = xml_parsed.find('meta/instanceID')
-            deprecated_id = xml_parsed.find('meta/deprecatedID')
-            deprecated_id_or_new = (
-                deprecated_id
-                if deprecated_id is not None
-                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
-            )
-            deprecated_id_or_new.text = instance_id.text
-            instance_id.text = uuid_formatted
-
-            for path, value in update_data.items():
-                edit_submission_xml(xml_parsed, path, value)
-
-            kc_responses.append(
-                {
-                    'uuid': _uuid,
-                    'status_code': status.HTTP_201_CREATED,
-                    'message': 'Successful submission',
-                    'updated_submission': etree.tostring(xml_parsed)  # only for testing
-                }
-            )
-
-        return self.__prepare_bulk_update_response(kc_responses)
-
-    def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
-        params = self.validate_submission_list_params(user,
-                                                      validate_count=True,
-                                                      **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, active=False):
-        self.store_data({
-            'backend': 'mock',
-            'identifier': 'mock://%s' % self.asset.uid,
-            'active': active,
-            'backend_response': {
-                'downloadable': active,
-                'has_kpi_hook': self.asset.has_active_hooks,
-                'kpi_asset_uid': self.asset.uid
-            },
-            'version': self.asset.version_id,
-        })
+        def generate_uuid_for_form():
+            # From KoboCAT's onadata.libs.utils.model_tools
+            return uuid.uuid4().hex
+
+        self.store_data(
+            {
+                'backend': 'mock',
+                'active': active,
+                'backend_response': {
+                    'downloadable': active,
+                    'has_kpi_hook': self.asset.has_active_hooks,
+                    'kpi_asset_uid': self.asset.uid,
+                    'uuid': generate_uuid_for_form(),
+                    # TODO use XForm object and get its primary key
+                    'formid': self.asset.pk
+                },
+                'version': self.asset.version_id,
+            }
+        )
+
+    @property
+    def form_uuid(self):
+        return 'formhub-uuid'  # to match existing tests
 
     def nlp_tracking_data(self, start_date=None):
         """
@@ -162,13 +111,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             filter_args = {'date__gte': start_date}
         try:
             nlp_tracking = (
-                NLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
-                .filter(
-                    asset_id=self.asset.id,
-                    **filter_args
-                ).aggregate(
+                NLPUsageCounter.objects.only(
+                    'total_asr_seconds', 'total_mt_characters'
+                )
+                .filter(asset_id=self.asset.id, **filter_args)
+                .aggregate(
                     total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
-                    total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
+                    total_nlp_mt_characters=Coalesce(
+                        Sum('total_mt_characters'), 0
+                    ),
                 )
             )
         except NLPUsageCounter.DoesNotExist:
@@ -182,13 +133,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def submission_count_since_date(self, start_date=None):
         # FIXME, does not reproduce KoBoCAT behaviour.
         #   Deleted submissions are not taken into account but they should be
-        monthly_counter = len(
-            self.get_submissions(self.asset.owner)
-        )
+        monthly_counter = len(self.get_submissions(self.asset.owner))
         return monthly_counter
 
     @drop_mock_only
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+    def delete_submission(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         """
         Delete a submission
         """
@@ -202,9 +153,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             return {
                 'content_type': 'application/json',
                 'status': status.HTTP_404_NOT_FOUND,
-                'data': {
-                    'detail': 'Not found'
-                }
+                'data': {'detail': 'Not found'},
             }
 
         settings.MONGO_DB.instances.delete_one({'_id': submission_id})
@@ -214,7 +163,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'status': status.HTTP_204_NO_CONTENT,
         }
 
-    def delete_submissions(self, data: dict, user: 'auth.User') -> dict:
+    def delete_submissions(
+        self, data: dict, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         """
         Bulk delete provided submissions authenticated by `user`'s API token.
 
@@ -238,9 +189,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             data['query'] = {}
 
         # Retrieve the subset of submissions to delete
-        submissions = self.get_submissions(user,
-                                           submission_ids=submission_ids,
-                                           query=data['query'])
+        submissions = self.get_submissions(
+            user, submission_ids=submission_ids, query=data['query']
+        )
 
         # If no submissions have been fetched, user is not allowed to perform
         # the request
@@ -254,9 +205,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # with submission ids or query.
         for submission in submissions:
             submission_id = submission['_id']
-            settings.MONGO_DB.instances.delete_one(
-                {'_id': submission_id}
-            )
+            settings.MONGO_DB.instances.delete_one({'_id': submission_id})
 
         return {
             'content_type': 'application/json',
@@ -264,7 +213,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def duplicate_submission(
-        self, submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
@@ -289,30 +238,44 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         updated_time = datetime.now(tz=ZoneInfo('UTC')).isoformat(
             'T', 'milliseconds'
         )
-        next_id = max((
-            sub['_id']
-            for sub in self.get_submissions(self.asset.owner, fields=['_id'])
-        )) + 1
-        duplicated_submission.update({
-            '_id': next_id,
-            'start': updated_time,
-            'end': updated_time,
-            'meta/instanceID': f'uuid:{uuid.uuid4()}',
-            'meta/deprecatedID': submission['meta/instanceID'],
-            '_attachments': dup_att,
-        })
+        next_id = (
+            max(
+                (
+                    sub['_id']
+                    for sub in self.get_submissions(
+                        self.asset.owner, fields=['_id']
+                    )
+                )
+            )
+            + 1
+        )
+        duplicated_submission.update(
+            {
+                '_id': next_id,
+                'start': updated_time,
+                'end': updated_time,
+                self.SUBMISSION_CURRENT_UUID_XPATH: f'uuid:{uuid.uuid4()}',
+                self.SUBMISSION_DEPRECATED_UUID_XPATH: submission[
+                    self.SUBMISSION_CURRENT_UUID_XPATH
+                ],
+                '_attachments': dup_att,
+            }
+        )
 
         self.asset.deployment.mock_submissions([duplicated_submission])
         return duplicated_submission
 
+    @property
+    def enketo_id(self):
+        return 'self'
+
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> MockAttachment:
-
         submission_json = None
         # First try to get the json version of the submission.
         # It helps to retrieve the id if `submission_id_or_uuid` is a `UUIDv4`
@@ -328,7 +291,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 submission_json = submissions[0]
         else:
             submission_json = self.get_submission(
-                submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
+                submission_id_or_uuid,
+                user,
+                format_type=SUBMISSION_FORMAT_TYPE_JSON,
             )
 
         if not submission_json:
@@ -339,11 +304,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
 
         if xpath:
-            submission_tree = ET.ElementTree(
-                ET.fromstring(submission_xml)
-            )
+            submission_root = fromstring_preserve_root_xmlns(submission_xml)
             try:
-                element = submission_tree.find(xpath)
+                element = submission_root.find(xpath)
             except KeyError:
                 raise InvalidXPathException
 
@@ -367,7 +330,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         raise AttachmentNotFoundException
 
     def get_attachment_objects_from_dict(self, submission: dict) -> list:
-
         if not submission.get('_attachments'):
             return []
         attachments = submission.get('_attachments')
@@ -380,14 +342,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return {}
 
     def get_enketo_survey_links(self):
-        # `self` is a demo Enketo form, but there's no guarantee it'll be
-        # around forever.
         return {
-            'offline_url': 'https://enke.to/_/#self',
-            'url': 'https://enke.to/::self',
-            'iframe_url': 'https://enke.to/i/::self',
-            'preview_url': 'https://enke.to/preview/::self',
-            # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
+            'offline_url': f'https://example.org/_/#{self.enketo_id}',
+            'url': f'https://example.org/::#{self.enketo_id}',
+            'iframe_url': f'https://example.org/i/::#{self.enketo_id}',
+            'preview_url': f'https://example.org/preview/::#{self.enketo_id}',
         }
 
     def get_submission_detail_url(self, submission_id: int) -> str:
@@ -402,13 +361,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
+    def get_daily_counts(
+        self, user: settings.AUTH_USER_MODEL, timeframe: tuple[date, date]
+    ) -> dict:
         submissions = self.get_submissions(user=self.asset.owner)
         daily_counts = defaultdict(int)
         for submission in submissions:
             submission_date = datetime.strptime(
-                submission['_submission_time'],
-                '%Y-%m-%dT%H:%M:%S'
+                submission['_submission_time'], '%Y-%m-%dT%H:%M:%S'
             )
             daily_counts[str(submission_date.date())] += 1
 
@@ -416,11 +376,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def get_submissions(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
         request: Optional['rest_framework.request.Request'] = None,
-        **mongo_query_params
+        **mongo_query_params,
     ) -> list:
         """
         Retrieve submissions that `user` is allowed to access.
@@ -439,18 +399,22 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
 
         mongo_query_params['submission_ids'] = submission_ids
-        params = self.validate_submission_list_params(user,
-                                                      format_type=format_type,
-                                                      **mongo_query_params)
+        params = self.validate_submission_list_params(
+            user, format_type=format_type, **mongo_query_params
+        )
 
         mongo_cursor, total_count = MongoHelper.get_instances(
-            self.mongo_userform_id, **params)
+            self.mongo_userform_id, **params
+        )
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submission_count = total_count
 
         submissions = [
-            MongoHelper.to_readable_dict(submission)
+            self._rewrite_json_attachment_urls(
+                MongoHelper.to_readable_dict(submission),
+                request,
+            )
             for submission in mongo_cursor
         ]
 
@@ -466,12 +430,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             for submission in submissions
         ]
 
-    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
-
+    def get_validation_status(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         submission = self.get_submission(submission_id, user)
         return {
             'content_type': 'application/json',
-            'data': submission.get('_validation_status')
+            'data': submission.get('_validation_status'),
         }
 
     @drop_mock_only
@@ -501,32 +466,44 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def redeploy(self, active: bool = None):
         """
-        Replace (overwrite) the deployment, keeping the same identifier, and
+        Replace (overwrite) the deployment, and
         optionally changing whether the deployment is active
         """
         if active is None:
             active = self.active
 
-        self.store_data({
-            'active': active,
-            'version': self.asset.version_id,
-        })
+        self.store_data(
+            {
+                'active': active,
+                'version': self.asset.version_id,
+            }
+        )
 
         self.set_asset_uid()
 
+    def rename_enketo_id_key(self, previous_owner_username: str):
+        pass
+
     def set_active(self, active: bool):
-        self.save_to_db({
-            'active': bool(active),
-        })
+        self.save_to_db(
+            {
+                'active': bool(active),
+            }
+        )
 
     def set_asset_uid(self, **kwargs) -> bool:
         backend_response = self.backend_response
-        backend_response.update({
-            'kpi_asset_uid': self.asset.uid,
-        })
-        self.store_data({
-            'backend_response': backend_response
-        })
+        backend_response.update(
+            {
+                'kpi_asset_uid': self.asset.uid,
+            }
+        )
+        self.store_data({'backend_response': backend_response})
+
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
+        pass
 
     def set_has_kpi_hooks(self):
         """
@@ -535,21 +512,26 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         comes in
         """
         has_active_hooks = self.asset.has_active_hooks
-        self.store_data({
-            'has_kpi_hooks': has_active_hooks,
-        })
+        self.store_data(
+            {
+                'has_kpi_hooks': has_active_hooks,
+            }
+        )
 
     def set_namespace(self, namespace):
-        self.store_data({
-            'namespace': namespace,
-        })
+        self.store_data(
+            {
+                'namespace': namespace,
+            }
+        )
 
-    def set_validation_status(self,
-                              submission_id: int,
-                              user: 'auth.User',
-                              data: dict,
-                              method: str) -> dict:
-
+    def set_validation_status(
+        self,
+        submission_id: int,
+        user: settings.AUTH_USER_MODEL,
+        data: dict,
+        method: str,
+    ) -> dict:
         self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
@@ -574,10 +556,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return {
             'content_type': 'application/json',
             'status': status_code,
-            'data': validation_status
+            'data': validation_status,
         }
 
-    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+    def set_validation_statuses(
+        self, user: settings.AUTH_USER_MODEL, data: dict
+    ) -> dict:
         """
         Bulk update validation status for provided submissions.
 
@@ -634,18 +618,22 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'status': status.HTTP_200_OK,
             'data': {
                 'detail': f'{submission_count} submissions have been updated'
-            }
+            },
         }
 
-    @staticmethod
-    def generate_new_instance_id() -> (str, str):
+    def store_submission(
+        self, user, xml_submission, submission_uuid, attachments=None
+    ):
         """
-        Returns:
-            - Generated uuid
-            - Formatted uuid for OpenRosa xml
+        Return a mock response without actually storing anything
         """
-        _uuid = str(uuid.uuid4())
-        return _uuid, f'uuid:{_uuid}'
+
+        return {
+            'uuid': submission_uuid,
+            'status_code': status.HTTP_201_CREATED,
+            'message': 'Successful submission',
+            'updated_submission': xml_submission,
+        }
 
     @property
     def submission_count(self):
@@ -659,12 +647,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         namespace = self.get_data('namespace', None)
         if namespace is not None:
             view_name = '{}:{}'.format(namespace, view_name)
-        return reverse(view_name,
-                       kwargs={'parent_lookup_asset': self.asset.uid})
+        return reverse(
+            view_name, kwargs={'parent_lookup_asset': self.asset.uid}
+        )
 
     @property
     def submission_model(self):
-
         class MockLoggerInstance:
             @classmethod
             def get_app_label_and_model_name(cls):
@@ -672,10 +660,57 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return MockLoggerInstance
 
+    @staticmethod
+    @contextmanager
+    def suspend_submissions(user_ids: list[int]):
+        try:
+            yield
+        finally:
+            pass
+
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
         queryset = self._get_metadata_queryset(file_type=file_type)
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
+
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
+        NLPUsageCounter.objects.filter(
+            asset=self.asset, user=self.asset.owner
+        ).update(user=new_owner)
+
+        # Kobocat models are not implemented, but mocked in unit tests.
+
+    def transfer_submissions_ownership(
+        self, previous_owner_username: str
+    ) -> bool:
+
+        results = settings.MONGO_DB.instances.update_many(
+            {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
+            {
+                '$set': {
+                    '_userform_id': self.mongo_userform_id
+                }
+            },
+        )
+
+        return (
+            results.matched_count == 0 or
+            (
+                results.matched_count > 0
+                and results.matched_count == results.modified_count
+            )
+        )
+
+    @property
+    def xform(self):
+        """
+        Dummy property, only present to be mocked by unit tests
+        """
+        pass
+
+    @property
+    def xform_id_string(self):
+        return self.asset.uid
 
     @classmethod
     def __prepare_bulk_update_data(cls, updates: dict) -> dict:
@@ -687,14 +722,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for key in updates:
             if (
                 key in cls.PROTECTED_XML_FIELDS
-                or '/' in key and key.split('/')[0] in cls.PROTECTED_XML_FIELDS
+                or '/' in key
+                and key.split('/')[0] in cls.PROTECTED_XML_FIELDS
             ):
                 sanitized_updates.pop(key)
 
         return sanitized_updates
 
     @staticmethod
-    def __prepare_bulk_update_response(kc_responses: list) -> dict:
+    def prepare_bulk_update_response(kc_responses: list) -> dict:
         total_update_attempts = len(kc_responses)
         total_successes = total_update_attempts  # all will be successful
         return {

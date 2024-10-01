@@ -3,6 +3,14 @@ SUBMISSION_FORMAT_TYPE_XML = "xml"
 SUBMISSION_FORMAT_TYPE_JSON = "json"
 
 GEO_QUESTION_TYPES = ('geopoint', 'geotrace', 'geoshape')
+ATTACHMENT_QUESTION_TYPES = (
+    'audit',
+    'image',
+    'audio',
+    'video',
+    'file',
+    'background-audio',
+)
 
 ASSET_TYPE_TEXT = 'text'
 ASSET_TYPE_EMPTY = 'empty'
@@ -64,6 +72,16 @@ SHADOW_MODEL_APP_LABELS = [
     'superuser_stats',
 ]
 
+SHARED_APP_LABELS = [
+    'auth',
+    'contenttypes',
+    'kobo_auth',
+    'reversion',
+    'sessions',
+    'taggit',
+]
+
+
 # List of nested attributes which bypass 'dots' encoding
 NESTED_MONGO_RESERVED_ATTRIBUTES = [
     "_validation_status",
@@ -110,3 +128,18 @@ ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
     'tags__name__icontains',
     'uid__icontains',
 ]
+
+SKIP_HEAVY_MIGRATIONS_GUIDANCE = (
+    """
+    This migration might take a while. If it is too slow, you may want to
+    re-run migrations with SKIP_HEAVY_MIGRATIONS=True and apply this one
+    manually from the django shell.
+    """
+)
+
+LIMIT_HOURS_23 = 82800
+
+ACCESS_LOG_KOBO_AUTH_APP_LABEL = 'kobo_auth'
+ACCESS_LOG_LOGINAS_AUTH_TYPE = 'django-loginas'
+ACCESS_LOG_UNKNOWN_AUTH_TYPE = 'unknown'
+ACCESS_LOG_SUBMISSION_AUTH_TYPE = 'submission'

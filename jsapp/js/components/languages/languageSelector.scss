@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use "scss/sizes";
 @use "scss/mixins";
 
@@ -29,7 +29,7 @@
 // The arrow icon
 .language-selector__search-box-row > .k-icon {
   margin: 0 sizes.$x20;
-  color: colors.$kobo-gray-85;
+  color: colors.$kobo-gray-400;
   transform: translateY(11px);
 }
 
@@ -39,7 +39,7 @@
 
 .language-selector__source-label,
 .language-selector__search-box-label {
-  color: colors.$kobo-gray-55;
+  color: colors.$kobo-gray-600;
   font-size: sizes.$x12;
   line-height: 1;
   display: block;
@@ -64,12 +64,12 @@
 
 .language-selector__source-language > .k-icon {
   margin-right: sizes.$x6;
-  color: colors.$kobo-gray-65;
+  color: colors.$kobo-gray-500;
 }
 
 .language-selector__selected-language,
 .language-selector__search-box {
-  border: sizes.$x2 solid colors.$kobo-gray-92;
+  border: sizes.$x2 solid colors.$kobo-gray-300;
   border-radius: sizes.$x6;
   height: sizes.$x40;
   line-height: sizes.$x40 - (2 * sizes.$x2); // minus the border
@@ -86,7 +86,7 @@
     pointer-events: none;
     position: absolute;
     left: sizes.$x12;
-    color: colors.$kobo-gray-85;
+    color: colors.$kobo-gray-400;
   }
 }
 
@@ -114,7 +114,7 @@
 .language-selector__search-box-input {
   &::placeholder {
     opacity: 1;
-    color: colors.$kobo-gray-55;
+    color: colors.$kobo-gray-600;
   }
   &:focus {
     outline: none;
@@ -125,10 +125,10 @@
 .language-selector__clear-search-box {
   @include mixins.buttonReset();
   margin-right: sizes.$x12;
-  color: colors.$kobo-gray-85;
+  color: colors.$kobo-gray-400;
 
   &:hover {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   .k-icon.k-icon-close {
@@ -185,12 +185,12 @@
 
 .language-selector__not-found-message {
   padding: sizes.$x6 sizes.$x8;
-  text-align: left;
+  text-align: initial;
   font-style: italic;
 }
 
 .language-selector__help-bar {
-  border-top: sizes.$x2 solid colors.$kobo-gray-92;
+  border-top: sizes.$x2 solid colors.$kobo-gray-300;
   display: flex;
   flex-direction: row;
   align-content: center;
@@ -208,5 +208,5 @@
   // Bottom margin is bigger to be in line with what <li> already have.
   margin: sizes.$x5 0 #{sizes.$x5 + sizes.$x5} 0;
   padding: 0;
-  background-color: colors.$kobo-gray-92;
+  background-color: colors.$kobo-gray-300;
 }

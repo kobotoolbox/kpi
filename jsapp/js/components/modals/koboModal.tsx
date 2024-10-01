@@ -1,11 +1,14 @@
 import React from 'react';
 import Modal from 'react-modal';
+import cx from 'classnames';
 import bem, {makeBem} from 'js/bem';
 import './koboModal.scss';
 
 bem.KoboModal = makeBem(null, 'kobo-modal');
 
 type KoboModalSize = 'large' | 'medium';
+
+const DEFAULT_SIZE: KoboModalSize = 'medium';
 
 interface KoboModalProps {
   /** For displaying the modal. */
@@ -23,16 +26,14 @@ interface KoboModalProps {
 }
 
 export default function KoboModal(props: KoboModalProps) {
-  const modalSize: KoboModalSize = props.size || 'medium';
-
-  const modalClassNames = ['kobo-modal', `kobo-modal--size-${modalSize}`];
+  const modalSize: KoboModalSize = props.size || DEFAULT_SIZE;
 
   return (
     <Modal
       ariaHideApp
       isOpen={props.isOpen}
       onRequestClose={props.onRequestClose}
-      className={modalClassNames.join(' ')}
+      className={cx('kobo-modal', `kobo-modal--size-${modalSize}`)}
       overlayClassName='kobo-modal-overlay'
       shouldCloseOnOverlayClick={props.isDismissableByDefaultMeans}
       shouldCloseOnEsc={props.isDismissableByDefaultMeans}

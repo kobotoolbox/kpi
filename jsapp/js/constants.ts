@@ -37,71 +37,10 @@ export const ROOT_URL = (() => {
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
 
-export const ANON_USERNAME = 'AnonymousUser';
-
-export type PermissionCodename =
-  | 'add_submissions'
-  | 'change_asset'
-  | 'change_metadata_asset'
-  | 'change_submissions'
-  | 'delete_submissions'
-  | 'discover_asset'
-  | 'manage_asset'
-  | 'partial_submissions'
-  | 'validate_submissions'
-  | 'view_asset'
-  | 'view_submissions';
-
-/**
- * BAD CODE™ A hardcoded list of permissions codenames.
- *
- * All of them are really defined on backend, and we get them through the
- * permissions config endpoint, but as we need these names to reference them in
- * the code to build the UI it's a necessary evil.
- *
- * NOTE: to know what these permissions permit see `kpi/permissions.py` file,
- * where you have to match the classes with endpoints and their HTTP methods.
- */
-type PermissionsCodenames = {[P in PermissionCodename]: PermissionCodename};
-export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
-  // Is user able to view asset - mostly handled by Backend just not returning
-  // asset in the results or direct endpoint.
-  view_asset: 'view_asset',
-
-  // Is user able to edit asset, i.e. to change anything in the asset endpoint,
-  // so: editing in Form Builder, changing tags, changing settings, replace XLS,
-  // change translations, move between collection, archive, unarchive, delete…
-  change_asset: 'change_asset',
-
-  // Is asset discoverable in public lists.
-  discover_asset: 'discover_asset',
-
-  // Is user able to manage some aspects of asset (it is different from editing)
-  // such as: saving export settings, sharing asset (in future)…
-  manage_asset: 'manage_asset',
-
-  // Is user able to add submissions - handled by Backend submissions endpoint.
-  add_submissions: 'add_submissions',
-
-  // Is user able to see submissions, i.e. the Table View.
-  view_submissions: 'view_submissions',
-
-  // Used for partially permissing user actions on submissions.
-  partial_submissions: 'partial_submissions',
-
-  // Is user able to edit existing submissions.
-  change_submissions: 'change_submissions',
-
-  // Is user able to delete submissions.
-  delete_submissions: 'delete_submissions',
-
-  // Is user able to change the validation status of submissions.
-  validate_submissions: 'validate_submissions',
-
-  change_metadata_asset: 'change_metadata_asset',
-};
-
-export const ENKETO_ACTIONS = createEnum(['edit', 'view']);
+export enum EnketoActions {
+  edit = 'edit',
+  view = 'view'
+}
 
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
@@ -127,6 +66,7 @@ export const KEY_CODES = Object.freeze({
 export enum KeyNames {
   Enter = 'Enter',
   Escape = 'Escape',
+  Space = ' ',
 }
 
 export const MODAL_TYPES = {
@@ -179,40 +119,6 @@ export const AVAILABLE_FORM_STYLES = [
     value: 'theme-grid pages',
     label: t('Grid theme + Multiple pages + headings in ALL CAPS'),
   },
-];
-
-export type ValidationStatus =
-  | 'no_status'
-  | 'validation_status_not_approved'
-  | 'validation_status_approved'
-  | 'validation_status_on_hold';
-
-export const VALIDATION_STATUSES: {
-  [id in ValidationStatus]: {value: ValidationStatus | null; label: string};
-} = {
-  no_status: {
-    value: null,
-    label: '—',
-  },
-  validation_status_not_approved: {
-    value: 'validation_status_not_approved',
-    label: t('Not approved'),
-  },
-  validation_status_approved: {
-    value: 'validation_status_approved',
-    label: t('Approved'),
-  },
-  validation_status_on_hold: {
-    value: 'validation_status_on_hold',
-    label: t('On hold'),
-  },
-};
-
-export const VALIDATION_STATUSES_LIST = [
-  VALIDATION_STATUSES.no_status,
-  VALIDATION_STATUSES.validation_status_not_approved,
-  VALIDATION_STATUSES.validation_status_approved,
-  VALIDATION_STATUSES.validation_status_on_hold,
 ];
 
 /**
@@ -272,6 +178,8 @@ export const ASSET_FILE_TYPES: {
     label: t('form media'),
   },
 };
+
+export const USAGE_ASSETS_PER_PAGE = 8;
 
 /**
  * These are the types of survey rows that users can create in FormBuilder and
@@ -431,6 +339,7 @@ export enum MetaQuestionTypeName {
   phonenumber = 'phonenumber',
   audit = 'audit',
   'background-audio' = 'background-audio',
+  'start-geopoint' = 'start-geopoint',
 }
 
 export const META_QUESTION_TYPES = createEnum([
@@ -442,6 +351,7 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName.phonenumber,
   MetaQuestionTypeName.audit,
   MetaQuestionTypeName['background-audio'],
+  MetaQuestionTypeName['start-geopoint'],
 ]) as {[P in MetaQuestionTypeName]: MetaQuestionTypeName};
 
 // submission data extras being added by backend. see both of these:
@@ -584,55 +494,63 @@ export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
   connect_projects: 30,
 });
 
-export const COLLECTION_METHODS = Object.freeze({
+export enum CollectionMethodName {
+  offline_url = 'offline_url',
+  url = 'url',
+  single_url = 'single_url',
+  single_once_url = 'single_once_url',
+  iframe_url = 'iframe_url',
+  preview_url = 'preview_url',
+  android = 'android',
+}
+
+interface CollectionMethodDefinition {
+  id: CollectionMethodName;
+  label: string;
+  desc: string;
+  /** This is being used with android application Kobo Collect option */
+  url?: string;
+}
+
+type CollectionMethods = {
+  [P in CollectionMethodName]: CollectionMethodDefinition;
+};
+
+export const COLLECTION_METHODS: CollectionMethods = Object.freeze({
   offline_url: {
-    id: 'offline_url',
+    id: CollectionMethodName.offline_url,
     label: t('Online-Offline (multiple submission)'),
-    desc: t(
-      'This allows online and offline submissions and is the best option for collecting data in the field.'
-    ),
+    desc: t('This allows online and offline submissions and is the best option for collecting data in the field.'),
   },
   url: {
-    id: 'url',
+    id: CollectionMethodName.url,
     label: t('Online-Only (multiple submissions)'),
-    desc: t(
-      'This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.'
-    ),
+    desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.'),
   },
   single_url: {
-    id: 'single_url',
+    id: CollectionMethodName.single_url,
     label: t('Online-Only (single submission)'),
-    desc: t(
-      'This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.'
-    ),
+    desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.'),
   },
   single_once_url: {
-    id: 'single_once_url',
+    id: CollectionMethodName.single_once_url,
     label: t('Online-only (once per respondent)'),
-    desc: t(
-      'This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.'
-    ),
+    desc: t('This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.'),
   },
   iframe_url: {
-    id: 'iframe_url',
+    id: CollectionMethodName.iframe_url,
     label: t('Embeddable web form code'),
-    desc: t(
-      'Use this html5 code snippet to integrate your form on your own website using smaller margins.'
-    ),
+    desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins.'),
   },
   preview_url: {
-    id: 'preview_url',
+    id: CollectionMethodName.preview_url,
     label: t('View only'),
-    desc: t(
-      'Use this version for testing, getting feedback. Does not allow submitting data.'
-    ),
+    desc: t('Use this version for testing, getting feedback. Does not allow submitting data.'),
   },
   android: {
-    id: 'android',
+    id: CollectionMethodName.android,
     label: t('Android application'),
-    desc: t(
-      'Use this option to collect data in the field with your Android device.'
-    ),
+    desc: t('Use this option to collect data in the field with your Android device.'),
     url: 'https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en',
   },
 });
@@ -662,6 +580,9 @@ export const FUSE_OPTIONS = {
   ignoreLocation: true,
 };
 
+export const DND_TYPES = {
+  ANALYSIS_QUESTION: 'qualitative-analysis-question-row',
+};
 /*
   Stripe Subscription statuses that are shown as active in the UI.
   Subscriptions with a status in this array will show an option to 'Manage'.
@@ -680,16 +601,12 @@ export const USAGE_WARNING_RATIO = 0.8;
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
-  ANON_USERNAME,
-  PERMISSIONS_CODENAMES,
   HOOK_LOG_STATUSES,
   KEY_CODES,
   MODAL_TYPES,
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
   AVAILABLE_FORM_STYLES,
-  VALIDATION_STATUSES,
-  VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
   ASSET_FILE_TYPES,
   QUESTION_TYPES,
@@ -710,5 +627,7 @@ const constants = {
   FUNCTION_TYPE,
   USAGE_WARNING_RATIO,
 };
+
+export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
 export default constants;

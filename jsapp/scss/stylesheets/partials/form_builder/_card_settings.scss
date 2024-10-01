@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // ==========================================================================
 // Card settings tabs
@@ -9,7 +9,7 @@
 }
 
 .card--selectquestion__expansion {
-  padding: 23px 10px 23px 60px;
+  padding: 25px;
 }
 
 //== ul.card__settings__tabs
@@ -32,7 +32,7 @@
   @extend %card__settings__tabs__tab;
 
   &.card__settings__tabs__tab--active {
-    background: colors.$kobo-gray-92;
+    background: colors.$kobo-gray-300;
     font-weight: 600;
   }
 }
@@ -49,7 +49,7 @@
   margin-bottom: 3px;
 
   .k-icon {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     margin-right: 5px;
     font-size: 21px;
     display: inline-block;
@@ -99,7 +99,7 @@
     width: 85%;
     background: inherit;
     border-width: 1px;
-    border-color: colors.$kobo-gray-92;
+    border-color: colors.$kobo-gray-300;
     border-style: solid;
     padding: 4px 10px;
     font-size: 15px;
@@ -113,16 +113,21 @@
   .settings__input {
     width: 65%;
     display: inline-block;
-    vertical-align: middle;
+    vertical-align: top;
 
     input.text {
       display: inline-block;
+    }
+
+    .group__appearance {
+      max-width: 100%;
+      margin-bottom: 4px;
     }
   }
 }
 
 .card__settings-close {
-  background: colors.$kobo-gray-65;
+  background: colors.$kobo-gray-500;
   position: absolute;
   right: 6px;
   top: 6px;
@@ -157,8 +162,8 @@
     }
 
     .card__buttons__button--settings {
-      color: colors.$kobo-gray-40;
-      background-color: colors.$kobo-gray-92;
+      color: colors.$kobo-gray-700;
+      background-color: colors.$kobo-gray-300;
     }
   }
 }
@@ -168,7 +173,7 @@
 // ==========================================================================
 
 .settings__hxl {
-    background: colors.$kobo-gray-96;
+    background: colors.$kobo-gray-200;
     display: table-row;
     .hxlTag {
       width: 120px;
@@ -182,7 +187,7 @@
     .select2-container-multi {
         vertical-align: top;
         display: table-cell;
-        border: 1px solid colors.$kobo-gray-65;
+        border: 1px solid colors.$kobo-gray-500;
         padding: 2px;
 
         .select2-choices {
@@ -193,14 +198,14 @@
             .select2-search-choice {
               border-radius: 5px;
               font-weight: normal;
-              background: colors.$kobo-gray-92;
-              color: colors.$kobo-gray-24;
+              background: colors.$kobo-gray-300;
+              color: colors.$kobo-gray-800;
               padding-left: 5px;
               padding-right: 18px;
               .select2-search-choice-close {
                 left: auto;
                 right: 3px;
-                color: colors.$kobo-gray-40;
+                color: colors.$kobo-gray-700;
                 &:before {
                   content: '\00d7';
                 }

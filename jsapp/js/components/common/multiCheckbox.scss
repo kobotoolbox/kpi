@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 
 .multi-checkbox {
@@ -6,6 +6,8 @@
   height: auto;
   width: 100%;
   overflow: hidden auto;
+  text-align: initial;
+  padding: 0;
 }
 
 .multi-checkbox__item:not(:last-child) {
@@ -14,6 +16,6 @@
 
 .multi-checkbox.multi-checkbox--type-frame {
   padding: sizes.$x12;
-  border: sizes.$x1 solid colors.$kobo-gray-92;
+  border: sizes.$x1 solid colors.$kobo-gray-300;
   border-radius: sizes.$x2;
 }

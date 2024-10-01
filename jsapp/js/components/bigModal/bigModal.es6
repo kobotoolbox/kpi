@@ -4,7 +4,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {actions} from 'js/actions';
-import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
 import {stores} from 'js/stores';
@@ -21,7 +20,7 @@ import EncryptForm from 'js/components/modalForms/encryptForm';
 import BulkEditSubmissionsForm from 'js/components/modalForms/bulkEditSubmissionsForm';
 import ProjectSettings from 'js/components/modalForms/projectSettings';
 import RESTServicesForm from 'js/components/RESTServices/RESTServicesForm';
-import SharingForm from 'js/components/permissions/sharingForm';
+import SharingForm from 'js/components/permissions/sharingForm.component';
 import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm';
 import SubmissionModal from 'js/components/submissions/submissionModal';
 import TableSettings from 'js/components/submissions/tableSettings';
@@ -30,6 +29,7 @@ import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
 // This should either be more generic or else be it's own component in the account directory.
 import MFAModals from './mfaModals';
+import pageState from 'js/pageState.store';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');
@@ -63,7 +63,7 @@ function getSubmissionTitle(props) {
  * To display a modal, you need to use `pageState` store with `showModal` method:
  *
  * ```
- * stores.pageState.showModal({
+ * pageState.showModal({
  *   type: MODAL_TYPES.NEW_FORM
  * });
  * ```
@@ -274,7 +274,7 @@ class BigModal extends React.Component {
       title: title,
       message: message,
       labels: {ok: t('Close'), cancel: t('Cancel')},
-      onok: stores.pageState.hideModal,
+      onok: pageState.hideModal,
       oncancel: dialog.destroy,
     };
     dialog.set(opts).show();
@@ -290,7 +290,7 @@ class BigModal extends React.Component {
         t('You will lose all unsaved changes.')
       );
     } else {
-      stores.pageState.hideModal();
+      pageState.hideModal();
     }
   }
 
@@ -310,7 +310,7 @@ class BigModal extends React.Component {
       >
         <Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
-              <SharingForm uid={uid} />
+              <SharingForm assetUid={uid} />
             }
             { this.props.params.type === MODAL_TYPES.NEW_FORM &&
               <ProjectSettings
@@ -380,17 +380,12 @@ class BigModal extends React.Component {
                 ids={this.props.params.ids}
                 isDuplicated={this.props.params.isDuplicated}
                 duplicatedSubmission={this.props.params.duplicatedSubmission}
-                backgroundAudioUrl={this.props.params.backgroundAudioUrl}
                 tableInfo={this.props.params.tableInfo || false}
               />
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&
               <div>
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    <i className='k-spin k-icon k-icon-spinner'/>
-                  </bem.Loading__inner>
-                </bem.Loading>
+                <LoadingSpinner message={false} />
               </div>
             }
             { this.props.params.type === MODAL_TYPES.TABLE_SETTINGS &&

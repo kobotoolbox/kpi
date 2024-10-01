@@ -14,6 +14,8 @@ import {
 } from 'js/constants';
 import { dataInterface } from '../dataInterface';
 import {userCan} from 'js/components/permissions/utils';
+import Button from 'js/components/common/button';
+import cx from 'classnames';
 
 // see kobo.map.marker-colors.scss for styling details of each set
 const COLOR_SETS = ['a', 'b', 'c', 'd', 'e'];
@@ -272,9 +274,10 @@ class MapSettings extends React.Component {
     var modalTabs = tabs.map(function(tabId, i) {
       return (
         <button
-          className={`mdl-button mdl-button--tab ${
-            this.state.activeModalTab === tabId ? 'active' : ''
-          }`}
+          className={cx({
+            'legacy-modal-tab-button': true,
+            'legacy-modal-tab-button--active': this.state.activeModalTab === tabId,
+          })}
           onClick={this.switchTab}
           data-tabid={tabId}
           key={i}
@@ -359,9 +362,12 @@ class MapSettings extends React.Component {
                     className='dropzone'
                     accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
-                    <bem.KoboButton m='blue'>
-                      {t('Upload')}
-                    </bem.KoboButton>
+                    <Button
+                      type='primary'
+                      size='l'
+                      label={t('Upload')}
+                      isFullWidth
+                    />
                   </Dropzone>
                 </bem.FormModal__item>
               </div>
@@ -379,7 +385,7 @@ class MapSettings extends React.Component {
                 <div className='map-settings__querylimit'>
                   {t('By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.').replace('##QUERY_LIMIT_DEFAULT##', QUERY_LIMIT_DEFAULT)}
                   <p className='change-limit-warning'>Warning: Displaying a large number of points requires a lot of memory.</p>
-                  <form>
+                  <form className='change-limit-form'>
                     <input
                       id='limit-slider'
                       className='change-limit-slider'
@@ -405,13 +411,20 @@ class MapSettings extends React.Component {
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
             {userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
-              <bem.KoboButton m='storm' onClick={this.resetMapSettings}>
-                {t('Reset')}
-              </bem.KoboButton>
+              <Button
+                type='danger'
+                size='l'
+                onClick={this.resetMapSettings.bind(this)}
+                label={t('Reset')}
+              />
             }
-            <bem.KoboButton m='blue' onClick={this.onSave}>
-              {t('Save')}
-            </bem.KoboButton>
+
+            <Button
+              type='primary'
+              size='l'
+              onClick={this.onSave.bind(this)}
+              label={t('Save')}
+            />
           </bem.Modal__footer>
         }
       </bem.GraphSettings>

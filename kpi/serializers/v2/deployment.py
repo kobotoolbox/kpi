@@ -7,7 +7,6 @@ from .asset import AssetSerializer
 
 class DeploymentSerializer(serializers.Serializer):
     backend = serializers.CharField(required=False)
-    identifier = serializers.CharField(read_only=True)
     active = serializers.BooleanField(required=False)
     version_id = serializers.CharField(required=False)
     asset = serializers.SerializerMethodField()
@@ -32,7 +31,7 @@ class DeploymentSerializer(serializers.Serializer):
         backend_id = validated_data.get('backend',
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
 
-        # asset.deploy deploys the latest version and updates that versions'
+        # `asset.deploy()` deploys the latest version and updates that versions'
         # 'deployed' boolean value
         asset.deploy(backend=backend_id,
                      active=validated_data.get('active', False))

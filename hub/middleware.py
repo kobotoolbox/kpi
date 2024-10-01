@@ -4,7 +4,6 @@ from django.utils.deprecation import MiddlewareMixin
 
 
 class LocaleMiddleware(DjangoLocaleMiddleware):
-
     def process_response(self, request, response):
         response = super().process_response(request, response)
         try:

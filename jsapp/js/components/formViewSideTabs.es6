@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -7,10 +6,9 @@ import bem from 'js/bem';
 import assetStore from 'js/assetStore';
 import {NavLink} from 'react-router-dom';
 import mixins from '../mixins';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
-import {assign} from 'utils';
 import {userCan} from 'js/components/permissions/utils';
 
 export function getFormDataTabs(assetUid) {
@@ -47,18 +45,23 @@ class FormViewSideTabs extends Reflux.Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.unlisteners = [];
     autoBind(this);
   }
 
   componentDidMount() {
     // On initial load use the possibly stored asset.
-    this.setState({asset: assetStore.getAsset(this.currentAssetID())})
-    this.listenTo(assetStore, this.assetLoad);
+    this.setState({asset: assetStore.getAsset(this.currentAssetID())});
+    this.unlisteners.push(assetStore.listen(this.assetLoad, this));
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   assetLoad(data) {
     var asset = data[this.currentAssetID()];
-    this.setState(assign({asset: asset}));
+    this.setState(Object.assign({asset: asset}));
   }
 
   triggerRefresh(evt) {
@@ -202,9 +205,5 @@ class FormViewSideTabs extends Reflux.Component {
 
 reactMixin(FormViewSideTabs.prototype, Reflux.ListenerMixin);
 reactMixin(FormViewSideTabs.prototype, mixins.contextRouter);
-
-FormViewSideTabs.contextTypes = {
-  router: PropTypes.object,
-};
 
 export default withRouter(FormViewSideTabs);

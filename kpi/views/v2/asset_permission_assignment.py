@@ -1,11 +1,14 @@
 # coding: utf-8
-from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from rest_framework import exceptions, viewsets, status, renderers
+from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
-    DestroyModelMixin, ListModelMixin
+from rest_framework.mixins import (
+    CreateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+    RetrieveModelMixin,
+)
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -27,13 +30,19 @@ from kpi.utils.object_permission import (
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
-class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
-                                       NestedViewSetMixin,
-                                       CreateModelMixin, RetrieveModelMixin,
-                                       DestroyModelMixin, ListModelMixin,
-                                       viewsets.GenericViewSet):
+class AssetPermissionAssignmentViewSet(
+    AssetNestedObjectViewsetMixin,
+    NestedViewSetMixin,
+    CreateModelMixin,
+    RetrieveModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+    viewsets.GenericViewSet,
+):
     """
     ## Permission assignments of an asset
+
+    **Important**: partial_permissions section of API is not stable and may change without notice.
 
     This endpoint shows assignments on an asset. An assignment implies:
 
@@ -154,15 +163,19 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     """
 
     model = ObjectPermission
-    lookup_field = "uid"
+    lookup_field = 'uid'
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 
-    @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer],
-            url_path='bulk')
+    @action(
+        detail=False,
+        methods=['POST'],
+        renderer_classes=[renderers.JSONRenderer],
+        url_path='bulk',
+    )
     def bulk_assignments(self, request, *args, **kwargs):
         """
         Assigns all permissions at once for the same asset.
@@ -172,26 +185,33 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         """
         serializer = AssetBulkInsertPermissionSerializer(
             data={'assignments': request.data},
-            context=self.get_serializer_context()
+            context=self.get_serializer_context(),
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return self.list(request, *args, **kwargs)
 
-    @action(detail=False, methods=['PATCH'],
-            renderer_classes=[renderers.JSONRenderer])
+    @action(
+        detail=False,
+        methods=['PATCH'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def clone(self, request, *args, **kwargs):
-
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
 
-        if user.has_perm(PERM_MANAGE_ASSET, self.asset) and \
-                user.has_perm(PERM_VIEW_ASSET, source_asset):
+        if user.has_perm(PERM_MANAGE_ASSET, self.asset) and user.has_perm(
+            PERM_VIEW_ASSET, source_asset
+        ):
             if not self.asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
-                response = {'detail': t("Source and destination objects don't "
-                                        "seem to have the same type")}
+                response = {
+                    'detail': t(
+                        "Source and destination objects don't "
+                        'seem to have the same type'
+                    )
+                }
                 return Response(response, status=http_status)
         else:
             raise exceptions.PermissionDenied()
@@ -216,9 +236,10 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         ):
             raise exceptions.PermissionDenied()
         elif user.pk == self.asset.owner_id:
-            return Response({
-                'detail': t("Owner's permissions cannot be deleted")
-            }, status=status.HTTP_409_CONFLICT)
+            return Response(
+                {'detail': t("Owner's permissions cannot be deleted")},
+                status=status.HTTP_409_CONFLICT,
+            )
 
         codename = object_permission.permission.codename
         self.asset.remove_perm(user, codename)
@@ -232,10 +253,12 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         """
 
         context_ = super().get_serializer_context()
-        context_.update({
-            'asset_uid': self.asset.uid,
-            'asset': self.asset,
-        })
+        context_.update(
+            {
+                'asset_uid': self.asset.uid,
+                'asset': self.asset,
+            }
+        )
         return context_
 
     def get_queryset(self):

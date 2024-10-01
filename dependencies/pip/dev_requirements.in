@@ -3,7 +3,8 @@
 Fabric
 coverage
 coveralls
-ipython
+ddt
+ipython==8.12.3 # Max supported version by Python 3.8
 mock
 model-bakery
 mongomock
@@ -11,3 +12,13 @@ pytest
 pytest-cov
 pytest-django
 pytest-env
+
+# Kobocat
+httmock
+simplejson
+
+# Formatter and linters
+ruff
+flake8
+flake8-quotes
+darker[isort]

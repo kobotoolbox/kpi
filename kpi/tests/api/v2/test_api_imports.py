@@ -6,12 +6,11 @@ import responses
 import unittest
 import openpyxl
 import xlwt
-from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
@@ -767,7 +766,7 @@ class AssetImportTaskTest(BaseTestCase):
         assert expected_content_settings == created_asset.content['settings']
         assert not created_asset.content['kobo--locking-profiles']
 
-    def test_import_library_bulk_xls(self):
+    def _test_import_library_bulk(self, filetype='xlsx'):
         library_sheet_content = [
             ['block', 'name', 'type', 'label', 'tag:subject:fungus', 'tag:subject:useless'],
             ['mushroom', 'cap', 'text', 'Describe the cap', '1', None],
@@ -785,14 +784,19 @@ class AssetImportTaskTest(BaseTestCase):
             ['seasons', 'fall', 'Fall'],
             ['seasons', 'winter', 'Winter'],
         ]
-
         content = (
             ('library', library_sheet_content),
             ('choices', choices_sheet_content),
         )
-        task_data = self._construct_xls_for_import(
-            content, name='Collection created from bulk library import'
-        )
+        name='Collection created from bulk library import'
+
+        if filetype ==  'xls':
+            task_data = self._construct_xls_for_import(content, name=name)
+        elif filetype == 'xlsx':
+            task_data = self._construct_xlsx_for_import(content, name=name)
+        else:
+            raise NotImplementedError(f'{filetype} must be either xls or xlsx')
+
         post_url = reverse('api_v2:importtask-list')
         response = self.client.post(post_url, task_data)
         assert response.status_code == status.HTTP_201_CREATED
@@ -887,6 +891,12 @@ class AssetImportTaskTest(BaseTestCase):
         self._assert_assets_contents_equal(
             tagged_as_useless[1], non_block_assets[1]
         )
+
+    def test_import_library_bulk_xls(self):
+        self._test_import_library_bulk('xls')
+
+    def test_import_library_bulk_xlsx(self):
+        self._test_import_library_bulk('xlsx')
 
     def test_import_asset_xls(self):
         xlsx_io = self.asset.to_xlsx_io()

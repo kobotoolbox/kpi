@@ -1,22 +1,20 @@
 import autoBind from 'react-autobind';
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import {stores} from 'js/stores';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
-import type {
-  QuestionTypeName,
-  MetaQuestionTypeName,
-} from 'js/constants';
+import type {AnyRowTypeName} from 'js/constants';
 import Button from 'js/components/common/button';
 import {truncateString} from 'js/utils';
-import {openProcessing} from 'js/components/processing/processingUtils';
 // import {hashHistory} from 'react-router';
 import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
+import Icon from 'js/components/common/icon';
+import type {IconName} from 'jsapp/fonts/k-icons';
+import pageState from 'js/pageState.store';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
@@ -31,9 +29,9 @@ bem.MediaCellIconWrapper = makeBem(null, 'icon-wrapper');
 bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
 
 interface MediaCellProps {
- questionType: MetaQuestionTypeName | QuestionTypeName;
- /** It's `null` for text questions. */
- mediaAttachment: SubmissionAttachment;
+ questionType: AnyRowTypeName;
+ /** If string is passed it's an error message. */
+ mediaAttachment: SubmissionAttachment | string;
  /** Backend stored media attachment file name or the content of a text question. */
  mediaName: string;
  /** Index of the submission for text questions. */
@@ -47,72 +45,46 @@ interface MediaCellProps {
 
 /** Table cell replacement for media submissions */
 class MediaCell extends React.Component<MediaCellProps, {}> {
-  questionIcon: string;
-
   constructor(props: MediaCellProps) {
     super(props);
     autoBind(this);
-
-    this.questionIcon = this.getQuestionIcon();
   }
 
-  getQuestionIcon() {
-    const iconClassNames = ['k-icon'];
-
-    // Different from renderQuestionTypeIcon as we need custom `title` and
-    // event handling
+  // Different from renderQuestionTypeIcon as we need custom `title` and
+  // event handling
+  getQuestionIcon(): IconName {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
-        iconClassNames.push('k-icon-qt-photo');
-        break;
-      case QUESTION_TYPES.audio.id:
-        iconClassNames.push('k-icon-qt-audio');
-        break;
-      case META_QUESTION_TYPES['background-audio']:
-        iconClassNames.push('k-icon-background-rec');
-        break;
+        return 'qt-photo';
       case QUESTION_TYPES.video.id:
-        iconClassNames.push('k-icon-qt-video');
-        break;
-      case QUESTION_TYPES.text.id:
-        iconClassNames.push('k-icon-expand-arrow');
-        break;
+        return 'qt-video';
       default:
-        iconClassNames.push('k-icon-media-files');
-        break;
+        return 'media-files';
     }
-
-    return iconClassNames.join(' ');
-  }
-
-  openProcessing() {
-    openProcessing(
-      this.props.assetUid,
-      this.props.qpath,
-      this.props.submissionUuid
-    );
   }
 
   launchMediaModal(evt: MouseEvent | TouchEvent) {
     evt.preventDefault();
 
-    stores.pageState.showModal({
-      type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
-      questionType: this.props.questionType,
-      mediaAttachment: this.props.mediaAttachment,
-      mediaName: this.props.mediaName,
-      customModalHeader: this.renderMediaModalCustomHeader(
-        this.questionIcon,
-        this.props.mediaAttachment?.download_url,
-        this.props.mediaName,
-        this.props.submissionIndex,
-        this.props.submissionTotal,
-      ),
-    });
+    if (typeof this.props.mediaAttachment !== 'string') {
+      pageState.showModal({
+        type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
+        questionType: this.props.questionType,
+        mediaAttachment: this.props.mediaAttachment,
+        mediaName: this.props.mediaName,
+        customModalHeader: this.renderMediaModalCustomHeader(
+          this.getQuestionIcon(),
+          this.props.mediaAttachment?.download_url,
+          this.props.mediaName,
+          this.props.submissionIndex,
+          this.props.submissionTotal,
+        ),
+      });
+    }
   }
 
   renderMediaModalCustomHeader(
-    questionIcon: string,
+    questionIcon: IconName,
     mediaURL: string,
     mediaName: string,
     submissionIndex: number,
@@ -132,7 +104,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
-          <i className={questionIcon}/>
+          <Icon name={questionIcon}/>
           <bem.TableMediaPreviewHeader__label
             // Give the user a way to see the full file name
             title={mediaName}
@@ -144,26 +116,17 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         <bem.TableMediaPreviewHeader__options>
           {mediaURL &&
             <a
-              className='kobo-light-button kobo-light-button--blue'
               // TODO: once we get this button to `save as`, remove this target
               target='_blank'
               href={mediaURL}
             >
-              {t('download')}
-
-              <i className='k-icon k-icon-download'/>
+              <Button
+                type='secondary'
+                size='s'
+                startIcon='download'
+                label={t('download')}
+              />
             </a>
-          }
-
-          {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
-            <Button
-              type='frame'
-              size='s'
-              color='storm'
-              endIcon='arrow-up-right'
-              label={t('process')}
-              onClick={this.openProcessing.bind(this)}
-            />
           }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
@@ -171,20 +134,25 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   }
 
   render() {
-    const isTextQuestion = !this.props.mediaAttachment;
+    const hasError = typeof this.props.mediaAttachment === 'string';
+
+    if (hasError) {
+      return (
+        <bem.MediaCell>
+          <bem.MediaCellIconWrapper data-tip={this.props.mediaAttachment}>
+            <Icon name='alert' color='mid-red' size='s'/>
+          </bem.MediaCellIconWrapper>
+        </bem.MediaCell>
+      );
+    }
 
     return (
-      <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
-        {isTextQuestion &&
-          // Show text as well if text question
-          <bem.MediaCell__text className='trimmed-text'>
-            {this.props.mediaName}
-          </bem.MediaCell__text>
-        }
-
+      <bem.MediaCell>
         <bem.MediaCellIconWrapper>
-          <bem.MediaCellIconWrapper__icon
-            className={this.questionIcon}
+          <Button
+            type='text'
+            size='s'
+            startIcon={this.getQuestionIcon()}
             onClick={this.launchMediaModal.bind(this)}
           />
         </bem.MediaCellIconWrapper>

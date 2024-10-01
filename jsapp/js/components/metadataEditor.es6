@@ -5,7 +5,6 @@ import TextBox from 'js/components/common/textBox';
 import Icon from 'js/components/common/icon';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Select from 'react-select';
-import {assign} from 'utils';
 import {
   META_QUESTION_TYPES,
   SURVEY_DETAIL_ATTRIBUTES,
@@ -54,7 +53,7 @@ export default class MetadataEditor extends React.Component {
     Object.keys(META_QUESTION_TYPES).forEach((metaType) => {
       const detail = this.getSurveyDetail(metaType);
       if (detail) {
-        newState.metaProperties.push(assign({}, detail.attributes));
+        newState.metaProperties.push(Object.assign({}, detail.attributes));
       }
     });
     this.setState(newState);
@@ -195,6 +194,7 @@ export default class MetadataEditor extends React.Component {
       META_QUESTION_TYPES.username,
       META_QUESTION_TYPES.phonenumber,
       META_QUESTION_TYPES.deviceid,
+      META_QUESTION_TYPES['start-geopoint'],
     ];
 
     let backgroundAudioProp = this.getMetaProperty(

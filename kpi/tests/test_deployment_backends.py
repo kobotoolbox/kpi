@@ -63,10 +63,6 @@ class MockDeployment(TestCase):
         self.asset.deploy(backend='mock', active=False)
         self.asset.save()
 
-    def test_deployment_creates_identifier(self):
-        _uid = self.asset.uid
-        self.assertEqual(self.asset.deployment.identifier, 'mock://%s' % _uid)
-
     def test_deployment_starts_out_inactive(self):
         self.assertEqual(self.asset.deployment.active, False)
 
@@ -102,18 +98,16 @@ class MockDeployment(TestCase):
 
     def test_get_not_mutable_deployment_data(self):
         deployment_data = self.asset.deployment.get_data()
-        original_identifier = deployment_data['identifier']
-        deployment_data['identifier'] = 'mock://test'
+        original_version = deployment_data['version']
+        deployment_data['version'] = 'undefined_version'
         # self.asset._deployment_data should have been touched
 
         # Check that original identifier still the same
-        self.assertEqual(self.asset.deployment.identifier,
-                         original_identifier)
+        self.assertEqual(self.asset.deployment.version_id, original_version)
 
         # Check that identifier has not been altered in deployment data
         other_deployment_data = self.asset.deployment.get_data()
-        self.assertEqual(other_deployment_data['identifier'],
-                         original_identifier)
+        self.assertEqual(other_deployment_data['version'], original_version)
 
     def test_save_to_db_with_quote(self):
         new_key = 'dummy'
@@ -136,8 +130,11 @@ class MockDeployment(TestCase):
 
         # Using the deployment should work
         self.asset.deployment.store_data({'direct_access': True})
+        self.assertTrue('_stored_data_key' in self.asset._deployment_data)
         self.asset.save()
+        self.assertFalse('_stored_data_key' in self.asset._deployment_data)
         self.asset.refresh_from_db()
+        self.assertFalse('_stored_data_key' in self.asset._deployment_data)
         self.assertNotEqual(self.asset._deployment_data, deployment_data)  # noqa
         self.assertTrue(self.asset._deployment_data['direct_access'])  # noqa
 

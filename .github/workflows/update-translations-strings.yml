@@ -5,7 +5,7 @@ on:
   pull_request:
     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#running-your-workflow-when-a-pull-request-merges
     types: [ closed ]
-    branches: [ main ]
+    branches: [ public-beta ]
 
 jobs:
   build:

@@ -2,9 +2,11 @@
 import sys
 import os
 
-from django.db.utils import ProgrammingError
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
+from django.db.utils import ProgrammingError
+
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
 class Command(BaseCommand):
@@ -28,7 +30,8 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write('Superuser could not be created.\n'
                               'Error: {}'.format(str(e)))
+        else:
+            UserProfile.objects.create(user=user)
 
         if User.objects.filter(username=super_username).count() > 0:
             self.stdout.write('Superuser successfully created.')
-

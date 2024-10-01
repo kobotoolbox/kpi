@@ -1,10 +1,9 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {stores} from '../../stores';
+import pageState from 'js/pageState.store';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
@@ -16,6 +15,7 @@ import {
   HOOK_LOG_STATUSES,
   MODAL_TYPES
 } from '../../constants';
+import Button from 'js/components/common/button';
 
 export default class RESTServiceLogs extends React.Component {
   constructor(props){
@@ -178,7 +178,7 @@ export default class RESTServiceLogs extends React.Component {
 
   openSubmissionModal(log) {
     const currentAsset = this.currentAsset();
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: log.submission_id,
       asset: currentAsset,
@@ -207,13 +207,15 @@ export default class RESTServiceLogs extends React.Component {
   renderHeader() {
     return (
       <header className='rest-services-list__header'>
-        <a
-          className='rest-services-list__header-back-button'
-          href={`/#/forms/${this.state.assetUid}/settings/rest`}
-        >
-          <i className='k-icon k-icon-angle-left' />
-          {t('Back to REST Services')}
-        </a>
+        <Button
+          type='secondary'
+          size='m'
+          onClick={() => {
+            window.location.assign(`/#/forms/${this.state.assetUid}/settings/rest`);
+          }}
+          startIcon='angle-left'
+          label={t('Back to REST Services')}
+        />
 
         <h2 className='rest-services-list__header-label rest-services-list__header-label--big'>
           {this.state.hookName}
@@ -228,12 +230,13 @@ export default class RESTServiceLogs extends React.Component {
     }
 
     return (
-      <bem.ServiceRowButton
-        m={this.state.isLoadingLogs ? 'loading' : null}
-        onClick={this.loadMore}
-      >
-        {this.state.isLoadingLogs ? t('Loading…') : t('Load more')}
-      </bem.ServiceRowButton>
+      <Button
+        type='secondary'
+        size='l'
+        isPending={this.state.isLoadingLogs}
+        onClick={this.loadMore.bind(this)}
+        label={t('Load more')}
+      />
     );
   }
 
@@ -266,13 +269,14 @@ export default class RESTServiceLogs extends React.Component {
               <bem.ServiceRow__column m='status'>
                 {t('Status')}
                 { this.hasAnyFailedLogs() &&
-                  <bem.ServiceRow__actionButton
+                  <Button
+                    type='text'
+                    size='m'
                     onClick={this.retryAll.bind(this)}
-                    data-tip={t('Retry all submissions')}
-                    disabled={!this.state.isHookActive}
-                  >
-                    <i className='k-icon k-icon-replace'/>
-                  </bem.ServiceRow__actionButton>
+                    tooltip={t('Retry all submissions')}
+                    isDisabled={!this.state.isHookActive}
+                    startIcon='replace'
+                  />
                 }
               </bem.ServiceRow__column>
               <bem.ServiceRow__column m='date'>{t('Date')}</bem.ServiceRow__column>
@@ -335,22 +339,24 @@ export default class RESTServiceLogs extends React.Component {
                     {statusLabel}
 
                     {log.status === HOOK_LOG_STATUSES.FAILED &&
-                      <bem.ServiceRow__actionButton
-                        disabled={!this.state.isHookActive}
+                      <Button
+                        type='text'
+                        size='m'
+                        isDisabled={!this.state.isHookActive}
                         onClick={this.retryLog.bind(this, log)}
-                        data-tip={t('Retry submission')}
-                      >
-                        <i className='k-icon k-icon-replace' />
-                      </bem.ServiceRow__actionButton>
+                        tooltip={t('Retry submission')}
+                        startIcon='replace'
+                      />
                     }
 
                     {this.hasInfoToDisplay(log) &&
-                      <bem.ServiceRow__actionButton
+                      <Button
+                        type='text'
+                        size='m'
                         onClick={this.showLogInfo.bind(this, log)}
-                        data-tip={t('More info')}
-                      >
-                        <i className='k-icon k-icon-information' />
-                      </bem.ServiceRow__actionButton>
+                        tooltip={t('More info')}
+                        startIcon='information'
+                      />
                     }
                   </bem.ServiceRow__column>
 
@@ -381,7 +387,3 @@ export default class RESTServiceLogs extends React.Component {
 
 reactMixin(RESTServiceLogs.prototype, Reflux.ListenerMixin);
 reactMixin(RESTServiceLogs.prototype, mixins.contextRouter);
-
-RESTServiceLogs.contextTypes = {
-  router: PropTypes.object
-};

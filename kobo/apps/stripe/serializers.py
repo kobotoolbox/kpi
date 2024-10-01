@@ -5,6 +5,7 @@ from djstripe.models import (
     Session,
     Subscription,
     SubscriptionItem,
+    SubscriptionSchedule,
 )
 from rest_framework import serializers
 
@@ -42,6 +43,7 @@ class BasePriceSerializer(serializers.ModelSerializer):
             'recurring',
             'unit_amount',
             'human_readable_price',
+            'active',
             'metadata',
         )
 
@@ -68,6 +70,7 @@ class ChangePlanSerializer(PriceIdSerializer):
         required=True,
         allow_empty=False,
     )
+    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
     class Meta:
         model = Subscription
@@ -76,19 +79,30 @@ class ChangePlanSerializer(PriceIdSerializer):
 
 class CustomerPortalSerializer(serializers.Serializer):
     organization_id = serializers.CharField(required=True)
+    price_id = serializers.SlugRelatedField(
+        'id',
+        queryset=Price.objects.all(),
+        required=False,
+        allow_empty=True,
+    )
+    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
     def validate_organization_id(self, organization_id):
         if organization_id.startswith('org'):
             return organization_id
         raise ValidationError('Invalid organization ID')
 
+    class Meta:
+        model = Price
+        fields = ('id',)
 
-class CheckoutLinkSerializer(PriceIdSerializer, CustomerPortalSerializer):
+
+class CheckoutLinkSerializer(PriceIdSerializer):
     organization_id = serializers.CharField(required=False)
+    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
 
 class PriceSerializer(BasePriceSerializer):
-    product = BaseProductSerializer()
 
     class Meta(BasePriceSerializer.Meta):
         fields = (
@@ -100,27 +114,41 @@ class PriceSerializer(BasePriceSerializer):
             'unit_amount',
             'human_readable_price',
             'metadata',
+            'active',
             'product',
+            'transform_quantity',
         )
 
 
+class PriceWithProductSerializer(PriceSerializer):
+    product = BaseProductSerializer()
+
+
 class ProductSerializer(BaseProductSerializer):
-    prices = BasePriceSerializer(many=True)
+    prices = PriceSerializer(many=True)
 
     class Meta(BaseProductSerializer.Meta):
         fields = ('id', 'name', 'description', 'type', 'prices', 'metadata')
 
 
 class SubscriptionItemSerializer(serializers.ModelSerializer):
-    price = PriceSerializer()
+    price = PriceWithProductSerializer()
 
     class Meta:
         model = SubscriptionItem
-        fields = ('id', 'price')
+        fields = ('id', 'price', 'quantity')
+
+
+class SubscriptionScheduleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SubscriptionSchedule
+        fields = ('phases', 'status')
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     items = SubscriptionItemSerializer(many=True)
+    schedule = SubscriptionScheduleSerializer()
 
     class Meta:
         model = Subscription

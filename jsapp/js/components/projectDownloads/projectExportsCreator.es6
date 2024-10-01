@@ -11,9 +11,9 @@ import {actions} from 'js/actions';
 import {formatTimeDate} from 'js/utils';
 import {
   ADDITIONAL_SUBMISSION_PROPS,
-  PERMISSIONS_CODENAMES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {
   EXPORT_TYPES,
   DEFAULT_EXPORT_SETTINGS,
@@ -33,6 +33,7 @@ import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
 import {userCan} from 'js/components/permissions/utils';
+import Button from 'js/components/common/button';
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
 
@@ -316,7 +317,7 @@ export default class ProjectExportsCreator extends React.Component {
     // Select custom export toggle if not all rows are selected
     // but only if at least one is selected
     const customSelectionEnabled = (
-      data.export_settings.fields.length !== 0 &&
+      data.export_settings.fields?.length &&
       this.state.selectableRowsCount !== data.export_settings.fields.length
     );
 
@@ -534,11 +535,10 @@ export default class ProjectExportsCreator extends React.Component {
   renderAdvancedView() {
     const includeAllVersionsLabel = (
       <span>
-        {t('Include data from all')}
-        &nbsp;
-        <strong>{this.props.asset.deployed_versions.count}</strong>
-        &nbsp;
-        {t('versions')}
+        {t('Include fields from all ##count## versions').replace(
+          '##count##',
+          String(this.props.asset.deployed_versions.count)
+        )}
       </span>
     );
 
@@ -548,17 +548,17 @@ export default class ProjectExportsCreator extends React.Component {
       EXPORT_MULTIPLE_OPTIONS.summary,
       EXPORT_MULTIPLE_OPTIONS.both,
     ];
+    const template = t('Export ##SELECT_MANY## questions as…');
+    const [firstPart, nextPart] = template.split('##SELECT_MANY##');
 
     return (
       <bem.ProjectDownloads__advancedView>
         <bem.ProjectDownloads__column m='left'>
           <label className='project-downloads__column-row'>
             <bem.ProjectDownloads__title>
-              {t('Export')}
-              &nbsp;
+              {firstPart}
               <em>{t('Select Many')}</em>
-              &nbsp;
-              {t('questions as…')}
+              {nextPart}
             </bem.ProjectDownloads__title>
 
             <Select
@@ -628,7 +628,7 @@ export default class ProjectExportsCreator extends React.Component {
           }
 
           {(this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
-              this.state.selectedExportType.value == EXPORT_TYPES.csv.value) &&
+              this.state.selectedExportType.value === EXPORT_TYPES.csv.value) &&
             <bem.ProjectDownloads__columnRow>
               <Checkbox
                 checked={this.state.isIncludeMediaUrlEnabled}
@@ -653,7 +653,7 @@ export default class ProjectExportsCreator extends React.Component {
               value={this.state.customExportName}
               onChange={this.onAnyInputChange.bind(this, 'customExportName')}
               placeholder={t('Name your export settings')}
-              customClassNames={['custom-export-name-textbox']}
+              className='custom-export-name-textbox'
             />
           </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>
@@ -669,28 +669,30 @@ export default class ProjectExportsCreator extends React.Component {
               label={t('Select questions to be exported')}
             />
 
-            <bem.ProjectDownloads__textButton
-              disabled={(
+            <Button
+              type='secondary'
+              size='s'
+              isDisabled={(
                 !this.state.isCustomSelectionEnabled ||
                 this.state.selectedRows.size === this.state.selectableRowsCount
               )}
-              onClick={this.selectAllRows}
-            >
-              {t('Select all')}
-            </bem.ProjectDownloads__textButton>
+              onClick={this.selectAllRows.bind(this)}
+              label={t('Select all')}
+            />
 
             <span className='project-downloads__vr'/>
 
-            <bem.ProjectDownloads__textButton
-              disabled={(
+            <Button
+              type='secondary'
+              size='s'
+              isDisabled={(
                 !this.state.isCustomSelectionEnabled ||
                 // We check vs 1 as `_uuid` is always required.
                 this.state.selectedRows.size <= 1
               )}
-              onClick={this.clearSelectedRows}
-            >
-              {t('Deselect all')}
-            </bem.ProjectDownloads__textButton>
+              onClick={this.clearSelectedRows.bind(this)}
+              label={t('Deselect all')}
+            />
           </bem.ProjectDownloads__columnRow>
 
           {this.renderRowsSelector()}
@@ -710,7 +712,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   render() {
-    let formClassNames = ['project-downloads__exports-creator'];
+    const formClassNames = ['project-downloads__exports-creator'];
     if (!this.state.isComponentReady) {
       formClassNames.push('project-downloads__exports-creator--loading');
     }
@@ -743,15 +745,14 @@ export default class ProjectExportsCreator extends React.Component {
             </label>
           </bem.ProjectDownloads__selectorRow>
 
-          <bem.ProjectDownloads__textButton onClick={this.toggleAdvancedView}>
-            {t('Advanced options')}
-            {this.state.isAdvancedViewVisible && (
-              <i className='k-icon k-icon-angle-up' />
-            )}
-            {!this.state.isAdvancedViewVisible && (
-              <i className='k-icon k-icon-angle-down' />
-            )}
-          </bem.ProjectDownloads__textButton>
+          <Button
+            type='text'
+            size='s'
+            onClick={this.toggleAdvancedView.bind(this)}
+            label={t('Advanced options')}
+            endIcon={this.state.isAdvancedViewVisible ? 'angle-up' : 'angle-down'}
+            className='project-downloads__advanced-button'
+          />
 
           <hr />
 
@@ -780,30 +781,32 @@ export default class ProjectExportsCreator extends React.Component {
 
                   {this.state.selectedDefinedExport &&
                     userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
-                    <bem.ProjectDownloads__deleteSettingsButton
-                      onClick={this.onDeleteExportSetting.bind(
-                        this,
-                        this.state.selectedDefinedExport.data.uid
-                      )}
-                      >
-                        <i className='k-icon k-icon-trash'/>
-                      </bem.ProjectDownloads__deleteSettingsButton>
+                      <Button
+                        type='secondary-danger'
+                        size='m'
+                        onClick={this.onDeleteExportSetting.bind(
+                          this,
+                          this.state.selectedDefinedExport.data.uid
+                        )}
+                        startIcon='trash'
+                        className='project-downloads__delete-settings-button'
+                      />
                     }
                   </React.Fragment>
                 }
               </bem.ProjectDownloads__exportsSelector>
 
-              <bem.KoboButton
-                m='blue'
-                type='submit'
-                onClick={this.onSubmit}
-                disabled={
-                  this.state.selectedRows.size === 0 ||
+              <Button
+                type='primary'
+                size='l'
+                isSubmit
+                onClick={this.onSubmit.bind(this)}
+                isDisabled={
+                  (this.state.isCustomSelectionEnabled && this.state.selectedRows.size === 0) ||
                   this.state.isPending
                 }
-              >
-                {t('Export')}
-              </bem.KoboButton>
+                label={t('Export')}
+              />
             </bem.ProjectDownloads__submitRow>
           </bem.FormView__form>
       </bem.FormView__cell>

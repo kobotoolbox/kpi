@@ -1,4 +1,3 @@
-import {assign} from 'js/utils';
 import {
   AssetResponse,
   AssetContentSettings
@@ -29,7 +28,7 @@ function parseSettings(asset: AssetResponse) {
 }
 
 export function parsed(asset: AssetResponse): AssetResponse {
-  return assign(
+  return Object.assign(
     asset,
     parseSettings(asset),
     parseTags(asset)

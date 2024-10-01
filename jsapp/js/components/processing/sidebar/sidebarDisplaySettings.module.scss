@@ -1,0 +1,45 @@
+@use 'scss/colors';
+@use 'scss/sizes';
+
+.root {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  height: sizes.$x48;
+}
+
+.description {
+  padding-bottom: sizes.$x36;
+}
+
+.display:not(:last-child) {
+  padding-bottom: sizes.$x36;
+}
+
+.wrapWithParens {
+  span::before {
+    content: '(';
+  }
+
+  span::after {
+    content: ')';
+  }
+}
+
+// We need to win the specificity here
+ul.options.options {
+  margin: 0;
+}
+
+.questionList {
+  margin: 12px 0 0 36px;
+}
+
+.checkbox {
+  padding: sizes.$x12;
+  margin-top: sizes.$x6;
+  max-height: sizes.$x140; // ~4.5 times the size of a checkbox, makes 4 checkboxes visible
+  border: 1px solid colors.$kobo-gray-300;
+  border-radius: sizes.$x2;
+  overflow-y: auto;
+}

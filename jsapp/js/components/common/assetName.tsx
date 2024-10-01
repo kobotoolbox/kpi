@@ -1,6 +1,6 @@
 import React from 'react';
 import {getAssetDisplayName} from 'js/assetUtils';
-import {hasLongWords} from 'js/utils';
+import {hasLongWords} from 'js/textUtils';
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import './assetName.scss';
 

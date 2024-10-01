@@ -71,9 +71,12 @@ module.exports = do ->
       @line.html $viewTemplates.$$render('xlfRowSelector.line', "")
       @line.find('.row__questiontypes__new-question-name').val(@question_name)
       $menu = @line.find(".row__questiontypes__list")
+      availableFiles = @options.survey.availableFiles || []
       for mrow in $icons.grouped()
         menurow = $("<div>", class: "questiontypelist__row").appendTo $menu
         for mitem, i in mrow when mitem
+          if availableFiles.length is 0 and ['select_one_from_file', 'select_multiple_from_file'].includes(mitem.get('id'))
+            continue
           menurow.append $viewTemplates.$$render('xlfRowSelector.cell', mitem.attributes)
 
       @scrollFormBuilder('+=220')

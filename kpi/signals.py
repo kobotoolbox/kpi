@@ -1,22 +1,38 @@
-# coding: utf-8
+from typing import Union
+
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AnonymousUser
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.models.hook import Hook
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatToken,
     KobocatUser,
 )
 from kpi.deployment_backends.kc_access.utils import (
     grant_kc_model_level_perms,
     kc_transaction_atomic,
 )
+from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset, TagUid
-from kpi.utils.permissions import grant_default_model_level_perms
+from kpi.utils.object_permission import post_assign_perm, post_remove_perm
+from kpi.utils.permissions import (
+    grant_default_model_level_perms,
+    is_user_anonymous,
+)
+
+
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if is_user_anonymous(instance):
+        return
+
+    if created:
+        Token.objects.get_or_create(user_id=instance.pk)
 
 
 @receiver(post_save, sender=User)
@@ -41,35 +57,15 @@ def default_permissions_post_save(sender, instance, created, raw, **kwargs):
 def save_kobocat_user(sender, instance, created, raw, **kwargs):
     """
     Sync auth_user table between KPI and KC, and, if the user is newly created,
-    grant all KoBoCAT model-level permissions for the content types listed in
+    grant all KoboCAT model-level permissions for the content types listed in
     `settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES`
     """
+
     if not settings.TESTING:
         with kc_transaction_atomic():
             KobocatUser.sync(instance)
             if created:
                 grant_kc_model_level_perms(instance)
-
-
-@receiver(post_save, sender=Token)
-def save_kobocat_token(sender, instance, **kwargs):
-    """
-    Sync AuthToken table between KPI and KC
-    """
-    if not settings.TESTING:
-        KobocatToken.sync(instance)
-
-
-@receiver(post_delete, sender=Token)
-def delete_kobocat_token(sender, instance, **kwargs):
-    """
-    Delete corresponding record from KC AuthToken table
-    """
-    if not settings.TESTING:
-        try:
-            KobocatToken.objects.get(pk=instance.pk).delete()
-        except KobocatToken.DoesNotExist:
-            pass
 
 
 @receiver(post_save, sender=Tag)
@@ -100,3 +96,39 @@ def post_delete_asset(sender, instance, **kwargs):
     else:
         if parent:
             parent.update_languages()
+
+
+@receiver(post_assign_perm, sender=Asset)
+def post_assign_asset_perm(
+    sender,
+    instance,
+    user: Union[settings.AUTH_USER_MODEL, 'AnonymousUser'],
+    codename: str,
+    **kwargs
+):
+
+    if not (is_user_anonymous(user) and codename == PERM_ADD_SUBMISSIONS):
+        return
+
+    try:
+        instance.deployment.set_enketo_open_rosa_server(require_auth=False)
+    except DeploymentNotFound:
+        return
+
+
+@receiver(post_remove_perm, sender=Asset)
+def post_remove_asset_perm(
+    sender,
+    instance,
+    user: Union[settings.AUTH_USER_MODEL, 'AnonymousUser'],
+    codename: str,
+    **kwargs
+):
+
+    if not (is_user_anonymous(user) and codename == PERM_ADD_SUBMISSIONS):
+        return
+
+    try:
+        instance.deployment.set_enketo_open_rosa_server(require_auth=True)
+    except DeploymentNotFound:
+        return

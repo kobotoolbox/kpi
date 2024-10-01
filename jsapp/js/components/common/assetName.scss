@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .asset-name {
   &.asset-name--empty {
@@ -15,7 +15,7 @@
   }
 
   small {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     margin-left: 5px;
     font-size: smaller;
     font-style: italic;

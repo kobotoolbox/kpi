@@ -1,11 +1,9 @@
 import React, {lazy, Suspense} from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {observer} from 'mobx-react';
 import Reflux from 'reflux';
 import {NavLink} from 'react-router-dom';
-import {stores} from '../stores';
 import sessionStore from '../stores/session';
 import bem from 'js/bem';
 import {searches} from '../searches';
@@ -13,12 +11,12 @@ import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
 import HelpBubble from 'js/components/support/helpBubble';
 import {COMMON_QUERIES, MODAL_TYPES} from '../constants';
-import {ROUTES} from 'js/router/routerConstants';
-import {assign} from 'utils';
+import {ROUTES, PROJECTS_ROUTES} from 'js/router/routerConstants';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {router, routerIsActive, withRouter} from '../router/legacy';
-import {PROJECTS_ROUTES} from 'js/projects/routes';
+import Button from 'js/components/common/button';
+import pageState from 'js/pageState.store';
 
 const AccountSidebar = lazy(() => import('js/account/accountSidebar'));
 
@@ -36,16 +34,17 @@ const FormSidebar = observer(
   class FormSidebar extends Reflux.Component {
     constructor(props) {
       super(props);
-      this.state = assign(
+      this.state = Object.assign(
         {
           currentAssetId: false,
           files: [],
         },
-        stores.pageState.state
+        pageState.state
       );
-      this.state = assign(INITIAL_STATE, this.state);
+      this.state = Object.assign(INITIAL_STATE, this.state);
 
-      this.stores = [stores.pageState];
+      this.unlisteners = [];
+      this.stores = [pageState];
       autoBind(this);
     }
     componentDidMount() {
@@ -53,26 +52,34 @@ const FormSidebar = observer(
       // in dev environment. Unfortunately `router.subscribe` doesn't return
       // a cancel function, so we can't make it stop.
       // TODO: when refactoring this file, make sure not to use the legacy code.
-      router.subscribe(this.onRouteChange.bind(this));
+      this.unlisteners.push(
+        router.subscribe(this.onRouteChange.bind(this))
+      );
+    }
+    componentWillUnmount() {
+      this.unlisteners.forEach((clb) => {clb();});
     }
     newFormModal(evt) {
       evt.preventDefault();
-      stores.pageState.showModal({
+      pageState.showModal({
         type: MODAL_TYPES.NEW_FORM,
       });
     }
     render() {
       return (
-        <React.Fragment>
-          <bem.KoboButton
-            m={['blue', 'fullwidth']}
-            disabled={!sessionStore.isLoggedIn}
-            onClick={this.newFormModal}
-          >
-            {t('new')}
-          </bem.KoboButton>
+        <>
+          <Button
+            type='primary'
+            size='l'
+            isFullWidth
+            isUpperCase
+            isDisabled={!sessionStore.isLoggedIn}
+            onClick={this.newFormModal.bind(this)}
+            label={t('new')}
+          />
+
           <SidebarFormsList />
-        </React.Fragment>
+        </>
       );
     }
     onRouteChange() {
@@ -80,10 +87,6 @@ const FormSidebar = observer(
     }
   }
 );
-
-FormSidebar.contextTypes = {
-  router: PropTypes.object,
-};
 
 reactMixin(FormSidebar.prototype, searches.common);
 reactMixin(FormSidebar.prototype, mixins.droppable);
@@ -137,7 +140,7 @@ const Drawer = observer(
     constructor(props) {
       super(props);
       autoBind(this);
-      this.stores = [stores.pageState];
+      this.stores = [pageState];
     }
 
     isAccount() {
@@ -207,9 +210,5 @@ const Drawer = observer(
 reactMixin(Drawer.prototype, searches.common);
 reactMixin(Drawer.prototype, mixins.droppable);
 reactMixin(Drawer.prototype, mixins.contextRouter);
-
-Drawer.contextTypes = {
-  router: PropTypes.object,
-};
 
 export default withRouter(Drawer);

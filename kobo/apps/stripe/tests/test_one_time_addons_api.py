@@ -1,10 +1,10 @@
-from django.contrib.auth.models import User
 from django.urls import reverse
 from djstripe.enums import BillingScheme
 from djstripe.models import Customer, PaymentIntent
 from model_bakery import baker
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 
@@ -63,7 +63,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self._create_session_and_payment_intent()
         self.client.logout()
         response = self.client.get(self.url)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_not_own_addon(self):
         self._insert_data()

@@ -3,10 +3,11 @@ import json
 from datetime import timedelta
 
 from constance.test import override_config
-from django.contrib.auth.models import User
 from django.test import TestCase
-from django.utils.timezone import now
+from django.utils import timezone
 
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.maintenance_tasks import remove_old_asset_snapshots
 from kpi.tests.api.v2 import test_api_asset_snapshots
 from ..models import Asset
 from ..models import AssetSnapshot
@@ -83,31 +84,53 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
 class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
 
     @override_config(ASSET_SNAPSHOT_DAYS_RETENTION=2)
-    def test_delete_old_asset_snapshots_on_regenerate(self):
-        two_days_before = now() - timedelta(days=3)  # One more day than Constance setting
-        yesterday = now() - timedelta(days=1)
+    def test_delete_old_asset_snapshots_task(self):
         # Because of `auto_date_now` , we cannot specify the date with `create()`
         older_snapshot = AssetSnapshot.objects.create(asset=self.asset)
-        older_snapshot.date_created = two_days_before
+        older_snapshot.date_created = timezone.now() - timedelta(days=5)
         older_snapshot.save(update_fields=['date_created'])
-        old_snapshot = AssetSnapshot.objects.create(asset=self.asset)
-        old_snapshot.date_created = yesterday
-        old_snapshot.save(update_fields=['date_created'])
-        # versioned snapshots are always regenerated
-        versioned_snapshot = self.asset.snapshot(
-            regenerate=True,
-            version_uid=self.asset.latest_deployed_version_uid
-        )
-        snapshot_uids = list(AssetSnapshot.objects.filter(
-            asset=self.asset
-        ).values_list('uid', flat=True))
-        expected_snapshot_uids = [
-            versioned_snapshot.uid,
-            old_snapshot.uid,
-            self.asset_snapshot.uid,
-        ]
-        # Older snapshot should be gone
+        newer_snapshot = AssetSnapshot.objects.create(asset=self.asset)
+        newer_snapshot.date_created = timezone.now() - timedelta(days=4)
+        newer_snapshot.save(update_fields=['date_created'])
+
+        remove_old_asset_snapshots()
+
+        # Both are outside retention date, oldest gets removed
+        assert AssetSnapshot.objects.filter(pk=newer_snapshot.id).exists()
         assert not AssetSnapshot.objects.filter(pk=older_snapshot.id).exists()
-        # Older snapshot should still exist
-        assert AssetSnapshot.objects.filter(pk=old_snapshot.id).exists()
-        assert sorted(expected_snapshot_uids) == sorted(snapshot_uids)
+
+        newest_unversioned_snapshot = AssetSnapshot.objects.create(
+            asset=self.asset, source=self.asset.content
+        )
+        newest_unversioned_snapshot.date_created = timezone.now() - timedelta(
+            days=3
+        )
+        newest_unversioned_snapshot.save(update_fields=['date_created'])
+
+        remove_old_asset_snapshots()
+
+        # Newest still gets deleted because it doesn't have version
+        assert AssetSnapshot.objects.filter(pk=newer_snapshot.id).exists()
+        assert not AssetSnapshot.objects.filter(
+            pk=newest_unversioned_snapshot.id
+        ).exists()
+
+        asset_2 = Asset.objects.create(
+            content=self.asset.content,
+            owner=self.user,
+            asset_type='survey',
+        )
+        asset_2_older_snapshot = AssetSnapshot.objects.create(asset=asset_2)
+        asset_2_older_snapshot.date_created = timezone.now() - timedelta(days=1)
+        asset_2_older_snapshot.save(update_fields=['date_created'])
+        asset_2_newer_snapshot = AssetSnapshot.objects.create(asset=asset_2)
+
+        remove_old_asset_snapshots()
+
+        # Both remain because they are within retention date
+        assert AssetSnapshot.objects.filter(
+            pk=asset_2_older_snapshot.id
+        ).exists()
+        assert AssetSnapshot.objects.filter(
+            pk=asset_2_newer_snapshot.id
+        ).exists()

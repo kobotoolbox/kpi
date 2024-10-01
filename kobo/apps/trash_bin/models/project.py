@@ -4,11 +4,16 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils.timezone import now
 
+from kobo.apps.project_ownership.models import (
+    Invite,
+    InviteStatusChoices,
+    Transfer,
+)
 from kpi.deployment_backends.kc_access.shadow_models import KobocatUser, KobocatXForm
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
-from kpi.utils.django_orm_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from . import BaseTrash
 
 
@@ -30,7 +35,7 @@ class ProjectTrash(BaseTrash):
     def toggle_asset_statuses(
         cls,
         asset_uids: list[str] = None,
-        owner: 'auth.User' = None,
+        owner: settings.AUTH_USER_MODEL = None,
         active: bool = True,
         toggle_delete: bool = True,
     ) -> tuple:
@@ -49,7 +54,7 @@ class ProjectTrash(BaseTrash):
 
         kc_update_params = {'downloadable': active}
         update_params = {
-            '_deployment_data': ReplaceValues(
+            '_deployment_data': UpdateJSONFieldAttributes(
                 '_deployment_data',
                 updates={'active': active},
             ),
@@ -75,6 +80,15 @@ class ProjectTrash(BaseTrash):
                 updated = queryset.update(
                     **update_params
                 )
+
+                if toggle_delete and not active:
+                    Invite.objects.filter(
+                        pk__in=Transfer.objects.filter(
+                            asset_id__in=queryset.values_list('pk', flat=True),
+                            invite__status=InviteStatusChoices.PENDING,
+                        ).values_list('invite_id', flat=True)
+                    ).update(status=InviteStatusChoices.CANCELLED)
+
                 if not settings.TESTING:
                     kc_updated = KobocatXForm.objects.filter(
                         **kc_filter_params

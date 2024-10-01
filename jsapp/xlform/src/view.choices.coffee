@@ -95,8 +95,8 @@ module.exports = do ->
     render: ->
       @t = $("<i class=\"k-icon k-icon-trash js-remove-option\">")
       @pw = $("<div class=\"editable-wrapper js-option-label-input js-cancel-select-row\">")
-      @p = $("<input placeholder=\"#{t("This option has no name")}\" class=\"js-cancel-select-row option-view-input\"  data-cy=\"option\">")
-      @c = $("<code><label>#{t("XML value:")}</label> <input type=\"text\" class=\"js-option-name-input js-cancel-select-row\"></input></code>")
+      @p = $("<input placeholder=\"#{t("No value")}\" class=\"js-cancel-select-row option-view-input\" dir=\"auto\" data-cy=\"option\">")
+      @c = $("<code><input type=\"text\" class=\"js-option-name-input js-cancel-select-row\"></input></code>")
       @d = $('<div>')
       if @model
         @p.val @model.get("label") || 'Empty'

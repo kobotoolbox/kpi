@@ -1,7 +1,8 @@
-import React from 'react';
-import TextareaAutosize from 'react-autosize-textarea';
+import React, {useEffect} from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 import styles from './textBox.module.scss';
 import classnames from 'classnames';
+import type {ButtonSize} from 'js/components/common/button';
 import {ButtonToIconMap} from 'js/components/common/button';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import Icon from './icon';
@@ -14,10 +15,18 @@ export type TextBoxType =
   | 'text'
   | 'url';
 
+export type TextBoxSize = ButtonSize;
+
 const DefaultType: TextBoxType = 'text';
+const DefaultSize: TextBoxSize = 'l';
 
 interface TextBoxProps {
   type?: TextBoxType;
+  /**
+   * Sizes are generally the same as in button component so we use same type.
+   * Optional because we have `DefaultSize`.
+   */
+  size?: TextBoxSize;
   /** Displays an icon inside the input, on the beginning. */
   startIcon?: IconName;
   /**
@@ -52,8 +61,12 @@ interface TextBoxProps {
    * uses this component.
    */
   required?: boolean;
-  customClassNames?: string[];
+  /** Additional class name */
+  className?: string;
+  disableAutocomplete?: boolean;
   'data-cy'?: string;
+  /** Gives focus to the input immediately after rendering */
+  renderFocused?: boolean;
 }
 
 /**
@@ -61,32 +74,75 @@ interface TextBoxProps {
  * updates.
  */
 export default function TextBox(props: TextBoxProps) {
-  /**
-   * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
-   * types to stop TextareaAutosize complaining.
-   */
+  const inputReference: React.MutableRefObject<null | HTMLInputElement> =
+    React.createRef();
+  const textareaReference: React.MutableRefObject<null | HTMLTextAreaElement> =
+    React.createRef();
 
-  function onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
+  useEffect(() => {
+    if (props.renderFocused) {
+      inputReference.current?.focus();
+      textareaReference.current?.focus();
+    }
+  }, []);
+
+  function onValueChange(newValue: string) {
     if (props.readOnly || !props.onChange) {
       return;
     }
-    props.onChange(evt.currentTarget.value);
+    props.onChange(newValue);
   }
 
-  function onBlur(evt: React.FocusEvent<HTMLInputElement> | any) {
+  function onBlur(
+    evt:
+      | React.FocusEvent<HTMLInputElement>
+      | React.FocusEvent<HTMLTextAreaElement>
+  ) {
     if (typeof props.onBlur === 'function') {
       props.onBlur(evt.currentTarget.value);
     }
   }
 
-  function onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | any) {
+  function onKeyPress(
+    evt:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) {
+    // For `number` type, we disallow any non numeric characters.
+    if (
+      props.type === 'number' &&
+      !['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(evt.key)
+    ) {
+      evt.preventDefault();
+      return false;
+    }
+
     if (typeof props.onKeyPress === 'function') {
       props.onKeyPress(evt.key, evt);
     }
+
+    return true;
   }
 
-  const rootClassNames = props.customClassNames || [];
+  const rootClassNames = [];
   rootClassNames.push(styles.root);
+
+  if (props.className) {
+    rootClassNames.push(props.className);
+  }
+
+  let size: TextBoxSize = props.size || DefaultSize;
+  switch (size) {
+    case 'l':
+      rootClassNames.push(styles.sizeL);
+      break;
+    case 'm':
+      rootClassNames.push(styles.sizeM);
+      break;
+    case 's':
+      rootClassNames.push(styles.sizeS);
+      break;
+  }
 
   let errors = [];
   if (Array.isArray(props.errors)) {
@@ -111,16 +167,24 @@ export default function TextBox(props: TextBoxProps) {
     type = props.type;
   }
 
+  // Shared props for both `<TextareaAutosize>` and `<input>`. The reason we
+  // need this is because for `text-multiline` type we use special component,
+  // and for all the other types we use the `<input>` HTML tag.
   const inputProps = {
     value: props.value,
     placeholder: props.placeholder,
-    onChange: onChange,
     onBlur: onBlur,
     onKeyPress: onKeyPress,
     readOnly: props.readOnly,
     disabled: props.disabled,
     required: props.required,
     'data-cy': props['data-cy'],
+    // For `number` type we allow only positive integers
+    step: props.type === 'number' ? 1 : undefined,
+    min: props.type === 'number' ? 0 : undefined,
+    // All textboxes handles text direction of user content with browser
+    // built-in functionality
+    dir: 'auto',
   };
 
   // For now we only support one size of TextBox, but when we're going to
@@ -145,16 +209,44 @@ export default function TextBox(props: TextBoxProps) {
           <Icon
             size={iconSize}
             name={props.startIcon}
-            classNames={[styles.startIcon]}
+            className={styles.startIcon}
           />
         )}
-
+        {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
+        {props.disableAutocomplete && <input type='password' hidden={true} />}
         {/* We use two different components based on the type of the TextBox */}
         {props.type === 'text-multiline' && (
-          <TextareaAutosize className={styles.input} {...inputProps} />
+          <TextareaAutosize
+            className={styles.input}
+            aria-required={props.required}
+            ref={textareaReference}
+            onChange={(evt: React.FormEvent<HTMLTextAreaElement>) => {
+              onValueChange(evt.currentTarget.value);
+            }}
+            autoComplete={props.disableAutocomplete ? 'off' : 'on'}
+            {...inputProps}
+          />
         )}
         {props.type !== 'text-multiline' && (
-          <input className={styles.input} type={type} {...inputProps} />
+          <input
+            className={styles.input}
+            aria-required={props.required}
+            type={type}
+            ref={inputReference}
+            autoComplete={props.disableAutocomplete ? 'off' : 'on'}
+            // We use `onInput` instead of `onChange` here, because (for some
+            // reason I wasn't able to grasp) `input[type="number"]` is not
+            // calling onChange when non-number is typed, but regardless to that
+            // the non-number character ends up added to the input value.
+            // This happens on Firefox.
+            onInput={(evt: React.ChangeEvent<HTMLInputElement>) => {
+              onValueChange(evt.currentTarget.value);
+            }}
+            // We need this fake `onChange` here to avoid React complaining that
+            // we're creating a read-only input (clearly not true).
+            onChange={() => false}
+            {...inputProps}
+          />
         )}
 
         {/*
@@ -165,15 +257,15 @@ export default function TextBox(props: TextBoxProps) {
           <Icon
             size={iconSize}
             name={props.endIcon}
-            classNames={[styles.endIcon]}
+            className={styles.endIcon}
           />
         )}
         {errors.length > 0 && (
           <Icon
             size={iconSize}
             name='alert'
-            color='red'
-            classNames={[styles.errorIcon]}
+            color='mid-red'
+            className={styles.errorIcon}
           />
         )}
       </div>

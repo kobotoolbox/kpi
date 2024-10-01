@@ -1,0 +1,29 @@
+@use 'scss/mixins';
+
+.cell {
+  @include mixins.centerRowFlex;
+}
+
+.textContent {
+  @include mixins.textEllipsis;
+
+  flex: 1;
+}
+
+.modalContent {
+  white-space: preserve;
+}
+
+.modalOpener {
+  float: right;
+}
+
+.modalHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+  line-height: 20px;
+  max-width: 100%;
+  flex: 1;
+}

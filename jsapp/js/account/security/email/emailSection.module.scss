@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/libs/_mdl';
 
@@ -10,7 +10,7 @@
   align-items: baseline;
   column-gap: sizes.$x16;
   border-top: sizes.$x1 solid;
-  border-color: colors.$kobo-gray-92;
+  border-color: colors.$kobo-gray-300;
 }
 
 .titleSection {
@@ -23,7 +23,7 @@
 
 .title {
   margin: 0;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   font-weight: 600;
   line-height: 1.6;
 }

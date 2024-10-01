@@ -1,6 +1,7 @@
+@use 'scss/breakpoints';
 @use "scss/_variables";
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // header and navigation styling
 
@@ -22,7 +23,7 @@
 
   .mdl-layout__header-row {
     height: $layout-desktop-header-height;
-    padding: 0px 20px;
+    padding: 0px 12px;
   }
 
   .mdl-placeholder {
@@ -30,15 +31,17 @@
   }
 
   .mdl-layout__title {
-    // This makes sure the search box is aligned with right side content.
-    // We subtract the header bar paddings and the left margin of search box.
-    width: $s-drawer-width - 20px - 6px;
+    width: 40px;
   }
 
   .header__logo {
-    width: 180px;
+    // NOTE: this is overrideable, see `/kpi/templates/index.html`
+    background-image: url("../img/kobologo_symbol.svg");
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    width: 40px;
     height: 40px;
-    background: url("../img/kobologo.svg") no-repeat 50% 50%;
+    // Needed for non-horizontal images
     background-size: contain;
     display: block;
   }
@@ -143,7 +146,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -172,7 +175,7 @@
     padding-bottom: 15px;
 
     a {
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -193,35 +196,39 @@
     }
 
     &.environment-links {
-      text-align: right;
+      display: flex;
+      justify-content: space-evenly;
+      column-gap: 6px;
+      padding-top: 0;
 
       a {
         display: inline-block;
-        margin-left: 15px;
         font-size: 12px;
+        text-align: center;
+        text-wrap: balance;
       }
     }
   }
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
     padding-bottom: 5px;
 
     ul {
       margin-top: 5px;
       background-color: colors.$kobo-white;
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
       min-width: 140px;
       padding: 0;
-      border: 1px solid colors.$kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-300;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid colors.$kobo-gray-92;
+          border-bottom: 1px solid colors.$kobo-gray-300;
         }
 
         a {
@@ -236,59 +243,17 @@
   }
 }
 
-.mdl-layout__header .mdl-button--icon {
+// Form title + desc in header, editable
+
+// On smaller screens we hide both of them
+.main-header .main-header__icon,
+.main-header .main-header__counter {
   display: none;
 }
 
-@media screen and (max-width: 999px) {
-  .mdl-layout__header {
-    .mdl-button--icon {
-      display: block;
-      margin-right: 8px;
-      padding: 0px;
-      color: colors.$kobo-white;
-
-      &:active {
-        transform: translateX(1px);
-      }
-
-      .k-icon.k-icon-menu {
-        font-size: 32px;
-        line-height: 32px;
-        display: block;
-        margin: 3px;
-      }
-    }
-
-    .account-box__logo {
-      max-width: 85%;
-    }
-
-    .mdl-layout__header-row {
-      padding: 0px 12px;
-    }
-
-    .form-title {
-      width: calc(100% - 240px);
-      overflow: hidden;
-      margin-right: 10px;
-    }
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .mdl-layout__header {
-    .search {
-      display: none;
-    }
-  }
-}
-
-// Form title + desc in header, editable
-
 .main-header {
   .main-header__icon {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
     vertical-align: middle;
 
     .k-icon {
@@ -325,7 +290,7 @@
 
       // keep these pseudo-states separate
       &::placeholder {
-        color: colors.$kobo-gray-40;
+        color: colors.$kobo-gray-700;
       }
 
       &:hover {
@@ -342,31 +307,7 @@
   .main-header__counter {
     font-size: variables.$base-font-size;
     margin-right: 20px;
-    color: colors.$kobo-gray-65;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .main-header {
-    .main-header__icon,
-    .main-header__counter {
-      display: none;
-    }
-  }
-
-  .mdl-layout__header {
-    .mdl-layout__title {
-      width: 40px;
-    }
-
-    .main-header__title input {
-      border-radius: 0;
-    }
-
-    .header__logo {
-      background-image: url("../img/kobologo_symbol.svg");
-      width: 40px;
-    }
+    color: colors.$kobo-gray-500;
   }
 }
 
@@ -398,7 +339,31 @@
   display: none;
 }
 
-@media screen and (min-width: 768px) {
+@include breakpoints.breakpoint(mediumAndUp) {
+  .main-header .main-header__icon,
+  .main-header .main-header__counter {
+    display: initial;
+  }
+
+  .mdl-layout__header .mdl-layout__title {
+    // This makes sure the search box is aligned with right side content.
+    // We subtract the header bar paddings and the left margin of search box.
+    width: $s-drawer-width - 20px - 6px;
+  }
+
+  .mdl-layout__header .header__logo {
+    background-image: url("../img/kobologo.svg");
+    width: 180px;
+  }
+}
+
+@media (min-width: breakpoints.$bMobileMenu) {
+  .mdl-layout__header .mdl-layout__header-row {
+    padding: 0px 12px;
+  }
+}
+
+@media screen and (min-width: breakpoints.$b768) {
   .git-rev {
     display: block;
     position: fixed;
@@ -424,7 +389,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid colors.$kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-300;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

@@ -3,7 +3,7 @@ import re
 from datetime import datetime, date
 
 from django.contrib.auth.decorators import user_passes_test
-from django.core.files.storage import get_storage_class
+from django.core.files.storage import default_storage
 from django.http import HttpResponse, StreamingHttpResponse, Http404
 from django.urls import reverse
 from django.utils import timezone
@@ -330,6 +330,7 @@ def user_statistics_report(request):
     return HttpResponse(template_ish)
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def user_details_report(request):
 
     # Get the date filters from the query and set defaults
@@ -379,7 +380,6 @@ def retrieve_reports(request, base_filename):
     """
     filename = _base_filename_to_full_filename(
         base_filename, request.user.username)
-    default_storage = get_storage_class()()
     if not default_storage.exists(filename):
         raise Http404
     # File is intentionally left open so it can be read by the streaming

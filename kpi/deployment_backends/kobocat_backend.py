@@ -1,38 +1,35 @@
-# coding: utf-8
 from __future__ import annotations
 
-import copy
 import io
 import json
-import posixpath
 import re
-import uuid
 from collections import defaultdict
+from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
-from xml.etree import ElementTree as ET
-
-from django.db.models.functions import Coalesce
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import requests
+import redis.exceptions
+from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from lxml import etree
 from django.core.files import File
-from django.db.models import Sum
+from django.db.models import Sum, F
+from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+from django_redis import get_redis_connection
 from kobo_service_account.utils import get_request_headers
 from rest_framework import status
-from rest_framework.reverse import reverse
 
+from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -46,7 +43,6 @@ from kpi.constants import (
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
-    InvalidXPathException,
     KobocatCommunicationError,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
@@ -56,17 +52,20 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.xml import edit_submission_xml
+from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
+    KobocatAttachment,
+    KobocatDailyXFormSubmissionCounter,
+    KobocatMonthlyXFormSubmissionCounter,
+    KobocatUserProfile,
     KobocatXForm,
-    ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
-    ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -75,13 +74,9 @@ from .kc_access.utils import (
 )
 from ..exceptions import (
     BadFormatException,
-    KobocatBulkUpdateSubmissionsClientException,
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,
 )
-
-from kobo.apps.subsequences.utils import stream_with_extras
-from kobo.apps.trackers.models import NLPUsageCounter
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -90,20 +85,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     `self.asset._deployment_data` models.JSONField (referred as "deployment data")
     """
 
-    PROTECTED_XML_FIELDS = [
-        '__version__',
-        'formhub',
-        'meta',
-    ]
-
     SYNCED_DATA_FILE_TYPES = {
         AssetFile.FORM_MEDIA: 'media',
         AssetFile.PAIRED_DATA: 'paired_data',
     }
-
-    SUBMISSION_UUID_PATTERN = re.compile(
-        r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}'
-    )
 
     @property
     def attachment_storage_bytes(self):
@@ -131,155 +116,31 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     continue
                 assign_applicable_kc_permissions(self.asset, user, perms)
 
-    def bulk_update_submissions(
-        self, data: dict, user: 'auth.User'
-    ) -> dict:
-        """
-        Allows for bulk updating of submissions proxied through KoBoCAT. A
-        `deprecatedID` for each submission is given the previous value of
-        `instanceID` and `instanceID` receives an updated uuid. For each key
-        and value within `request_data`, either a new element is created on the
-        submission's XML tree, or the existing value is replaced by the updated
-        value.
-
-        Args:
-            data (dict): must contain a list of `submission_ids` and at
-                least one other key:value field for updating the submissions
-            user (User)
-
-        Returns:
-            dict: formatted dict to be passed to a Response object
-        """
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=data['submission_ids'],
-            query=data['query'],
-        )
-
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have full access.
-        if submission_ids:
-            # Reset query, because all the submission ids have been already
-            # retrieve
-            data['query'] = {}
-        else:
-            submission_ids = data['submission_ids']
-
-        submissions = self.get_submissions(
-            user=user,
-            format_type=SUBMISSION_FORMAT_TYPE_XML,
-            submission_ids=submission_ids,
-            query=data['query'],
-        )
-
-        if not self.current_submission_count:
-            raise KobocatBulkUpdateSubmissionsClientException(
-                detail=t('No submissions match the given `submission_ids`')
-            )
-
-        update_data = self.__prepare_bulk_update_data(data['data'])
-        kc_responses = []
-        for submission in submissions:
-            xml_parsed = etree.fromstring(submission)
-
-            _uuid, uuid_formatted = self.generate_new_instance_id()
-
-            # Updating xml fields for submission. In order to update an existing
-            # submission, the current `instanceID` must be moved to the value
-            # for `deprecatedID`.
-            instance_id = xml_parsed.find('meta/instanceID')
-            # If the submission has been edited before, it will already contain
-            # a deprecatedID element - otherwise create a new element
-            deprecated_id = xml_parsed.find('meta/deprecatedID')
-            deprecated_id_or_new = (
-                deprecated_id
-                if deprecated_id is not None
-                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
-            )
-            deprecated_id_or_new.text = instance_id.text
-            instance_id.text = uuid_formatted
-
-            # If the form has been updated with new fields and earlier
-            # submissions have been selected as part of the bulk update,
-            # a new element has to be created before a value can be set.
-            # However, with this new power, arbitrary fields can be added
-            # to the XML tree through the API.
-            for path, value in update_data.items():
-                edit_submission_xml(xml_parsed, path, value)
-
-            # TODO: Might be worth refactoring this as it is also used when
-            # duplicating a submission
-            file_tuple = (_uuid, io.BytesIO(etree.tostring(xml_parsed)))
-            files = {'xml_submission_file': file_tuple}
-            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
-            kc_request = requests.Request(
-                method='POST',
-                url=self.submission_url,
-                files=files,
-            )
-            kc_response = self.__kobocat_proxy_request(
-                kc_request, user=user
-            )
-
-            kc_responses.append(
-                {
-                    'uuid': _uuid,
-                    'response': kc_response,
-                }
-            )
-
-        return self.__prepare_bulk_update_response(kc_responses)
-
-    def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
+    def calculated_submission_count(
+        self, user: settings.AUTH_USER_MODEL, **kwargs
+    ) -> int:
         params = self.validate_submission_list_params(
             user, validate_count=True, **kwargs
         )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
-    def connect(self, identifier=None, active=False):
+    def connect(self, active=False):
         """
         `POST` initial survey content to KoBoCAT and create a new project.
         Store results in deployment data.
         CAUTION: Does not save deployment data to the database!
         """
-        # If no identifier was provided, construct one using
-        # `settings.KOBOCAT_URL` and the uid of the asset
-        if not identifier:
-            # Use the external URL here; the internal URL will be substituted
-            # in when appropriate
-            if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
-                raise ImproperlyConfigured(
-                    'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
-                    'configured before using KobocatDeploymentBackend'
-                )
-            kc_server = settings.KOBOCAT_URL
-            username = self.asset.owner.username
-            id_string = self.asset.uid
-            identifier = '{server}/{username}/forms/{id_string}'.format(
-                server=kc_server,
-                username=username,
-                id_string=id_string,
+        # Use the external URL here; the internal URL will be substituted
+        # in when appropriate
+        if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
+            raise ImproperlyConfigured(
+                'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
+                'configured before using KobocatDeploymentBackend'
             )
-        else:
-            # Parse the provided identifier, which is expected to follow the
-            # format http://kobocat_server/username/forms/id_string
-            kc_server, kc_path = self.__parse_identifier(identifier)
-            path_head, path_tail = posixpath.split(kc_path)
-            id_string = path_tail
-            path_head, path_tail = posixpath.split(path_head)
-            if path_tail != 'forms':
-                raise Exception('The identifier is not properly formatted.')
-            path_head, path_tail = posixpath.split(path_head)
-            if path_tail != self.asset.owner.username:
-                raise Exception(
-                    'The username in the identifier does not match the owner '
-                    'of this asset.'
-                )
-            if path_head != '/':
-                raise Exception('The identifier is not properly formatted.')
+        kc_server = settings.KOBOCAT_URL
+        id_string = self.asset.uid
 
-        url = self.external_to_internal_url('{}/api/v1/forms'.format(kc_server))
+        url = self.normalize_internal_url('{}/api/v1/forms'.format(kc_server))
         xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
                 'settings': {
@@ -302,14 +163,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         json_response = self._kobocat_request(
-            'POST', url, data=payload, files=files)
-        self.store_data({
-            'backend': 'kobocat',
-            'identifier': self.internal_to_external_url(identifier),
-            'active': json_response['downloadable'],
-            'backend_response': json_response,
-            'version': self.asset.version_id,
-        })
+            'POST', url, data=payload, files=files
+        )
+        # Store only path
+        json_response['url'] = urlparse(json_response['url']).path
+        self.store_data(
+            {
+                'backend': 'kobocat',
+                'active': json_response['downloadable'],
+                'backend_response': json_response,
+                'version': self.asset.version_id,
+            }
+        )
+
+    @property
+    def form_uuid(self):
+        try:
+            return self.backend_response['uuid']
+        except KeyError:
+            logging.warning(
+                'KoboCAT backend response has no `uuid`', exc_info=True
+            )
+            return None
 
     @staticmethod
     def nlp_tracking_data(asset_ids, start_date=None):
@@ -352,12 +227,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if start_date:
             filter_args['date__range'] = [start_date, today]
         try:
-            # Note: this is replicating the functionality that was formerly in `current_month_submission_count`
-            # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
-            total_submissions = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
+            # Note: this is replicating the functionality that was formerly in
+            # `current_month_submission_count`. `current_month_submission_count`
+            # didn't account for partial permissions, and this doesn't either
+            total_submissions = KobocatDailyXFormSubmissionCounter.objects.only(
                 'date', 'counter'
             ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
-        except ReadOnlyKobocatDailyXFormSubmissionCounter.DoesNotExist:
+        except KobocatDailyXFormSubmissionCounter.DoesNotExist:
             return 0
         else:
             return total_submissions['count_sum']
@@ -381,7 +257,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         WARNING! Deletes all submitted data!
         """
-        url = self.external_to_internal_url(self.backend_response['url'])
+        url = self.normalize_internal_url(self.backend_response['url'])
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
@@ -405,7 +281,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         super().delete()
 
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+    def delete_submission(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         """
         Delete a submission through KoBoCAT proxy
 
@@ -424,7 +302,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def delete_submissions(self, data: dict, user: 'auth.User') -> dict:
+    def delete_submissions(self, data: dict, user: settings.AUTH_USER_MODEL) -> dict:
         """
         Bulk delete provided submissions through KoBoCAT proxy,
         authenticated by `user`'s API token.
@@ -460,7 +338,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return drf_response
 
     def duplicate_submission(
-        self, submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: 'settings.AUTH_USER_MODEL'
     ) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
@@ -486,7 +364,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # Get attachments for the duplicated submission if there are any
-        attachment_objects = ReadOnlyKobocatAttachment.objects.filter(
+        attachment_objects = KobocatAttachment.objects.filter(
             instance_id=submission_id
         )
         attachments = (
@@ -496,7 +374,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # parse XML string to ET object
-        xml_parsed = ET.fromstring(submission)
+        xml_parsed = fromstring_preserve_root_xmlns(submission)
 
         # attempt to update XML fields for duplicate submission. Note that
         # `start` and `end` are not guaranteed to be included in the XML object
@@ -511,29 +389,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Rely on `meta/instanceID` being present. If it's absent, something is
         # fishy enough to warrant raising an exception instead of continuing
         # silently
-        xml_parsed.find('meta/instanceID').text = uuid_formatted
-
-        file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
-        files = {'xml_submission_file': file_tuple}
-
-        # Combine all files altogether
-        if attachments:
-            files.update(attachments)
-
-        kc_request = requests.Request(
-            method='POST', url=self.submission_url, files=files
-        )
-        kc_response = self.__kobocat_proxy_request(
-            kc_request, user=user
+        xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = (
+            uuid_formatted
         )
 
+        kc_response = self.store_submission(
+            user, xml_tostring(xml_parsed), _uuid, attachments
+        )
         if kc_response.status_code == status.HTTP_201_CREATED:
             return next(self.get_submissions(user, query={'_uuid': _uuid}))
         else:
             raise KobocatDuplicateSubmissionException
 
     def edit_submission(
-        self, xml_submission_file: File, user: 'auth.User', attachments: dict = None
+        self,
+        xml_submission_file: File,
+        user: settings.AUTH_USER_MODEL,
+        attachments: dict = None,
     ):
         """
         Edit a submission through KoBoCAT proxy on behalf of `user`.
@@ -543,14 +415,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         submission_xml = xml_submission_file.read()
         try:
-            xml_root = ET.fromstring(submission_xml)
-        except ET.ParseError:
+            xml_root = fromstring_preserve_root_xmlns(submission_xml)
+        except DET.ParseError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is malformed.')
             )
         try:
-            deprecated_uuid = xml_root.find('.//meta/deprecatedID').text
-            xform_uuid = xml_root.find('.//formhub/uuid').text
+            deprecated_uuid = xml_root.find(
+                self.SUBMISSION_DEPRECATED_UUID_XPATH
+            ).text
+            xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is missing critical elements.')
@@ -595,41 +469,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             kc_response, expected_response_format='xml'
         )
 
-    @staticmethod
-    def external_to_internal_url(url):
-        """
-        Replace the value of `settings.KOBOCAT_URL` with that of
-        `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
-        `url`
-        """
-        kobocat_url = settings.KOBOCAT_URL
-        # If old domain name is detected, use it for search&replace below
-        if settings.KOBOCAT_OLD_URL and settings.KOBOCAT_OLD_URL in url:
-            kobocat_url = settings.KOBOCAT_OLD_URL
-
-        return re.sub(
-            pattern='^{}'.format(re.escape(kobocat_url)),
-            repl=settings.KOBOCAT_INTERNAL_URL,
-            string=url
-        )
+    @property
+    def enketo_id(self):
+        if not (enketo_id := self.get_data('enketo_id')):
+            self.get_enketo_survey_links()
+            enketo_id = self.get_data('enketo_id')
+        return enketo_id
 
     @staticmethod
-    def generate_new_instance_id() -> (str, str):
+    def normalize_internal_url(url: str) -> str:
         """
-        Returns:
-            - Generated uuid
-            - Formatted uuid for OpenRosa xml
+        Normalize url to ensure KOBOCAT_INTERNAL_URL is used
         """
-        _uuid = str(uuid.uuid4())
-        return _uuid, f'uuid:{_uuid}'
+        parsed_url = urlparse(url)
+        return f'{settings.KOBOCAT_INTERNAL_URL}{parsed_url.path}'
 
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
-    ) -> ReadOnlyKobocatAttachment:
+    ) -> KobocatAttachment:
         """
         Return an object which can be retrieved by its primary key or by XPath.
         An exception is raised when the submission or the attachment is not found.
@@ -641,10 +502,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError:
             submission_uuid = submission_id_or_uuid
         if submission_uuid:
-            if not re.match(self.SUBMISSION_UUID_PATTERN, submission_uuid):
-                # not sure how necessary such a sanitization step is,
-                # but it's not hurting anything
-                raise SubmissionNotFoundException
             # `_uuid` is the legacy identifier that changes (per OpenRosa spec)
             # after every edit; `meta/rootUuid` remains consistent across
             # edits. prefer the latter when fetching by UUID.
@@ -679,18 +536,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise SubmissionNotFoundException
 
         if xpath:
-            submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
-
-            try:
-                element = submission_tree.find(xpath)
-            except KeyError:
-                raise InvalidXPathException
-
-            try:
-                attachment_filename = element.text
-            except AttributeError:
+            submission_root = fromstring_preserve_root_xmlns(submission_xml)
+            element = submission_root.find(xpath)
+            if element is None:
                 raise XPathNotFoundException
-
+            attachment_filename = element.text
             filters = {
                 'media_file_basename': attachment_filename,
             }
@@ -704,8 +554,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         filters['instance__xform_id'] = self.xform_id
 
         try:
-            attachment = ReadOnlyKobocatAttachment.objects.get(**filters)
-        except ReadOnlyKobocatAttachment.DoesNotExist:
+            attachment = KobocatAttachment.objects.get(**filters)
+        except KobocatAttachment.DoesNotExist:
             raise AttachmentNotFoundException
 
         return attachment
@@ -727,12 +577,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # ToDo What about adding the original basename and the question
         #  name in Mongo to avoid another DB query?
-        return ReadOnlyKobocatAttachment.objects.filter(
+        return KobocatAttachment.objects.filter(
             instance_id=submission['_id']
         )
 
     def get_daily_counts(
-        self, user: 'auth.User', timeframe: tuple[date, date]
+        self, user: settings.AUTH_USER_MODEL, timeframe: tuple[date, date]
     ) -> dict:
 
         user = get_database_user(user)
@@ -787,7 +637,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Trivial case, user has 'view_permissions'
         daily_counts = (
-            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+            KobocatDailyXFormSubmissionCounter.objects.values(
                 'date', 'counter'
             ).filter(
                 xform_id=self.xform_id,
@@ -824,6 +674,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return links
 
     def get_enketo_survey_links(self):
+        if not self.get_data('backend_response'):
+            return {}
+
         data = {
             'server_url': '{}/{}'.format(
                 settings.KOBOCAT_URL.rstrip('/'),
@@ -831,11 +684,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             ),
             'form_id': self.backend_response['id_string']
         }
+
         try:
             response = requests.post(
                 f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
                 # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
+                auth=(settings.ENKETO_API_KEY, ''),
                 data=data
             )
             response.raise_for_status()
@@ -849,6 +703,33 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError:
             logging.error('Received invalid JSON from Enketo', exc_info=True)
             return {}
+
+        try:
+            enketo_id = links.pop('enketo_id')
+        except KeyError:
+            logging.error(
+                'Invalid response from Enketo: `enketo_id` is not found',
+                exc_info=True,
+            )
+            return {}
+
+        stored_enketo_id = self.get_data('enketo_id')
+        if stored_enketo_id != enketo_id:
+            if stored_enketo_id:
+                logging.warning(
+                    f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
+                )
+            self.save_to_db({'enketo_id': enketo_id})
+
+        if self.xform.require_auth:
+            # Unfortunately, EE creates unique ID based on OpenRosa server URL.
+            # Thus, we need to always generated the ID with the same URL
+            # (i.e.: with username) to be retro-compatible and then,
+            # overwrite the OpenRosa server URL again.
+            self.set_enketo_open_rosa_server(
+                require_auth=True, enketo_id=enketo_id
+            )
+
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try:
                 del links[discard]
@@ -893,7 +774,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def get_submissions(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
         request: Optional['rest_framework.request.Request'] = None,
@@ -917,13 +798,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         If `request` is provided, submission attachments url are rewritten to
         point to KPI (instead of KoBoCAT).
-        See `__rewrite_json_attachment_urls()`
+        See `BaseDeploymentBackend._rewrite_json_attachment_urls()`
         """
 
         mongo_query_params['submission_ids'] = submission_ids
-        params = self.validate_submission_list_params(user,
-                                                      format_type=format_type,
-                                                      **mongo_query_params)
+        params = self.validate_submission_list_params(
+            user, format_type=format_type, **mongo_query_params
+        )
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(request, **params)
@@ -935,7 +816,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         return submissions
 
-    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
+    def get_validation_status(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         url = self.get_submission_validation_status_url(submission_id)
         kc_request = requests.Request(method='GET', url=url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
@@ -955,21 +838,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
-    @staticmethod
-    def make_identifier(username, id_string):
-        """
-        Uses `settings.KOBOCAT_URL` to construct an identifier from a
-        username and id string, without the caller having to specify a server
-        or know the full format of KC identifiers
-        """
-        # No need to use the internal URL here; it will be substituted in when
-        # appropriate
-        return '{}/{}/forms/{}'.format(
-            settings.KOBOCAT_URL,
-            username,
-            id_string
-        )
-
     @property
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
@@ -982,7 +850,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         if active is None:
             active = self.active
-        url = self.external_to_internal_url(self.backend_response['url'])
+        url = self.normalize_internal_url(self.backend_response['url'])
         id_string = self.backend_response['id_string']
         xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
@@ -998,25 +866,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'has_kpi_hook': self.asset.has_active_hooks
         }
         files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
-        try:
-            json_response = self._kobocat_request(
-                'PATCH', url, data=payload, files=files)
-            self.store_data({
-                'active': json_response['downloadable'],
-                'backend_response': json_response,
-                'version': self.asset.version_id,
-            })
-        except KobocatDeploymentException as e:
-            if hasattr(e, 'response') and e.response.status_code == 404:
-                # Whoops, the KC project we thought we were going to overwrite
-                # is gone! Try a standard deployment instead
-                return self.connect(self.identifier, active)
-            raise
+        json_response = self._kobocat_request(
+            'PATCH', url, data=payload, files=files
+        )
+        self.store_data({
+            'active': json_response['downloadable'],
+            'backend_response': json_response,
+            'version': self.asset.version_id,
+        })
 
         self.set_asset_uid()
 
-    def remove_from_kc_only_flag(self,
-                                 specific_user: Union[int, 'User'] = None):
+    def remove_from_kc_only_flag(
+        self, specific_user: Union[int, settings.AUTH_USER_MODEL] = None
+    ):
         """
         Removes `from_kc_only` flag for ALL USERS unless `specific_user` is
         provided
@@ -1047,6 +910,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         ObjectPermission.objects.filter(**filters).delete()
 
+    def rename_enketo_id_key(self, previous_owner_username: str):
+        parsed_url = urlparse(settings.KOBOCAT_URL)
+        domain_name = parsed_url.netloc
+        asset_uid = self.asset.uid
+        enketo_redis_client = get_redis_connection('enketo_redis_main')
+
+        try:
+            enketo_redis_client.rename(
+                src=f'or:{domain_name}/{previous_owner_username},{asset_uid}',
+                dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}'
+            )
+        except redis.exceptions.ResponseError:
+            # original does not exist, weird but don't raise a 500 for that
+            pass
+
     def set_active(self, active):
         """
         `PATCH` active boolean of the survey.
@@ -1054,7 +932,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         # self.store_data is an alias for
         # self.asset._deployment_data.update(...)
-        url = self.external_to_internal_url(
+        url = self.normalize_internal_url(
             self.backend_response['url'])
         payload = {
             'downloadable': bool(active)
@@ -1084,7 +962,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if is_synchronized:
             return False
 
-        url = self.external_to_internal_url(self.backend_response['url'])
+        url = self.normalize_internal_url(self.backend_response['url'])
         payload = {
             'kpi_asset_uid': self.asset.uid
         }
@@ -1096,6 +974,30 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         })
         return True
 
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None
+    ):
+        # Kobocat handles Open Rosa requests with different accesses.
+        #  - Authenticated access, https://[kc]
+        #  - Anonymous access, https://[kc]/username
+        # Enketo generates its unique ID based on the server URL.
+        # Thus, if the project requires authentication, we need to update Redis
+        # directly to keep the same ID and let Enketo submit data to correct
+        # endpoint
+        if not enketo_id:
+            enketo_id = self.enketo_id
+
+        server_url = settings.KOBOCAT_URL.rstrip('/')
+        if not require_auth:
+            server_url = f'{server_url}/{self.asset.owner.username}'
+
+        enketo_redis_client = get_redis_connection('enketo_redis_main')
+        enketo_redis_client.hset(
+            f'id:{enketo_id}',
+            'openRosaServer',
+            server_url,
+        )
+
     def set_has_kpi_hooks(self):
         """
         `PATCH` `has_kpi_hooks` boolean of related KoBoCAT XForm.
@@ -1105,7 +1007,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Store results in deployment data
         """
         has_active_hooks = self.asset.has_active_hooks
-        url = self.external_to_internal_url(
+        url = self.normalize_internal_url(
             self.backend_response['url'])
         payload = {
             'has_kpi_hooks': has_active_hooks,
@@ -1131,11 +1033,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'backend_response': json_response,
             })
 
-    def set_validation_status(self,
-                              submission_id: int,
-                              user: 'auth.User',
-                              data: dict,
-                              method: str) -> dict:
+    def set_validation_status(
+        self,
+        submission_id: int,
+        user: settings.AUTH_USER_MODEL,
+        data: dict,
+        method: str,
+    ) -> dict:
         """
         Update validation status through KoBoCAT proxy,
         authenticated by `user`'s API token.
@@ -1162,7 +1066,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+    def set_validation_statuses(
+        self, user: settings.AUTH_USER_MODEL, data: dict
+    ) -> dict:
         """
         Bulk update validation status for provided submissions through
         KoBoCAT proxy, authenticated by `user`'s API token.
@@ -1195,6 +1101,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
+    def store_submission(
+        self, user, xml_submission, submission_uuid, attachments=None
+    ):
+        file_tuple = (submission_uuid, io.StringIO(xml_submission))
+        files = {'xml_submission_file': file_tuple}
+        if attachments:
+            files.update(attachments)
+        kc_request = requests.Request(
+            method='POST', url=self.submission_url, files=files
+        )
+        kc_response = self.__kobocat_proxy_request(kc_request, user=user)
+        return kc_response
+
     @property
     def submission_count(self):
         try:
@@ -1225,7 +1144,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
 
-        url = self.external_to_internal_url(self.backend_response['url'])
+        url = self.normalize_internal_url(self.backend_response['url'])
         response = self._kobocat_request('GET', url)
         kc_files = defaultdict(dict)
 
@@ -1312,12 +1231,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     'id_string',
                     'num_of_submissions',
                     'attachment_storage_bytes',
+                    'require_auth',
                 )
                 .select_related(
                     'user'
                 )  # Avoid extra query to validate username below
                 .first()
             )
+
             if not (
                 xform
                 and xform.user.username == self.asset.owner.username
@@ -1343,6 +1264,71 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return self.backend_response['date_modified']
         except KeyError:
             return None
+
+    @staticmethod
+    @contextmanager
+    def suspend_submissions(user_ids: list[int]):
+        KobocatUserProfile.objects.filter(
+            user_id__in=user_ids
+        ).update(
+            metadata=UpdateJSONFieldAttributes(
+                'metadata',
+                updates={'submissions_suspended': True},
+            ),
+        )
+        try:
+            yield
+        finally:
+            KobocatUserProfile.objects.filter(
+                user_id__in=user_ids
+            ).update(
+                metadata=UpdateJSONFieldAttributes(
+                    'metadata',
+                    updates={'submissions_suspended': False},
+                ),
+            )
+
+    def transfer_submissions_ownership(
+        self, previous_owner_username: str
+    ) -> bool:
+
+        results = settings.MONGO_DB.instances.update_many(
+            {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
+            {
+                '$set': {
+                    '_userform_id': self.mongo_userform_id
+                }
+            },
+        )
+
+        return (
+            results.matched_count == 0 or
+            (
+                results.matched_count > 0
+                and results.matched_count == results.modified_count
+            )
+        )
+
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
+
+        NLPUsageCounter.objects.filter(
+            asset=self.asset, user=self.asset.owner
+        ).update(user=new_owner)
+        KobocatDailyXFormSubmissionCounter.objects.filter(
+            xform=self.xform, user_id=self.asset.owner.pk
+        ).update(user=new_owner)
+        KobocatMonthlyXFormSubmissionCounter.objects.filter(
+            xform=self.xform, user_id=self.asset.owner.pk
+        ).update(user=new_owner)
+
+        KobocatUserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+            attachment_storage_bytes=F('attachment_storage_bytes')
+            - self.xform.attachment_storage_bytes
+        )
+        KobocatUserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+            attachment_storage_bytes=F('attachment_storage_bytes')
+            + self.xform.attachment_storage_bytes
+        )
 
     def _kobocat_request(self, method, url, expect_formid=True, **kwargs):
         """
@@ -1421,6 +1407,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
 
+    @property
+    def _open_rosa_server_storage(self):
+        return default_kobocat_storage
+
     def __delete_kc_metadata(
         self, kc_file_: dict, file_: Union[AssetFile, PairedData] = None
     ):
@@ -1430,7 +1420,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         # Delete file in KC
 
-        delete_url = self.external_to_internal_url(kc_file_['url'])
+        delete_url = self.normalize_internal_url(kc_file_['url'])
         self._kobocat_request('DELETE', url=delete_url, expect_formid=False)
 
         if file_ is None:
@@ -1448,6 +1438,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Retrieve submissions directly from Mongo.
         Submissions can be filtered with `params`.
         """
+        # Apply a default sort of _id to prevent unpredictable natural sort
+        if not params.get('sort'):
+            params['sort'] = {'_id': 1}
         mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
 
@@ -1462,12 +1455,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             add_supplemental_details_to_query = False
 
         if add_supplemental_details_to_query:
-            extras_query = self.asset.submission_extras
-            extras_data = dict(extras_query.values_list('submission_uuid', 'content'))
-            mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
+            mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
         return (
-            self.__rewrite_json_attachment_urls(
+            self._rewrite_json_attachment_urls(
                 MongoHelper.to_readable_dict(submission),
                 request,
             )
@@ -1544,16 +1535,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return session.send(kc_request.prepare())
 
     @staticmethod
-    def __parse_identifier(identifier: str) -> tuple:
-        """
-        Return a tuple of the KoBoCAT server and its path
-        """
-        parsed_identifier = urlparse(identifier)
-        server = '{}://{}'.format(
-            parsed_identifier.scheme, parsed_identifier.netloc)
-        return server, parsed_identifier.path
-
-    @staticmethod
     def __prepare_as_drf_response_signature(
         requests_response, expected_response_format='json'
     ):
@@ -1594,24 +1575,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return prepared_drf_response
 
-    @classmethod
-    def __prepare_bulk_update_data(cls, updates: dict) -> dict:
-        """
-        Preparing the request payload for bulk updating of submissions
-        """
-        # Sanitizing the payload of potentially destructive keys
-        sanitized_updates = copy.deepcopy(updates)
-        for key in updates:
-            if (
-                key in cls.PROTECTED_XML_FIELDS
-                or '/' in key and key.split('/')[0] in cls.PROTECTED_XML_FIELDS
-            ):
-                sanitized_updates.pop(key)
-
-        return sanitized_updates
-
     @staticmethod
-    def __prepare_bulk_update_response(kc_responses: list) -> dict:
+    def prepare_bulk_update_response(kc_responses: list) -> dict:
         """
         Formatting the response to allow for partial successes to be seen
         more explicitly.
@@ -1632,14 +1597,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # so it needs to be parsed before extracting the text
         results = []
         for response in kc_responses:
+            message = t('Something went wrong')
             try:
-                message = (
-                    ET.fromstring(response['response'].content)
-                    .find(OPEN_ROSA_XML_MESSAGE)
-                    .text
+                xml_parsed = fromstring_preserve_root_xmlns(
+                    response['response'].content
                 )
-            except ET.ParseError:
-                message = t('Something went wrong')
+            except DET.ParseError:
+                pass
+            else:
+                message_el = xml_parsed.find(OPEN_ROSA_XML_MESSAGE)
+                if message_el is not None and message_el.text.strip():
+                    message = message_el.text
 
             results.append(
                 {
@@ -1657,6 +1625,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return {
             'status': status.HTTP_200_OK
             if total_successes > 0
+            # FIXME: If KoboCAT returns something unexpected, like a 404 or a
+            # 500, then 400 is not the right response to send to the client
             else status.HTTP_400_BAD_REQUEST,
             'data': {
                 'count': total_update_attempts,
@@ -1666,38 +1636,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             },
         }
 
-    def __rewrite_json_attachment_urls(
-        self, submission: dict, request
-    ) -> list:
-        if not request or '_attachments' not in submission:
-            return submission
-
-        for attachment in submission['_attachments']:
-            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
-                # We should use 'attachment-list' with `?xpath=` but we do not
-                # know what the XPath is here. Since the primary key is already
-                # exposed, let's use it to build the url with 'attachment-detail'
-                kpi_url = reverse(
-                    'attachment-detail',
-                    args=(self.asset.uid, submission['_id'], attachment['id']),
-                    request=request,
-                )
-                key = f'download{suffix}_url'
-                try:
-                    attachment[key] = kpi_url
-                except KeyError:
-                    continue
-
-        return submission
-
     def __save_kc_metadata(self, file_: SyncBackendMediaInterface):
         """
         Prepares request and data corresponding to the kind of media file
         (i.e. FileStorage or remote URL) to `POST` to KC through proxy.
         """
-        identifier = self.identifier
-        server, path_ = self.__parse_identifier(identifier)
-        metadata_url = self.external_to_internal_url(f'{server}/api/v1/metadata')
+        server = settings.KOBOCAT_INTERNAL_URL
+        metadata_url = f'{server}/api/v1/metadata'
 
         kwargs = {
             'data': {
@@ -1720,10 +1665,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )
             }
 
-        self._kobocat_request('POST',
-                              url=metadata_url,
-                              expect_formid=False,
-                              **kwargs)
+        self._kobocat_request(
+            'POST', url=metadata_url, expect_formid=False, **kwargs
+        )
 
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
@@ -1734,17 +1678,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Update metadata hash in KC
         """
-        identifier = self.identifier
-        server, path_ = self.__parse_identifier(identifier)
-        metadata_detail_url = self.external_to_internal_url(
-            f'{server}/api/v1/metadata/{kc_metadata_id}'
-        )
-
+        server = settings.KOBOCAT_INTERNAL_URL
+        metadata_detail_url = f'{server}/api/v1/metadata/{kc_metadata_id}'
         data = {'file_hash': file_.md5_hash}
-        self._kobocat_request('PATCH',
-                              url=metadata_detail_url,
-                              expect_formid=False,
-                              data=data)
+        self._kobocat_request(
+            'PATCH', url=metadata_detail_url, expect_formid=False, data=data
+        )
 
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])

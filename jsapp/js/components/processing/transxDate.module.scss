@@ -1,0 +1,21 @@
+@use 'scss/colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+@use 'scss/breakpoints';
+
+.transxDate {
+  @include mixins.textEllipsis;
+
+  background-color: colors.$kobo-light-storm;
+  height: sizes.$x28;
+  line-height: sizes.$x28;
+  border-radius: sizes.$x14;
+  padding: 0 sizes.$x14;
+}
+
+.transxDateLong {display: none;}
+
+@include breakpoints.breakpoint(wideAndUp) {
+  .transxDateLong {display: initial;}
+  .transxDateShort {display: none;}
+}

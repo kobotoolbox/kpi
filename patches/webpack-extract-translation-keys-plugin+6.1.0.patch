@@ -1,0 +1,22 @@
+diff --git a/node_modules/webpack-extract-translation-keys-plugin/index.js b/node_modules/webpack-extract-translation-keys-plugin/index.js
+index 50da46c..962c104 100644
+--- a/node_modules/webpack-extract-translation-keys-plugin/index.js
++++ b/node_modules/webpack-extract-translation-keys-plugin/index.js
+@@ -115,7 +115,7 @@ ExtractTranslationPlugin.prototype.apply = function(compiler) {
+                             }
+ 
+                             key = parser.evaluateExpression(expr.arguments[0]);
+-                            if (!key.isString()) {
++                            if (key.string === undefined) {
+                                 parser.state.module.errors.push(
+                                     new DynamicTranslationKeyError(
+                                         parser.state.module,
+@@ -127,7 +127,7 @@ ExtractTranslationPlugin.prototype.apply = function(compiler) {
+ 
+                             key = key.string;
+ 
+-                            let value = expr.arguments[0].value;
++                            let value = key;
+ 
+                             const entry =
+                                 reverseEntryPoints[

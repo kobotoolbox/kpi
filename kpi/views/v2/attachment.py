@@ -5,6 +5,7 @@ from django.conf import settings
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from rest_framework import viewsets, serializers
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -19,6 +20,10 @@ from kpi.exceptions import (
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+
+thumbnail_suffixes_pattern = 'original|' + '|'.join(
+    [suffix for suffix in settings.THUMB_CONF]
+)
 
 
 class AttachmentViewSet(
@@ -62,7 +67,22 @@ class AttachmentViewSet(
         # Since endpoint is needed for KobocatDeploymentBackend to overwrite
         # Mongo attachments URL with their primary keys (instead of their XPath)
         submission_id_or_uuid = kwargs['parent_lookup_data']
-        return self._get_response(request, submission_id_or_uuid, attachment_id=pk)
+        return self._get_response(
+            request,
+            submission_id_or_uuid,
+            attachment_id=pk,
+            suffix=kwargs.get('suffix'),
+        )
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        url_path=f'(?P<suffix>({thumbnail_suffixes_pattern}))'
+    )
+    def thumb(self, request, pk, suffix, *args, **kwargs):
+        if suffix != 'original':
+            kwargs['suffix'] = suffix
+        return self.retrieve(request, pk, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
         submission_id_or_uuid = kwargs['parent_lookup_data']
@@ -81,6 +101,7 @@ class AttachmentViewSet(
         submission_id_or_uuid: Union[str, int],
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
+        suffix: Optional[str] = None,
     ) -> Response:
 
         try:
@@ -100,7 +121,8 @@ class AttachmentViewSet(
 
         try:
             protected_path = attachment.protected_path(
-                request.accepted_renderer.format
+                format_=request.accepted_renderer.format,
+                suffix=suffix,
             )
         except FFMpegException:
             raise serializers.ValidationError({

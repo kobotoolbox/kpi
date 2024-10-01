@@ -11,6 +11,7 @@ from trench.admin import (
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatUserProfile,
 )
+from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
 class MfaAvailableToUser(models.Model):
@@ -18,7 +19,7 @@ class MfaAvailableToUser(models.Model):
     class Meta:
         verbose_name = 'per-user availability'
         verbose_name_plural = 'per-user availabilities'
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         # Used to display the user-friendly representation of MfaAvailableToUser
@@ -35,7 +36,7 @@ class MfaAvailableToUserAdmin(admin.ModelAdmin):
     # list_display = ('user',)
 
 
-class MfaMethod(TrenchMFAMethod):
+class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
     """
     Extend DjangoTrench model to add created, modified and last disabled date
     """
@@ -44,8 +45,6 @@ class MfaMethod(TrenchMFAMethod):
         verbose_name = 'MFA Method'
         verbose_name_plural = 'MFA Methods'
 
-    date_created = models.DateTimeField(default=now)
-    date_modified = models.DateTimeField(default=now)
     date_disabled = models.DateTimeField(null=True)
 
     def __str__(self):
@@ -62,11 +61,8 @@ class MfaMethod(TrenchMFAMethod):
         if self.is_active and self.date_disabled:
             self.date_disabled = None
 
-        if not created:
-            self.date_modified = now()
-
         if update_fields:
-            update_fields += ['date_modified', 'date_disabled']
+            update_fields += ['date_disabled']
 
         super().save(force_insert, force_update, using, update_fields)
 

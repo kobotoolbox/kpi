@@ -14,6 +14,7 @@ import {
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
+import Button from 'js/components/common/button';
 import envStore from 'js/envStore';
 import './bulkEditSubmissionsForm.scss';
 
@@ -212,6 +213,12 @@ class BulkEditSubmissionsForm extends React.Component {
     }
   }
 
+  isEditDisabled(questionType) {
+    return ['audio', 'background-audio', 'video', 'image', 'file'].includes(
+      questionType
+    );
+  }
+
   renderRow(questionData, itemIndex) {
     let question = questionData;
     if (typeof questionData.refIndex !== 'undefined') {
@@ -231,7 +238,7 @@ class BulkEditSubmissionsForm extends React.Component {
           {renderQuestionTypeIcon(question.type)}
         </bem.SimpleTable__cell>
 
-        <bem.SimpleTable__cell>
+        <bem.SimpleTable__cell dir='auto'>
           {question.parents.length > 0 &&
             <small>{question.parents.join(' / ') + ' /'}</small>
           }
@@ -252,12 +259,17 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          <bem.KoboTextButton
-            m='blue'
-            onClick={this.selectQuestion.bind(this, question)}
-          >
-            {t('Edit')}
-          </bem.KoboTextButton>
+          <Button
+            type='secondary'
+            size='m'
+            onClick={() => {
+              if (!this.isEditDisabled(question.type)) {
+                this.selectQuestion(question);
+              }
+            }}
+            isDisabled={this.isEditDisabled(question.type)}
+            label={t('Edit')}
+          />
         </bem.SimpleTable__cell>
       </bem.SimpleTable__row>
     );
@@ -374,23 +386,22 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.SimpleTable>
 
         <bem.Modal__footer>
-          <bem.KoboButton
-            m='red'
-            type='button'
-            onClick={this.onReset}
-            disabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
-          >
-            {t('Discard Changes')}
-          </bem.KoboButton>
+          <Button
+            type='danger'
+            size='l'
+            onClick={this.onReset.bind(this)}
+            isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
+            label={t('Discard Changes')}
+          />
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
-          >
-            {t('Confirm & close')}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
+            label={t('Confirm & close')}
+          />
         </bem.Modal__footer>
       </React.Fragment>
     );
@@ -413,22 +424,20 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          <bem.KoboButton
+          <Button
+            type='secondary'
+            size='l'
+            onClick={this.goBackToList.bind(this)}
+            label={t('Back')}
             className='footer-back-button'
-            m='whitegray'
-            type='button'
-            onClick={this.goBackToList}
-          >
-            {t('Back')}
-          </bem.KoboButton>
+          />
 
-          <bem.KoboButton
-            m='blue'
-            type='button'
-            onClick={this.saveOverride}
-          >
-            {t('Save')}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            onClick={this.saveOverride.bind(this)}
+            label={t('Save')}
+          />
         </bem.Modal__footer>
       </React.Fragment>
     );
@@ -521,12 +530,12 @@ class BulkEditRowForm extends React.Component {
         <bem.SimpleTable__cell>{count}</bem.SimpleTable__cell>
         <bem.SimpleTable__cell>{percentage}</bem.SimpleTable__cell>
         <bem.SimpleTable__cell>
-          <bem.KoboTextButton
-            m='blue'
+          <Button
+            type='secondary'
+            size='m'
             onClick={this.onChange.bind(this, responseValue)}
-          >
-            {t('Select')}
-          </bem.KoboTextButton>
+            label={t('Select')}
+          />
         </bem.SimpleTable__cell>
       </bem.SimpleTable__row>
     );
@@ -541,7 +550,7 @@ class BulkEditRowForm extends React.Component {
 
     return (
       <React.Fragment>
-        <bem.FormView__cell m={['columns', 'columns-top']}>
+        <bem.FormView__cell m={['columns', 'columns-top']} dir='auto'>
           <bem.FormView__cell m='column-icon'>
             {renderQuestionTypeIcon(this.props.question.type)}
           </bem.FormView__cell>
@@ -550,7 +559,7 @@ class BulkEditRowForm extends React.Component {
             <h2>{this.props.question.label}</h2>
 
             <TextBox
-              customClassNames={['bulk-edit-response-textbox']}
+              className='bulk-edit-response-textbox'
               type='text-multiline'
               value={inputValue}
               onChange={this.onChange}

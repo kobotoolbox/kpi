@@ -12,8 +12,10 @@ from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.contrib.auth import get_user_model
 from django.conf import settings
-from django.utils.translation import gettext_lazy as t
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext, gettext_lazy as t
 
+from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 
@@ -22,9 +24,12 @@ from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 CONFIGURABLE_METADATA_FIELDS = (
     'name',
     'organization',
+    'organization_type',
+    'organization_website',
     'gender',
     'sector',
     'country',
+    'newsletter_subscription',
 )
 
 
@@ -37,6 +42,11 @@ class LoginForm(BaseLoginForm):
 
 
 class KoboSignupMixin(forms.Form):
+    # NOTE: Fields that are not part of django's contrib.auth.User model
+    #       are saved to ExtraUserDetail, via django-allauth internals
+    # SEE:
+    #     - AccountAdapter (save_user) in kobo/apps/accounts/adapter.py
+    #     - https://docs.allauth.org/en/latest/account/advanced.html#creating-and-populating-user-instances
     name = forms.CharField(
         label=USER_METADATA_DEFAULT_LABELS['name'],
         required=False,
@@ -44,6 +54,31 @@ class KoboSignupMixin(forms.Form):
     organization = forms.CharField(
         label=USER_METADATA_DEFAULT_LABELS['organization'],
         required=False,
+    )
+    organization_website = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['organization_website'],
+        required=False,
+        widget=forms.URLInput,
+    )
+    organization_website.widget.attrs['pattern'] = (
+        # Use r'' so we can copy-paste the literal without escaping backslashes
+        r'\s*(https?:\/\/)?([^\s.:\/]+\.)+([^\s.:\/]){2,}(:\d{1,5})?(\/.*)?\s*'
+    )
+    organization_website.widget.attrs['title'] = t(
+        'Please enter a valid URL'
+    )
+
+    organization_type = forms.ChoiceField(
+        label=USER_METADATA_DEFAULT_LABELS['organization_type'],
+        required=False,
+        choices=(
+            ('', ''),
+            ('non-profit', t('Non-profit organization')),
+            ('government', t('Government institution')),
+            ('educational', t('Educational organization')),
+            ('commercial', t('A commercial/for-profit company')),
+            ('none', t('I am not associated with any organization')),
+        ),
     )
     gender = forms.ChoiceField(
         label=USER_METADATA_DEFAULT_LABELS['gender'],
@@ -66,15 +101,52 @@ class KoboSignupMixin(forms.Form):
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
+    newsletter_subscription = forms.BooleanField(
+        label=USER_METADATA_DEFAULT_LABELS['newsletter_subscription'],
+        required=False,
+    )
+    terms_of_service = forms.BooleanField(
+        # Label is dynamic; see constructor
+        required=True,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+
+        # Set dynamic label for terms of service checkbox
+        if constance.config.TERMS_OF_SERVICE_URL:
+            terms_of_service_link = (
+                f'<a href="{constance.config.TERMS_OF_SERVICE_URL}"'
+                f' target="_blank">{t("Terms of Service")}</a>'
+            )
+        else:
+            terms_of_service_link = gettext('Terms of Service')
+        if constance.config.PRIVACY_POLICY_URL:
+            privacy_policy_link = (
+                f'<a href="{constance.config.PRIVACY_POLICY_URL}"'
+                f' target="_blank">{t("Privacy Policy")}</a>'
+            )
+        else:
+            privacy_policy_link = gettext('Privacy Policy')
+        self.fields['terms_of_service'].label = mark_safe(
+            t('I agree with the ##terms_of_service## and ##privacy_policy##')
+            .replace("##terms_of_service##", terms_of_service_link)
+            .replace("##privacy_policy##", privacy_policy_link)
+        )
+
         # Remove upstream placeholders
         for field_name in ['username', 'email', 'password1', 'password2']:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs['placeholder'] = ''
+        if 'password1' in self.fields:
+            # Remove `help_text` on purpose since some guidance is provided by
+            # Constance setting. Moreover it is redundant with error messages.
+            self.fields['password1'].help_text = ''
         if 'password2' in self.fields:
             self.fields['password2'].label = t('Password confirmation')
+        if 'email' in self.fields:
+            self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
@@ -103,8 +175,56 @@ class KoboSignupMixin(forms.Form):
                 continue
 
             field = self.fields[field_name]
-            field.required = desired_field.get('required', False)
+            # Part of 'skip logic' for organization fields
+            #     The 'Organization Type' dropdown hides 'Organization' and
+            # 'Organization Website' inputs if the user has selected
+            # 'I am not associated with an organization'. In that case the
+            # back end accepts omitted or blank values for organization and
+            # organization_website, even if they're 'required'.
+            #     Adding errors is easier than removing errors we don't want.
+            # So make these fields 'not required', remember we did, and add
+            # 'required' errors in the clean() function.
+            if (
+                desired_metadata_fields.get('organization_type')
+                and desired_field.get('required')
+                and field_name in ['organization', 'organization_website']
+            ):
+                # Potentially 'skippable' organization-related field
+                field.required = False
+                # Add a [data-required] attribute, used by
+                #   1. JS to replicate the 'required' appearance, and
+                #   2. clean() to remember these are conditionally required
+                field.widget.attrs.update({'data-required': True})
+            else:
+                # Any other field, require based on metadata
+                field.required = desired_field.get('required', False)
             self.fields[field_name].label = desired_field['label']
+        if not SitewideMessage.objects.filter(slug='terms_of_service').exists():
+            self.fields.pop('terms_of_service')
+
+    def clean(self):
+        """
+        Override parent form to pass extra user's attributes to validation.
+        """
+        super(forms.Form, self).clean()
+
+        # Part of 'skip logic' for organization fields.
+        # Add 'Field is required' errors for organization and organization_website,
+        # since we un-required them in case 'organization_type' is 'none'.
+        if 'organization_type' in self.fields:
+            for field_name in ['organization', 'organization_website']:
+                if (
+                    field_name in self.fields
+                    and self.fields[field_name].widget.attrs.get(
+                        'data-required'
+                    )
+                    and self.cleaned_data.get('organization_type') != 'none'
+                ):
+                    if not self.cleaned_data.get(field_name):
+                        self.add_error(field_name, t('This field is required.'))
+
+        return self.cleaned_data
+
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -129,10 +249,13 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         'username',
         'email',
         'name',
-        'gender',
-        'sector',
         'country',
+        'sector',
+        'organization_type',
         'organization',
+        'organization_website',
+        'gender',
+        'newsletter_subscription',
     ]
 
     def __init__(self, *args, **kwargs):
@@ -145,18 +268,23 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
 class SignupForm(KoboSignupMixin, BaseSignupForm):
     field_order = [
         'name',
-        'organization',
         'username',
         'email',
-        'sector',
         'country',
+        'sector',
+        'organization_type',
+        'organization',
+        'organization_website',
+        'gender',
+        'newsletter_subscription',
     ]
+
 
     def clean(self):
         """
         Override parent form to pass extra user's attributes to validation.
         """
-        super(BaseSignupForm, self).clean()
+        super(SignupForm, self).clean()
 
         User = get_user_model()  # noqa
         dummy_user = User()
@@ -182,4 +310,5 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
                     'password2',
                     t('You must type the same password each time.'),
                 )
+
         return self.cleaned_data

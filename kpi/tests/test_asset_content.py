@@ -6,6 +6,10 @@ from collections import OrderedDict
 from copy import deepcopy
 from functools import reduce
 
+import pytest
+from django.conf import settings
+from model_bakery import baker
+
 from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
 
@@ -856,3 +860,27 @@ def test_populates_qpath_xpath_correctly():
     rs = asset.content['survey'][0:4]
     assert [rr['$qpath'] for rr in rs] == ['g1', 'g1-r1', 'g1-g2', 'g1-g2-r2']
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
+
+
+@pytest.mark.django_db()
+def test_return_xpaths_and_qpath_even_if_missing():
+    user = baker.make(
+        settings.AUTH_USER_MODEL, username='johndoe'
+    )
+    asset = Asset.objects.create(owner=user, content={
+        'survey': [
+            {'type': 'begin_group', 'name': 'g1'},
+            {'type': 'audio', 'name': 'r1', '$kuid': 'k1'},
+            {'type': 'begin_group', 'name': 'g2'},
+            {'type': 'image', 'name': 'r2', '$kuid': 'k2'},
+            {'type': 'end_group'},
+            {'type': 'end_group'},
+        ],
+    })
+
+    expected = ['g1/r1', 'g1/g2/r2']
+    # 'qpath' and 'xpath' are not injected until an Asset object is saved with `adjust_content=True`
+    # or `adjust_content_on_save()` is called directly.
+    # No matter what, `get_attachment_xpaths()` should be able to return
+    # attachment xpaths.
+    assert asset.get_attachment_xpaths(deployed=False) == expected

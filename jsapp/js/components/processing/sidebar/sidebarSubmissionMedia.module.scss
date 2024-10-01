@@ -1,0 +1,21 @@
+@use 'scss/colors';
+@use 'scss/sizes';
+
+.mediaWrapper {
+  &.mediaWrapperAudio {
+    background-color: colors.$kobo-white;
+    border-radius: sizes.$x6;
+    // right padding is for the audio player to appear centered
+    padding: sizes.$x20 #{sizes.$x20 + sizes.$x12} sizes.$x14 sizes.$x20;
+  }
+
+  &.mediaWrapperVideo {
+    border-radius: sizes.$x6;
+    overflow: hidden;
+  }
+}
+
+.videoPreview {
+  width: 100%;
+  object-fit: contain;
+}

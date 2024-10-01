@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/libs/_mdl';
 
@@ -13,7 +13,7 @@
   h4 {
     margin: 0;
     font-weight: 400;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   .kobo-select {
@@ -62,10 +62,6 @@
     .account-settings-save:last-child {
       margin-right: sizes.$x50;
     }
-
-    .account-settings-close {
-      padding: 0 12px;
-    }
   }
 
   .form-modal__item {
@@ -98,4 +94,8 @@
 
 .account-settings-social-row:not(:first-child) {
   margin-top: sizes.$x5;
+}
+
+.anonymous-submission-notice {
+  margin-top: 12px;
 }

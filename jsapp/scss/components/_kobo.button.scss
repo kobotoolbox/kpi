@@ -1,8 +1,10 @@
 // DEPRECATED: please don't use this component. From now on, we will only use
 // the `Button` component (from `js/components/common/button`) as it covers
 // all possible cases.
+// This component is still here, because it's being used by few non-React places
+// like Form Builder, alertifyjs, and django templates.
 
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use "scss/sizes";
 
 /*
@@ -22,10 +24,6 @@
 
   NOTE: Please __do not @extend__ this component. If possible use
   `bem.KoboButton` or raw class names.
-
-  NOTE: Our current go-to button solution (`_mdl.buttons.scss`) turned out to be
-  chaotic-neutral and hard to maintain, so we should transition here all buttons
-  that use: `.mdl-button.mdl-button--colored.mdl-button--raised`.
 */
 
 .kobo-button {
@@ -40,7 +38,7 @@
   text-align: center;
   border-radius: sizes.$x6;
   color: colors.$kobo-white;
-  background-color: colors.$kobo-gray-40;
+  background-color: colors.$kobo-gray-700;
   box-shadow: 0 sizes.$x2 sizes.$x4 0 rgba(0, 0, 0, 0.25);
   height: auto;
   min-height: sizes.$x40;
@@ -113,15 +111,15 @@
   }
 
   &.kobo-button--whitegray {
-    color: colors.$kobo-gray-24;
-    background-color: colors.$kobo-gray-96;
+    color: colors.$kobo-gray-800;
+    background-color: colors.$kobo-gray-200;
 
     &[disabled] {
-      color: rgba(colors.$kobo-gray-24, 0.75);
+      color: rgba(colors.$kobo-gray-800, 0.75);
     }
 
     &.kobo-button--pending .k-icon.k-icon-spinner.k-spin {
-      color: colors.$kobo-gray-24;
+      color: colors.$kobo-gray-800;
     }
   }
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {Link} from 'react-router-dom';
@@ -8,11 +7,15 @@ import mixins from '../mixins';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {searches} from '../searches';
-import {stores} from '../stores';
+import pageState from 'js/pageState.store';
 import {COMMON_QUERIES, DEPLOYMENT_CATEGORIES} from 'js/constants';
 import AssetName from 'js/components/common/assetName';
 import {userCan} from 'js/components/permissions/utils';
 
+/**
+ * A list of projects grouped by status (deployed, draft, archived). It's meant
+ * to be displayed in the sidebar area.
+ */
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
     super(props);
@@ -30,7 +33,7 @@ class SidebarFormsList extends Reflux.Component {
         filterTags: COMMON_QUERIES.s,
       }),
     };
-    this.store = stores.pageState;
+    this.store = pageState;
     autoBind(this);
   }
   componentDidMount() {
@@ -148,10 +151,6 @@ class SidebarFormsList extends Reflux.Component {
     );
   }
 }
-
-SidebarFormsList.contextTypes = {
-  router: PropTypes.object,
-};
 
 reactMixin(SidebarFormsList.prototype, searches.common);
 reactMixin(SidebarFormsList.prototype, Reflux.ListenerMixin);

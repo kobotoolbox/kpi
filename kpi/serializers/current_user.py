@@ -1,5 +1,6 @@
 # coding: utf-8
 import datetime
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -7,7 +8,6 @@ except ImportError:
 
 import constance
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -19,8 +19,7 @@ from rest_framework import serializers
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kobo.apps.constance_backends.utils import to_python_object
-from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
-from kpi.deployment_backends.kc_access.utils import set_kc_require_auth
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.utils.gravatar_url import gravatar_url
 
@@ -38,6 +37,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         source='socialaccount_set', many=True, read_only=True
     )
     validated_password = serializers.SerializerMethodField()
+    accepted_tos = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -58,9 +58,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'new_password',
             'git_rev',
             'social_accounts',
-            'validated_password'
+            'validated_password',
+            'accepted_tos',
         )
-        read_only_fields = ('email',)
+        read_only_fields = (
+            'email',
+            'accepted_tos',
+        )
 
     def get_server_time(self, obj):
         # Currently unused on the front end
@@ -98,6 +102,20 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
         return extra_details.validated_password
 
+    def get_accepted_tos(self, obj: User) -> bool:
+        """
+        Verifies user acceptance of terms of service (tos) by checking that the tos
+        endpoint was called and stored the current time in the `private_data` property
+        """
+        try:
+            user_extra_details = obj.extra_details
+        except obj.extra_details.RelatedObjectDoesNotExist:
+            return False
+        accepted_tos = (
+            'last_tos_accept_time' in user_extra_details.private_data.keys()
+        )
+        return accepted_tos
+
     def to_representation(self, obj):
         if obj.is_anonymous:
             return {'message': 'user is not logged in'}
@@ -124,16 +142,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        # `require_auth` needs to be read from KC every time
-        # except during testing, when KC's database is not available
-        if (
-            settings.KOBOCAT_URL
-            and settings.KOBOCAT_INTERNAL_URL
-            and not settings.TESTING
-        ):
-            extra_details['require_auth'] = get_kc_profile_data(obj.pk).get(
-                'require_auth', False
-            )
+        # TODO Remove `require_auth` when front end do not use it anymore.
+        #   It is not used anymore by back end. Still there for retro-compatibility
+        extra_details['require_auth'] = True
 
         return rep
 
@@ -181,6 +192,19 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             constance.config.USER_METADATA_FIELDS
         )
 
+        # If the organization type is the special string 'none', then ignore
+        # the required-ness of other organization-related fields
+        desired_metadata_dict = {r['name']: r for r in desired_metadata_fields}
+        if (
+            'organization_type' in desired_metadata_dict
+            and value.get('organization_type') == 'none'
+        ):
+            for field in 'organization', 'organization_website':
+                metadata_field = desired_metadata_dict.get(field)
+                if not metadata_field:
+                    continue
+                metadata_field['required'] = False
+
         errors = {}
         for field in desired_metadata_fields:
             if not field['required']:
@@ -214,15 +238,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 extra_details_obj, _ = ExtraUserDetail.objects.get_or_create(
                     user=instance
                 )
-                if (
-                    settings.KOBOCAT_URL
-                    and settings.KOBOCAT_INTERNAL_URL
-                    and 'require_auth' in extra_details['data']
-                ):
-                    # `require_auth` needs to be written back to KC
-                    set_kc_require_auth(
-                        instance.pk, extra_details['data']['require_auth']
-                    )
 
                 # This is a PATCH, so retain existing values for keys that were
                 # not included in the request

@@ -1,0 +1,84 @@
+@use 'scss/breakpoints';
+@use 'scss/sizes';
+@use 'scss/colors';
+
+.root {
+  padding: sizes.$x40;
+}
+
+.headerText {
+  font-size: sizes.$r18;
+  font-weight: 700;
+  color: hsl(225, 33%, 59%);
+  text-transform: uppercase;
+}
+
+.article {
+  p {
+    display: inline;
+  }
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.updated {
+  border-radius: 0.25em;
+  background-color: colors.$kobo-light-storm;
+  padding: 0.5em;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  flex-flow: wrap;
+  gap: sizes.$x24;
+  flex: 1 1 0;
+  width: 100%;
+}
+
+.box {
+  // TODO: Should we add this size or try some flex magic to make the width work?
+  min-width: 250px;
+  width: 100%;
+  border: sizes.$x1 solid;
+  border-color: colors.$kobo-gray-300;
+  border-radius: sizes.$x6;
+  padding: sizes.$x24;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: sizes.$x2;
+  overflow-wrap: break-word;
+}
+
+.usageType {
+  display: flex;
+  align-items: center;
+}
+
+.title {
+  font-size: sizes.$x16;
+  color: colors.$kobo-gray-700;
+}
+
+.date {
+  display: block;
+  font-size: sizes.$x14;
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .subrow {
+    flex-wrap: nowrap;
+  }
+}
+
+@include breakpoints.breakpoint(veryWide) {
+  .row {
+    flex-wrap: nowrap;
+  }
+}
