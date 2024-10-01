@@ -27,7 +27,8 @@ def populate_missing_monthly_counters(apps, schema_editor):
         app='logger', name='0029_populate_daily_xform_counters_for_year'
     ).first()
 
-    # Delete monthly counters in the range if any (to avoid conflicts in bulk_create below)
+    # Delete monthly counters in the range if any
+    # (to avoid conflicts in bulk_create below)
     MonthlyXFormSubmissionCounter.objects.annotate(
         date=Cast(
             Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
@@ -82,7 +83,8 @@ def populate_daily_counts_for_year(apps, schema_editor):
         print(
             """
             This might take a while. If it is too slow, you may want to re-run the
-            migration with SKIP_HEAVY_MIGRATIONS=True and run the following management command:
+            migration with SKIP_HEAVY_MIGRATIONS=True and run the following management
+            command:
 
                 > python manage.py populate_submission_counters -f --skip-monthly
             """

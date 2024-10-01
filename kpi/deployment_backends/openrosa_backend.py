@@ -68,7 +68,6 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper

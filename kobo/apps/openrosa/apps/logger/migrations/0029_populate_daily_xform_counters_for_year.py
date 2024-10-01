@@ -5,6 +5,7 @@ from django.db import migrations
 # field user_profile.submissions_suspended introduced on main migration 0017.
 # This migration is obsolete and will be deleted in a future version.
 
+
 class Migration(migrations.Migration):
 
     dependencies = [

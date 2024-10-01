@@ -1,9 +1,7 @@
 from typing import Union
 
 from django.conf import settings
-from django.db import models
 from django.db.models import F
-from django.utils import timezone
 from django_request_cache import cache_for_request
 
 from kobo.apps.organizations.types import UsageType

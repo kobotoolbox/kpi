@@ -1,10 +1,7 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet
-from django.utils.decorators import method_decorator
 from django.utils.http import http_date
-from django.views.decorators.cache import cache_page
-from django_dont_vary_on.decorators import only_vary_on
 from kpi import filters
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
