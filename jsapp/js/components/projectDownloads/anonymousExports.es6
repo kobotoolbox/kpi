@@ -131,8 +131,7 @@ export default class AnonymousExports extends React.Component {
           </bem.ProjectDownloads__exportsSelector>
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='l'
             isSubmit
             onClick={this.onSubmit.bind(this)}

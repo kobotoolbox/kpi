@@ -1,14 +1,13 @@
-# coding: utf-8
-# 😬
 import copy
 import re
 from functools import reduce
 from operator import add
 from typing import Optional, Union
 
+import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch, Q, F
@@ -19,18 +18,23 @@ from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
-from jsonschema import validate as jsonschema_validate
 
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
     DEFAULT_REPORTS_KEY,
 )
-from kobo.apps.subsequences.advanced_features_params_schema import (
-    ADVANCED_FEATURES_PARAMS_SCHEMA,
-)
 from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
+)
+from kobo.apps.subsequences.advanced_features_params_schema import (
+    ADVANCED_FEATURES_PARAMS_SCHEMA,
+)
+from kobo.apps.subsequences.utils.deprecation import (
+    get_sanitized_known_columns,
+    get_sanitized_dict_keys,
+    get_sanitized_advanced_features,
+    qpath_to_xpath,
 )
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 from kpi.constants import (
@@ -141,15 +145,15 @@ class KpiTaggableManager(_TaggableManager):
         strips leading and trailng whitespace. Behavior should match the
         cleanupTags function in jsapp/js/utils.ts. """
         tags_out = []
-        for t in tags:
+        for tag in tags:
             # Modify strings only; the superclass' add() method will then
             # create Tags or use existing ones as appropriate.  We do not fix
             # existing Tag objects, which could also be passed into this
             # method, because a fixed name could collide with the name of
             # another Tag object already in the database.
-            if isinstance(t, str):
-                t = t.strip().replace(' ', '-')
-            tags_out.append(t)
+            if isinstance(tag, str):
+                tag = tag.strip().replace(' ', '-')
+            tags_out.append(tag)
         super().add(*tags_out, **kwargs)
 
 
@@ -233,6 +237,9 @@ class Asset(
         indexes = [
             GinIndex(
                 F('settings__country_codes'), name='settings__country_codes_idx'
+            ),
+            BTreeIndex(
+                F('_deployment_data__formid'), name='deployment_data__formid_idx'
             ),
         ]
 
@@ -448,7 +455,7 @@ class Asset(
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
-        self._insert_qpath(self.content)
+        self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
         self._remove_version(self.content)
@@ -492,21 +499,25 @@ class Asset(
             #
             # See also injectSupplementalRowsIntoListOfRows() in
             # assetUtils.ts
-            qpath = qual_question['qpath']
+            try:
+                xpath = qual_question['xpath']
+            except KeyError:
+                xpath = qpath_to_xpath(qual_question['qpath'], self)
+
             field = dict(
                 label=qual_question['labels']['_default'],
-                name=f"{qpath}/{qual_question['uuid']}",
-                dtpath=f"{qpath}/{qual_question['uuid']}",
+                name=f"{xpath}/{qual_question['uuid']}",
+                dtpath=f"{xpath}/{qual_question['uuid']}",
                 type=qual_question['type'],
                 # could say '_default' or the language of the transcript,
                 # but really that would be meaningless and misleading
                 language='??',
-                source=qpath,
-                qpath=f"{qpath}-{qual_question['uuid']}",
+                source=xpath,
+                xpath=f"{xpath}/{qual_question['uuid']}",
                 # seems not applicable given the transx questions describe
                 # manual vs. auto here and which engine was used
                 settings='??',
-                path=[qpath, qual_question['uuid']],
+                path=[xpath, qual_question['uuid']],
             )
             if field['type'] in omit_question_types:
                 continue
@@ -515,6 +526,7 @@ class Asset(
             except KeyError:
                 pass
             additional_fields.append(field)
+
         return output
 
     def clone(self, version_uid=None):
@@ -569,9 +581,14 @@ class Asset(
         return advanced_feature_instances(self.content, self.advanced_features)
 
     def get_advanced_submission_schema(self, url=None, content=False):
+
         if len(self.advanced_features) == 0:
             NO_FEATURES_MSG = 'no advanced features activated for this form'
             return {'type': 'object', '$description': NO_FEATURES_MSG}
+
+        if advanced_features := get_sanitized_advanced_features(self):
+            self.advanced_features = advanced_features
+
         last_deployed_version = self.deployed_versions.first()
         if content:
             return advanced_submission_jsonschema(
@@ -618,7 +635,7 @@ class Asset(
         if xpaths := _get_xpaths(survey):
             return xpaths
 
-        self._insert_qpath(content)
+        self._insert_xpath(content)
         return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
@@ -1080,7 +1097,11 @@ class Asset(
                 .first()
             )
             instances = self.get_advanced_feature_instances()
+            if sub_extra_content := get_sanitized_dict_keys(sub.content, self):
+                sub.content = sub_extra_content
+
             compiled_content = {**sub.content}
+
             for instance in instances:
                 compiled_content = instance.compile_revised_record(
                     compiled_content, edits=content
@@ -1110,16 +1131,19 @@ class Asset(
 
         if children:
             languages = set(obj_languages)
-            children_languages = [child.summary.get('languages')
-                                  for child in children
-                                  if child.summary.get('languages')]
+            children_languages = [
+                child.summary.get('languages')
+                for child in children
+                if child.summary.get('languages')
+            ]
         else:
-            children_languages = list(self.children
-                                      .values_list('summary__languages',
-                                                   flat=True)
-                                      .exclude(Q(summary__languages=[]) |
-                                               Q(summary__languages=[None]))
-                                      .order_by())
+            children_languages = list(
+                self.children.values_list('summary__languages', flat=True)
+                .exclude(
+                    Q(summary__languages=[]) | Q(summary__languages=[None])
+                )
+                .order_by()
+            )
 
         if children_languages:
             # Flatten `children_languages` to 1-dimension list.
@@ -1139,9 +1163,13 @@ class Asset(
     def validate_advanced_features(self):
         if self.advanced_features is None:
             self.advanced_features = {}
-        jsonschema_validate(
-            instance=self.advanced_features,
-            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+
+        if advanced_features := get_sanitized_advanced_features(self):
+            self.advanced_features = advanced_features
+
+        jsonschema.validate(
+           instance=self.advanced_features,
+           schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
         )
 
     @property
@@ -1173,12 +1201,16 @@ class Asset(
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
     def _get_additional_fields(self):
+
+        # TODO Remove line below when when every asset is repopulated with `xpath`
+        self.known_cols = get_sanitized_known_columns(self)
+
         return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
-        '''
+        """
         engines are individual NLP services that can be used
-        '''
+        """
         for instance in self.get_advanced_feature_instances():
             if hasattr(instance, 'engines'):
                 for key, val in instance.engines():

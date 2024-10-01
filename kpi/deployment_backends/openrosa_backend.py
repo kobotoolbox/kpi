@@ -41,7 +41,6 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     create_instance,
     publish_xls_form,
-    safe_create_instance,
 )
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -86,7 +85,7 @@ from ..exceptions import (
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     """
-    Used to deploy a project into KoboCAT.
+    Deploy a project to OpenRosa server
     """
 
     SYNCED_DATA_FILE_TYPES = {
@@ -886,7 +885,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             pass
 
     @staticmethod
-    def prepare_bulk_update_response(backend_responses: list) -> dict:
+    def prepare_bulk_update_response(backend_results: list[dict]) -> dict:
         """
         Formatting the response to allow for partial successes to be seen
         more explicitly.
@@ -894,13 +893,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         results = []
         cpt_successes = 0
-        for backend_response in backend_responses:
-            uuid = backend_response['uuid']
-            error, instance = backend_response['response']
-
-            message = t('Something went wrong')
-            status_code = status.HTTP_400_BAD_REQUEST
-            if not error:
+        for backend_result in backend_results:
+            uuid = backend_result['uuid']
+            if message := backend_result['error']:
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
                 cpt_successes += 1
                 message = t('Successful submission')
                 status_code = status.HTTP_201_CREATED
@@ -1110,7 +1107,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 media_file for media_file in attachments.values()
             )
 
-        return safe_create_instance(
+        return create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_submission),
             media_files=media_files,

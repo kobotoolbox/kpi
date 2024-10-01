@@ -23,7 +23,7 @@ from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.utils.object_permission import get_database_user
 
 
-def _check_asr_mt_access_for_user(user):
+def check_asr_mt_access_for_user(user):
     # This is for proof-of-concept testing and will be replaced with proper
     # quotas and accounting
     if user.is_anonymous:
@@ -165,7 +165,7 @@ class EnvironmentView(APIView):
             )
         )
 
-        data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
+        data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(
             request.user
         )
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
