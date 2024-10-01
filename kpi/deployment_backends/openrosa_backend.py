@@ -880,6 +880,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}'
             )
         except InvalidCacheBackendError:
+            # TODO: This handles the case when the cache is disabled and
+            # get_redis_connection fails, though we may need better error handling here
             pass
         except redis.exceptions.ResponseError:
             # original does not exist, weird but don't raise a 500 for that
