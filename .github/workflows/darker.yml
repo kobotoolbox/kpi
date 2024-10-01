@@ -1,6 +1,14 @@
 name: Python linter (Darker)
 
-on: [pull_request]
+on:
+  pull_request:
+    paths:
+      # source files checked by linter
+      - 'kpi/**/*.py'
+      - 'kobo/**/*.py'
+      - 'hub/**/*.py'
+      # python linter configuration
+      - 'pyproject.toml'
 jobs:
   darker:
     runs-on: ubuntu-latest
