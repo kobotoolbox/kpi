@@ -12,7 +12,8 @@ from ..constants import (
     HookLogStatus,
     HOOK_LOG_PENDING,
     HOOK_LOG_FAILED,
-    KOBO_INTERNAL_ERROR_STATUS_CODE
+    KOBO_INTERNAL_ERROR_STATUS_CODE,
+    HOOK_EVENT_SUBMIT
 )
 
 
@@ -26,6 +27,7 @@ class HookLog(AbstractTimeStampedModel):
         choices=[[e.value, e.name.title()] for e in HookLogStatus],
         default=HookLogStatus.PENDING.value
     )  # Could use status_code, but will speed-up queries
+    event = models.TextField(default=HOOK_EVENT_SUBMIT)
     status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
     message = models.TextField(default="")
 
@@ -95,7 +97,7 @@ class HookLog(AbstractTimeStampedModel):
         """
         try:
             ServiceDefinition = self.hook.get_service_definition()
-            service_definition = ServiceDefinition(self.hook, self.submission_id)
+            service_definition = ServiceDefinition(self.hook, self.submission_id, uid=self.uid)
             service_definition.send()
             self.refresh_from_db()
         except Exception as e:

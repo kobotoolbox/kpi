@@ -15,6 +15,12 @@ class Hook(AbstractTimeStampedModel):
     # Export types
     XML = "xml"
     JSON = "json"
+    ON_EVENT = {
+        "onEdit": False,
+        "onDelete": False,
+        "onSubmit": True,
+        "onValidation": False
+    }
 
     # Authentication levels
     NO_AUTH = "no_auth"
@@ -37,6 +43,7 @@ class Hook(AbstractTimeStampedModel):
     name = models.CharField(max_length=255, blank=False)
     endpoint = models.CharField(max_length=500, blank=False)
     active = models.BooleanField(default=True)
+    on_event = models.JSONField(default=ON_EVENT)
     export_type = models.CharField(choices=EXPORT_TYPE_CHOICES, default=JSON, max_length=10)
     auth_level = models.CharField(choices=AUTHENTICATION_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
     settings = models.JSONField(default=dict)

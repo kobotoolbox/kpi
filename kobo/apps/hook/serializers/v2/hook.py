@@ -20,7 +20,7 @@ class HookSerializer(serializers.ModelSerializer):
         fields = ('url', 'logs_url', 'asset', 'uid', 'name', 'endpoint', 'active',
                   'export_type', 'auth_level', 'success_count', 'failed_count',
                   'pending_count', 'settings', 'date_modified', 'email_notification',
-                  'subset_fields', 'payload_template')
+                  'subset_fields', 'payload_template', 'on_event',)
 
         read_only_fields = ('url', 'asset', 'uid', 'date_modified', 'success_count',
                             'failed_count', 'pending_count')

@@ -20,6 +20,7 @@ class HookLogSerializer(serializers.ModelSerializer):
             'status_code',
             'message',
             'date_modified',
+            'event',
         )
 
         read_only_fields = (
@@ -31,6 +32,7 @@ class HookLogSerializer(serializers.ModelSerializer):
             'status_code',
             'message',
             'date_modified',
+            'event',
         )
 
     url = serializers.SerializerMethodField()
