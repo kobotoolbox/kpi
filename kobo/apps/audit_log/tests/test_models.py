@@ -22,6 +22,7 @@ from kpi.exceptions import BadAssetTypeException
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
+
 class BaseAuditLogTestCase(BaseTestCase):
     def setUp(self):
         source_patcher = patch(
