@@ -49,7 +49,6 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
         cls.super_user.backend = 'django.contrib.auth.backends.ModelBackend'
         cls.super_user.save()
 
-
     def _create_request(self, url: str, cached_user, new_user):
         factory = RequestFactory()
         request = factory.post(url)
