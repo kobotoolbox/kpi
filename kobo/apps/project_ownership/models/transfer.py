@@ -87,6 +87,7 @@ class Transfer(models.Model):
                 global_status.status = value
 
             global_status.save()
+
             self.date_modified = timezone.now()
             self.save(update_fields=['date_modified'])
             self._update_invite_status()
@@ -100,6 +101,7 @@ class Transfer(models.Model):
         success = False
         try:
             if not self.asset.has_deployment:
+                _rewrite_mongo = False
                 with transaction.atomic():
                     self._reassign_project_permissions(update_deployment=False)
                     self._sent_in_app_messages()
@@ -113,6 +115,7 @@ class Transfer(models.Model):
                         status=TransferStatusChoices.SUCCESS
                     )
             else:
+                _rewrite_mongo = True
                 with transaction.atomic():
                     with kc_transaction_atomic():
                         deployment = self.asset.deployment
@@ -129,19 +132,9 @@ class Transfer(models.Model):
 
                         self._sent_in_app_messages()
 
-                # Move submissions, media files and attachments in background
-                # tasks because it can take a while to complete on big projects
-
-                # 1) Rewrite `_userform_id` in MongoDB
-                async_task.delay(
-                    self.pk, TransferStatusTypeChoices.SUBMISSIONS
-                )
-
-            # 2) Move media files to new owner's home directory
-            async_task.delay(
-                self.pk, TransferStatusTypeChoices.MEDIA_FILES
-            )
-
+            # Do not delegate anything to Celery before the transaction has
+            # been validated. Otherwise, Celery could fetch outdated data.
+            transaction.on_commit(lambda: self._start_async_jobs(_rewrite_mongo))
             success = True
         finally:
             if not success:
@@ -264,6 +257,20 @@ class Transfer(models.Model):
                     for user_id in message_recipient_ids
                 ]
             )
+
+    def _start_async_jobs(self, rewrite_mongo: bool = True):
+        # Move submissions, media files and attachments in background
+        # tasks because it can take a while to complete on big projects
+        if rewrite_mongo:
+            # 1) Rewrite `_userform_id` in MongoDB
+            async_task.delay(
+                self.pk, TransferStatusTypeChoices.SUBMISSIONS
+            )
+
+        # 2) Move media files to new owner's home directory
+        async_task.delay(
+            self.pk, TransferStatusTypeChoices.MEDIA_FILES
+        )
 
     def _update_invite_status(self):
         """
