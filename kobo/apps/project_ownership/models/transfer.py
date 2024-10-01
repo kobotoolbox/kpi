@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from datetime import timedelta
 from typing import Optional, Union
 
@@ -102,6 +101,7 @@ class Transfer(models.Model):
         success = False
         try:
             if not self.asset.has_deployment:
+                _rewrite_mongo = False
                 with transaction.atomic():
                     self._reassign_project_permissions(update_deployment=False)
                     self._sent_in_app_messages()
@@ -115,7 +115,7 @@ class Transfer(models.Model):
                         status=TransferStatusChoices.SUCCESS
                     )
             else:
-                _rewrite_mongo = False
+                _rewrite_mongo = True
                 with transaction.atomic():
                     with kc_transaction_atomic():
                         deployment = self.asset.deployment
@@ -131,12 +131,10 @@ class Transfer(models.Model):
                             deployment.rename_enketo_id_key(previous_owner_username)
 
                         self._sent_in_app_messages()
-                        _rewrite_mongo = True
 
-                # Do not delegate anything to Celery before the transaction has
-                # been validated. Otherwise, Celery could fetch outdated data.
-                transaction.on_commit(lambda: self._start_async_jobs(_rewrite_mongo))
-
+            # Do not delegate anything to Celery before the transaction has
+            # been validated. Otherwise, Celery could fetch outdated data.
+            transaction.on_commit(lambda: self._start_async_jobs(_rewrite_mongo))
             success = True
         finally:
             if not success:

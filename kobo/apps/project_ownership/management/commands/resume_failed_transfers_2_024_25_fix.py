@@ -41,7 +41,8 @@ class Command(BaseCommand):
             if not self._validate_whether_transfer_can_be_fixed(transfer):
                 if verbosity:
                     self.stdout.write(
-                        f'Project `{transfer.asset}` transfer cannot be fixed automatically'
+                        f'Project `{transfer.asset}` transfer cannot be fixed'
+                        f' automatically'
                     )
                 continue
 
@@ -56,9 +57,7 @@ class Command(BaseCommand):
             move_attachments(transfer)
             move_media_files(transfer)
             if verbosity:
-                self.stdout.write(
-                    f'\tDone!'
-                )
+                self.stdout.write('\tDone!')
             usernames.add(transfer.invite.recipient.username)
 
         # Update attachment storage bytes counters
