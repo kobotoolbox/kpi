@@ -163,7 +163,6 @@ class FormViewSideTabs extends Reflux.Component {
         });
       }
 
-      // TODO: Fix permissions
       if (
         userCan(
           PERMISSIONS_CODENAMES.manage_asset,

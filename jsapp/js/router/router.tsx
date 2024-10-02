@@ -276,7 +276,6 @@ export const router = createHashRouter(
               }
             />
 
-            {/* TODO: Fix permissions */}
             <Route
               path={ROUTES.FORM_ACTIVITY}
               element={
