@@ -95,9 +95,10 @@ def get_organization_remaining_usage(
         organization,
         usage_type,
     )
-    remaining = addon_limit + plan_limit - usage
+    plan_remaining = max(0, plan_limit - usage) # if negative, they have 0 remaining
+    total_remaining = addon_remaining + plan_remaining
 
-    return remaining
+    return total_remaining
 
 
 def handle_usage_increment(
