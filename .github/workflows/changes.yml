@@ -1,0 +1,92 @@
+name: npm-test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  changes:
+    name: Changed file detection
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      ci: ${{ steps.filter.outputs.ci }}
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          predicate-quantifier: "every"
+          filters: |
+            ci:
+              - '.github/workflows/**'
+              - 'scripts/**'
+              - 'static/**'
+              - '.editorconfig'
+              - '.gitlab-ci.yml'
+              - 'dependabot.yml'
+            backend:
+              - '.tx/**'
+              - 'dependencies/**'
+              - 'docker/**'
+              - 'hub/**'
+              - 'kobo/**'
+              - 'kpi/**'
+              - '.coveragerc'
+              - 'Dockerfile'
+              - '.dockerignore'
+              - 'manage.py'
+              - 'pip-compile.sh'
+              - 'pyproject.toml'
+            frontend:
+              - '.storybook/**'
+              - 'cypress/**'
+              - 'jsapp/**'
+              - 'patches/**'
+              - 'test/**'
+              - 'webpack/**'
+              - '.babelrc.json'
+              - '.browserslistrc'
+              - '.eslintignore'
+              - '.eslintrc.js'
+              - '.node-version'
+              - '.nvmrc'
+              - '.prettierrc.js'
+              - '.stylelintrc.js'
+              - '.swcrc'
+              - 'coffeelint.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig.json'
+            docs:
+              - '.github/**'
+              - '!.github/workflows/**'
+              - '.gitattributes'
+              - '.git-blame-ignore-revs'
+              - 'CONTRIBUTING.md'
+              - 'format-python.sh'
+              - 'kpi.code-workspace'
+              - 'LICENSE'
+              - 'README.md'
+
+      - name: ci test
+        if: steps.filter.outputs.ci == 'true'
+        run: echo 'ci triggered'
+
+      - name: backend test
+        if: steps.filter.outputs.backend == 'true'
+        run: echo 'backend triggered'
+
+      - name: frontend test
+        if: steps.filter.outputs.frontend == 'true'
+        run: echo 'frontend triggered'
+
+      - name: docs test
+        if: steps.filter.outputs.docs == 'true'
+        run: echo 'docs triggered'

@@ -19,6 +19,10 @@ jobs:
           - '22'       # latest available v22
       fail-fast: false # Let each job finish
 
+    if: |
+      always() &&
+      github.event.pull_request.draft == false && (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ci == 'true')
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
