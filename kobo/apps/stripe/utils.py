@@ -51,8 +51,10 @@ def get_organization_plan_limit(
     if not settings.STRIPE_ENABLED:
         return None
     stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
-    query_product_type = \
-    'djstripe_customers__subscriptions__items__price__product__metadata__product_type'
+    query_product_type = (
+        'djstripe_customers__subscriptions__items__price__'
+        'product__metadata__product_type'
+    )
     query_status__in = 'djstripe_customers__subscriptions__status__in'
     organization_filter = Organization.objects.filter(
         id=organization.id,
@@ -62,10 +64,14 @@ def get_organization_plan_limit(
         }
     )
 
-    field_price_limit = \
-    f'djstripe_customers__subscriptions__items__price__metadata__{stripe_key}'
-    field_product_limit = \
-    f'djstripe_customers__subscriptions__items__price__product__metadata__{stripe_key}'
+    field_price_limit = (
+        'djstripe_customers__subscriptions__items__'
+        f'price__metadata__{stripe_key}'
+    )
+    field_product_limit = (
+        'djstripe_customers__subscriptions__items__'
+        f'price__product__metadata__{stripe_key}'
+    )
     current_limit = (
         organization_filter.values(
             price_limit=F(field_price_limit),
