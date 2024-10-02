@@ -58,7 +58,7 @@ class ServiceUsageCalculator(CachedClass):
         self.current_year_filter = Q(date__range=[self.current_year_start, now])
         self._setup_cache()
 
-    def get_cached_usage(self, usage_key: str) -> int:
+    def get_nlp_usage_by_type(self, usage_key: str) -> int:
         """Returns the usage for a given organization and usage key. The usage key
         should be the value from the USAGE_LIMIT_MAP found in the stripe kobo app.
         """

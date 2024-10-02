@@ -74,7 +74,7 @@ def get_organization_usage(organization: Organization, usage_type: UsageType) ->
         organization.owner.organization_user.user, organization
     )
     usage_calc._clear_cache()  # Do not use cached values
-    usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[usage_type])
+    usage = usage_calc.get_nlp_usage_by_type(USAGE_LIMIT_MAP[usage_type])
 
     return usage
 
@@ -88,6 +88,8 @@ def get_organization_remaining_usage(
     PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
 
     plan_limit = get_organization_plan_limit(organization, usage_type)
+    if plan_limit is None:
+        plan_limit = 0
     usage = get_organization_usage(organization, usage_type)
     addon_limit, addon_remaining = PlanAddOn.get_organization_totals(
         organization,
@@ -106,6 +108,8 @@ def handle_usage_increment(
     """
     plan_limit = get_organization_plan_limit(organization, usage_type)
     current_usage = get_organization_usage(organization, usage_type)
+    if current_usage is None:
+        current_usage = 0
     new_total_usage = current_usage + amount
     if new_total_usage > plan_limit:
         increment = (
