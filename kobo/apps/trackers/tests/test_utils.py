@@ -1,3 +1,4 @@
+from ddt import data, ddt
 from django.utils import timezone
 from djstripe.models import Charge, PaymentIntent, Price, Product
 from model_bakery import baker
@@ -14,6 +15,7 @@ from kpi.models.asset import Asset
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
+@ddt
 class TrackersUtilitiesTestCase(BaseTestCase):
     fixtures = ['test_data']
 
@@ -32,9 +34,6 @@ class TrackersUtilitiesTestCase(BaseTestCase):
             name='test asset',
         )
         self.asset.deploy(backend='mock', active=True)
-
-    def test_org_usage_seconds(self):
-        self._test_organization_usage_utils('seconds')
 
     def _create_product(self, product_metadata):
         product = baker.make(
@@ -85,11 +84,12 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         charge.save()
         return charge
 
-    def _test_organization_usage_utils(self, usage_type):
+    @data('character', 'seconds')
+    def test_organization_usage_utils(self, usage_type):
         stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
         usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         sub_metadata = {
-            stripe_key: 1234,
+            stripe_key: 1000,
             'product_type': 'plan',
             'plan_type': 'enterprise',
         }
@@ -98,19 +98,25 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         )
         addon_metadata = {
             'product_type': 'addon_onetime',
-            usage_key: 12345,
+            usage_key: 2000,
             'valid_tags': 'all',
         }
         product, price = self._create_product(addon_metadata)
         self._make_payment(price, subscription.customer, quantity=2)
 
-        expected_limit = 12345 * 2 + 1234
+        total_limit = 2000 * 2 + 1000
         remaining = get_organization_remaining_usage(self.organization, usage_type)
-        assert remaining == expected_limit
+        assert remaining == total_limit
 
         update_nlp_counter(
             USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id
         )
 
         remaining = get_organization_remaining_usage(self.organization, usage_type)
-        assert remaining == expected_limit - 1000
+        assert remaining == total_limit - 1000
+
+        update_nlp_counter(
+            USAGE_LIMIT_MAP[usage_type], 1500, self.someuser.id, self.asset.id
+        )
+        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        assert remaining == total_limit - 2500

@@ -74,7 +74,7 @@ class ServiceUsageCalculator(CachedClass):
 
         cached_usage = {
             'asr_seconds': nlp_usage[f'asr_seconds_current_{interval}'],
-            'mt_character': nlp_usage[f'mt_characters_current_{interval}'],
+            'mt_characters': nlp_usage[f'mt_characters_current_{interval}'],
         }
 
         return cached_usage[usage_key]

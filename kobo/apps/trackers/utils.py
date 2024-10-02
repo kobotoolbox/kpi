@@ -95,7 +95,7 @@ def get_organization_remaining_usage(
         organization,
         usage_type,
     )
-    plan_remaining = max(0, plan_limit - usage) # if negative, they have 0 remaining
+    plan_remaining = max(0, plan_limit - usage)  # if negative, they have 0 remaining
     total_remaining = addon_remaining + plan_remaining
 
     return total_remaining
@@ -107,6 +107,8 @@ def handle_usage_increment(
     """
     Increment the given usage type for this organization by the given amount
     """
+    PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
+
     plan_limit = get_organization_plan_limit(organization, usage_type)
     current_usage = get_organization_usage(organization, usage_type)
     if current_usage is None:
@@ -117,5 +119,5 @@ def handle_usage_increment(
             amount if current_usage >= plan_limit else new_total_usage - plan_limit
         )
         PlanAddOn.increment_add_ons_for_organization(
-            organization.id, usage_type, increment
+            organization, usage_type, increment
         )

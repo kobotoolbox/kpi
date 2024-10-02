@@ -1,3 +1,4 @@
+from ddt import ddt, data
 from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import (
@@ -18,6 +19,7 @@ from kobo.apps.stripe.models import PlanAddOn
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
+@ddt
 class OneTimeAddOnAPITestCase(BaseTestCase):
     fixtures = ['test_data']
 
@@ -179,7 +181,8 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert response_get_list.status_code == status.HTTP_200_OK
         assert response_get_list.data['results'] == []
 
-    def _assert_get_user_totals(self, usage_type):
+    @data('character', 'seconds')
+    def test_get_user_totals(self, usage_type):
         limit = 2000
         quantity = 5
         usage_limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
@@ -208,9 +211,3 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         assert total_limit == limit * (quantity + 2)
         assert remaining == limit * 2
-
-    def test_get_user_totals_seconds(self):
-        self._assert_get_user_totals('seconds')
-
-    def test_get_user_totals_character(self):
-        self._assert_get_user_totals('character')
