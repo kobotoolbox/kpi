@@ -106,7 +106,6 @@ def handle_usage_increment(
     """
     plan_limit = get_organization_plan_limit(organization, usage_type)
     current_usage = get_organization_usage(organization, usage_type)
-    plan_remaining = plan_limit - current_usage
     new_total_usage = current_usage + amount
     if new_total_usage > plan_limit:
         increment = (
