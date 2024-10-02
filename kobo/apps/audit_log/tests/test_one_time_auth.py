@@ -147,7 +147,7 @@ class TestOneTimeAuthentication(BaseTestCase):
                 'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create', # noqa
                 return_value=HttpResponse(status=200),
             ):
-                # try both v1 and v2
+                # try both OpenRosa and v1 endpoints
                 self.client.post(reverse('submissions'))
                 self.client.post(reverse('submissions-list'))
         log_exists = AuditLog.objects.filter(
@@ -178,7 +178,7 @@ class TestOneTimeAuthentication(BaseTestCase):
                 'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create', # noqa
                 return_value=HttpResponse(status=200),
             ):
-                # check v1 and v2
+                # try both OpenRosa and v1 endpoints
                 self.client.post(reverse('submissions'), **header)
                 self.client.post(reverse('submissions-list'), **header)
 
