@@ -34,7 +34,7 @@ const FormGallery = React.lazy(() =>
 );
 
 const FormActivity = React.lazy(() =>
-  import(/* webpackPrefetch: true */ './formActivity')
+  import(/* webpackPrefetch: true */ './activity/formActivity')
 );
 
 export class FormSubScreens extends React.Component {
