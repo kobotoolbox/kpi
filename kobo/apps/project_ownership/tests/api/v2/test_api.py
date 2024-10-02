@@ -363,7 +363,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         'kobo.apps.project_ownership.tasks.move_media_files',
         MagicMock()
     )
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={
+            'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+        }
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):
         today = timezone.now()

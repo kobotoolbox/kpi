@@ -68,7 +68,6 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
@@ -881,6 +880,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}'
             )
         except InvalidCacheBackendError:
+            # TODO: This handles the case when the cache is disabled and
+            # get_redis_connection fails, though we may need better error handling here
             pass
         except redis.exceptions.ResponseError:
             # original does not exist, weird but don't raise a 500 for that
