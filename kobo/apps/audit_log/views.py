@@ -202,7 +202,8 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >           ]
     >       }
 
-    Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
+    Results from this endpoint can be filtered by a Boolean query
+    specified in the `q` parameter.
 
     **Filterable fields:**
 
