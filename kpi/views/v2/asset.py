@@ -530,8 +530,7 @@ class AssetViewSet(
                 # copy the request data so we don't change the original object
                 request_data_copy = request.data.copy()
                 # remove the 'backend' key, we don't care about it for this part
-                if request_data_copy.get('backend', None):
-                    request_data_copy.pop('backend')
+                request_data_copy.pop('backend', None)
 
                 updated_fields = request_data_copy.keys()
                 only_active_changed = list(updated_fields) == ['active']
