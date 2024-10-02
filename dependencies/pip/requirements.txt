@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@451df4cd2a0d614be69a3b3309259c67369f7efb#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@5a8cda8cc37a56a2313c98b88fcacc18049ef477#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -530,4 +530,3 @@ yarl==1.9.4
     # via aiohttp
 yubico-client==1.13.0
     # via django-trench
-backports-zoneinfo==0.2.1; python_version < '3.9'

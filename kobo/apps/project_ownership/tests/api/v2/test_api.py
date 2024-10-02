@@ -14,11 +14,11 @@ from kobo.apps.project_ownership.models import (
     Transfer,
 )
 from kobo.apps.trackers.utils import update_nlp_counter
-
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
@@ -416,7 +416,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert response.data['total_storage_bytes'] == expected_empty_data['total_storage_bytes']
         assert response.data['total_submission_count'] == expected_empty_data['total_submission_count']
 
-        # Transfer project from someuser to anotheruser
+        # Transfer the project from someuser to anotheruser
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
@@ -425,9 +425,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ),
             'assets': [self.asset.uid]
         }
-        response = self.client.post(
-            self.invite_url, data=payload, format='json'
-        )
+        with immediate_on_commit():
+            response = self.client.post(
+                self.invite_url, data=payload, format='json'
+            )
         assert response.status_code == status.HTTP_201_CREATED
 
         # someuser should have no usage reported anymore
@@ -479,7 +480,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ) == 0
         )
 
-        # Transfer project from someuser to anotheruser
+        # Transfer the project from someuser to anotheruser
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(
@@ -489,9 +490,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             'assets': [self.asset.uid]
         }
 
-        response = self.client.post(
-            self.invite_url, data=payload, format='json'
-        )
+        with immediate_on_commit():
+            response = self.client.post(
+                self.invite_url, data=payload, format='json'
+            )
         assert response.status_code == status.HTTP_201_CREATED
 
         # anotheruser is the owner and should see the project

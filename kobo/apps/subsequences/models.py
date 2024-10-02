@@ -33,17 +33,17 @@ class SubmissionExtras(AbstractTimeStampedModel):
         from .integrations.google.google_translate import GoogleTranslationService
 
         features = self.asset.advanced_features
-        for qpath, vals in self.content.items():
+        for xpath, vals in self.content.items():
             if 'transcript' in features:
                 options = vals.get(GOOGLETS, {})
                 if options.get('status') == 'requested':
                     service = GoogleTranscriptionService(self)
-                    vals[GOOGLETS] = service.process_data(qpath, vals)
+                    vals[GOOGLETS] = service.process_data(xpath, vals)
             if 'translation' in features:
                 options = vals.get(GOOGLETX, {})
                 if options.get('status') == 'requested':
                     service = GoogleTranslationService(self)
-                    vals[GOOGLETX] = service.process_data(qpath, vals)
+                    vals[GOOGLETX] = service.process_data(xpath, vals)
 
         asset_changes = False
         asset_known_cols = self.asset.known_cols

@@ -4,7 +4,7 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from kpi.filters import SearchFilter
 from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
-from .models import AuditAction, AuditLog
+from .models import AccessLog, AuditAction, AuditLog
 from .permissions import SuperUserPermission
 from .serializers import AuditLogSerializer
 
@@ -36,7 +36,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >               {
     >                    "app_label": "foo",
     >                    "model_name": "bar",
-    >                    "object_id": 1,
     >                    "user": "http://kf.kobo.local/users/kobo_user/",
     >                    "action": "delete",
     >                    "log_type": "asset-management",
@@ -94,12 +93,12 @@ class AllAccessLogViewSet(AuditLogViewSet):
     Lists all access logs for all users. Only available to superusers.
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/all
+    <b>GET</b> /api/v2/access-logs/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/access-logs/all
+    >       curl -X GET https://[kpi-url]/access-logs/
 
     > Response 200
 
@@ -111,7 +110,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >                {
     >                   "app_label": "kobo_auth",
     >                    "model_name": "User",
-    >                    "object_id": 1,
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
     >                    "username": "admin",
@@ -133,7 +131,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
     """
 
     queryset = (
-        AuditLog.objects.select_related('user')
+        AccessLog.objects.select_related('user')
         .filter(action=AuditAction.AUTH)
         .order_by('-date_created')
     )
@@ -146,12 +144,12 @@ class AccessLogViewSet(AuditLogViewSet):
     Lists all access logs for the authenticated user
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/
+    <b>GET</b> /api/v2/access-logs/me
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/access-logs/
+    >       curl -X GET https://[kpi-url]/access-logs/me
 
     > Response 200
 
@@ -163,7 +161,6 @@ class AccessLogViewSet(AuditLogViewSet):
     >                {
     >                   "app_label": "kobo_auth",
     >                    "model_name": "User",
-    >                    "object_id": 1,
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
     >                    "username": "admin",
@@ -187,10 +184,6 @@ class AccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = (
-        AuditLog.objects.select_related('user')
-        .filter(action=AuditAction.AUTH)
-        .order_by('-date_created')
-    )
+    queryset = AccessLog.objects.select_related('user').order_by('-date_created')
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)

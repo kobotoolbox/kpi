@@ -31,7 +31,7 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba(colors.$kobo-gray-800, 0.8);
+    background: rgba(colors.$kobo-gray-800, 0.9);
     padding: 20px 30px;
     border-radius: 10px;
 
@@ -305,7 +305,7 @@
 
   ul.errorlist {
     padding: 0px;
-    color: colors.$kobo-red;
+    color: colors.$kobo-mid-red;
     margin: 8px 0px;
   }
 }

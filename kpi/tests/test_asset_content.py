@@ -845,7 +845,7 @@ def test_kuid_persists():
     assert content['survey'][1].get('$kuid') == initial_kuid_2
 
 
-def test_populates_qpath_xpath_correctly():
+def test_populates_xpath_correctly():
     asset = Asset(content={
         'survey': [
             {'type': 'begin_group', 'name': 'g1'},
@@ -858,12 +858,11 @@ def test_populates_qpath_xpath_correctly():
     })
     asset.adjust_content_on_save()
     rs = asset.content['survey'][0:4]
-    assert [rr['$qpath'] for rr in rs] == ['g1', 'g1-r1', 'g1-g2', 'g1-g2-r2']
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
 
 
 @pytest.mark.django_db()
-def test_return_xpaths_and_qpath_even_if_missing():
+def test_return_xpaths_even_if_missing():
     user = baker.make(
         settings.AUTH_USER_MODEL, username='johndoe'
     )
@@ -879,8 +878,8 @@ def test_return_xpaths_and_qpath_even_if_missing():
     })
 
     expected = ['g1/r1', 'g1/g2/r2']
-    # 'qpath' and 'xpath' are not injected until an Asset object is saved with `adjust_content=True`
-    # or `adjust_content_on_save()` is called directly.
+    # 'xpath' is not injected until an Asset object is saved with
+    # `adjust_content=True` or `adjust_content_on_save()` is called directly.
     # No matter what, `get_attachment_xpaths()` should be able to return
     # attachment xpaths.
     assert asset.get_attachment_xpaths(deployed=False) == expected

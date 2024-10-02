@@ -28,7 +28,6 @@ class TestSubmissionStream(TestCase):
                         'type': 'text',
                         '$kuid': 'rc9ak31',
                         'label': ["What's your name?"],
-                        '$qpath': 'What_s_your_name',
                         '$xpath': 'What_s_your_name',
                         'required': False,
                         '$autoname': 'What_s_your_name',
@@ -37,7 +36,6 @@ class TestSubmissionStream(TestCase):
                         'type': 'audio',
                         '$kuid': 'ff6ek09',
                         'label': ['Tell me a story!'],
-                        '$qpath': 'Tell_me_a_story',
                         '$xpath': 'Tell_me_a_story',
                         'required': False,
                         '$autoname': 'Tell_me_a_story',
@@ -51,14 +49,14 @@ class TestSubmissionStream(TestCase):
                         {
                             'type': 'qual_integer',
                             'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
-                            'qpath': 'Tell_me_a_story',
+                            'xpath': 'Tell_me_a_story',
                             'scope': 'by_question#survey',
                             'labels': {'_default': 'When was this recorded?'},
                         },
                         {
                             'type': 'qual_select_one',
                             'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
-                            'qpath': 'Tell_me_a_story',
+                            'xpath': 'Tell_me_a_story',
                             'scope': 'by_question#survey',
                             'labels': {
                                 '_default': "What's the source of this story?"
