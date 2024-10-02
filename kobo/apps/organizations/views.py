@@ -1,9 +1,7 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django_dont_vary_on.decorators import only_vary_on
+from django.utils.http import http_date
 from kpi import filters
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -24,10 +22,6 @@ from .serializers import OrganizationSerializer
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
-@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='service_usage')
-# django uses the Vary header in its caching, and each middleware can potentially add more Vary headers
-# we use this decorator to remove any Vary headers except 'origin' (we don't want to cache between different installs)
-@method_decorator(only_vary_on('Origin'), name='service_usage')
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
     Organizations are groups of users with assigned permissions and configurations
@@ -88,6 +82,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >           "current_month_start": {string (date), ISO format},
         >           "current_year_start": {string (date), ISO format},
         >           "billing_period_end": {string (date), ISO format}|{None},
+        >           "last_updated": {string (date), ISO format},
         >       }
         ### CURRENT ENDPOINT
         """
@@ -101,11 +96,15 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             get_database_user(request.user),
             context=context,
         )
-        response = Response(data=serializer.data)
+        response = Response(
+            data=serializer.data,
+            headers={
+                'Date': http_date(
+                    serializer.calculator.get_last_updated().timestamp()
+                )
+            },
+        )
 
-        # update the cached usage data only if we successfully got results for this organization
-        if (response.status_code == 200) and (organization := context.get('organization')):
-            organization.update_usage_cache(serializer.data)
         return response
 
     @action(detail=True, methods=['get'])

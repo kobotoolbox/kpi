@@ -212,15 +212,15 @@ class Command(BaseCommand):
             user_profile.metadata = {}
 
         # Set the flag `submissions_suspended` to true if it is not already.
-        if not user_profile.metadata.get('submissions_suspended'):
+        if not user_profile.submissions_suspended:
             # We are using the flag `submissions_suspended` to prevent
             # new submissions from coming in while the
             # counters are being calculated.
-            user_profile.metadata['submissions_suspended'] = True
-            user_profile.save(update_fields=['metadata'])
+            user_profile.submissions_suspended = True
+            user_profile.save(update_fields=['submissions_suspended'])
 
     def release_old_locks(self):
-        updates = {'submissions_suspended': False}
+        updates = {}
 
         if self._force:
             updates['counters_updates_status'] = 'not-complete'
@@ -231,12 +231,12 @@ class Command(BaseCommand):
                 'metadata',
                 updates=updates,
             ),
+            submissions_suspended=False
         )
 
     def update_user_profile(self, user: settings.AUTH_USER_MODEL):
         # Update user's profile (and lock the related row)
         updates = {
-            'submissions_suspended': False,
             'counters_updates_status': 'complete',
         }
         UserProfile.objects.filter(
@@ -246,4 +246,5 @@ class Command(BaseCommand):
                 'metadata',
                 updates=updates,
             ),
+            submissions_suspended=False,
         )

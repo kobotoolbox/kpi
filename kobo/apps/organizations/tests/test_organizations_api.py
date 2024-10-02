@@ -1,4 +1,9 @@
+from datetime import timedelta
+from unittest.mock import patch
+
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.http import parse_http_date
 from model_bakery import baker
 from rest_framework import status
 
@@ -6,7 +11,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE
-
 from kpi.utils.fuzzy_int import FuzzyInt
 
 
@@ -72,3 +76,17 @@ class OrganizationTestCase(BaseTestCase):
         org_user = self.organization.add_user(user=user)
         res = self.client.patch(self.url_detail, data)
         self.assertEqual(res.status_code, 403)
+
+    @patch('kpi.utils.usage_calculator.CachedClass._cache_last_updated')
+    def test_service_usage_date_header(self, mock_cache_last_updated):
+        self._insert_data()
+        url_service_usage = reverse(
+            self._get_endpoint('organizations-service-usage'),
+            kwargs={'id': self.organization.id},
+        )
+        now = timezone.now()
+        mock_cache_last_updated.return_value = now - timedelta(seconds=3)
+        self.client.get(url_service_usage)
+        response = self.client.get(url_service_usage)
+        last_updated_timestamp = parse_http_date(response.headers['Date'])
+        assert (now.timestamp() - last_updated_timestamp) > 3

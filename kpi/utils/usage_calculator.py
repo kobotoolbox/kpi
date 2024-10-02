@@ -1,26 +1,26 @@
+from json import dumps, loads
 from typing import Optional
 
 from django.conf import settings
-from django.db.models import Sum, Q
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import (
-    DailyXFormSubmissionCounter,
-    XForm,
-)
-from kobo.apps.organizations.models import Organization
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
 from kobo.apps.organizations.utils import (
     get_monthly_billing_dates,
     get_yearly_billing_dates,
 )
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
+from kpi.utils.cache import CachedClass, cached_class_property
 
 
-class ServiceUsageCalculator:
-    def __init__(self, user: User, organization: Optional[Organization]):
+class ServiceUsageCalculator(CachedClass):
+    CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
+
+    def __init__(self, user: User, organization: Optional['Organization']):
         self.user = user
         self.organization = organization
 
@@ -56,13 +56,35 @@ class ServiceUsageCalculator:
             date__range=[self.current_month_start, now]
         )
         self.current_year_filter = Q(date__range=[self.current_year_start, now])
+        self._setup_cache()
 
-    def _filter_by_user(self, user_ids: list) -> Q:
+    def get_cached_usage(self, usage_key: str) -> int:
+        """Returns the usage for a given organization and usage key. The usage key
+        should be the value from the USAGE_LIMIT_MAP found in the stripe kobo app.
         """
-        Turns a list of user ids into a query object to filter by
-        """
-        return Q(user_id__in=user_ids)
+        if self.organization is None:
+            return None
 
+        billing_details = self.organization.active_subscription_billing_details()
+        if not billing_details:
+            return None
+
+        interval = billing_details['recurring_interval']
+        nlp_usage = self.get_nlp_usage_counters()
+
+        cached_usage = {
+            'asr_seconds': nlp_usage[f'asr_seconds_current_{interval}'],
+            'mt_character': nlp_usage[f'mt_characters_current_{interval}'],
+        }
+
+        return cached_usage[usage_key]
+
+    def get_last_updated(self):
+        return self._cache_last_updated()
+
+    @cached_class_property(
+        key='nlp_usage_counters', serializer=dumps, deserializer=loads
+    )
     def get_nlp_usage_counters(self):
         nlp_tracking = (
             NLPUsageCounter.objects.only(
@@ -98,15 +120,18 @@ class ServiceUsageCalculator:
 
         return total_nlp_usage
 
+    @cached_class_property(key='storage_usage', serializer=str, deserializer=int)
     def get_storage_usage(self):
         """
         Get the storage used by non-(soft-)deleted projects for all users
 
         Users are represented by their ids with `self._user_ids`
         """
-        xforms = XForm.objects.only('attachment_storage_bytes', 'id').exclude(
-            pending_delete=True
-        ).filter(self._user_id_query)
+        xforms = (
+            XForm.objects.only('attachment_storage_bytes', 'id')
+            .exclude(pending_delete=True)
+            .filter(self._user_id_query)
+        )
 
         total_storage_bytes = xforms.aggregate(
             bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
@@ -114,22 +139,27 @@ class ServiceUsageCalculator:
 
         return total_storage_bytes['bytes_sum'] or 0
 
+    @cached_class_property(
+        key='submission_counters', serializer=dumps, deserializer=loads
+    )
     def get_submission_counters(self):
         """
         Calculate submissions for all users' projects even their deleted ones
 
         Users are represented by their ids with `self._user_ids`
         """
-        submission_count = DailyXFormSubmissionCounter.objects.only(
-            'counter', 'user_id'
-        ).filter(self._user_id_query).aggregate(
-            all_time=Coalesce(Sum('counter'), 0),
-            current_year=Coalesce(
-                Sum('counter', filter=self.current_year_filter), 0
-            ),
-            current_month=Coalesce(
-                Sum('counter', filter=self.current_month_filter), 0
-            ),
+        submission_count = (
+            DailyXFormSubmissionCounter.objects.only('counter', 'user_id')
+            .filter(self._user_id_query)
+            .aggregate(
+                all_time=Coalesce(Sum('counter'), 0),
+                current_year=Coalesce(
+                    Sum('counter', filter=self.current_year_filter), 0
+                ),
+                current_month=Coalesce(
+                    Sum('counter', filter=self.current_month_filter), 0
+                ),
+            )
         )
 
         total_submission_count = {}
@@ -139,3 +169,15 @@ class ServiceUsageCalculator:
             )
 
         return total_submission_count
+
+    def _get_cache_hash(self):
+        if self.organization is None:
+            return f'user-{self.user.id}'
+        else:
+            return f'organization-{self.organization.id}'
+
+    def _filter_by_user(self, user_ids: list) -> Q:
+        """
+        Turns a list of user ids into a query object to filter by
+        """
+        return Q(user_id__in=user_ids)

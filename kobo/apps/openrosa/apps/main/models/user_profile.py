@@ -37,6 +37,7 @@ class UserProfile(models.Model):
     metadata = models.JSONField(default=dict, blank=True)
     is_mfa_active = LazyDefaultBooleanField(default=False)
     validated_password = models.BooleanField(default=True)
+    submissions_suspended = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'main'

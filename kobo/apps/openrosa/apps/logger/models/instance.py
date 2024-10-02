@@ -135,7 +135,7 @@ class Instance(AbstractTimeStampedModel):
         #   wrapped in try/except
         UserProfile = apps.get_model('main', 'UserProfile')  # noqa - Avoid circular imports
         if profile := UserProfile.objects.filter(user=self.xform.user).first():
-            if profile.metadata.get('submissions_suspended', False):
+            if profile.submissions_suspended:
                 raise TemporarilyUnavailableError()
         return
 

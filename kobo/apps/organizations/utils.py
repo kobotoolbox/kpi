@@ -8,10 +8,8 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-from kobo.apps.organizations.models import Organization
 
-
-def get_monthly_billing_dates(organization: Union[Organization, None]):
+def get_monthly_billing_dates(organization: Union['Organization', None]):
     """Returns start and end dates of an organization's monthly billing cycle"""
 
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
@@ -63,7 +61,7 @@ def get_monthly_billing_dates(organization: Union[Organization, None]):
     return period_start, period_end
 
 
-def get_yearly_billing_dates(organization: Union[Organization, None]):
+def get_yearly_billing_dates(organization: Union['Organization', None]):
     """Returns start and end dates of an organization's annual billing cycle"""
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_year = datetime(now.year, 1, 1, tzinfo=ZoneInfo('UTC'))
