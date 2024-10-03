@@ -172,13 +172,13 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         except KeyError:
             pass
         else:
-            # Deleting submissions is not allowed anymore with KoboCAT API
+            # Deleting submissions is not allowed with KoboCAT API
             if view.action == 'bulk_delete':
                 raise LegacyAPIException
 
             return user.has_perms(required_perms, obj)
 
-        # Deleting submissions in not allowed anymore with KoboCAT API
+        # Deleting submissions is not allowed with KoboCAT API
         if view.action == 'destroy':
             raise LegacyAPIException
 

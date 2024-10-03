@@ -41,6 +41,13 @@ class TestInputs(TestBase):
             )
             assert message == str(e)
 
+    def test_erics_files(self):
+        for name in [
+            'battery_life.xls',
+            'Enumerator_Training_Practice_Survey.xls',
+        ]:
+            self._publish_xls_file(os.path.join('fixtures', 'bug_fixes', name))
+
 
 class TestSubmissionBugs(TestBase):
 

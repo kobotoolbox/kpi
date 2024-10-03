@@ -281,6 +281,3 @@ class TestSubmissionStream(TestCase):
 
                 for v in qual_response['val']:
                     assert isinstance(v['uuid'], str)
-
-        ## Clear all mocked submissions to avoid duplicate submission errors
-        #self.asset.deployment.mock_submissions([])
