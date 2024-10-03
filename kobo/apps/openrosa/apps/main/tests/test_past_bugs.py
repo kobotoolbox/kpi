@@ -26,14 +26,12 @@ class TestInputs(TestBase):
 
         assert XForm.objects.count() == pre_count
 
-    def test_buggy_files(self):
-        message = "Unknown question type 'Select one from source'"
-        with pytest.raises(PyXFormError) as e:
-            self._publish_xls_file(
-                os.path.join('fixtures/bug_fixes/MCH_v1.xls')
-            )
-            assert message == str(e)
+    def test_mch(self):
+        self._publish_xls_file(
+            os.path.join('fixtures/bug_fixes/MCH_v1.xls')
+        )
 
+    def test_buggy_files(self):
         message = 'Duplicate column header: label'
         with pytest.raises(PyXFormError) as e:
             self._publish_xls_file(
