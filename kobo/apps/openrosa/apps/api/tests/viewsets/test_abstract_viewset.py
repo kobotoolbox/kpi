@@ -1,15 +1,16 @@
 # coding: utf-8
 import os
+from typing import Union
 
 from django.conf import settings
 from django.contrib.auth.models import (
     AnonymousUser,
     Permission,
 )
+from django.core.files.base import ContentFile
 from django.test import TestCase
-from django.test.client import Client
 from django_digest.test import DigestAuth
-from kobo_service_account.utils import get_request_headers
+from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
@@ -20,6 +21,7 @@ from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import UserProfile, MetaData
 from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import MakeSubmissionMixin
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
+from kobo.apps.openrosa.libs.utils import logger_tools
 
 
 class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
@@ -52,8 +54,16 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         self.maxDiff = None
 
     def publish_xls_form(
-        self, path=None, data=None, assert_=True, use_service_account=True
+        self, path=None, data=None, assert_creation=True, use_api=False
     ):
+        # KoboCAT (v1) API does not allow project creation anymore.
+        # Only KPI API allows that. The project can be only added to KoboCAT
+        # during deployment. Thus, this method will create the XForm object directly
+        # without an API call except if `use_api` is True.
+
+        # Some unit tests still need to test the result of API `v1`
+        # (i.e.: KoboCAT API). For example, to ensure project creation is
+        # not allowed anymore.
         if not data:
             data = {
                 'owner': self.user.username,
@@ -77,38 +87,36 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
                 'transportation.xls',
             )
 
-        xform_list_url = reverse('xform-list')
+        if use_api is True:
+            xform_list_url = reverse('xform-list')
+            with open(path, 'rb') as xls_file:
+                post_data = {'xls_file': xls_file}
+                response = self.client.post(
+                    xform_list_url, data=post_data, **self.extra
+                )
 
-        if use_service_account:
-            # Only service account user is allowed to `POST` to XForm API
-            client = Client()
-            service_account_meta = self.get_meta_from_headers(
-                get_request_headers(self.user.username)
-            )
-            service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
+            if assert_creation is False:
+                return response
+
+            self.assertEqual(response.status_code, 201)
+            self.xform = XForm.objects.all().order_by('pk').reverse()[0]
+            data.update({
+                'url': f'http://testserver/api/v1/forms/{self.xform.pk}'
+            })
+            self.assertEqual(dict(response.data, **data), response.data)
+            self.form_data = response.data
         else:
-            # For test purposes we want to try to `POST` with current logged-in
-            # user
-            client = self.client
-            service_account_meta = self.extra
+            with open(path, 'rb') as f:
+                xls_file = ContentFile(f.read(), name=f'transportation.xls')
 
-        with open(path, 'rb') as xls_file:
-            post_data = {'xls_file': xls_file}
-            response = client.post(
-                xform_list_url, data=post_data, **service_account_meta
+            self.xform = logger_tools.publish_xls_form(xls_file, self.user)
+            response = self.client.get(
+                reverse('xform-detail', kwargs={'pk': self.xform.pk})
             )
 
-        if not assert_:
-            return response
-
-        self.assertEqual(response.status_code, 201)
-        self.xform = XForm.objects.all().order_by('pk').reverse()[0]
-        data.update({
-            'url': f'http://testserver/api/v1/forms/{self.xform.pk}'
-        })
-
-        self.assertEqual(dict(response.data, **data), response.data)
-        self.form_data = response.data
+            if assert_creation is True:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.form_data = response.data
 
     def user_profile_data(self):
         return {
@@ -184,15 +192,16 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
 
     def _make_submission(
         self,
-        path,
-        username=None,
-        add_uuid=False,
-        forced_submission_time=None,
-        auth=None,
-        media_file=None,
-        use_service_account=False,
+        path: str,
+        username: str = None,
+        add_uuid: bool = False,
+        forced_submission_time: bool = None,
+        auth: Union[DigestAuth, bool] = None,
+        media_file: 'io.BufferedReader' = None,
+        assert_success: bool = True,
+        use_api: bool = True,
     ):
-        if auth is None and not use_service_account:
+        if auth is None:
             auth = DigestAuth(
                 self.profile_data['username'], self.profile_data['password1']
             )
@@ -204,7 +213,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
             forced_submission_time,
             auth,
             media_file,
-            use_service_account,
+            use_api,
         )
 
     def _make_submissions(self, username=None):

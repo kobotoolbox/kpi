@@ -118,23 +118,22 @@ def set_instance_validation_statuses(
     xform: XForm, request_data: dict, request_username: str
 ) -> int:
 
-        try:
-            new_validation_status_uid = request_data['validation_status.uid']
-        except KeyError:
-            raise MissingValidationStatusPayloadError
+    try:
+        new_validation_status_uid = request_data['validation_status.uid']
+    except KeyError:
+        raise MissingValidationStatusPayloadError
 
-        # Create new validation_status object
-        new_validation_status = get_validation_status(
-            new_validation_status_uid, request_username
-        )
+    # Create new validation_status object
+    new_validation_status = get_validation_status(
+        new_validation_status_uid, request_username
+    )
+    postgres_query, mongo_query = build_db_queries(xform, request_data)
 
-        postgres_query, mongo_query = build_db_queries(xform, request_data)
-
-        # Update Postgres & Mongo
-        updated_records_count = Instance.objects.filter(
-            **postgres_query
-        ).update(validation_status=new_validation_status)
-        ParsedInstance.bulk_update_validation_statuses(
-            mongo_query, new_validation_status
-        )
-        return updated_records_count
+    # Update Postgres & Mongo
+    updated_records_count = Instance.objects.filter(
+        **postgres_query
+    ).update(validation_status=new_validation_status)
+    ParsedInstance.bulk_update_validation_statuses(
+        mongo_query, new_validation_status
+    )
+    return updated_records_count

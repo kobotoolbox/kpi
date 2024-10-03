@@ -19,6 +19,7 @@ from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.fields.file import ExtendedFileField
 
 CHUNK_SIZE = 1024
 
@@ -136,7 +137,7 @@ class MetaData(models.Model):
     xform = models.ForeignKey(XForm, on_delete=models.CASCADE)
     data_type = models.CharField(max_length=255)
     data_value = models.CharField(max_length=255)
-    data_file = models.FileField(
+    data_file = ExtendedFileField(
         storage=default_storage,
         upload_to=upload_to,
         blank=True,
@@ -166,40 +167,6 @@ class MetaData(models.Model):
     @property
     def md5_hash(self) -> str:
         return self._set_hash()
-
-    @property
-    def has_expired(self) -> bool:
-        """
-        It validates whether the file has been modified for the last X minutes.
-        (where `X` equals `settings.PAIRED_DATA_EXPIRATION`)
-
-        Notes: Only `xml-external` (paired data XML) files expire.
-        """
-        if not self.is_paired_data:
-            return False
-
-        timedelta = timezone.now() - self.date_modified
-        if timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION:
-            # No need to download the whole file. Sending a `HEAD` request to
-            # KPI will cause KPI to delete and recreate the file in KoBoCAT if
-            # needed
-            requests.head(self.data_value)
-            # We update the modification time here to avoid requesting that KPI
-            # resynchronize this file multiple times per the
-            # `PAIRED_DATA_EXPIRATION` period. However, this introduces a race
-            # condition where it's possible that KPI *deletes* this file before
-            # we attempt to update it. We avoid that by locking the row
-            ### TODO: this previously used `select_for_update()`, which locked
-            ### the object for the duration of the *entire* request due to
-            ### Django's `ATOMIC_REQUESTS`. The `update()` method is itself
-            ### atomic since it does not reference any value previously read
-            ### from the database. Is that enough?
-            MetaData.objects.filter(pk=self.pk).update(
-                date_modified=timezone.now()
-            )
-            return True
-
-        return False
 
     @property
     def filename(self) -> str:

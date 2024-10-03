@@ -3,8 +3,11 @@ import os
 import sys
 import unittest
 
+import pytest
+from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from pyxform.errors import PyXFormError
 
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -91,3 +94,39 @@ class TestPublishXLS(TestBase):
             report_exception(subject="Test report exception", info=e)
         except Exception as e:
             raise AssertionError("%s" % e)
+
+    def test_publish_invalid_xls_form(self):
+        path = os.path.join(
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
+            'transportation.bad_id.xls',
+        )
+
+        with pytest.raises(PyXFormError) as e:
+            self._publish_xls_file(path)
+        assert '[row : 5] Question or group with no name.' in str(e)
+
+    def test_publish_invalid_xls_form_no_choices(self):
+        path = os.path.join(
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
+            'transportation.no_choices.xls',
+        )
+
+        with pytest.raises(PyXFormError) as e:
+            self._publish_xls_file(path)
+
+        error_msg = (
+            "There should be a choices sheet in this xlsform. "
+            "Please ensure that the choices sheet has the mandatory "
+            "columns 'list_name', 'name', and 'label'."
+        )
+        assert error_msg in str(e)

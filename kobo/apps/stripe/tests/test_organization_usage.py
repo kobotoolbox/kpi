@@ -10,12 +10,17 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.stripe.tests.utils import generate_enterprise_subscription, generate_plan_subscription
-from kobo.apps.trackers.submission_utils import create_mock_assets, add_mock_submissions
+from kobo.apps.stripe.tests.utils import (
+    generate_enterprise_subscription,
+    generate_plan_subscription,
+)
+from kobo.apps.trackers.submission_utils import (
+    create_mock_assets,
+    add_mock_submissions,
+)
 from kpi.tests.api.v2.test_api_service_usage import ServiceUsageAPIBase
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
 from rest_framework import status
-
 
 
 class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
@@ -26,9 +31,10 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
     when Stripe is installed.
     """
 
-    user_count = 5
-    assets_per_user = 5
-    submissions_per_asset = 5
+    names = ['alice', 'bob']
+    user_count = len(names)
+    assets_per_user = 2
+    submissions_per_asset = 2
     org_id = 'orgAKWMFskafsngf'
 
     @classmethod
@@ -40,7 +46,12 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
         cls.organization.add_user(cls.anotheruser, is_admin=True)
         assets = create_mock_assets([cls.anotheruser], cls.assets_per_user)
 
-        users = baker.make(User, _quantity=cls.user_count - 1, _bulk_create=True)
+        users = baker.make(
+            User,
+            username=iter(cls.names),
+            _quantity=cls.user_count - 1,
+            _bulk_create=True,
+        )
         baker.make(
             OrganizationUser,
             user=users.__iter__(),

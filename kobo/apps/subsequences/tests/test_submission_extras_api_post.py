@@ -31,7 +31,10 @@ class ValidateSubmissionTest(APITestCase):
     def setUp(self):
         user = User.objects.create_user(username='someuser', email='user@example.com')
         self.asset = Asset(
-            owner=user, content={'survey': [{'type': 'audio', 'name': 'q1'}]}
+            owner=user,
+            content={
+                'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]
+            },
         )
         self.asset.advanced_features = {}
         self.asset.save()
@@ -388,7 +391,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='someuser', email='user@example.com')
         self.asset = Asset(
-            content={'survey': [{'type': 'audio', 'label': 'q1'}]}
+            content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]}
         )
         self.asset.advanced_features = {'transcript': {'values': ['q1']}}
         self.asset.owner = self.user
@@ -418,7 +421,6 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             '_uuid': submission_id,
             '_attachments': [
                 {
-                    'id': 1,
                     'filename': 'someuser/audio_conversion_test_clip.3gp',
                     'mimetype': 'video/3gpp',
                 },
@@ -431,10 +433,10 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(FuzzyInt(210, 215)):
+        with self.assertNumQueries(FuzzyInt(55, 65)):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
-        with self.assertNumQueries(FuzzyInt(20, 26)):
+        with self.assertNumQueries(FuzzyInt(25, 35)):
             self.client.post(url, data, format='json')
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})

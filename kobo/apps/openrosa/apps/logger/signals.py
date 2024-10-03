@@ -185,7 +185,7 @@ def update_xform_submission_count(sender, instance, created, **kwargs):
             last_submission_time=instance.date_created,
         )
         # Hack to avoid circular imports
-        UserProfile = User.profile.related.related_model
+        UserProfile = User.profile.related.related_model  # noqa
         profile, created = UserProfile.objects.only('pk').get_or_create(
             user_id=xform.user_id
         )

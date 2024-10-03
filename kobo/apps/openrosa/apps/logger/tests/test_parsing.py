@@ -28,7 +28,6 @@ class TestXFormInstanceParser(TestBase):
             "../fixtures/new_repeats/new_repeats.xls"
         )
         self._publish_xls_file_and_set_xform(xls_file_path)
-        self.assertEqual(self.response.status_code, 201)
 
         # submit an instance
         xml_submission_file_path = os.path.join(
@@ -37,7 +36,6 @@ class TestXFormInstanceParser(TestBase):
             "new_repeats_2012-07-05-14-33-53.xml"
         )
         self._make_submission(xml_submission_file_path)
-        self.assertEqual(self.response.status_code, 201)
 
         # load xml file to parse and compare
         xml_file = open(xml_submission_file_path)
@@ -47,7 +45,7 @@ class TestXFormInstanceParser(TestBase):
     def test_parse_xform_nested_repeats(self):
         self._publish_and_submit_new_repeats()
         parser = XFormInstanceParser(self.xml, self.xform.data_dictionary())
-        dict = parser.to_dict()
+        dict_ = parser.to_dict()
         expected_dict = {
             'new_repeats': {
                 'info':
@@ -70,7 +68,7 @@ class TestXFormInstanceParser(TestBase):
                 'gps': '-1.2627557 36.7926442 0.0 30.0'
             }
         }
-        self.assertEqual(dict, expected_dict)
+        self.assertEqual(dict_, expected_dict)
 
         flat_dict = parser.to_flat_dict()
         expected_flat_dict = {
@@ -160,7 +158,6 @@ class TestXFormInstanceParser(TestBase):
             "../fixtures/new_repeats/new_repeats.xls"
         )
         self._publish_xls_file_and_set_xform(xls_file_path)
-        self.assertEqual(self.response.status_code, 201)
 
         # submit an instance
         xml_submission_file_path = os.path.join(
@@ -169,7 +166,6 @@ class TestXFormInstanceParser(TestBase):
             "multiple_nodes_error.xml"
         )
         self._make_submission(xml_submission_file_path)
-        self.assertEqual(201, self.response.status_code)
 
     def test_xml_repeated_group_to_dict(self):
         xml_file = os.path.join(

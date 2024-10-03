@@ -300,6 +300,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
         self.asset_list_url = reverse(self._get_endpoint('asset-list'))
         self.region_views_url = reverse(self._get_endpoint('projectview-list'))
         asset_country_settings = [
@@ -379,7 +380,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             ['Overview', 'Test view 1']
         )
 
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         # anotheruser should only see view 1 and 2
@@ -413,7 +414,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert asset_countries & region_for_view
 
     def test_project_views_anotheruser_submission_count(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         for asset in Asset.objects.all():
             if asset.has_deployment:
                 submissions = [
@@ -443,7 +444,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert asset_detail_response.data['deployment__submission_count'] == 1
 
     def test_project_views_for_anotheruser(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']
@@ -485,7 +486,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert data_res.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_view_asset_detail(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         user = User.objects.get(username='anotheruser')
         res = self.client.get(self.region_views_url)
         data = res.json()
@@ -511,7 +512,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         self,
     ):
         # get the first asset from the first project view
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         anotheruser = User.objects.get(username='anotheruser')
         proj_view_list = self.client.get(self.region_views_url).data['results']
         first_proj_view = proj_view_list[0]
@@ -593,7 +594,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert snap_response.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_change_metadata(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']

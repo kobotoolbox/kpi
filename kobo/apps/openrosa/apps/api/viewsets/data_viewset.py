@@ -4,8 +4,6 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from kobo_service_account.models import ServiceAccountUser
-from kobo_service_account.utils import get_real_user
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -57,6 +55,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     EnketoError,
     get_enketo_submission_url,
 )
+from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
@@ -325,7 +324,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     >           "timestamp": 1513299978,
     >           "by_whom ": "John Doe",
     >           "uid": "validation_status_approved",
-    >           "color": "#00ff00",
     >           "label: "Approved"
     >       }
 
@@ -352,7 +350,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     >           "timestamp": 1513299978,
     >           "by_whom ": "John Doe",
     >           "uid": "validation_status_not_approved",
-    >           "color": "#ff0000",
     >           "label": "Not Approved"
     >       }
 
@@ -405,14 +402,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     extra_lookup_fields = None
     queryset = XForm.objects.all()
 
-    def get_queryset(self):
-        if isinstance(self.request.user, ServiceAccountUser):
-            # We need to get all xforms (even soft-deleted ones) to
-            # system-account user to let it delete data
-            # when the xform is already soft-deleted.
-            self.queryset = XForm.all_objects.all()
-        return super().get_queryset()
-
     def bulk_delete(self, request, *args, **kwargs):
         """
         Bulk delete instances
@@ -444,7 +433,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     def bulk_validation_status(self, request, *args, **kwargs):
 
         xform = self.get_object()
-        real_user = get_real_user(request)
+        real_user = get_database_user(request.user)
 
         try:
             updated_records_count = set_instance_validation_statuses(
@@ -560,7 +549,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         data = {}
 
         if request.method != 'GET':
-            username = get_real_user(request).username
+            username = get_database_user(request.user).username
             validation_status_uid = request.data.get('validation_status.uid')
             if (
                 request.method == 'PATCH'

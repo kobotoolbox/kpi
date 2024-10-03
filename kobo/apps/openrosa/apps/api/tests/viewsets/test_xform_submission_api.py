@@ -8,7 +8,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django_digest.test import DigestAuth
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
-from kobo_service_account.utils import get_request_headers
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import \
@@ -328,7 +327,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 auth = DigestAuth('alice', 'alicealice')
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
-                self.assertContains(response, 'Forbidden', status_code=403)
+                self.assertContains(response, 'Access denied', status_code=403)
 
     def test_post_submission_require_auth_data_entry_role(self):
 
@@ -383,80 +382,9 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertContains(response, 'No submission key provided.',
-                            status_code=400)
-
-    def test_edit_submission_with_service_account(self):
-        """
-        Simulate KPI duplicating/editing feature, i.e. resubmit existing
-        submission with a different UUID (and a deprecatedID).
-        """
-
-        # Ensure only authenticated users can submit data
-        path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            '..',
-            'fixtures',
-            'transport_submission.json')
-        with open(path, 'rb') as f:
-            data = json.loads(f.read())
-
-            # Submit data as Bob
-            request = self.factory.post(
-                '/submission', data, format='json', **self.extra
-            )
-            response = self.view(request)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-            # Create user without edit permissions ('change_xform' and 'report_xform')
-            alice_data = {
-                'username': 'alice',
-                'password1': 'alicealice',
-                'password2': 'alicealice',
-                'email': 'alice@localhost.com',
-            }
-            self._login_user_and_profile(alice_data)
-
-            new_uuid = f'uuid:{uuid.uuid4()}'
-            data['submission']['meta'] = {
-                'instanceID': new_uuid,
-                'deprecatedID': data['submission']['meta']['instanceID']
-            }
-            # New ODK form. Let's provide a uuid.
-            data['submission'].update({
-                'formhub': {
-                    'uuid': self.xform.uuid
-                }
-            })
-
-            request = self.factory.post(
-                '/submission', data, format='json', **self.extra
-            )
-            response = self.view(request)
-            # Alice should get access forbidden.
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-            # Try to submit with service account user on behalf of alice
-            service_account_meta = self.get_meta_from_headers(
-                get_request_headers('alice')
-            )
-            # Test server does not provide `host` header
-            service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-            request = self.factory.post(
-                '/submission', data, format='json', **service_account_meta
-            )
-            response = self.view(request)
-            self.assertContains(response, 'Successful submission',
-                                status_code=status.HTTP_201_CREATED)
-            self.assertTrue(response.has_header('X-OpenRosa-Version'))
-            self.assertTrue(
-                response.has_header('X-OpenRosa-Accept-Content-Length')
-            )
-            self.assertTrue(response.has_header('Date'))
-            self.assertEqual(response['Content-Type'], 'application/json')
-            self.assertEqual(
-                response['Location'], 'http://testserver/submission'
-            )
+        self.assertContains(
+            response, 'No submission key provided.', status_code=400
+        )
 
     def test_submission_blocking_flag(self):
         # Set 'submissions_suspended' True in the profile metadata to test if

@@ -1,11 +1,11 @@
 # coding: utf-8
 import json
+import uuid
 
 import pytest
 import responses
 from django.conf import settings
 from django.urls import reverse
-from ipaddress import ip_address
 from rest_framework import status
 
 from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON, SUBMISSION_FORMAT_TYPE_XML
@@ -23,16 +23,16 @@ class HookTestCase(KpiTestCase):
         self.asset = self.create_asset(
             "some_asset",
             content=json.dumps({'survey': [
-                {'type': 'text', 'name': 'q1'},
-                {'type': 'begin_group', 'name': 'group1'},
-                {'type': 'text', 'name': 'q2'},
-                {'type': 'text', 'name': 'q3'},
+                {'type': 'text', 'label': 'q1', 'name': 'q1'},
+                {'type': 'begin_group', 'label': 'group1', 'name': 'group1'},
+                {'type': 'text', 'label': 'q2', 'name': 'q2'},
+                {'type': 'text', 'label': 'q3', 'name': 'q3'},
                 {'type': 'end_group'},
-                {'type': 'begin_group', 'name': 'group2'},
-                {'type': 'begin_group', 'name': 'subgroup1'},
-                {'type': 'text', 'name': 'q4'},
-                {'type': 'text', 'name': 'q5'},
-                {'type': 'text', 'name': 'q6'},
+                {'type': 'begin_group', 'label': 'group2', 'name': 'group2'},
+                {'type': 'begin_group', 'label': 'subgroup1', 'name': 'subgroup1'},
+                {'type': 'text', 'label': 'q4', 'name': 'q4'},
+                {'type': 'text', 'label': 'q5', 'name': 'q5'},
+                {'type': 'text', 'label': 'q6', 'name': 'q6'},
                 {'type': 'end_group'},
                 {'type': 'end_group'},
             ]}),
@@ -76,8 +76,9 @@ class HookTestCase(KpiTestCase):
         if return_response_only:
             return response
         else:
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED,
-                             msg=response.data)
+            self.assertEqual(
+                response.status_code, status.HTTP_201_CREATED, msg=response.data
+            )
             hook = self.asset.hooks.last()
             self.assertTrue(hook.active)
             return hook
@@ -151,9 +152,10 @@ class HookTestCase(KpiTestCase):
 
     def __prepare_submission(self):
         v_uid = self.asset.latest_deployed_version.uid
-        submission = {
+        self.submission = {
             '__version__': v_uid,
             'q1': '¿Qué tal?',
+            '_uuid': str(uuid.uuid4()),
             'group1/q2': '¿Cómo está en el grupo uno la primera vez?',
             'group1/q3': '¿Cómo está en el grupo uno la segunda vez?',
             'group2/subgroup1/q4': '¿Cómo está en el subgrupo uno la primera vez?',
@@ -161,4 +163,4 @@ class HookTestCase(KpiTestCase):
             'group2/subgroup1/q6': '¿Cómo está en el subgrupo uno la tercera vez?',
             'group2/subgroup11/q1': '¿Cómo está en el subgrupo once?',
         }
-        self.asset.deployment.mock_submissions([submission])
+        self.asset.deployment.mock_submissions([self.submission])

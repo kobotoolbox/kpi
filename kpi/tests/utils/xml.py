@@ -4,7 +4,7 @@ from lxml import etree
 
 
 def get_form_and_submission_tag_names(form: str, submission: str) -> tuple[str, str]:
-    submission_root_name = etree.fromstring(submission).tag
+    submission_root_name = etree.fromstring(submission.encode()).tag
     tree = etree.ElementTree(etree.fromstring(form))
     root = tree.getroot()
     # We cannot use `root.nsmap` directly because the default namespace key is

@@ -16,10 +16,8 @@ from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
-from kobo.apps.openrosa.libs.models.base_model import BaseModel
 from kobo.apps.openrosa.libs.constants import (
     CAN_ADD_SUBMISSIONS,
     CAN_VALIDATE_XFORM,
@@ -30,6 +28,7 @@ from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
@@ -51,11 +50,11 @@ class XFormAllManager(models.Manager):
     pass
 
 
-class XForm(BaseModel):
+class XForm(models.Model):
     CLONED_SUFFIX = '_cloned'
     MAX_ID_LENGTH = 100
 
-    xls = models.FileField(
+    xls = ExtendedFileField(
         storage=default_storage, upload_to=upload_to, null=True
     )
     json = models.TextField(default='')

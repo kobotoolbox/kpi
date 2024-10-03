@@ -105,8 +105,9 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         collection = self.url_to_obj(response.data['url'])
         return collection
 
-    def create_asset(self, name, content=None, owner=None,
-                     owner_password=None, **kwargs):
+    def create_asset(
+        self, name, content=None, owner=None, owner_password=None, **kwargs
+    ):
         if owner and owner_password:
             if isinstance(owner, str):
                 self.login(owner, owner_password)

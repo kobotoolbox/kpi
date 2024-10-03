@@ -17,18 +17,21 @@ class MongoHelperTestCase(TestCase):
     def add_submissions(self, asset, submissions: list[dict]):
         for submission in submissions:
             submission['__version__'] = asset.latest_deployed_version.uid
-        asset.deployment.mock_submissions(
-            copy.deepcopy(submissions), flush_db=False
-        )
+        asset.deployment.mock_submissions(copy.deepcopy(submissions))
 
     def assert_instances_count(self, instances: tuple, expected_count: int):
         assert instances[1] == expected_count
 
     def test_get_instances(self):
-        users = baker.make(settings.AUTH_USER_MODEL, _quantity=2)
+        names = ('bob', 'alice')
+        users = baker.make(
+            settings.AUTH_USER_MODEL,
+            username=iter(names),
+            _quantity=2,
+        )
         assets = []
-        for user in users:
-            asset = baker.make('kpi.Asset', owner=user)
+        for idx, user in enumerate(users):
+            asset = baker.make('kpi.Asset', owner=user, uid=f'assetUid{idx}')
             asset.deploy(backend='mock', active=True)
             assets.append(asset)
         (asset1, asset2) = assets
@@ -62,8 +65,9 @@ class MongoHelperTestCase(TestCase):
         )
 
     def test_get_instances_permission_filters(self):
-        user = baker.make(settings.AUTH_USER_MODEL)
-        asset = baker.make('kpi.Asset', owner=user)
+        bob = baker.make(settings.AUTH_USER_MODEL, username='bob')
+        alice = baker.make(settings.AUTH_USER_MODEL, username='alice')
+        asset = baker.make('kpi.Asset', owner=bob, uid='assetUid')
         asset.deploy(backend='mock', active=True)
         userform_id = asset.deployment.mongo_userform_id
         submissions = [
