@@ -1615,12 +1615,6 @@ MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-SERVICE_ACCOUNT = {
-    'BACKEND': env.cache_url(
-        'SERVICE_ACCOUNT_BACKEND_URL', default='redis://redis_cache:6380/6'
-    ),
-    'WHITELISTED_HOSTS': env.list('SERVICE_ACCOUNT_WHITELISTED_HOSTS', default=[]),
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -1728,6 +1722,7 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'video/webm',
     'audio/aac',
     'audio/aacp',
+    'audio/3gpp',
     'audio/flac',
     'audio/mp3',
     'audio/mp4',

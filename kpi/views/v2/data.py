@@ -396,7 +396,6 @@ class DataViewSet(
         json_response = deployment.delete_submission(
             submission_id, user=request.user
         )
-
         if json_response['status'] == status.HTTP_204_NO_CONTENT:
             AuditLog.objects.create(
                 app_label='logger',
@@ -531,16 +530,11 @@ class DataViewSet(
         # Join all parameters to be passed to `deployment.get_submissions()`
         params.update(filters)
 
-        # The `get_submissions()` is a generator in KobocatDeploymentBackend
-        # class but a list in MockDeploymentBackend. We cast the result as a list
-        # no matter what is the deployment back-end class to make it work with
-        # both. Since the number of submissions is very small, it should not
-        # have a big impact on memory (i.e. list vs generator)
-        submissions = list(deployment.get_submissions(**params))
+        submissions = deployment.get_submissions(**params)
         if not submissions:
             raise Http404
 
-        submission = submissions[0]
+        submission = list(submissions)[0]
         return Response(submission)
 
     @action(detail=True, methods=['POST'],
@@ -551,7 +545,7 @@ class DataViewSet(
         Creates a duplicate of the submission with a given `pk`
         """
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
+        # Coerce to int because the back end only finds matches with the same type
         submission_id = positive_int(pk)
         duplicate_response = deployment.duplicate_submission(
             submission_id=submission_id, request=request

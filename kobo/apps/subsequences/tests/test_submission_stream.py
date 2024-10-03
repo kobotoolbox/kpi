@@ -85,6 +85,7 @@ class TestSubmissionStream(TestCase):
             },
         )
         self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
 
     def _create_mock_submissions(self):
         self.asset.deployment.mock_submissions(
@@ -95,8 +96,6 @@ class TestSubmissionStream(TestCase):
                     'meta/instanceID': (
                         'uuid:1c05898e-b43c-491d-814c-79595eb84e81'
                     ),
-                    # `MockDeploymentBackend` should probably add `_uuid`, but
-                    # it doesn't. It's going away soon enough, though.
                     '_uuid': '1c05898e-b43c-491d-814c-79595eb84e81',
                 },
             ]
@@ -282,6 +281,3 @@ class TestSubmissionStream(TestCase):
 
                 for v in qual_response['val']:
                     assert isinstance(v['uuid'], str)
-
-        # Clear all mocked submissions to avoid duplicate submission errors
-        self.asset.deployment.mock_submissions([])

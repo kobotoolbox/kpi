@@ -26,6 +26,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     safe_create_instance,
     UnauthenticatedEditAttempt,
 )
+from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
 from kpi.authentication import DigestAuthentication
 from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
@@ -37,25 +38,11 @@ def is_json(request):
     return 'application/json' in request.content_type.lower()
 
 
-def dict_lists2strings(d):
-    """Convert lists in a dict to joined strings.
-
-    :param d: The dict to convert.
-    :returns: The converted dict."""
-    for k, v in d.items():
-        if isinstance(v, list) and all([isinstance(e, str) for e in v]):
-            d[k] = ' '.join(v)
-        elif isinstance(v, dict):
-            d[k] = dict_lists2strings(v)
-
-    return d
-
-
 def create_instance_from_xml(username, request):
     xml_file_list = request.FILES.pop('xml_submission_file', [])
     xml_file = xml_file_list[0] if len(xml_file_list) else None
     media_files = request.FILES.values()
-    return safe_create_instance(username, xml_file, media_files, None, request)
+    return safe_create_instance(username, xml_file, media_files, None, request=request)
 
 
 def create_instance_from_json(username, request):
@@ -73,7 +60,7 @@ def create_instance_from_json(username, request):
     xml_string = dict2xform(submission_joined, dict_form.get('id'))
 
     xml_file = io.StringIO(xml_string)
-    return safe_create_instance(username, xml_file, [], None, request)
+    return safe_create_instance(username, xml_file, [], None, request=request)
 
 
 class XFormSubmissionApi(
