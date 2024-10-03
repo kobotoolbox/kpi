@@ -1866,7 +1866,6 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         assert submission_xml.startswith(
             '<?xml version="1.0" encoding="utf-8"?>'
         )
-        breakpoint()
         self.test_duplicate_submission_as_owner_allowed()
 
     def test_duplicate_submission_without_xml_encoding(self):
