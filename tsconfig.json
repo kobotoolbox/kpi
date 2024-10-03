@@ -28,9 +28,6 @@
     "jsx": "react-jsx",
     "plugins": [{ "name": "typescript-plugin-css-modules"}]
   },
-  "ts-node": {
-    "swc": true
-  },
   "include": [
     "jsapp/**/*.ts",
     "jsapp/**/*.tsx"
