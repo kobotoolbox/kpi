@@ -21,6 +21,7 @@ from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kpi.constants import (
@@ -124,13 +125,6 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions_submitted_by_anotheruser = submissions[4:6]
         self.submissions = submissions
 
-    def _log_in_as_another_user(self):
-        """
-        Helper to switch user from `someuser` to `anotheruser`.
-        """
-        self.client.logout()
-        self.client.login(username='anotheruser', password='anotheruser')
-
 
 class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
 
@@ -212,7 +206,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         anotheruser cannot view someuser's data, therefore cannot delete it.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {'payload': {'confirm': True}}
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
@@ -227,7 +221,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         """
 
         self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {'payload': {'confirm': True}}
 
         response = self.client.delete(self.submission_bulk_url,
@@ -246,7 +240,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         Test that anotheruser can delete all their data at once and if they do,
         only delete their data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -298,7 +292,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
 
         Test that anotheruser can delete part of their data
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -345,7 +339,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
 
         Test that anotheruser cannot delete someuser's data
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}],
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]  # view_submission is implied
@@ -418,7 +412,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
         # Shared
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -507,7 +501,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser cannot view someuser's data.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -517,7 +511,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has view access on someuser's data. They can view all
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_ids = [r['_id'] for r in response.data.get('results')]
@@ -530,7 +524,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has partial view access on someuser's project.
         They can view only the data they submitted to someuser's project.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -583,7 +577,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         """
 
         anonymous_user = get_anonymous_user()
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         # Give the user who will access the public data--without any explicit
         # permission assignment--their own asset. This is needed to expose a
@@ -605,7 +599,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         unable to view submission data.
         """
 
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         anonymous_user = get_anonymous_user()
 
         assert not self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
@@ -652,14 +646,17 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         question = 'q3'
         submission[group] = [
             {
-                f'{question}': 'whap.gif',
+                f'{group}/{question}': 'whap.gif',
             },
+            {
+                f'{group}/{question}': 'whop.gif',
+            }
         ]
+
         self.asset.deployment.mock_submissions([submission])
 
-        # FIXME with attachments
         data = {
-            'query': f'{{"{group}/{question}":{{"$exists":true}}}}',
+            'query': f'{{"{group}":{{"$elemMatch":{{"{group}/{question}":{{"$exists":true}}}}}}}}',
             'format': 'json',
         }
         response = self.client.get(self.submission_list_url, data)
@@ -711,7 +708,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has no access to someuser's data
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
@@ -729,7 +726,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has view access to someuser's data.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
@@ -748,7 +745,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has partial view access to someuser's data.
         They can only see their own data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -875,7 +872,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser cannot view someuser's data, therefore they cannot delete it.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
@@ -895,7 +892,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser can view someuser's data but they cannot delete it.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),
@@ -926,7 +923,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has partial access to someuser's data.
         anotheruser can only view/delete their data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -1090,7 +1087,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         asset.deployment.mock_submissions([submission])
         asset.deployment.set_namespace(self.URL_NAMESPACE)
 
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
@@ -1109,16 +1106,22 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             'group_ec9yq67/group_dq8as25[1]/group_xt0za80[2]/my_attachment',
             'group_ec9yq67/group_dq8as25[2]/group_xt0za80[1]/my_attachment'
         ]
+
+        submission_id = submission['_id']
+        attachment_0_id = submission['_attachments'][0]['id']
+        attachment_1_id = submission['_attachments'][1]['id']
+        attachment_2_id = submission['_attachments'][2]['id']
+
         expected_new_download_urls = [
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + '/data/1000/attachments/1/?format=json',
+            + f"/data/{submission_id}/attachments/{attachment_0_id}/?format=json",
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + '/data/1000/attachments/2/?format=json',
+            + f"/data/{submission_id}/attachments/{attachment_1_id}/?format=json",
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + '/data/1000/attachments/3/?format=json',
+            + f"/data/{submission_id}/attachments/{attachment_2_id}/?format=json",
         ]
 
         for idx, attachment in enumerate(attachments):
@@ -1246,7 +1249,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         anotheruser cannot view the project, therefore cannot edit data.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -1257,7 +1260,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_url, {'format': 'json'})
 
         # FIXME if anotheruser has view permissions, they should receive a 403
@@ -1271,7 +1274,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         anotheruser can retrieve enketo edit link
         """
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         ee_url = (
             f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
@@ -1294,7 +1297,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         anotheruser has partial permissions on someuser's data
         anotheruser can only view/edit their own data
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -1786,7 +1789,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         anotheruser cannot view the project, therefore cannot retrieve enketo link.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -1798,7 +1801,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         anotheruser can retrieve enketo view link.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         ee_url = (
             f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
@@ -1820,7 +1823,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         anotheruser has partial view permissions on someuser's data
         anotheruser can only view their own data
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -1955,6 +1958,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         someuser is the owner of the project.
         someuser is allowed to duplicate their own data
         """
+        print('URL :', self.submission_url, flush=True)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
@@ -1970,6 +1974,22 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         )
         self.test_duplicate_submission_as_owner_allowed()
 
+    def test_duplicate_submission_without_xml_encoding(self):
+        submission_xml = self.asset.deployment.get_submissions(
+            user=self.asset.owner,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            submission_ids=[self.submission['_id']],
+        )[0]
+        assert submission_xml.startswith(
+            '<?xml version="1.0" encoding="utf-8"?>'
+        )
+        Instance.objects.filter(pk=self.submission['_id']).update(
+            xml=submission_xml.replace(
+                '<?xml version="1.0" encoding="utf-8"?>', ''
+            )
+        )
+        self.test_duplicate_submission_as_owner_allowed()
+
     def test_duplicate_submission_as_anotheruser_not_allowed(self):
         """
         someuser is the owner of the project.
@@ -1977,7 +1997,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         anotheruser has no access to someuser's data and someuser's data existence
         should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -2000,7 +2020,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         edit/duplicate someuser's data.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -2012,7 +2032,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         someuser's data.
         """
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
@@ -2027,7 +2047,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         """
         for perm in [PERM_VIEW_SUBMISSIONS, PERM_ADD_SUBMISSIONS]:
             self.asset.assign_perm(self.anotheruser, perm)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -2038,7 +2058,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         anotheruser has partial change submissions permissions.
         They can edit/duplicate their own data only.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         partial_perms = {
             PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
@@ -2200,7 +2220,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         anotheruser cannot access someuser's data.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
         )
@@ -2227,7 +2247,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         update someuser's data
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
         )
@@ -2240,7 +2260,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         anotheruser can edit view someuser's data
         """
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
         )
@@ -2253,7 +2273,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         The project is partially shared with anotheruser
         anotheruser can only edit their own data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         # Allow anotheruser to update their own data
         partial_perms = {
@@ -2315,7 +2335,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser has no access to someuser's data.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -2327,7 +2347,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser can view validation status of submissions.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {})
@@ -2364,7 +2384,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         validation status.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.delete(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -2376,7 +2396,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser can delete validation status of the project.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.delete(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -2421,7 +2441,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         validate them.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.patch(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -2433,7 +2453,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser can edit validation status of the project.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'validation_status.uid': 'validation_status_not_approved'
         }
@@ -2464,7 +2484,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser has partial access to someuser's data.
         anotheruser can only view and validate their data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VALIDATE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -2523,6 +2543,17 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
             kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
         )
 
+        # Ensure all submissions have no validation status
+        response = self.client.get(
+            self.submission_list_url, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        emptied = [
+            not s['_validation_status']
+            for s in response.data['results']
+        ]
+        self.assertTrue(all(emptied))
+
         # Make the owner change validation status of all submissions
         data = {
             'payload': {
@@ -2534,6 +2565,18 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
             self.validation_statuses_url, data=data, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_all_validation_statuses_applied(self):
+        # ensure all submissions are not approved
+        response = self.client.get(
+            self.submission_list_url, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        applied = [
+            s['_validation_status']['uid'] == 'validation_status_not_approved'
+            for s in response.data['results']
+        ]
+        self.assertTrue(all(applied))
 
     def test_delete_all_status_as_owner(self):
         """
@@ -2606,7 +2649,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         bulk delete the validation status of them.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'payload': {
                 'validation_status.uid': None,
@@ -2628,7 +2671,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         """
 
         self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'payload': {
                 'validation_status.uid': None,
@@ -2753,7 +2796,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         bulk edit the validation status of them.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',
@@ -2775,7 +2818,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         at once.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',
@@ -2830,7 +2873,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         `confirm=true` must be sent when the request alters all their submissions
         at once.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VALIDATE_SUBMISSIONS: [
                 {'_submitted_by': 'anotheruser'}]
@@ -2884,7 +2927,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         The project is partially shared with anotheruser.
         anotheruser can only validate their own data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VALIDATE_SUBMISSIONS: [
                 {'_submitted_by': 'anotheruser'}]

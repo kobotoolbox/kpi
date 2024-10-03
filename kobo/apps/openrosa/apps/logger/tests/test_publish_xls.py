@@ -13,6 +13,7 @@ from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.logger_tools import report_exception
 
+
 class TestPublishXLS(TestBase):
 
     def test_publish_xls(self):

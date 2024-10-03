@@ -34,7 +34,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.views.v2.paired_data import (
-    PairedDataViewset,
+    OpenRosaDynamicDataAttachmentViewset,
     SubmissionXMLRenderer,
     XMLExternalDataPermission,
 )
@@ -170,11 +170,10 @@ def get_media_file_response(
     args = resolver_match.args
     kwargs = resolver_match.kwargs
 
-    paired_data_viewset = PairedDataViewset.as_view({'get': 'external'})
+    paired_data_viewset = OpenRosaDynamicDataAttachmentViewset.as_view(
+        {'get': 'external'}
+    )
     django_http_request = request._request
-    paired_data_viewset.cls.permission_classes = [XMLExternalDataPermission]
-    paired_data_viewset.cls.renderer_classes = [SubmissionXMLRenderer]
-    paired_data_viewset.cls.filter_backends = []
     return paired_data_viewset(request=django_http_request, *args, **kwargs)
 
 

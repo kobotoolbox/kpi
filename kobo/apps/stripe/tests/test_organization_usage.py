@@ -1,5 +1,4 @@
 import timeit
-import itertools
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -59,7 +58,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
 
         users = baker.make(
             User,
-            username=itertools.cycle(cls.names),
+            username=iter(cls.names),
             _quantity=cls.user_count - 1,
             _bulk_create=True,
         )

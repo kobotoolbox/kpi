@@ -34,7 +34,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
 
     def test_list_submissions_shared_as_anotheruser(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_ids = [s['_id'] for s in self.submissions]
@@ -115,7 +115,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
 
     def test_delete_submission_shared_as_anotheruser(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         submission = self.submissions_submitted_by_someuser[0]
         url = reverse(
             self._get_endpoint('submission-detail'),

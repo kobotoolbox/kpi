@@ -261,12 +261,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     ) -> dict:
         """
         Duplicates a single submission. The submission with the given
-        `submission_id` is duplicated and the `start`, `end` and
+        `submission_id` is duplicated, and the `start`, `end` and
         `instanceID` parameters of the submission are reset before being
-        saving the instance.
+        saved to the instance.
 
-        Returns a dict with uuid of created
-        submission if successful
+        Returns the duplicated submission (if successful)
         """
 
         user = request.user
@@ -312,6 +311,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid_formatted
         )
 
+        # create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         instance = create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
@@ -320,7 +321,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             request=request,
         )
 
-        # Cast to list to help unit tests to pass.
         return self._rewrite_json_attachment_urls(
             self.get_submission(submission_id=instance.pk, user=user), request
         )
@@ -383,6 +383,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Request.
         xml_submission_file.seek(0)
 
+        # create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         return create_instance(
             username=user.username,
             xml_file=xml_submission_file,
@@ -1107,6 +1109,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 media_file for media_file in attachments.values()
             )
 
+        # create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         return create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_submission),

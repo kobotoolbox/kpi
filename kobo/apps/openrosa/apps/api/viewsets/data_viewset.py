@@ -402,9 +402,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     extra_lookup_fields = None
     queryset = XForm.objects.all()
 
-    def get_queryset(self):
-        return super().get_queryset()
-
     def bulk_delete(self, request, *args, **kwargs):
         """
         Bulk delete instances

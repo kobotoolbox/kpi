@@ -15,7 +15,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     create_instance,
 )
 from kpi.constants import PERM_ADD_SUBMISSIONS, SUBMISSION_FORMAT_TYPE_JSON
-from kpi.tests.utils.dicts import nested_dict_from_keys
+from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
 from .openrosa_backend import OpenRosaDeploymentBackend
 from ..utils.files import ExtendedContentFile
 
@@ -56,6 +56,20 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
 
         Read test data and convert it to proper XML to be saved as a real
         Instance object.
+
+        1. Each item in the iterable submissions must be a dictionary following
+           the format of the JSON returned by the data API.
+        2. The submissions are mutated to include submission and attachments
+           PKs (relatively `_id`, and `_attachments[index]['id']`) after being
+           saved in the database.
+        3. If `_submitted_by` is present in a submission, the submission is made
+           by the user identified there, even if that user must (temporarily) be
+           granted permission to submit to `self.asset`.
+        4. `meta/instanceID` is added to any submission where it's missing if
+           `create_uuids` is `True`.
+        5. If `_submission_time` is present in the submission, it is preserved by
+           overriding the normal logic that populates this field with the current
+           timestamp at the moment of submission.
         """
 
         class FakeRequest:
@@ -65,7 +79,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
         owner_username = self.asset.owner.username
 
         for submission in submissions:
-            sub_copy = nested_dict_from_keys(submission)
+            sub_copy = convert_hierarchical_keys_to_nested_dict(submission)
 
             if create_uuids:
                 if 'formhub/uuid' not in submission:
