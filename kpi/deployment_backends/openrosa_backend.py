@@ -285,12 +285,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     ) -> dict:
         """
         Duplicates a single submission. The submission with the given
-        `submission_id` is duplicated and the `start`, `end` and
+        `submission_id` is duplicated, and the `start`, `end` and
         `instanceID` parameters of the submission are reset before being
-        saving the instance.
+        saved to the instance.
 
-        Returns a dict with uuid of created
-        submission if successful
+        Returns the duplicated submission (if successful)
         """
 
         user = request.user
@@ -337,6 +336,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         # TODO Handle errors returned by safe_create_instance
+        # (safe_)create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         error, instance = safe_create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
@@ -345,7 +346,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             request=request,
         )
 
-        # Cast to list to help unit tests to pass.
         return self._rewrite_json_attachment_urls(
             self.get_submission(user=user, submission_id=instance.pk), request
         )
@@ -416,6 +416,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         # TODO Handle errors returned by safe_create_instance
+        # (safe_)create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         safe_create_instance(
             username=user.username,
             xml_file=xml_submission_file,
@@ -1148,6 +1150,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 media_file for media_file in attachments.values()
             )
 
+        # (safe_)create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         return safe_create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_submission),

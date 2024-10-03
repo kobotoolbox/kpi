@@ -575,9 +575,6 @@ class XFormViewSet(
 
         return Response(survey, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_queryset(self):
-        return super().get_queryset()
-
     def update(self, request, pk, *args, **kwargs):
         if 'xls_file' in request.FILES:
             # A new XLSForm has been uploaded and will replace the existing

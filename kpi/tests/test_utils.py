@@ -1,4 +1,3 @@
-# coding: utf-8
 import os
 import re
 from copy import deepcopy
@@ -12,6 +11,7 @@ from kpi.exceptions import (
     SearchQueryTooShortException,
     QueryParserNotSupportedFieldLookup,
 )
+from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
@@ -24,6 +24,145 @@ from kpi.utils.xml import (
     strip_nodes,
     xml_tostring,
 )
+
+
+class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
+
+    def test_regular_group(self):
+        dict_ = {
+            'group_lx4sf58/question_1': 'answer_1',
+            'group_lx4sf58/question_2': 'answer_2'
+        }
+
+        expected = {
+            'group_lx4sf58': {
+                'question_1': 'answer_1',
+                'question_2': 'answer_2'
+            }
+        }
+
+        assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
+
+    def test_nested_groups(self):
+        dict_ = {
+            'parent_group/middle_group/inner_group/question_1': 'answer_1'
+        }
+
+        expected = {
+            'parent_group': {
+                'middle_group': {
+                    'inner_group': {
+                        'question_1': 'answer_1'
+                    }
+                }
+            }
+        }
+
+        assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
+
+    def test_nested_repeated_groups(self):
+        dict_ = {
+            'formhub/uuid': '61b5029a4d2e42b49a12b9a18c22449f',
+            'group_lq3wx73': [
+                {
+                    'group_lq3wx73/middle_group': [
+                        {
+                            'group_lq3wx73/middle_group/middle_q': 'middle 1.1.1.1',
+                            'group_lq3wx73/middle_group/inner_group': [
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner 1.1.1.1'
+                                },
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner 1.1.1.2'
+                                },
+                            ],
+                        },
+                        {
+                            'group_lq3wx73/middle_group/middle_q': 'middle 1.1.2.1',
+                            'group_lq3wx73/middle_group/inner_group': [
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner 1.1.2.1'
+                                },
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner 1.1.2.1'
+                                },
+                            ],
+                        },
+                    ]
+                },
+                {
+                    'group_lq3wx73/middle_group': [
+                        {
+                            'group_lq3wx73/middle_group/middle_q': 'middle 1.2.1.1',
+                            'group_lq3wx73/middle_group/inner_group': [
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner_q 1.2.1.1'
+                                }
+                            ],
+                        }
+                    ]
+                },
+            ],
+        }
+
+        expected = {
+            'formhub': {'uuid': '61b5029a4d2e42b49a12b9a18c22449f'},
+            'group_lq3wx73': [
+                {
+                    'middle_group': [
+                        {
+                            'middle_q': 'middle 1.1.1.1',
+                            'inner_group': [
+                                {'inner_q': 'inner 1.1.1.1'},
+                                {'inner_q': 'inner 1.1.1.2'},
+                            ],
+                        },
+                        {
+                            'middle_q': 'middle 1.1.2.1',
+                            'inner_group': [
+                                {'inner_q': 'inner 1.1.2.1'},
+                                {'inner_q': 'inner 1.1.2.1'},
+                            ],
+                        },
+                    ]
+                },
+                {
+                    'middle_group': [
+                        {
+                            'middle_q': 'middle 1.2.1.1',
+                            'inner_group': [
+                                {'inner_q': 'inner_q 1.2.1.1'}
+                            ],
+                        }
+                    ]
+                },
+            ],
+        }
+        assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
+
+    def test_nested_repeated_groups_in_group(self):
+        dict_ = {
+            'people/person': [
+                {
+                    'people/person/name': 'Julius Caesar',
+                    'people/person/age': 55,
+                },
+                {
+                    'people/person/name': 'Augustus',
+                    'people/person/age': 75,
+                },
+            ],
+        }
+
+        expected = {
+            'people': {
+                'person': [
+                    {'name': 'Julius Caesar', 'age': 55},
+                    {'name': 'Augustus', 'age': 75}
+                ]
+            }
+        }
+        assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
 
 
 class UtilsTestCase(TestCase):

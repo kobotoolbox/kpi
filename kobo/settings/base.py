@@ -1722,6 +1722,7 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'video/webm',
     'audio/aac',
     'audio/aacp',
+    'audio/3gpp',
     'audio/flac',
     'audio/mp3',
     'audio/mp4',
