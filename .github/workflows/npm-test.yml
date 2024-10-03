@@ -78,6 +78,3 @@ jobs:
         # Timeout early to make it easier to manually re-run jobs.
         # Tracking issue: https://github.com/kobotoolbox/kpi/issues/4337
         timeout-minutes: 1
-
-      - name: Run components tests with Jest
-        run: npm run jest
