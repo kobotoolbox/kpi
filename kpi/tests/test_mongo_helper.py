@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import itertools
 
 from django.conf import settings
 from django.test import TestCase
@@ -27,7 +26,7 @@ class MongoHelperTestCase(TestCase):
         names = ('bob', 'alice')
         users = baker.make(
             settings.AUTH_USER_MODEL,
-            username=itertools.cycle(names),
+            username=iter(names),
             _quantity=2,
         )
         assets = []

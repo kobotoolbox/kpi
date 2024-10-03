@@ -545,7 +545,7 @@ class DataViewSet(
         Creates a duplicate of the submission with a given `pk`
         """
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
+        # Coerce to int because the back end only finds matches with the same type
         submission_id = positive_int(pk)
         duplicate_response = deployment.duplicate_submission(
             submission_id=submission_id, request=request

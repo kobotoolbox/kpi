@@ -134,13 +134,10 @@ class Instance(models.Model):
         if self.xform and not self.xform.downloadable:
             raise FormInactiveError()
 
-        # FIXME Access `self.xform.user.profile` directly could raise a
-        #   `RelatedObjectDoesNotExist` error if profile does not exist even if
-        #   wrapped in try/except
         UserProfile = apps.get_model('main', 'UserProfile')  # noqa - Avoid circular imports
-        if profile := UserProfile.objects.filter(user=self.xform.user).first():
-            if profile.metadata.get('submissions_suspended', False):
-                raise TemporarilyUnavailableError()
+        profile, created = UserProfile.objects.get_or_create(user=self.xform.user)
+        if not created and profile.metadata.get('submissions_suspended', False):
+            raise TemporarilyUnavailableError()
         return
 
     def _set_geom(self):

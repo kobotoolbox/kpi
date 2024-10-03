@@ -1,5 +1,4 @@
 import timeit
-import itertools
 
 import pytest
 from django.core.cache import cache
@@ -49,7 +48,7 @@ class OrganizationServiceUsageAPITestCase(ServiceUsageAPIBase):
 
         users = baker.make(
             User,
-            username=itertools.cycle(cls.names),
+            username=iter(cls.names),
             _quantity=cls.user_count - 1,
             _bulk_create=True,
         )

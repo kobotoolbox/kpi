@@ -4,13 +4,8 @@ import time
 import uuid
 
 from django.conf import settings
-from django.utils import timezone
 from model_bakery import baker
 
-from kobo.apps.openrosa.apps.logger.models import (
-    DailyXFormSubmissionCounter,
-    XForm,
-)
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -48,7 +43,7 @@ def create_mock_assets(users: list, assets_per_user: int = 1):
             owner=user,
             asset_type='survey',
             name='test',
-            uid=itertools.cycle(_get_uid(assets_per_user)),
+            uid=iter(_get_uid(assets_per_user)),
             _quantity=assets_per_user,
         )
 
@@ -105,6 +100,5 @@ def add_mock_submissions(assets: list, submissions_per_asset: int = 1):
 
         asset.deployment.mock_submissions(asset_submissions)
         all_submissions = all_submissions + asset_submissions
-        # update_xform_counters(asset, submissions=submissions_per_asset)
 
     return all_submissions
