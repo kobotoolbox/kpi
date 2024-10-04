@@ -176,6 +176,12 @@ export function archiveAsset(
           dialog.destroy();
         }
       );
+      // Prevent the default alertify behaviour of trying to close the dialog.
+      // I suspect (a guess) that there is some race condition and that
+      // sometimes when `actions.resources.setDeploymentActive` finishes,
+      // the `dialog.destroy` can't find something and crashes with:
+      // `Uncaught TypeError: instance.__internal is undefined`
+      return false;
     },
     oncancel: () => {
       dialog.destroy();
