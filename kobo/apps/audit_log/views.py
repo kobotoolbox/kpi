@@ -4,9 +4,9 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from kpi.filters import SearchFilter
 from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
-from .models import AccessLog, AuditAction, AuditLog
+from .models import AccessLog, AuditLog
 from .permissions import SuperUserPermission
-from .serializers import AuditLogSerializer
+from .serializers import AccessLogSerializer, AuditLogSerializer
 
 
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -92,56 +92,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
     Lists all access logs for all users. Only available to superusers.
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/all
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/all
-
-    > Response 200
-
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                   "app_label": "kobo_auth",
-    >                    "model_name": "User",
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
-    >                    "username": "admin",
-    >                    "action": "AUTH",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "Digest",
-    >                        "ip_address": "172.18.0.6"
-    >                   },
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                    "log_type": "access"
-    >                },
-    >                ...
-    >           ]
-    >       }
-
-    This endpoint can be filtered and paginated the same as the /audit-logs endpoint
-
-    """
-
-    queryset = (
-        AccessLog.objects.select_related('user')
-        .filter(action=AuditAction.AUTH)
-        .order_by('-date_created')
-    )
-
-
-class AccessLogViewSet(AuditLogViewSet):
-    """
-    Access logs
-
-    Lists all access logs for the authenticated user
+    Submissions will be grouped together by hour
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/
@@ -159,19 +110,79 @@ class AccessLogViewSet(AuditLogViewSet):
     >           "previous": null,
     >           "results": [
     >                {
-    >                   "app_label": "kobo_auth",
-    >                    "model_name": "User",
     >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
+    >                    "user_uid": "u12345",
     >                    "username": "admin",
-    >                    "action": "AUTH",
+    >                    "metadata": {
+    >                        "source": "Firefox (Ubuntu)",
+    >                        "auth_type": "Digest",
+    >                        "ip_address": "172.18.0.6"
+    >                   },
+    >                    "date_created": "2024-08-19T16:48:58Z",
+    >                },
+    >                {
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "u12345",
+    >                    "username": "admin",
+    >                    "metadata": {
+    >                        "auth_type": "submission-group",
+    >                    },
+    >                    "date_created": "2024-08-19T16:00:00Z"
+    >                },
+    >                ...
+    >           ]
+    >       }
+
+    This endpoint can be filtered and paginated the same as the /audit-logs endpoint
+
+    """
+
+    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
+    serializer_class = AccessLogSerializer
+
+
+class AccessLogViewSet(AuditLogViewSet):
+    """
+    Access logs
+
+    Lists all access logs for the authenticated user
+
+    Submissions will be grouped together by hour
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/access-logs/me
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/access-logs/me
+
+    > Response 200
+
+    >       {
+    >           "count": 10,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >                {
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "u12345",
+    >                    "username": "admin",
     >                    "metadata": {
     >                        "source": "Firefox (Ubuntu)",
     >                        "auth_type": "Digest",
     >                        "ip_address": "172.18.0.6"
     >                    },
     >                    "date_created": "2024-08-19T16:48:58Z"
-    >                    "log_type": "access"
+    >                },
+    >                {
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "u12345",
+    >                    "username": "admin",
+    >                    "metadata": {
+    >                        "auth_type": "submission-group",
+    >                    },
+    >                    "date_created": "2024-08-19T16:00:00Z"
     >                },
     >                ...
     >           ]
@@ -184,6 +195,7 @@ class AccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = AccessLog.objects.select_related('user').order_by('-date_created')
+    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
+    serializer_class = AccessLogSerializer

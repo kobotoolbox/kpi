@@ -108,18 +108,8 @@ class GoogleService(ABC):
                 return response
 
     @abstractmethod
-    def process_data(self, qpath: str, options: dict) -> dict:
+    def process_data(self, xpath: str, options: dict) -> dict:
         pass
-
-    def qpath_to_xpath(self, qpath: str) -> str:
-        xpath = None
-        for row in self.asset.content['survey']:
-            if '$qpath' in row and '$xpath' in row and row['$qpath'] == qpath:
-                xpath = row['$xpath']
-                break
-        if xpath is None:
-            raise KeyError(f'xpath for {qpath=} not found')
-        return xpath
 
     def update_counters(self, amount) -> None:
         update_nlp_counter(
