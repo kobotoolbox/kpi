@@ -1,4 +1,3 @@
-# coding: utf-8
 import mimetypes
 import os
 import requests
@@ -15,12 +14,13 @@ from django.utils import timezone
 from requests.exceptions import RequestException
 
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.hash import calculate_hash
+
 
 CHUNK_SIZE = 1024
 
@@ -196,12 +196,14 @@ class MetaData(AbstractTimeStampedModel):
         string, if the file is a reference to a remote URL) when synchronizing
         form media.
         """
-        if self.file_hash:
-            return self.file_hash
 
         if self.data_file:
+
+            if self.file_hash:
+                return self.file_hash
+
             try:
-                self.file_hash = get_hash(self.data_file, prefix=True)
+                self.file_hash = calculate_hash(self.data_file, prefix=True)
             except (IOError, FileNotFoundError) as e:
                 return ''
             else:
@@ -211,9 +213,14 @@ class MetaData(AbstractTimeStampedModel):
             return ''
 
         # Object should be a URL at this point `POST`ed by KPI.
+
+        # Verify first whether it is dynamic external XML.
+        if self.is_paired_data:
+            return self.file_hash
+
         # We have to set the hash
         try:
-            self.file_hash = get_hash(self.data_value, prefix=True, fast=True)
+            self.file_hash = calculate_hash(self.data_value, prefix=True)
         except RequestException as e:
             return ''
         else:

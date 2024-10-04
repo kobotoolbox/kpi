@@ -3,6 +3,7 @@ from django.urls import path
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.audit_log.urls import router as audit_log_router
+from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.languages.urls import router as language_router
@@ -132,6 +133,7 @@ hook_routes.register(r'logs',
                      basename='hook-log',
                      parents_query_lookups=['asset', 'hook'],
                      )
+asset_routes.register(r'history', ProjectHistoryLogViewSet, basename='project-history', parents_query_lookups=['asset'])
 
 router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
 router_api_v2.register(r'asset_subscriptions',

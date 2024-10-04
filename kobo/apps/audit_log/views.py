@@ -2,11 +2,20 @@ from rest_framework import mixins, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
 from kpi.filters import SearchFilter
-from kpi.permissions import IsAuthenticated
+from kpi.permissions import IsAuthenticated, AssetNestedObjectPermission
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from .filters import AccessLogPermissionsFilter
+<<<<<<< HEAD
 from .models import AccessLog, AuditLog
 from .permissions import SuperUserPermission
 from .serializers import AccessLogSerializer, AuditLogSerializer
+=======
+from .models import AccessLog, AuditAction, AuditLog, ProjectHistoryLog
+from .permissions import SuperUserPermission
+from .serializers import AuditLogSerializer
+from rest_framework_extensions.mixins import NestedViewSetMixin
+
+>>>>>>> 90e227c8a (feat: add project history endpoints)
 
 
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -199,3 +208,14 @@ class AccessLogViewSet(AuditLogViewSet):
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
+
+
+class AllProjectHistoryLogViewSet(AuditLogViewSet):
+    queryset = ProjectHistoryLog.objects.select_related('user').order_by('-date_created')
+
+class ProjectHistoryLogViewSet(AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin):
+    permission_classes = (AssetNestedObjectPermission,)
+    lookup_field = "uid"
+    model = ProjectHistoryLog
+    def get_queryset(self):
+        return self.model.objects.filter(metadata__asset_uid=self.asset.uid)
