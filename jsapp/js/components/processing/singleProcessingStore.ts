@@ -922,7 +922,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranslation(languageCode: string) {
-    this.data.isFetchingData = true;
+    this.data.isPollingForTranslation = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
