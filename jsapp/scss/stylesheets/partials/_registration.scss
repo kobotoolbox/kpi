@@ -260,7 +260,7 @@
   }
 
   span.required {
-    color: colors.$kobo-red;
+    color: colors.$kobo-mid-red;
     margin-left: 3px;
   }
 
@@ -378,7 +378,7 @@ form.registration--login > p > span.helptext{
 
 .error-message {
   font-size: variables.$base-font-size;
-  color: colors.$kobo-red;
+  color: colors.$kobo-mid-red;
   background-color: rgba(colors.$kobo-mid-red, 0.075);
 }
 
