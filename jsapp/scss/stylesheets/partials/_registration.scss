@@ -54,7 +54,8 @@
     }
 
     hr {
-      border-top: 1px solid colors.$kobo-storm;
+      border-top: 1px solid colors.$kobo-light-storm;
+      opacity: 0.4;
     }
 
     // accounts/{{provider}}/login variant
