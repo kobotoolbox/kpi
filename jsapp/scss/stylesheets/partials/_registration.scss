@@ -444,6 +444,14 @@ form.registration--login > p > span.helptext{
       order: 2;
     }
 
+    .registration__legal {
+      order: 4;
+      &::before {
+        border-top: none;
+        margin-top: 0;
+      }
+    }
+
     div.field {
       margin-bottom: 12px;
     }
