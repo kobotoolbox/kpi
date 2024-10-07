@@ -95,12 +95,12 @@ class AllAccessLogViewSet(AuditLogViewSet):
     Submissions will be grouped together by hour
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/all
+    <b>GET</b> /api/v2/access-logs/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/access-logs/all
+    >       curl -X GET https://[kpi-url]/access-logs/
 
     > Response 200
 
@@ -150,12 +150,12 @@ class AccessLogViewSet(AuditLogViewSet):
     Submissions will be grouped together by hour
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/
+    <b>GET</b> /api/v2/access-logs/me
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/access-logs/
+    >       curl -X GET https://[kpi-url]/access-logs/me
 
     > Response 200
 

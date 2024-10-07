@@ -2,9 +2,9 @@ from collections import defaultdict
 from copy import deepcopy
 
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
-from ..actions.translation import TranslationAction
 from ..actions.qual import QualAction
-
+from ..actions.translation import TranslationAction
+from .deprecation import get_sanitized_advanced_features, get_sanitized_dict_keys
 
 AVAILABLE_ACTIONS = (
     AutomaticTranscriptionAction,
@@ -43,7 +43,6 @@ SUBMISSION_UUID_FIELD = 'meta/rootUuid'
 
 
 def advanced_feature_instances(content, actions):
-    action_instances = []
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
         if action_params is True:
@@ -74,7 +73,7 @@ def populate_paths(_content):
             logging.error('missing row name', extra={'path': group_stack})
         # /HOTFIX 2022-12-06
 
-        row['qpath'] = '-'.join([*group_stack, rowname])
+        row['xpath'] = '/'.join([*group_stack, rowname])
     return content
 
 
@@ -84,10 +83,10 @@ def advanced_submission_jsonschema(content, actions, url=None):
     content = populate_paths(content)
     # devhack: this keeps serializer from breaking when old params
     # are still in the database
-    if 'translated' in actions: # migration
+    if 'translated' in actions:  # migration
         actions['translation'] = actions['translated']  # migration
         assert 'languages' in actions['translation']
-        del actions['translated'] # migration
+        del actions['translated']  # migration
     # /devhack
 
     for action_id, action_params in actions.items():
@@ -132,12 +131,19 @@ def stream_with_extras(submission_stream, asset):
     extras = dict(
         asset.submission_extras.values_list('submission_uuid', 'content')
     )
+
+    if asset.advanced_features and (
+        advanced_features := get_sanitized_advanced_features(asset)
+    ):
+        asset.advanced_features = advanced_features
+
     try:
         qual_survey = asset.advanced_features['qual']['qual_survey']
     except KeyError:
         qual_survey = []
     else:
         qual_survey = deepcopy(qual_survey)
+
     # keys are question UUIDs, values are question definitions
     qual_questions_by_uuid = {}
     # outer keys are question UUIDs, inner keys are choice UUIDs, values are
@@ -160,9 +166,8 @@ def stream_with_extras(submission_stream, asset):
         else:
             uuid = submission['_uuid']
 
-
         all_supplemental_details = deepcopy(extras.get(uuid, {}))
-        for qpath, supplemental_details in all_supplemental_details.items():
+        for supplemental_details in all_supplemental_details.values():
             try:
                 all_qual_responses = supplemental_details['qual']
             except KeyError:
@@ -203,5 +208,13 @@ def stream_with_extras(submission_stream, asset):
                         val_expanded = val_expanded[0]
                     qual_response['val'] = val_expanded
                 qual_response.update(qual_q)
+
+        # Remove `qpath` if present
+        if sanitized_suppl_details := get_sanitized_dict_keys(
+            all_supplemental_details, asset
+        ):
+            all_supplemental_details = sanitized_suppl_details
+
         submission[SUPPLEMENTAL_DETAILS_KEY] = all_supplemental_details
+
         yield submission

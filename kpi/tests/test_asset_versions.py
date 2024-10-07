@@ -2,6 +2,7 @@
 import json
 from copy import deepcopy
 from datetime import datetime
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -9,13 +10,12 @@ except ImportError:
 
 from django.test import TestCase
 from django.utils import timezone
-from formpack.utils.expand_content import SCHEMA_VERSION
 
+from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import BadAssetTypeException
 from kpi.utils.hash import calculate_hash
-from ..models import Asset
-from ..models import AssetVersion
+from ..models import Asset, AssetVersion
 
 
 class AssetVersionTestCase(TestCase):
@@ -30,12 +30,12 @@ class AssetVersionTestCase(TestCase):
             }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
         _vc = deepcopy(new_asset.latest_version.version_content)
-        pop_atts = ['$kuid',
+        pop_atts = [
+            '$kuid',
             '$autoname',
             '$prev',
-            '$qpath',
             '$xpath',
-            ]
+        ]
         for row in _vc['survey']:
             for att in pop_atts:
                 row.pop(att, None)
@@ -61,10 +61,8 @@ class AssetVersionTestCase(TestCase):
         bob = User.objects.create(username='bob')
         self.asset = Asset.objects.create(
             asset_type='survey',
-            content={
-                'survey': [{'type': 'note', 'label': ['Read me'], 'name': 'n1'}]
-            },
-            owner=bob
+            content={'survey': [{'type': 'note', 'label': ['Read me'], 'name': 'n1'}]},
+            owner=bob,
         )
         self.assertEqual(self.asset.asset_versions.count(), 1)
         self.assertEqual(self.asset.latest_version.deployed, False)

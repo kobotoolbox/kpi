@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@451df4cd2a0d614be69a3b3309259c67369f7efb#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@5a8cda8cc37a56a2313c98b88fcacc18049ef477#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -139,6 +139,8 @@ deprecated==1.2.14
     # via fabric
 dict2xml==1.7.5
     # via -r dependencies/pip/requirements.in
+diff-match-patch==20230430
+    # via django-import-export
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
 dj-stripe==2.8.3
@@ -158,6 +160,7 @@ django==4.2.15
     #   django-extensions
     #   django-filter
     #   django-guardian
+    #   django-import-export
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-organizations
@@ -195,6 +198,8 @@ django-extensions==3.2.3
 django-filter==24.2
     # via -r dependencies/pip/requirements.in
 django-guardian==2.4.0
+    # via -r dependencies/pip/requirements.in
+django-import-export==4.1.0
     # via -r dependencies/pip/requirements.in
 django-loginas==0.3.11
     # via -r dependencies/pip/requirements.in
@@ -267,6 +272,8 @@ flake8-quotes==3.4.0
     # via -r dependencies/pip/dev_requirements.in
 flower==2.0.1
     # via -r dependencies/pip/requirements.in
+freezegun==1.5.1
+    # via -r dependencies/pip/dev_requirements.in
 frozenlist==1.4.1
     # via
     #   aiohttp
@@ -521,6 +528,7 @@ python-dateutil==2.9.0.post0
     #   -r dependencies/pip/requirements.in
     #   botocore
     #   celery
+    #   freezegun
     #   pandas
     #   python-crontab
 python3-openid==3.2.0
@@ -607,6 +615,8 @@ statistics==1.0.3.5
     # via formpack
 stripe==4.2.0
     # via dj-stripe
+tablib==3.5.0
+    # via django-import-export
 tabulate==0.9.0
     # via -r dependencies/pip/requirements.in
 toml==0.10.2
@@ -685,4 +695,3 @@ yubico-client==1.13.0
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
-backports-zoneinfo==0.2.1; python_version < '3.9'

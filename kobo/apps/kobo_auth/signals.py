@@ -9,10 +9,7 @@ from kpi.deployment_backends.kc_access.utils import (
     grant_kc_model_level_perms,
     kc_transaction_atomic,
 )
-from kpi.utils.permissions import (
-    grant_default_model_level_perms,
-    is_user_anonymous,
-)
+from kpi.utils.permissions import grant_default_model_level_perms, is_user_anonymous
 
 
 @receiver(post_save, sender=User)

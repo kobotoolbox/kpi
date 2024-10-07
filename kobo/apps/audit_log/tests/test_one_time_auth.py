@@ -161,6 +161,10 @@ class TestOneTimeAuthentication(BaseTestCase):
     def test_digest_auth_for_submissions(self):
         """
         Test digest-authenticated submissions result in a submission access log
+=======
+        Test digest authentications for submissions result in an audit log being created
+        with the 'Submission' type
+>>>>>>> main
         """
 
         def side_effect(request):
@@ -175,7 +179,7 @@ class TestOneTimeAuthentication(BaseTestCase):
         ):
             # assume the submission works, we don't actually care
             with patch(
-                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create', # noqa
+                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create',  # noqa: E501
                 return_value=HttpResponse(status=200),
             ):
                 # try both OpenRosa and v1 endpoints
@@ -194,12 +198,13 @@ class TestOneTimeAuthentication(BaseTestCase):
         app: AuthorizedApplication = AuthorizedApplication(name='Auth app')
         app.save()
         header = {'HTTP_AUTHORIZATION': f'Token {app.key}'}
-        response = self.client.post(
+        self.client.post(
             reverse('authenticate_user'),
             **header,
             data={'username': 'test', 'password': 'test'},
         )
-        # this log should belong to the user, not the app, and have a bit of extra metadata
+        # this log should belong to the user, not the app, and have a bit of extra
+        # metadata
         access_log_qs = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,

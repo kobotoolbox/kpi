@@ -7,6 +7,7 @@ class LazyMaxRetriesInt:
     This wrapper helps to return the value of `constance.config.HOOK_MAX_RETRIES`
     on demand.
     """
+
     def __call__(self, *args, **kwargs):
         return constance.config.HOOK_MAX_RETRIES
 
