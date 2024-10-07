@@ -1,4 +1,3 @@
-# coding: utf-8
 import multiprocessing
 import os
 from collections import defaultdict
@@ -7,6 +6,7 @@ from functools import partial
 import pytest
 import requests
 import simplejson as json
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
