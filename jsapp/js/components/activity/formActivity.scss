@@ -37,6 +37,14 @@
     overflow: auto;
     padding: sizes.$x20;
 
+    .loading {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     td {
       color: colors.$kobo-gray-700;
     }
@@ -79,14 +87,5 @@
         cursor: pointer;
       }
     }
-  }
-
-  .footer {
-    display: flex;
-    justify-content: flex-end;
-    padding: sizes.$x20;
-    background-color: colors.$kobo-gray-100;
-    height: sizes.$x60;
-    border-top: colors.$kobo-gray-300 1px solid;
   }
 }
