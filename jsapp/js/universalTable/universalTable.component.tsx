@@ -162,7 +162,7 @@ export default function UniversalTable<DataItem>(
     .map((col) => col.key);
   options.state.columnPinning = {left: pinnedColumns || []};
 
-  const hasPagination = (
+  const hasPagination = Boolean(
     props.pageIndex !== undefined &&
     props.pageCount &&
     props.pageSize &&
