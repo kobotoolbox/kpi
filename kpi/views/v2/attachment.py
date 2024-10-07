@@ -4,7 +4,7 @@ from typing import Optional, Union
 from django.conf import settings
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
-from rest_framework import viewsets, serializers
+from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -140,14 +140,14 @@ class AttachmentViewSet(
         # the content to the Response object
         if settings.TESTING:
             # setting the content type to `None` here allows the renderer to
-            # specify the content type for the response
+            # specify the content type for the response.
             content_type = (
                 attachment.mimetype
                 if request.accepted_renderer.format != MP3ConversionRenderer.format
                 else None
             )
             return Response(
-                attachment.content,
+                attachment.media_file,
                 content_type=content_type,
             )
 

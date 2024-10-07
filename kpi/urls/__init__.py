@@ -1,18 +1,22 @@
 # coding: utf-8
 import private_storage.urls
 from django.conf import settings
-from django.urls import include, re_path, path
+from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
-from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, browser_tests, modern_browsers
-from kpi.views.environment import EnvironmentView
+from kpi.views import (
+    authorized_application_authenticate_user,
+    browser_tests,
+    home,
+    modern_browsers,
+)
 from kpi.views.current_user import CurrentUserViewSet
+from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
-
+from ..views.v2.logout import logout_from_all_devices
 from .router_api_v1 import router_api_v1
-from .router_api_v2 import router_api_v2, URL_NAMESPACE
+from .router_api_v2 import URL_NAMESPACE, router_api_v2
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -34,7 +38,8 @@ urlpatterns = [
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',
-        authorized_application_authenticate_user
+        authorized_application_authenticate_user,
+        name='authenticate_user',
     ),
     path('browser_tests/', browser_tests),
     path('modern_browsers/', modern_browsers),
@@ -48,7 +53,11 @@ urlpatterns = [
             ConfigurationFile.content_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),
+    re_path(
+        r'^superuser_stats/',
+        include(('kobo.apps.superuser_stats.urls', 'superuser_stats')),
+    ),
+    path('logout-all/', logout_from_all_devices, name='logout_all'),
 ]
 
 

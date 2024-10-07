@@ -1,15 +1,16 @@
-from unittest import TestCase, mock
+from unittest import mock
 from unittest.mock import patch
 
 from ddt import data, ddt, unpack
 from django.http import HttpResponse
-from django.urls import resolve, reverse
+from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from trench.utils import get_mfa_model
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kpi.models import AuthorizedApplication
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -127,7 +128,8 @@ class TestOneTimeAuthentication(BaseTestCase):
 
     def test_digest_auth_for_submission(self):
         """
-        Test digest authentications for submissions result in an audit log being created with the 'Submission' type
+        Test digest authentications for submissions result in an audit log being created
+        with the 'Submission' type
         """
 
         def side_effect(request):
@@ -142,7 +144,7 @@ class TestOneTimeAuthentication(BaseTestCase):
         ):
             # assume the submission works, we don't actually care
             with patch(
-                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create',
+                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create',  # noqa: E501
                 return_value=HttpResponse(status=200),
             ):
                 self.client.post(reverse('submissions'), **header)
@@ -153,6 +155,27 @@ class TestOneTimeAuthentication(BaseTestCase):
         ).exists()
         self.assertTrue(log_exists)
         self.assertEqual(AuditLog.objects.count(), 1)
+
+    def test_authorized_application_auth_creates_log(self):
+        app: AuthorizedApplication = AuthorizedApplication(name='Auth app')
+        app.save()
+        header = {'HTTP_AUTHORIZATION': f'Token {app.key}'}
+        self.client.post(
+            reverse('authenticate_user'),
+            **header,
+            data={'username': 'test', 'password': 'test'},
+        )
+        # this log should belong to the user, not the app, and have a bit of extra
+        # metadata
+        access_log_qs = AuditLog.objects.filter(
+            user_uid=TestOneTimeAuthentication.user.extra_details.uid,
+            action=AuditAction.AUTH,
+            metadata__auth_type='authorized-application',
+        )
+        self.assertTrue(access_log_qs.exists())
+        self.assertEqual(AuditLog.objects.count(), 1)
+        access_log = access_log_qs.first()
+        self.assertEqual(access_log.metadata['authorized_app_name'], 'Auth app')
 
     def test_failed_request_does_not_create_log(self):
         self.client.get(reverse('data-list'))

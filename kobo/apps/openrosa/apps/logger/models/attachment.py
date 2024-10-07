@@ -1,15 +1,21 @@
-# coding: utf-8
 import mimetypes
 import os
+from typing import Optional
+from urllib.parse import quote as urlquote
 
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.http import urlencode
 
 from kobo.apps.openrosa.libs.utils.hash import get_hash
+from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
+from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.fields.file import ExtendedFileField
+from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from .instance import Instance
 
 
@@ -37,11 +43,11 @@ class AttachmentDefaultManager(models.Manager):
         return super().get_queryset().filter(deleted_at__isnull=True)
 
 
-class Attachment(models.Model):
+class Attachment(models.Model, AudioTranscodingMixin):
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
-    media_file = models.FileField(
+    media_file = ExtendedFileField(
         storage=default_storage,
         upload_to=upload_to,
         max_length=380,
@@ -62,19 +68,32 @@ class Attachment(models.Model):
     class Meta:
         app_label = 'logger'
 
-    def save(self, *args, **kwargs):
-        if self.media_file:
-            self.media_file_basename = self.filename
-            if self.mimetype == '':
-                # guess mimetype
-                mimetype, encoding = mimetypes.guess_type(self.media_file.name)
-                if mimetype:
-                    self.mimetype = mimetype
-            # Cache the file size in the database to avoid expensive calls to
-            # the storage engine when running reports
-            self.media_file_size = self.media_file.size
+    @property
+    def absolute_mp3_path(self):
+        """
+        Return the absolute path on local file system of the converted version of
+        attachment. Otherwise, return the AWS url (e.g. https://...)
+        """
 
-        super().save(*args, **kwargs)
+        if not default_storage.exists(self.mp3_storage_path):
+            content = self.get_transcoded_audio('mp3')
+            default_storage.save(self.mp3_storage_path, ContentFile(content))
+
+        if isinstance(default_storage, KobocatFileSystemStorage):
+            return f'{self.media_file.path}.mp3'
+
+        return default_storage.url(self.mp3_storage_path)
+
+    @property
+    def absolute_path(self):
+        """
+        Return the absolute path on local file system of the attachment.
+        Otherwise, return the AWS url (e.g. https://...)
+        """
+        if isinstance(default_storage, KobocatFileSystemStorage):
+            return self.media_file.path
+
+        return self.media_file.url
 
     @property
     def file_hash(self):
@@ -89,6 +108,67 @@ class Attachment(models.Model):
     @property
     def filename(self):
         return os.path.basename(self.media_file.name)
+
+    @property
+    def mp3_storage_path(self):
+        """
+        Return the path of file after conversion. It is the exact same name, plus
+        the conversion audio format extension concatenated.
+        E.g: file.mp4 and file.mp4.mp3
+        """
+        return f'{self.storage_path}.mp3'
+
+    def protected_path(
+        self, format_: Optional[str] = None, suffix: Optional[str] = None
+    ) -> str:
+        """
+        Return path to be served as protected file served by NGINX
+        """
+        if format_ == 'mp3':
+            attachment_file_path = self.absolute_mp3_path
+        else:
+            attachment_file_path = self.absolute_path
+
+        optimized_image_path = None
+        if suffix and self.mimetype.startswith('image/'):
+            optimized_image_path = get_optimized_image_path(
+                self.media_file.name, suffix
+            )
+            if not default_storage.exists(optimized_image_path):
+                resize(self.media_file.name)
+
+        if isinstance(default_storage, KobocatFileSystemStorage):
+            # Django normally sanitizes accented characters in file names during
+            # save on disk but some languages have extra letters
+            # (out of ASCII character set) and must be encoded to let NGINX serve
+            # them
+            if optimized_image_path:
+                attachment_file_path = default_storage.path(optimized_image_path)
+            protected_url = urlquote(
+                attachment_file_path.replace(settings.KOBOCAT_MEDIA_ROOT, '/protected')
+            )
+        else:
+            # Double-encode the S3 URL to take advantage of NGINX's
+            # otherwise troublesome automatic decoding
+            if optimized_image_path:
+                attachment_file_path = default_storage.url(optimized_image_path)
+            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
+
+        return protected_url
+
+    def save(self, *args, **kwargs):
+        if self.media_file:
+            self.media_file_basename = self.filename
+            if self.mimetype == '':
+                # guess mimetype
+                mimetype, encoding = mimetypes.guess_type(self.media_file.name)
+                if mimetype:
+                    self.mimetype = mimetype
+            # Cache the file size in the database to avoid expensive calls to
+            # the storage engine when running reports
+            self.media_file_size = self.media_file.size
+
+        super().save(*args, **kwargs)
 
     def secure_url(self, suffix: str = 'original'):
         """
@@ -105,3 +185,7 @@ class Attachment(models.Model):
             suffix=suffix,
             media_file=urlencode({'media_file': self.media_file.name})
         )
+
+    @property
+    def storage_path(self):
+        return str(self.media_file)

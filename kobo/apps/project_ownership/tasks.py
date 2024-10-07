@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from celery.signals import task_failure, task_retry
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
+from celery.signals import task_failure, task_retry
 from constance import config
 from django.apps import apps
 from django.conf import settings
@@ -11,23 +11,20 @@ from django.utils.translation import gettext as t
 
 from kobo.celery import celery_app
 from kpi.utils.mailer import EmailMessage, Mailer
-from .exceptions import AsyncTaskException
+from .exceptions import AsyncTaskException, TransferStillPendingException
 from .models.choices import (
     InviteStatusChoices,
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
-from .utils import (
-    move_attachments,
-    move_media_files,
-    rewrite_mongo_userform_id,
-)
+from .utils import move_attachments, move_media_files, rewrite_mongo_userform_id
 
 
 @celery_app.task(
     autoretry_for=(
         SoftTimeLimitExceeded,
         TimeLimitExceeded,
+        TransferStillPendingException,
     ),
     max_retry=5,
     retry_backoff=60,
@@ -43,8 +40,14 @@ def async_task(transfer_id: int, async_task_type: str):
 
     transfer = Transfer.objects.get(pk=transfer_id)
 
+    if transfer.status == TransferStatusChoices.PENDING:
+        # Sometimes, a race condition occurs: the Celery task starts, but
+        # `transfer.status` has not been updated fast enough.
+        # Raise an exception which allows retry.
+        raise TransferStillPendingException
+
     if transfer.status != TransferStatusChoices.IN_PROGRESS:
-        raise AsyncTaskException(f'`{transfer}` is not in progress')
+        raise AsyncTaskException(f'`{transfer}` is not in progress: {transfer.status}')
 
     TransferStatus.update_status(
         transfer_id=transfer_id,

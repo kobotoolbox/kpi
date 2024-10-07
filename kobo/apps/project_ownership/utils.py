@@ -4,13 +4,11 @@ from typing import Optional
 from django.apps import apps
 from django.utils import timezone
 
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatAttachment,
-    KobocatMetadata,
-)
+from kobo.apps.openrosa.apps.logger.models import Attachment
+from kobo.apps.openrosa.apps.main.models import MetaData
 from kpi.models.asset import AssetFile
-from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 from .exceptions import AsyncTaskException
+from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 
 
 def get_target_folder(
@@ -55,9 +53,9 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
         _mark_task_as_successful(transfer, async_task_type)
         return
 
-    attachments = KobocatAttachment.all_objects.filter(
-        instance_id__in=submission_ids
-    ).exclude(media_file__startswith=f'{transfer.asset.owner.username}/')
+    attachments = Attachment.all_objects.filter(instance_id__in=submission_ids).exclude(
+        media_file__startswith=f'{transfer.asset.owner.username}/'
+    )
 
     for attachment in attachments.iterator():
         # Pretty slow but it should run in celery task. We want to be the
@@ -97,7 +95,7 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
     if transfer.asset.has_deployment:
         kc_files = {
             kc_file.file_hash: kc_file
-            for kc_file in KobocatMetadata.objects.filter(
+            for kc_file in MetaData.objects.filter(
                 xform_id=transfer.asset.deployment.xform.pk
             )
         }

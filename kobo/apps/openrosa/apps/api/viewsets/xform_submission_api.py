@@ -1,20 +1,18 @@
 # coding: utf-8
-import re
 import io
+import re
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from kobo_service_account.utils import get_real_user
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework import mixins
+from rest_framework import mixins, permissions, status
 from rest_framework.authentication import (
     BasicAuthentication,
+    SessionAuthentication,
     TokenAuthentication,
-    SessionAuthentication,)
+)
 from rest_framework.exceptions import NotAuthenticated
-from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
@@ -23,11 +21,13 @@ from kobo.apps.openrosa.libs.mixins.openrosa_headers_mixin import OpenRosaHeader
 from kobo.apps.openrosa.libs.renderers.renderers import TemplateXMLRenderer
 from kobo.apps.openrosa.libs.serializers.data_serializer import SubmissionSerializer
 from kobo.apps.openrosa.libs.utils.logger_tools import (
+    UnauthenticatedEditAttempt,
     dict2xform,
     safe_create_instance,
-    UnauthenticatedEditAttempt,
 )
+from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
 from kpi.authentication import DigestAuthentication
+from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 xml_error_re = re.compile('>(.*)<')
@@ -37,25 +37,11 @@ def is_json(request):
     return 'application/json' in request.content_type.lower()
 
 
-def dict_lists2strings(d):
-    """Convert lists in a dict to joined strings.
-
-    :param d: The dict to convert.
-    :returns: The converted dict."""
-    for k, v in d.items():
-        if isinstance(v, list) and all([isinstance(e, str) for e in v]):
-            d[k] = ' '.join(v)
-        elif isinstance(v, dict):
-            d[k] = dict_lists2strings(v)
-
-    return d
-
-
 def create_instance_from_xml(username, request):
     xml_file_list = request.FILES.pop('xml_submission_file', [])
     xml_file = xml_file_list[0] if len(xml_file_list) else None
     media_files = request.FILES.values()
-    return safe_create_instance(username, xml_file, media_files, None, request)
+    return safe_create_instance(username, xml_file, media_files, None, request=request)
 
 
 def create_instance_from_json(username, request):
@@ -66,14 +52,14 @@ def create_instance_from_json(username, request):
 
     if submission is None:
         # return an error
-        return [t("No submission key provided."), None]
+        return [t('No submission key provided.'), None]
 
     # convert lists in submission dict to joined strings
     submission_joined = dict_lists2strings(submission)
     xml_string = dict2xform(submission_joined, dict_form.get('id'))
 
     xml_file = io.StringIO(xml_string)
-    return safe_create_instance(username, xml_file, [], None, request)
+    return safe_create_instance(username, xml_file, [], None, request=request)
 
 
 class XFormSubmissionApi(
@@ -175,7 +161,8 @@ class XFormSubmissionApi(
                 _ = get_object_or_404(User, username=username.lower())
         elif not username:
             # get the username from the user if not set
-            username = request.user and get_real_user(request).username
+            user = get_database_user(request.user)
+            username = user.username
 
         if request.method.upper() == 'HEAD':
             return Response(status=status.HTTP_204_NO_CONTENT,
@@ -208,7 +195,7 @@ class XFormSubmissionApi(
 
     def error_response(self, error, is_json_request, request):
         if not error:
-            error_msg = t("Unable to create submission.")
+            error_msg = t('Unable to create submission.')
             status_code = status.HTTP_400_BAD_REQUEST
         elif isinstance(error, str):
             error_msg = error

@@ -1,18 +1,19 @@
 # coding: utf-8
 from __future__ import annotations
+
 import csv
 from io import StringIO
+from typing import Union
 
 from django.conf import settings
 from django.db.models import Count, F, Q
 from django.db.models.query import QuerySet
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.deployment_backends.kc_access.shadow_models import KobocatXForm
 from kpi.models import Asset
 from kpi.utils.project_views import get_region_for_view
-
 
 ASSET_FIELDS = (
     'id',
@@ -116,11 +117,7 @@ def get_q(countries: list[str], export_type: str) -> QuerySet:
 
 def get_submission_count(xform_id: int) -> int:
 
-    result = (
-        KobocatXForm.objects.values('num_of_submissions')
-        .filter(pk=xform_id)
-        .first()
-    )
+    result = XForm.objects.values('num_of_submissions').filter(pk=xform_id).first()
 
     if not result:
         return 0
