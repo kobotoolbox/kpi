@@ -13,6 +13,7 @@ from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
 from .router_api_v2 import router_api_v2, URL_NAMESPACE
+from ..views.v2.logout import logout_from_all_devices
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -50,6 +51,7 @@ urlpatterns = [
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
     re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),
+    path('logout-all/', logout_from_all_devices, name='logout_all')
 ]
 
 

@@ -1,13 +1,8 @@
-import logging
-from importlib.metadata import metadata
-
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Case, Count, F, Min, Value, When
+from django.db.models.functions import Cast, Concat, Trunc
 from django.utils import timezone
-from django.db.models.functions import Coalesce, Trunc, Concat, Cast
-from django.db.models import When, Count, Case, F, Value, Min
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -17,9 +12,13 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
 from kpi.constants import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
-    ACCESS_LOG_UNKNOWN_AUTH_TYPE, ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    ASSET_TYPE_SURVEY, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
+from kpi.exceptions import BadAssetTypeException
 from kpi.fields.kpi_uid import UUID_LENGTH
+from kpi.models import Asset
 from kpi.utils.log import logging
 
 
@@ -31,6 +30,10 @@ class AuditAction(models.TextChoices):
     REMOVE = 'remove'
     UPDATE = 'update'
     AUTH = 'auth'
+    DEPLOY = 'deploy'
+    ARCHIVE = 'archive'
+    UNARCHIVE = 'unarchive'
+    REDEPLOY = 'redeploy'
 
 
 class AuditType(models.TextChoices):
@@ -98,33 +101,36 @@ class AuditLog(models.Model):
         )
 
 
-class AccessLogManager(models.Manager):
+class IgnoreCommonFieldsMixin:
+    def remove_common_fields_and_warn(self, log_type, create_kwargs):
+        # remove any attempt to set fields that should
+        # always be the same on an particular log type
+        app_label = create_kwargs.pop('app_label', None)
+        if app_label is not None:
+            logging.warning(f'Ignoring attempt to set {app_label=} on {log_type} log')
+        model_name = create_kwargs.pop('model_name', None)
+        if model_name is not None:
+            logging.warning(f'Ignoring attempt to set {model_name=} on {log_type} log')
+        log_type = create_kwargs.pop('log_type', None)
+        if log_type is not None:
+            logging.warning(f'Ignoring attempt to set {log_type=} on {log_type} log')
+
+
+class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
     def get_queryset(self):
         return super().get_queryset().filter(log_type=AuditType.ACCESS)
 
     def create(self, **kwargs):
-        # remove any attempt to set fields that should always be the same on an access log
-        app_label = kwargs.pop('app_label', None)
-        if app_label is not None:
-            logging.warning(
-                f'Ignoring attempt to set {app_label=} on access log'
-            )
-        model_name = kwargs.pop('model_name', None)
-        if model_name is not None:
-            logging.warning(
-                f'Ignoring attempt to set {model_name=} on access log'
-            )
+        # remove any attempt to set fields that should
+        # always be the same on an access log
+        self.remove_common_fields_and_warn('access', kwargs)
         action = kwargs.pop('action', None)
         if action is not None:
             logging.warning(f'Ignoring attempt to set {action=} on access log')
-        log_type = kwargs.pop('log_type', None)
-        if log_type is not None:
-            logging.warning(
-                f'Ignoring attempt to set {log_type=} on access log'
-            )
         user = kwargs.pop('user')
         return super().create(
-            # set the fields that are always the same for access logs, pass along the rest to the original constructor
+            # set the fields that are always the same for access logs,
+            # pass along the rest to the original constructor
             app_label=User._meta.app_label,
             model_name=User._meta.model_name,
             action=AuditAction.AUTH,
@@ -155,14 +161,15 @@ class AccessLogManager(models.Manager):
                         'user_uid',
                     ),
                 ),
-                # for everything else, the group key is just the id since they won't be grouped
+                # for everything else, the group key is just the id
+                # since they won't be grouped
                 default=Cast('id', output_field=models.CharField()),
             )
         )
 
     def with_submissions_grouped(self):
         """
-        Returns minimal audit log representation with submissions grouped by user by hour
+        Returns minimal representation with submissions grouped by user by hour
         """
         return (
             self.with_group_key()
@@ -222,8 +229,7 @@ class AccessLog(AuditLog):
         )
         is_submission = (
             request.resolver_match is not None
-            and request.resolver_match.url_name
-            in ['submissions', 'submissions-list']
+            and request.resolver_match.url_name in ['submissions', 'submissions-list']
             and request.method == 'POST'
         )
         # a regular login may have an anonymous user as _cached_user, ignore that
@@ -268,3 +274,68 @@ class AccessLog(AuditLog):
         if extra_metadata is not None:
             metadata.update(extra_metadata)
         return AccessLog.objects.create(user=logged_in_user, metadata=metadata)
+
+
+class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
+    def get_queryset(self):
+        return super().get_queryset().filter(log_type=AuditType.PROJECT_HISTORY)
+
+    def create(self, **kwargs):
+        # remove any attempt to set fields that should
+        # always be the same on a project history log
+        self.remove_common_fields_and_warn('project history', kwargs)
+        user = kwargs.pop('user')
+        asset = kwargs.pop('asset')
+        if not asset.asset_type or asset.asset_type != ASSET_TYPE_SURVEY:
+            raise BadAssetTypeException(
+                'Cannot create project history log for non-survey asset'
+            )
+        return super().create(
+            # set the fields that are always the same for all project history logs,
+            # along with the ones derived from the user and asset
+            app_label=Asset._meta.app_label,
+            model_name=Asset._meta.model_name,
+            log_type=AuditType.PROJECT_HISTORY,
+            user=user,
+            user_uid=user.extra_details.uid,
+            object_id=asset.id,
+            **kwargs,
+        )
+
+
+class ProjectHistoryLog(AuditLog):
+    objects = ProjectHistoryLogManager()
+
+    class Meta:
+        proxy = True
+
+    @staticmethod
+    def create_from_deployment_request(
+        request, asset, first_deployment=False, only_active_changed=False
+    ):
+        ip = get_client_ip(request)
+        source = get_human_readable_client_user_agent(request)
+        if only_active_changed:
+            action = (
+                AuditAction.UNARCHIVE
+                if asset.deployment.active
+                else AuditAction.ARCHIVE
+            )
+        else:
+            action = AuditAction.DEPLOY if first_deployment else AuditAction.REDEPLOY
+        metadata = {
+            'ip_address': ip,
+            'source': source,
+            'asset_uid': asset.uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        }
+        if action in [AuditAction.REDEPLOY, AuditAction.DEPLOY]:
+            version = asset.latest_deployed_version
+            metadata['version_uid'] = version.uid
+        user = request.user
+        return ProjectHistoryLog.objects.create(
+            user=user,
+            action=action,
+            metadata=metadata,
+            asset=asset,
+        )

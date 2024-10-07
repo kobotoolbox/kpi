@@ -1,17 +1,14 @@
 # coding: utf-8
-import re
 import io
+import re
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework import mixins
+from rest_framework import mixins, permissions, status
 from rest_framework.authentication import SessionAuthentication
-from kpi.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.exceptions import NotAuthenticated
-from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
@@ -20,12 +17,16 @@ from kobo.apps.openrosa.libs.mixins.openrosa_headers_mixin import OpenRosaHeader
 from kobo.apps.openrosa.libs.renderers.renderers import TemplateXMLRenderer
 from kobo.apps.openrosa.libs.serializers.data_serializer import SubmissionSerializer
 from kobo.apps.openrosa.libs.utils.logger_tools import (
+    UnauthenticatedEditAttempt,
     dict2xform,
     safe_create_instance,
-    UnauthenticatedEditAttempt,
 )
 from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
-from kpi.authentication import DigestAuthentication
+from kpi.authentication import (
+    BasicAuthentication,
+    DigestAuthentication,
+    TokenAuthentication,
+)
 from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
@@ -51,7 +52,7 @@ def create_instance_from_json(username, request):
 
     if submission is None:
         # return an error
-        return [t("No submission key provided."), None]
+        return [t('No submission key provided.'), None]
 
     # convert lists in submission dict to joined strings
     submission_joined = dict_lists2strings(submission)
@@ -194,7 +195,7 @@ class XFormSubmissionApi(
 
     def error_response(self, error, is_json_request, request):
         if not error:
-            error_msg = t("Unable to create submission.")
+            error_msg = t('Unable to create submission.')
             status_code = status.HTTP_400_BAD_REQUEST
         elif isinstance(error, str):
             error_msg = error

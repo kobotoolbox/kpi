@@ -2,7 +2,8 @@
 @use 'scss/colors';
 @use 'scss/sizes';
 
-.isUnauthorized {
+.isUnauthorized .bodyMain,
+.isUnauthorized .options {
   opacity: 0.5;
   pointer-events: none;
 }

@@ -10,6 +10,6 @@ export const endpoints = {
   PORTAL_URL: '/api/v2/stripe/customer-portal',
   /** Expected parameters: price_id and subscription_id **/
   CHANGE_PLAN_URL: '/api/v2/stripe/change-plan',
-  ACCESS_LOGS_URL: '/api/v2/access-logs/',
-  LOGOUT_ALL: '/api/v2/logout-all',
+  ACCESS_LOGS_URL: '/api/v2/access-logs/me',
+  LOGOUT_ALL: '/logout-all/',
 };

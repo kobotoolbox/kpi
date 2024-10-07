@@ -1,15 +1,12 @@
-from django.db.models.functions import Coalesce, Trunc, Concat, Cast
-from django.db.models import When, Count, Case, F, Value, Min
-from django.db import models
 from rest_framework import mixins, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 
 from kpi.filters import SearchFilter
 from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
-from .models import AccessLog, AuditAction, AuditLog
+from .models import AccessLog, AuditLog
 from .permissions import SuperUserPermission
-from .serializers import AuditLogSerializer, AccessLogSerializer
+from .serializers import AccessLogSerializer, AuditLogSerializer
 
 
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -39,7 +36,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >               {
     >                    "app_label": "foo",
     >                    "model_name": "bar",
-    >                    "object_id": 1,
     >                    "user": "http://kf.kobo.local/users/kobo_user/",
     >                    "action": "delete",
     >                    "log_type": "asset-management",
@@ -96,13 +92,15 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
     Lists all access logs for all users. Only available to superusers.
 
+    Submissions will be grouped together by hour
+
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/all
+    <b>GET</b> /api/v2/access-logs/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/access-logs/all
+    >       curl -X GET https://[kpi-url]/access-logs/
 
     > Response 200
 
@@ -119,8 +117,8 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >                        "source": "Firefox (Ubuntu)",
     >                        "auth_type": "Digest",
     >                        "ip_address": "172.18.0.6"
-    >                    },
-    >                    "date_created": "2024-08-19T16:48:58Z"
+    >                   },
+    >                    "date_created": "2024-08-19T16:48:58Z",
     >                },
     >                {
     >                    "user": "http://localhost/api/v2/users/admin/",
@@ -143,7 +141,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
     serializer_class = AccessLogSerializer
 
 
-
 class AccessLogViewSet(AuditLogViewSet):
     """
     Access logs
@@ -153,12 +150,12 @@ class AccessLogViewSet(AuditLogViewSet):
     Submissions will be grouped together by hour
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/
+    <b>GET</b> /api/v2/access-logs/me
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/access-logs/
+    >       curl -X GET https://[kpi-url]/access-logs/me
 
     > Response 200
 
@@ -197,6 +194,7 @@ class AccessLogViewSet(AuditLogViewSet):
     will return entries 100-149
 
     """
+
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)

@@ -181,52 +181,54 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
         </div>
 
         <div className={cx(securityStyles.securitySectionBody, styles.body)}>
-          <p className={styles.mfaDescription}>
-            {t(
-              'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
-                'We recommend enabling two-factor authentication for an additional layer of protection.'
+          <div className={styles.bodyMain}>
+            <p className={styles.mfaDescription}>
+              {t(
+                'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
+                  'We recommend enabling two-factor authentication for an additional layer of protection.'
+              )}
+            </p>
+
+            {this.state.isMfaActive && this.state.isMfaAvailable && (
+              <div className={styles.mfaOptions}>
+                <div className={styles.mfaOptionsRow}>
+                  <h3 className={styles.mfaOptionsLabel}>
+                    {t('Authenticator app')}
+                  </h3>
+
+                  {this.state.dateModified && (
+                    <div>
+                      {formatTime(this.state.dateModified)}
+                    </div>
+                  )}
+
+                  <Button
+                    type='primary'
+                    label={t('Reconfigure')}
+                    size='m'
+                    onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                      this.showEditModal(evt, 'reconfigure');
+                    }}
+                  />
+                </div>
+
+                <div className={styles.mfaOptionsRow}>
+                  <h3 className={styles.mfaOptionsLabel}>
+                    {t('Recovery codes')}
+                  </h3>
+
+                  <Button
+                    type='primary'
+                    label={t('Generate new')}
+                    size='m'
+                    onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                      this.showEditModal(evt, 'regenerate');
+                    }}
+                  />
+                </div>
+              </div>
             )}
-          </p>
-
-          {this.state.isMfaActive && this.state.isMfaAvailable && (
-            <div className={styles.mfaOptions}>
-              <div className={styles.mfaOptionsRow}>
-                <h3 className={styles.mfaOptionsLabel}>
-                  {t('Authenticator app')}
-                </h3>
-
-                {this.state.dateModified && (
-                  <div>
-                    {formatTime(this.state.dateModified)}
-                  </div>
-                )}
-
-                <Button
-                  type='primary'
-                  label={t('Reconfigure')}
-                  size='m'
-                  onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                    this.showEditModal(evt, 'reconfigure');
-                  }}
-                />
-              </div>
-
-              <div className={styles.mfaOptionsRow}>
-                <h3 className={styles.mfaOptionsLabel}>
-                  {t('Recovery codes')}
-                </h3>
-
-                <Button
-                  type='primary'
-                  label={t('Generate new')}
-                  size='m'
-                  onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                    this.showEditModal(evt, 'regenerate');
-                  }}
-                />
-              </div>
-            </div>
-          )}
+          </div>
 
           {!this.state.isMfaActive && this.state.isMfaAvailable && this.state.dateDisabled && (
             <InlineMessage

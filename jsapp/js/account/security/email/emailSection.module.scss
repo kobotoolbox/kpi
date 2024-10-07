@@ -3,6 +3,7 @@
 
 .body {
   flex: 5;
+  gap: 10px;
 }
 
 .options {
@@ -30,9 +31,7 @@
   }
 }
 
-.editEmail {
+.unverifiedEmailButtons {
   display: flex;
-  column-gap: sizes.$x12;
-  padding-top: sizes.$x12;
-  padding-bottom: sizes.$x12;
+  gap: 10px;
 }

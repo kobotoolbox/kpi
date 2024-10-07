@@ -25,7 +25,9 @@ export default function AccessLogsSection() {
           {t('Recent account activity')}
         </h2>
 
-        <div className={securityStyles.securityHeaderActions}>
+        {/* TODO: we comment this out until we know how to handle exsiting
+        sessions for the moment of release of the feature. */}
+        {/*<div className={securityStyles.securityHeaderActions}>
           <Button
             type='text'
             size='m'
@@ -33,7 +35,7 @@ export default function AccessLogsSection() {
             label={t('Log out of all devices')}
             startIcon='logout'
           />
-        </div>
+        </div>*/}
       </header>
 
       <PaginatedQueryUniversalTable<AccessLog>
