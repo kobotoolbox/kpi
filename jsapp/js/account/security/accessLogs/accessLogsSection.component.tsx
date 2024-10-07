@@ -2,21 +2,21 @@
 import React from 'react';
 
 // Partial components
-import Button from 'js/components/common/button';
+// import Button from 'js/components/common/button';
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
 
 // Utilities
 import useAccessLogsQuery, {type AccessLog} from 'js/query/queries/accessLogs.query';
 import {formatTime} from 'js/utils';
-import sessionStore from 'js/stores/session';
+// import sessionStore from 'js/stores/session';
 
 // Styles
 import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 export default function AccessLogsSection() {
-  function logOutAllSessions() {
-    sessionStore.logOutAll();
-  }
+  // function logOutAllSessions() {
+  //   sessionStore.logOutAll();
+  // }
 
   return (
     <>
@@ -57,9 +57,7 @@ export default function AccessLogsSection() {
           {
             key: 'date_created',
             label: t('Last activity'),
-            cellFormatter: (log: AccessLog) => {
-              return formatTime(log.date_created);
-            },
+            cellFormatter: (log: AccessLog) => formatTime(log.date_created),
           },
           {key: 'metadata.ip_address', label: t('IP Address')},
         ]}
