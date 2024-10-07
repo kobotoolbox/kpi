@@ -672,7 +672,7 @@ class DataViewSet(
             )
         except (MissingXFormException, InvalidXFormException):
             return {
-                'data': {'detail': f'Could not updated submissions'},
+                'data': {'detail': 'Could not updated submissions'},
                 'content_type': 'application/json',
                 'status': status.HTTP_400_BAD_REQUEST,
             }

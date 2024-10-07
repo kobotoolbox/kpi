@@ -1,6 +1,5 @@
 import django.contrib.auth.management
 import django.db.models.deletion
-from django.apps import apps
 from django.db import router
 from django.conf import settings
 from django.contrib.auth.management import (

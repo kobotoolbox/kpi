@@ -178,9 +178,9 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
             )
             if not os.path.isfile(file_):
                 raise Exception(
-                    f'File `filename` does not exist! Use `path/to/image.png` if'
-                    f' you need a fake attachment, or use one of file names '
-                    f'inside `kpi/fixtures/attachments for real attachment'
+                    'File `filename` does not exist! Use `path/to/image.png` if'
+                    ' you need a fake attachment, or use one of file names '
+                    'inside `kpi/fixtures/attachments for real attachment'
                 )
 
             with open(file_, 'rb') as f:

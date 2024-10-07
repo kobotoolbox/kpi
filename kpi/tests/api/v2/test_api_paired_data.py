@@ -1,6 +1,4 @@
-# coding: utf-8
 import unittest
-from mock import patch
 
 from django.urls import reverse
 from rest_framework import status
@@ -98,9 +96,7 @@ class BasePairedDataTestCase(BaseAssetTestCase):
         if not source_url:
             source_url = self.source_asset_detail_url
 
-        response = self.client.patch(source_url,
-                                     data=payload,
-                                     format='json')
+        response = self.client.patch(source_url, data=payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         return response
 

@@ -1,4 +1,3 @@
-# coding: utf-8
 import mimetypes
 import os
 import requests
@@ -11,7 +10,6 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import URLValidator
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
 from requests.exceptions import RequestException
 
 from kobo.apps.openrosa.apps.logger.models import XForm

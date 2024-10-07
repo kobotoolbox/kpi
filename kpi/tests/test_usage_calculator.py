@@ -9,10 +9,6 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import (
-    XForm,
-    DailyXFormSubmissionCounter,
-)
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.tests.utils import generate_enterprise_subscription
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -74,7 +70,6 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
         )
         self._deployment = self.asset.deployment
-
 
     def add_nlp_trackers(self):
         """

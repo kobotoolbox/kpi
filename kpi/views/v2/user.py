@@ -1,4 +1,3 @@
-# coding: utf-8
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,7 +6,6 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.filters import SearchFilter
-from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.user import UserSerializer, UserListSerializer
 from kpi.tasks import sync_kobocat_xforms

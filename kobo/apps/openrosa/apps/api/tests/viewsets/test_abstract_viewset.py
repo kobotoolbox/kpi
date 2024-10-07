@@ -1,4 +1,3 @@
-# coding: utf-8
 import os
 from typing import Union
 
@@ -107,7 +106,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
             self.form_data = response.data
         else:
             with open(path, 'rb') as f:
-                xls_file = ContentFile(f.read(), name=f'transportation.xls')
+                xls_file = ContentFile(f.read(), name='transportation.xls')
 
             self.xform = logger_tools.publish_xls_form(xls_file, self.user)
             response = self.client.get(

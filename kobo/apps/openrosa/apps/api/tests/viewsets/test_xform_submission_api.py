@@ -1,17 +1,15 @@
-# coding: utf-8
 import os
-import uuid
 
 import simplejson as json
-from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django_digest.test import DigestAuth
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from rest_framework import status
 
-from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import \
-    TestAbstractViewSet
+from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
+    TestAbstractViewSet,
+)
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.libs.constants import (

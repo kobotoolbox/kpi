@@ -66,7 +66,7 @@ class MongoHelperTestCase(TestCase):
 
     def test_get_instances_permission_filters(self):
         bob = baker.make(settings.AUTH_USER_MODEL, username='bob')
-        alice = baker.make(settings.AUTH_USER_MODEL, username='alice')
+        baker.make(settings.AUTH_USER_MODEL, username='alice')
         asset = baker.make('kpi.Asset', owner=bob, uid='assetUid')
         asset.deploy(backend='mock', active=True)
         userform_id = asset.deployment.mongo_userform_id

@@ -35,8 +35,6 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.views.v2.paired_data import (
     OpenRosaDynamicDataAttachmentViewset,
-    SubmissionXMLRenderer,
-    XMLExternalDataPermission,
 )
 
 DECIMAL_PRECISION = 2

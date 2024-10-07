@@ -1,9 +1,9 @@
-from unittest import TestCase, mock
+from unittest import mock
 from unittest.mock import patch
 
 from ddt import data, ddt, unpack
 from django.http import HttpResponse
-from django.urls import resolve, reverse
+from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from trench.utils import get_mfa_model
 
@@ -159,7 +159,7 @@ class TestOneTimeAuthentication(BaseTestCase):
         app: AuthorizedApplication = AuthorizedApplication(name='Auth app')
         app.save()
         header = {'HTTP_AUTHORIZATION': f'Token {app.key}'}
-        response = self.client.post(
+        self.client.post(
             reverse('authenticate_user'),
             **header,
             data={'username': 'test', 'password': 'test'},
