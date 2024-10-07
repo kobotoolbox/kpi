@@ -86,13 +86,13 @@ def extract_confirmation_message(xml_string):
             confirmation_message_element = root.xpath(
                 confirmation_message_xpath.strip(), namespaces=namespaces
             )
-            return confirmation_message_element[0].text
+            if confirmation_message_element:
+                return confirmation_message_element[0].text
         except Exception as e:
             logging.error(
                 'Failed to extract confirmation message: ' + str(e),
                 exc_info=True
             )
-            return None
     return None
 
 
