@@ -214,14 +214,17 @@ class AccessLog(AuditLog):
         extra_metadata: dict = None,
     ):
         """
-        Create an access log for a request, assigned to either the given user or request.user if not supplied
+        Create an access log for a request, assigned to either the given user or
+        request.user if not supplied
 
-        Note: Data passed in extra_metadata will override default values for the same key
+        Note: Data passed in extra_metadata will override default values for the
+        same key
         """
         logged_in_user = user or request.user
 
-        # django-loginas will keep the superuser as the _cached_user while request.user is set to the new one
-        # sometimes there won't be a cached user at all, mostly in tests
+        # django-loginas will keep the superuser as the _cached_user while request.user
+        # is set to the new one sometimes there won't be a cached user at all,
+        # mostly in tests
         initial_user = getattr(request, '_cached_user', None)
         is_loginas_url = (
             request.resolver_match is not None
@@ -240,7 +243,8 @@ class AccessLog(AuditLog):
         )
         is_loginas = is_loginas_url and user_changed
         if is_submission:
-            # Submissions are special snowflakes and need to be grouped together, no matter the auth type
+            # Submissions are special snowflakes and need to be grouped together,
+            # no matter the auth type
             auth_type = ACCESS_LOG_SUBMISSION_AUTH_TYPE
         elif authentication_type and authentication_type != '':
             # second option: auth type param

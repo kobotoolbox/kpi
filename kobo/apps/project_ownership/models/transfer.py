@@ -19,15 +19,15 @@ from kpi.deployment_backends.kc_access.utils import (
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from ..exceptions import TransferAlreadyProcessedException
+from ..tasks import async_task, send_email_to_admins
+from ..utils import get_target_folder
 from .choices import (
     InviteStatusChoices,
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
 from .invite import Invite
-from ..exceptions import TransferAlreadyProcessedException
-from ..tasks import async_task, send_email_to_admins
-from ..utils import get_target_folder
 
 
 class Transfer(AbstractTimeStampedModel):
@@ -223,7 +223,7 @@ class Transfer(AbstractTimeStampedModel):
         message_recipient_ids = (
             ObjectPermission.objects.filter(asset_id=self.asset_id)
             .exclude(user_id__in=exclusions)
-            .values_list("user_id", flat=True)
+            .values_list('user_id', flat=True)
         )
 
         if len(message_recipient_ids):
@@ -257,14 +257,10 @@ class Transfer(AbstractTimeStampedModel):
         # tasks because it can take a while to complete on big projects
         if rewrite_mongo:
             # 1) Rewrite `_userform_id` in MongoDB
-            async_task.delay(
-                self.pk, TransferStatusTypeChoices.SUBMISSIONS
-            )
+            async_task.delay(self.pk, TransferStatusTypeChoices.SUBMISSIONS)
 
         # 2) Move media files to new owner's home directory
-        async_task.delay(
-            self.pk, TransferStatusTypeChoices.MEDIA_FILES
-        )
+        async_task.delay(self.pk, TransferStatusTypeChoices.MEDIA_FILES)
 
     def _update_invite_status(self):
         """

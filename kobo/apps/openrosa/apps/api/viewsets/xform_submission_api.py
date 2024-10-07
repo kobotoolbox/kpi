@@ -1,7 +1,5 @@
-# coding: utf-8
 import io
 import re
-import logging
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
@@ -29,6 +27,7 @@ from kpi.authentication import (
     DigestAuthentication,
     TokenAuthentication,
 )
+from kpi.utils.log import logging
 from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 

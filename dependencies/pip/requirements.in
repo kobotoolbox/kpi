@@ -37,6 +37,7 @@ django-csp
 django-debug-toolbar
 django-environ
 django-filter
+django-import-export
 django-extensions
 django-oauth-toolkit
 django-organizations

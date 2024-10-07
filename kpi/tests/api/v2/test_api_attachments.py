@@ -11,8 +11,8 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
-from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.tests.utils.mock import guess_type_mock
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
 class AttachmentApiTests(BaseAssetTestCase):

@@ -1,32 +1,25 @@
-# coding: utf-8
 import os
-import uuid
 
 import simplejson as json
-from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django_digest.test import DigestAuth
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from rest_framework import status
 
-from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import \
-    TestAbstractViewSet
+from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
+    TestAbstractViewSet,
+)
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Attachment
-from kobo.apps.openrosa.libs.constants import (
-    CAN_ADD_SUBMISSIONS
-)
+from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.openrosa.libs.utils.logger_tools import OpenRosaTemporarilyUnavailable
 
 
 class TestXFormSubmissionApi(TestAbstractViewSet):
     def setUp(self):
         super().setUp()
-        self.view = XFormSubmissionApi.as_view({
-            "head": "create",
-            "post": "create"
-        })
+        self.view = XFormSubmissionApi.as_view({'head': 'create', 'post': 'create'})
         self.publish_xls_form()
 
     def test_head_response(self):
@@ -141,7 +134,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         }
         self._create_user_profile(alice_data)
         s = self.surveys[0]
-        media_file = "1335783522563.jpg"
+        media_file = '1335783522563.jpg'
         path = os.path.join(self.main_directory, 'fixtures',
                             'transportation', 'instances', s, media_file)
         with open(path, 'rb') as f:
@@ -232,7 +225,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
     def test_post_submission_require_auth(self):
         count = Attachment.objects.count()
         s = self.surveys[0]
-        media_file = "1335783522563.jpg"
+        media_file = '1335783522563.jpg'
         path = os.path.join(self.main_directory, 'fixtures',
                             'transportation', 'instances', s, media_file)
         with open(path, 'rb') as f:
@@ -272,7 +265,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
     def test_post_submission_require_auth_anonymous_user(self):
         count = Attachment.objects.count()
         s = self.surveys[0]
-        media_file = "1335783522563.jpg"
+        media_file = '1335783522563.jpg'
         path = os.path.join(self.main_directory, 'fixtures',
                             'transportation', 'instances', s, media_file)
         with open(path, 'rb') as f:
@@ -302,7 +295,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
 
         count = Attachment.objects.count()
         s = self.surveys[0]
-        media_file = "1335783522563.jpg"
+        media_file = '1335783522563.jpg'
         path = os.path.join(self.main_directory, 'fixtures',
                             'transportation', 'instances', s, media_file)
         with open(path, 'rb') as f:
@@ -343,7 +336,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
 
         count = Attachment.objects.count()
         s = self.surveys[0]
-        media_file = "1335783522563.jpg"
+        media_file = '1335783522563.jpg'
         path = os.path.join(self.main_directory, 'fixtures',
                             'transportation', 'instances', s, media_file)
         with open(path, 'rb') as f:
@@ -372,7 +365,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                                     status_code=201)
 
     def test_post_submission_json_without_submission_key(self):
-        data = {"id": "transportation_2011_07_25"}
+        data = {'id': 'transportation_2011_07_25'}
         request = self.factory.post('/submission', data, format='json')
         response = self.view(request)
         self.assertEqual(response.status_code, 401)
@@ -382,9 +375,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertContains(
-            response, 'No submission key provided.', status_code=400
-        )
+        self.assertContains(response, 'No submission key provided.', status_code=400)
 
     def test_submission_blocking_flag(self):
         # Set 'submissions_suspended' True in the profile metadata to test if

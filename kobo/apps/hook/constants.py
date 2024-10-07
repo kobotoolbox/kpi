@@ -1,7 +1,7 @@
 # coding: utf-8
 from enum import Enum
-from rest_framework import status
 
+from rest_framework import status
 
 HOOK_LOG_FAILED = 0
 HOOK_LOG_PENDING = 1

@@ -1,12 +1,8 @@
-# coding: utf-8
 import os
 from typing import Union
 
 from django.conf import settings
-from django.contrib.auth.models import (
-    AnonymousUser,
-    Permission,
-)
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.core.files.base import ContentFile
 from django.test import TestCase
 from django_digest.test import DigestAuth
@@ -16,10 +12,12 @@ from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
-from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.main import tests as main_tests
-from kobo.apps.openrosa.apps.main.models import UserProfile, MetaData
-from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import MakeSubmissionMixin
+from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
+from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
+    MakeSubmissionMixin,
+)
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
 
@@ -61,7 +59,9 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         # during deployment. Thus, this method will create the XForm object directly
         # without an API call except if `use_api` is True.
 
-        # In unit tests, if we need to test the result of the (KoboCAT API),
+        # Some unit tests still need to test the result of API `v1`
+        # (i.e.: KoboCAT API). For example, to ensure project creation is
+        # not allowed anymore.
         if not data:
             data = {
                 'owner': self.user.username,
@@ -98,14 +98,12 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
 
             self.assertEqual(response.status_code, 201)
             self.xform = XForm.objects.all().order_by('pk').reverse()[0]
-            data.update({
-                'url': f'http://testserver/api/v1/forms/{self.xform.pk}'
-            })
+            data.update({'url': f'http://testserver/api/v1/forms/{self.xform.pk}'})
             self.assertEqual(dict(response.data, **data), response.data)
             self.form_data = response.data
         else:
             with open(path, 'rb') as f:
-                xls_file = ContentFile(f.read(), name=f'transportation.xls')
+                xls_file = ContentFile(f.read(), name='transportation.xls')
 
             self.xform = logger_tools.publish_xls_form(xls_file, self.user)
             response = self.client.get(
@@ -229,7 +227,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
     ):
         survey_datetime = self.surveys[survey_at]
         if not media_file:
-            media_file = "1335783522563.jpg"
+            media_file = '1335783522563.jpg'
         path = os.path.join(
             self.main_directory,
             'fixtures',

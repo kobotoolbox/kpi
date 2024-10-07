@@ -1,11 +1,12 @@
 import copy
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+
+from ..actions.base import ACTION_NEEDED, PASSES, BaseAction
 
 
 class KeywordSearchAction(BaseAction):
     ID = 'keyword_search'
 
-    '''
+    """
     @classmethod
     def build_params(cls, params, content):
         possible_transcribed_fields = []
@@ -14,7 +15,7 @@ class KeywordSearchAction(BaseAction):
                 possible_transcribed_fields.append(cls.get_xpath(cls, row))
         params = {'values': possible_transcribed_fields}
         return params
-    '''
+    """
 
     @classmethod
     def get_values_for_content(cls, content):

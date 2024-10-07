@@ -8,9 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from kobo.apps.subsequences.models import SubmissionExtras
-from kobo.apps.subsequences.utils.deprecation import (
-    get_sanitized_dict_keys,
-)
+from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
 from kpi.models import Asset
 from kpi.permissions import SubmissionPermission
 from kpi.views.environment import check_asr_mt_access_for_user
@@ -104,9 +102,7 @@ def get_submission_processing(asset, s_uuid):
 
         # TODO delete "if" statement below when every asset is repopulated with
         #  `xpath` instead of `qpath`.
-        if content := get_sanitized_dict_keys(
-            submission_extra.content, asset
-        ):
+        if content := get_sanitized_dict_keys(submission_extra.content, asset):
             submission_extra.content = content
 
         return Response(submission_extra.content)

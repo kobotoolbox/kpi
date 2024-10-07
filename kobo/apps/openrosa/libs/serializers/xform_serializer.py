@@ -8,8 +8,8 @@ from rest_framework.reverse import reverse
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.permissions import get_object_users_with_permissions
 from kobo.apps.openrosa.libs.serializers.fields.boolean_field import BooleanField
-from kobo.apps.openrosa.libs.serializers.tag_list_serializer import TagListSerializer
 from kobo.apps.openrosa.libs.serializers.metadata_serializer import MetaDataSerializer
+from kobo.apps.openrosa.libs.serializers.tag_list_serializer import TagListSerializer
 from kobo.apps.openrosa.libs.utils.decorators import check_obj
 
 
@@ -53,7 +53,7 @@ class XFormSerializer(serializers.HyperlinkedModelSerializer):
 
     @check_obj
     def get_hash(self, obj):
-        return "md5:%s" % obj.md5_hash
+        return 'md5:%s' % obj.md5_hash
 
     # Tests are expecting this `public` to be passed only "True" or "False"
     # and as a string. I don't know how it worked pre-migrations to django 1.8
@@ -192,4 +192,4 @@ class XFormManifestSerializer(serializers.Serializer):
 
     @check_obj
     def get_hash(self, obj):
-        return "%s" % (obj.md5_hash or 'md5:')
+        return '%s' % (obj.md5_hash or 'md5:')

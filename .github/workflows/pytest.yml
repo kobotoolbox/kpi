@@ -4,7 +4,7 @@ name: pytest
 
 on:
   push:
-    branches: [ master, beta ]
+    branches: [ main ]
   pull_request:
 
 jobs:
