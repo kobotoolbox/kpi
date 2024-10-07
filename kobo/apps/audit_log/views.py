@@ -4,7 +4,7 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from kpi.filters import SearchFilter
 from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
-from .models import AccessLog, AuditLog
+from .models import AccessLog, AuditAction, AuditLog
 from .permissions import SuperUserPermission
 from .serializers import AccessLogSerializer, AuditLogSerializer
 
