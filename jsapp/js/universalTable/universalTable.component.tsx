@@ -41,7 +41,7 @@ export interface UniversalTableColumn<DataItem> {
   /**
    * This is an optional formatter function that will be used when rendering
    * the cell value. Without it a literal text value will be rendered. For more
-   * flexibility, funciton receives whole original data object.
+   * flexibility, function receives whole original data object.
    */
   cellFormatter?: (value: DataItem) => React.ReactNode;
 }
