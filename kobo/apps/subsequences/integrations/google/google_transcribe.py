@@ -74,10 +74,6 @@ class GoogleTranscriptionService(GoogleService):
         submission_uuid = self.submission.submission_uuid
         flac_content, duration = content
         total_seconds = int(duration.total_seconds())
-        # Check if the user's organization has available usage credits
-        org = Organization.get_from_user_id(self.user.pk)
-        if get_organization_remaining_usage(org, 'seconds') < total_seconds:
-            raise UsageLimitExceeded
 
         # Create the parameters required for the transcription
         speech_client = speech.SpeechClient(credentials=self.credentials)

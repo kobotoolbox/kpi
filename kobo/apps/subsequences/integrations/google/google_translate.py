@@ -94,11 +94,6 @@ class GoogleTranslationService(GoogleService):
             logging.info(f'Found stored results in {output_path=}')
             return (stored_result, len(content))
 
-        # Check if organization nlp usage limit has been exceeded
-        org = Organization.get_from_user_id(self.user.pk)
-        if get_organization_remaining_usage(org, 'character') < len(content):
-            raise UsageLimitExceeded
-
         logging.info(
             f'Starting async translation for {self.submission.submission_uuid=} {xpath=}'
         )

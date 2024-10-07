@@ -399,11 +399,6 @@ class GoogleNLPSubmissionTest(BaseTestCase):
 
     def setUp(self):
         self.user = User.objects.get(username='someuser')
-        self.organization = Organization.objects.create(
-            id='123456abcdef', name='test organization'
-        )
-        self.organization.add_user(self.user, is_admin=True)
-        generate_plan_subscription(self.organization)
         self.asset = Asset(
             content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]}
         )
