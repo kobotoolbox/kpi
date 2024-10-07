@@ -1,15 +1,15 @@
 import mimetypes
 import os
-import requests
 from contextlib import closing
 from urllib.parse import urlparse
 
+import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import URLValidator
 from django.db import models
-from django.conf import settings
 from requests.exceptions import RequestException
 
 from kobo.apps.openrosa.apps.logger.models import XForm

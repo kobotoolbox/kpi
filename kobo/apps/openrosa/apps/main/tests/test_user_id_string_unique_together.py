@@ -5,6 +5,7 @@ import pytest
 from django.db.utils import IntegrityError
 
 from kobo.apps.openrosa.apps.logger.models import XForm
+
 from .test_base import TestBase
 
 

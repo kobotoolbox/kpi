@@ -3,10 +3,9 @@ import os
 from xml.dom import Node
 
 import pytest
+from defusedxml import minidom
 from django.conf import settings
 from django.urls import reverse
-from defusedxml import minidom
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from pyxform.errors import PyXFormError
 from rest_framework import status
 
@@ -15,10 +14,9 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.libs.constants import (
-    CAN_VIEW_XFORM
-)
+from kobo.apps.openrosa.libs.constants import CAN_VIEW_XFORM
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 
 
 class TestXFormViewSet(TestAbstractViewSet):
@@ -149,11 +147,11 @@ class TestXFormViewSet(TestAbstractViewSet):
         })
         formid = self.xform.pk
         data = {
-            "name": "transportation_2011_07_25",  # Since commit 3c0e17d0b6041ae96b06c3ef4d2f78a2d0739cbc
-            "title": "transportation_2011_07_25",
-            "default_language": "default",
-            "id_string": "transportation_2011_07_25",
-            "type": "survey",
+            'name': 'transportation_2011_07_25',  # Since commit 3c0e17d0b6041ae96b06c3ef4d2f78a2d0739cbc  # flake8: noqa
+            'title': 'transportation_2011_07_25',
+            'default_language': 'default',
+            'id_string': 'transportation_2011_07_25',
+            'type': 'survey',
         }
         request = self.factory.get('/', **self.extra)
         # test for unsupported format
@@ -172,25 +170,34 @@ class TestXFormViewSet(TestAbstractViewSet):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         xml_path = os.path.join(
-            settings.OPENROSA_APP_DIR, "apps", "main", "tests", "fixtures",
-            "transportation", "transportation.xml")
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
+            'transportation.xml',
+        )
         with open(xml_path) as xml_file:
             expected_doc = minidom.parse(xml_file)
 
         model_node = [
-            n for n in
-            response_doc.getElementsByTagName("h:head")[0].childNodes
-            if n.nodeType == Node.ELEMENT_NODE and
-               n.tagName == "model"][0]
+            n
+            for n in response_doc.getElementsByTagName('h:head')[0].childNodes
+            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'model'
+        ][0]
 
         # check for UUID and remove
         uuid_nodes = [
-            node for node in model_node.childNodes
+            node
+            for node in model_node.childNodes
             if node.nodeType == Node.ELEMENT_NODE
-               and node.getAttribute("nodeset") == "/transportation_2011_07_25/formhub/uuid"]
+            and node.getAttribute('nodeset')
+            == '/transportation_2011_07_25/formhub/uuid'
+        ]
         self.assertEqual(len(uuid_nodes), 1)
         uuid_node = uuid_nodes[0]
-        uuid_node.setAttribute("calculate", "''")
+        uuid_node.setAttribute('calculate', "''")
 
         # check content without UUID
         self.assertEqual(response_doc.toxml(), expected_doc.toxml())
@@ -213,26 +220,26 @@ class TestXFormViewSet(TestAbstractViewSet):
         self.assertEqual(response.data, [])
 
         # add tag "hello"
-        request = self.factory.post('/', data={"tags": "hello"}, **self.extra)
+        request = self.factory.post('/', data={'tags': 'hello'}, **self.extra)
         response = view(request, pk=formid)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data, ['hello'])
 
         # check filter by tag
-        request = self.factory.get('/', data={"tags": "hello"}, **self.extra)
+        request = self.factory.get('/', data={'tags': 'hello'}, **self.extra)
         self.form_data = XFormSerializer(
             self.xform, context={'request': request}).data
         response = list_view(request, pk=formid)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [self.form_data])
 
-        request = self.factory.get('/', data={"tags": "goodbye"}, **self.extra)
+        request = self.factory.get('/', data={'tags': 'goodbye'}, **self.extra)
         response = list_view(request, pk=formid)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
 
         # remove tag "hello"
-        request = self.factory.delete('/', data={"tags": "hello"},
+        request = self.factory.delete('/', data={'tags': 'hello'},
                                       **self.extra)
         response = view(request, pk=formid, label='hello')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

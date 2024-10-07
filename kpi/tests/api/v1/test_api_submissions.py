@@ -26,7 +26,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         pass
 
     def test_list_submissions_as_owner(self):
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_ids = [s['_id'] for s in self.submissions]
         response_ids = [r['_id'] for r in response.data]
@@ -35,7 +35,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
     def test_list_submissions_shared_as_anotheruser(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self.client.force_login(self.anotheruser)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_ids = [s['_id'] for s in self.submissions]
         response_ids = [r['_id'] for r in response.data]

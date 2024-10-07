@@ -27,12 +27,12 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
 )
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
-    SUBMISSION_FORMAT_TYPE_JSON,
-    SUBMISSION_FORMAT_TYPE_XML,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.exceptions import (
     InvalidXFormException,
@@ -52,6 +52,7 @@ from kpi.renderers import (
     SubmissionGeoJsonRenderer,
     SubmissionXMLRenderer,
 )
+from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import (
@@ -59,7 +60,6 @@ from kpi.utils.xml import (
     get_or_create_element,
     xml_tostring,
 )
-from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
 class DataViewSet(
@@ -687,7 +687,7 @@ class DataViewSet(
         """
         filters = {}
 
-        if request.method == "GET":
+        if request.method == 'GET':
             filters = request.GET.dict()
 
         # Remove `format` from filters. No need to use it

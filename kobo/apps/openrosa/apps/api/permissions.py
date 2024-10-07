@@ -1,20 +1,20 @@
 # coding: utf-8
 from django.http import Http404
 from rest_framework.permissions import (
+    SAFE_METHODS,
     BasePermission,
     DjangoObjectPermissions,
     IsAuthenticated,
-    SAFE_METHODS,
 )
 
+from kobo.apps.openrosa.apps.api.exceptions import LegacyAPIException
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.constants import (
-    CAN_DELETE_DATA_XFORM,
     CAN_CHANGE_XFORM,
+    CAN_DELETE_DATA_XFORM,
     CAN_VALIDATE_XFORM,
     CAN_VIEW_XFORM,
 )
-from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.apps.api.exceptions import LegacyAPIException
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):

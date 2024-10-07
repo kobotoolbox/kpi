@@ -19,15 +19,16 @@ from kpi.deployment_backends.kc_access.utils import (
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
+
+from ..exceptions import TransferAlreadyProcessedException
+from ..tasks import async_task, send_email_to_admins
+from ..utils import get_target_folder
 from .choices import (
     InviteStatusChoices,
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
 from .invite import Invite
-from ..exceptions import TransferAlreadyProcessedException
-from ..tasks import async_task, send_email_to_admins
-from ..utils import get_target_folder
 
 
 class Transfer(AbstractTimeStampedModel):
@@ -223,7 +224,7 @@ class Transfer(AbstractTimeStampedModel):
         message_recipient_ids = (
             ObjectPermission.objects.filter(asset_id=self.asset_id)
             .exclude(user_id__in=exclusions)
-            .values_list("user_id", flat=True)
+            .values_list('user_id', flat=True)
         )
 
         if len(message_recipient_ids):

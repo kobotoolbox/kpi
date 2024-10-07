@@ -3,7 +3,7 @@ from typing import Optional
 
 import requests
 from django.conf import settings
-from django.http import HttpResponseRedirect, Http404
+from django.http import Http404, HttpResponseRedirect
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -17,7 +17,7 @@ from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
-from kpi.models import AssetSnapshot, AssetFile, PairedData
+from kpi.models import AssetFile, AssetSnapshot, PairedData
 from kpi.permissions import EditSubmissionPermission
 from kpi.renderers import (
     OpenRosaFormListRenderer,

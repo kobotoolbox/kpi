@@ -6,25 +6,24 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from rest_framework.settings import api_settings
 
 from kobo.apps.openrosa.apps.api.exceptions import (
     NoConfirmationProvidedAPIException,
 )
-from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import (
-    custom_response_handler,
+from kobo.apps.openrosa.apps.api.permissions import (
+    EnketoSubmissionEditPermissions,
+    EnketoSubmissionViewPermissions,
+    XFormDataPermissions,
 )
 from kobo.apps.openrosa.apps.api.tools import (
     add_tags_to_instance,
 )
-from kobo.apps.openrosa.apps.logger.utils.instance import (
-    add_validation_status_to_instance,
-    delete_instances,
-    remove_validation_status_from_instance,
-    set_instance_validation_statuses,
+from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import (
+    custom_response_handler,
 )
 from kobo.apps.openrosa.apps.logger.exceptions import (
     BuildDbQueriesAttributeError,
@@ -32,30 +31,32 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     BuildDbQueriesNoConfirmationProvidedError,
     MissingValidationStatusPayloadError,
 )
-from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.models.instance import (
     Instance,
 )
-from kobo.apps.openrosa.libs.renderers import renderers
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kobo.apps.openrosa.apps.logger.utils.instance import (
+    add_validation_status_to_instance,
+    delete_instances,
+    remove_validation_status_from_instance,
+    set_instance_validation_statuses,
+)
+from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
     AnonymousUserPublicFormsMixin,
 )
-from kobo.apps.openrosa.apps.api.permissions import (
-    EnketoSubmissionEditPermissions,
-    EnketoSubmissionViewPermissions,
-    XFormDataPermissions,
-)
+from kobo.apps.openrosa.libs.renderers import renderers
 from kobo.apps.openrosa.libs.serializers.data_serializer import (
-    DataSerializer,
-    DataListSerializer,
     DataInstanceSerializer,
+    DataListSerializer,
+    DataSerializer,
 )
-from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     EnketoError,
     get_enketo_submission_url,
 )
 from kpi.utils.object_permission import get_database_user
+
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
@@ -492,11 +493,11 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         try:
             int(pk)
         except ValueError:
-            raise ParseError(t("Invalid pk `%(pk)s`" % {'pk': pk}))
+            raise ParseError(t('Invalid pk `%(pk)s`' % {'pk': pk}))
         try:
             int(dataid)
         except ValueError:
-            raise ParseError(t("Invalid dataid `%(dataid)s`"
+            raise ParseError(t('Invalid dataid `%(dataid)s`'
                                % {'dataid': dataid}))
 
         return get_object_or_404(Instance, pk=dataid, xform__pk=pk)
@@ -512,7 +513,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             filter_kwargs['shared_data'] = True
             qs = XForm.objects.filter(**filter_kwargs)
             if not qs:
-                raise Http404(t("No data matches with given query."))
+                raise Http404(t('No data matches with given query.'))
 
         return qs
 
@@ -529,13 +530,13 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             try:
                 int(pk)
             except ValueError:
-                raise ParseError(t("Invalid pk %(pk)s" % {'pk': pk}))
+                raise ParseError(t('Invalid pk %(pk)s' % {'pk': pk}))
             else:
                 qs = self._filtered_or_shared_qs(qs, pk)
 
         return qs
 
-    @action(detail=True, methods=["GET", "PATCH", "DELETE"])
+    @action(detail=True, methods=['GET', 'PATCH', 'DELETE'])
     def validation_status(self, request, *args, **kwargs):
         """
         View or modify validation status of specific instance.
@@ -667,7 +668,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         # XML rendering does not a serializer
-        if request.accepted_renderer.format == "xml":
+        if request.accepted_renderer.format == 'xml':
             instance = self.get_object()
             return Response(instance.xml)
         else:
@@ -693,7 +694,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             return Response(serializer.data)
 
         xform = self.get_object()
-        query = request.GET.get("query", {})
+        query = request.GET.get('query', {})
         export_type = kwargs.get('format')
         if export_type is None or export_type in ['json']:
             # perform default viewset retrieve, no data export

@@ -1,13 +1,11 @@
 from django.conf import settings
-from django.contrib.auth.models import Permission
 from django.contrib.auth.models import AbstractUser
-
 
 from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
-from kpi.utils.database import use_db, update_autofield_sequence
+from kpi.utils.database import update_autofield_sequence, use_db
 
 
 class User(AbstractUser):

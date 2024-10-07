@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import annotations
+
 import csv
 from io import StringIO
 from typing import Union
@@ -13,7 +14,6 @@ from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models import Asset
 from kpi.utils.project_views import get_region_for_view
-
 
 ASSET_FIELDS = (
     'id',

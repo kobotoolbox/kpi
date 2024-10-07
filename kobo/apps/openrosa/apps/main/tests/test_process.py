@@ -8,20 +8,20 @@ import unittest
 from xml.dom import Node
 
 from defusedxml import minidom
-from django.urls import reverse
 from django.conf import settings
-from django_digest.test import Client as DigestClient
 from django.core.files.uploadedfile import UploadedFile
+from django.urls import reverse
 
-from kobo.apps.openrosa.apps.main.models import MetaData
+from django_digest.test import Client as DigestClient
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.models.xform import XFORM_TITLE_LENGTH
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse_xml
+from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
-from kobo.apps.openrosa.libs.utils.common_tags import UUID, SUBMISSION_TIME
+from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME, UUID
 from kobo.apps.openrosa.libs.utils.hash import get_hash
-from .test_base import TestBase
 
+from .test_base import TestBase
 
 uuid_regex = re.compile(
     r'(</instance>.*uuid[^//]+="\')([^\']+)(\'".*)', re.DOTALL)
@@ -90,7 +90,7 @@ class TestProcess(TestBase):
     # containing the files you would like to test.
     # DO NOT CHECK IN PRIVATE XLS FILES!!
     def test_upload_all_xls(self):
-        root_dir = os.path.join(self.this_directory, "fixtures", "online_xls")
+        root_dir = os.path.join(self.this_directory, 'fixtures', 'online_xls')
         if os.path.exists(root_dir):
             success = True
             for root, sub_folders, filenames in os.walk(root_dir):
@@ -151,25 +151,25 @@ class TestProcess(TestBase):
         response = client.get(self.download_url)
         response_doc = minidom.parseString(response.content)
 
-        xml_path = os.path.join(self.this_directory, "fixtures",
-                                "transportation", "transportation.xml")
+        xml_path = os.path.join(self.this_directory, 'fixtures',
+                                'transportation', 'transportation.xml')
         with open(xml_path) as xml_file:
             expected_doc = minidom.parse(xml_file)
 
         model_node = [
             n for n in
-            response_doc.getElementsByTagName("h:head")[0].childNodes
+            response_doc.getElementsByTagName('h:head')[0].childNodes
             if n.nodeType == Node.ELEMENT_NODE and
-            n.tagName == "model"][0]
+            n.tagName == 'model'][0]
 
         # check for UUID and remove
         uuid_nodes = [node for node in model_node.childNodes
                       if node.nodeType == Node.ELEMENT_NODE and
-                      node.getAttribute("nodeset") ==
-                      "/transportation/formhub/uuid"]
+                      node.getAttribute('nodeset') ==
+                      '/transportation/formhub/uuid']
         self.assertEqual(len(uuid_nodes), 1)
         uuid_node = uuid_nodes[0]
-        uuid_node.setAttribute("calculate", "''")
+        uuid_node.setAttribute('calculate', "''")
 
         # check content without UUID
         self.assertEqual(response_doc.toxml(), expected_doc.toxml())
@@ -186,8 +186,8 @@ class TestProcess(TestBase):
         qs = DataDictionary.objects.filter(user=self.user)
         self.assertEqual(qs.count(), 1)
         self.data_dictionary = DataDictionary.objects.all()[0]
-        with open(os.path.join(self.this_directory, "fixtures",
-                  "transportation", "headers.json")) as f:
+        with open(os.path.join(self.this_directory, 'fixtures',
+                  'transportation', 'headers.json')) as f:
             expected_list = json.load(f)
         self.assertEqual(self.data_dictionary.get_headers(), expected_list)
 
@@ -198,24 +198,24 @@ class TestProcess(TestBase):
     def _check_data_for_csv_export(self):
 
         data = [
-            {"available_transportation_types_to_referral_facility/ambulance":
+            {'available_transportation_types_to_referral_facility/ambulance':
              True,
-             "available_transportation_types_to_referral_facility/bicycle":
+             'available_transportation_types_to_referral_facility/bicycle':
                 True,
-             self.ambulance_key: "daily",
-             self.bicycle_key: "weekly"
+             self.ambulance_key: 'daily',
+             self.bicycle_key: 'weekly'
              },
             {},
-            {"available_transportation_types_to_referral_facility/ambulance":
+            {'available_transportation_types_to_referral_facility/ambulance':
              True,
-             self.ambulance_key: "weekly",
+             self.ambulance_key: 'weekly',
              },
-            {"available_transportation_types_to_referral_facility/taxi": True,
-             "available_transportation_types_to_referral_facility/other": True,
-             "available_transportation_types_to_referral_facility_other":
-             "camel",
-             self.taxi_key: "daily",
-             self.other_key: "other",
+            {'available_transportation_types_to_referral_facility/taxi': True,
+             'available_transportation_types_to_referral_facility/other': True,
+             'available_transportation_types_to_referral_facility_other':
+             'camel',
+             self.taxi_key: 'daily',
+             self.other_key: 'other',
              }
         ]
         for d_from_db in self.data_dictionary.get_data_for_excel():
@@ -239,31 +239,31 @@ class TestProcess(TestBase):
                 instance = i
 
         expected_dict = {
-            "transportation": {
-                "meta": {
-                    "instanceID": uuid
+            'transportation': {
+                'meta': {
+                    'instanceID': uuid
                 },
-                "transport": {
-                    "loop_over_transport_types_frequency": {"bicycle": {
-                        "frequency_to_referral_facility": "weekly"
+                'transport': {
+                    'loop_over_transport_types_frequency': {'bicycle': {
+                        'frequency_to_referral_facility': 'weekly'
                     },
-                        "ambulance": {
-                            "frequency_to_referral_facility": "daily"
+                        'ambulance': {
+                            'frequency_to_referral_facility': 'daily'
                         }
                     },
-                    "available_transportation_types_to_referral_facility":
-                    "ambulance bicycle",
+                    'available_transportation_types_to_referral_facility':
+                    'ambulance bicycle',
                 }
             }
         }
         self.assertEqual(instance.get_dict(flat=False), expected_dict)
         expected_dict = {
-            "transport/available_transportation_types_to_referral_facility":
-            "ambulance bicycle",
-            self.transport_ambulance_key: "daily",
-            self.transport_bicycle_key: "weekly",
-            "_xform_id_string": "transportation_2011_07_25",
-            "meta/instanceID": uuid
+            'transport/available_transportation_types_to_referral_facility':
+            'ambulance bicycle',
+            self.transport_ambulance_key: 'daily',
+            self.transport_bicycle_key: 'weekly',
+            '_xform_id_string': 'transportation_2011_07_25',
+            'meta/instanceID': uuid
         }
         self.assertEqual(instance.get_dict(), expected_dict)
 
@@ -275,14 +275,14 @@ class TestProcess(TestBase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         actual_csv = self._get_response_content(response)
-        actual_lines = actual_csv.split("\n")
+        actual_lines = actual_csv.split('\n')
         return csv.reader(actual_lines)
 
     def _check_csv_export_first_pass(self):
         actual_csv = self._get_csv_()
         f = open(os.path.join(
-            self.this_directory, "fixtures",
-            "transportation", "transportation.csv"), "r")
+            self.this_directory, 'fixtures',
+            'transportation', 'transportation.csv'), 'r')
         expected_csv = csv.reader(f)
         for actual_row, expected_row in zip(actual_csv, expected_csv):
             for actual_cell, expected_cell in zip(actual_row, expected_row):
@@ -295,7 +295,7 @@ class TestProcess(TestBase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         actual_csv = self._get_response_content(response)
-        actual_lines = actual_csv.split("\n")
+        actual_lines = actual_csv.split('\n')
         actual_csv = csv.reader(actual_lines)
         headers = next(actual_csv)
         data = [
@@ -304,33 +304,33 @@ class TestProcess(TestBase):
              '_submission_time': '2013-02-14T15:37:21',
              '_tags': '', '_notes': ''
              },
-            {"available_transportation_types_to_referral_facility/ambulance":
-             "True",
-             "available_transportation_types_to_referral_facility/bicycle":
-             "True",
-             self.ambulance_key: "daily",
-             self.bicycle_key: "weekly",
-             "meta/instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390",
+            {'available_transportation_types_to_referral_facility/ambulance':
+             'True',
+             'available_transportation_types_to_referral_facility/bicycle':
+             'True',
+             self.ambulance_key: 'daily',
+             self.bicycle_key: 'weekly',
+             'meta/instanceID': 'uuid:f3d8dc65-91a6-4d0f-9e97-802128083390',
              '_uuid': 'f3d8dc65-91a6-4d0f-9e97-802128083390',
              '_submission_time': '2013-02-14T15:37:22',
              '_tags': '', '_notes': ''
              },
-            {"available_transportation_types_to_referral_facility/ambulance":
-             "True",
-             self.ambulance_key: "weekly",
-             "meta/instanceID": "uuid:9c6f3468-cfda-46e8-84c1-75458e72805d",
+            {'available_transportation_types_to_referral_facility/ambulance':
+             'True',
+             self.ambulance_key: 'weekly',
+             'meta/instanceID': 'uuid:9c6f3468-cfda-46e8-84c1-75458e72805d',
              '_uuid': '9c6f3468-cfda-46e8-84c1-75458e72805d',
              '_submission_time': '2013-02-14T15:37:23',
              '_tags': '', '_notes': ''
              },
-            {"available_transportation_types_to_referral_facility/taxi":
-             "True",
-             "available_transportation_types_to_referral_facility/other":
-             "True",
-             "available_transportation_types_to_referral_facility_other":
-             "camel",
-             self.taxi_key: "daily",
-             "meta/instanceID": "uuid:9f0a1508-c3b7-4c99-be00-9b237c26bcbf",
+            {'available_transportation_types_to_referral_facility/taxi':
+             'True',
+             'available_transportation_types_to_referral_facility/other':
+             'True',
+             'available_transportation_types_to_referral_facility_other':
+             'camel',
+             self.taxi_key: 'daily',
+             'meta/instanceID': 'uuid:9f0a1508-c3b7-4c99-be00-9b237c26bcbf',
              '_uuid': '9f0a1508-c3b7-4c99-be00-9b237c26bcbf',
              '_submission_time': '2013-02-14T15:37:24',
              '_tags': '', '_notes': ''
@@ -342,14 +342,14 @@ class TestProcess(TestBase):
             d = dict(zip(headers, row))
             d_iter = dict(d)
             for k, v in d_iter.items():
-                if v in ["n/a", "False"] or k in dd._additional_headers():
+                if v in ['n/a', 'False'] or k in dd._additional_headers():
                     del d[k]
             l = []
             for k, v in expected_dict.items():
-                if k == 'meta/instanceID' or k.startswith("_"):
+                if k == 'meta/instanceID' or k.startswith('_'):
                     l.append((k, v))
                 else:
-                    l.append(("transport/" + k, v))
+                    l.append(('transport/' + k, v))
             self.assertEqual(d, dict(l))
 
     def _check_delete(self):
@@ -378,8 +378,8 @@ class TestProcess(TestBase):
 
     def test_metadata_file_hash(self):
         self._publish_transportation_form()
-        src = os.path.join(self.this_directory, "fixtures",
-                           "transportation", "screenshot.png")
+        src = os.path.join(self.this_directory, 'fixtures',
+                           'transportation', 'screenshot.png')
         uf = UploadedFile(file=open(src, 'rb'), content_type='image/png')
         count = MetaData.objects.count()
         MetaData.media_upload(self.xform, uf)
@@ -412,11 +412,11 @@ class TestProcess(TestBase):
         xml = clean_and_parse_xml(xform.xml)
 
         # check for instance nodes that are direct children of the model node
-        model_node = xml.getElementsByTagName("model")[0]
+        model_node = xml.getElementsByTagName('model')[0]
         instance_nodes = [node for node in model_node.childNodes if
                           node.nodeType == Node.ELEMENT_NODE and
-                          node.tagName.lower() == "instance" and
-                          not node.hasAttribute("id")]
+                          node.tagName.lower() == 'instance' and
+                          not node.hasAttribute('id')]
         self.assertEqual(len(instance_nodes), 1)
         instance_node = instance_nodes[0]
 
@@ -424,37 +424,37 @@ class TestProcess(TestBase):
         # id_string
         form_nodes = [node for node in instance_node.childNodes if
                       node.nodeType == Node.ELEMENT_NODE and
-                      node.getAttribute("id") == xform.id_string]
+                      node.getAttribute('id') == xform.id_string]
         form_node = form_nodes[0]
 
         # find the formhub node that has a uuid child node
-        formhub_nodes = form_node.getElementsByTagName("formhub")
+        formhub_nodes = form_node.getElementsByTagName('formhub')
         self.assertEqual(len(formhub_nodes), 1)
-        uuid_nodes = formhub_nodes[0].getElementsByTagName("uuid")
+        uuid_nodes = formhub_nodes[0].getElementsByTagName('uuid')
         self.assertEqual(len(uuid_nodes), 1)
 
         # check for the calculate bind
         calculate_bind_nodes = [node for node in model_node.childNodes if
                                 node.nodeType == Node.ELEMENT_NODE and
-                                node.tagName == "bind" and
-                                node.getAttribute("nodeset") ==
-                                "/%s/formhub/uuid" % xform.id_string]
+                                node.tagName == 'bind' and
+                                node.getAttribute('nodeset') ==
+                                '/%s/formhub/uuid' % xform.id_string]
         self.assertEqual(len(calculate_bind_nodes), 1)
         calculate_bind_node = calculate_bind_nodes[0]
         self.assertEqual(
-            calculate_bind_node.getAttribute("calculate"), "'%s'" % xform.uuid)
+            calculate_bind_node.getAttribute('calculate'), "'%s'" % xform.uuid)
 
     def test_truncate_xform_title_to_255(self):
         self._publish_transportation_form()
-        title = "a" * (XFORM_TITLE_LENGTH + 1)
+        title = 'a' * (XFORM_TITLE_LENGTH + 1)
         groups = re.match(
-            r"(.+<h:title>)([^<]+)(</h:title>.*)",
+            r'(.+<h:title>)([^<]+)(</h:title>.*)',
             self.xform.xml, re.DOTALL).groups()
-        self.xform.xml = "{0}{1}{2}".format(
+        self.xform.xml = '{0}{1}{2}'.format(
             groups[0], title, groups[2])
         self.xform.title = title
         self.xform.save()
-        self.assertEqual(self.xform.title, "a" * XFORM_TITLE_LENGTH)
+        self.assertEqual(self.xform.title, 'a' * XFORM_TITLE_LENGTH)
 
     @unittest.skip('Fails under Django 1.6')
     def test_multiple_submissions_by_different_users(self):
@@ -463,4 +463,4 @@ class TestProcess(TestBase):
         CSV export would break.
         """
         TestProcess.test_process(self)
-        TestProcess.test_process(self, "doug", "doug")
+        TestProcess.test_process(self, 'doug', 'doug')

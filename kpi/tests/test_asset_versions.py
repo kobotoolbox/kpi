@@ -2,6 +2,7 @@
 import json
 from copy import deepcopy
 from datetime import datetime
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -9,13 +10,13 @@ except ImportError:
 
 from django.test import TestCase
 from django.utils import timezone
-from formpack.utils.expand_content import SCHEMA_VERSION
 
+from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import BadAssetTypeException
 from kpi.utils.hash import calculate_hash
-from ..models import Asset
-from ..models import AssetVersion
+
+from ..models import Asset, AssetVersion
 
 
 class AssetVersionTestCase(TestCase):

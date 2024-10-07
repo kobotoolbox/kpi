@@ -6,9 +6,10 @@ from kobo.apps.openrosa.apps.api.permissions import ConnectViewsetPermissions
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.mixins.object_lookup_mixin import ObjectLookupMixin
 from kobo.apps.openrosa.libs.serializers.user_profile_serializer import (
-    UserProfileWithTokenSerializer
+    UserProfileWithTokenSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 

@@ -2,7 +2,7 @@ import logging
 import time
 
 from django.conf import settings
-from django.db.models.signals import pre_delete, post_delete
+from django.db.models.signals import post_delete, pre_delete
 
 from kobo.apps.openrosa.apps.logger.signals import (
     nullify_exports_time_of_last_submission,
@@ -11,11 +11,10 @@ from kobo.apps.openrosa.apps.logger.signals import (
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
 
-
-from .database_query import build_db_queries
 from ..exceptions import MissingValidationStatusPayloadError
-from ..models.xform import XForm
 from ..models.instance import Instance
+from ..models.xform import XForm
+from .database_query import build_db_queries
 
 
 def add_validation_status_to_instance(

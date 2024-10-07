@@ -3,6 +3,7 @@ from django.test import TestCase
 
 from kpi.models import Asset
 from kpi.tests.utils.transaction import immediate_on_commit
+
 from ..models import (
     Invite,
     InviteStatusChoices,

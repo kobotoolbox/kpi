@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+
 from ..exceptions import (
     BuildDbQueriesAttributeError,
     BuildDbQueriesBadArgumentError,

@@ -8,8 +8,8 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
-    PERM_VIEW_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset
@@ -37,7 +37,7 @@ class BasePairedDataTestCase(BaseAssetTestCase):
                     {
                         'name': 'group_restaurant',
                         'type': 'begin_group',
-                        "label": "Restaurant"
+                        'label': 'Restaurant'
                     },
                     {
                         'name': 'favourite_restaurant',

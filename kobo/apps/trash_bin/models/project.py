@@ -14,6 +14,7 @@ from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+
 from . import BaseTrash
 
 

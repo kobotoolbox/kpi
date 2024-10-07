@@ -1,10 +1,11 @@
-import responses
 from ipaddress import ip_address
-from mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import responses
 from rest_framework import status
 
-from .hook_test_case import HookTestCase
 from ..utils.services import call_services
+from .hook_test_case import HookTestCase
 
 
 class HookUtilsTestCase(HookTestCase):

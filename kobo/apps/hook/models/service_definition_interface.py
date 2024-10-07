@@ -9,15 +9,16 @@ import requests
 from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
 
 from kpi.utils.log import logging
-from .hook import Hook
-from .hook_log import HookLog
+
 from ..constants import (
-    HOOK_LOG_SUCCESS,
     HOOK_LOG_FAILED,
+    HOOK_LOG_SUCCESS,
     KOBO_INTERNAL_ERROR_STATUS_CODE,
     RETRIABLE_STATUS_CODES,
 )
 from ..exceptions import HookRemoteServerDownError
+from .hook import Hook
+from .hook_log import HookLog
 
 
 class ServiceDefinitionInterface(metaclass=ABCMeta):
@@ -230,7 +231,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         try:
             json.loads(message)
         except ValueError:
-            message = re.sub(r"<[^>]*>", " ", message).strip()
+            message = re.sub(r'<[^>]*>', ' ', message).strip()
 
         log.message = message
 

@@ -3,20 +3,21 @@ from __future__ import annotations
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime
-from typing import Generator, Optional, Union, Literal
+from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-import requests
 import redis.exceptions
+import requests
 from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.db.models import Sum, F
+from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -24,12 +25,11 @@ from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from rest_framework import status
 
-from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     DailyXFormSubmissionCounter,
-    MonthlyXFormSubmissionCounter,
     Instance,
+    MonthlyXFormSubmissionCounter,
     XForm,
 )
 from kobo.apps.openrosa.apps.logger.utils.instance import (
@@ -38,6 +38,7 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     remove_validation_status_from_instance,
     set_instance_validation_statuses,
 )
+from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     create_instance,
     publish_xls_form,
@@ -45,14 +46,14 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
-    SUBMISSION_FORMAT_TYPE_JSON,
-    SUBMISSION_FORMAT_TYPE_XML,
-    PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
+    PERM_FROM_KC_ONLY,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
@@ -73,13 +74,14 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+
+from ..exceptions import (
+    BadFormatException,
+)
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
-)
-from ..exceptions import (
-    BadFormatException,
 )
 
 
@@ -548,8 +550,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                                 'format': '%Y-%m-%d',
                                 'date': {
                                     '$dateFromString': {
-                                        'format': "%Y-%m-%dT%H:%M:%S",
-                                        'dateString': "$_submission_time"
+                                        'format': '%Y-%m-%dT%H:%M:%S',
+                                        'dateString': '$_submission_time'
                                     }
                                 }
                             }
@@ -729,7 +731,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             submissions = self.__get_submissions_in_xml(**params)
         else:
             raise BadFormatException(
-                "The format {} is not supported".format(format_type)
+                'The format {} is not supported'.format(format_type)
             )
         return submissions
 

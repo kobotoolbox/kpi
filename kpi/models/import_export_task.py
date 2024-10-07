@@ -1,7 +1,6 @@
 # coding: utf-8
 import base64
 import datetime
-import dateutil.parser
 import os
 import posixpath
 import re
@@ -9,14 +8,16 @@ import tempfile
 from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
-from typing import List, Dict, Optional, Tuple, Generator
+from typing import Dict, Generator, List, Optional, Tuple
+
+import dateutil.parser
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import constance
-import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -25,6 +26,13 @@ from django.db import models, transaction
 from django.db.models import F
 from django.urls import reverse
 from django.utils.translation import gettext as t
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from werkzeug.http import parse_options_header
+
+import formpack
 from formpack.constants import (
     KOBO_LOCK_SHEET,
 )
@@ -37,12 +45,6 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
-from private_storage.fields import PrivateFileField
-from rest_framework import exceptions
-from werkzeug.http import parse_options_header
-from openpyxl.utils.exceptions import InvalidFileException
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
@@ -63,13 +65,13 @@ from kpi.utils.models import (
     create_assets,
     resolve_url_to_asset,
 )
+from kpi.utils.project_view_exports import create_project_view_export
 from kpi.utils.rename_xls_sheet import (
+    ConflictSheetError,
+    NoFromSheetError,
     rename_xls_sheet,
     rename_xlsx_sheet,
-    NoFromSheetError,
-    ConflictSheetError,
 )
-from kpi.utils.project_view_exports import create_project_view_export
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
 
@@ -214,7 +216,7 @@ class ImportExportTask(models.Model):
                     # was created concurrently.
                     pass
             if not os.path.isdir(directory):
-                raise IOError("%s exists and is not a directory." % directory)
+                raise IOError('%s exists and is not a directory.' % directory)
 
             # Store filenames with forward slashes, even on Windows.
             filename = filename.replace('\\', '/')
@@ -768,7 +770,7 @@ class ExportTaskBase(ImportExportTask):
         with self.result.storage.open(absolute_filepath, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
-                    output_file.write((line + "\r\n").encode('utf-8'))
+                    output_file.write((line + '\r\n').encode('utf-8'))
             elif export_type == 'geojson':
                 for line in export.to_geojson(
                     submission_stream, flatten=flatten

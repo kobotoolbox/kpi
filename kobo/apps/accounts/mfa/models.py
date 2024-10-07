@@ -5,6 +5,8 @@ from django.db import models
 from django.utils.timezone import now
 from trench.admin import (
     MFAMethod as TrenchMFAMethod,
+)
+from trench.admin import (
     MFAMethodAdmin as TrenchMFAMethodAdmin,
 )
 

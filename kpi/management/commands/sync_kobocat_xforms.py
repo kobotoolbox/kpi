@@ -15,18 +15,18 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from guardian.models import UserObjectPermission
-from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
+from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import PERM_FROM_KC_ONLY
-from kpi.utils.log import logging
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models import Asset, ObjectPermission
-from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.log import logging
 from kpi.utils.models import _set_auto_field_update
+from kpi.utils.object_permission import get_anonymous_user
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
@@ -99,7 +99,7 @@ def _convert_dict_to_xls(ss_dict):
     workbook = xlwt.Workbook()
     for sheet_name in ss_dict.keys():
         # pyxform.xls2json_backends adds "_header" items for each sheet.....
-        if not re.match(r".*_header$", sheet_name):
+        if not re.match(r'.*_header$', sheet_name):
             # Sheets with empty names are rejected by xlwt; omit them
             if not sheet_name:
                 continue
@@ -480,8 +480,8 @@ class Command(BaseCommand):
         self._print_str('%d users selected' % users.count())
 
         # We'll be copying the date fields from KC, so don't auto-update them
-        _set_auto_field_update(Asset, "date_created", False)
-        _set_auto_field_update(Asset, "date_modified", False)
+        _set_auto_field_update(Asset, 'date_created', False)
+        _set_auto_field_update(Asset, 'date_modified', False)
 
         for user in users:
             # Make sure the user has a token for access to KC's API
@@ -561,8 +561,8 @@ class Command(BaseCommand):
                     logging.exception('sync_kobocat_xforms: {}'.format(
                         ', '.join(error_information)))
 
-        _set_auto_field_update(Asset, "date_created", True)
-        _set_auto_field_update(Asset, "date_modified", True)
+        _set_auto_field_update(Asset, 'date_created', True)
+        _set_auto_field_update(Asset, 'date_modified', True)
 
         if populate_xform_kpi_asset_uid:
             call_command(

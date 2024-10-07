@@ -2,8 +2,8 @@
 import itertools
 from collections import defaultdict
 
-from django.urls import reverse
 from django.test import TestCase
+from django.urls import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
@@ -57,7 +57,7 @@ class ConflictingVersionsMockDataExports(TestCase):
             ] = fields_values
 
     @staticmethod
-    def _split_formpack_csv(line, sep=";", quote='"'):
+    def _split_formpack_csv(line, sep=';', quote='"'):
         return [field.strip(quote) for field in to_str(line).split(sep)]
 
     def test_csv_export(self):

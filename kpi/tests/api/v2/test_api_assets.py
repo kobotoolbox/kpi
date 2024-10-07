@@ -1,11 +1,11 @@
 # coding: utf-8
 import base64
 import copy
-import dateutil.parser
 import json
 import os
 from io import StringIO
 
+import dateutil.parser
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -89,13 +89,13 @@ class AssetListApiTests(BaseAssetTestCase):
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
 
     def test_assets_hash(self):
-        another_user = User.objects.get(username="anotheruser")
+        another_user = User.objects.get(username='anotheruser')
         user_asset = Asset.objects.get(pk=1)
         user_asset.save()
-        user_asset.assign_perm(another_user, "view_asset")
+        user_asset.assign_perm(another_user, 'view_asset')
 
         self.client.logout()
-        self.client.login(username="anotheruser", password="anotheruser")
+        self.client.login(username='anotheruser', password='anotheruser')
         creation_response = self.create_asset()
 
         another_user_asset = another_user.assets.last()
@@ -107,9 +107,9 @@ class AssetListApiTests(BaseAssetTestCase):
         ]
         versions_ids.sort()
         expected_hash = calculate_hash(''.join(versions_ids))
-        hash_url = reverse("asset-hash")
+        hash_url = reverse('asset-hash')
         hash_response = self.client.get(hash_url)
-        self.assertEqual(hash_response.data.get("hash"), expected_hash)
+        self.assertEqual(hash_response.data.get('hash'), expected_hash)
 
     def test_assets_search_query(self):
         someuser = User.objects.get(username='someuser')
@@ -1052,18 +1052,18 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.asset.deploy(backend='mock', active=True)
         submissions = [
             {
-                "__version__": self.asset.latest_deployed_version.uid,
-                "q1": "a1",
-                "q2": "a2",
-                "_id": 1,
-                "_submitted_by": ""
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a1',
+                'q2': 'a2',
+                '_id': 1,
+                '_submitted_by': ''
             },
             {
-                "__version__": self.asset.latest_deployed_version.uid,
-                "q1": "a3",
-                "q2": "a4",
-                "_id": 2,
-                "_submitted_by": anotheruser.username
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a3',
+                'q2': 'a4',
+                '_id': 2,
+                '_submitted_by': anotheruser.username
             }
         ]
 
@@ -1341,13 +1341,13 @@ class AssetFileTest(BaseTestCase):
     def asset_file_payload(self):
         geojson_ = StringIO(json.dumps(
             {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [125.6, 10.1]
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [125.6, 10.1]
                 },
-                "properties": {
-                    "name": "Dinagat Islands"
+                'properties': {
+                    'name': 'Dinagat Islands'
                 }
             }
         ))

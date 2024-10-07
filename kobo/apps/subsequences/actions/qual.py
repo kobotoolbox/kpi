@@ -1,4 +1,4 @@
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+from ..actions.base import BaseAction
 from ..jsonschemas.qual_schema import DEFINITIONS as QUAL_DEFINITIONS
 
 
@@ -14,10 +14,10 @@ class QualAction(BaseAction):
         return {'values': _fields}
 
     def load_params(self, params):
-        '''
+        """
         Action.load_params is called when the instance is initialized
         for each Asset. It will
-        '''
+        """
         self.fields = params.get('values', [])
         self.qual_survey = params.get('qual_survey', [])
         self.everything_else = params

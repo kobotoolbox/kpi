@@ -6,8 +6,7 @@ from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from rest_framework import exceptions
-from rest_framework import status
+from rest_framework import exceptions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
@@ -20,7 +19,7 @@ from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.exceptions import NoRecordsFoundError
 from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
-    AnonymousUserPublicFormsMixin
+    AnonymousUserPublicFormsMixin,
 )
 from kobo.apps.openrosa.libs.mixins.labels_mixin import LabelsMixin
 from kobo.apps.openrosa.libs.renderers import renderers
@@ -28,9 +27,9 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME
 from kobo.apps.openrosa.libs.utils.export_tools import (
     generate_export,
+    newset_export_for,
     should_create_new_export,
 )
-from kobo.apps.openrosa.libs.utils.export_tools import newset_export_for
 from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_and_name
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 from kobo.apps.openrosa.libs.utils.string import str2bool
@@ -39,6 +38,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.object_permission import get_database_user
+
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 EXPORT_EXT = {
@@ -89,7 +89,7 @@ def _set_start_end_params(request, query):
                 )
         except ValueError:
             raise exceptions.ParseError(
-                t("Dates must be in the format YY_MM_DD_hh_mm_ss")
+                t('Dates must be in the format YY_MM_DD_hh_mm_ss')
             )
         else:
             query = json.dumps(query)
@@ -107,7 +107,7 @@ def _generate_new_export(request, xform, query, export_type):
             xform.id_string, None, query
         )
     except NoRecordsFoundError:
-        raise Http404(t("No records found to export"))
+        raise Http404(t('No records found to export'))
     else:
         return export
 
@@ -126,7 +126,7 @@ def _get_owner(request):
 
         if owner is None:
             raise ValidationError(
-                "User with username %(owner)s does not exist."
+                'User with username %(owner)s does not exist.'
             )
 
     return owner
@@ -140,7 +140,7 @@ def response_for_format(form, format=None):
         if file_path != '' and default_storage.exists(file_path):
             formatted_data = form.xls
         else:
-            raise Http404(t("No XLSForm found."))
+            raise Http404(t('No XLSForm found.'))
     else:
         formatted_data = json.loads(form.json)
     return Response(formatted_data)
@@ -606,7 +606,7 @@ class XFormViewSet(
                                           content_type='application/json',
                                           status=400)
 
-        filename = form.id_string + "." + format
+        filename = form.id_string + '.' + format
         response = response_for_format(form, format=format)
         response['Content-Disposition'] = 'attachment; filename=' + filename
 

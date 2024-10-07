@@ -11,23 +11,27 @@ from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
+from wsgiref.util import FileWrapper
+from xml.dom import Node
+
 from dict2xml import dict2xml
 from django.conf import settings
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import File
 from django.core.mail import mail_admins
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import (
+    Http404,
     HttpResponse,
     HttpResponseNotFound,
     StreamingHttpResponse,
-    Http404
 )
 from django.shortcuts import get_object_or_404
 from django.utils import timezone as dj_timezone
@@ -37,8 +41,6 @@ from modilabs.utils.subprocess_timeout import ProcessTimedOut
 from pyxform.errors import PyXFormError
 from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
-from xml.dom import Node
-from wsgiref.util import FileWrapper
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
     DuplicateUUIDError,
@@ -63,14 +65,14 @@ from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_submission_count,
 )
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    DuplicateInstance,
     InstanceEmptyError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
-    DuplicateInstance,
     clean_and_parse_xml,
-    get_uuid_from_xml,
     get_deprecated_uuid_from_xml,
     get_submission_date_from_xml,
+    get_uuid_from_xml,
     get_xform_media_question_xpaths,
 )
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
@@ -84,7 +86,6 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.object_permission import get_database_user
-
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -216,7 +217,7 @@ def disposition_ext_and_date(name, extension, show_date=True):
     if name is None:
         return 'attachment;'
     if show_date:
-        name = "%s_%s" % (name, date.today().strftime("%Y_%m_%d"))
+        name = '%s_%s' % (name, date.today().strftime('%Y_%m_%d'))
     return 'attachment; filename=%s.%s' % (name, extension)
 
 
@@ -239,7 +240,7 @@ def get_instance_or_404(**criteria):
     :param criteria: dict
     :return: Instance
     """
-    instances = Instance.objects.filter(**criteria).order_by("id")
+    instances = Instance.objects.filter(**criteria).order_by('id')
     if instances:
         instance = instances[0]
         xml_hash = instance.xml_hash
@@ -247,8 +248,8 @@ def get_instance_or_404(**criteria):
             if instance_.xml_hash == xml_hash:
                 continue
             raise DuplicateUUIDError(
-                "Multiple instances with different content exist for UUID "
-                "{}".format(instance.uuid)
+                'Multiple instances with different content exist for UUID '
+                '{}'.format(instance.uuid)
             )
 
         return instance
@@ -347,16 +348,16 @@ def inject_instanceid(xml_str, uuid):
         xml = clean_and_parse_xml(xml_str)
         children = xml.childNodes
         if children.length == 0:
-            raise ValueError(t("XML string must have a survey element."))
+            raise ValueError(t('XML string must have a survey element.'))
 
         # check if we have a meta tag
         survey_node = children.item(0)
         meta_tags = [
             n for n in survey_node.childNodes
             if n.nodeType == Node.ELEMENT_NODE
-            and n.tagName.lower() == "meta"]
+            and n.tagName.lower() == 'meta']
         if len(meta_tags) == 0:
-            meta_tag = xml.createElement("meta")
+            meta_tag = xml.createElement('meta')
             xml.documentElement.appendChild(meta_tag)
         else:
             meta_tag = meta_tags[0]
@@ -365,14 +366,14 @@ def inject_instanceid(xml_str, uuid):
         uuid_tags = [
             n for n in meta_tag.childNodes
             if n.nodeType == Node.ELEMENT_NODE
-            and n.tagName == "instanceID"]
+            and n.tagName == 'instanceID']
         if len(uuid_tags) == 0:
-            uuid_tag = xml.createElement("instanceID")
+            uuid_tag = xml.createElement('instanceID')
             meta_tag.appendChild(uuid_tag)
         else:
             uuid_tag = uuid_tags[0]
         # insert meta and instanceID
-        text_node = xml.createTextNode("uuid:%s" % uuid)
+        text_node = xml.createTextNode('uuid:%s' % uuid)
         uuid_tag.appendChild(text_node)
         return xml.toxml()
     return xml_str
@@ -407,21 +408,21 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     found = 0
     done = 0
     total_to_remongo = 0
-    report_string = ""
+    report_string = ''
     for xform in queryset_iterator(qs, 100):
         # get the count
         user = xform.user
         instance_count = Instance.objects.filter(xform=xform).count()
-        userform_id = "%s_%s" % (user.username, xform.id_string)
+        userform_id = '%s_%s' % (user.username, xform.id_string)
         mongo_count = mongo_instances.count_documents(
             {common_tags.USERFORM_ID: userform_id},
             maxTimeMS=settings.MONGO_QUERY_TIMEOUT
         )
 
         if instance_count != mongo_count or update_all:
-            line = "user: %s, id_string: %s\nInstance count: %d\t" \
-                   "Mongo count: %d\n---------------------------------" \
-                   "-----\n" % (
+            line = 'user: %s, id_string: %s\nInstance count: %d\t' \
+                   'Mongo count: %d\n---------------------------------' \
+                   '-----\n' % (
                        user.username, xform.id_string, instance_count,
                        mongo_count)
             report_string += line
@@ -432,24 +433,24 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
             if remongo or (remongo and update_all):
                 if update_all:
                     sys.stdout.write(
-                        "Updating all records for %s\n--------------------"
-                        "---------------------------\n" % xform.id_string)
+                        'Updating all records for %s\n--------------------'
+                        '---------------------------\n' % xform.id_string)
                 else:
                     sys.stdout.write(
-                        "Updating missing records for %s\n----------------"
-                        "-------------------------------\n"
+                        'Updating missing records for %s\n----------------'
+                        '-------------------------------\n'
                         % xform.id_string)
                 _update_mongo_for_xform(
                     xform, only_update_missing=not update_all
                 )
         done += 1
         sys.stdout.write(
-            "%.2f %% done ...\r" % ((float(done) / float(total)) * 100))
+            '%.2f %% done ...\r' % ((float(done) / float(total)) * 100))
     # only show stats if we are not updating mongo, the update function
     # will show progress
     if not remongo:
-        line = "Total # of forms out of sync: %d\n" \
-               "Total # of records to remongo: %d\n" % (found, total_to_remongo)
+        line = 'Total # of forms out of sync: %d\n' \
+               'Total # of records to remongo: %d\n' % (found, total_to_remongo)
         report_string += line
     return report_string
 
@@ -492,7 +493,7 @@ def publish_form(callback):
         # ODK validation errors are vanilla errors and it masks a lot of regular
         # errors if we try to catch it so let's catch it, BUT reraise it
         # if we don't see typical ODK validation error messages in it.
-        if "ODK Validate Errors" not in str(e):
+        if 'ODK Validate Errors' not in str(e):
             raise
 
         # error in the XLS file; show an error to the user
@@ -552,16 +553,16 @@ def report_exception(subject, info, exc_info=None):
     # TODO: replace with standard logging (i.e. `import logging`)
     if exc_info:
         cls, err = exc_info[:2]
-        message = t("Exception in request:"
-                    " %(class)s: %(error)s")\
+        message = t('Exception in request:'
+                    ' %(class)s: %(error)s')\
             % {'class': cls.__name__, 'error': err}
-        message += "".join(traceback.format_exception(*exc_info))
+        message += ''.join(traceback.format_exception(*exc_info))
     else:
-        message = "%s" % info
+        message = '%s' % info
 
     if settings.DEBUG or settings.TESTING:
-        sys.stdout.write("Subject: %s\n" % subject)
-        sys.stdout.write("Message: %s\n" % message)
+        sys.stdout.write('Subject: %s\n' % subject)
+        sys.stdout.write('Message: %s\n' % message)
     else:
         mail_admins(subject=subject, message=message)
 
@@ -572,7 +573,7 @@ def response_with_mimetype_and_name(
     if extension is None:
         extension = mimetype
     if not full_mime:
-        mimetype = "application/%s" % mimetype
+        mimetype = 'application/%s' % mimetype
     if file_path:
         try:
             if not use_local_filesystem:
@@ -585,7 +586,7 @@ def response_with_mimetype_and_name(
                 response['Content-Length'] = os.path.getsize(file_path)
         except IOError:
             response = HttpResponseNotFound(
-                t("The requested file could not be found."))
+                t('The requested file could not be found.'))
     else:
         response = HttpResponse(content_type=mimetype)
     response['Content-Disposition'] = disposition_ext_and_date(
@@ -878,19 +879,19 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
 
     instance_ids = set(
         [i.id for i in Instance.objects.only('id').filter(xform=xform)])
-    sys.stdout.write("Total no of instances: %d\n" % len(instance_ids))
+    sys.stdout.write('Total no of instances: %d\n' % len(instance_ids))
     mongo_ids = set()
     user = xform.user
-    userform_id = "%s_%s" % (user.username, xform.id_string)
+    userform_id = '%s_%s' % (user.username, xform.id_string)
     if only_update_missing:
-        sys.stdout.write("Only updating missing mongo instances\n")
+        sys.stdout.write('Only updating missing mongo instances\n')
         mongo_ids = set(
             [rec[common_tags.ID] for rec in mongo_instances.find(
                 {common_tags.USERFORM_ID: userform_id},
                 {common_tags.ID: 1},
                 max_time_ms=settings.MONGO_QUERY_TIMEOUT
         )])
-        sys.stdout.write("Total no of mongo instances: %d\n" % len(mongo_ids))
+        sys.stdout.write('Total no of mongo instances: %d\n' % len(mongo_ids))
         # get the difference
         instance_ids = instance_ids.difference(mongo_ids)
     else:
@@ -899,7 +900,7 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
 
     # get instances
     sys.stdout.write(
-        "Total no of instances to update: %d\n" % len(instance_ids))
+        'Total no of instances to update: %d\n' % len(instance_ids))
     instances = Instance.objects.only('id').in_bulk(
         [id_ for id_ in instance_ids])
     total = len(instances)
@@ -910,23 +911,23 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
             save_success = pi.save(asynchronous=False)
         except InstanceEmptyError:
             print(
-                "\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because "
-                "it is empty\033[0m".format(id_, instance.uuid)
+                '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '
+                'it is empty\033[0m'.format(id_, instance.uuid)
             )
         else:
             if not save_success:
                 print(
-                    "\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save "
-                    "the parsed instance\033[0m".format(id_, instance.uuid)
+                    '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
+                    'the parsed instance\033[0m'.format(id_, instance.uuid)
                 )
             else:
                 done += 1
 
-        progress = "\r%.2f %% done..." % ((float(done) / float(total)) * 100)
+        progress = '\r%.2f %% done...' % ((float(done) / float(total)) * 100)
         sys.stdout.write(progress)
         sys.stdout.flush()
     sys.stdout.write(
-        "\nUpdated %s\n------------------------------------------\n"
+        '\nUpdated %s\n------------------------------------------\n'
         % xform.id_string)
 
 

@@ -1,6 +1,8 @@
 import json
-from kpi.models import Asset
+
 from jsonschema import validate
+
+from kpi.models import Asset
 
 EXAMPLES = [
     {

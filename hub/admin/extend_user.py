@@ -5,8 +5,10 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import (
-    UserCreationForm as DjangoUserCreationForm,
     UserChangeForm as DjangoUserChangeForm,
+)
+from django.contrib.auth.forms import (
+    UserCreationForm as DjangoUserCreationForm,
 )
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
@@ -17,8 +19,8 @@ from django.utils.safestring import mark_safe
 
 from kobo.apps.accounts.mfa.models import MfaMethod
 from kobo.apps.accounts.validators import (
-    USERNAME_MAX_LENGTH,
     USERNAME_INVALID_MESSAGE,
+    USERNAME_MAX_LENGTH,
     username_validators,
 )
 from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter
@@ -26,9 +28,8 @@ from kobo.apps.organizations.models import OrganizationUser
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
-
-
 from kpi.models.asset import AssetDeploymentStatus
+
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
@@ -67,7 +68,7 @@ class UserChangeForm(DjangoUserChangeForm):
             ))
         if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(self.instance):
             raise ValidationError(
-                "Superusers with a usable password must enable MFA."
+                'Superusers with a usable password must enable MFA.'
             )
 
         return cleaned_data
@@ -99,7 +100,7 @@ class OrgInline(admin.StackedInline):
 
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
-            return obj.active_subscription_status if obj.active_subscription_status else "None"
+            return obj.active_subscription_status if obj.active_subscription_status else 'None'
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False

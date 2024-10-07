@@ -7,7 +7,6 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.core.management import call_command
 
-
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
 from kobo.celery import celery_app

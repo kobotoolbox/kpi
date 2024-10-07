@@ -1,21 +1,20 @@
 # coding: utf-8
 import requests
-
 from django.test import RequestFactory
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
+from httmock import HTTMock, all_requests
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.constants import (
     CAN_CHANGE_XFORM,
     CAN_DELETE_DATA_XFORM,
     CAN_VIEW_XFORM,
 )
-from httmock import all_requests, HTTMock
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
 
 
 @all_requests
@@ -201,14 +200,14 @@ class TestDataViewSet(TestBase):
         response = view(request, pk=pk)
         self.assertEqual(response.data, [])
         # add tag "hello"
-        request = self.factory.post('/', data={"tags": "hello"}, **self.extra)
+        request = self.factory.post('/', data={'tags': 'hello'}, **self.extra)
         response = view(request, pk=pk)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data, ['hello'])
         for i in self.xform.instances.all():
             self.assertIn('hello', i.tags.names())
         # remove tag "hello"
-        request = self.factory.delete('/', data={"tags": "hello"},
+        request = self.factory.delete('/', data={'tags': 'hello'},
                                       **self.extra)
         response = view(request, pk=pk, label='hello')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -326,14 +325,14 @@ class TestDataViewSet(TestBase):
 
             request = self.factory.get(
                 '/',
-                data={'return_url': "http://test.io/test_url"},
+                data={'return_url': 'http://test.io/test_url'},
                 **self.extra
             )
 
             with HTTMock(enketo_mock):
                 response = view(request, pk=formid, dataid=dataid)
                 self.assertEqual(
-                    response.data['url'], "https://hmh2a.enketo.formhub.org"
+                    response.data['url'], 'https://hmh2a.enketo.formhub.org'
                 )
 
     def test_get_enketo_view_url(self):

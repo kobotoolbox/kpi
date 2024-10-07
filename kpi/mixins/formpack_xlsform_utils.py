@@ -8,29 +8,28 @@ from collections import OrderedDict
 
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
-
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
+from kpi.utils.absolute_paths import (
+    insert_full_paths_in_place,
+)
 from kpi.utils.asset_translation_utils import (
-    compare_translations,
-    # TRANSLATIONS_EQUAL,
-    TRANSLATIONS_OUT_OF_ORDER,
-    TRANSLATION_RENAMED,
-    TRANSLATION_DELETED,
     TRANSLATION_ADDED,
     TRANSLATION_CHANGE_UNSUPPORTED,
+    TRANSLATION_DELETED,
+    TRANSLATION_RENAMED,
     TRANSLATIONS_MULTIPLE_CHANGES,
+    # TRANSLATIONS_EQUAL,
+    TRANSLATIONS_OUT_OF_ORDER,
+    compare_translations,
 )
 from kpi.utils.autoname import (
     autoname_fields_in_place,
     autovalue_choices_in_place,
 )
-from kpi.utils.absolute_paths import (
-    insert_full_paths_in_place,
-)
 from kpi.utils.kobo_to_xlsform import (
     expand_rank_and_score_in_place,
-    replace_with_autofields,
     remove_empty_expressions_in_place,
+    replace_with_autofields,
 )
 from kpi.utils.random_id import random_id
 from kpi.utils.standardize_content import (
@@ -275,10 +274,10 @@ class FormpackXLSFormUtilsMixin:
                 # Remove None from translations we want to display to users
                 valid_translations = [t for t in _translations if t is not None]
                 raise ValueError(
-                    "`{translation_name}` is specified as the default language, "
-                    "but only these translations are present in the form: `{translations}`".format(
+                    '`{translation_name}` is specified as the default language, '
+                    'but only these translations are present in the form: `{translations}`'.format(
                         translation_name=translation_name,
-                        translations="`, `".join(valid_translations)
+                        translations='`, `'.join(valid_translations)
                     )
                 )
 

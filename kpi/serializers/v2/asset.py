@@ -7,10 +7,11 @@ from typing import Optional
 
 from constance import config
 from django.conf import settings
-from django.db.models import QuerySet, F
-from django.utils.translation import gettext as t, ngettext as nt
+from django.db.models import F, QuerySet
+from django.utils.translation import gettext as t
+from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
-from rest_framework import serializers, exceptions
+from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
@@ -32,13 +33,13 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     ASSET_STATUS_SHARED,
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
     ASSET_TYPES,
-    ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
-    PERM_MANAGE_ASSET,
     PERM_DISCOVER_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -49,8 +50,8 @@ from kpi.fields import (
 )
 from kpi.models import (
     Asset,
-    AssetVersion,
     AssetExportSettings,
+    AssetVersion,
     ObjectPermission,
     UserAssetSubscription,
 )
@@ -61,18 +62,16 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
 )
-
-from .asset_file import AssetFileSerializer
-
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
     view_has_perm,
 )
 
-from .asset_version import AssetVersionListSerializer
-from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
+from .asset_file import AssetFileSerializer
+from .asset_permission_assignment import AssetPermissionAssignmentSerializer
+from .asset_version import AssetVersionListSerializer
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):

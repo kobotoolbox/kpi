@@ -7,8 +7,9 @@ from django.utils import timezone
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kpi.models.asset import AssetFile
-from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
+
 from .exceptions import AsyncTaskException
+from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 
 
 def get_target_folder(

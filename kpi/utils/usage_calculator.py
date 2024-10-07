@@ -1,7 +1,7 @@
 from typing import Optional
 
 from django.conf import settings
-from django.db.models import Sum, Q
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 

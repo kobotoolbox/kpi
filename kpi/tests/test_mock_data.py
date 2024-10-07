@@ -1,10 +1,10 @@
 # coding: utf-8
-from copy import deepcopy
 from collections import OrderedDict
+from copy import deepcopy
 
 from django.test import TestCase
-from formpack import FormPack
 
+from formpack import FormPack
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
 from kpi.models import Asset
@@ -211,30 +211,30 @@ F1 = {
 
 SUBMISSION_DATA = OrderedDict(
     [
-        ("start", ["2016-06-0%dT12:00:00.000-04:00" % n for n in [1, 2, 3, 4]]),
+        ('start', ['2016-06-0%dT12:00:00.000-04:00' % n for n in [1, 2, 3, 4]]),
         (
-            "end",
-            ["2016-06-0%dT11:0%d:00.000-04:00" % (n, n) for n in [1, 2, 3, 4]],
+            'end',
+            ['2016-06-0%dT11:0%d:00.000-04:00' % (n, n) for n in [1, 2, 3, 4]],
         ),
-        ("Select_one", ["option_1", "option_1", "option_2", "option_1"]),
-        ("Select_Many", ["option_1", "option_2", "option_1 option_2", ""]),
-        ("Text", ["a", "b", "c", "a"]),
-        ("Number", [1, 2, 3, 2]),
-        ("Decimal", [1.5, 2.5, 3.5, 3.5]),
-        ("Date", ["2016-06-0%d" % n for n in [1, 2, 3, 5]]),
-        ("Time", ["%d:00:00" % n for n in [1, 2, 3, 5]]),
+        ('Select_one', ['option_1', 'option_1', 'option_2', 'option_1']),
+        ('Select_Many', ['option_1', 'option_2', 'option_1 option_2', '']),
+        ('Text', ['a', 'b', 'c', 'a']),
+        ('Number', [1, 2, 3, 2]),
+        ('Decimal', [1.5, 2.5, 3.5, 3.5]),
+        ('Date', ['2016-06-0%d' % n for n in [1, 2, 3, 5]]),
+        ('Time', ['%d:00:00' % n for n in [1, 2, 3, 5]]),
         (
-            "Date_and_time",
-            ["2016-06-0%dT12:00:00.000-04:00" % n for n in [1, 2, 3, 5]],
+            'Date_and_time',
+            ['2016-06-0%dT12:00:00.000-04:00' % n for n in [1, 2, 3, 5]],
         ),
-        ("GPS", ["1%d.43 -2%d.54 1 0" % (n, n) for n in [5, 7, 8, 5]]),
-        ("Photo", ["photo_%d.jpg" % (n) for n in [1, 2, 3, 4]]),
-        ("Audio", ["audio_%d.jpg" % (n) for n in [4, 3, 2, 1]]),
-        ("Video", ["video_%d.jpg" % (n) for n in [6, 7, 8, 9]]),
-        ("Note_Should_not_be_displayed", [None, None, None, None]),
-        ("Barcode", ["barcode%d" % (n) for n in [9, 7, 7, 6]]),
-        ("Acknowledge", [None, None, None, None]),
-        ("calculation", ["1", "1", "1", "1"]),
+        ('GPS', ['1%d.43 -2%d.54 1 0' % (n, n) for n in [5, 7, 8, 5]]),
+        ('Photo', ['photo_%d.jpg' % (n) for n in [1, 2, 3, 4]]),
+        ('Audio', ['audio_%d.jpg' % (n) for n in [4, 3, 2, 1]]),
+        ('Video', ['video_%d.jpg' % (n) for n in [6, 7, 8, 9]]),
+        ('Note_Should_not_be_displayed', [None, None, None, None]),
+        ('Barcode', ['barcode%d' % (n) for n in [9, 7, 7, 6]]),
+        ('Acknowledge', [None, None, None, None]),
+        ('calculation', ['1', '1', '1', '1']),
     ]
 )
 
@@ -294,23 +294,23 @@ class MockDataReports(TestCase):
             self.asset, submission_stream=self.submissions
         )
         expected_names = [
-            "start",
-            "end",
-            "Select_one",
-            "Select_Many",
-            "Text",
-            "Number",
-            "Decimal",
-            "Date",
-            "Time",
-            "Date_and_time",
-            "GPS",
-            "Photo",
-            "Audio",
-            "Video",
-            "Barcode",
-            "Acknowledge",
-            "calculation",
+            'start',
+            'end',
+            'Select_one',
+            'Select_Many',
+            'Text',
+            'Number',
+            'Decimal',
+            'Date',
+            'Time',
+            'Date_and_time',
+            'GPS',
+            'Photo',
+            'Audio',
+            'Video',
+            'Barcode',
+            'Acknowledge',
+            'calculation',
         ]
         self.assertEqual([v['name'] for v in values], expected_names)
         self.assertEqual(len(values), 17)
@@ -318,8 +318,8 @@ class MockDataReports(TestCase):
     def test_kobo_apps_reports_report_data_split_by(self):
         values = report_data.data_by_identifiers(
             self.asset,
-            split_by="Select_one",
-            field_names=["Date"],
+            split_by='Select_one',
+            field_names=['Date'],
             submission_stream=self.submissions,
         )
         self.assertEqual(
@@ -363,9 +363,9 @@ class MockDataReports(TestCase):
     def test_kobo_apps_reports_report_data_split_by_translated(self):
         values = report_data.data_by_identifiers(
             self.asset,
-            split_by="Select_one",
-            lang="Arabic",
-            field_names=["Date"],
+            split_by='Select_one',
+            lang='Arabic',
+            field_names=['Date'],
             submission_stream=self.submissions,
         )
         responses = set()
@@ -491,10 +491,10 @@ class MockDataReports(TestCase):
         self.assertEqual(
             _get_autoreport_values('Date', 'percentage', None),
             [
-                ("2016-06-01", 25.0),
-                ("2016-06-02", 25.0),
-                ("2016-06-03", 25.0),
-                ("2016-06-05", 25.0),
+                ('2016-06-01', 25.0),
+                ('2016-06-02', 25.0),
+                ('2016-06-03', 25.0),
+                ('2016-06-05', 25.0),
             ],
         )
 

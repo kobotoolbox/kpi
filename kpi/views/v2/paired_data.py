@@ -15,11 +15,11 @@ from kpi.permissions import (
     AssetEditorPermission,
     XMLExternalDataPermission,
 )
-from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.renderers import SubmissionXMLRenderer
+from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.utils.hash import calculate_hash
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.utils.xml import strip_nodes, add_xml_declaration
+from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
 class PairedDataViewset(

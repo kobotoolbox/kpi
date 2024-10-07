@@ -6,11 +6,12 @@ from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import get_template
-from django.utils import translation, timezone
+from django.utils import timezone, translation
 from django_celery_beat.models import PeriodicTask
 
 from kobo.celery import celery_app
 from kpi.utils.log import logging
+
 from .constants import HOOK_LOG_FAILED
 from .exceptions import HookRemoteServerDownError
 from .models import Hook, HookLog
@@ -54,12 +55,12 @@ def failures_reports():
     Notifies owners' assets by email of hooks failures.
     :return: bool
     """
-    beat_schedule = settings.CELERY_BEAT_SCHEDULE.get("send-hooks-failures-reports")
+    beat_schedule = settings.CELERY_BEAT_SCHEDULE.get('send-hooks-failures-reports')
     # Use `.first()` instead of `.get()`, because task can be duplicated in admin section
 
     failures_reports_period_task = PeriodicTask.objects.filter(
         enabled=True,
-        task=beat_schedule.get('task')).order_by("-last_run_at").first()
+        task=beat_schedule.get('task')).order_by('-last_run_at').first()
 
     if failures_reports_period_task:
 
@@ -138,7 +139,7 @@ def failures_reports():
                 'kpi_base_url': settings.KOBOFORM_URL
             }
             # Localize templates
-            translation.activate(record.get("language"))
+            translation.activate(record.get('language'))
             text_content = plain_text_template.render(variables)
             html_content = html_template.render(variables)
 

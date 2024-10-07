@@ -11,7 +11,7 @@ from django.http import (
     HttpResponseNotFound,
     HttpResponseRedirect,
 )
-from django.urls import resolve, Resolver404
+from django.urls import Resolver404, resolve
 from django.utils.translation import gettext as t
 from rest_framework import exceptions
 from rest_framework.request import Request
@@ -53,7 +53,7 @@ def _get_id_for_type(record, mongo_field):
     date_field = datetime_from_str(record[mongo_field])
     mongo_str = '$' + mongo_field
 
-    return {"$substr": [mongo_str, 0, 10]} if isinstance(date_field, datetime)\
+    return {'$substr': [mongo_str, 0, 10]} if isinstance(date_field, datetime)\
         else mongo_str
 
 
@@ -69,8 +69,8 @@ def publish_xlsform(request, user, existing_xform=None):
         )
     ):
         raise exceptions.PermissionDenied(
-            detail=t("User %(user)s has no permission to add xforms to "
-                     "account %(account)s" % {'user': request.user.username,
+            detail=t('User %(user)s has no permission to add xforms to '
+                     'account %(account)s' % {'user': request.user.username,
                                               'account': user.username}))
     if (
         existing_xform
@@ -78,8 +78,8 @@ def publish_xlsform(request, user, existing_xform=None):
         and not request.user.has_perm('change_xform', existing_xform)
     ):
         raise exceptions.PermissionDenied(
-            detail=t("User %(user)s has no permission to change this "
-                     "form." % {'user': request.user.username, })
+            detail=t('User %(user)s has no permission to change this '
+                     'form.' % {'user': request.user.username, })
         )
 
     def set_form():
@@ -103,7 +103,7 @@ def get_xform(formid, request, username=None):
 
     if not xform:
         raise exceptions.PermissionDenied(t(
-            "You do not have permission to view data from this form."))
+            'You do not have permission to view data from this form.'))
 
     return xform
 

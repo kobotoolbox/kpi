@@ -6,20 +6,20 @@ from django.core.management.base import BaseCommand
 from guardian.models import UserObjectPermission
 
 from kpi.constants import PERM_FROM_KC_ONLY
-from kpi.models import Asset, ObjectPermission
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
 )
 from kpi.management.commands.sync_kobocat_xforms import _sync_permissions
+from kpi.models import Asset, ObjectPermission
 from kpi.utils.object_permission import get_perm_ids_from_code_names
 
 
 class Command(BaseCommand):
 
     help = (
-        "Synchronize permissions of deployed forms with KoBoCAT.\n"
-        "They are synced bidirectionally unless `--mirror-kpi` option is used."
+        'Synchronize permissions of deployed forms with KoBoCAT.\n'
+        'They are synced bidirectionally unless `--mirror-kpi` option is used.'
     )
 
     def add_arguments(self, parser):
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             action='store',
             dest='asset_uid',
             default=None,
-            help="Sync only a specific asset",
+            help='Sync only a specific asset',
         )
         parser.add_argument(
             '--username',
@@ -38,10 +38,10 @@ class Command(BaseCommand):
             help="Sync only a specific user's assets",
         )
         parser.add_argument(
-            "--chunks",
+            '--chunks',
             default=1000,
             type=int,
-            help="Update records by batch of `chunks`.",
+            help='Update records by batch of `chunks`.',
         )
         parser.add_argument(
             '--mirror-kpi',

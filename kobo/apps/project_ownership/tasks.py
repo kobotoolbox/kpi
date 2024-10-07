@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from celery.signals import task_failure, task_retry
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
+from celery.signals import task_failure, task_retry
 from constance import config
 from django.apps import apps
 from django.conf import settings
@@ -11,6 +11,7 @@ from django.utils.translation import gettext as t
 
 from kobo.celery import celery_app
 from kpi.utils.mailer import EmailMessage, Mailer
+
 from .exceptions import AsyncTaskException, TransferStillPendingException
 from .models.choices import (
     InviteStatusChoices,

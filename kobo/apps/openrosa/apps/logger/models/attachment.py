@@ -8,17 +8,20 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.http import urlencode
 
+from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kobo.apps.openrosa.libs.utils.image_tools import (
     get_optimized_image_path,
     resize,
 )
-from kobo.apps.openrosa.libs.utils.hash import get_hash
+from kpi.deployment_backends.kc_access.storage import (
+    KobocatFileSystemStorage,
+)
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
-    KobocatFileSystemStorage,
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
+
 from .instance import Instance
 
 

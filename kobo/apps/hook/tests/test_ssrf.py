@@ -1,15 +1,14 @@
+from ipaddress import ip_address
+from unittest.mock import MagicMock, patch
+
 import pytest
 import responses
 from constance.test import override_config
-from ipaddress import ip_address
-from mock import patch, MagicMock
 from rest_framework import status
 from ssrf_protect.exceptions import SSRFProtectException
 
-from kobo.apps.hook.constants import (
-    HOOK_LOG_FAILED,
-    KOBO_INTERNAL_ERROR_STATUS_CODE
-)
+from kobo.apps.hook.constants import HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
+
 from .hook_test_case import HookTestCase
 
 

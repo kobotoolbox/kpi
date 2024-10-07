@@ -3,16 +3,17 @@ import os
 
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
-    TestAbstractViewSet)
+    TestAbstractViewSet,
+)
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
-from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
 from kobo.apps.openrosa.libs.constants import CAN_CHANGE_XFORM, CAN_VIEW_XFORM
+from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 
 
 class TestMetaDataViewSet(TestAbstractViewSet):
@@ -24,10 +25,10 @@ class TestMetaDataViewSet(TestAbstractViewSet):
             'post': 'create'
         })
         self.publish_xls_form()
-        self.data_value = "screenshot.png"
+        self.data_value = 'screenshot.png'
         self.fixture_dir = os.path.join(
-            settings.OPENROSA_APP_DIR, "apps", "main", "tests", "fixtures",
-            "transportation"
+            settings.OPENROSA_APP_DIR, 'apps', 'main', 'tests', 'fixtures',
+            'transportation'
         )
         self.path = os.path.join(self.fixture_dir, self.data_value)
 
@@ -182,7 +183,7 @@ class TestMetaDataViewSet(TestAbstractViewSet):
         response = self.view(request)
         self.assertEqual(response.status_code, 404)
 
-        data['xform'] = "INVALID"
+        data['xform'] = 'INVALID'
         request = self.factory.get('/', data, **self.extra)
         response = self.view(request)
         self.assertEqual(response.status_code, 400)

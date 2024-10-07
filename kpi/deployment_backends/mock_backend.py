@@ -11,13 +11,14 @@ from django.utils.dateparse import parse_datetime
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.logger_tools import (
-    dict2xform,
     create_instance,
+    dict2xform,
 )
 from kpi.constants import PERM_ADD_SUBMISSIONS, SUBMISSION_FORMAT_TYPE_JSON
 from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
-from .openrosa_backend import OpenRosaDeploymentBackend
+
 from ..utils.files import ExtendedContentFile
+from .openrosa_backend import OpenRosaDeploymentBackend
 
 
 class MockDeploymentBackend(OpenRosaDeploymentBackend):

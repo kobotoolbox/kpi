@@ -4,7 +4,8 @@ import os
 import pytest
 from pyxform.errors import PyXFormError
 
-from kobo.apps.openrosa.apps.logger.models import XForm, Instance
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+
 from .test_base import TestBase
 
 

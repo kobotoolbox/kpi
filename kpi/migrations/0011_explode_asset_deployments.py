@@ -1,5 +1,6 @@
 # coding: utf-8
 import sys
+
 from django.db import migrations
 
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
@@ -15,8 +16,8 @@ def explode_assets(apps, schema_editor):
     asset_progress_interval = max(1, int(total_assets / 50))
     assets_done = 0
     # Do not automatically update asset timestamps during this migration
-    _set_auto_field_update(Asset, "date_created", False)
-    _set_auto_field_update(Asset, "date_modified", False)
+    _set_auto_field_update(Asset, 'date_created', False)
+    _set_auto_field_update(Asset, 'date_modified', False)
     for asset in deployed_assets:
         deployment = asset.assetdeployment_set.last()
         # Copy the deployment-related data
@@ -35,8 +36,8 @@ def explode_assets(apps, schema_editor):
         if assets_done % asset_progress_interval == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
-    _set_auto_field_update(Asset, "date_created", True)
-    _set_auto_field_update(Asset, "date_modified", True)
+    _set_auto_field_update(Asset, 'date_created', True)
+    _set_auto_field_update(Asset, 'date_modified', True)
 
     ContentType = apps.get_model('contenttypes', 'ContentType')
     try:

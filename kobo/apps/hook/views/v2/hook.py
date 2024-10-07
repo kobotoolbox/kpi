@@ -5,7 +5,7 @@ import constance
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as t
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -152,7 +152,7 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     """
 
     model = Hook
-    lookup_field = "uid"
+    lookup_field = 'uid'
     serializer_class = HookSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
 
@@ -168,10 +168,10 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def perform_create(self, serializer):
         serializer.save(asset=self.asset)
 
-    @action(detail=True, methods=["PATCH"])
+    @action(detail=True, methods=['PATCH'])
     def retry(self, request, uid=None, *args, **kwargs):
         hook = self.get_object()
-        response = {"detail": t("Task successfully scheduled")}
+        response = {'detail': t('Task successfully scheduled')}
         status_code = status.HTTP_200_OK
         if hook.active:
             threshold = timezone.now() - timedelta(seconds=120)
@@ -205,14 +205,14 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                     queue='kpi_low_priority_queue', args=(hooklogs_ids,)
                 )
                 response.update({
-                    "pending_uids": hooklogs_uids
+                    'pending_uids': hooklogs_uids
                 })
 
             else:
-                response["detail"] = t("No data to retry")
+                response['detail'] = t('No data to retry')
                 status_code = status.HTTP_304_NOT_MODIFIED
         else:
-            response["detail"] = t("Can not retry on disabled hooks")
+            response['detail'] = t('Can not retry on disabled hooks')
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)

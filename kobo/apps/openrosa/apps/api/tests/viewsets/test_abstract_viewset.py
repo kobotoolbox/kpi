@@ -8,17 +8,19 @@ from django.contrib.auth.models import (
 )
 from django.core.files.base import ContentFile
 from django.test import TestCase
-from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
+from django_digest.test import DigestAuth
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
-from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.main import tests as main_tests
-from kobo.apps.openrosa.apps.main.models import UserProfile, MetaData
-from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import MakeSubmissionMixin
+from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
+from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
+    MakeSubmissionMixin,
+)
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
 
@@ -230,7 +232,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
     ):
         survey_datetime = self.surveys[survey_at]
         if not media_file:
-            media_file = "1335783522563.jpg"
+            media_file = '1335783522563.jpg'
         path = os.path.join(
             self.main_directory,
             'fixtures',

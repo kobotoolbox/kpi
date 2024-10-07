@@ -5,7 +5,7 @@ from django.conf import settings
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
-    TestAbstractViewSet
+    TestAbstractViewSet,
 )
 from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentViewSet
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
@@ -152,7 +152,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
 
     def test_direct_image_link_uppercase(self):
         self._submit_transport_instance_w_attachment(
-            media_file="1335783522564.JPG")
+            media_file='1335783522564.JPG')
 
         filename = self.attachment.media_file.name
         file_base, file_extension = os.path.splitext(filename)

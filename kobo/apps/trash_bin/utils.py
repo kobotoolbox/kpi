@@ -4,8 +4,8 @@ import json
 from copy import deepcopy
 from datetime import timedelta
 
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError, models, transaction
 from django.db.models import F, Q
 from django.db.models.signals import pre_delete
@@ -24,11 +24,12 @@ from kpi.exceptions import (
 from kpi.models import Asset, ExportTask, ImportTask
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
+
 from .constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from .exceptions import (
     TrashIntegrityError,
-    TrashNotImplementedError,
     TrashMongoDeleteOrphansError,
+    TrashNotImplementedError,
     TrashTaskInProgressError,
 )
 from .models import TrashStatus

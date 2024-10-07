@@ -3,24 +3,24 @@ from __future__ import annotations
 import posixpath
 from datetime import date
 from hashlib import md5
-from typing import Union, Any
+from typing import Any, Union
 
 import constance
 from django.conf import settings
-from django.utils import timezone
 from google.api_core.exceptions import InvalidArgument
-from google.cloud import translate_v3 as translate, storage
+from google.cloud import translate_v3 as translate
 
 from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
-from .base import GoogleService
-from .utils import google_credentials_from_constance_config
-from ...constants import GOOGLETX, GOOGLE_CODE
+
+from ...constants import GOOGLE_CODE, GOOGLETX
 from ...exceptions import (
     SubsequenceTimeoutError,
-    TranslationResultsNotFound,
     TranslationAsyncResultAvailable,
+    TranslationResultsNotFound,
 )
+from .base import GoogleService
+from .utils import google_credentials_from_constance_config
 
 MAX_SYNC_CHARS = 30720
 

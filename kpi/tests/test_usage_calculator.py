@@ -14,8 +14,8 @@ from kobo.apps.stripe.tests.utils import generate_enterprise_subscription
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
-from kpi.utils.usage_calculator import ServiceUsageCalculator
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
 class BaseServiceUsageTestCase(BaseAssetTestCase):

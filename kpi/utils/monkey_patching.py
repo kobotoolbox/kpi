@@ -1,11 +1,13 @@
 import django.contrib.auth.management
 import django.db.models.deletion
-from django.db import router
 from django.conf import settings
 from django.contrib.auth.management import (
-    create_permissions as django_create_permissions,
     DEFAULT_DB_ALIAS,
 )
+from django.contrib.auth.management import (
+    create_permissions as django_create_permissions,
+)
+from django.db import router
 
 from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 from kpi.constants import SHARED_APP_LABELS

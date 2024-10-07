@@ -22,6 +22,7 @@ from kobo.apps.stripe.constants import (
     FREE_TIER_NO_THRESHOLDS,
 )
 from kpi.utils.json import LazyJSONSerializable
+
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()

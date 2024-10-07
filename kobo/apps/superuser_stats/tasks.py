@@ -2,15 +2,11 @@
 from __future__ import annotations
 
 import csv
-from celery import shared_task
 from collections import Counter
 from datetime import datetime
 from typing import Union
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
 
+from celery import shared_task
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -18,8 +14,8 @@ from django.db.models import (
     CharField,
     Count,
     DateField,
-    IntegerField,
     F,
+    IntegerField,
     Q,
     Sum,
     Value,
@@ -28,17 +24,16 @@ from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.trackers.models import NLPUsageCounter
-from kobo.static_lists import COUNTRIES
-from kpi.constants import ASSET_TYPE_SURVEY
 from kobo.apps.openrosa.apps.logger.models import (
     Instance,
     MonthlyXFormSubmissionCounter,
     XForm,
 )
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.trackers.models import NLPUsageCounter
+from kobo.static_lists import COUNTRIES
+from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models.asset import Asset, AssetDeploymentStatus
-
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
 # complain that the task is unregistered

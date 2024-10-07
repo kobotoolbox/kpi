@@ -247,9 +247,9 @@ def test_autoname_shortens_long_names():
     ]
 
     assert _name_to_autoname([{'label': x} for x in [
-        "What is your favorite all-time place to go swimming?",
-        "What is your favorite all-time place to go running?",
-        "What is your favorite all-time place to go to relax?",
+        'What is your favorite all-time place to go swimming?',
+        'What is your favorite all-time place to go running?',
+        'What is your favorite all-time place to go to relax?',
     ]]) == ['What_is_your_favorit_place_to_go_swimming',
             'What_is_your_favorit_place_to_go_running',
             'What_is_your_favorit_place_to_go_to_relax']

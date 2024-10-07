@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from lxml import etree
+
 from kpi.utils.xml import check_lxml_fromstring
 
 

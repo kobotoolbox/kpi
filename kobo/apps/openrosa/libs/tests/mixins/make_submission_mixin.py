@@ -5,10 +5,10 @@ from tempfile import NamedTemporaryFile
 from typing import Union
 
 from django.contrib.auth import authenticate
-from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
+from django_digest.test import DigestAuth
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.libs.utils.logger_tools import (
@@ -22,8 +22,8 @@ class MakeSubmissionMixin:
     def submission_view(self):
         if not hasattr(self, '_submission_view'):
             setattr(self, '_submission_view', XFormSubmissionApi.as_view({
-                "head": "create",
-                "post": "create"
+                'head': 'create',
+                'post': 'create'
             }))
         return self._submission_view
 

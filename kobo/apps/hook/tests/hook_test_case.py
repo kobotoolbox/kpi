@@ -11,17 +11,18 @@ from rest_framework import status
 from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON, SUBMISSION_FORMAT_TYPE_XML
 from kpi.exceptions import BadFormatException
 from kpi.tests.kpi_test_case import KpiTestCase
+
 from ..constants import HOOK_LOG_FAILED
 from ..exceptions import HookRemoteServerDownError
-from ..models import HookLog, Hook
+from ..models import Hook, HookLog
 
 
 class HookTestCase(KpiTestCase):
 
     def setUp(self):
-        self.client.login(username="someuser", password="someuser")
+        self.client.login(username='someuser', password='someuser')
         self.asset = self.create_asset(
-            "some_asset",
+            'some_asset',
             content=json.dumps({'survey': [
                 {'type': 'text', 'label': 'q1', 'name': 'q1'},
                 {'type': 'begin_group', 'label': 'group1', 'name': 'group1'},

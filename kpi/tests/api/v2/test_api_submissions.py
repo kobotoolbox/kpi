@@ -5,20 +5,22 @@ import random
 import string
 import uuid
 from datetime import datetime
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
+from unittest import mock
+
 import lxml
-import mock
 import pytest
 import responses
 from django.conf import settings
 from django.urls import reverse
-from django_digest.test import Client as DigestClient
 from rest_framework import status
 
+from django_digest.test import Client as DigestClient
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
@@ -26,8 +28,8 @@ from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
-    PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -39,15 +41,15 @@ from kpi.constants import (
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
-from kpi.tests.utils.xml import get_form_and_submission_tag_names
-from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.object_permission import get_anonymous_user
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
     enketo_edit_instance_response_with_root_name_validation,
     enketo_edit_instance_response_with_uuid_validation,
     enketo_view_instance_response,
 )
+from kpi.tests.utils.xml import get_form_and_submission_tag_names
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 
 
@@ -403,8 +405,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         Test that no one can create submissions (with KPI endpoint)
         """
         submission = {
-            "q1": "a5",
-            "q2": "a6",
+            'q1': 'a5',
+            'q2': 'a6',
         }
         # Owner
         response = self.client.post(self.submission_list_url, data=submission)
@@ -426,7 +428,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         They can list their own data
         """
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_ids = [r['_id'] for r in response.data.get('results')]
         submissions_ids = [s['_id'] for s in self.submissions]
@@ -502,7 +504,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self.client.force_login(self.anotheruser)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_submissions_shared_as_anotheruser(self):
@@ -512,7 +514,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self.client.force_login(self.anotheruser)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_ids = [r['_id'] for r in response.data.get('results')]
         submissions_ids = [s['_id'] for s in self.submissions]
@@ -528,12 +530,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
                                partial_perms=partial_perms)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # User `anotheruser` should only see submissions where `submitted_by`
@@ -551,7 +553,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self.client.logout()
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_submissions_asset_publicly_shared_as_anonymous(self):
@@ -563,7 +565,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.client.logout()
         anonymous_user = get_anonymous_user()
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_submissions_asset_publicly_shared_as_authenticated_user(self):
@@ -587,7 +589,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         # `self.asset` is owned by `someuser`; `anotheruser` has no
         # explicitly-granted access to it
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
@@ -1115,13 +1117,13 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         expected_new_download_urls = [
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + f"/data/{submission_id}/attachments/{attachment_0_id}/?format=json",
+            + f'/data/{submission_id}/attachments/{attachment_0_id}/?format=json',
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + f"/data/{submission_id}/attachments/{attachment_1_id}/?format=json",
+            + f'/data/{submission_id}/attachments/{attachment_1_id}/?format=json',
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + f"/data/{submission_id}/attachments/{attachment_2_id}/?format=json",
+            + f'/data/{submission_id}/attachments/{attachment_2_id}/?format=json',
         ]
 
         for idx, attachment in enumerate(attachments):
@@ -1576,12 +1578,12 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         submission_xml = self.asset.deployment.get_submissions(
             user=self.asset.owner,
             format_type=SUBMISSION_FORMAT_TYPE_XML,
-            query={"find_this": "hello!"},
+            query={'find_this': 'hello!'},
         )[0]
         submission_json = self.asset.deployment.get_submissions(
             user=self.asset.owner,
             format_type=SUBMISSION_FORMAT_TYPE_JSON,
-            query={"find_this": "hello!"},
+            query={'find_this': 'hello!'},
         )[0]
 
         submission_xml_root = fromstring_preserve_root_xmlns(submission_xml)
@@ -1913,7 +1915,7 @@ class SubmissionDuplicateBaseApiTests(BaseSubmissionTestCase):
         submission = submission if submission else self.submission
         duplicate_submission = response.data
 
-        expected_next_id = max((sub['_id'] for sub in self.submissions)) + 1
+        expected_next_id = max(sub['_id'] for sub in self.submissions) + 1
         assert submission['_id'] != duplicate_submission['_id']
         assert duplicate_submission['_id'] == expected_next_id
 
@@ -2970,7 +2972,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         # Get all submissions and ensure only the ones that anotheruser is
         # allowed to edit have been modified
         self.client.logout()
-        self.client.login(username="someuser", password="someuser")
+        self.client.login(username='someuser', password='someuser')
         response = self.client.get(self.submission_list_url)
         for submission in response.data['results']:
             validation_status = submission['_validation_status']
@@ -2992,13 +2994,13 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
 
 class SubmissionGeoJsonApiTests(BaseTestCase):
 
-    fixtures = ["test_data"]
+    fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.client.login(username="someuser", password="someuser")
-        self.someuser = User.objects.get(username="someuser")
+        self.client.login(username='someuser', password='someuser')
+        self.someuser = User.objects.get(username='someuser')
         self.asset = a = Asset()
         a.name = 'Two points and one text'
         a.owner = self.someuser

@@ -2,17 +2,19 @@
 import os
 import zipfile
 from collections import defaultdict
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import datetime
-import mock
+from unittest import mock
+
 import openpyxl
 from django.conf import settings
-from django.urls import reverse
 from django.test import TestCase
+from django.urls import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
@@ -23,8 +25,8 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, ExportTask
-from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.mongo_helper import drop_mock_only
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class MockDataExportsBase(TestCase):
@@ -579,7 +581,7 @@ class MockDataExports(MockDataExportsBase):
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_filter_fields(self):
-        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism", "_index"]}
+        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism', '_index']}
         expected_lines = [
             '"start";"end";"Do you descend from an ancestral unicellular organism?";"_uuid";"_index"',
             '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"48583952-1892-4931-8d9c-869e7b49bafb";"1"',

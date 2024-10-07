@@ -4,21 +4,21 @@ import unittest
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
-from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, ExportTask
 from kpi.models.import_export_task import export_upload_to
 from kpi.serializers.v1.asset import AssetListSerializer
+
 # importing module instead of the class, avoid running the tests twice
 from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.utils.xml import check_lxml_fromstring
-
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
@@ -102,17 +102,17 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.assertNotEqual(title_elts[0].text, '')
 
     def test_xml_export_group(self):
-        example_formbuilder_output = {'survey': [{"type": "begin_group",
-                                                  "relevant": "",
-                                                  "appearance": "",
-                                                  "name": "group_hl3hw45",
-                                                  "label": "Group 1 Label"},
-                                                 {"required": "true",
-                                                  "type": "decimal",
-                                                  "label": "Question 1 Label"},
-                                                 {"type": "end_group"}],
-                                      "settings": [{"form_title": "",
-                                                    "form_id": "group_form"}]}
+        example_formbuilder_output = {'survey': [{'type': 'begin_group',
+                                                  'relevant': '',
+                                                  'appearance': '',
+                                                  'name': 'group_hl3hw45',
+                                                  'label': 'Group 1 Label'},
+                                                 {'required': 'true',
+                                                  'type': 'decimal',
+                                                  'label': 'Question 1 Label'},
+                                                 {'type': 'end_group'}],
+                                      'settings': [{'form_title': '',
+                                                    'form_id': 'group_form'}]}
 
         self.login('someuser', 'someuser')
         asset = self.create_asset('', json.dumps(example_formbuilder_output), format='json')
@@ -131,7 +131,7 @@ class ObjectRelationshipsTests(BaseTestCase):
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
         self.user = User.objects.get(username='someuser')
-        self.surv = Asset.objects.create(content={'survey': [{"type": "text", "name": "q1"}]},
+        self.surv = Asset.objects.create(content={'survey': [{'type': 'text', 'name': 'q1'}]},
                                          owner=self.user,
                                          asset_type='survey')
         self.coll = Asset.objects.create(
@@ -157,7 +157,7 @@ class ObjectRelationshipsTests(BaseTestCase):
         """
         _ = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
         coll_req1 = self.client.get(
-            reverse("asset-detail", args=[self.coll.uid])
+            reverse('asset-detail', args=[self.coll.uid])
         )
         self.assertEqual(self._count_children_by_kind(
             coll_req1.data['children'], self.surv.kind), 0)
@@ -166,13 +166,13 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.surv.save()
 
         surv_req2 = self.client.get(
-            reverse("asset-detail", args=[self.surv.uid])
+            reverse('asset-detail', args=[self.surv.uid])
         )
-        self.assertIn("parent", surv_req2.data)
-        self.assertIn(self.coll.uid, surv_req2.data["parent"])
+        self.assertIn('parent', surv_req2.data)
+        self.assertIn(self.coll.uid, surv_req2.data['parent'])
 
         coll_req2 = self.client.get(
-            reverse("asset-detail", args=[self.coll.uid])
+            reverse('asset-detail', args=[self.coll.uid])
         )
         self.assertEqual(self._count_children_by_kind(
             coll_req2.data['children'], self.surv.kind), 1)
@@ -189,7 +189,7 @@ class ObjectRelationshipsTests(BaseTestCase):
         surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(
             surv_url,
-            data={"parent": reverse("asset-detail", args=[self.coll.uid])},
+            data={'parent': reverse('asset-detail', args=[self.coll.uid])},
         )
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
@@ -207,7 +207,7 @@ class ObjectRelationshipsTests(BaseTestCase):
         surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(
             surv_url,
-            data={"parent": reverse("asset-detail", args=[self.coll.uid])},
+            data={'parent': reverse('asset-detail', args=[self.coll.uid])},
         )
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)

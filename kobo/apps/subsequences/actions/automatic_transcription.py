@@ -1,5 +1,6 @@
 from kobo.apps.subsequences.constants import GOOGLETS
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+
+from ..actions.base import ACTION_NEEDED, PASSES, BaseAction
 
 NOT_REQUESTED = 'NOT_REQUESTED'
 REQUESTED_BY_USER = 'REQUESTED_BY_USER'
@@ -120,13 +121,13 @@ class AutomaticTranscriptionAction(BaseAction):
                 },
             }
 
-    '''
+    """
     {"value": "My translation", "languageCode": "en", "date": "12today"}
 
     AQ1 Translation (FR)	AQ1 Translation (XZ)
     --------------------    --------------------
     "My translation"
-    '''
+    """
 
     def engines(self):
         manual_name = f'engines/transcript_manual'
