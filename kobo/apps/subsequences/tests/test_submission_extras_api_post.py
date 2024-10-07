@@ -1,5 +1,5 @@
 from copy import deepcopy
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from constance.test import override_config
 from django.test import override_settings
@@ -18,8 +18,6 @@ from kobo.apps.languages.models.translation import (
     TranslationService,
     TranslationServiceLanguageM2M,
 )
-from kpi.models.asset import Asset
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -27,6 +25,8 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.models.asset import Asset
+from kpi.utils.fuzzy_int import FuzzyInt
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
@@ -36,9 +36,7 @@ class ValidateSubmissionTest(APITestCase):
         user = User.objects.create_user(username='someuser', email='user@example.com')
         self.asset = Asset(
             owner=user,
-            content={
-                'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]
-            },
+            content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]},
         )
         self.asset.advanced_features = {}
         self.asset.save()

@@ -113,9 +113,7 @@ class InvalidSearchException(exceptions.APIException):
 
 
 class InvalidXFormException(Exception):
-    def __init__(
-        self, message=t('Deployment links to an unexpected KoboCAT XForm')
-    ):
+    def __init__(self, message=t('Deployment links to an unexpected KoboCAT XForm')):
         super().__init__(message)
 
 

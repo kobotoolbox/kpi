@@ -28,15 +28,11 @@ class DeploymentSerializer(serializers.Serializer):
         asset = self.context['asset']
         self._raise_unless_current_version(asset, validated_data)
         # if no backend is provided, use the installation's default backend
-        backend_id = validated_data.get(
-            'backend', settings.DEFAULT_DEPLOYMENT_BACKEND
-        )
+        backend_id = validated_data.get('backend', settings.DEFAULT_DEPLOYMENT_BACKEND)
 
         # `asset.deploy()` deploys the latest version and updates that versions'
         # 'deployed' boolean value
-        asset.deploy(
-            backend=backend_id, active=validated_data.get('active', False)
-        )
+        asset.deploy(backend=backend_id, active=validated_data.get('active', False))
         return asset.deployment
 
     def update(self, instance, validated_data):

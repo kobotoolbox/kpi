@@ -1,11 +1,13 @@
-
 def delete_null_user_daily_counters(apps, *args):
     """
-    Find any DailyXFormCounters without a user, assign them to a user if we can, otherwise delete them
+    Find any DailyXFormCounters without a user, assign them to a user if we can,
+    otherwise delete them.
     This function is reused between two migrations, logger.0030 and logger.0031.
     If/when those migrations get squashed, please delete this function
     """
-    DailyXFormSubmissionCounter = apps.get_model('logger', 'DailyXFormSubmissionCounter')  # noqa
+    DailyXFormSubmissionCounter = apps.get_model(
+        'logger', 'DailyXFormSubmissionCounter'
+    )  # noqa
 
     counters_without_users = DailyXFormSubmissionCounter.objects.filter(user=None)
 
@@ -21,10 +23,15 @@ def delete_null_user_daily_counters(apps, *args):
         .iterator(chunk_size=batch_size)
     ):
         counter.user = counter.xform.user
-        # don't add a user to duplicate counters, so they get deleted when we're done looping
-        if DailyXFormSubmissionCounter.objects.filter(
+        # don't add a user to duplicate counters, so they get deleted when we're
+        # done looping
+        if (
+            DailyXFormSubmissionCounter.objects.filter(
                 date=counter.date, xform=counter.xform
-        ).exclude(user=None).exists():
+            )
+            .exclude(user=None)
+            .exists()
+        ):
             continue
         batch.append(counter)
         if len(batch) >= batch_size:

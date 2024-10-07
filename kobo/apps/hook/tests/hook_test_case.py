@@ -13,30 +13,39 @@ from kpi.exceptions import BadFormatException
 from kpi.tests.kpi_test_case import KpiTestCase
 from ..constants import HOOK_LOG_FAILED
 from ..exceptions import HookRemoteServerDownError
-from ..models import HookLog, Hook
+from ..models import Hook, HookLog
 
 
 class HookTestCase(KpiTestCase):
 
     def setUp(self):
-        self.client.login(username="someuser", password="someuser")
+        self.client.login(username='someuser', password='someuser')
         self.asset = self.create_asset(
-            "some_asset",
-            content=json.dumps({'survey': [
-                {'type': 'text', 'label': 'q1', 'name': 'q1'},
-                {'type': 'begin_group', 'label': 'group1', 'name': 'group1'},
-                {'type': 'text', 'label': 'q2', 'name': 'q2'},
-                {'type': 'text', 'label': 'q3', 'name': 'q3'},
-                {'type': 'end_group'},
-                {'type': 'begin_group', 'label': 'group2', 'name': 'group2'},
-                {'type': 'begin_group', 'label': 'subgroup1', 'name': 'subgroup1'},
-                {'type': 'text', 'label': 'q4', 'name': 'q4'},
-                {'type': 'text', 'label': 'q5', 'name': 'q5'},
-                {'type': 'text', 'label': 'q6', 'name': 'q6'},
-                {'type': 'end_group'},
-                {'type': 'end_group'},
-            ]}),
-            format='json')
+            'some_asset',
+            content=json.dumps(
+                {
+                    'survey': [
+                        {'type': 'text', 'label': 'q1', 'name': 'q1'},
+                        {'type': 'begin_group', 'label': 'group1', 'name': 'group1'},
+                        {'type': 'text', 'label': 'q2', 'name': 'q2'},
+                        {'type': 'text', 'label': 'q3', 'name': 'q3'},
+                        {'type': 'end_group'},
+                        {'type': 'begin_group', 'label': 'group2', 'name': 'group2'},
+                        {
+                            'type': 'begin_group',
+                            'label': 'subgroup1',
+                            'name': 'subgroup1',
+                        },
+                        {'type': 'text', 'label': 'q4', 'name': 'q4'},
+                        {'type': 'text', 'label': 'q5', 'name': 'q5'},
+                        {'type': 'text', 'label': 'q6', 'name': 'q6'},
+                        {'type': 'end_group'},
+                        {'type': 'end_group'},
+                    ]
+                }
+            ),
+            format='json',
+        )
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
         self.hook = Hook()
@@ -94,9 +103,7 @@ class HookTestCase(KpiTestCase):
 
         # Fakes Celery n retries by forcing status to `failed`
         # (where n is `settings.HOOKLOG_MAX_RETRIES`)
-        first_hooklog = HookLog.objects.get(
-            uid=first_hooklog_response.get('uid')
-        )
+        first_hooklog = HookLog.objects.get(uid=first_hooklog_response.get('uid'))
         first_hooklog.change_status(HOOK_LOG_FAILED)
 
         return first_hooklog_response

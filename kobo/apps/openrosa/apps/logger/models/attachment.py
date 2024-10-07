@@ -8,17 +8,14 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.http import urlencode
 
-from kobo.apps.openrosa.libs.utils.image_tools import (
-    get_optimized_image_path,
-    resize,
-)
-from kobo.apps.openrosa.libs.utils.hash import get_hash
+from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
+from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
-    KobocatFileSystemStorage,
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
+from kpi.utils.hash import calculate_hash
 from .instance import Instance
 
 
@@ -34,10 +31,6 @@ def generate_attachment_filename(instance, filename):
 
 def upload_to(attachment, filename):
     return generate_attachment_filename(attachment.instance, filename)
-
-
-def hash_attachment_contents(contents):
-    return get_hash(contents)
 
 
 class AttachmentDefaultManager(models.Manager):
@@ -101,9 +94,12 @@ class Attachment(models.Model, AudioTranscodingMixin):
     @property
     def file_hash(self):
         if self.media_file.storage.exists(self.media_file.name):
+            # TODO optimize calculation of hash when using cloud storage.
+            #   Instead of reading the whole file, we could pass the url of the
+            #   file to build the hash based on headers (e.g.: Etag).
             media_file_position = self.media_file.tell()
             self.media_file.seek(0)
-            media_file_hash = hash_attachment_contents(self.media_file.read())
+            media_file_hash = calculate_hash(self.media_file.read())
             self.media_file.seek(media_file_position)
             return media_file_hash
         return ''
@@ -146,19 +142,15 @@ class Attachment(models.Model, AudioTranscodingMixin):
             # (out of ASCII character set) and must be encoded to let NGINX serve
             # them
             if optimized_image_path:
-                attachment_file_path = default_storage.path(
-                    optimized_image_path
-                )
-            protected_url = urlquote(attachment_file_path.replace(
-                settings.KOBOCAT_MEDIA_ROOT, '/protected')
+                attachment_file_path = default_storage.path(optimized_image_path)
+            protected_url = urlquote(
+                attachment_file_path.replace(settings.KOBOCAT_MEDIA_ROOT, '/protected')
             )
         else:
             # Double-encode the S3 URL to take advantage of NGINX's
             # otherwise troublesome automatic decoding
             if optimized_image_path:
-                attachment_file_path = default_storage.url(
-                    optimized_image_path
-                )
+                attachment_file_path = default_storage.url(optimized_image_path)
             protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
 
         return protected_url

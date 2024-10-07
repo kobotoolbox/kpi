@@ -8,25 +8,24 @@ from django.db import models
 from django.utils.translation import gettext as t
 from pymongo.errors import PyMongoError
 
-from kobo.celery import celery_app
+from kobo.apps.hook.utils.services import call_services
 from kobo.apps.openrosa.apps.api.mongo_helper import MongoHelper
-from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.openrosa.apps.logger.models import Note
+from kobo.apps.openrosa.apps.logger.models import Instance, Note
 from kobo.apps.openrosa.libs.utils.common_tags import (
-    ID,
-    UUID,
     ATTACHMENTS,
     GEOLOCATION,
-    SUBMISSION_TIME,
+    ID,
     MONGO_STRFTIME,
-    TAGS,
     NOTES,
+    SUBMISSION_TIME,
     SUBMITTED_BY,
-    VALIDATION_STATUS
+    TAGS,
+    UUID,
+    VALIDATION_STATUS,
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
-from kobo.apps.hook.utils.services import call_services
+from kobo.celery import celery_app
 from kpi.utils.log import logging
 
 # this is Mongo Collection where we will store the parsed submissions
@@ -68,7 +67,9 @@ class ParsedInstance(models.Model):
     DEFAULT_LIMIT = 30000
     DEFAULT_BATCHSIZE = 1000
 
-    instance = models.OneToOneField(Instance, related_name="parsed_instance", on_delete=models.CASCADE)
+    instance = models.OneToOneField(
+        Instance, related_name='parsed_instance', on_delete=models.CASCADE
+    )
     start_time = models.DateTimeField(null=True)
     end_time = models.DateTimeField(null=True)
     # TODO: decide if decimal field is better than float field.
@@ -108,7 +109,7 @@ class ParsedInstance(models.Model):
         sort = sort if sort else {}
 
         if start < 0 or limit < 0:
-            raise ValueError(t("Invalid start/limit params"))
+            raise ValueError(t('Invalid start/limit params'))
 
         return cls._get_paginated_and_sorted_cursor(cursor, start, limit, sort)
 
@@ -124,9 +125,9 @@ class ParsedInstance(models.Model):
             query = json.loads(
                 query, object_hook=json_util.object_hook) if query else {}
         if not (isinstance(pipeline, dict) or isinstance(pipeline, list)):
-            raise Exception(t("Invalid pipeline! %s" % pipeline))
+            raise Exception(t('Invalid pipeline! %s' % pipeline))
         if not isinstance(query, dict):
-            raise Exception(t("Invalid query! %s" % query))
+            raise Exception(t('Invalid query! %s' % query))
         query = MongoHelper.to_safe_dict(query)
         k = [{'$match': query}]
         if isinstance(pipeline, list):
@@ -160,7 +161,7 @@ class ParsedInstance(models.Model):
         sort = sort if sort else {}
 
         if start < 0 or limit < 0:
-            raise ValueError(t("Invalid start/limit params"))
+            raise ValueError(t('Invalid start/limit params'))
 
         if limit > cls.DEFAULT_LIMIT:
             limit = cls.DEFAULT_LIMIT
@@ -283,14 +284,14 @@ class ParsedInstance(models.Model):
 
     def update_mongo(self, asynchronous=True):
         d = self.to_dict_for_mongo()
-        if d.get("_xform_id_string") is None:
+        if d.get('_xform_id_string') is None:
             # if _xform_id_string, Instance could not be parsed.
             # so, we don't update mongo.
             return False
         else:
             if asynchronous:
                 # TODO update self.instance after async save is made
-                update_mongo_instance.apply_async((), {"record": d})
+                update_mongo_instance.apply_async((), {'record': d})
             else:
                 success = update_mongo_instance(d)
                 # Only update self.instance is `success` is different from
@@ -316,7 +317,7 @@ class ParsedInstance(models.Model):
         return xform_instances.delete_many(query)
 
     def to_dict(self):
-        if not hasattr(self, "_dict_cache"):
+        if not hasattr(self, '_dict_cache'):
             self._dict_cache = self.instance.get_dict()
         return self._dict_cache
 
@@ -342,8 +343,7 @@ class ParsedInstance(models.Model):
 
     def get_data_dictionary(self):
         # TODO: fix hack to get around a circular import
-        from kobo.apps.openrosa.apps.viewer.models.data_dictionary import\
-            DataDictionary
+        from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
         return DataDictionary.objects.get(
             user=self.instance.xform.user,
             id_string=self.instance.xform.id_string

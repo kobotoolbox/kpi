@@ -2,29 +2,35 @@ from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 
 
 def test_known_cols_transc_duplicates():
-    results = parse_known_cols([
-        'col/xpath:transc_a:en',
-        'col/xpath:transc_a:en',
-    ])
+    results = parse_known_cols(
+        [
+            'col/xpath:transc_a:en',
+            'col/xpath:transc_a:en',
+        ]
+    )
     assert len(results) == 1
     assert results[0]['language'] == 'en'
 
 
 def test_known_cols_transl_duplicates():
-    results = parse_known_cols([
-        'col/xpath:transl_a:fr',
-        'col/xpath:transl_a:fr',
-    ])
+    results = parse_known_cols(
+        [
+            'col/xpath:transl_a:fr',
+            'col/xpath:transl_a:fr',
+        ]
+    )
     assert len(results) == 1
 
 
 def test_known_cols_transc_uniqs():
-    results = parse_known_cols([
-        'col/xpath1:transc_a:en',
-        'col/xpath1:transc_b:fr',
-        'col/xpath2:transc_a:en',
-        'col/xpath2:transc_b:fr',
-    ])
+    results = parse_known_cols(
+        [
+            'col/xpath1:transc_a:en',
+            'col/xpath1:transc_b:fr',
+            'col/xpath2:transc_a:en',
+            'col/xpath2:transc_b:fr',
+        ]
+    )
     assert len(results) == 4
     rs = {}
     for prop in ['language', 'label', 'xpath']:
@@ -45,12 +51,14 @@ def test_known_cols_transc_uniqs():
 
 
 def test_known_cols_transl_uniqs():
-    results = parse_known_cols([
-        'col/xpath1:transl_a:en',
-        'col/xpath1:transl_b:fr',
-        'col/xpath2:transl_a:en',
-        'col/xpath2:transl_b:fr',
-    ])
+    results = parse_known_cols(
+        [
+            'col/xpath1:transl_a:en',
+            'col/xpath1:transl_b:fr',
+            'col/xpath2:transl_a:en',
+            'col/xpath2:transl_b:fr',
+        ]
+    )
     assert len(results) == 4
     xpaths = [r['xpath'] for r in results]
     assert xpaths == [
@@ -62,12 +70,14 @@ def test_known_cols_transl_uniqs():
 
 
 def test_known_cols_combos():
-    results = parse_known_cols([
-        'col/xpath1:transl_a:en',
-        'col/xpath1:transl_b:fr',
-        'col/xpath2:transl_a:en',
-        'col/xpath2:transl_b:fr',
-    ])
+    results = parse_known_cols(
+        [
+            'col/xpath1:transl_a:en',
+            'col/xpath1:transl_b:fr',
+            'col/xpath2:transl_a:en',
+            'col/xpath2:transl_b:fr',
+        ]
+    )
     langs = [r['language'] for r in results]
     assert langs == ['en', 'fr', 'en', 'fr']
     assert len(results) == 4
@@ -76,12 +86,14 @@ def test_known_cols_combos():
 def test_known_cols_grouped_source():
     # TODO: refer to commit d013bfe0f5 and `extend_col_deets()` to figure out
     # how this should behave
-    results = parse_known_cols([
-        # `group` is the group name
-        # `question` is the (source) question name
-        'group/question:transcript:en',
-        'group/question:translation:es',
-    ])
+    results = parse_known_cols(
+        [
+            # `group` is the group name
+            # `question` is the (source) question name
+            'group/question:transcript:en',
+            'group/question:translation:es',
+        ]
+    )
     sources = [r['source'] for r in results]
     xpaths = [r['xpath'] for r in results]
     names = [r['name'] for r in results]
