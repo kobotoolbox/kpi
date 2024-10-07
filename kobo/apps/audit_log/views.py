@@ -4,7 +4,7 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from kpi.filters import SearchFilter
 from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
-from .models import AccessLog, AuditAction, AuditLog
+from .models import AccessLog, AuditLog
 from .permissions import SuperUserPermission
 from .serializers import AccessLogSerializer, AuditLogSerializer
 
@@ -43,7 +43,8 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >           ]
     >       }
 
-    Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
+    Results from this endpoint can be filtered by a Boolean query specified in the
+    `q` parameter.
 
     **Some examples:**
 
@@ -62,7 +63,8 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     5. All deleted submissions submitted after a specific date **and time**<br>
         `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
 
-    *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces (e.g. date and time "2022-11-15 20:34")*
+    *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
+    (e.g. date and time "2022-11-15 20:34")*
 
     ### CURRENT ENDPOINT
     """
@@ -92,6 +94,8 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
     Lists all access logs for all users. Only available to superusers.
 
+    Submissions will be grouped together by hour
+
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/
     </pre>
@@ -108,19 +112,24 @@ class AllAccessLogViewSet(AuditLogViewSet):
     >           "previous": null,
     >           "results": [
     >                {
-    >                   "app_label": "kobo_auth",
-    >                    "model_name": "User",
     >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
+    >                    "user_uid": "u12345",
     >                    "username": "admin",
-    >                    "action": "AUTH",
     >                    "metadata": {
     >                        "source": "Firefox (Ubuntu)",
     >                        "auth_type": "Digest",
     >                        "ip_address": "172.18.0.6"
     >                   },
     >                    "date_created": "2024-08-19T16:48:58Z",
-    >                    "log_type": "access"
+    >                },
+    >                {
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "u12345",
+    >                    "username": "admin",
+    >                    "metadata": {
+    >                        "auth_type": "submission-group",
+    >                    },
+    >                    "date_created": "2024-08-19T16:00:00Z"
     >                },
     >                ...
     >           ]
@@ -130,11 +139,8 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
     """
 
-    queryset = (
-        AccessLog.objects.select_related('user')
-        .filter(action=AuditAction.AUTH)
-        .order_by('-date_created')
-    )
+    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
+    serializer_class = AccessLogSerializer
 
 
 class AccessLogViewSet(AuditLogViewSet):
@@ -154,31 +160,39 @@ class AccessLogViewSet(AuditLogViewSet):
     >       curl -X GET https://[kpi-url]/access-logs/me
 
     > Response 200
+
     >       {
     >           "count": 10,
     >           "next": null,
     >           "previous": null,
     >           "results": [
     >                {
-    >                   "app_label": "kobo_auth",
-    >                    "model_name": "User",
     >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "uBMZxx9tVfepvTRp3e9Twj",
+    >                    "user_uid": "u12345",
     >                    "username": "admin",
-    >                    "action": "AUTH",
     >                    "metadata": {
     >                        "source": "Firefox (Ubuntu)",
     >                        "auth_type": "Digest",
     >                        "ip_address": "172.18.0.6"
     >                    },
     >                    "date_created": "2024-08-19T16:48:58Z"
-    >                    "log_type": "access"
+    >                },
+    >                {
+    >                    "user": "http://localhost/api/v2/users/admin/",
+    >                    "user_uid": "u12345",
+    >                    "username": "admin",
+    >                    "metadata": {
+    >                        "auth_type": "submission-group",
+    >                    },
+    >                    "date_created": "2024-08-19T16:00:00Z"
     >                },
     >                ...
     >           ]
     >       }
+
     This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/access-logs/me/?offset=100&limit=50
+    >      curl -X GET https://[kpi-url]/access-logs/me?offset=100&limit=50
+
     will return entries 100-149
 
     """
