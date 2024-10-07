@@ -4,9 +4,9 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from kpi.filters import SearchFilter
 from kpi.permissions import IsAuthenticated
 from .filters import AccessLogPermissionsFilter
-from .models import AccessLog, AuditAction, AuditLog
+from .models import AccessLog, AuditLog
 from .permissions import SuperUserPermission
-from .serializers import AuditLogSerializer
+from .serializers import AccessLogSerializer, AuditLogSerializer
 
 
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -143,6 +143,8 @@ class AccessLogViewSet(AuditLogViewSet):
 
     Lists all access logs for the authenticated user
 
+    Submissions will be grouped together by hour
+
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/me
     </pre>
@@ -152,7 +154,6 @@ class AccessLogViewSet(AuditLogViewSet):
     >       curl -X GET https://[kpi-url]/access-logs/me
 
     > Response 200
-
     >       {
     >           "count": 10,
     >           "next": null,
@@ -176,14 +177,13 @@ class AccessLogViewSet(AuditLogViewSet):
     >                ...
     >           ]
     >       }
-
     This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/access-logs/?offset=100&limit=50
-
+    >      curl -X GET https://[kpi-url]/access-logs/me/?offset=100&limit=50
     will return entries 100-149
 
     """
 
-    queryset = AccessLog.objects.select_related('user').order_by('-date_created')
+    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
+    serializer_class = AccessLogSerializer

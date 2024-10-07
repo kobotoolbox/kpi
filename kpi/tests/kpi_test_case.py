@@ -13,11 +13,12 @@ from rest_framework import status
 
 from kpi.constants import ASSET_TYPE_COLLECTION
 
+from ..models.asset import Asset
+from ..models.object_permission import ObjectPermission
+
 # FIXME: Remove the following line when the permissions API is in place.
 from .base_test_case import BaseTestCase
 from .test_permissions import BasePermissionsTestCase
-from ..models.asset import Asset
-from ..models.object_permission import ObjectPermission
 
 
 class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
@@ -94,9 +95,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             self.login(owner.username, owner_password)
 
         kwargs.update({'name': name, 'asset_type': ASSET_TYPE_COLLECTION})
-        response = self.client.post(
-            reverse(self._get_endpoint("asset-list")), kwargs
-        )
+        response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:

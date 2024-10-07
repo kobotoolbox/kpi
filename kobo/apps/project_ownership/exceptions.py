@@ -4,3 +4,7 @@ class AsyncTaskException(Exception):
 
 class TransferAlreadyProcessedException(Exception):
     pass
+
+
+class TransferStillPendingException(Exception):
+    pass

@@ -1,17 +1,18 @@
-import responses
 from ipaddress import ip_address
-from mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import responses
 from rest_framework import status
 
-from .hook_test_case import HookTestCase
 from ..utils.services import call_services
+from .hook_test_case import HookTestCase
 
 
 class HookUtilsTestCase(HookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-        new=MagicMock(return_value=ip_address('1.2.3.4'))
+        new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
     @responses.activate
     def test_data_submission(self):
