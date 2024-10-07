@@ -11,6 +11,7 @@ from django.db.models import Model
 from guardian.models import UserObjectPermission
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.utils.database import use_db
 from kpi.utils.log import logging
 from kpi.utils.permissions import is_user_anonymous
 
@@ -327,9 +328,10 @@ def reset_kc_permissions(
 
 
 def delete_kc_user(username: str):
-    User.objects.using(settings.OPENROSA_DB_ALIAS).filter(
-        username=username
-    ).delete()
+    with use_db(settings.OPENROSA_DB_ALIAS):
+        # Do not use `.using()` here because it does not bubble down to the
+        # Collector.
+        User.objects.filter(username=username).delete()
 
 
 def kc_transaction_atomic(using=settings.OPENROSA_DB_ALIAS, *args, **kwargs):

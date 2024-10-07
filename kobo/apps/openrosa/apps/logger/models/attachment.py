@@ -1,4 +1,3 @@
-# coding: utf-8
 import mimetypes
 import os
 from typing import Optional
@@ -13,12 +12,13 @@ from kobo.apps.openrosa.libs.utils.image_tools import (
     get_optimized_image_path,
     resize,
 )
-from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
     KobocatFileSystemStorage,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
+from kpi.utils.hash import calculate_hash
 from .instance import Instance
 
 
@@ -36,10 +36,6 @@ def upload_to(attachment, filename):
     return generate_attachment_filename(attachment.instance, filename)
 
 
-def hash_attachment_contents(contents):
-    return get_hash(contents)
-
-
 class AttachmentDefaultManager(models.Manager):
 
     def get_queryset(self):
@@ -50,7 +46,7 @@ class Attachment(models.Model, AudioTranscodingMixin):
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
-    media_file = models.FileField(
+    media_file = ExtendedFileField(
         storage=default_storage,
         upload_to=upload_to,
         max_length=380,
@@ -101,9 +97,12 @@ class Attachment(models.Model, AudioTranscodingMixin):
     @property
     def file_hash(self):
         if self.media_file.storage.exists(self.media_file.name):
+            # TODO optimize calculation of hash when using cloud storage.
+            #   Instead of reading the whole file, we could pass the url of the
+            #   file to build the hash based on headers (e.g.: Etag).
             media_file_position = self.media_file.tell()
             self.media_file.seek(0)
-            media_file_hash = hash_attachment_contents(self.media_file.read())
+            media_file_hash = calculate_hash(self.media_file.read())
             self.media_file.seek(media_file_position)
             return media_file_hash
         return ''
