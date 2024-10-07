@@ -1597,16 +1597,9 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
-# Should match KoBoCAT setting
 PAIRED_DATA_EXPIRATION = 300  # seconds
 
-# Minimum size (in bytes) of files to allow fast calculation of hashes
-# Should match KoBoCAT setting
-HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 512 kB
-
-# Chunk size in bytes to read per iteration when hash of a file is calculated
-# Should match KoBoCAT setting
-HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
+CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
 # add some mimetype
 add_type('application/wkt', '.wkt')

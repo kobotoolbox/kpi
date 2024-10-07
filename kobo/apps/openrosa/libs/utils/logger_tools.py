@@ -50,7 +50,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import (
     generate_attachment_filename,
-    hash_attachment_contents,
 )
 from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
@@ -83,6 +82,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.hash import calculate_hash
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -648,7 +648,7 @@ def save_attachments(
             mimetype=f.content_type,
         ).first()
         if existing_attachment and (
-            existing_attachment.file_hash == hash_attachment_contents(f.read())
+            existing_attachment.file_hash == calculate_hash(f.read())
         ):
             # We already have this attachment!
             continue
