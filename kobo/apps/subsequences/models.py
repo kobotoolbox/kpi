@@ -1,14 +1,10 @@
 # coding: utf-8
 from django.db import models
 
-from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models import Asset
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from kpi.utils.log import logging
-from .constants import GOOGLETS, GOOGLETX, ASYNC_TRANSLATION_DELAY_INTERVAL
-from .utils.determine_export_cols_with_values import (
-    determine_export_cols_indiv,
-)
+from .constants import GOOGLETS, GOOGLETX
+from .utils.determine_export_cols_with_values import determine_export_cols_indiv
 
 
 class SubmissionExtras(AbstractTimeStampedModel):

@@ -8,12 +8,12 @@ import json
 from django.core.paginator import Paginator
 
 from kobo.apps.subsequences.models import SubmissionExtras
+from kobo.apps.subsequences.utils.deprecation import (
+    get_sanitized_dict_keys,
+    get_sanitized_known_columns,
+)
 from kobo.apps.subsequences.utils.determine_export_cols_with_values import (
     determine_export_cols_with_values,
-)
-from kobo.apps.subsequences.utils.deprecation import (
-    get_sanitized_known_columns,
-    get_sanitized_dict_keys,
 )
 from kpi.models.asset import Asset
 
@@ -38,9 +38,7 @@ def migrate_subex_content(
 def migrate_subex_content_for_asset(asset, save=True):
     submission_extras = []
     for sub_ex in asset.submission_extras.all():
-        if updated_sub_ex := migrate_subex_content(
-            sub_ex, asset=asset, save=save
-        ):
+        if updated_sub_ex := migrate_subex_content(sub_ex, asset=asset, save=save):
             submission_extras.append(updated_sub_ex)
 
     return submission_extras
@@ -70,7 +68,7 @@ def migrate_advanced_features(asset, save=True):
 
 def run(asset_uid=None):
 
-    if asset_uid == "!":
+    if asset_uid == '!':
         SubmissionExtras.objects.all().delete()
         for asset in Asset.objects.exclude(advanced_features__exact={}).iterator():
             asset.advanced_features = {}

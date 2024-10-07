@@ -1,9 +1,7 @@
 from django.db import migrations
 from django.db.migrations.recorder import MigrationRecorder
-from django.db.models import Sum
-from django.db.models import Value, F, DateField
-from django.db.models.functions import Cast, Concat
-from django.db.models.functions import ExtractYear, ExtractMonth
+from django.db.models import DateField, F, Sum, Value
+from django.db.models.functions import Cast, Concat, ExtractMonth, ExtractYear
 from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.utils.counters import (

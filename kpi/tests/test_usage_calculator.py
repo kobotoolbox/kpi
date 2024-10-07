@@ -9,17 +9,13 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import (
-    XForm,
-    DailyXFormSubmissionCounter,
-)
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.tests.utils import generate_enterprise_subscription
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
-from kpi.utils.usage_calculator import ServiceUsageCalculator
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
 class BaseServiceUsageTestCase(BaseAssetTestCase):
@@ -27,6 +23,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
     This class contains setup logic and utility functions to test usage
     calculations
     """
+
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -74,7 +71,6 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
         )
         self._deployment = self.asset.deployment
-
 
     def add_nlp_trackers(self):
         """
@@ -125,12 +121,12 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 '_uuid': str(uuid.uuid4()),
                 '_attachments': [
                     {
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',
+                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',  # noqa: E501
                         'filename': 'anotheruser/audio_conversion_test_clip.3gp',
                         'mimetype': 'video/3gpp',
                     },
                     {
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',
+                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',  # noqa: E501
                         'filename': 'anotheruser/audio_conversion_test_image.jpg',
                         'mimetype': 'image/jpeg',
                     },

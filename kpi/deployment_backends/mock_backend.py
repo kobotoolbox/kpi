@@ -10,14 +10,11 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.dateparse import parse_datetime
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    dict2xform,
-    create_instance,
-)
+from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, dict2xform
 from kpi.constants import PERM_ADD_SUBMISSIONS, SUBMISSION_FORMAT_TYPE_JSON
-from kpi.tests.utils.dicts import nested_dict_from_keys
-from .openrosa_backend import OpenRosaDeploymentBackend
+from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
 from ..utils.files import ExtendedContentFile
+from .openrosa_backend import OpenRosaDeploymentBackend
 
 
 class MockDeploymentBackend(OpenRosaDeploymentBackend):
@@ -40,22 +37,36 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
         request: Optional['rest_framework.request.Request'] = None,
-        **mongo_query_params
+        **mongo_query_params,
     ) -> list:
         # Overload parent to cast generator to a list. Many tests are expecting
         # a list
-        return list(super().get_submissions(
-            user, format_type, submission_ids, request, **mongo_query_params
-        ))
+        return list(
+            super().get_submissions(
+                user, format_type, submission_ids, request, **mongo_query_params
+            )
+        )
 
-    def mock_submissions(
-        self, submissions, create_uuids: bool = True
-    ):
+    def mock_submissions(self, submissions, create_uuids: bool = True):
         """
         Simulate client (i.e.: Enketo or Collect) data submission.
 
         Read test data and convert it to proper XML to be saved as a real
         Instance object.
+
+        1. Each item in the iterable submissions must be a dictionary following
+           the format of the JSON returned by the data API.
+        2. The submissions are mutated to include submission and attachments
+           PKs (relatively `_id`, and `_attachments[index]['id']`) after being
+           saved in the database.
+        3. If `_submitted_by` is present in a submission, the submission is made
+           by the user identified there, even if that user must (temporarily) be
+           granted permission to submit to `self.asset`.
+        4. `meta/instanceID` is added to any submission where it's missing if
+           `create_uuids` is `True`.
+        5. If `_submission_time` is present in the submission, it is preserved by
+           overriding the normal logic that populates this field with the current
+           timestamp at the moment of submission.
         """
 
         class FakeRequest:
@@ -65,7 +76,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
         owner_username = self.asset.owner.username
 
         for submission in submissions:
-            sub_copy = nested_dict_from_keys(submission)
+            sub_copy = convert_hierarchical_keys_to_nested_dict(submission)
 
             if create_uuids:
                 if 'formhub/uuid' not in submission:
@@ -79,7 +90,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
                 else:
                     uuid_ = submission['meta/instanceID'].replace('uuid:', '')
 
-                sub_copy['meta'] = {'instanceID':  f'uuid:{uuid_}'}
+                sub_copy['meta'] = {'instanceID': f'uuid:{uuid_}'}
                 submission['_uuid'] = uuid_
 
             assign_perm = False
@@ -156,17 +167,13 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
 
             basename = os.path.basename(filename)
             file_ = os.path.join(
-                settings.BASE_DIR,
-                'kpi',
-                'fixtures',
-                'attachments',
-                basename
+                settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', basename
             )
             if not os.path.isfile(file_):
                 raise Exception(
-                    f'File `filename` does not exist! Use `path/to/image.png` if'
-                    f' you need a fake attachment, or use one of file names '
-                    f'inside `kpi/fixtures/attachments for real attachment'
+                    'File `filename` does not exist! Use `path/to/image.png` if'
+                    ' you need a fake attachment, or use one of file names '
+                    'inside `kpi/fixtures/attachments for real attachment'
                 )
 
             with open(file_, 'rb') as f:
