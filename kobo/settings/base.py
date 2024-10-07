@@ -1,4 +1,3 @@
-# coding: utf-8
 import logging
 import os
 import string
@@ -105,6 +104,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.openid_connect',
     'allauth.usersessions',
     'hub.HubAppConfig',
+    'import_export',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -1500,7 +1500,7 @@ permission assignment that would've been done by KoBoCAT's user post_save
 signal handler. Here we record the content types of the models listed in KC's
 set_api_permissions_for_user(). Verify that this list still matches that
 function if you experience permission-related problems. See
-https://github.com/kobotoolbox/kobocat/blob/master/onadata/libs/utils/user_auth.py.
+https://github.com/kobotoolbox/kobocat/blob/main/onadata/libs/utils/user_auth.py.
 """
 KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     # Each tuple must be (app_label, model_name)
