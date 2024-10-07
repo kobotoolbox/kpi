@@ -1,4 +1,3 @@
-import itertools
 import os
 import time
 import uuid
@@ -8,10 +7,6 @@ from django.conf import settings
 from django.utils import timezone
 from model_bakery import baker
 
-from kobo.apps.openrosa.apps.logger.models import (
-    DailyXFormSubmissionCounter,
-    XForm,
-)
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -49,7 +44,7 @@ def create_mock_assets(users: list, assets_per_user: int = 1):
             owner=user,
             asset_type='survey',
             name='test',
-            uid=itertools.cycle(_get_uid(assets_per_user)),
+            uid=iter(_get_uid(assets_per_user)),
             _quantity=assets_per_user,
         )
 
@@ -65,11 +60,16 @@ def expected_file_size(submissions: int = 1):
     """
     Calculate the expected combined file size for the test audio clip and image
     """
-    return (os.path.getsize(
-        settings.BASE_DIR + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
-    ) + os.path.getsize(
-        settings.BASE_DIR + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
-    )) * submissions
+    return (
+        os.path.getsize(
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
+        )
+        + os.path.getsize(
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
+        )
+    ) * submissions
 
 
 def add_mock_submissions(
@@ -107,7 +107,9 @@ def add_mock_submissions(
             }
             if age_days > 0:
                 submission_time = timezone.now() - relativedelta(days=age_days)
-                submission['_submission_time'] = submission_time.strftime('%Y-%m-%dT%H:%M:%S')
+                submission['_submission_time'] = submission_time.strftime(
+                    '%Y-%m-%dT%H:%M:%S'
+                )
             asset_submissions.append(submission)
 
         asset.deployment.mock_submissions(asset_submissions)

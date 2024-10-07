@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 from pyxform import SurveyElementBuilder
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -7,7 +7,8 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import DuplicateInstan
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.libs.utils.logger_tools import (
-    create_instance, safe_create_instance
+    create_instance,
+    safe_create_instance,
 )
 
 
@@ -49,9 +50,8 @@ class TestSimpleSubmission(TestCase):
             '/yesno></yes_or_no>'), [])
 
     def setUp(self):
-        self.user = User.objects.create(
-            username="admin", email="sample@example.com")
-        self.user.set_password("pass")
+        self.user = User.objects.create(username='admin', email='sample@example.com')
+        self.user.set_password('pass')
         UserProfile.objects.get_or_create(user=self.user)
 
         self.xform1 = DataDictionary()

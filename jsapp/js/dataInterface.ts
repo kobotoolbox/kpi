@@ -21,7 +21,11 @@ import type {
 } from './components/processing/analysis/constants';
 import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
-import type {ReportsResponse} from 'js/components/reports/reportsConstants';
+import type {
+  ReportsPaginatedResponse,
+  AssetResponseReportStyles,
+  AssetResponseReportCustom,
+} from 'js/components/reports/reportsConstants';
 import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 import type {SortValues} from 'js/components/submissions/tableConstants';
 import type {ValidationStatusName} from 'js/components/submissions/validationStatus.constants';
@@ -380,6 +384,9 @@ export interface SurveyChoice {
   list_name: string;
   name: string;
   'media::image'?: string[];
+  // Possibly deprecated? Most code doesn't use it at all, old reports code was
+  // using it as fallback.
+  $autoname?: string;
 }
 
 interface AssetLockingProfileDefinition {
@@ -443,14 +450,6 @@ interface AssetSummary {
     };
   };
   naming_conflicts?: string[];
-}
-
-interface AssetReportStylesSpecified {
-  [name: string]: {};
-}
-
-interface AssetReportStylesKuidNames {
-  [name: string]: {};
 }
 
 interface AdvancedSubmissionSchema {
@@ -535,26 +534,10 @@ interface AssetRequestObject {
   parent: string | null;
   settings: AssetSettings;
   asset_type: AssetTypeName;
-  report_styles?: {
-    default?: {};
-    specified?: AssetReportStylesSpecified;
-    kuid_names?: AssetReportStylesKuidNames;
-  };
-  report_custom?: {
-    [reportName: string]: {
-      crid: string;
-      name: string;
-      questions: string[];
-      reportStyle: {
-        groupDataBy: string;
-        report_type: string;
-        report_colors: string[];
-        translationIndex: number;
-      };
-    };
-  };
-  map_styles?: {};
-  map_custom?: {};
+  report_styles: AssetResponseReportStyles;
+  report_custom: AssetResponseReportCustom;
+  map_styles: {};
+  map_custom: {};
   content?: AssetContent;
   tag_string: string;
   name: string;
@@ -1112,7 +1095,7 @@ export const dataInterface: DataInterface = {
     uid: string;
     identifiers: string[];
     group_by: string;
-  }): JQuery.jqXHR<PaginatedResponse<ReportsResponse>> {
+  }): JQuery.jqXHR<ReportsPaginatedResponse> {
     let identifierString;
     if (data.identifiers) {
       identifierString = `?names=${data.identifiers.join(',')}`;

@@ -28,12 +28,8 @@ class TestLogoutAll(BaseTestCase):
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
         # create sessions for user1
-        UserSession.objects.create(
-            user=user1, session_key='12345', ip='1.2.3.4'
-        )
-        UserSession.objects.create(
-            user=user1, session_key='56789', ip='5.6.7.8'
-        )
+        UserSession.objects.create(user=user1, session_key='12345', ip='1.2.3.4')
+        UserSession.objects.create(user=user1, session_key='56789', ip='5.6.7.8')
         count = UserSession.objects.count()
         self.assertEqual(count, 2)
 

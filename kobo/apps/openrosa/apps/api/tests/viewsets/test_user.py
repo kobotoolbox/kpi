@@ -1,9 +1,7 @@
-# coding: utf-8
 import base64
 import os
 
 import pytest
-from django.conf import settings
 from django.urls.exceptions import NoReverseMatch
 from rest_framework import status
 from rest_framework.reverse import reverse
