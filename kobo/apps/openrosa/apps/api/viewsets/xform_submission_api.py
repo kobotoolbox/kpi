@@ -1,15 +1,9 @@
-# coding: utf-8
 import io
 import re
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from rest_framework import mixins, permissions, status
-from rest_framework.authentication import (
-    BasicAuthentication,
-    SessionAuthentication,
-    TokenAuthentication,
-)
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
