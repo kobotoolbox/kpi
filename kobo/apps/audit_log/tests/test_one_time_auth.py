@@ -107,7 +107,8 @@ class TestOneTimeAuthentication(BaseTestCase):
         """
 
         def side_effect(request):
-            # Digest authentication sets request.user, so include that as a side effect when necessary
+            # Digest authentication sets request.user,
+            # so include that as a side effect when necessary
             request.user = TestOneTimeAuthentication.user
             return mock.DEFAULT
 
@@ -126,10 +127,44 @@ class TestOneTimeAuthentication(BaseTestCase):
         self.assertTrue(log_exists)
         self.assertEqual(AuditLog.objects.count(), 1)
 
-    def test_digest_auth_for_submission(self):
+    @data(
+        'kpi.authentication.DRFTokenAuthentication.authenticate',
+        'kpi.authentication.DRFBasicAuthentication.authenticate',
+        'kpi.authentication.OPOAuth2Authentication.authenticate',
+        'kobo.apps.openrosa.libs.authentication.BasicAuthentication.authenticate',
+    )
+    def test_any_auth_for_submissions(self, authetication_method):
         """
+        Test most one-time authenticated submissions result in a submission access log
+        """
+
+        with patch(
+            authetication_method,
+            return_value=(TestOneTimeAuthentication.user, 'something'),
+        ):
+            # assume the submission works, we don't actually care
+            with patch(
+                'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create', # noqa
+                return_value=HttpResponse(status=200),
+            ):
+                # try both OpenRosa and v1 endpoints
+                self.client.post(reverse('submissions'))
+                self.client.post(reverse('submissions-list'))
+        log_exists = AuditLog.objects.filter(
+            user_uid=TestOneTimeAuthentication.user.extra_details.uid,
+            action=AuditAction.AUTH,
+            metadata__auth_type='submission',
+        ).exists()
+        self.assertTrue(log_exists)
+        self.assertEqual(AuditLog.objects.count(), 2)
+
+    def test_digest_auth_for_submissions(self):
+        """
+        Test digest-authenticated submissions result in a submission access log
+=======
         Test digest authentications for submissions result in an audit log being created
         with the 'Submission' type
+>>>>>>> main
         """
 
         def side_effect(request):
@@ -147,14 +182,17 @@ class TestOneTimeAuthentication(BaseTestCase):
                 'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create',  # noqa: E501
                 return_value=HttpResponse(status=200),
             ):
+                # try both OpenRosa and v1 endpoints
                 self.client.post(reverse('submissions'), **header)
+                self.client.post(reverse('submissions-list'), **header)
+
         log_exists = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,
             metadata__auth_type='submission',
         ).exists()
         self.assertTrue(log_exists)
-        self.assertEqual(AuditLog.objects.count(), 1)
+        self.assertEqual(AuditLog.objects.count(), 2)
 
     def test_authorized_application_auth_creates_log(self):
         app: AuthorizedApplication = AuthorizedApplication(name='Auth app')
