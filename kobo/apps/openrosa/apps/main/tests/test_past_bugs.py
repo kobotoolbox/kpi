@@ -4,7 +4,7 @@ import os
 import pytest
 from pyxform.errors import PyXFormError
 
-from kobo.apps.openrosa.apps.logger.models import XForm, Instance
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from .test_base import TestBase
 
 
@@ -19,17 +19,16 @@ class TestInputs(TestBase):
         self._create_user_and_login()
 
         with pytest.raises(PyXFormError) as e:
-            self._publish_xls_file(
-                'fixtures/group_names_must_be_unique.xls'
+            self._publish_xls_file('fixtures/group_names_must_be_unique.xls')
+            assert (
+                'The name "group_names_must_be_unique" is the same as the form name'
+                in str(e)
             )
-            assert 'The name "group_names_must_be_unique" is the same as the form name' in str(e)
 
         assert XForm.objects.count() == pre_count
 
     def test_mch(self):
-        self._publish_xls_file(
-            os.path.join('fixtures/bug_fixes/MCH_v1.xls')
-        )
+        self._publish_xls_file(os.path.join('fixtures/bug_fixes/MCH_v1.xls'))
 
     def test_buggy_files(self):
         message = 'Duplicate column header: label'

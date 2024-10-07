@@ -1,4 +1,5 @@
 from datetime import datetime
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -9,19 +10,23 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import permissions, status
+from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.decorators import action
 
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.libs import filters
-from kobo.apps.openrosa.libs.renderers.renderers import MediaFileContentNegotiation
-from kobo.apps.openrosa.libs.renderers.renderers import XFormListRenderer
-from kobo.apps.openrosa.libs.renderers.renderers import XFormManifestRenderer
-from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormListSerializer
-from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormManifestSerializer
+from kobo.apps.openrosa.libs.renderers.renderers import (
+    MediaFileContentNegotiation,
+    XFormListRenderer,
+    XFormManifestRenderer,
+)
+from kobo.apps.openrosa.libs.serializers.xform_serializer import (
+    XFormListSerializer,
+    XFormManifestSerializer,
+)
 from kpi.authentication import DigestAuthentication
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
@@ -218,9 +223,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             #  default anymore and the `update()` method is itself
             #  atomic since it does not reference any value previously read
             #  from the database. Is that enough?
-            MetaData.objects.filter(pk=obj.pk).update(
-                date_modified=timezone.now()
-            )
+            MetaData.objects.filter(pk=obj.pk).update(date_modified=timezone.now())
             return True
 
         return False

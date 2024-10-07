@@ -7,8 +7,8 @@ from django.utils import timezone
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kpi.models.asset import AssetFile
-from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 from .exceptions import AsyncTaskException
+from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 
 
 def get_target_folder(
@@ -53,9 +53,9 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
         _mark_task_as_successful(transfer, async_task_type)
         return
 
-    attachments = Attachment.all_objects.filter(
-        instance_id__in=submission_ids
-    ).exclude(media_file__startswith=f'{transfer.asset.owner.username}/')
+    attachments = Attachment.all_objects.filter(instance_id__in=submission_ids).exclude(
+        media_file__startswith=f'{transfer.asset.owner.username}/'
+    )
 
     for attachment in attachments.iterator():
         # Pretty slow but it should run in celery task. We want to be the

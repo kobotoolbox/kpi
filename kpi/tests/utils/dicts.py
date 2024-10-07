@@ -17,7 +17,8 @@ def convert_hierarchical_keys_to_nested_dict(dict_: dict) -> dict:
         keys = key.split('/')
         sub_dict = result
 
-        # Traverse each part of the key except the last one to build the nested structure
+        # Traverse each part of the key except the last one to build the nested
+        # structure.
         #
         # Example:
         # In keys = ['a', 'b', 'c'], the sub-keys 'a' and 'b' represent intermediate

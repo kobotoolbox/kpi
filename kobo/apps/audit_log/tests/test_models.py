@@ -167,9 +167,7 @@ class AccessLogModelTestCase(BaseTestCase):
             },
         )
 
-    def test_create_auth_log_with_extra_metadata(
-        self, patched_ip, patched_source
-    ):
+    def test_create_auth_log_with_extra_metadata(self, patched_ip, patched_source):
         request = self._create_request(
             reverse('api_v2:asset-list'),
             AnonymousUser(),

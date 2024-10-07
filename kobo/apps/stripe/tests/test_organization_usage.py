@@ -1,11 +1,13 @@
 import timeit
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-import pytest
 from datetime import datetime
+
+import pytest
 from dateutil.relativedelta import relativedelta
 from django.core.cache import cache
 from django.test import override_settings
@@ -18,16 +20,16 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.trackers.tests.submission_utils import (
-    create_mock_assets,
-    add_mock_submissions,
-)
 from kobo.apps.stripe.tests.utils import (
     generate_enterprise_subscription,
     generate_plan_subscription,
 )
-from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
+from kobo.apps.trackers.tests.submission_utils import (
+    add_mock_submissions,
+    create_mock_assets,
+)
 from kpi.tests.api.v2.test_api_asset_usage import AssetUsageAPITestCase
+from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
 class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
@@ -336,9 +338,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         current_month_start = datetime.fromisoformat(
             response.data['current_month_start']
         )
-        current_month_end = datetime.fromisoformat(
-            response.data['current_month_end']
-        )
+        current_month_end = datetime.fromisoformat(response.data['current_month_end'])
 
         assert current_month_start.month == cancel_date.month
         assert current_month_start.day == cancel_date.day

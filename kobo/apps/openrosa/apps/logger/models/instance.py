@@ -35,10 +35,10 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     MONGO_STRFTIME,
     NOTES,
     SUBMISSION_TIME,
+    SUBMITTED_BY,
     TAGS,
     UUID,
     XFORM_ID_STRING,
-    SUBMITTED_BY
 )
 from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
 from kpi.models.abstract_models import AbstractTimeStampedModel
@@ -130,7 +130,9 @@ class Instance(AbstractTimeStampedModel):
         if self.xform and not self.xform.downloadable:
             raise FormInactiveError()
 
-        UserProfile = apps.get_model('main', 'UserProfile')  # noqa - Avoid circular imports
+        UserProfile = apps.get_model(
+            'main', 'UserProfile'
+        )  # noqa - Avoid circular imports
         profile, created = UserProfile.objects.get_or_create(user=self.xform.user)
         if not created and profile.metadata.get('submissions_suspended', False):
             raise TemporarilyUnavailableError()
@@ -175,7 +177,7 @@ class Instance(AbstractTimeStampedModel):
         self.json = doc
 
     def _set_parser(self):
-        if not hasattr(self, "_parser"):
+        if not hasattr(self, '_parser'):
             self._parser = XFormInstanceParser(
                 self.xml, self.xform.data_dictionary())
 
@@ -318,7 +320,7 @@ class Instance(AbstractTimeStampedModel):
             return gc[0]
 
     def save(self, *args, **kwargs):
-        force = kwargs.pop("force", False)
+        force = kwargs.pop('force', False)
 
         self.check_active(force)
 

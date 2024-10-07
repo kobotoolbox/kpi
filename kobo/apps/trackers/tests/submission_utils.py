@@ -60,11 +60,16 @@ def expected_file_size(submissions: int = 1):
     """
     Calculate the expected combined file size for the test audio clip and image
     """
-    return (os.path.getsize(
-        settings.BASE_DIR + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
-    ) + os.path.getsize(
-        settings.BASE_DIR + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
-    )) * submissions
+    return (
+        os.path.getsize(
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_clip.3gp'
+        )
+        + os.path.getsize(
+            settings.BASE_DIR
+            + '/kpi/fixtures/attachments/audio_conversion_test_image.jpg'
+        )
+    ) * submissions
 
 
 def add_mock_submissions(
@@ -102,7 +107,9 @@ def add_mock_submissions(
             }
             if age_days > 0:
                 submission_time = timezone.now() - relativedelta(days=age_days)
-                submission['_submission_time'] = submission_time.strftime('%Y-%m-%dT%H:%M:%S')
+                submission['_submission_time'] = submission_time.strftime(
+                    '%Y-%m-%dT%H:%M:%S'
+                )
             asset_submissions.append(submission)
 
         asset.deployment.mock_submissions(asset_submissions)

@@ -8,12 +8,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
-from rest_framework import (
-    renderers,
-    serializers,
-    status,
-    viewsets,
-)
+from rest_framework import renderers, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
@@ -22,17 +17,15 @@ from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    http_open_rosa_error_handler,
-)
+from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
-    SUBMISSION_FORMAT_TYPE_JSON,
-    SUBMISSION_FORMAT_TYPE_XML,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.exceptions import (
     InvalidXFormException,
@@ -48,10 +41,8 @@ from kpi.permissions import (
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
-from kpi.renderers import (
-    SubmissionGeoJsonRenderer,
-    SubmissionXMLRenderer,
-)
+from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import (
@@ -59,7 +50,6 @@ from kpi.utils.xml import (
     get_or_create_element,
     xml_tostring,
 )
-from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
 class DataViewSet(
@@ -362,9 +352,7 @@ class DataViewSet(
             fields=['_id', '_uuid']
         )
 
-        if deployment.delete_submission(
-            submission_id, user=request.user
-        ):
+        if deployment.delete_submission(submission_id, user=request.user):
             AuditLog.objects.create(
                 app_label='logger',
                 model_name='instance',
@@ -486,10 +474,7 @@ class DataViewSet(
 
         try:
             submissions = deployment.get_submissions(
-                request.user,
-                format_type=format_type,
-                request=request,
-                **filters
+                request.user, format_type=format_type, request=request, **filters
             )
         except OperationFailure as err:
             message = str(err)
@@ -600,7 +585,7 @@ class DataViewSet(
         serializer_params = {
             'data': request.data,
             'context': self.get_serializer_context(),
-            'perm': PERM_DELETE_SUBMISSIONS
+            'perm': PERM_DELETE_SUBMISSIONS,
         }
         bulk_actions_validator = DataBulkActionsValidator(**serializer_params)
         bulk_actions_validator.is_valid(raise_exception=True)
@@ -615,25 +600,27 @@ class DataViewSet(
             user=request.user,
             submission_ids=data['submission_ids'],
             query=data['query'],
-            fields=['_id', '_uuid']
+            fields=['_id', '_uuid'],
         )
 
         # Prepare logs before deleting all submissions.
         audit_logs = []
         for submission in submissions:
-            audit_logs.append(AuditLog(
-                app_label='logger',
-                model_name='instance',
-                object_id=submission['_id'],
-                user=request.user,
-                user_uid=request.user.extra_details.uid,
-                metadata={
-                    'asset_uid': self.asset.uid,
-                    'uuid': submission['_uuid'],
-                },
-                action=AuditAction.DELETE,
-                log_type=AuditType.SUBMISSION_MANAGEMENT,
-            ))
+            audit_logs.append(
+                AuditLog(
+                    app_label='logger',
+                    model_name='instance',
+                    object_id=submission['_id'],
+                    user=request.user,
+                    user_uid=request.user.extra_details.uid,
+                    metadata={
+                        'asset_uid': self.asset.uid,
+                        'uuid': submission['_uuid'],
+                    },
+                    action=AuditAction.DELETE,
+                    log_type=AuditType.SUBMISSION_MANAGEMENT,
+                )
+            )
 
         try:
             deleted = deployment.delete_submissions(
@@ -672,7 +659,7 @@ class DataViewSet(
             )
         except (MissingXFormException, InvalidXFormException):
             return {
-                'data': {'detail': f'Could not updated submissions'},
+                'data': {'detail': 'Could not updated submissions'},
                 'content_type': 'application/json',
                 'status': status.HTTP_400_BAD_REQUEST,
             }
@@ -687,7 +674,7 @@ class DataViewSet(
         """
         filters = {}
 
-        if request.method == "GET":
+        if request.method == 'GET':
             filters = request.GET.dict()
 
         # Remove `format` from filters. No need to use it

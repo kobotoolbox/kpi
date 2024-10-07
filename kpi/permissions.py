@@ -114,7 +114,7 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         perms = [perm % kwargs for perm in perm_list]
         # Because `ObjectPermissionMixin.get_perms()` returns codenames only,
         # remove the `app_label` prefix before returning
-        return [perm.replace("{}.".format(app_label), "") for perm in perms]
+        return [perm.replace('{}.'.format(app_label), '') for perm in perms]
 
     def has_object_permission(self, request, view, obj):
         # Because authentication checks has already executed via
@@ -328,7 +328,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
     Permissions for submissions.
     """
 
-    MODEL_NAME = "submissions"  # Hard-code `model_name` to match permissions
+    MODEL_NAME = 'submissions'  # Hard-code `model_name` to match permissions
 
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
