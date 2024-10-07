@@ -9,16 +9,17 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from pyxform.errors import PyXFormError
 
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.logger_tools import report_exception
+
 
 class TestPublishXLS(TestBase):
 
     def test_publish_xls(self):
         xls_file_path = os.path.join(
-            self.this_directory, "fixtures",
-            "transportation", "transportation.xls")
+            self.this_directory, 'fixtures', 'transportation', 'transportation.xls'
+        )
         count = XForm.objects.count()
         call_command('publish_xls', xls_file_path, self.user.username)
         self.assertEqual(XForm.objects.count(), count + 1)
@@ -28,14 +29,17 @@ class TestPublishXLS(TestBase):
     def test_publish_xls_replacement(self):
         count = XForm.objects.count()
         xls_file_path = os.path.join(
-            self.this_directory, "fixtures",
-            "transportation", "transportation.xls")
+            self.this_directory, 'fixtures', 'transportation', 'transportation.xls'
+        )
         call_command('publish_xls', xls_file_path, self.user.username)
         self.assertEqual(XForm.objects.count(), count + 1)
         count = XForm.objects.count()
         xls_file_path = os.path.join(
-            self.this_directory, "fixtures",
-            "transportation", "transportation_updated.xls")
+            self.this_directory,
+            'fixtures',
+            'transportation',
+            'transportation_updated.xls',
+        )
         # call command without replace param
         with self.assertRaises(CommandError):
             call_command('publish_xls', xls_file_path, self.user.username)
@@ -54,11 +58,14 @@ class TestPublishXLS(TestBase):
     @unittest.skip('Fails under Django 1.6')
     def test_line_break_in_variables(self):
         xls_file_path = os.path.join(
-            self.this_directory, "fixtures", 'exp_line_break.xlsx')
+            self.this_directory, 'fixtures', 'exp_line_break.xlsx'
+        )
         xml_file_path = os.path.join(
-            self.this_directory, "fixtures", 'exp_line_break.xml')
+            self.this_directory, 'fixtures', 'exp_line_break.xml'
+        )
         test_xml_file_path = os.path.join(
-            self.this_directory, "fixtures", 'test_exp_line_break.xml')
+            self.this_directory, 'fixtures', 'test_exp_line_break.xml'
+        )
         self._publish_xls_file(xls_file_path)
         xforms = XForm.objects.filter(id_string='exp_line_break')
         self.assertTrue(xforms.count() > 0)
@@ -76,23 +83,24 @@ class TestPublishXLS(TestBase):
         os.remove(test_xml_file_path)
 
     def test_report_exception_with_exc_info(self):
-        e = Exception("A test exception")
+        e = Exception('A test exception')
         try:
             raise e
         except Exception as e:
             exc_info = sys.exc_info()
             try:
-                report_exception(subject="Test report exception", info=e,
-                                 exc_info=exc_info)
+                report_exception(
+                    subject='Test report exception', info=e, exc_info=exc_info
+                )
             except Exception as e:
-                raise AssertionError("%s" % e)
+                raise AssertionError('%s' % e)
 
     def test_report_exception_without_exc_info(self):
-        e = Exception("A test exception")
+        e = Exception('A test exception')
         try:
-            report_exception(subject="Test report exception", info=e)
+            report_exception(subject='Test report exception', info=e)
         except Exception as e:
-            raise AssertionError("%s" % e)
+            raise AssertionError('%s' % e)
 
     def test_publish_invalid_xls_form(self):
         path = os.path.join(
@@ -123,9 +131,11 @@ class TestPublishXLS(TestBase):
         with pytest.raises(PyXFormError) as e:
             self._publish_xls_file(path)
 
+        # Intermediate variable `columns` is just here to lure linter about Q000
+        columns = "'list_name', 'name', and 'label'"
         error_msg = (
-            "There should be a choices sheet in this xlsform. "
-            "Please ensure that the choices sheet has the mandatory "
-            "columns 'list_name', 'name', and 'label'."
+            f'There should be a choices sheet in this xlsform. '
+            f'Please ensure that the choices sheet has the mandatory '
+            f'columns {columns}.'
         )
         assert error_msg in str(e)

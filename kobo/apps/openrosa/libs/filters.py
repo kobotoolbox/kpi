@@ -181,7 +181,7 @@ class AttachmentFilter(
             try:
                 int(instance_id)
             except ValueError:
-                raise ParseError("Invalid value for instance %s." % instance_id)
+                raise ParseError('Invalid value for instance %s.' % instance_id)
             instance = get_object_or_404(Instance, pk=instance_id)
             queryset = queryset.filter(instance=instance)
 

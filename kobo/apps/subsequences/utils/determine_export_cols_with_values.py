@@ -1,5 +1,5 @@
 # coding: utf-8
-'''
+"""
 this util has 2 functions that serve to parse the submission_extras
 for an asset and build a list of extra columns that should be included
 in exports.
@@ -13,7 +13,7 @@ input is an array of strings that look like this:
   - q1:translt:de
 
 output is a more descriptive structure. (See test_parse_known_cols)
-'''
+"""
 
 
 KEY_TYPE_DICTS = {

@@ -1,18 +1,14 @@
 import uuid
+from unittest.mock import MagicMock, patch
 
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from mock import patch, MagicMock
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.project_ownership.models import (
-    Invite,
-    InviteStatusChoices,
-    Transfer,
-)
+from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.models import Asset

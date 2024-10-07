@@ -1,7 +1,7 @@
-import os
 import mimetypes
-# from mimetypes import guess_type
+import os
 
+# from mimetypes import guess_type
 from django.core.files.base import ContentFile
 
 
