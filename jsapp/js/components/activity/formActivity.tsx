@@ -6,23 +6,23 @@ import './formActivity.scss';
 import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
 import UniversalTable from 'jsapp/js/universalTable/universalTable.component';
 import Button from '../common/button';
+import {useGetFormActivities} from './useActivity';
+import LoadingSpinner from '../common/loadingSpinner';
+import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
+
+interface Activity {
+  id: number;
+  who: string;
+  action: string;
+  what: string;
+  date: Date;
+}
 
 const mockOptions: KoboSelectOption[] = [
   {value: '1', label: 'Option 1'},
   {value: '2', label: 'Option 2'},
   {value: '3', label: 'Option 3'},
 ];
-
-const getRandomMockDescriptionData = () => {
-  const who = ['Trent', 'Jane', 'Alice', 'Bob', 'Charlie'];
-  const action = ['created', 'updated', 'deleted', 'added', 'removed'];
-  const what = ['project property', 'the form', 'the permissions'];
-  return {
-    who: who[Math.floor(Math.random() * who.length)],
-    action: action[Math.floor(Math.random() * action.length)],
-    what: what[Math.floor(Math.random() * what.length)],
-  };
-};
 
 const columns: UniversalTableColumn[] = [
   {
@@ -73,18 +73,22 @@ export default function FormActivity() {
     );
   };
 
+  const {data: activities, isLoading} = useGetFormActivities();
+
   // MOCK TABLE DATA
-  const tableData = useMemo(
-    () =>
-      Array.from({length: 50}, (_, index) => {
-        return {
-          id: index,
-          description: <EventDescription {...getRandomMockDescriptionData()} />,
-          date: <EventDate dateTime={new Date()} />,
-        };
-      }),
-    []
-  );
+  const tableData = useMemo(() => {
+    if (!activities) {
+      return [];
+    }
+
+    return activities.map((activity) => {
+      return {
+        id: activity.id,
+        description: <EventDescription {...activity} />,
+        date: <EventDate dateTime={activity.date} />,
+      };
+    });
+  }, [activities]);
 
   return (
     <div className='form-view main-container'>
@@ -111,9 +115,16 @@ export default function FormActivity() {
         </div>
       </div>
       <div className='table-container'>
-        <UniversalTable data={tableData} columns={columns} />
+        {isLoading ? (
+          <div className='loading'><LoadingSpinner /></div>
+        ) : (
+          // <UniversalTable data={tableData} columns={columns} />
+          < PaginatedQueryUniversalTable
+            columns={columns}
+            queryHook={(limit, offset) => useGetFormActivities<Activity>(limit, offset)}
+
+        )}
       </div>
-      <div className='footer'>{/* TODO: Implement pagination controls */}</div>
     </div>
   );
 }
