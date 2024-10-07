@@ -1,4 +1,4 @@
-# flake8: noqa
+# flake8: noqa: F401
 import os
 import zipfile
 from collections import defaultdict
