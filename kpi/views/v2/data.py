@@ -402,6 +402,9 @@ class DataViewSet(
         deployment = self._get_deployment()
         # Coerce to int because the back end only finds matches with the same type
         submission_id = positive_int(pk)
+        original_submission = deployment.get_submission(
+            submission_id=submission_id, user=request.user, fields=['_id', '_uuid']
+        )
 
         with http_open_rosa_error_handler(
             lambda: deployment.duplicate_submission(
@@ -416,8 +419,12 @@ class DataViewSet(
                     'status': handler.status_code,
                 }
             else:
+                duplicate_submission = handler.func_return
+                deployment.copy_submission_extras(
+                    original_submission['_uuid'], duplicate_submission['_uuid']
+                )
                 response = {
-                    'data': handler.func_return,
+                    'data': duplicate_submission,
                     'content_type': 'application/json',
                     'status': status.HTTP_201_CREATED,
                 }

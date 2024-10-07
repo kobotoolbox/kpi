@@ -4,6 +4,7 @@ import uuid
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.utils import timezone
 from model_bakery import baker
 
 from kpi.models import Asset

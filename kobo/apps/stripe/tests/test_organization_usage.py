@@ -7,7 +7,6 @@ except ImportError:
 import pytest
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
