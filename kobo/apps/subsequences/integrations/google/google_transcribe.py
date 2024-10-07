@@ -10,8 +10,6 @@ from django.conf import settings
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import speech
 
-from kobo.apps.organizations.models import Organization
-from kobo.apps.trackers.utils import get_organization_remaining_usage
 from kpi.utils.log import logging
 from ...constants import GOOGLETS
 from ...exceptions import (

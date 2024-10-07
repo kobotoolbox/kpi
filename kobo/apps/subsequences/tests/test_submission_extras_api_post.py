@@ -18,8 +18,6 @@ from kobo.apps.languages.models.translation import (
     TranslationService,
     TranslationServiceLanguageM2M,
 )
-from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.tests.utils import generate_plan_subscription
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,

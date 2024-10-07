@@ -11,8 +11,6 @@ from google.api_core.exceptions import InvalidArgument
 from google.cloud import translate_v3 as translate
 
 from kobo.apps.languages.models.translation import TranslationService
-from kobo.apps.organizations.models import Organization
-from kobo.apps.trackers.utils import get_organization_remaining_usage
 from kpi.utils.log import logging
 from ...constants import GOOGLE_CODE, GOOGLETX
 from ...exceptions import (
