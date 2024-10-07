@@ -9,7 +9,6 @@ from django.db import models
 from django.utils.http import urlencode
 
 from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
-from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
 from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
