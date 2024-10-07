@@ -37,7 +37,7 @@ class BasePairedDataTestCase(BaseAssetTestCase):
                     {
                         'name': 'group_restaurant',
                         'type': 'begin_group',
-                        'label': 'Restaurant'
+                        'label': 'Restaurant',
                     },
                     {
                         'name': 'favourite_restaurant',

@@ -84,7 +84,7 @@ F1 = {
             'label': [
                 'Date and time',
                 'Fecha y hora',
-                '\u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0648 \u0627\u0644\u0648\u0642\u062a',
+                '\u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0648 \u0627\u0644\u0648\u0642\u062a',  # noqa: E501
             ],
         },
         {
@@ -95,7 +95,7 @@ F1 = {
             'label': [
                 'GPS',
                 'GPS',
-                '\u0646\u0638\u0627\u0645 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0645\u0648\u0627\u0642\u0639',
+                '\u0646\u0638\u0627\u0645 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0645\u0648\u0627\u0642\u0639',  # noqa: E501
             ],
         },
         {
@@ -106,7 +106,7 @@ F1 = {
             'label': [
                 'Photo',
                 'Foto',
-                '\u0635\u0648\u0631\u0629 \u0641\u0648\u062a\u0648\u063a\u0631\u0627\u0641\u064a\u0629',
+                '\u0635\u0648\u0631\u0629 \u0641\u0648\u062a\u0648\u063a\u0631\u0627\u0641\u064a\u0629',  # noqa: E501
             ],
         },
         {
@@ -131,7 +131,7 @@ F1 = {
             'label': [
                 'Note (Should not be displayed!)',
                 'Nota (no se represente!)',
-                '\u0645\u0644\u0627\u062d\u0638\u0629 (\u064a\u062c\u0628 \u0623\u0646 \u0644\u0627 \u064a\u062a\u0645 \u0639\u0631\u0636!)',
+                '\u0645\u0644\u0627\u062d\u0638\u0629 (\u064a\u062c\u0628 \u0623\u0646 \u0644\u0627 \u064a\u062a\u0645 \u0639\u0631\u0636!)',  # noqa: E501
             ],
         },
         {
@@ -183,7 +183,7 @@ F1 = {
             'label': [
                 'Second option',
                 'Segunda opci\xf3n',
-                '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a',
+                '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a',  # noqa: E501
             ],
         },
         {
@@ -203,7 +203,7 @@ F1 = {
             'label': [
                 'Second option',
                 'Segunda opci\xf3n',
-                '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a',
+                '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a',  # noqa: E501
             ],
         },
     ],
@@ -271,10 +271,7 @@ class MockDataReports(TestCase):
         for i in range(0, num_submissions):
             submissions.append(
                 OrderedDict(
-                    [
-                        (key, SUBMISSION_DATA[key][i])
-                        for key in SUBMISSION_DATA.keys()
-                    ]
+                    [(key, SUBMISSION_DATA[key][i]) for key in SUBMISSION_DATA.keys()]
                 )
             )
 
@@ -374,7 +371,7 @@ class MockDataReports(TestCase):
         expected = set(
             [
                 '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u0623\u0648\u0644',
-                '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a',
+                '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a',  # noqa: E501
             ]
         )
         self.assertEqual(responses, expected)
@@ -462,9 +459,7 @@ class MockDataReports(TestCase):
 
         def _get_autoreport_values(qname, key, lang=None, index=False):
             stats = OrderedDict(
-                _get_stats_object(
-                    self.fp, self.vs, submissions=submissions, lang=lang
-                )
+                _get_stats_object(self.fp, self.vs, submissions=submissions, lang=lang)
             )
             if index is False:
                 return stats[qname][key]
@@ -483,7 +478,7 @@ class MockDataReports(TestCase):
             _get_autoreport_values('Select_one', 'frequency', 'Arabic', 0),
             [
                 '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u0623\u0648\u0644',
-                '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a',
+                '\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a',  # noqa: E501
             ],
         )
 

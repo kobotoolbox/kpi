@@ -19,13 +19,8 @@ from rest_framework.utils.serializer_helpers import ReturnList
 
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.subsequences.utils.deprecation import (
-    WritableAdvancedFeaturesField,
-)
-from kobo.apps.trash_bin.exceptions import (
-    TrashIntegrityError,
-    TrashTaskInProgressError,
-)
+from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
+from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kpi.constants import (
@@ -67,7 +62,6 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
     view_has_perm,
 )
-
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer

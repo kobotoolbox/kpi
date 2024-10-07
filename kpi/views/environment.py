@@ -165,9 +165,7 @@ class EnvironmentView(APIView):
             )
         )
 
-        data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(
-            request.user
-        )
+        data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(request.user)
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
 
         if settings.STRIPE_ENABLED:

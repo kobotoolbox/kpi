@@ -103,8 +103,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         :param uid: str
         :return: Response
         """
-        response = {'detail': '',
-                    'status_code': KOBO_INTERNAL_ERROR_STATUS_CODE}
+        response = {'detail': '', 'status_code': KOBO_INTERNAL_ERROR_STATUS_CODE}
         status_code = status.HTTP_200_OK
         hook_log = self.get_object()
 
@@ -123,9 +122,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 )
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
-            response['detail'] = t(
-                'Data is being or has already been processed'
-            )
+            response['detail'] = t('Data is being or has already been processed')
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)

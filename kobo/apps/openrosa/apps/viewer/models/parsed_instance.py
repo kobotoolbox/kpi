@@ -67,7 +67,9 @@ class ParsedInstance(models.Model):
     DEFAULT_LIMIT = 30000
     DEFAULT_BATCHSIZE = 1000
 
-    instance = models.OneToOneField(Instance, related_name='parsed_instance', on_delete=models.CASCADE)
+    instance = models.OneToOneField(
+        Instance, related_name='parsed_instance', on_delete=models.CASCADE
+    )
     start_time = models.DateTimeField(null=True)
     end_time = models.DateTimeField(null=True)
     # TODO: decide if decimal field is better than float field.

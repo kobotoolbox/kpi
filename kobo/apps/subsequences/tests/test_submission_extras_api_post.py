@@ -27,7 +27,6 @@ from kpi.constants import (
 )
 from kpi.models.asset import Asset
 from kpi.utils.fuzzy_int import FuzzyInt
-
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
@@ -37,9 +36,7 @@ class ValidateSubmissionTest(APITestCase):
         user = User.objects.create_user(username='someuser', email='user@example.com')
         self.asset = Asset(
             owner=user,
-            content={
-                'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]
-            },
+            content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]},
         )
         self.asset.advanced_features = {}
         self.asset.save()

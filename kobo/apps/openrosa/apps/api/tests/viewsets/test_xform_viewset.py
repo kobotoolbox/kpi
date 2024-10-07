@@ -147,7 +147,7 @@ class TestXFormViewSet(TestAbstractViewSet):
         })
         formid = self.xform.pk
         data = {
-            'name': 'transportation_2011_07_25',  # Since commit 3c0e17d0b6041ae96b06c3ef4d2f78a2d0739cbc  # flake8: noqa
+            'name': 'transportation_2011_07_25',  # Since commit 3c0e17d0b6041ae96b06c3ef4d2f78a2d0739cbc  # noqa: E501
             'title': 'transportation_2011_07_25',
             'default_language': 'default',
             'id_string': 'transportation_2011_07_25',
@@ -239,8 +239,7 @@ class TestXFormViewSet(TestAbstractViewSet):
         self.assertEqual(response.data, [])
 
         # remove tag "hello"
-        request = self.factory.delete('/', data={'tags': 'hello'},
-                                      **self.extra)
+        request = self.factory.delete('/', data={'tags': 'hello'}, **self.extra)
         response = view(request, pk=formid, label='hello')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])

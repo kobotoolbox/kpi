@@ -204,9 +204,7 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 retry_all_task.apply_async(
                     queue='kpi_low_priority_queue', args=(hooklogs_ids,)
                 )
-                response.update({
-                    'pending_uids': hooklogs_uids
-                })
+                response.update({'pending_uids': hooklogs_uids})
 
             else:
                 response['detail'] = t('No data to retry')

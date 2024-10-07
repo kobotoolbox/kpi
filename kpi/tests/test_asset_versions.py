@@ -15,7 +15,6 @@ from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import BadAssetTypeException
 from kpi.utils.hash import calculate_hash
-
 from ..models import Asset, AssetVersion
 
 
@@ -62,10 +61,8 @@ class AssetVersionTestCase(TestCase):
         bob = User.objects.create(username='bob')
         self.asset = Asset.objects.create(
             asset_type='survey',
-            content={
-                'survey': [{'type': 'note', 'label': ['Read me'], 'name': 'n1'}]
-            },
-            owner=bob
+            content={'survey': [{'type': 'note', 'label': ['Read me'], 'name': 'n1'}]},
+            owner=bob,
         )
         self.assertEqual(self.asset.asset_versions.count(), 1)
         self.assertEqual(self.asset.latest_version.deployed, False)

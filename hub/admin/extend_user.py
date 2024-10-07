@@ -4,12 +4,8 @@ from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import (
-    UserChangeForm as DjangoUserChangeForm,
-)
-from django.contrib.auth.forms import (
-    UserCreationForm as DjangoUserCreationForm,
-)
+from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
+from django.contrib.auth.forms import UserCreationForm as DjangoUserCreationForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
@@ -29,7 +25,6 @@ from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models.asset import AssetDeploymentStatus
-
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
@@ -57,19 +52,18 @@ class UserChangeForm(DjangoUserChangeForm):
     def clean(self):
         cleaned_data = super().clean()
         is_active = cleaned_data['is_active']
-        if (
-            is_active
-            and AccountTrash.objects.filter(user_id=self.instance.pk).exists()
-        ):
+        if is_active and AccountTrash.objects.filter(user_id=self.instance.pk).exists():
             url = reverse('admin:trash_bin_accounttrash_changelist')
-            raise ValidationError(mark_safe(
-                f'User is in <a href="{url}">trash</a> and cannot be reactivated'
-                f' from here.'
-            ))
-        if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(self.instance):
             raise ValidationError(
-                'Superusers with a usable password must enable MFA.'
+                mark_safe(
+                    f'User is in <a href="{url}">trash</a> and cannot be reactivated'
+                    f' from here.'
+                )
             )
+        if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(
+            self.instance
+        ):
+            raise ValidationError('Superusers with a usable password must enable MFA.')
 
         return cleaned_data
 
@@ -94,13 +88,15 @@ class OrgInline(admin.StackedInline):
         'is_admin',
     ]
     raw_id_fields = ('user', 'organization')
-    readonly_fields = (
-        settings.STRIPE_ENABLED and ('active_subscription_status',) or []
-    )
+    readonly_fields = settings.STRIPE_ENABLED and ('active_subscription_status',) or []
 
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
-            return obj.active_subscription_status if obj.active_subscription_status else 'None'
+            return (
+                obj.active_subscription_status
+                if obj.active_subscription_status
+                else 'None'
+            )
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
@@ -262,9 +258,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             user_id=obj.id,
             year=today.year,
             month=today.month,
-        ).aggregate(
-            counter=Sum('counter')
-        )
+        ).aggregate(counter=Sum('counter'))
         return instances.get('counter')
 
     def _remove_or_delete(

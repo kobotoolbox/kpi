@@ -10,7 +10,6 @@ from kobo.apps.openrosa.apps.logger.signals import (
 )
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
-
 from ..exceptions import MissingValidationStatusPayloadError
 from ..models.instance import Instance
 from ..models.xform import XForm
@@ -29,9 +28,7 @@ def add_validation_status_to_instance(
     # Payload must contain validation_status property.
     if validation_status_uid:
 
-        validation_status = get_validation_status(
-            validation_status_uid, username
-        )
+        validation_status = get_validation_status(validation_status_uid, username)
         if validation_status:
             instance.validation_status = validation_status
             instance.save(update_fields=['validation_status'])
@@ -48,11 +45,13 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
     # Disconnect signals to speed-up bulk deletion
     pre_delete.disconnect(remove_from_mongo, sender=ParsedInstance)
     post_delete.disconnect(
-        nullify_exports_time_of_last_submission, sender=Instance,
+        nullify_exports_time_of_last_submission,
+        sender=Instance,
         dispatch_uid='nullify_exports_time_of_last_submission',
     )
     post_delete.disconnect(
-        update_xform_submission_count_delete, sender=Instance,
+        update_xform_submission_count_delete,
+        sender=Instance,
         dispatch_uid='update_xform_submission_count_delete',
     )
 
@@ -72,9 +71,7 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
         # Update xform like signals would do if it was as single object deletion
         nullify_exports_time_of_last_submission(sender=Instance, instance=xform)
         update_xform_submission_count_delete(
-            sender=Instance,
-            instance=xform,
-            value=deleted_records_count
+            sender=Instance, instance=xform, value=deleted_records_count
         )
     finally:
         # Pre_delete signal needs to be re-enabled for parsed instance
@@ -129,10 +126,8 @@ def set_instance_validation_statuses(
     postgres_query, mongo_query = build_db_queries(xform, request_data)
 
     # Update Postgres & Mongo
-    updated_records_count = Instance.objects.filter(
-        **postgres_query
-    ).update(validation_status=new_validation_status)
-    ParsedInstance.bulk_update_validation_statuses(
-        mongo_query, new_validation_status
+    updated_records_count = Instance.objects.filter(**postgres_query).update(
+        validation_status=new_validation_status
     )
+    ParsedInstance.bulk_update_validation_statuses(mongo_query, new_validation_status)
     return updated_records_count

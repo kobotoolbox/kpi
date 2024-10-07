@@ -38,9 +38,7 @@ def migrate_subex_content(
 def migrate_subex_content_for_asset(asset, save=True):
     submission_extras = []
     for sub_ex in asset.submission_extras.all():
-        if updated_sub_ex := migrate_subex_content(
-            sub_ex, asset=asset, save=save
-        ):
+        if updated_sub_ex := migrate_subex_content(sub_ex, asset=asset, save=save):
             submission_extras.append(updated_sub_ex)
 
     return submission_extras

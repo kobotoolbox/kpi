@@ -78,10 +78,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils import common_tags
-from kobo.apps.openrosa.libs.utils.model_tools import (
-    queryset_iterator,
-    set_uuid,
-)
+from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -353,9 +350,10 @@ def inject_instanceid(xml_str, uuid):
         # check if we have a meta tag
         survey_node = children.item(0)
         meta_tags = [
-            n for n in survey_node.childNodes
-            if n.nodeType == Node.ELEMENT_NODE
-            and n.tagName.lower() == 'meta']
+            n
+            for n in survey_node.childNodes
+            if n.nodeType == Node.ELEMENT_NODE and n.tagName.lower() == 'meta'
+        ]
         if len(meta_tags) == 0:
             meta_tag = xml.createElement('meta')
             xml.documentElement.appendChild(meta_tag)
@@ -364,9 +362,10 @@ def inject_instanceid(xml_str, uuid):
 
         # check if we have an instanceID tag
         uuid_tags = [
-            n for n in meta_tag.childNodes
-            if n.nodeType == Node.ELEMENT_NODE
-            and n.tagName == 'instanceID']
+            n
+            for n in meta_tag.childNodes
+            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'instanceID'
+        ]
         if len(uuid_tags) == 0:
             uuid_tag = xml.createElement('instanceID')
             meta_tag.appendChild(uuid_tag)
@@ -420,11 +419,12 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
         )
 
         if instance_count != mongo_count or update_all:
-            line = 'user: %s, id_string: %s\nInstance count: %d\t' \
-                   'Mongo count: %d\n---------------------------------' \
-                   '-----\n' % (
-                       user.username, xform.id_string, instance_count,
-                       mongo_count)
+            line = (
+                'user: %s, id_string: %s\nInstance count: %d\t'
+                'Mongo count: %d\n---------------------------------'
+                '-----\n'
+                % (user.username, xform.id_string, instance_count, mongo_count)
+            )
             report_string += line
             found += 1
             total_to_remongo += (instance_count - mongo_count)
@@ -434,23 +434,23 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
                 if update_all:
                     sys.stdout.write(
                         'Updating all records for %s\n--------------------'
-                        '---------------------------\n' % xform.id_string)
+                        '---------------------------\n' % xform.id_string
+                    )
                 else:
                     sys.stdout.write(
                         'Updating missing records for %s\n----------------'
-                        '-------------------------------\n'
-                        % xform.id_string)
-                _update_mongo_for_xform(
-                    xform, only_update_missing=not update_all
-                )
+                        '-------------------------------\n' % xform.id_string
+                    )
+                _update_mongo_for_xform(xform, only_update_missing=not update_all)
         done += 1
-        sys.stdout.write(
-            '%.2f %% done ...\r' % ((float(done) / float(total)) * 100))
+        sys.stdout.write('%.2f %% done ...\r' % ((float(done) / float(total)) * 100))
     # only show stats if we are not updating mongo, the update function
     # will show progress
     if not remongo:
-        line = 'Total # of forms out of sync: %d\n' \
-               'Total # of records to remongo: %d\n' % (found, total_to_remongo)
+        line = (
+            'Total # of forms out of sync: %d\n'
+            'Total # of records to remongo: %d\n' % (found, total_to_remongo)
+        )
         report_string += line
     return report_string
 
@@ -553,9 +553,10 @@ def report_exception(subject, info, exc_info=None):
     # TODO: replace with standard logging (i.e. `import logging`)
     if exc_info:
         cls, err = exc_info[:2]
-        message = t('Exception in request:'
-                    ' %(class)s: %(error)s')\
-            % {'class': cls.__name__, 'error': err}
+        message = t('Exception in request:' ' %(class)s: %(error)s') % {
+            'class': cls.__name__,
+            'error': err,
+        }
         message += ''.join(traceback.format_exception(*exc_info))
     else:
         message = '%s' % info
@@ -585,8 +586,7 @@ def response_with_mimetype_and_name(
                 response = StreamingHttpResponse(wrapper, content_type=mimetype)
                 response['Content-Length'] = os.path.getsize(file_path)
         except IOError:
-            response = HttpResponseNotFound(
-                t('The requested file could not be found.'))
+            response = HttpResponseNotFound(t('The requested file could not be found.'))
     else:
         response = HttpResponse(content_type=mimetype)
     response['Content-Disposition'] = disposition_ext_and_date(
@@ -715,9 +715,7 @@ def save_submission(
         instance.save(update_fields=['date_created'])
 
     if instance.xform is not None:
-        pi, created = ParsedInstance.objects.get_or_create(
-            instance=instance
-        )
+        pi, created = ParsedInstance.objects.get_or_create(instance=instance)
 
     if not created:
         pi.save(asynchronous=False)
@@ -899,10 +897,8 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
         mongo_instances.delete_many({common_tags.USERFORM_ID: userform_id})
 
     # get instances
-    sys.stdout.write(
-        'Total no of instances to update: %d\n' % len(instance_ids))
-    instances = Instance.objects.only('id').in_bulk(
-        [id_ for id_ in instance_ids])
+    sys.stdout.write('Total no of instances to update: %d\n' % len(instance_ids))
+    instances = Instance.objects.only('id').in_bulk([id_ for id_ in instance_ids])
     total = len(instances)
     done = 0
     for id_, instance in instances.items():
@@ -927,8 +923,8 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
         sys.stdout.write(progress)
         sys.stdout.flush()
     sys.stdout.write(
-        '\nUpdated %s\n------------------------------------------\n'
-        % xform.id_string)
+        '\nUpdated %s\n------------------------------------------\n' % xform.id_string
+    )
 
 
 class BaseOpenRosaResponse(HttpResponse):

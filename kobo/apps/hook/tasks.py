@@ -11,7 +11,6 @@ from django_celery_beat.models import PeriodicTask
 
 from kobo.celery import celery_app
 from kpi.utils.log import logging
-
 from .constants import HOOK_LOG_FAILED
 from .exceptions import HookRemoteServerDownError
 from .models import Hook, HookLog
@@ -58,9 +57,11 @@ def failures_reports():
     beat_schedule = settings.CELERY_BEAT_SCHEDULE.get('send-hooks-failures-reports')
     # Use `.first()` instead of `.get()`, because task can be duplicated in admin section
 
-    failures_reports_period_task = PeriodicTask.objects.filter(
-        enabled=True,
-        task=beat_schedule.get('task')).order_by('-last_run_at').first()
+    failures_reports_period_task = (
+        PeriodicTask.objects.filter(enabled=True, task=beat_schedule.get('task'))
+        .order_by('-last_run_at')
+        .first()
+    )
 
     if failures_reports_period_task:
 
@@ -71,9 +72,7 @@ def failures_reports():
         if last_run_at:
             queryset = queryset.filter(date_modified__gte=last_run_at)
 
-        queryset = queryset.order_by(
-            'hook__asset__name', 'hook__uid', '-date_modified'
-        )
+        queryset = queryset.order_by('hook__asset__name', 'hook__uid', '-date_modified')
 
         # PeriodicTask are updated every 3 minutes (default).
         # It means, if this task interval is less than 3 minutes, some data can be duplicated in emails.

@@ -338,9 +338,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         current_month_start = datetime.fromisoformat(
             response.data['current_month_start']
         )
-        current_month_end = datetime.fromisoformat(
-            response.data['current_month_end']
-        )
+        current_month_end = datetime.fromisoformat(response.data['current_month_end'])
 
         assert current_month_start.month == cancel_date.month
         assert current_month_start.day == cancel_date.day

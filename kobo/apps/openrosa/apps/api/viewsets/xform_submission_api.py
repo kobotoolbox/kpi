@@ -28,7 +28,6 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
 from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
 from kpi.authentication import DigestAuthentication
 from kpi.utils.object_permission import get_database_user
-
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 xml_error_re = re.compile('>(.*)<')

@@ -23,6 +23,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
     This class contains setup logic and utility functions to test usage
     calculations
     """
+
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -120,12 +121,12 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 '_uuid': str(uuid.uuid4()),
                 '_attachments': [
                     {
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',
+                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',  # noqa: E501
                         'filename': 'anotheruser/audio_conversion_test_clip.3gp',
                         'mimetype': 'video/3gpp',
                     },
                     {
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',
+                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',  # noqa: E501
                         'filename': 'anotheruser/audio_conversion_test_image.jpg',
                         'mimetype': 'image/jpeg',
                     },

@@ -39,7 +39,7 @@ class User(AbstractUser):
         return super().has_perm(perm, obj)
 
     def sync_to_openrosa_db(self):
-        User = self.__class__ # noqa
+        User = self.__class__  # noqa
         User.objects.using(settings.OPENROSA_DB_ALIAS).bulk_create(
             [self],
             update_conflicts=True,
@@ -54,6 +54,6 @@ class User(AbstractUser):
                 'is_active',
                 'date_joined',
             ],
-            unique_fields=['pk']
+            unique_fields=['pk'],
         )
         update_autofield_sequence(User)

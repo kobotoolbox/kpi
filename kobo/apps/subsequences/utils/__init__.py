@@ -4,10 +4,7 @@ from copy import deepcopy
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
 from ..actions.qual import QualAction
 from ..actions.translation import TranslationAction
-from .deprecation import (
-    get_sanitized_advanced_features,
-    get_sanitized_dict_keys,
-)
+from .deprecation import get_sanitized_advanced_features, get_sanitized_dict_keys
 
 AVAILABLE_ACTIONS = (
     AutomaticTranscriptionAction,

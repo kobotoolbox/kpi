@@ -21,20 +21,11 @@ from kpi.constants import (
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
 )
-from kpi.exceptions import (
-    BadAssetTypeException,
-)
-from kpi.filters import (
-    AssetOrderingFilter,
-    KpiObjectPermissionsFilter,
-    SearchFilter,
-)
+from kpi.exceptions import BadAssetTypeException
+from kpi.filters import AssetOrderingFilter, KpiObjectPermissionsFilter, SearchFilter
 from kpi.highlighters import highlight_xform
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
-from kpi.models import (
-    Asset,
-    UserAssetSubscription,
-)
+from kpi.models import Asset, UserAssetSubscription
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
     AssetPermission,
@@ -42,12 +33,7 @@ from kpi.permissions import (
     ReportPermission,
     get_perm_name,
 )
-from kpi.renderers import (
-    AssetJsonRenderer,
-    SSJsonRenderer,
-    XFormRenderer,
-    XlsRenderer,
-)
+from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListSerializer,
@@ -58,10 +44,7 @@ from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
-from kpi.utils.object_permission import (
-    get_database_user,
-    get_objects_for_user,
-)
+from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
@@ -906,7 +889,9 @@ class AssetViewSet(
                 cloned_data.pop('asset_type', None)
             else:
                 # Change asset_type if needed.
-                cloned_data['asset_type'] = self.request.data.get(ASSET_TYPE_ARG_NAME, original_asset.asset_type)
+                cloned_data['asset_type'] = self.request.data.get(
+                    ASSET_TYPE_ARG_NAME, original_asset.asset_type
+                )
 
             cloned_asset_type = cloned_data.get('asset_type')
             # Settings are: Country, Description, Sector and Share-metadata
@@ -934,7 +919,9 @@ class AssetViewSet(
             cloned_data['content'] = json.dumps(cloned_data.get('content'))
             return cloned_data
         else:
-            raise BadAssetTypeException('Destination type is not compatible with source type')
+            raise BadAssetTypeException(
+                'Destination type is not compatible with source type'
+            )
 
     def _validate_destination_type(self, original_asset_):
         """

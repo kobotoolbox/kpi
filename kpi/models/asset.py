@@ -18,10 +18,7 @@ from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
-from kobo.apps.reports.constants import (
-    DEFAULT_REPORTS_KEY,
-    SPECIFIC_REPORTS_KEY,
-)
+from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
 )
@@ -67,10 +64,7 @@ from kpi.exceptions import (
     BadPermissionsException,
     DeploymentDataException,
 )
-from kpi.fields import (
-    KpiUidField,
-    LazyDefaultJSONBField,
-)
+from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.mixins import (
     FormpackXLSFormUtilsMixin,
     ObjectPermissionMixin,
@@ -745,8 +739,11 @@ class Asset(
         If user doesn't have any partial permissions, it returns `None`.
         """
 
-        perms = self.asset_partial_permissions.filter(user_id=user_id)\
-            .values_list('permissions', flat=True).first()
+        perms = (
+            self.asset_partial_permissions.filter(user_id=user_id)
+            .values_list('permissions', flat=True)
+            .first()
+        )
 
         if perms:
             if with_filters:
@@ -1136,9 +1133,7 @@ class Asset(
         else:
             children_languages = list(
                 self.children.values_list('summary__languages', flat=True)
-                .exclude(
-                    Q(summary__languages=[]) | Q(summary__languages=[None])
-                )
+                .exclude(Q(summary__languages=[]) | Q(summary__languages=[None]))
                 .order_by()
             )
 
@@ -1165,8 +1160,8 @@ class Asset(
             self.advanced_features = advanced_features
 
         jsonschema.validate(
-           instance=self.advanced_features,
-           schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+            instance=self.advanced_features,
+            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
         )
 
     @property

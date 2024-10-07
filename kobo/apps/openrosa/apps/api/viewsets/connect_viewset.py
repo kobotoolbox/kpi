@@ -9,7 +9,6 @@ from kobo.apps.openrosa.libs.serializers.user_profile_serializer import (
     UserProfileWithTokenSerializer,
 )
 from kpi.utils.object_permission import get_database_user
-
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
 

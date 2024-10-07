@@ -10,13 +10,9 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.dateparse import parse_datetime
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    create_instance,
-    dict2xform,
-)
+from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, dict2xform
 from kpi.constants import PERM_ADD_SUBMISSIONS, SUBMISSION_FORMAT_TYPE_JSON
 from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
-
 from ..utils.files import ExtendedContentFile
 from .openrosa_backend import OpenRosaDeploymentBackend
 
@@ -41,17 +37,17 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
         request: Optional['rest_framework.request.Request'] = None,
-        **mongo_query_params
+        **mongo_query_params,
     ) -> list:
         # Overload parent to cast generator to a list. Many tests are expecting
         # a list
-        return list(super().get_submissions(
-            user, format_type, submission_ids, request, **mongo_query_params
-        ))
+        return list(
+            super().get_submissions(
+                user, format_type, submission_ids, request, **mongo_query_params
+            )
+        )
 
-    def mock_submissions(
-        self, submissions, create_uuids: bool = True
-    ):
+    def mock_submissions(self, submissions, create_uuids: bool = True):
         """
         Simulate client (i.e.: Enketo or Collect) data submission.
 
@@ -94,7 +90,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
                 else:
                     uuid_ = submission['meta/instanceID'].replace('uuid:', '')
 
-                sub_copy['meta'] = {'instanceID':  f'uuid:{uuid_}'}
+                sub_copy['meta'] = {'instanceID': f'uuid:{uuid_}'}
                 submission['_uuid'] = uuid_
 
             assign_perm = False
@@ -171,11 +167,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
 
             basename = os.path.basename(filename)
             file_ = os.path.join(
-                settings.BASE_DIR,
-                'kpi',
-                'fixtures',
-                'attachments',
-                basename
+                settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', basename
             )
             if not os.path.isfile(file_):
                 raise Exception(

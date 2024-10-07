@@ -12,7 +12,6 @@ from google.cloud import storage
 from googleapiclient import discovery
 
 from kobo.apps.trackers.utils import update_nlp_counter
-
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_nlp_async_cache_key
 from ...exceptions import SubsequenceTimeoutError
 from ...models import SubmissionExtras

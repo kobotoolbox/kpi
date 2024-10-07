@@ -13,11 +13,7 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import (
-    ExportTask,
-    ImportTask,
-    ProjectViewExportTask,
-)
+from kpi.models.import_export_task import ExportTask, ImportTask, ProjectViewExportTask
 
 
 @celery_app.task

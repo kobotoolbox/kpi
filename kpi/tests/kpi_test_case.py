@@ -95,9 +95,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             self.login(owner.username, owner_password)
 
         kwargs.update({'name': name, 'asset_type': ASSET_TYPE_COLLECTION})
-        response = self.client.post(
-            reverse(self._get_endpoint('asset-list')), kwargs
-        )
+        response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:

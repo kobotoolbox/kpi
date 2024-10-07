@@ -92,9 +92,7 @@ class Command(BaseCommand):
 
                 with kc_transaction_atomic():
                     kc_user_obj_perm_qs = (
-                        UserObjectPermission.objects.using(
-                            settings.OPENROSA_DB_ALIAS
-                        )
+                        UserObjectPermission.objects.using(settings.OPENROSA_DB_ALIAS)
                         .filter(object_pk=asset.deployment.xform_id)
                         .exclude(user_id=asset.owner_id)
                     )

@@ -9,7 +9,6 @@ import requests
 from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
 
 from kpi.utils.log import logging
-
 from ..constants import (
     HOOK_LOG_FAILED,
     HOOK_LOG_SUCCESS,
@@ -85,7 +84,9 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
         if not self._data:
             self.save_log(
-                KOBO_INTERNAL_ERROR_STATUS_CODE, 'Submission has been deleted', allow_retries=False
+                KOBO_INTERNAL_ERROR_STATUS_CODE,
+                'Submission has been deleted',
+                allow_retries=False,
             )
             return False
 
@@ -128,26 +129,18 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
             ssrf_protect_options = {}
             if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
-                ssrf_protect_options[
-                    'allowed_ip_addresses'
-                ] = constance.config.SSRF_ALLOWED_IP_ADDRESS.strip().split(
-                    '\r\n'
+                ssrf_protect_options['allowed_ip_addresses'] = (
+                    constance.config.SSRF_ALLOWED_IP_ADDRESS.strip().split('\r\n')
                 )
 
             if constance.config.SSRF_DENIED_IP_ADDRESS.strip():
-                ssrf_protect_options[
-                    'denied_ip_addresses'
-                ] = constance.config.SSRF_DENIED_IP_ADDRESS.strip().split(
-                    '\r\n'
+                ssrf_protect_options['denied_ip_addresses'] = (
+                    constance.config.SSRF_DENIED_IP_ADDRESS.strip().split('\r\n')
                 )
 
-            SSRFProtect.validate(
-              self._hook.endpoint, options=ssrf_protect_options
-            )
+            SSRFProtect.validate(self._hook.endpoint, options=ssrf_protect_options)
 
-            response = requests.post(
-                self._hook.endpoint, timeout=30, **request_kwargs
-            )
+            response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
             response.raise_for_status()
             self.save_log(response.status_code, response.text, success=True)
 
@@ -178,8 +171,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                 exc_info=True,
             )
             self.save_log(
-                KOBO_INTERNAL_ERROR_STATUS_CODE,
-                f'{self._hook.endpoint} is not allowed'
+                KOBO_INTERNAL_ERROR_STATUS_CODE, f'{self._hook.endpoint} is not allowed'
             )
             raise
         except Exception as e:

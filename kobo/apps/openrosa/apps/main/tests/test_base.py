@@ -11,9 +11,9 @@ from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.test.client import Client
 from django.utils import timezone
+from django_digest.test import Client as DigestClient
 from rest_framework.test import APIRequestFactory
 
-from django_digest.test import Client as DigestClient
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
@@ -21,9 +21,7 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
     MakeSubmissionMixin,
 )
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    publish_xls_form,
-)
+from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
 from kobo.apps.openrosa.libs.utils.string import base64_encodestring
 
 

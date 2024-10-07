@@ -32,9 +32,7 @@ from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
-from kpi.utils.project_views import (
-    get_region_for_view,
-)
+from kpi.utils.project_views import get_region_for_view
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -1056,15 +1054,15 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
                 'q1': 'a1',
                 'q2': 'a2',
                 '_id': 1,
-                '_submitted_by': ''
+                '_submitted_by': '',
             },
             {
                 '__version__': self.asset.latest_deployed_version.uid,
                 'q1': 'a3',
                 'q2': 'a4',
                 '_id': 2,
-                '_submitted_by': anotheruser.username
-            }
+                '_submitted_by': anotheruser.username,
+            },
         ]
 
         self.asset.deployment.mock_submissions(submissions)
@@ -1339,18 +1337,15 @@ class AssetFileTest(BaseTestCase):
 
     @property
     def asset_file_payload(self):
-        geojson_ = StringIO(json.dumps(
-            {
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [125.6, 10.1]
-                },
-                'properties': {
-                    'name': 'Dinagat Islands'
+        geojson_ = StringIO(
+            json.dumps(
+                {
+                    'type': 'Feature',
+                    'geometry': {'type': 'Point', 'coordinates': [125.6, 10.1]},
+                    'properties': {'name': 'Dinagat Islands'},
                 }
-            }
-        ))
+            )
+        )
         geojson_.name = 'dingagat_island.geojson'
         return {
             'file_type': AssetFile.MAP_LAYER,

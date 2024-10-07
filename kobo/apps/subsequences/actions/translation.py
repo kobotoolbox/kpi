@@ -1,6 +1,5 @@
 
 from kobo.apps.subsequences.constants import GOOGLETX
-
 from ..actions.base import BaseAction
 
 TRANSLATED = 'translation'

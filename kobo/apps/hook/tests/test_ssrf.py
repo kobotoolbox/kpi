@@ -8,7 +8,6 @@ from rest_framework import status
 from ssrf_protect.exceptions import SSRFProtectException
 
 from kobo.apps.hook.constants import HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
-
 from .hook_test_case import HookTestCase
 
 
@@ -16,7 +15,7 @@ class SSRFHookTestCase(HookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-        new=MagicMock(return_value=ip_address('1.2.3.4'))
+        new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
     @override_config(SSRF_DENIED_IP_ADDRESS='1.2.3.4')
     @responses.activate

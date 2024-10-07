@@ -12,7 +12,6 @@ from google.cloud import translate_v3 as translate
 
 from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
-
 from ...constants import GOOGLE_CODE, GOOGLETX
 from ...exceptions import (
     SubsequenceTimeoutError,

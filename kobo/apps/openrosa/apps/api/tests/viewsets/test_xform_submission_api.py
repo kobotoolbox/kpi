@@ -3,9 +3,9 @@ import os
 import simplejson as json
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django_digest.test import DigestAuth
 from rest_framework import status
 
-from django_digest.test import DigestAuth
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
     TestAbstractViewSet,
 )
@@ -19,10 +19,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import OpenRosaTemporarilyUnavai
 class TestXFormSubmissionApi(TestAbstractViewSet):
     def setUp(self):
         super().setUp()
-        self.view = XFormSubmissionApi.as_view({
-            'head': 'create',
-            'post': 'create'
-        })
+        self.view = XFormSubmissionApi.as_view({'head': 'create', 'post': 'create'})
         self.publish_xls_form()
 
     def test_head_response(self):
@@ -378,9 +375,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertContains(
-            response, 'No submission key provided.', status_code=400
-        )
+        self.assertContains(response, 'No submission key provided.', status_code=400)
 
     def test_submission_blocking_flag(self):
         # Set 'submissions_suspended' True in the profile metadata to test if

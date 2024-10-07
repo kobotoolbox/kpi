@@ -151,8 +151,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
         self.assertEqual(response.status_code, 404)
 
     def test_direct_image_link_uppercase(self):
-        self._submit_transport_instance_w_attachment(
-            media_file='1335783522564.JPG')
+        self._submit_transport_instance_w_attachment(media_file='1335783522564.JPG')
 
         filename = self.attachment.media_file.name
         file_base, file_extension = os.path.splitext(filename)

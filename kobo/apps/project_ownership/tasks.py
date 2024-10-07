@@ -11,18 +11,13 @@ from django.utils.translation import gettext as t
 
 from kobo.celery import celery_app
 from kpi.utils.mailer import EmailMessage, Mailer
-
 from .exceptions import AsyncTaskException, TransferStillPendingException
 from .models.choices import (
     InviteStatusChoices,
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
-from .utils import (
-    move_attachments,
-    move_media_files,
-    rewrite_mongo_userform_id,
-)
+from .utils import move_attachments, move_media_files, rewrite_mongo_userform_id
 
 
 @celery_app.task(

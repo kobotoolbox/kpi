@@ -27,8 +27,12 @@ class TestMetaDataViewSet(TestAbstractViewSet):
         self.publish_xls_form()
         self.data_value = 'screenshot.png'
         self.fixture_dir = os.path.join(
-            settings.OPENROSA_APP_DIR, 'apps', 'main', 'tests', 'fixtures',
-            'transportation'
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
         )
         self.path = os.path.join(self.fixture_dir, self.data_value)
 

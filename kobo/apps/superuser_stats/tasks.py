@@ -10,16 +10,7 @@ from celery import shared_task
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db.models import (
-    CharField,
-    Count,
-    DateField,
-    F,
-    IntegerField,
-    Q,
-    Sum,
-    Value,
-)
+from django.db.models import CharField, Count, DateField, F, IntegerField, Q, Sum, Value
 from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
@@ -40,9 +31,7 @@ from kpi.models.asset import Asset, AssetDeploymentStatus
 
 
 @shared_task
-def generate_country_report(
-    output_filename: str, start_date: str, end_date: str
-):
+def generate_country_report(output_filename: str, start_date: str, end_date: str):
 
     def get_row_for_country(code_: str, label_: str):
         row_ = []
@@ -104,16 +93,14 @@ def generate_continued_usage_report(output_filename: str, end_date: str):
         assets = user.assets.values('pk', 'date_created').filter(
             date_created__date__range=(twelve_months_time, end_date),
         )
-        submissions_count = (
-            MonthlyXFormSubmissionCounter.objects.annotate(
-                date=Cast(
-                    Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
-                    DateField(),
-                )
-            ).filter(
-                user_id=user.id,
-                date__range=(twelve_months_time, end_date),
+        submissions_count = MonthlyXFormSubmissionCounter.objects.annotate(
+            date=Cast(
+                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                DateField(),
             )
+        ).filter(
+            user_id=user.id,
+            date__range=(twelve_months_time, end_date),
         )
         twelve_asset_count = assets.aggregate(asset_count=Count('pk'))
         twelve_submission_count = submissions_count.aggregate(
@@ -185,28 +172,30 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 
     # get a count of the assets
     domain_assets = {
-        domain:
-            Asset.objects.filter(
-                owner__email__endswith='@' + domain,
-                date_created__date__range=(start_date, end_date),
-            ).count()
+        domain: Asset.objects.filter(
+            owner__email__endswith='@' + domain,
+            date_created__date__range=(start_date, end_date),
+        ).count()
         for domain in domain_users.keys()
     }
 
     # get a count of the submissions
     domain_submissions = {
-        domain: MonthlyXFormSubmissionCounter.objects.annotate(
-            date=Cast(
-                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
-                DateField(),
+        domain: (
+            MonthlyXFormSubmissionCounter.objects.annotate(
+                date=Cast(
+                    Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                    DateField(),
+                )
             )
-        ).filter(
-            user__email__endswith='@' + domain,
-            date__range=(start_date, end_date),
-        ).aggregate(
-            Sum('counter')
-        )['counter__sum']
-        if domain_assets[domain] else 0
+            .filter(
+                user__email__endswith='@' + domain,
+                date__range=(start_date, end_date),
+            )
+            .aggregate(Sum('counter'))['counter__sum']
+            if domain_assets[domain]
+            else 0
+        )
         for domain in domain_users.keys()
     }
 
@@ -234,30 +223,12 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 def generate_forms_count_by_submission_range(output_filename: str):
     # List of submissions count ranges
     ranges = [
-        {
-            'label': '0',
-            'orm_criteria': {'count': 0}
-        },
-        {
-            'label': '1 - 500',
-            'orm_criteria': {'count__range': (1, 500)}
-        },
-        {
-            'label': '501 - 1000',
-            'orm_criteria': {'count__range': (501, 1000)}
-        },
-        {
-            'label': '1001 - 10000',
-            'orm_criteria': {'count__range': (1001, 10000)}
-        },
-        {
-            'label': '10001 - 50000',
-            'orm_criteria': {'count__range': (10001, 50000)}
-        },
-        {
-            'label': '50001 and more',
-            'orm_criteria': {'count__gte': 50001}
-        },
+        {'label': '0', 'orm_criteria': {'count': 0}},
+        {'label': '1 - 500', 'orm_criteria': {'count__range': (1, 500)}},
+        {'label': '501 - 1000', 'orm_criteria': {'count__range': (501, 1000)}},
+        {'label': '1001 - 10000', 'orm_criteria': {'count__range': (1001, 10000)}},
+        {'label': '10001 - 50000', 'orm_criteria': {'count__range': (10001, 50000)}},
+        {'label': '50001 and more', 'orm_criteria': {'count__gte': 50001}},
     ]
 
     # store data for csv
@@ -266,14 +237,15 @@ def generate_forms_count_by_submission_range(output_filename: str):
     today = datetime.today()
     date_ = today - relativedelta(years=1)
     no_submissions = XForm.objects.filter(
-        date_created__date__gte=date_,
-        num_of_submissions=0
+        date_created__date__gte=date_, num_of_submissions=0
     )
-    queryset = Instance.objects.values(
-        'xform_id'
-    ).filter(
-        date_created__date__gte=date_,
-    ).annotate(count=Count('xform_id'))
+    queryset = (
+        Instance.objects.values('xform_id')
+        .filter(
+            date_created__date__gte=date_,
+        )
+        .annotate(count=Count('xform_id'))
+    )
 
     for r in ranges:
         if r['label'] == '0':
@@ -301,10 +273,12 @@ def generate_media_storage_report(output_filename: str):
     data = []
 
     for attachment_count in attachments.iterator():
-        data.append([
-            attachment_count['user__username'],
-            attachment_count['attachment_storage_bytes'],
-        ])
+        data.append(
+            [
+                attachment_count['user__username'],
+                attachment_count['attachment_storage_bytes'],
+            ]
+        )
 
     headers = ['Username', 'Storage Used (Bytes)']
 
@@ -464,8 +438,7 @@ def generate_user_statistics_report(
     )
     records = asset_queryset.annotate(deployment_count=Count('pk')).order_by()
     deployment_count = {
-        record['owner_id']: record['deployment_count']
-        for record in records.iterator()
+        record['owner_id']: record['deployment_count'] for record in records.iterator()
     }
 
     # Get records from SubmissionCounter
@@ -475,7 +448,9 @@ def generate_user_statistics_report(
                 Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                 DateField(),
             )
-        ).filter(date__range=(start_date, end_date)).values(
+        )
+        .filter(date__range=(start_date, end_date))
+        .values(
             'user_id',
             'user__username',
             'user__email',

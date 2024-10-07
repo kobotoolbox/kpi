@@ -34,30 +34,21 @@ class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
     def test_regular_group(self):
         dict_ = {
             'group_lx4sf58/question_1': 'answer_1',
-            'group_lx4sf58/question_2': 'answer_2'
+            'group_lx4sf58/question_2': 'answer_2',
         }
 
         expected = {
-            'group_lx4sf58': {
-                'question_1': 'answer_1',
-                'question_2': 'answer_2'
-            }
+            'group_lx4sf58': {'question_1': 'answer_1', 'question_2': 'answer_2'}
         }
 
         assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
 
     def test_nested_groups(self):
-        dict_ = {
-            'parent_group/middle_group/inner_group/question_1': 'answer_1'
-        }
+        dict_ = {'parent_group/middle_group/inner_group/question_1': 'answer_1'}
 
         expected = {
             'parent_group': {
-                'middle_group': {
-                    'inner_group': {
-                        'question_1': 'answer_1'
-                    }
-                }
+                'middle_group': {'inner_group': {'question_1': 'answer_1'}}
             }
         }
 
@@ -73,10 +64,12 @@ class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
                             'group_lq3wx73/middle_group/middle_q': 'middle 1.1.1.1',
                             'group_lq3wx73/middle_group/inner_group': [
                                 {
-                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner 1.1.1.1'
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner 1.1.1.1'
                                 },
                                 {
-                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner 1.1.1.2'
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner 1.1.1.2'
                                 },
                             ],
                         },
@@ -84,10 +77,12 @@ class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
                             'group_lq3wx73/middle_group/middle_q': 'middle 1.1.2.1',
                             'group_lq3wx73/middle_group/inner_group': [
                                 {
-                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner 1.1.2.1'
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner 1.1.2.1'
                                 },
                                 {
-                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner 1.1.2.1'
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner 1.1.2.1'
                                 },
                             ],
                         },
@@ -99,7 +94,8 @@ class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
                             'group_lq3wx73/middle_group/middle_q': 'middle 1.2.1.1',
                             'group_lq3wx73/middle_group/inner_group': [
                                 {
-                                    'group_lq3wx73/middle_group/inner_group/inner_q': 'inner_q 1.2.1.1'
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner_q 1.2.1.1'
                                 }
                             ],
                         }
@@ -133,9 +129,7 @@ class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
                     'middle_group': [
                         {
                             'middle_q': 'middle 1.2.1.1',
-                            'inner_group': [
-                                {'inner_q': 'inner_q 1.2.1.1'}
-                            ],
+                            'inner_group': [{'inner_q': 'inner_q 1.2.1.1'}],
                         }
                     ]
                 },
@@ -161,7 +155,7 @@ class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
             'people': {
                 'person': [
                     {'name': 'Julius Caesar', 'age': 55},
-                    {'name': 'Augustus', 'age': 75}
+                    {'name': 'Augustus', 'age': 75},
                 ]
             }
         }
@@ -185,15 +179,15 @@ class UtilsTestCase(TestCase):
 
     def test_sluggify_label(self):
         inp_exps = [
-            [['asdf jkl'],              'asdf_jkl'],
-            [['asdf', ['asdf']],        'asdf_001'],
-            [['2. asdf'],               '_2_asdf'],
-            [['2. asdf', ['_2_asdf']],  '_2_asdf_001'],
-            [['asdf#123'],              'asdf_123'],
-            [[' hello '],               'hello'],
+            [['asdf jkl'], 'asdf_jkl'],
+            [['asdf', ['asdf']], 'asdf_001'],
+            [['2. asdf'], '_2_asdf'],
+            [['2. asdf', ['_2_asdf']], '_2_asdf_001'],
+            [['asdf#123'], 'asdf_123'],
+            [[' hello '], 'hello'],
             # FIX THIS when we come up with a better way to summarize
             # arabic and cyrillic text
-            [['أين السوق؟', ['_', '__001']],  '__002']
+            [['أين السوق؟', ['_', '__001']], '__002'],
         ]
         for inps, expected in inp_exps:
             inp = inps[0]

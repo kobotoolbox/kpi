@@ -22,9 +22,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    http_open_rosa_error_handler,
-)
+from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -194,7 +192,7 @@ class BaseDeploymentBackend(abc.ABC):
                     {
                         'uuid': _uuid,
                         'error': handler.error,
-                        'result': handler.func_return
+                        'result': handler.func_return,
                     }
                 )
         return self.prepare_bulk_update_response(backend_results)
@@ -238,7 +236,9 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, request: 'rest_framework.request.Request',
+        self,
+        submission_id: int,
+        request: 'rest_framework.request.Request',
     ) -> dict:
         pass
 

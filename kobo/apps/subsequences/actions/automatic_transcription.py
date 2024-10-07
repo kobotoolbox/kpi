@@ -1,5 +1,4 @@
 from kobo.apps.subsequences.constants import GOOGLETS
-
 from ..actions.base import ACTION_NEEDED, PASSES, BaseAction
 
 NOT_REQUESTED = 'NOT_REQUESTED'

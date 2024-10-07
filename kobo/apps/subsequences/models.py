@@ -3,11 +3,8 @@ from django.db import models
 
 from kpi.models import Asset
 from kpi.models.abstract_models import AbstractTimeStampedModel
-
 from .constants import GOOGLETS, GOOGLETX
-from .utils.determine_export_cols_with_values import (
-    determine_export_cols_indiv,
-)
+from .utils.determine_export_cols_with_values import determine_export_cols_indiv
 
 
 class SubmissionExtras(AbstractTimeStampedModel):

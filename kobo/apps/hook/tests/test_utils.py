@@ -12,7 +12,7 @@ class HookUtilsTestCase(HookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-        new=MagicMock(return_value=ip_address('1.2.3.4'))
+        new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
     @responses.activate
     def test_data_submission(self):

@@ -207,8 +207,7 @@ class TestDataViewSet(TestBase):
         for i in self.xform.instances.all():
             self.assertIn('hello', i.tags.names())
         # remove tag "hello"
-        request = self.factory.delete('/', data={'tags': 'hello'},
-                                      **self.extra)
+        request = self.factory.delete('/', data={'tags': 'hello'}, **self.extra)
         response = view(request, pk=pk, label='hello')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
@@ -324,9 +323,7 @@ class TestDataViewSet(TestBase):
             )
 
             request = self.factory.get(
-                '/',
-                data={'return_url': 'http://test.io/test_url'},
-                **self.extra
+                '/', data={'return_url': 'http://test.io/test_url'}, **self.extra
             )
 
             with HTTMock(enketo_mock):

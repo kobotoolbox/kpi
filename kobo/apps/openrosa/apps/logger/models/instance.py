@@ -130,7 +130,9 @@ class Instance(AbstractTimeStampedModel):
         if self.xform and not self.xform.downloadable:
             raise FormInactiveError()
 
-        UserProfile = apps.get_model('main', 'UserProfile')  # noqa - Avoid circular imports
+        UserProfile = apps.get_model(
+            'main', 'UserProfile'
+        )  # noqa - Avoid circular imports
         profile, created = UserProfile.objects.get_or_create(user=self.xform.user)
         if not created and profile.metadata.get('submissions_suspended', False):
             raise TemporarilyUnavailableError()

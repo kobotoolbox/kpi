@@ -33,9 +33,7 @@ from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 
 import formpack
-from formpack.constants import (
-    KOBO_LOCK_SHEET,
-)
+from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
     NotesCopyField,
@@ -60,11 +58,7 @@ from kpi.exceptions import XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
 from kpi.utils.log import logging
-from kpi.utils.models import (
-    _load_library_content,
-    create_assets,
-    resolve_url_to_asset,
-)
+from kpi.utils.models import _load_library_content, create_assets, resolve_url_to_asset
 from kpi.utils.project_view_exports import create_project_view_export
 from kpi.utils.rename_xls_sheet import (
     ConflictSheetError,

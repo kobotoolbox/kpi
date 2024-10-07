@@ -38,7 +38,6 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.object_permission import get_database_user
-
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 EXPORT_EXT = {
@@ -125,9 +124,7 @@ def _get_owner(request):
         owner = _get_user(owner)
 
         if owner is None:
-            raise ValidationError(
-                'User with username %(owner)s does not exist.'
-            )
+            raise ValidationError('User with username %(owner)s does not exist.')
 
     return owner
 

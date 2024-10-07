@@ -11,7 +11,6 @@ from google.api_core.exceptions import InvalidArgument
 from google.cloud import speech
 
 from kpi.utils.log import logging
-
 from ...constants import GOOGLETS
 from ...exceptions import (
     AudioTooLongError,

@@ -22,15 +22,17 @@ def explode_assets(apps, schema_editor):
         deployment = asset.assetdeployment_set.last()
         # Copy the deployment-related data
         backend_deployment = OpenRosaDeploymentBackend(asset)
-        backend_deployment.store_data({
-            'backend': 'kobocat',
-            'active': deployment.data['downloadable'],
-            'backend_response': deployment.data,
-            # deployment.asset_version_id was mistakenly set to the id of the
-            # _oldest_ version of the asset, making it useless, so we use zero
-            # as a placeholder
-            'version': 0
-        })
+        backend_deployment.store_data(
+            {
+                'backend': 'kobocat',
+                'active': deployment.data['downloadable'],
+                'backend_response': deployment.data,
+                # deployment.asset_version_id was mistakenly set to the id of the
+                # _oldest_ version of the asset, making it useless, so we use zero
+                # as a placeholder
+                'version': 0,
+            }
+        )
         asset.save()
         assets_done += 1
         if assets_done % asset_progress_interval == 0:

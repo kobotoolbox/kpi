@@ -117,11 +117,7 @@ def get_q(countries: list[str], export_type: str) -> QuerySet:
 
 def get_submission_count(xform_id: int) -> int:
 
-    result = (
-        XForm.objects.values('num_of_submissions')
-        .filter(pk=xform_id)
-        .first()
-    )
+    result = XForm.objects.values('num_of_submissions').filter(pk=xform_id).first()
 
     if not result:
         return 0

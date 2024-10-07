@@ -6,11 +6,7 @@ from datetime import datetime
 import rest_framework.views as rest_framework_views
 from django import forms
 from django.conf import settings
-from django.http import (
-    HttpResponse,
-    HttpResponseNotFound,
-    HttpResponseRedirect,
-)
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.urls import Resolver404, resolve
 from django.utils.translation import gettext as t
 from rest_framework import exceptions
@@ -33,9 +29,7 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
-from kpi.views.v2.paired_data import (
-    OpenRosaDynamicDataAttachmentViewset,
-)
+from kpi.views.v2.paired_data import OpenRosaDynamicDataAttachmentViewset
 
 DECIMAL_PRECISION = 2
 
@@ -53,8 +47,11 @@ def _get_id_for_type(record, mongo_field):
     date_field = datetime_from_str(record[mongo_field])
     mongo_str = '$' + mongo_field
 
-    return {'$substr': [mongo_str, 0, 10]} if isinstance(date_field, datetime)\
+    return (
+        {'$substr': [mongo_str, 0, 10]}
+        if isinstance(date_field, datetime)
         else mongo_str
+    )
 
 
 def publish_xlsform(request, user, existing_xform=None):
@@ -69,17 +66,25 @@ def publish_xlsform(request, user, existing_xform=None):
         )
     ):
         raise exceptions.PermissionDenied(
-            detail=t('User %(user)s has no permission to add xforms to '
-                     'account %(account)s' % {'user': request.user.username,
-                                              'account': user.username}))
+            detail=t(
+                'User %(user)s has no permission to add xforms to '
+                'account %(account)s'
+                % {'user': request.user.username, 'account': user.username}
+            )
+        )
     if (
         existing_xform
         and not request.user.is_superuser
         and not request.user.has_perm('change_xform', existing_xform)
     ):
         raise exceptions.PermissionDenied(
-            detail=t('User %(user)s has no permission to change this '
-                     'form.' % {'user': request.user.username, })
+            detail=t(
+                'User %(user)s has no permission to change this '
+                'form.'
+                % {
+                    'user': request.user.username,
+                }
+            )
         )
 
     def set_form():
@@ -102,8 +107,9 @@ def get_xform(formid, request, username=None):
         xform = check_and_set_form_by_id(int(formid), request)
 
     if not xform:
-        raise exceptions.PermissionDenied(t(
-            'You do not have permission to view data from this form.'))
+        raise exceptions.PermissionDenied(
+            t('You do not have permission to view data from this form.')
+        )
 
     return xform
 

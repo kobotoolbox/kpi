@@ -32,7 +32,7 @@ class EmailTestCase(HookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-        new=MagicMock(return_value=ip_address('1.2.3.4'))
+        new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
     @responses.activate
     def test_notifications(self):
@@ -50,13 +50,17 @@ class EmailTestCase(HookTestCase):
                     'name': self.asset.name,
                     'hook_uid': self.hook.uid,
                     'max_length': len(self.hook.name),
-                    'logs': [{
-                        'hook_name': self.hook.name,
-                        'status_code': first_log_response.get('status_code'),
-                        'message': first_log_response.get('message'),
-                        'uid': first_log_response.get('uid'),
-                        'date_modified': dateparse.parse_datetime(first_log_response.get('date_modified'))
-                    }]
+                    'logs': [
+                        {
+                            'hook_name': self.hook.name,
+                            'status_code': first_log_response.get('status_code'),
+                            'message': first_log_response.get('message'),
+                            'uid': first_log_response.get('uid'),
+                            'date_modified': dateparse.parse_datetime(
+                                first_log_response.get('date_modified')
+                            ),
+                        }
+                    ],
                 }
             }
         }

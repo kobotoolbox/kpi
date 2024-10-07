@@ -3,12 +3,8 @@ from django.conf import settings
 from django.contrib import admin
 from django.db import models
 from django.utils.timezone import now
-from trench.admin import (
-    MFAMethod as TrenchMFAMethod,
-)
-from trench.admin import (
-    MFAMethodAdmin as TrenchMFAMethodAdmin,
-)
+from trench.admin import MFAMethod as TrenchMFAMethod
+from trench.admin import MFAMethodAdmin as TrenchMFAMethodAdmin
 
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models.abstract_models import AbstractTimeStampedModel
@@ -70,9 +66,7 @@ class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
         Update user's profile in KoBoCAT database.
         """
         if not settings.TESTING and not created:
-            UserProfile.set_mfa_status(
-                user_id=self.user.pk, is_active=self.is_active
-            )
+            UserProfile.set_mfa_status(user_id=self.user.pk, is_active=self.is_active)
 
     def delete(self, using=None, keep_parents=False):
         user_id = self.user.pk
@@ -82,9 +76,7 @@ class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
         Update user's profile in KoboCAT database.
         """
         if not settings.TESTING:
-            UserProfile.set_mfa_status(
-                user_id=user_id, is_active=False
-            )
+            UserProfile.set_mfa_status(user_id=user_id, is_active=False)
 
 
 class MfaMethodAdmin(TrenchMFAMethodAdmin):

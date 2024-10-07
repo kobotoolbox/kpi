@@ -52,10 +52,12 @@ def get_meta_from_xml(xml_str, meta_name):
     if children.length == 0:
         raise ValueError(t('XML string must have a survey element.'))
     survey_node = children[0]
-    meta_tags = [n for n in survey_node.childNodes if
-                 n.nodeType == Node.ELEMENT_NODE and
-                 (n.tagName.lower() == 'meta' or
-                     n.tagName.lower() == 'orx:meta')]
+    meta_tags = [
+        n
+        for n in survey_node.childNodes
+        if n.nodeType == Node.ELEMENT_NODE
+        and (n.tagName.lower() == 'meta' or n.tagName.lower() == 'orx:meta')
+    ]
     if len(meta_tags) == 0:
         return None
 
@@ -80,6 +82,7 @@ def get_uuid_from_xml(xml):
         if matches and len(matches.groups()) > 0:
             return matches.groups()[0]
         return None
+
     uuid = get_meta_from_xml(xml, 'instanceID')
     regex = re.compile(r'uuid:(.*)')
     if uuid:
@@ -299,8 +302,10 @@ class XFormInstanceParser:
     def parse(self, xml_str):
         self._xml_obj = clean_and_parse_xml(xml_str)
         self._root_node = self._xml_obj.documentElement
-        repeats = [e.get_abbreviated_xpath()
-                   for e in self.dd.get_survey_elements_of_type('repeat')]
+        repeats = [
+            e.get_abbreviated_xpath()
+            for e in self.dd.get_survey_elements_of_type('repeat')
+        ]
         self._dict = _xml_node_to_dict(self._root_node, repeats)
         if self._dict is None:
             raise InstanceEmptyError

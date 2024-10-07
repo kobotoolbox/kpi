@@ -2,8 +2,8 @@ from functools import partial
 from secrets import token_urlsafe
 
 import django.core.validators
-from django.db import migrations, models
 from django.conf import settings
+from django.db import migrations, models
 
 from kpi.utils.datetime import ten_minutes_from_now
 
@@ -33,9 +33,7 @@ class Migration(migrations.Migration):
                     models.CharField(
                         default=partial(token_urlsafe, nbytes=45),
                         max_length=60,
-                        validators=[
-                            django.core.validators.MinLengthValidator(60)
-                        ],
+                        validators=[django.core.validators.MinLengthValidator(60)],
                     ),
                 ),
                 ('expiry', models.DateTimeField(default=ten_minutes_from_now)),

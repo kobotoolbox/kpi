@@ -28,7 +28,6 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormManifestSerializer,
 )
 from kpi.authentication import DigestAuthentication
-
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
@@ -224,9 +223,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             #  default anymore and the `update()` method is itself
             #  atomic since it does not reference any value previously read
             #  from the database. Is that enough?
-            MetaData.objects.filter(pk=obj.pk).update(
-                date_modified=timezone.now()
-            )
+            MetaData.objects.filter(pk=obj.pk).update(date_modified=timezone.now())
             return True
 
         return False

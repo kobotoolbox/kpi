@@ -50,8 +50,7 @@ class TestSimpleSubmission(TestCase):
             '/yesno></yes_or_no>'), [])
 
     def setUp(self):
-        self.user = User.objects.create(
-            username='admin', email='sample@example.com')
+        self.user = User.objects.create(username='admin', email='sample@example.com')
         self.user.set_password('pass')
         UserProfile.objects.get_or_create(user=self.user)
 

@@ -5,11 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Case, F, When
-from django.db.models.signals import (
-    post_delete,
-    post_save,
-    pre_delete,
-)
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
 from kobo.apps.kobo_auth.shortcuts import User

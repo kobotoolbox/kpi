@@ -11,29 +11,21 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from rest_framework.settings import api_settings
 
-from kobo.apps.openrosa.apps.api.exceptions import (
-    NoConfirmationProvidedAPIException,
-)
+from kobo.apps.openrosa.apps.api.exceptions import NoConfirmationProvidedAPIException
 from kobo.apps.openrosa.apps.api.permissions import (
     EnketoSubmissionEditPermissions,
     EnketoSubmissionViewPermissions,
     XFormDataPermissions,
 )
-from kobo.apps.openrosa.apps.api.tools import (
-    add_tags_to_instance,
-)
-from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import (
-    custom_response_handler,
-)
+from kobo.apps.openrosa.apps.api.tools import add_tags_to_instance
+from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import custom_response_handler
 from kobo.apps.openrosa.apps.logger.exceptions import (
     BuildDbQueriesAttributeError,
     BuildDbQueriesBadArgumentError,
     BuildDbQueriesNoConfirmationProvidedError,
     MissingValidationStatusPayloadError,
 )
-from kobo.apps.openrosa.apps.logger.models.instance import (
-    Instance,
-)
+from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,
@@ -56,7 +48,6 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_enketo_submission_url,
 )
 from kpi.utils.object_permission import get_database_user
-
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
@@ -412,9 +403,9 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         try:
             deleted_records_count = delete_instances(xform, request.data)
         except BuildDbQueriesBadArgumentError:
-            raise ValidationError({
-                'payload': t("`query` and `instance_ids` can't be used together")
-            })
+            raise ValidationError(
+                {'payload': t("`query` and `instance_ids` can't be used together")}
+            )
         except BuildDbQueriesAttributeError:
             raise ValidationError(
                 {'payload': t('Invalid `query` or `submission_ids` params')}
@@ -441,9 +432,9 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
                 xform, request.data, real_user.username
             )
         except BuildDbQueriesBadArgumentError:
-            raise ValidationError({
-                'payload': t("`query` and `instance_ids` can't be used together")
-            })
+            raise ValidationError(
+                {'payload': t("`query` and `instance_ids` can't be used together")}
+            )
         except BuildDbQueriesAttributeError:
             raise ValidationError(
                 {'payload': t('Invalid `query` or `submission_ids` params')}
@@ -497,8 +488,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         try:
             int(dataid)
         except ValueError:
-            raise ParseError(t('Invalid dataid `%(dataid)s`'
-                               % {'dataid': dataid}))
+            raise ParseError(t('Invalid dataid `%(dataid)s`' % {'dataid': dataid}))
 
         return get_object_or_404(Instance, pk=dataid, xform__pk=pk)
 
@@ -552,11 +542,8 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         if request.method != 'GET':
             username = get_database_user(request.user).username
             validation_status_uid = request.data.get('validation_status.uid')
-            if (
-                request.method == 'PATCH'
-                and not add_validation_status_to_instance(
-                    username, validation_status_uid, instance
-                )
+            if request.method == 'PATCH' and not add_validation_status_to_instance(
+                username, validation_status_uid, instance
             ):
                 http_status = status.HTTP_400_BAD_REQUEST
             elif request.method == 'DELETE':

@@ -7,7 +7,6 @@ from django.utils import timezone
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
-
 from ..constants import (
     HOOK_LOG_FAILED,
     HOOK_LOG_PENDING,
@@ -18,9 +17,7 @@ from ..constants import (
 
 class HookLog(AbstractTimeStampedModel):
 
-    hook = models.ForeignKey(
-        'Hook', related_name='logs', on_delete=models.CASCADE
-    )
+    hook = models.ForeignKey('Hook', related_name='logs', on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='hl')
     submission_id = models.IntegerField(  # `KoboCAT.logger.Instance.id`
         default=0, db_index=True

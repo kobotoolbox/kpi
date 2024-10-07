@@ -235,9 +235,7 @@ def _sync_form_content(asset, xform, changes):
     if modified:
         # It's important to update `deployment_data` with the new hash from KC;
         # otherwise, we'll be re-syncing the same content forever (issue #1302)
-        asset.deployment.store_data(
-            {'backend_response': _get_backend_response(xform)}
-        )
+        asset.deployment.store_data({'backend_response': _get_backend_response(xform)})
 
     return modified
 
@@ -253,12 +251,14 @@ def _sync_form_metadata(asset, xform, changes):
         # A brand-new asset
         asset.date_created = xform.date_created
         backend_deployment = OpenRosaDeploymentBackend(asset)
-        backend_deployment.store_data({
-            'backend': 'openrosa',
-            'active': xform.downloadable,
-            'backend_response': _get_backend_response(xform),
-            'version': asset.version_id
-        })
+        backend_deployment.store_data(
+            {
+                'backend': 'openrosa',
+                'active': xform.downloadable,
+                'backend_response': _get_backend_response(xform),
+                'version': asset.version_id,
+            }
+        )
         changes.append('CREATE METADATA')
         asset.set_deployment(kc_deployment)
         # `_sync_permissions()` will save `asset` if it has no `pk`
@@ -288,9 +288,7 @@ def _sync_form_metadata(asset, xform, changes):
             changes.append('NAME')
 
     if fetch_backend_response:
-        asset.deployment.store_data({
-            'backend_response': _get_backend_response(xform)
-        })
+        asset.deployment.store_data({'backend_response': _get_backend_response(xform)})
         modified = True
 
     affected_users = _sync_permissions(asset, xform)

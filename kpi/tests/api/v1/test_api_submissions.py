@@ -1,4 +1,3 @@
-# coding: utf-8
 import pytest
 from django.conf import settings
 from django.urls import reverse
@@ -74,24 +73,26 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
             self._get_endpoint('submission-list'),
             kwargs={'parent_lookup_asset': asset.uid, 'format': 'json'},
         )
-        response = self.client.get(
-            url,
-            {'limit': limit + excess, 'format': 'json'}
-        )
+        response = self.client.get(url, {'limit': limit + excess, 'format': 'json'})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), limit)
 
     def test_list_submissions_as_owner_with_params(self):
         response = self.client.get(
-            self.submission_list_url, {
+            self.submission_list_url,
+            {
                 'format': 'json',
                 'start': 1,
                 'limit': 5,
                 'sort': '{"q1": -1}',
                 'fields': '["q1", "_submitted_by"]',
-                'query': '{"_submitted_by": {"$in": ["unknownuser", "someuser", "anotheruser"]}}',
-            }
+                'query': (
+                    '{"_submitted_by": {"$in":'
+                    ' ["unknownuser", "someuser", "anotheruser"]'
+                    '}}'
+                ),
+            },
         )
         # ToDo add more assertions. E.g. test whether sort, limit, start really work
         self.assertEqual(len(response.data), 5)
@@ -174,6 +175,6 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
         pass
 
 
-class SubmissionValidationStatusApiTests(test_api_submissions.SubmissionValidationStatusApiTests):
+class SubmissionValidationStatusApiTests(test_api_submissions.SubmissionValidationStatusApiTests):  # noqa: E501
 
     URL_NAMESPACE = None

@@ -111,9 +111,7 @@ class UserProfile(models.Model):
         """
         user_profile, created = cls.objects.get_or_create(user_id=user_id)
         user_profile.validated_password = validated
-        user_profile.save(
-            update_fields=['validated_password']
-        )
+        user_profile.save(update_fields=['validated_password'])
 
 
 # TODO, remove this in favor of `kpi.utils.object_permission.get_anonymous_user()`

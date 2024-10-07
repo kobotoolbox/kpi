@@ -9,9 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    http_open_rosa_error_handler,
-)
+from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
@@ -28,9 +26,7 @@ from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.project_views import (
-    user_has_project_view_asset_perm,
-)
+from kpi.utils.project_views import user_has_project_view_asset_perm
 from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin

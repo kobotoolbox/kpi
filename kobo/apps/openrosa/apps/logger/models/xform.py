@@ -56,9 +56,7 @@ class XForm(AbstractTimeStampedModel):
     CLONED_SUFFIX = '_cloned'
     MAX_ID_LENGTH = 100
 
-    xls = ExtendedFileField(
-        storage=default_storage, upload_to=upload_to, null=True
-    )
+    xls = ExtendedFileField(storage=default_storage, upload_to=upload_to, null=True)
     json = models.TextField(default='')
     description = models.TextField(default='', null=True)
     xml = models.TextField()
@@ -74,9 +72,7 @@ class XForm(AbstractTimeStampedModel):
     encrypted = models.BooleanField(default=False)
 
     id_string = models.SlugField(
-        editable=False,
-        verbose_name=t('ID'),
-        max_length=MAX_ID_LENGTH
+        editable=False, verbose_name=t('ID'), max_length=MAX_ID_LENGTH
     )
     title = models.CharField(editable=False, max_length=XFORM_TITLE_LENGTH)
     last_submission_time = models.DateTimeField(blank=True, null=True)
@@ -194,8 +190,7 @@ class XForm(AbstractTimeStampedModel):
         if self.title and title_xml != self.title:
             title_xml = self.title[:XFORM_TITLE_LENGTH]
             title_xml = xml_escape(title_xml)
-            self.xml = title_pattern.sub(
-                '<h:title>%s</h:title>' % title_xml, self.xml)
+            self.xml = title_pattern.sub('<h:title>%s</h:title>' % title_xml, self.xml)
 
         self.title = title_xml
 
@@ -228,10 +223,15 @@ class XForm(AbstractTimeStampedModel):
                   "the existing forms' id_string '%(old_id)s'." %
                   {'new_id': self.id_string, 'old_id': old_id_string}))
 
-        if getattr(settings, 'STRICT', True) and \
-                not re.search(r'^[\w-]+$', self.id_string):
-            raise XLSFormError(t('In strict mode, the XForm ID must be a '
-                               'valid slug and contain no spaces.'))
+        if getattr(settings, 'STRICT', True) and not re.search(
+            r'^[\w-]+$', self.id_string
+        ):
+            raise XLSFormError(
+                t(
+                    'In strict mode, the XForm ID must be a '
+                    'valid slug and contain no spaces.'
+                )
+            )
 
         super().save(*args, **kwargs)
 
@@ -244,6 +244,7 @@ class XForm(AbstractTimeStampedModel):
             self.num_of_submissions = count
             self.save(update_fields=['num_of_submissions'])
         return self.num_of_submissions
+
     submission_count.short_description = t('Submission Count')
 
     def geocoded_submission_count(self):

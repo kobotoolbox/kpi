@@ -246,13 +246,20 @@ def test_autoname_shortens_long_names():
         'Four_score_and_seven_th_on_this_continent_001',
     ]
 
-    assert _name_to_autoname([{'label': x} for x in [
-        'What is your favorite all-time place to go swimming?',
-        'What is your favorite all-time place to go running?',
-        'What is your favorite all-time place to go to relax?',
-    ]]) == ['What_is_your_favorit_place_to_go_swimming',
-            'What_is_your_favorit_place_to_go_running',
-            'What_is_your_favorit_place_to_go_to_relax']
+    assert _name_to_autoname(
+        [
+            {'label': x}
+            for x in [
+                'What is your favorite all-time place to go swimming?',
+                'What is your favorite all-time place to go running?',
+                'What is your favorite all-time place to go to relax?',
+            ]
+        ]
+    ) == [
+        'What_is_your_favorit_place_to_go_swimming',
+        'What_is_your_favorit_place_to_go_running',
+        'What_is_your_favorit_place_to_go_to_relax',
+    ]
 
 
 def test_remove_empty_expressions():

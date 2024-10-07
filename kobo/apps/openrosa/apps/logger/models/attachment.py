@@ -9,19 +9,13 @@ from django.db import models
 from django.utils.http import urlencode
 
 from kobo.apps.openrosa.libs.utils.hash import get_hash
-from kobo.apps.openrosa.libs.utils.image_tools import (
-    get_optimized_image_path,
-    resize,
-)
-from kpi.deployment_backends.kc_access.storage import (
-    KobocatFileSystemStorage,
-)
+from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
+from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
-
 from .instance import Instance
 
 
@@ -149,19 +143,15 @@ class Attachment(models.Model, AudioTranscodingMixin):
             # (out of ASCII character set) and must be encoded to let NGINX serve
             # them
             if optimized_image_path:
-                attachment_file_path = default_storage.path(
-                    optimized_image_path
-                )
-            protected_url = urlquote(attachment_file_path.replace(
-                settings.KOBOCAT_MEDIA_ROOT, '/protected')
+                attachment_file_path = default_storage.path(optimized_image_path)
+            protected_url = urlquote(
+                attachment_file_path.replace(settings.KOBOCAT_MEDIA_ROOT, '/protected')
             )
         else:
             # Double-encode the S3 URL to take advantage of NGINX's
             # otherwise troublesome automatic decoding
             if optimized_image_path:
-                attachment_file_path = default_storage.url(
-                    optimized_image_path
-                )
+                attachment_file_path = default_storage.url(optimized_image_path)
             protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
 
         return protected_url
