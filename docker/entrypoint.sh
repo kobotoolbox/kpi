@@ -79,10 +79,17 @@ fi
 echo 'Restore permissions on logs folder'
 chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
 
-# This can take a while when starting a container with lots of media files.
-# Maybe we should add a disclaimer as we do in KoBoCAT to let the users
-# do it themselves
-chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
+# `chown -R` becomes very slow once a fair amount of media has been collected,
+# so reset ownership of the media directory *only* (i.e., non-recursive)
+echo 'Resetting ownership of media directory...'
+chown "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
+echo 'Done.'
+echo '%%%%%%% NOTICE %%%%%%%'
+echo '% To avoid long delays, we no longer reset ownership *recursively*'
+echo '% every time this container starts. If you have trouble with'
+echo '% permissions, please run the following command inside the KPI container:'
+echo "% chown -R \"${UWSGI_USER}:${UWSGI_GROUP}\" \"${KPI_MEDIA_DIR}\""
+echo '%%%%%%%%%%%%%%%%%%%%%%'
 
 echo 'KPI initialization completed.'
 
