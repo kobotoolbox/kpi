@@ -2,10 +2,7 @@ import threading
 from functools import wraps
 
 from django.conf import settings
-from django.db import (
-    connections,
-    models,
-)
+from django.db import connections, models
 
 thread_local = threading.local()
 
@@ -46,13 +43,16 @@ def update_autofield_sequence(
     # Error:
     #   > setval: value -1 is out of bounds for sequence
     # Using abs() and testing if max(pk) equals -1, leaves the sequence alone.
+
+    # Intermediate variable `single_quotes_args` is just here to lure linter about Q000
+    single_quotes_args = "'{table}','{column}'"
     sql_template = (
-        "SELECT setval("
-        "   pg_get_serial_sequence('{table}','{column}'), "
-        "   abs(coalesce(max({column}), 1)), "
-        "   max({column}) IS NOT null and max({column}) != -1"
-        ") "
-        "FROM {table};"
+        'SELECT setval('
+        f'   pg_get_serial_sequence({single_quotes_args}), '
+        '   abs(coalesce(max({column}), 1)), '
+        '   max({column}) IS NOT null and max({column}) != -1'
+        ') '
+        'FROM {table};'
     )
     autofield = None
     for f in model._meta.get_fields():
@@ -61,9 +61,7 @@ def update_autofield_sequence(
             break
     if not autofield:
         return
-    query = sql_template.format(
-        table=model._meta.db_table, column=autofield.column
-    )
+    query = sql_template.format(table=model._meta.db_table, column=autofield.column)
     connection = connections[using]
     with connection.cursor() as cursor:
         cursor.execute(query)

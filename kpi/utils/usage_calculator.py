@@ -27,34 +27,31 @@ class ServiceUsageCalculator(CachedClass):
         self._user_ids = [user.pk]
         self._user_id_query = self._filter_by_user([user.pk])
         if organization and settings.STRIPE_ENABLED:
-            # if the user is in an organization and has an enterprise plan, get all org users
-            # we evaluate this queryset instead of using it as a subquery because it's referencing
-            # fields from the auth_user tables on kpi *and* kobocat, making getting results in a
-            # single query not feasible until those tables are combined
+            # If the user is in an organization and has an enterprise plan, get all org
+            # users we evaluate this queryset instead of using it as a subquery. It's
+            # referencing fields from the auth_user tables on kpi *and* kobocat,
+            # making getting results in a single query not feasible until those tables
+            # are combined.
             user_ids = list(
                 User.objects.filter(
                     organizations_organization__id=organization.id,
-                    organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-                    organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
-                    organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
-                ).values_list('pk', flat=True)[
-                    : settings.ORGANIZATION_USER_LIMIT
-                ]
+                    organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,  # noqa: E501
+                    organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',  # noqa: E501
+                    organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',  # noqa: E501
+                ).values_list('pk', flat=True)[: settings.ORGANIZATION_USER_LIMIT]
             )
             if user_ids:
                 self._user_ids = user_ids
                 self._user_id_query = self._filter_by_user(user_ids)
 
         now = timezone.now()
-        self.current_month_start, self.current_month_end = (
-            get_monthly_billing_dates(organization)
+        self.current_month_start, self.current_month_end = get_monthly_billing_dates(
+            organization
         )
-        self.current_year_start, self.current_year_end = (
-            get_yearly_billing_dates(organization)
+        self.current_year_start, self.current_year_end = get_yearly_billing_dates(
+            organization
         )
-        self.current_month_filter = Q(
-            date__range=[self.current_month_start, now]
-        )
+        self.current_month_filter = Q(date__range=[self.current_month_start, now])
         self.current_year_filter = Q(date__range=[self.current_year_start, now])
         self._setup_cache()
 
@@ -104,9 +101,7 @@ class ServiceUsageCalculator(CachedClass):
                     0,
                 ),
                 mt_characters_current_month=Coalesce(
-                    Sum(
-                        'total_mt_characters', filter=self.current_month_filter
-                    ),
+                    Sum('total_mt_characters', filter=self.current_month_filter),
                     0,
                 ),
                 asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
@@ -164,9 +159,7 @@ class ServiceUsageCalculator(CachedClass):
 
         total_submission_count = {}
         for submission_key, count in submission_count.items():
-            total_submission_count[submission_key] = (
-                count if count is not None else 0
-            )
+            total_submission_count[submission_key] = count if count is not None else 0
 
         return total_submission_count
 

@@ -6,7 +6,7 @@ from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import get_template
-from django.utils import translation, timezone
+from django.utils import timezone, translation
 from django_celery_beat.models import PeriodicTask
 
 from kobo.celery import celery_app
@@ -54,12 +54,14 @@ def failures_reports():
     Notifies owners' assets by email of hooks failures.
     :return: bool
     """
-    beat_schedule = settings.CELERY_BEAT_SCHEDULE.get("send-hooks-failures-reports")
+    beat_schedule = settings.CELERY_BEAT_SCHEDULE.get('send-hooks-failures-reports')
     # Use `.first()` instead of `.get()`, because task can be duplicated in admin section
 
-    failures_reports_period_task = PeriodicTask.objects.filter(
-        enabled=True,
-        task=beat_schedule.get('task')).order_by("-last_run_at").first()
+    failures_reports_period_task = (
+        PeriodicTask.objects.filter(enabled=True, task=beat_schedule.get('task'))
+        .order_by('-last_run_at')
+        .first()
+    )
 
     if failures_reports_period_task:
 
@@ -70,9 +72,7 @@ def failures_reports():
         if last_run_at:
             queryset = queryset.filter(date_modified__gte=last_run_at)
 
-        queryset = queryset.order_by(
-            'hook__asset__name', 'hook__uid', '-date_modified'
-        )
+        queryset = queryset.order_by('hook__asset__name', 'hook__uid', '-date_modified')
 
         # PeriodicTask are updated every 3 minutes (default).
         # It means, if this task interval is less than 3 minutes, some data can be duplicated in emails.
@@ -138,7 +138,7 @@ def failures_reports():
                 'kpi_base_url': settings.KOBOFORM_URL
             }
             # Localize templates
-            translation.activate(record.get("language"))
+            translation.activate(record.get('language'))
             text_content = plain_text_template.render(variables)
             html_content = html_template.render(variables)
 

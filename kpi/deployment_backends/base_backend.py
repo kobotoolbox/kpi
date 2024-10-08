@@ -7,30 +7,28 @@ import datetime
 import json
 import os
 import uuid
-from datetime import date
 from contextlib import contextmanager
-from typing import Union, Iterator, Optional
+from datetime import date
+from typing import Iterator, Optional, Union
 
 from bson import json_util
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
-from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
-from rest_framework.reverse import reverse
 from rest_framework.pagination import _positive_int as positive_int
+from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    http_open_rosa_error_handler,
-)
+from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.constants import (
-    SUBMISSION_FORMAT_TYPE_XML,
-    SUBMISSION_FORMAT_TYPE_JSON,
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
@@ -194,7 +192,7 @@ class BaseDeploymentBackend(abc.ABC):
                     {
                         'uuid': _uuid,
                         'error': handler.error,
-                        'result': handler.func_return
+                        'result': handler.func_return,
                     }
                 )
         return self.prepare_bulk_update_response(backend_results)
@@ -238,7 +236,9 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, request: 'rest_framework.request.Request',
+        self,
+        submission_id: int,
+        request: 'rest_framework.request.Request',
     ) -> dict:
         pass
 

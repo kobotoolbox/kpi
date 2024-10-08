@@ -22,7 +22,9 @@
   font-size: sizes.$x20;
   font-weight: 800;
   color: colors.$kobo-gray-800;
-  padding: sizes.$x6 sizes.$x16;
+  padding: 2px sizes.$x16;
+  // we want it to be 32px height
+  line-height: 28px;
   max-width: sizes.$x400;
 
   :global {

@@ -1,10 +1,8 @@
-# coding: utf-8
 import json
 
 from django.conf import settings
 from django.db import models
 from guardian.conf import settings as guardian_settings
-from rest_framework.authtoken.models import Token
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
@@ -42,8 +40,8 @@ class UserProfile(models.Model):
     class Meta:
         app_label = 'main'
         permissions = (
-            ('can_add_xform', "Can add/upload an xform to user profile"),
-            ('view_profile', "Can view user profile"),
+            ('can_add_xform', 'Can add/upload an xform to user profile'),
+            ('view_profile', 'Can view user profile'),
         )
 
     def __str__(self):
@@ -114,9 +112,7 @@ class UserProfile(models.Model):
         """
         user_profile, created = cls.objects.get_or_create(user_id=user_id)
         user_profile.validated_password = validated
-        user_profile.save(
-            update_fields=['validated_password']
-        )
+        user_profile.save(update_fields=['validated_password'])
 
 
 # TODO, remove this in favor of `kpi.utils.object_permission.get_anonymous_user()`
