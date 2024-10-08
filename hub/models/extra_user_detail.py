@@ -21,7 +21,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     validated_password = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
+        return "{}'s data: {}".format(self.user.__str__(), repr(self.data))
 
     def save(
         self,

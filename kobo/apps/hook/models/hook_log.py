@@ -8,19 +8,17 @@ from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
 from ..constants import (
-    HookLogStatus,
-    HOOK_LOG_PENDING,
     HOOK_LOG_FAILED,
-    KOBO_INTERNAL_ERROR_STATUS_CODE
+    HOOK_LOG_PENDING,
+    KOBO_INTERNAL_ERROR_STATUS_CODE,
+    HookLogStatus,
 )
 
 
 class HookLog(AbstractTimeStampedModel):
 
-    hook = models.ForeignKey(
-        "Hook", related_name="logs", on_delete=models.CASCADE
-    )
-    uid = KpiUidField(uid_prefix="hl")
+    hook = models.ForeignKey('Hook', related_name='logs', on_delete=models.CASCADE)
+    uid = KpiUidField(uid_prefix='hl')
     submission_id = models.IntegerField(  # `KoboCAT.logger.Instance.id`
         default=0, db_index=True
     )
@@ -32,7 +30,7 @@ class HookLog(AbstractTimeStampedModel):
     status_code = models.IntegerField(
         default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True
     )
-    message = models.TextField(default="")
+    message = models.TextField(default='')
 
     class Meta:
         ordering = ['-date_created']
@@ -94,4 +92,4 @@ class HookLog(AbstractTimeStampedModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return "<HookLog {uid}>".format(uid=self.uid)
+        return '<HookLog {uid}>'.format(uid=self.uid)

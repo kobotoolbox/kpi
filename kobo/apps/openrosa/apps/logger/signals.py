@@ -5,29 +5,22 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Case, F, When
-from django.db.models.signals import (
-    post_save,
-    post_delete,
-    pre_delete,
-)
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
-from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.models.daily_xform_submission_counter import (
     DailyXFormSubmissionCounter,
 )
+from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.monthly_xform_submission_counter import (
     MonthlyXFormSubmissionCounter,
 )
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm, get_perms_for_model
 from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path
-from kobo.apps.openrosa.libs.utils.guardian import (
-    assign_perm,
-    get_perms_for_model
-)
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )

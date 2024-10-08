@@ -43,7 +43,8 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >           ]
     >       }
 
-    Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
+    Results from this endpoint can be filtered by a Boolean query specified in the
+    `q` parameter.
 
     **Some examples:**
 
@@ -62,7 +63,8 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     5. All deleted submissions submitted after a specific date **and time**<br>
         `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
 
-    *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces (e.g. date and time "2022-11-15 20:34")*
+    *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
+    (e.g. date and time "2022-11-15 20:34")*
 
     ### CURRENT ENDPOINT
     """
@@ -189,7 +191,7 @@ class AccessLogViewSet(AuditLogViewSet):
     >       }
 
     This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/access-logs/?offset=100&limit=50
+    >      curl -X GET https://[kpi-url]/access-logs/me?offset=100&limit=50
 
     will return entries 100-149
 
