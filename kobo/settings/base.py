@@ -167,6 +167,7 @@ MIDDLEWARE = [
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
+ #   'kobo.apps.audit_log.middleware.do_thing.middleware',
 ]
 
 
